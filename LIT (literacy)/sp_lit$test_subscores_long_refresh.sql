@@ -1,108 +1,108 @@
-USE KIPP_NJ
+USE KIPP+AF8-NJ
 GO
 
-SET ANSI_NULLS ON
+SET ANSI+AF8-NULLS ON
 GO
 
-SET QUOTED_IDENTIFIER ON
+SET QUOTED+AF8-IDENTIFIER ON
 GO
 
-ALTER PROCEDURE dbo.[sp_lit$test_subscores_long|refresh] AS
+ALTER PROCEDURE dbo.+AFs-sp+AF8-lit+ACQ-test+AF8-subscores+AF8-long+AHw-refresh+AF0- AS
 BEGIN
 
 --variables
-DECLARE @sql AS VARCHAR(MAX)='';
+DECLARE +AEA-sql AS VARCHAR(MAX)+AD0-''+ADs-
 
 	--step 1: truncate result table
-	EXEC('TRUNCATE TABLE KIPP_NJ.DBO.LIT$TEST_SUBSCORES_LONG')
+	EXEC('TRUNCATE TABLE KIPP+AF8-NJ.DBO.LIT+ACQ-TEST+AF8-SUBSCORES+AF8-LONG')
 
 	--step 2: disable nonclustered indexes on table
-	SELECT @sql = @sql + 
-		'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name + ' DISABLE;' +CHAR(13)+CHAR(10)
+	SELECT +AEA-sql +AD0- +AEA-sql +- 
+		'ALTER INDEX ' +- indexes.name +- ' ON  dbo.' +- objects.name +- ' DISABLE+ADs-' +-CHAR(13)+-CHAR(10)
 	FROM 
 		sys.indexes
 	JOIN 
 		sys.objects 
-		ON sys.indexes.object_id = sys.objects.object_id
-	WHERE sys.indexes.type_desc = 'NONCLUSTERED'
-		AND sys.objects.type_desc = 'USER_TABLE'
-		AND sys.objects.name = 'LIT$TEST_SUBSCORES_LONG';
+		ON sys.indexes.object+AF8-id +AD0- sys.objects.object+AF8-id
+	WHERE sys.indexes.type+AF8-desc +AD0- 'NONCLUSTERED'
+		AND sys.objects.type+AF8-desc +AD0- 'USER+AF8-TABLE'
+		AND sys.objects.name +AD0- 'LIT+ACQ-TEST+AF8-SUBSCORES+AF8-LONG'+ADs-
 		
-	EXEC (@sql);
+	EXEC (+AEA-sql)+ADs-
 
 	--step 3: insert rows from remote
-	INSERT INTO dbo.lit$test_subscores_long
-			([CUST_STUDENTID]
-			,[STUDENTID]
-			,[STUDENT_NUMBER]
-			,[RD_TESTID_BASE]
-			,[SCOREID]
-			,[DATE_TAKEN]
-			,[RDG_LEVEL]
-			,[STATUS]
-			,[DCID]
-			,[RD_TESTID_SUB]
-			,[TEST_NAME]
-			,[SUBTEST_NAME]
-			,[FIELDNAME]
-			,[SORTORDER]
-			,[VALUE])
-	SELECT sub.*
+	INSERT INTO dbo.lit+ACQ-test+AF8-subscores+AF8-long
+			(+AFs-CUST+AF8-STUDENTID+AF0-
+			,+AFs-STUDENTID+AF0-
+			,+AFs-STUDENT+AF8-NUMBER+AF0-
+			,+AFs-RD+AF8-TESTID+AF8-BASE+AF0-
+			,+AFs-SCOREID+AF0-
+			,+AFs-DATE+AF8-TAKEN+AF0-
+			,+AFs-RDG+AF8-LEVEL+AF0-
+			,+AFs-STATUS+AF0-
+			,+AFs-DCID+AF0-
+			,+AFs-RD+AF8-TESTID+AF8-SUB+AF0-
+			,+AFs-TEST+AF8-NAME+AF0-
+			,+AFs-SUBTEST+AF8-NAME+AF0-
+			,+AFs-FIELDNAME+AF0-
+			,+AFs-SORTORDER+AF0-
+			,+AFs-VALUE+AF0-)
+	SELECT sub.+ACo-
 			--uncomment to create a destination table
-			--INTO LIT$TEST_SUBSCORES_LONG
-	FROM OPENQUERY(PS_TEAM, '
-			WITH base_tests AS
-				(SELECT foreignKey                       AS cust_studentid
+			--INTO LIT+ACQ-TEST+AF8-SUBSCORES+AF8-LONG
+	FROM OPENQUERY(PS+AF8-TEAM, '
+			WITH base+AF8-tests AS
+				(SELECT foreignKey                       AS cust+AF8-studentid
 											,s.id                             AS studentid
-											,s.student_number
-											,scores.foreignKey_alpha          AS rd_testid_base
-											,scores.unique_id                 AS scoreid
-											,scores.user_defined_date         AS date_taken
-											,user_defined_text                AS rdg_level
-											,user_defined_text2               AS status
+											,s.student+AF8-number
+											,scores.foreignKey+AF8-alpha          AS rd+AF8-testid+AF8-base
+											,scores.unique+AF8-id                 AS scoreid
+											,scores.user+AF8-defined+AF8-date         AS date+AF8-taken
+											,user+AF8-defined+AF8-text                AS rdg+AF8-level
+											,user+AF8-defined+AF8-text2               AS status
 					FROM virtualtablesdata3 scores
-					JOIN students s on s.id = scores.foreignKey 
-					WHERE scores.related_to_table = ''readingScores'' 
-					ORDER BY scores.schoolid, s.grade_level, s.team, s.lastfirst, scores.user_defined_date DESC),
+					JOIN students s on s.id +AD0- scores.foreignKey 
+					WHERE scores.related+AF8-to+AF8-table +AD0- ''readingScores'' 
+					ORDER BY scores.schoolid, s.grade+AF8-level, s.team, s.lastfirst, scores.user+AF8-defined+AF8-date DESC),
 
 				subscores AS
-				(SELECT main_test.dcid
-											,main_test.id rd_testid_sub
-											,main_test.name AS test_name
-											,subtest.NAME AS subtest_name
+				(SELECT main+AF8-test.dcid
+											,main+AF8-test.id rd+AF8-testid+AF8-sub
+											,main+AF8-test.name AS test+AF8-name
+											,subtest.NAME AS subtest+AF8-name
 											,subtest.value2 AS fieldname
 											,subtest.sortorder
-					FROM gen main_test
+					FROM gen main+AF8-test
 					JOIN gen subtest 
-							ON main_test.id = subtest.valueli 
-						AND subtest.cat = ''rdgTestField''
-					WHERE main_test.cat = ''rdgTest''
-					ORDER BY main_test.name)
+							ON main+AF8-test.id +AD0- subtest.valueli 
+						AND subtest.cat +AD0- ''rdgTestField''
+					WHERE main+AF8-test.cat +AD0- ''rdgTest''
+					ORDER BY main+AF8-test.name)
 	   
-	SELECT base_tests.*
-							,subscores.*
-							,PS_CUSTOMFIELDS.GETCF(''readingScores'', subscore_values.unique_id, subscores.fieldname) AS value
-	FROM base_tests
+	SELECT base+AF8-tests.+ACo-
+							,subscores.+ACo-
+							,PS+AF8-CUSTOMFIELDS.GETCF(''readingScores'', subscore+AF8-values.unique+AF8-id, subscores.fieldname) AS value
+	FROM base+AF8-tests
 	JOIN subscores
-			ON base_tests.rd_testid_base = subscores.rd_testid_sub
-	JOIN virtualtablesdata3 subscore_values
-			ON base_tests.scoreid = subscore_values.unique_id'
+			ON base+AF8-tests.rd+AF8-testid+AF8-base +AD0- subscores.rd+AF8-testid+AF8-sub
+	JOIN virtualtablesdata3 subscore+AF8-values
+			ON base+AF8-tests.scoreid +AD0- subscore+AF8-values.unique+AF8-id'
 	) sub
 
 
 	-- Step 4: rebuld all nonclustered indexes on table
-	SELECT @sql = @sql + 
-		'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name +' REBUILD;' +CHAR(13)+CHAR(10)
+	SELECT +AEA-sql +AD0- +AEA-sql +- 
+		'ALTER INDEX ' +- indexes.name +- ' ON  dbo.' +- objects.name +-' REBUILD+ADs-' +-CHAR(13)+-CHAR(10)
 	FROM 
 		sys.indexes
 	JOIN 
 		sys.objects 
-		ON sys.indexes.object_id = sys.objects.object_id
-	WHERE sys.indexes.type_desc = 'NONCLUSTERED'
-		AND sys.objects.type_desc = 'USER_TABLE'
-		AND sys.objects.name = 'LIT$TEST_SUBSCORES_LONG';
+		ON sys.indexes.object+AF8-id +AD0- sys.objects.object+AF8-id
+	WHERE sys.indexes.type+AF8-desc +AD0- 'NONCLUSTERED'
+		AND sys.objects.type+AF8-desc +AD0- 'USER+AF8-TABLE'
+		AND sys.objects.name +AD0- 'LIT+ACQ-TEST+AF8-SUBSCORES+AF8-LONG'+ADs-
 
-	EXEC (@sql);
+	EXEC (+AEA-sql)+ADs-
 
 END
 GO
