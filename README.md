@@ -1,12 +1,12 @@
 mandi
 =====
 
-# General
+## General
 Data management, warehousing, and reporting in SQL Server.
 
 ['mandi' (mun-dHee) is Telugu for 'storehouse, warehouse, godown.']
 
-# Naming Conventions
+## Naming Conventions
 These are important.
 
 +Always include the name of the 'product', and then a $. Otherwise things won't sort nicely and maintenance becomes a nighmare.  For example, if the view relates to MS grades, preface the name with `GRADES$`.
@@ -25,8 +25,8 @@ These are important.
 
 +Stored procedures should have 'sp_' in front of their name.
 
-# Naming your commits
+## Naming your commits
 Jokes are fine but please be descriptive about what changed.
 
-# Code Reviews
+## Code Reviews
 tba.
