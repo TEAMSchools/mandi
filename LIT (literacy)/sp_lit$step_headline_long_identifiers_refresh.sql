@@ -30,7 +30,11 @@ BEGIN
                ,ROW_NUMBER() OVER
                   (PARTITION BY step.studentid
                                ,cohort.year
-                   ORDER BY step.date_taken ASC) AS rn
+                   ORDER BY step.date_taken ASC) AS rn_asc
+               ,ROW_NUMBER() OVER
+                  (PARTITION BY step.studentid
+                               ,cohort.year
+                   ORDER BY step.date_taken DESC) AS rn_desc
          FROM LIT$step_headline_long step
          JOIN COHORT$comprehensive_long cohort
            ON step.studentid = cohort.studentid
