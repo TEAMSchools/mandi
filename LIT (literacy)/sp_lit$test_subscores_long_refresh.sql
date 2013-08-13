@@ -9,14 +9,14 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-CREATE PROCEDURE [dbo].[sp_LIT$test_subscores_long|refresh] AS
+ALTER PROCEDURE [dbo].[sp_LIT$test_subscores_long|refresh] AS
 BEGIN
 
 --variables
 DECLARE @sql AS VARCHAR(MAX)='';
 
 	--step 1: truncate result table
-	EXEC('TRUNCATE TABLE KIPP_NJ.DBO.LIT$TEST_SUBSCORES_LONG')
+	EXEC('TRUNCATE TABLE KIPP_NJ.DBO.LIT$test_subscores_long')
 
 	--step 2: disable nonclustered indexes on table
 	SELECT @sql = @sql + 
@@ -28,7 +28,7 @@ DECLARE @sql AS VARCHAR(MAX)='';
 		ON sys.indexes.object_id = sys.objects.object_id
 	WHERE sys.indexes.type_desc = 'NONCLUSTERED'
 		AND sys.objects.type_desc = 'USER_TABLE'
-		AND sys.objects.name = 'LIT$TEST_SUBSCORES_LONG';
+		AND sys.objects.name = 'LIT$test_subscores_long';
 		
 	EXEC (@sql);
 
@@ -51,7 +51,7 @@ DECLARE @sql AS VARCHAR(MAX)='';
 			,[VALUE])
 	SELECT sub.*
 			--uncomment to create a destination table
-			--INTO LIT$TEST_SUBSCORES_LONG
+			--INTO LIT$test_subscores_long
 	FROM OPENQUERY(PS_TEAM, '
 			WITH base_tests AS
 				(SELECT foreignKey                       AS cust_studentid
@@ -102,7 +102,7 @@ DECLARE @sql AS VARCHAR(MAX)='';
 		ON sys.indexes.object_id = sys.objects.object_id
 	WHERE sys.indexes.type_desc = 'NONCLUSTERED'
 		AND sys.objects.type_desc = 'USER_TABLE'
-		AND sys.objects.name = 'LIT$TEST_SUBSCORES_LONG';
+		AND sys.objects.name = 'LIT$test_subscores_long';
 
 	EXEC (@sql);
 
