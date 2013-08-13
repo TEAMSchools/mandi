@@ -90,9 +90,7 @@ BEGIN
   AND sys.objects.name = 'LIT$step_headline_long#identifiers';
 
  EXEC (@sql);
-
- COMMIT;
- 
+  
 END
 GO
 
