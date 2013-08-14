@@ -6,8 +6,8 @@ ALTER VIEW AR$test_event_detail AS
 --CTE to enable manipulation of this guy w/o ugly self join
 WITH ar_detail AS
     --Rise
-    (SELECT arsp.[iUserID] AS student_number
-          ,rluser.[vchPreviousIDNum]
+    (SELECT arsp.[iUserID] 
+          ,rluser.[vchPreviousIDNum] AS student_number
           ,arsp.[iQuizNumber]
           ,arsp.[vchContentTitle]
           ,arsp.[vchAuthor] 
@@ -124,6 +124,6 @@ SELECT ar_base.*
 FROM ar_detail ar_base
 --self join, same book, in the future
 JOIN ar_detail ar_future
-  ON ar_base.vchPreviousIDNum = ar_future.vchPreviousIDNum
+  ON ar_base.iUserID = ar_future.iUserID
  AND ar_base.iQuizNumber = ar_future.iQuizNumber
  AND (ar_future.dtTaken > ar_base.dtTaken)
