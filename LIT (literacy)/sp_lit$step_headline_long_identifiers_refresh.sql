@@ -77,7 +77,8 @@ BEGIN
       ,[grade_level]
       ,[abbreviation]
       ,[year]
-      ,[rn])
+      ,[rn_asc]
+      ,[rn_desc])
  SELECT *
  FROM [#LIT$step_headline_long#identifiers|refresh];
 
