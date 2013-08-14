@@ -1,6 +1,6 @@
 USE KIPP_NJ
 GO
-CREATE VIEW LIT$TEST_SUBSCORES AS
+CREATE VIEW LIT$test_subscores AS
 SELECT fields.*
       ,names.name AS subscore_name
 FROM OPENQUERY(PS_TEAM, '
@@ -14,5 +14,5 @@ FROM OPENQUERY(PS_TEAM, '
   WHERE rtf.cat = ''rdgTestField'' 
     AND sortorder > 2
   ORDER BY rtf.valueli, rtf.sortorder') fields
- JOIN LIT$TEST_NAMES names
+ JOIN LIT$test_names names
    ON fields.valueli = names.id
