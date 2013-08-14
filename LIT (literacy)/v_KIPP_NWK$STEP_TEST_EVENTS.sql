@@ -1,16 +1,21 @@
-CREATE OR REPLACE VIEW KIPP_NWK$STEP_TEST_EVENTS AS
-SELECT lastfirst || '_' || student_number AS "Student Number"
+--CREATE OR REPLACE VIEW KIPP_NWK$STEP_TEST_EVENTS AS
+SELECT
+      lastfirst || '_' || student_number AS "Student Number"
       ,grade_level AS "Grade Level"
       ,team
+      --,read_teacher AS "Guided Reading Teacher"
       -- STEP ROUND NEEDS TO BE MORE DYNAMIC, ANOTHER TABLE TO DEFINE DATES?
       ,CASE
-        WHEN date_taken LIKE '%AUG%' OR date_taken LIKE '%SEP%' THEN 'Diagnostic'
-        WHEN date_taken LIKE '%OCT%' OR date_taken LIKE '%DEC%' THEN 'T1'
-        WHEN date_taken LIKE '%JAN%' OR date_taken LIKE '%MAR%' THEN 'T2'
-        WHEN date_taken LIKE '%APR%' OR date_taken LIKE '%JUN%' THEN 'T3'
+        WHEN test_date LIKE '%AUG%' OR test_date LIKE '%SEP%' THEN 'Diagnostic'
+        WHEN test_date LIKE '%OCT%' OR test_date LIKE '%DEC%' THEN 'T1'
+        WHEN test_date LIKE '%JAN%' OR test_date LIKE '%MAR%' THEN 'T2'
+        WHEN test_date LIKE '%APR%' OR test_date LIKE '%JUN%' THEN 'T3'
       END AS "Step Round"
-      ,color AS "Test Type"
-      ,step_level AS "Step Level"
+      ,color AS "Test Type"      
+      ,CASE
+        WHEN step_level =  'PreDNA' THEN 'Pre_DNA'
+        ELSE step_level
+      END AS "Step Level"
       ,status
       ,indep_lvl AS "Independent Level"
       ,instruct_lvl AS "Instructional Level"
@@ -135,17 +140,17 @@ SELECT lastfirst || '_' || student_number AS "Student Number"
         WHEN testid = 3380 AND cc_prof2 <  4 THEN 'Below_' || cc_prof2
         WHEN testid = 3380 AND cc_prof2 >= 4 THEN 'Meets_' || cc_prof2
       END AS "STEP 2 - 3 _ Comprehension"
-      
-      /* NOT SELECTED FROM A DROPDOWN, NEED PROFICIENCY LEVELS
+            
       -- STEPS 03 to 12:      ACCURACY      
       ,CASE
         --testids 3380, 3397, 3411, 3425, 3441, 3458, 3474, 3493, 3511, 3527, STEPS 03 - 12
-        WHEN testid IN (3380,3397,3411,3425,3441,3458,3474,3493,3511,3527) AND accuracy =><#  THEN 'Meets_98-100%'
-        WHEN testid IN (3380,3397,3411,3425,3441,3458,3474,3493,3511,3527) AND accuracy =><#  THEN 'Meets_95-97%'
-        WHEN testid IN (3380,3397,3411,3425,3441,3458,3474,3493,3511,3527) AND accuracy =><#  THEN 'Below_90%'
+        WHEN testid IN (3380,3397,3411,3425,3441,3458,3474,3493,3511,3527) AND accuracy = 'Above'   THEN 'Meets_98-100%'
+        WHEN testid IN (3380,3397,3411,3425,3441,3458,3474,3493,3511,3527) AND accuracy = 'Target'  THEN 'Meets_95-97%'
+        WHEN testid IN (3380,3397,3411,3425,3441,3458,3474,3493,3511,3527) AND accuracy = 'Below'   THEN 'Below_90%'
       END AS "STEP 3 - 12 _ Acurracy"
-      */
-      -- accuracy FIELD IS NULL, IF FIELD = ra_errors & IF SAME PROFICIENCY LEVELS AS STEP 02...
+            
+      -- IF FIELD SHOULD BE ra_errors & IF SAME PROFICIENCY LEVELS AS STEP 02...
+      /*
       ,CASE
         --testids 3380, 3397, 3411, 3425, 3441, 3458, 3474, 3493, 3511, 3527, STEPS 03 - 12
         WHEN testid IN (3380,3397,3411,3425,3441,3458,3474,3493,3511,3527) AND ra_errors >= 3 THEN 'Below_Below 90%'
@@ -153,6 +158,7 @@ SELECT lastfirst || '_' || student_number AS "Student Number"
         WHEN testid IN (3380,3397,3411,3425,3441,3458,3474,3493,3511,3527) AND ra_errors =  1 THEN 'Meets_95-97%'
         WHEN testid IN (3380,3397,3411,3425,3441,3458,3474,3493,3511,3527) AND ra_errors =  0 THEN 'Meets_98-100%'
       END AS "STEP 3 - 12 _ Acurracy"
+      */
               
       -- STEPS 04 to 12:      FLUENCY
       ,CASE
@@ -298,22 +304,24 @@ SELECT lastfirst || '_' || student_number AS "Student Number"
         --all contained testids
         --ELSE 'Below'
       END AS "STEP 11 - 12 _ Dev. Spell"
+      
+      -- FOR UNION ALL
+      ,NULL AS "FP_L-Z_Rate"
+      ,NULL AS "FP_L-Z_Fluency"
+      ,NULL AS "FP_L-Z_Accuracy"      
+      ,NULL AS "FP_L-Z_Comprehension"
 
-      -- ISSUE PULLING BOTH STEP AND F&P FIELDS IN SAME QUERY, HAS TO DO WITH JOIN/LEFT OUTER JOIN            
-      ,fp_accuracy AS "FP_L-Z_Accuracy"
-      ,fp_wpmrate AS "FP_L-Z_Rate"
-      ,fp_fluency AS "FP_L-Z_Fluency"
-      ,fp_comp_within + fp_comp_beyond + fp_comp_about AS "FP_L-Z_Comprehension"
 FROM
      (SELECT studentid
             ,lastfirst
             ,student_number
             ,grade_level
             ,team
-            ,date_taken
+            ,test_date
             ,step_level
             ,testid
             ,status
+            ,read_teacher
             ,accuracy
             ,accuracy_1a
             ,accuracy_2b
@@ -362,14 +370,7 @@ FROM
             ,pa_rhymingwds
             ,pa_segmentation
             ,retelling
-            ,total_vwlattmpt
-            ,fp_wpmrate
-            ,fp_fluency
-            ,fp_accuracy
-            ,fp_comp_within
-            ,fp_comp_beyond
-            ,fp_comp_about
-            ,fp_keylever
+            ,total_vwlattmpt            
             ,cc_factual + cc_other + cc_infer AS cc_prof1                 --proficiency critera for STEP(s) 2
             ,cc_factual + cc_infer + cc_ct AS cc_prof2                    --proficiency critera for STEP(s) 3-5,8
             ,cp_orient + cp_121match + cp_slw AS cp_prof                  --proficiency critera for STEP(s) Pre-1
@@ -382,13 +383,13 @@ FROM
             ,scomp_factual + scomp_infer + scomp_ct AS scomp_prof         --proficiency critera for STEP(s) 6-7
             ,wcomp_fact + wcomp_infer AS wcomp_prof1                      --proficiency critera for STEP(s) 9
             ,wcomp_fact + wcomp_infer + wcomp_ct AS wcomp_prof2           --proficiency critera for STEP(s) 10-12
-      FROM
+      FROM           
            (SELECT s.id AS studentid                                    
                   ,s.lastfirst
                   ,s.student_number
                   ,s.grade_level
                   ,s.team
-                  ,user_defined_date AS date_taken
+                  ,user_defined_date AS test_date
                   ,user_defined_text AS step_level
                   ,foreignkey_alpha AS testid
                   ,user_defined_text2 AS status
@@ -412,7 +413,7 @@ FROM
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field18') AS pa_segmentation
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field19') AS accuracy_1a
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field20') AS accuracy_2b
-                  --,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field21') AS -- TO BECOME 'READING TEACHER'
+                  ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field21') AS read_teacher
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field22') AS cc_factual
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field23') AS cc_infer
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field24') AS cc_other
@@ -442,19 +443,12 @@ FROM
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field48') AS devsp_doubsylj
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field49') AS devsp_longv2sw
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field50') AS devsp_rcont2sw
-                  ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field1')  AS fp_wpmrate                  
-                  ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field2')  AS fp_fluency
-                  ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field3')  AS fp_accuracy
-                  ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field4')  AS fp_comp_within
-                  ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field5')  AS fp_comp_beyond
-                  ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field6')  AS fp_comp_about
-                  ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field7')  AS fp_keylever                  
             FROM virtualtablesdata3 scores
-            /*LEFT OUTER*/ JOIN students s ON s.id = scores.foreignKey 
+            JOIN students s ON s.id = scores.foreignKey 
              AND s.id = 3904
             WHERE scores.related_to_table = 'readingScores' 
               AND user_defined_text IS NOT NULL
-              AND foreignkey_alpha >= 3273 
+              AND foreignkey_alpha > 3273 
             ORDER BY scores.schoolid
                     ,s.grade_level
                     ,s.team
