@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW lit$step_growth_measures_long AS
+ALTER VIEW LIT$step_growth_measures_long AS
 SELECT lit_base.studentid
       ,lit_base.schoolid
       ,lit_base.grade_level
@@ -10,6 +10,7 @@ SELECT lit_base.studentid
       ,lit_base.student_number
       ,lit_base.step_level_numeric AS base_step
       ,lit_end.step_level_numeric AS end_step
+      ,CAST(lit_end.step_level_numeric AS int) - CAST(lit_base.step_level_numeric AS int) AS step_change
 FROM LIT$step_headline_long#identifiers lit_base
 LEFT OUTER JOIN LIT$step_headline_long#identifiers lit_end
   ON lit_base.studentid = lit_end.studentid
