@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW AR$progress_to_goals_long AS
+ALTER VIEW AR$progress_to_goals_long AS
 WITH  last_book AS
      (SELECT sub.*
       FROM
@@ -14,12 +14,12 @@ WITH  last_book AS
                      + CAST(DATEPART(DD, detail.dttaken) AS NVARCHAR) + ' '
                      + detail.vchcontenttitle + ' (' 
                      + detail.vchauthor + ' | ' 
-                     +  LTRIM(detail.chfictionnonfiction) + ', Lexile: ' 
+                     + LTRIM(detail.chfictionnonfiction) + ', Lexile: ' 
                      + CAST(ialternatebooklevel_2 AS NVARCHAR) + ') [' 
                      + CAST(detail.iquestionscorrect AS NVARCHAR) + '/' 
-                     +  CAST(detail.iquestionspresented AS NVARCHAR) + ', ' 
+                     + CAST(detail.iquestionspresented AS NVARCHAR) + ', ' 
                      + CAST(CAST(detail.dpercentcorrect * 100 AS INT) AS NVARCHAR) + '% ' 
-                     +   REPLICATE('+', detail.tibookrating) + ']' AS title_string
+                     + REPLICATE('+', detail.tibookrating) + ']' AS title_string
                    ,ROW_NUMBER() OVER
                      (PARTITION BY goals.student_number
                                   ,goals.yearid
@@ -47,7 +47,7 @@ WITH  last_book AS
            --for Rise (and eventually others) summer words are 'bonus'
            --toward year goal.  this requires differentiating between
            --goal start date for calculation and for the join
-          ,CAST('07/01/' + CAST(DATEPART(YYYY,time_period_start) AS NVARCHAR) AS DATE) AS start_date_summer_bonus
+          ,CONVERT(datetime, CAST('07/01/' + CAST(DATEPART(YYYY,time_period_start) AS NVARCHAR) AS DATE), 101) AS start_date_summer_bonus
           --NULL AS start_date_summer_bonus
           --'01-JUN-13' AS start_date_summer_bonus
           ,goals.time_period_start AS [start_date]
@@ -88,7 +88,8 @@ WITH  last_book AS
            END AS time_period_name
           ,goals.words_goal
           ,goals.points_goal
-          ,goals.time_period_start AS start_date_summer_bonus
+          --,goals.time_period_start AS start_date_summer_bonus
+          ,NULL AS start_date_summer_bonus
           ,goals.time_period_start AS start_date
           ,goals.time_period_end AS end_date
     FROM COHORT$comprehensive_long cohort
@@ -248,7 +249,7 @@ FROM
             ,long_goals.end_date
 
             ,SUM(CASE
-                   WHEN ar_all.tipassed = 1 THEN ar_all.iwordcount
+                   WHEN ar_all.tipassed = 1 THEN CAST(ar_all.iwordcount AS BIGINT)
                    ELSE 0
                  END) AS words
             ,SUM(CASE
@@ -260,13 +261,13 @@ FROM
                     (SUM(
                      CASE
                        WHEN ar_all.chfictionnonfiction IS NULL THEN NULL
-                       WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iwordcount
+                       WHEN ar_all.chfictionnonfiction = 'F' THEN CAST(ar_all.iwordcount AS BIGINT)
                        ELSE 0
                      END) /
-                     SUM(ar_all.iwordcount)
+                     SUM(CAST(ar_all.iwordcount AS BIGINT))
                      ) *100, 0
                    ) AS pct_fiction
-            ,ROUND(SUM(ar_all.ialternatebooklevel_2 * ar_all.iwordcount)/SUM(ar_all.iwordcount),0) AS avg_lexile
+            ,ROUND(SUM(CAST(ar_all.ialternatebooklevel_2 * ar_all.iwordcount AS BIGINT))/SUM(CAST(ar_all.iwordcount AS BIGINT)),0) AS avg_lexile
             ,ROUND(AVG(ar_all.tibookrating),1) AS avg_rating
             ,MAX(ar_all.dttaken) AS last_quiz
             
@@ -288,7 +289,7 @@ FROM
                ,long_goals.start_date
                ,long_goals.end_date
       ) totals
-JOIN last_book
+LEFT OUTER JOIN last_book
   ON totals.student_number = last_book.student_number
  --this join is sort of conviluted because we normalized time period names above...
  AND totals.yearid = last_book.yearid
