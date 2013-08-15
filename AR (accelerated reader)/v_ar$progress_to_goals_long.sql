@@ -1,9 +1,42 @@
 USE KIPP_NJ
 GO
 
---CREATE VIEW AR$progress_to_goals_long AS
+CREATE VIEW AR$progress_to_goals_long AS
+WITH  last_book AS
+     (SELECT sub.*
+      FROM
+            (SELECT goals.student_number
+                   ,goals.yearid
+                   ,goals.time_period_hierarchy
+                   ,goals.time_period_start
+                   ,goals.time_period_end
+                   ,CAST(DATEPART(MM, detail.dttaken) AS NVARCHAR) + '/' 
+                     + CAST(DATEPART(DD, detail.dttaken) AS NVARCHAR) + ' '
+                     + detail.vchcontenttitle + ' (' 
+                     + detail.vchauthor + ' | ' 
+                     +  LTRIM(detail.chfictionnonfiction) + ', Lexile: ' 
+                     + CAST(ialternatebooklevel_2 AS NVARCHAR) + ') [' 
+                     + CAST(detail.iquestionscorrect AS NVARCHAR) + '/' 
+                     +  CAST(detail.iquestionspresented AS NVARCHAR) + ', ' 
+                     + CAST(CAST(detail.dpercentcorrect * 100 AS INT) AS NVARCHAR) + '% ' 
+                     +   REPLICATE('+', detail.tibookrating) + ']' AS title_string
+                   ,ROW_NUMBER() OVER
+                     (PARTITION BY goals.student_number
+                                  ,goals.yearid
+                                  ,goals.time_period_hierarchy
+                                  ,goals.time_period_start
+                                  ,goals.time_period_end
+                      ORDER BY detail.dttaken DESC) AS rn_desc
+             FROM AR$goals_long_decode goals
+             JOIN AR$test_event_detail detail
+               ON goals.student_number = detail.student_number
+              AND detail.dtTaken >= goals.time_period_start
+              AND detail.dtTaken <= goals.time_period_end
+             ) sub
+      WHERE rn_desc = 1  
+     ),
 
-WITH long_goals AS 
+     long_goals AS 
     (SELECT cohort.studentid
           ,s.student_number
           ,goals.yearid
@@ -71,6 +104,7 @@ WITH long_goals AS
 --query starts here
 
 SELECT totals.*
+      ,last_book.title_string AS last_book
       ,CASE
       --time period over
          WHEN GETDATE() > end_date THEN words_goal
@@ -203,8 +237,7 @@ SELECT totals.*
        END AS points_needed
       
 FROM    
-
-      (SELECT long_goals.studentid
+     (SELECT long_goals.studentid
             ,long_goals.student_number
             ,long_goals.yearid
             ,long_goals.time_hierarchy
@@ -237,16 +270,7 @@ FROM
             ,ROUND(AVG(ar_all.tibookrating),1) AS avg_rating
             ,MAX(ar_all.dttaken) AS last_quiz
             
-            --SQL server doesn't support
-            /*
-            ,MAX(DATEPART(MM, ar_all.dttaken) + ' ' + ar_all.vchcontenttitle 
-               + ' (' + ar_all.vchauthor + ' | ' +  LTRIM(ar_all.chfictionnonfiction) 
-               + ', ' + ialternatebooklevel_2 + ') [' + ar_all.iquestionscorrect 
-               + '/' +  ar_all.iquestionspresented + ',' + ar_all.dpercentcorrect * 100 
-               + '% ' +   REPLICATE('+', ar_all.tibookrating) + ']') 
-             KEEP (DENSE_RANK FIRST ORDER BY ar_all.dttaken DESC)
-                AS last_book   
-             */
+            --SQL doesn't support KEEP; refactored LAST BOOK
             ,SUM(ar_all.tipassed) AS N_passed
             ,COUNT(ar_all.iuserid) AS N_total      
       FROM long_goals
@@ -264,3 +288,10 @@ FROM
                ,long_goals.start_date
                ,long_goals.end_date
       ) totals
+JOIN last_book
+  ON totals.student_number = last_book.student_number
+ --this join is sort of conviluted because we normalized time period names above...
+ AND totals.yearid = last_book.yearid
+ AND totals.time_hierarchy = last_book.time_period_hierarchy
+ AND totals.start_date = last_book.time_period_start
+ AND totals.end_date = last_book.time_period_end
