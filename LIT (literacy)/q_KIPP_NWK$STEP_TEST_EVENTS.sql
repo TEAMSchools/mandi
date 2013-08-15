@@ -7,9 +7,9 @@ SELECT
       -- STEP ROUND NEEDS TO BE MORE DYNAMIC, ANOTHER TABLE TO DEFINE DATES?
       ,CASE
         WHEN test_date LIKE '%AUG%' OR test_date LIKE '%SEP%' THEN 'Diagnostic'
-        WHEN test_date LIKE '%OCT%' OR test_date LIKE '%DEC%' THEN 'T1'
-        WHEN test_date LIKE '%JAN%' OR test_date LIKE '%MAR%' THEN 'T2'
-        WHEN test_date LIKE '%APR%' OR test_date LIKE '%JUN%' THEN 'T3'
+        WHEN test_date LIKE '%OCT%' OR test_date LIKE '%NOV%' OR test_date LIKE '%DEC%' THEN 'T1'
+        WHEN test_date LIKE '%JAN%' OR test_date LIKE '%FEB%' OR test_date LIKE '%MAR%' THEN 'T2'
+        WHEN test_date LIKE '%APR%' OR test_date LIKE '%MAY%' OR test_date LIKE '%JUN%' THEN 'T3'
       END AS "Step Round"
       ,color AS "Test Type"      
       ,CASE

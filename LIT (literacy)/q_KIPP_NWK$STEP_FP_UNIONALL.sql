@@ -1,8 +1,8 @@
 SELECT step.*
 FROM PS.KIPP_NWK$STEP_TEST_EVENTS step
-;
+
 UNION ALL
-;
+
 -- F&P DATA
 SELECT 
       lastfirst || '_' || student_number AS "Student Number"
@@ -11,15 +11,12 @@ SELECT
       --,read_teacher AS "Guided Reading Teacher"      
       ,CASE
         WHEN test_date LIKE '%AUG%' OR test_date LIKE '%SEP%' THEN 'Diagnostic'
-        WHEN test_date LIKE '%OCT%' OR test_date LIKE '%DEC%' THEN 'T1'
-        WHEN test_date LIKE '%JAN%' OR test_date LIKE '%MAR%' THEN 'T2'
-        WHEN test_date LIKE '%APR%' OR test_date LIKE '%JUN%' THEN 'T3'
+        WHEN test_date LIKE '%OCT%' OR test_date LIKE '%NOV%' OR test_date LIKE '%DEC%' THEN 'T1'
+        WHEN test_date LIKE '%JAN%' OR test_date LIKE '%FEB%' OR test_date LIKE '%MAR%' THEN 'T2'
+        WHEN test_date LIKE '%APR%' OR test_date LIKE '%MAY%' OR test_date LIKE '%JUN%' THEN 'T3'
       END AS "Step Round"
       ,NULL AS "Test Type"      
-      ,CASE
-        WHEN step_level =  'Pre DNA' THEN 'Pre_DNA'
-        ELSE step_level
-      END AS "Step Level"
+      ,'FP_' || step_level AS "Step Level"      
       ,status
       ,NULL AS "Independent Level"
       ,NULL AS "Instructional Level"
@@ -47,10 +44,50 @@ SELECT
       ,NULL AS "STEP 8 - 10 _ Dev. Spell"
       ,NULL AS "STEP 9 - 12 _ Comprehension"
       ,NULL AS "STEP 11 - 12 _ Dev. Spell"
-      ,fp_accuracy AS "FP_L-Z_Accuracy"
-      ,fp_wpmrate AS "FP_L-Z_Rate"
-      ,fp_fluency AS "FP_L-Z_Fluency"
-      ,fp_comp_within + fp_comp_beyond + fp_comp_about AS "FP_L-Z_Comprehension"
+      
+      -- FP:      ACCURACY      
+      ,CASE
+        --testid 3273, F&P
+        WHEN testid = 3273 AND fp_accuracy = 0 THEN 'Meets_100%'
+        WHEN testid = 3273 AND fp_accuracy = 1 THEN 'Meets_99%'
+        WHEN testid = 3273 AND fp_accuracy = 2 THEN 'Meets_98%'
+        WHEN testid = 3273 AND fp_accuracy = 3 THEN 'Meets_97%'
+        WHEN testid = 3273 AND fp_accuracy = 4 THEN 'Meets_96%'
+        WHEN testid = 3273 AND fp_accuracy = 5 THEN 'Meets_95%'
+        WHEN testid = 3273 AND fp_accuracy > 5 THEN 'Below_Below 95%'      
+      END AS "FP_L-Z_Accuracy"
+      
+      -- FP:      RATE
+      ,CASE
+        --testid 3273, F&P
+        WHEN testid = 3273 AND fp_wpmrate >= 126                        THEN 'Meets_Above (126+ w/m)'
+        WHEN testid = 3273 AND fp_wpmrate <= 125 AND fp_wpmrate >= 75   THEN 'Meets_Target (75-125 w/m)'
+        WHEN testid = 3273 AND fp_wpmrate <= 74                         THEN 'Below_Below (-74 w/m)'
+      END AS "FP_L-Z_Rate"
+      
+      -- FP:      FLUENCY
+      ,CASE
+        --testid 3273, F&P
+        WHEN testid = 3273 AND fp_fluency = 3 THEN 'Meets_3'
+        WHEN testid = 3273 AND fp_fluency = 2 THEN 'Meets_2- Target'
+        WHEN testid = 3273 AND fp_fluency = 1 THEN 'Below_1'
+        WHEN testid = 3273 AND fp_fluency = 0 THEN 'Below_0'
+      END AS "FP_L-Z_Fluency"
+      
+      -- FP:      COMPREHENSION
+      ,CASE
+        --testid 3273, F&P
+        WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 0 THEN 'Below_0/9- Unsatisfactory'
+        WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 1 THEN 'Below_1/9- Unsatisfactory'
+        WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 2 THEN 'Below_2/9- Unsatisfactory'
+        WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 3 THEN 'Below_3/9- Unsatisfactory'
+        WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 4 THEN 'Below_4/9- Unsatisfactory'
+        WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 5 THEN 'Below_5/9- Limited'
+        WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about > 5 THEN 'Below_6/9- Limited'
+        WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 5 THEN 'Meets_7/9- Satisfactory'
+        WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 5 THEN 'Meets_8/9- Satisfactory'
+        WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 5 THEN 'Meets_9/9- Excellent'
+      END AS "FP_L-Z_Comprehension"
 FROM           
      (SELECT 
              s.id AS studentid                                    
