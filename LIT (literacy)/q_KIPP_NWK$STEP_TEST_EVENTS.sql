@@ -1,19 +1,16 @@
-CREATE OR REPLACE VIEW KIPP_NWK$STEP_TEST_EVENTS AS
+--CREATE OR REPLACE VIEW KIPP_NWK$STEP_TEST_EVENTS AS
 SELECT
       lastfirst || '_' || student_number AS "Student Number"
       ,grade_level AS "Grade Level"
       ,team
       --,read_teacher AS "Guided Reading Teacher"
       -- STEP ROUND NEEDS TO BE MORE DYNAMIC, ANOTHER TABLE TO DEFINE DATES?
-      /*
       ,CASE
         WHEN test_date LIKE '%AUG%' OR test_date LIKE '%SEP%' THEN 'Diagnostic'
-        WHEN test_date LIKE '%OCT%' OR test_date LIKE '%DEC%' THEN 'T1'
-        WHEN test_date LIKE '%JAN%' OR test_date LIKE '%MAR%' THEN 'T2'
-        WHEN test_date LIKE '%APR%' OR test_date LIKE '%JUN%' THEN 'T3'
+        WHEN test_date LIKE '%OCT%' OR test_date LIKE '%NOV%' OR test_date LIKE '%DEC%' THEN 'T1'
+        WHEN test_date LIKE '%JAN%' OR test_date LIKE '%FEB%' OR test_date LIKE '%MAR%' THEN 'T2'
+        WHEN test_date LIKE '%APR%' OR test_date LIKE '%MAY%' OR test_date LIKE '%JUN%' THEN 'T3'
       END AS "Step Round"
-      */
-      ,test_date AS "Step Round"
       ,color AS "Test Type"      
       ,CASE
         WHEN step_level IN ('PreDNA','Pre DNA') THEN 'Pre_DNA'
@@ -448,11 +445,11 @@ FROM
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field50') AS devsp_rcont2sw
             FROM virtualtablesdata3 scores
             JOIN students s ON s.id = scores.foreignKey 
-             AND s.id = 3904  -- LIMIT TO ONE STUDENT FOR TESTING QUERY
+             --AND s.id = 3904  -- LIMIT TO ONE STUDENT FOR TESTING QUERY
             WHERE scores.related_to_table = 'readingScores' 
               AND user_defined_text IS NOT NULL              
-              AND foreignkey_alpha > 3273 -- STEP DATA ONLY
-              AND user_defined_date > '01-AUG-13'
+              AND foreignkey_alpha >= 3273 -- STEP DATA ONLY
+              AND user_defined_date > '01-JAN-13'
             ORDER BY scores.schoolid
                     ,s.grade_level
                     ,s.team
