@@ -1,3 +1,5 @@
+--CREATE OR REPLACE VIEW KIPP_NWK$STEP_SHAREPOINT_STYLE AS
+
 SELECT step.*
 FROM PS.KIPP_NWK$STEP_TEST_EVENTS step
 
@@ -107,11 +109,13 @@ FROM
             ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field6')  AS fp_comp_about
             ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field7')  AS fp_keylever
       FROM virtualtablesdata3 scores
-      JOIN students s on s.id = scores.foreignKey 
+      JOIN students s
+        ON s.id = scores.foreignKey 
       WHERE scores.related_to_table = 'readingScores' 
         AND user_defined_text is not null 
-        AND foreignkey_alpha = 3273
-        AND s.id = 3904
+        AND foreignkey_alpha = '3273'
+        AND user_defined_date > '01-AUG-13'
+        --AND s.id = 3904
         --AND scores.schoolid = 73252
         --AND scores.user_defined_date LIKE '%AUG-13'
       ) sub_1
