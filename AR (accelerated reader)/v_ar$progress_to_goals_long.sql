@@ -2,7 +2,75 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW AR$progress_to_goals_long AS
-WITH  last_book AS
+WITH long_goals AS 
+    (SELECT cohort.studentid
+          ,s.student_number
+          ,goals.yearid
+          ,1 AS time_hierarchy
+          ,goals.time_period_name
+          ,goals.words_goal
+          ,goals.points_goal
+           --for Rise (and eventually others) summer words are 'bonus'
+           --toward year goal.  this requires differentiating between
+           --goal start date for calculation and for the join
+          ,CONVERT(datetime, CAST('07/01/' + CAST(DATEPART(YYYY,time_period_start) AS NVARCHAR) AS DATE), 101) AS start_date_summer_bonus
+          --NULL AS start_date_summer_bonus
+          --'01-JUN-13' AS start_date_summer_bonus
+          ,goals.time_period_start AS [start_date]
+          ,goals.time_period_end AS end_date     
+    FROM COHORT$comprehensive_long cohort
+    JOIN students s 
+      ON cohort.studentid = s.id  
+    --year
+    JOIN AR$GOALS_LONG_DECODE goals
+       ON CAST(s.student_number AS NVARCHAR) = goals.student_number
+      AND goals.time_period_hierarchy = 1
+      AND cohort.rn = 1
+      AND ((cohort.year - 1990) * 100) = goals.yearid
+    --term
+    UNION ALL
+
+    SELECT cohort.studentid
+          ,s.student_number
+          ,goals.yearid
+          --standardize term names
+          ,2 AS time_hierarchy
+          ,CASE
+             --middle
+             WHEN time_period_name = 'Trimester 1' THEN 'RT1'
+             WHEN time_period_name = 'Trimester 2' THEN 'RT2'
+             WHEN time_period_name = 'Trimester 3' THEN 'RT3'
+             --TEAM
+             WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
+             WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
+             WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
+             WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
+             WHEN time_period_name = 'Reporting Term 5' THEN 'RT5'
+             WHEN time_period_name = 'Reporting Term 6' THEN 'RT6'
+             --high
+             WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
+             WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
+             WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
+             WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
+             --elementary? (CAPSTONE?)
+           END AS time_period_name
+          ,goals.words_goal
+          ,goals.points_goal
+          ,goals.time_period_start AS start_date_summer_bonus
+          ,goals.time_period_start AS start_date
+          ,goals.time_period_end AS end_date
+    FROM COHORT$comprehensive_long cohort
+    JOIN students s 
+      ON cohort.studentid = s.id
+    JOIN AR$goals_long_decode goals
+       ON CAST(s.student_number AS NVARCHAR) = goals.student_number
+      AND goals.time_period_hierarchy = 2
+      AND ((year - 1990) * 100) = goals.yearid
+      AND cohort.year >= 2011
+      AND cohort.rn = 1
+    ),
+      
+      last_book AS
      (SELECT sub.*
       FROM
             (SELECT goals.student_number
@@ -34,74 +102,7 @@ WITH  last_book AS
               AND detail.dtTaken <= goals.time_period_end
              ) sub
       WHERE rn_desc = 1  
-     ),
-
-     long_goals AS 
-    (SELECT cohort.studentid
-          ,s.student_number
-          ,goals.yearid
-          ,1 AS time_hierarchy
-          ,goals.time_period_name
-          ,goals.words_goal
-          ,goals.points_goal
-           --for Rise (and eventually others) summer words are 'bonus'
-           --toward year goal.  this requires differentiating between
-           --goal start date for calculation and for the join
-          ,CONVERT(datetime, CAST('07/01/' + CAST(DATEPART(YYYY,time_period_start) AS NVARCHAR) AS DATE), 101) AS start_date_summer_bonus
-          --NULL AS start_date_summer_bonus
-          --'01-JUN-13' AS start_date_summer_bonus
-          ,goals.time_period_start AS [start_date]
-          ,DATEADD(DAY, 14, goals.time_period_end) AS end_date     
-    FROM COHORT$comprehensive_long cohort
-    JOIN students s 
-      ON cohort.studentid = s.id  
-    --year
-    JOIN AR$GOALS_LONG_DECODE goals
-       ON CAST(s.student_number AS NVARCHAR) = goals.student_number
-      AND goals.time_period_hierarchy = 1
-    --term
-    UNION ALL
-
-    SELECT cohort.studentid
-          ,s.student_number
-          ,goals.yearid
-          --standardize term names
-          ,2 AS time_hierarchy
-          ,CASE
-             --middle
-             WHEN time_period_name = 'Trimester 1' THEN 'RT1'
-             WHEN time_period_name = 'Trimester 2' THEN 'RT2'
-             WHEN time_period_name = 'Trimester 3' THEN 'RT3'
-             --TEAM
-             WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
-             WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
-             WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
-             WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
-             WHEN time_period_name = 'Reporting Term 5' THEN 'RT5'
-             WHEN time_period_name = 'Reporting Term 6' THEN 'RT6'
-             --high
-             WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
-             WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
-             WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
-             WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
-             --elementary? (CAPSTONE?)
-           END AS time_period_name
-          ,goals.words_goal
-          ,goals.points_goal
-          --,goals.time_period_start AS start_date_summer_bonus
-          ,NULL AS start_date_summer_bonus
-          ,goals.time_period_start AS start_date
-          ,goals.time_period_end AS end_date
-    FROM COHORT$comprehensive_long cohort
-    JOIN students s 
-      ON cohort.studentid = s.id
-    JOIN AR$goals_long_decode goals
-       ON CAST(s.student_number AS NVARCHAR) = goals.student_number
-      AND goals.time_period_hierarchy = 2
-      AND ((year - 1990) * 100) = goals.yearid
-      AND cohort.year >= 2011
-    )
-
+     )
 --query starts here
 
 SELECT totals.*
@@ -256,19 +257,20 @@ FROM
                    WHEN ar_all.tipassed = 1 THEN ar_all.dpointsearned
                    ELSE 0
                  END) AS points
-            ,ROUND(AVG(ROUND((ar_all.iquestionscorrect/ar_all.iquestionspresented)*100,0)),0) AS mastery
-            ,ROUND(
-                    (SUM(
+            ,CAST(ROUND((SUM(ar_all.iquestionscorrect + 0.0)  / SUM(ar_all.iquestionspresented + 0.0)) * 100,0) AS INT) AS mastery
+            --,ROUND(AVG(ROUND((ar_all.iquestionscorrect/ar_all.iquestionspresented)*100,0)),0) AS mastery
+            ,CAST(ROUND(
+                    ((SUM(
                      CASE
                        WHEN ar_all.chfictionnonfiction IS NULL THEN NULL
                        WHEN ar_all.chfictionnonfiction = 'F' THEN CAST(ar_all.iwordcount AS BIGINT)
                        ELSE 0
-                     END) /
-                     SUM(CAST(ar_all.iwordcount AS BIGINT))
-                     ) *100, 0
-                   ) AS pct_fiction
+                     END) + 0.0) /
+                     (SUM(CAST(ar_all.iwordcount AS BIGINT)) + 0.0)
+                     ) * 100, 0
+                   ) AS INT) AS pct_fiction
             ,ROUND(SUM(CAST(ar_all.ialternatebooklevel_2 * ar_all.iwordcount AS BIGINT))/SUM(CAST(ar_all.iwordcount AS BIGINT)),0) AS avg_lexile
-            ,ROUND(AVG(ar_all.tibookrating),1) AS avg_rating
+            ,CONVERT(DECIMAL(3,2),ROUND(AVG(ar_all.tibookrating + 0.00),2)) AS avg_rating
             ,MAX(ar_all.dttaken) AS last_quiz
             
             --SQL doesn't support KEEP; refactored LAST BOOK
@@ -279,6 +281,8 @@ FROM
         ON CAST(long_goals.student_number AS NVARCHAR) = ar_all.student_number
        AND ar_all.dttaken >= long_goals.start_date_summer_bonus
        AND ar_all.dttaken <= long_goals.end_date
+       AND ar_all.tiPassed = 1 
+       AND ar_all.tiRowStatus = 1
        GROUP BY long_goals.studentid
                ,long_goals.student_number
                ,long_goals.yearid
