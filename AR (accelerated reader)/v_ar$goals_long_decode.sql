@@ -37,7 +37,7 @@ FROM
             ,ar_default.time_period_start
             ,ar_default.time_period_end
             ,ar_default.time_period_hierarchy
-      FROM COHORT$comprehensive_long cohort
+      FROM COHORT$comprehensive_long#static cohort
       JOIN STUDENTS s
         ON cohort.studentid = s.id
        AND cohort.rn = 1

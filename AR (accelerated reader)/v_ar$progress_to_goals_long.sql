@@ -18,7 +18,7 @@ WITH long_goals AS
           --'01-JUN-13' AS start_date_summer_bonus
           ,goals.time_period_start AS [start_date]
           ,goals.time_period_end AS end_date     
-    FROM COHORT$comprehensive_long cohort
+    FROM COHORT$comprehensive_long#static cohort
     JOIN students s 
       ON cohort.studentid = s.id  
     --year
@@ -59,7 +59,7 @@ WITH long_goals AS
           ,goals.time_period_start AS start_date_summer_bonus
           ,goals.time_period_start AS start_date
           ,goals.time_period_end AS end_date
-    FROM COHORT$comprehensive_long cohort
+    FROM COHORT$comprehensive_long#static cohort
     JOIN students s 
       ON cohort.studentid = s.id
     JOIN AR$goals_long_decode goals
