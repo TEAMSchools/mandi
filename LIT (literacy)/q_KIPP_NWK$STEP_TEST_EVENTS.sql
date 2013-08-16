@@ -445,10 +445,11 @@ FROM
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field50') AS devsp_rcont2sw
             FROM virtualtablesdata3 scores
             JOIN students s ON s.id = scores.foreignKey 
-             AND s.id = 3904  -- LIMIT TO ONE STUDENT FOR TESTING QUERY
+             --AND s.id = 3904  -- LIMIT TO ONE STUDENT FOR TESTING QUERY
             WHERE scores.related_to_table = 'readingScores' 
               AND user_defined_text IS NOT NULL              
-              AND foreignkey_alpha > 3273 -- STEP DATA ONLY
+              AND foreignkey_alpha >= 3273 -- STEP DATA ONLY
+              AND user_defined_date > '01-JAN-13'
             ORDER BY scores.schoolid
                     ,s.grade_level
                     ,s.team
