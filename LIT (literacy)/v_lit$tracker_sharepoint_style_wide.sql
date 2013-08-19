@@ -39,9 +39,9 @@ SELECT unioned.[Student Number]
       ,unioned.[STEP 8 - 10 _ Dev. Spell]
       ,unioned.[STEP 9 - 12 _ Comprehension]
       ,unioned.[STEP 11 - 12 _ Dev. Spell]
-      ,unioned.[FP_L-Z_Rate]
-      ,unioned.[FP_L-Z_Fluency]
       ,unioned.[FP_L-Z_Accuracy]
+      ,unioned.[FP_L-Z_Rate]
+      ,unioned.[FP_L-Z_Fluency]      
       ,unioned.[FP_L-Z_Comprehension]
 FROM OPENQUERY(PS_TEAM, '
   SELECT *
@@ -54,7 +54,7 @@ FROM OPENQUERY(PS_TEAM, '
       ,grade_level AS "Grade Level"
       ,team
       --,read_teacher AS "Guided Reading Teacher"      
-	  ,test_date AS step_round
+	  ,NULL AS step_round
       ,NULL AS "Test Type"      
       ,''FP_'' || step_level AS "Step Level"      
       ,status
@@ -88,13 +88,13 @@ FROM OPENQUERY(PS_TEAM, '
       -- FP:      ACCURACY      
       ,CASE
         --testid 3273, F&P
-        WHEN testid = 3273 AND fp_accuracy = 0 THEN ''Meets_100%''
-        WHEN testid = 3273 AND fp_accuracy = 1 THEN ''Meets_99%''
-        WHEN testid = 3273 AND fp_accuracy = 2 THEN ''Meets_98%''
-        WHEN testid = 3273 AND fp_accuracy = 3 THEN ''Meets_97%''
-        WHEN testid = 3273 AND fp_accuracy = 4 THEN ''Meets_96%''
-        WHEN testid = 3273 AND fp_accuracy = 5 THEN ''Meets_95%''
-        WHEN testid = 3273 AND fp_accuracy > 5 THEN ''Below_Below 95%''      
+        WHEN testid = 3273 AND fp_accuracy = 100 THEN ''Meets_100%''
+        WHEN testid = 3273 AND fp_accuracy = 99  THEN ''Meets_99%''
+        WHEN testid = 3273 AND fp_accuracy = 98  THEN ''Meets_98%''
+        WHEN testid = 3273 AND fp_accuracy = 97  THEN ''Meets_97%''
+        WHEN testid = 3273 AND fp_accuracy = 96  THEN ''Meets_96%''
+        WHEN testid = 3273 AND fp_accuracy = 95  THEN ''Meets_95%''
+        WHEN testid = 3273 AND fp_accuracy < 95  THEN ''Below_Below 95%''      
       END AS "FP_L-Z_Accuracy"
       
       -- FP:      RATE
@@ -128,7 +128,7 @@ FROM OPENQUERY(PS_TEAM, '
         WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 5 THEN ''Meets_8/9- Satisfactory''
         WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 5 THEN ''Meets_9/9- Excellent''
       END AS "FP_L-Z_Comprehension"
-FROM           
+  FROM           
      (SELECT 
              s.id AS studentid                                    
             ,s.lastfirst
@@ -141,7 +141,7 @@ FROM
             ,user_defined_text2 AS status            
             ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field1'')  AS fp_wpmrate                  
             ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field2'')  AS fp_fluency
-            ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field3'')  AS fp_accuracy
+            ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field3'') AS NUMBER)  AS fp_accuracy
             ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field4'')  AS fp_comp_within
             ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field5'')  AS fp_comp_beyond
             ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field6'')  AS fp_comp_about
@@ -158,6 +158,6 @@ FROM
         --AND scores.user_defined_date LIKE ''%AUG-13''
       ) sub_1
 ') unioned
-JOIN LIT$step_rounds step_rounds
+LEFT OUTER JOIN LIT$step_rounds step_rounds
   ON unioned."Step Round" >= step_rounds.Start_Date
  AND unioned."Step Round" <= step_rounds.End_Date
