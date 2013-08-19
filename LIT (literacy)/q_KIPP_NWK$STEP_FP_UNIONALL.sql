@@ -16,7 +16,7 @@ SELECT
         WHEN test_date LIKE '%OCT%' OR test_date LIKE '%NOV%' OR test_date LIKE '%DEC%' THEN 'T1'
         WHEN test_date LIKE '%JAN%' OR test_date LIKE '%FEB%' OR test_date LIKE '%MAR%' THEN 'T2'
         WHEN test_date LIKE '%APR%' OR test_date LIKE '%MAY%' OR test_date LIKE '%JUN%' THEN 'T3'
-      END AS "Step Round"
+      END AS "Step Round"      
       ,NULL AS "Test Type"      
       ,'FP_' || step_level AS "Step Level"      
       ,status
@@ -50,13 +50,13 @@ SELECT
       -- FP:      ACCURACY      
       ,CASE
         --testid 3273, F&P
-        WHEN testid = 3273 AND fp_accuracy = 0 THEN 'Meets_100%'
-        WHEN testid = 3273 AND fp_accuracy = 1 THEN 'Meets_99%'
-        WHEN testid = 3273 AND fp_accuracy = 2 THEN 'Meets_98%'
-        WHEN testid = 3273 AND fp_accuracy = 3 THEN 'Meets_97%'
-        WHEN testid = 3273 AND fp_accuracy = 4 THEN 'Meets_96%'
-        WHEN testid = 3273 AND fp_accuracy = 5 THEN 'Meets_95%'
-        WHEN testid = 3273 AND fp_accuracy > 5 THEN 'Below_Below 95%'      
+        WHEN testid = 3273 AND fp_accuracy = '100'  THEN 'Meets_100%'
+        WHEN testid = 3273 AND fp_accuracy = '99'   THEN 'Meets_99%'
+        WHEN testid = 3273 AND fp_accuracy = '98'   THEN 'Meets_98%'
+        WHEN testid = 3273 AND fp_accuracy = '97'   THEN 'Meets_97%'
+        WHEN testid = 3273 AND fp_accuracy = '96'   THEN 'Meets_96%'
+        WHEN testid = 3273 AND fp_accuracy = '95'   THEN 'Meets_95%'
+        WHEN testid = 3273 AND fp_accuracy < '95'   THEN 'Below_Below 95%'
       END AS "FP_L-Z_Accuracy"
       
       -- FP:      RATE
