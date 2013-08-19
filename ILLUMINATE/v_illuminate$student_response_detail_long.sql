@@ -9,6 +9,4 @@ FROM OPENQUERY(ILLUMINATE, '
   JOIN dna_assessments.students_assessments sa USING (student_assessment_id)
   JOIN dna_assessments.responses r USING (response_id)
   JOIN dna_assessments.fields f USING (field_id)
-  --WHERE sa.assessment_id = 530
-  --AND sa.student_id = 20488
 ')
