@@ -4,7 +4,6 @@ SELECT
       ,grade_level AS "Grade Level"
       ,team
       --,read_teacher AS "Guided Reading Teacher"
-      -- STEP ROUND NEEDS TO BE MORE DYNAMIC, ANOTHER TABLE TO DEFINE DATES?
       ,CASE
         WHEN test_date LIKE '%AUG%' OR test_date LIKE '%SEP%' THEN 'Diagnostic'
         WHEN test_date LIKE '%OCT%' OR test_date LIKE '%NOV%' OR test_date LIKE '%DEC%' THEN 'T1'
@@ -306,9 +305,9 @@ SELECT
       END AS "STEP 11 - 12 _ Dev. Spell"
       
       -- NULL COLUMNS FOR UNION ALL WITH F&P DATA
+      ,NULL AS "FP_L-Z_Accuracy"
       ,NULL AS "FP_L-Z_Rate"
-      ,NULL AS "FP_L-Z_Fluency"
-      ,NULL AS "FP_L-Z_Accuracy"      
+      ,NULL AS "FP_L-Z_Fluency"            
       ,NULL AS "FP_L-Z_Comprehension"
 
 FROM
@@ -445,11 +444,11 @@ FROM
                   ,PS_CUSTOMFIELDS.GETCF('readingScores',scores.unique_id,'Field50') AS devsp_rcont2sw
             FROM virtualtablesdata3 scores
             JOIN students s ON s.id = scores.foreignKey 
-             --AND s.id = 3904  -- LIMIT TO ONE STUDENT FOR TESTING QUERY
+             --AND s.id = 3904  -- HUGE DATA DUMP, LIMIT TO ONE STUDENT FOR TESTING QUERY
             WHERE scores.related_to_table = 'readingScores' 
               AND user_defined_text IS NOT NULL              
-              AND foreignkey_alpha >= 3273 -- STEP DATA ONLY
-              AND user_defined_date > '01-JAN-13'
+              AND foreignkey_alpha > 3273 -- STEP DATA ONLY
+              AND user_defined_date > '01-AUG-13' -- AVOID HISTORIC DATA UNTIL CLEANED UP (8/19/13)
             ORDER BY scores.schoolid
                     ,s.grade_level
                     ,s.team
