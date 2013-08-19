@@ -1,4 +1,6 @@
-CREATE VIEW ILLUMINATE$student_response_detail_long AS
+USE KIPP_NJ
+GO
+CREATE VIEW ILLUMINATE$performance_band_detail_long AS
 SELECT *
 FROM OPENQUERY(ILLUMINATE, '
   SELECT sa.student_id
