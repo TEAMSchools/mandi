@@ -1,4 +1,4 @@
---CREATE OR REPLACE VIEW KIPP_NWK$STEP_TEST_EVENTS AS
+CREATE OR REPLACE VIEW KIPP_NWK$STEP_TEST_EVENTS AS
 SELECT
       lastfirst || '_' || student_number AS "Student Number"
       ,grade_level AS "Grade Level"
