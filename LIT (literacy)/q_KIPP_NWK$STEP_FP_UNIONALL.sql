@@ -1,22 +1,14 @@
---CREATE OR REPLACE VIEW KIPP_NWK$STEP_SHAREPOINT_STYLE AS
-
 SELECT step.*
 FROM PS.KIPP_NWK$STEP_TEST_EVENTS step
 
 UNION ALL
 
--- F&P DATA
 SELECT 
       lastfirst || '_' || student_number AS "Student Number"
       ,grade_level AS "Grade Level"
       ,team
       --,read_teacher AS "Guided Reading Teacher"      
-      ,CASE
-        WHEN test_date LIKE '%AUG%' OR test_date LIKE '%SEP%' THEN 'Diagnostic'
-        WHEN test_date LIKE '%OCT%' OR test_date LIKE '%NOV%' OR test_date LIKE '%DEC%' THEN 'T1'
-        WHEN test_date LIKE '%JAN%' OR test_date LIKE '%FEB%' OR test_date LIKE '%MAR%' THEN 'T2'
-        WHEN test_date LIKE '%APR%' OR test_date LIKE '%MAY%' OR test_date LIKE '%JUN%' THEN 'T3'
-      END AS "Step Round"      
+      ,test_date AS "Step Round"      
       ,NULL AS "Test Type"      
       ,'FP_' || step_level AS "Step Level"      
       ,status
@@ -90,7 +82,6 @@ SELECT
         WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 5 THEN 'Meets_8/9- Satisfactory'
         WHEN testid = 3273 AND fp_comp_within + fp_comp_beyond + fp_comp_about = 5 THEN 'Meets_9/9- Excellent'
       END AS "FP_L-Z_Comprehension"
-      
 FROM           
      (SELECT 
              s.id AS studentid                                    
@@ -113,10 +104,10 @@ FROM
       JOIN students s
         ON s.id = scores.foreignKey 
       WHERE scores.related_to_table = 'readingScores' 
-        AND user_defined_text is not null 
+        AND user_defined_text IS NOT NULL 
         AND foreignkey_alpha = '3273'
-        AND user_defined_date > '01-AUG-13'
+        AND user_defined_date > TO_DATE('01-AUG-13', 'DD-MON-YY')
         --AND s.id = 3904
         --AND scores.schoolid = 73252
         --AND scores.user_defined_date LIKE '%AUG-13'
-      ) sub_1
+      )
