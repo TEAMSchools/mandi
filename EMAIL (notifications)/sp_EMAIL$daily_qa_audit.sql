@@ -27,9 +27,11 @@ BEGIN
   EXEC	@return_value = [dbo].sp_QA$view_query_time
 
   --use the return value to get the results from the QA table
-  SET @sql_audit = 'SELECT *
-  FROM QA$response_time_results
-  WHERE batch_id = @return_value'
+  SET @sql_audit = '
+    SELECT object_name AS "non-cached views"
+          ,CAST(CAST(refresh_time / 1000.0 AS NUMERIC(4,2)) AS NVARCHAR(MAX)) AS "seconds to refresh"
+    FROM KIPP_NJ.dbo.QA$response_time_results
+    WHERE batch_id =' + CAST(@return_value AS VARCHAR)
 
   --sp_TableToHTML is a procedure that TAKES a SQL statement and returns HTML
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_audit, @html_roster OUTPUT
