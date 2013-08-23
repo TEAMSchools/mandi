@@ -2,15 +2,14 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ES_DAILY$hw_reporting AS
-SELECT student_number AS [STUDENT_ID]
-	  ,student_number AS [BASE_STUDENT_NUMBER]
+SELECT student_number	  
 	  ,lastfirst
-	  ,grade_level AS [GRADE]
+	  ,grade_level
 	  ,team
-	  ,[HW_Yearly_Total]
-	  ,[HW_Yearly_Complete]
-	  ,[HW_Yearly_Missing]
-	  ,CAST(ROUND([HW_Yearly_Complete]/[HW_Yearly_Total],2,1) AS FLOAT) AS [HW_Yearly_%]
+	  ,hw_year_total
+	  ,hw_year_complete
+	  ,hw_year_missing
+	  ,CAST(ROUND(hw_year_complete/hw_year_total,2,1) AS FLOAT) AS hw_year_pct
 FROM
 		(SELECT student_number
 			  ,schoolid
@@ -19,13 +18,13 @@ FROM
 			  ,team            
 			  ,SUM(CASE
 					WHEN hw IS NOT NULL THEN 1.0
-				   END) AS [HW_Yearly_Total]      
+				   END) AS hw_year_total
 			  ,SUM(CASE
 					WHEN hw = 'Yes' THEN 1.0
-				   END) AS [HW_Yearly_Complete]
+				   END) AS hw_year_complete
 			  ,SUM(CASE
 					WHEN hw = 'No' THEN 1.0
-				   END) AS [HW_Yearly_Missing]
+				   END) AS hw_year_missing
 		FROM
 			  (SELECT *
 			   FROM ES_DAILY$daily_tracking_long       
