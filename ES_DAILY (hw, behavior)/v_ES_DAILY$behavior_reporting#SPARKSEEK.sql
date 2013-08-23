@@ -4,6 +4,7 @@ GO
 ALTER VIEW ES_DAILY$behavior_reporting#SPARKSEEK AS
 
 SELECT student_number
+	  ,STUDENTID
       ,lastfirst
       ,grade_level
       ,team
@@ -19,7 +20,8 @@ SELECT student_number
       ,CAST(ROUND(orange_total/behavior_days_total,2,1) AS FLOAT) AS orange_pct
       ,CAST(ROUND(red_total/behavior_days_total,2,1) AS FLOAT) AS red_pct
 FROM
-	   (SELECT student_number	  
+	   (SELECT student_number
+			  ,STUDENTID	  
 			  ,lastfirst
 			  ,grade_level
 			  ,team
@@ -53,5 +55,5 @@ FROM
 			   WHERE att_date >= '2013-08-19'
 			   AND schoolid != 73255 --THRIVE has a different behavior system
 			  ) sub_1
-		GROUP BY student_number, schoolid, lastfirst, grade_level, team
+		GROUP BY student_number, studentid, schoolid, lastfirst, grade_level, team
 		) sub_2
