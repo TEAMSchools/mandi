@@ -1,0 +1,17 @@
+USE KIPP_NJ
+GO
+
+CREATE VIEW ES_DAILY$behavior_reporting_long#THRIVE AS
+
+SELECT ATT_DATE
+	  ,STUDENT_NUMBER
+	  ,STUDENTID
+	  ,LASTFIRST
+	  ,GRADE_LEVEL
+	  ,TEAM
+	  ,THRIVE_AM  AS color_1
+	  ,THRIVE_MID AS color_2
+	  ,THRIVE_PM  AS color_3
+FROM ES_DAILY$daily_tracking_long
+WHERE att_date >= '2013-08-19'
+  AND SCHOOLID = 73255 --THRIVE only
