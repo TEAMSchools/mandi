@@ -19,7 +19,7 @@
 USE KIPP_NJ
 GO
 
-CREATE PROCEDURE sp_UTIL$table_to_CSV(
+ALTER PROCEDURE sp_UTIL$table_to_CSV(
 	@vcSqlQuery AS VARCHAR(8000),
 	@vcFilePath AS VARCHAR(500),
 	@vcCsvFileLocation AS VARCHAR(500) OUTPUT
@@ -36,6 +36,8 @@ BEGIN
 	DECLARE @vcFileName AS VARCHAR(500)
 	DECLARE @vcTablePrefix AS VARCHAR(36)
 	DECLARE @vcKillTempTableQuery AS VARCHAR(4000)
+	DECLARE @vcDelimiter AS VARCHAR(5) = '' -- Set default character which will replace data field that has a comma in the record 
+	DECLARE @vcUpdateQuery AS VARCHAR(4000) 
 	
 	BEGIN TRY
     
@@ -53,12 +55,21 @@ BEGIN
 				@vcColumnListQuery = ISNULL(@vcColumnListQuery + '','',''SELECT '') + '''''''' + [Name] + ''''''''
 			FROM tempdb.sys.columns 
 			WHERE [object_id] = OBJECT_ID(''tempdb..##tblTempDataTable_' + @vcTablePrefix + ''')'	
-		
-		--Executing query to keep data into the temporaray table and getting the list fields	
+			
+		--Executing query to keep data into the temporaray table and getting the list of fields	
 		EXECUTE SP_EXECUTESQL 
 			@vcGetColumn,
 			N'@vcColumnListQuery VARCHAR(MAX) OUTPUT',
 			@vcColumnListQuery OUTPUT
+		
+		--Removing comma from data field that has a comma in the record 	
+        SELECT 
+			@vcUpdateQuery = ISNULL(@vcUpdateQuery + ',','UPDATE ##tblTempDataTable_' + @vcTablePrefix + ' SET ') + [Name] + ' = REPLACE(' + [Name] + ','','',''' + @vcDelimiter + ''')'   
+		FROM tempdb.sys.columns 
+		WHERE [object_id] = OBJECT_ID('tempdb..##tblTempDataTable_' + @vcTablePrefix )
+			AND user_type_id IN(167,175,231,239,256)
+				
+       EXECUTE(@vcUpdateQuery)					
 		
 		--Preparing query to keep to save the fields list in the temp file
 		SET @vcColumnListQuery = 'BCP "' + @vcColumnListQuery  + '" ' + 
@@ -100,3 +111,4 @@ BEGIN
 		
 	END CATCH
 END
+GO
