@@ -23,6 +23,7 @@ FROM OPENQUERY(PS_TEAM, '
         ,s.lastfirst
         ,CAST(s.student_number AS VARCHAR(20)) AS student_number
         ,user_defined_date AS test_date
+        ,CAST(user_defined_text AS VARCHAR(20)) AS letter_level
         ,foreignkey_alpha AS testid
         ,user_defined_text2 AS status           
         ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field1'')  AS fp_wpmrate                  

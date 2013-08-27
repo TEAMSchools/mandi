@@ -49,6 +49,7 @@ BEGIN
       ,[LASTFIRST]
       ,[STUDENT_NUMBER]
       ,[TEST_DATE]
+      ,[LETTER_LEVEL]
       ,[TESTID]
       ,[STATUS]
       ,[FP_WPMRATE]
