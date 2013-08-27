@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW ES_DAILY$behavior_reporting_long#THRIVE AS
+ALTER VIEW ES_DAILY$behavior_reporting_long#THRIVE AS
 
 SELECT ATT_DATE
 	  ,STUDENT_NUMBER

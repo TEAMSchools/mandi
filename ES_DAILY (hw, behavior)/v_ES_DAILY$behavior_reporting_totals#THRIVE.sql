@@ -1,7 +1,10 @@
 USE KIPP_NJ
 GO
 
+ALTER VIEW ES_DAILY$behavior_reporting_totals#THRIVE AS
+
 SELECT student_number
+	  ,studentid
       ,lastfirst
       ,grade_level
       ,team
@@ -17,93 +20,103 @@ SELECT student_number
       ,CAST(ROUND(orange_total/behavior_count_total,2,1) AS FLOAT) AS orange_pct
       ,CAST(ROUND(red_total/behavior_count_total,2,1) AS FLOAT) AS red_pct
 FROM
-	   (SELECT student_number	  
-			  ,lastfirst
-			  ,grade_level
-			  ,team			  
-			  --pink
-			  ,SUM(CASE
-					WHEN color_1 = 'Pink' THEN 1.0
-					ELSE 0
-				   END) AS pink_total_1
-			  ,SUM(CASE
-					WHEN color_2 = 'Pink' THEN 1.0
-					ELSE 0
-				   END) AS pink_total_2
-			  ,SUM(CASE
-					WHEN color_3 = 'Pink' THEN 1.0
-					ELSE 0
-				   END) AS pink_total_3
-		      --green
-			  ,SUM(CASE
-					WHEN color_1 = 'Green' THEN 1.0
-					ELSE 0
-				   END) AS green_total_1
-			  ,SUM(CASE
-					WHEN color_2 = 'Green' THEN 1.0
-					ELSE 0
-				   END) AS green_total_2
-			  ,SUM(CASE
-					WHEN color_3 = 'Green' THEN 1.0
-					ELSE 0
-				   END) AS green_total_3
-		      --yellow
-			  ,SUM(CASE
-					WHEN color_1 = 'Yellow' THEN 1.0
-					ELSE 0
-				   END) AS yellow_total_1
-			  ,SUM(CASE
-					WHEN color_2 = 'Yellow' THEN 1.0
-					ELSE 0
-				   END) AS yellow_total_2
-			  ,SUM(CASE
-					WHEN color_3 = 'Yellow' THEN 1.0
-					ELSE 0
-				   END) AS yellow_total_3
-		      --orange
-			  ,SUM(CASE
-					WHEN color_1 = 'Orange' THEN 1.0
-					ELSE 0
-				   END) AS orange_total_1
-			  ,SUM(CASE
-					WHEN color_2 = 'Orange' THEN 1.0
-					ELSE 0
-				   END) AS orange_total_2
-			  ,SUM(CASE
-					WHEN color_3 = 'Orange' THEN 1.0
-					ELSE 0
-				   END) AS orange_total_3
-		      --red
-			  ,SUM(CASE
-					WHEN color_1 = 'Red' THEN 1.0
-					ELSE 0
-				   END) AS red_total_1
-			  ,SUM(CASE
-					WHEN color_2 = 'Red' THEN 1.0
-					ELSE 0
-				   END) AS red_total_2
-			  ,SUM(CASE
-					WHEN color_3 = 'Red' THEN 1.0
-					ELSE 0
-				   END) AS red_total_3			  
-			  --total counts
-			  ,SUM(CASE
-					WHEN color_1 IS NOT NULL THEN 1.0
-					ELSE 0
-				   END) AS counts_total_1
-			  ,SUM(CASE
-					WHEN color_2 IS NOT NULL THEN 1.0
-					ELSE 0
-				   END) AS counts_total_2
-			  ,SUM(CASE
-					WHEN color_3 IS NOT NULL THEN 1.0
-					ELSE 0
-				   END) AS counts_total_3
+		(SELECT student_number
+			   ,studentid
+			   ,lastfirst
+			   ,grade_level
+			   ,team
+			   ,pink_total_1 + pink_total_2 + pink_total_3 AS pink_total
+			   ,green_total_1 + green_total_2 + green_total_3 AS green_total
+			   ,yellow_total_1 + yellow_total_2 + yellow_total_3 AS yellow_total
+			   ,orange_total_1 + orange_total_2 + orange_total_3 AS orange_total
+			   ,red_total_1 + red_total_2 + red_total_3 AS red_total
+			   ,counts_total_1 + counts_total_2 + counts_total_3 AS behavior_count_total
 		FROM
-			  (SELECT *
-			   FROM ES_DAILY$behavior_reporting_long#THRIVE
-			   WHERE att_date >= '2013-08-19'
-			    AND student_number = 11852
-			  ) sub_1
-		GROUP BY student_number, lastfirst, grade_level, team
-		) sub_2
+			   (SELECT student_number
+					  ,studentid	  
+					  ,lastfirst
+					  ,grade_level
+					  ,team			  
+					  --pink
+					  ,SUM(CASE
+							WHEN color_1 = 'Pink' THEN 1.0
+							ELSE 0
+						   END) AS pink_total_1
+					  ,SUM(CASE
+							WHEN color_2 = 'Pink' THEN 1.0
+							ELSE 0
+						   END) AS pink_total_2
+					  ,SUM(CASE
+							WHEN color_3 = 'Pink' THEN 1.0
+							ELSE 0
+						   END) AS pink_total_3
+					  --green
+					  ,SUM(CASE
+							WHEN color_1 = 'Green' THEN 1.0
+							ELSE 0
+						   END) AS green_total_1
+					  ,SUM(CASE
+							WHEN color_2 = 'Green' THEN 1.0
+							ELSE 0
+						   END) AS green_total_2
+					  ,SUM(CASE
+							WHEN color_3 = 'Green' THEN 1.0
+							ELSE 0
+						   END) AS green_total_3
+					  --yellow
+					  ,SUM(CASE
+							WHEN color_1 = 'Yellow' THEN 1.0
+							ELSE 0
+						   END) AS yellow_total_1
+					  ,SUM(CASE
+							WHEN color_2 = 'Yellow' THEN 1.0
+							ELSE 0
+						   END) AS yellow_total_2
+					  ,SUM(CASE
+							WHEN color_3 = 'Yellow' THEN 1.0
+							ELSE 0
+						   END) AS yellow_total_3
+					  --orange
+					  ,SUM(CASE
+							WHEN color_1 = 'Orange' THEN 1.0
+							ELSE 0
+						   END) AS orange_total_1
+					  ,SUM(CASE
+							WHEN color_2 = 'Orange' THEN 1.0
+							ELSE 0
+						   END) AS orange_total_2
+					  ,SUM(CASE
+							WHEN color_3 = 'Orange' THEN 1.0
+							ELSE 0
+						   END) AS orange_total_3
+					  --red
+					  ,SUM(CASE
+							WHEN color_1 = 'Red' THEN 1.0
+							ELSE 0
+						   END) AS red_total_1
+					  ,SUM(CASE
+							WHEN color_2 = 'Red' THEN 1.0
+							ELSE 0
+						   END) AS red_total_2
+					  ,SUM(CASE
+							WHEN color_3 = 'Red' THEN 1.0
+							ELSE 0
+						   END) AS red_total_3			  
+					  --total counts
+					  ,SUM(CASE
+							WHEN color_1 IS NOT NULL THEN 1.0
+						   END) AS counts_total_1
+					  ,SUM(CASE
+							WHEN color_2 IS NOT NULL THEN 1.0
+						   END) AS counts_total_2
+					  ,SUM(CASE
+							WHEN color_3 IS NOT NULL THEN 1.0
+						   END) AS counts_total_3
+				FROM
+					  (SELECT *
+					   FROM ES_DAILY$behavior_reporting_long#THRIVE
+					   WHERE att_date >= '2013-08-19'						
+					  ) sub_1
+				GROUP BY student_number, studentid, lastfirst, grade_level, team
+				) sub_2
+		) sub_3
