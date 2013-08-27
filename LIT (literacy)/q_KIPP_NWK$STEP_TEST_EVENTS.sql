@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW KIPP_NWK$STEP_TEST_EVENTS AS
+--CREATE OR REPLACE VIEW KIPP_NWK$STEP_TEST_EVENTS AS
 SELECT
       lastfirst || '_' || student_number AS "Student Number"
       ,grade_level AS "Grade Level"
@@ -379,11 +379,11 @@ FROM
             ,devsp_first + devsp_svs + devsp_final AS devsp_prof1         --proficiency critera for STEP(s) 1-3
             ,devsp_svs + devsp_ifbd AS devsp_prof2                        --proficiency critera for STEP(s) 4-5
             ,ocomp_factual + ocomp_ct AS ocomp_prof1                      --proficiency critera for STEP(s) 6
-            ,ocomp_factual + ocomp_ct + ocomp_infer AS ocomp_prof2        --proficiency critera for STEP(s) 7,9,12
-            ,ocomp_ct + ocomp_infer AS ocomp_prof3                        --proficiency critera for STEP(s) 10-11
+            ,ocomp_ct + ocomp_infer + ocomp_factual AS ocomp_prof2        --proficiency critera for STEP(s) 7,9,12
+            ,ocomp_ct + ocomp_infer + ocomp_factual AS ocomp_prof3        --proficiency critera for STEP(s) 10-11
             ,rr_121match + rr_holdspattern + rr_understanding AS rr_prof  --proficiency critera for STEP(s) 1
             ,scomp_factual + scomp_infer + scomp_ct AS scomp_prof         --proficiency critera for STEP(s) 6-7
-            ,wcomp_fact + wcomp_infer AS wcomp_prof1                      --proficiency critera for STEP(s) 9
+            ,wcomp_fact + wcomp_infer + wcomp_ct AS wcomp_prof1           --proficiency critera for STEP(s) 9
             ,wcomp_fact + wcomp_infer + wcomp_ct AS wcomp_prof2           --proficiency critera for STEP(s) 10-12
       FROM           
            (SELECT s.id AS studentid                                    
@@ -451,7 +451,7 @@ FROM
             WHERE scores.related_to_table = 'readingScores' 
               AND user_defined_text IS NOT NULL              
               AND foreignkey_alpha > 3273 -- STEP DATA ONLY
-              AND user_defined_date > '01-AUG-13' -- AVOID HISTORIC DATA UNTIL CLEANED UP (8/19/13)
+              --AND user_defined_date > '01-AUG-13' -- AVOID HISTORIC DATA UNTIL CLEANED UP (8/19/13)
             ORDER BY scores.schoolid
                     ,s.grade_level
                     ,s.team
