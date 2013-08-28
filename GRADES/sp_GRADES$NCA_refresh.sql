@@ -1,7 +1,6 @@
 USE [KIPP_NJ]
 GO
 
-/****** Object:  StoredProcedure [dbo].[sp_TS_GRADES$NCA|FRESH]    Script Date: 06.07.2013 2:11:00 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -518,41 +517,41 @@ BEGIN
         FROM stage_2
         JOIN (SELECT gradescaleid
                     ,course_number
-                FROM dbo.courses) courses   
+                FROM COURSES) courses   
           ON stage_2.course_number = courses.course_number
         
-        LEFT OUTER JOIN dbo.courses$grade_scales as gradescale_Q1 
-          ON courses.gradescaleid = gradescale_Q1.gradescaleid 
+        LEFT OUTER JOIN GRADES$grade_scales AS gradescale_Q1 
+          ON courses.gradescaleid = gradescale_Q1.scale_id
          AND stage_2.Q1 >= gradescale_Q1.low_cut 
          AND stage_2.Q1 < gradescale_Q1.high_cut
         
-        LEFT OUTER JOIN dbo.courses$grade_scales as gradescale_Q2 
-          ON courses.gradescaleid = gradescale_Q2.gradescaleid 
+        LEFT OUTER JOIN GRADES$grade_scales AS gradescale_Q2 
+          ON courses.gradescaleid = gradescale_Q2.scale_id
          AND stage_2.Q2 >= gradescale_Q2.low_cut 
          AND stage_2.Q2 < gradescale_Q2.high_cut
         
-        LEFT OUTER JOIN dbo.courses$grade_scales as gradescale_Q3 
-          ON courses.gradescaleid = gradescale_Q3.gradescaleid 
+        LEFT OUTER JOIN GRADES$grade_scales AS gradescale_Q3 
+          ON courses.gradescaleid = gradescale_Q3.scale_id
          AND stage_2.Q3 >= gradescale_Q3.low_cut 
          AND stage_2.Q3 < gradescale_Q3.high_cut
         
-        LEFT OUTER JOIN dbo.courses$grade_scales as gradescale_Q4 
-          ON courses.gradescaleid = gradescale_Q4.gradescaleid 
+        LEFT OUTER JOIN GRADES$grade_scales AS gradescale_Q4 
+          ON courses.gradescaleid = gradescale_Q4.scale_id
          AND stage_2.Q4 >= gradescale_Q4.low_cut 
          AND stage_2.Q4 < gradescale_Q4.high_cut
          
-        LEFT OUTER JOIN dbo.courses$grade_scales  as gradescale_E1 
-          ON courses.gradescaleid = gradescale_E1.gradescaleid 
+        LEFT OUTER JOIN GRADES$grade_scales AS gradescale_E1 
+          ON courses.gradescaleid = gradescale_E1.scale_id
          AND stage_2.E1 >= gradescale_E1.low_cut 
          AND stage_2.E1 < gradescale_E1.high_cut
          
-        LEFT OUTER JOIN dbo.courses$grade_scales as gradescale_E2 
-          ON courses.gradescaleid = gradescale_E2.gradescaleid 
+        LEFT OUTER JOIN GRADES$grade_scales AS gradescale_E2 
+          ON courses.gradescaleid = gradescale_E2.scale_id
          AND stage_2.E2 >= gradescale_E2.low_cut 
          AND stage_2.E2 < gradescale_E2.high_cut
          
-        LEFT OUTER JOIN dbo.courses$grade_scales as gradescale_Y1 
-          ON courses.gradescaleid = gradescale_Y1.gradescaleid 
+        LEFT OUTER JOIN GRADES$grade_scales AS gradescale_Y1 
+          ON courses.gradescaleid = gradescale_Y1.scale_id 
          AND stage_2.Y1 >= gradescale_Y1.low_cut 
          AND stage_2.Y1 < gradescale_Y1.high_cut
 
