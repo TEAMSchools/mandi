@@ -2,7 +2,18 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ES_DAILY$daily_tracking_long AS
-SELECT *
+SELECT schoolid
+	  ,REPLACE(CONVERT(VARCHAR(11),ATT_DATE,6),' ','-') AS att_date
+	  ,studentid
+	  ,student_number
+	  ,lastfirst
+	  ,grade_level
+	  ,team
+	  ,hw
+	  ,color_day
+	  ,thrive_am
+	  ,thrive_mid
+	  ,thrive_pm
 FROM OPENQUERY(PS_TEAM, '
 		SELECT schoolid
 			  ,att_date
