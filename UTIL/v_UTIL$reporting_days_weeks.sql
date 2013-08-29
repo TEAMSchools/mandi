@@ -3,6 +3,7 @@ GO
 ALTER VIEW UTIL$reporting_weeks_days AS
 SELECT reporting_hash
       ,year
+      ,academic_year
       ,week
        --weeks can cross years; need to disambiguate
       ,MAX(weekday_start) AS weekday_start
@@ -11,6 +12,10 @@ SELECT reporting_hash
 FROM
     (SELECT w.reporting_hash
            ,w.year
+           ,CASE
+              WHEN w.week <= 29 THEN w.year - 1
+              ELSE w.year
+            END AS academic_year
            ,w.week
            ,d_start.date AS weekday_start
            ,d_end.date AS weekday_end
@@ -29,4 +34,5 @@ FROM
      ) sub
 GROUP BY reporting_hash
         ,year
+        ,academic_year
         ,week
