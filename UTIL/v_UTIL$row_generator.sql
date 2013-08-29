@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---CREATE VIEW UTIL$row_generator AS
+ALTER VIEW UTIL$row_generator AS
 WITH Nbrs_3(n) AS (SELECT 1 UNION SELECT 0)
     ,Nbrs_2(n) AS (SELECT 1 FROM Nbrs_3 n1 CROSS JOIN Nbrs_3 n2)
     ,Nbrs_1(n) AS (SELECT 1 FROM Nbrs_2 n1 CROSS JOIN Nbrs_2 n2)
