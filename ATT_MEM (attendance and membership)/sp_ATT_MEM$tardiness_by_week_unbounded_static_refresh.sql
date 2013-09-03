@@ -20,9 +20,9 @@ BEGIN
 		
 		--STEP 2: load into a TEMPORARY staging table.
 		SELECT *
-		--INTO [#ATT_MEM$tardiness_by_week_unbounded#static|refresh]
+		INTO [#ATT_MEM$tardiness_by_week_unbounded#static|refresh]
 		--FOR CREATING TABLE FIRST TIME
-		INTO ATT_MEM$tardiness_by_week_unbounded#static
+		--INTO ATT_MEM$tardiness_by_week_unbounded#static
 FROM OPENQUERY(PS_TEAM, '
 SELECT studentid
       ,school
@@ -155,7 +155,7 @@ FROM
                           FROM students
                           LEFT OUTER JOIN PS_ADAADM_DAILY_CTOD att
                             ON students.id = att.studentid
-                           AND students.id = 2580
+                           --AND students.id = 2580
                           LEFT OUTER JOIN schools
                             ON att.schoolid = schools.school_number
                           WHERE students.enroll_status <= 0
