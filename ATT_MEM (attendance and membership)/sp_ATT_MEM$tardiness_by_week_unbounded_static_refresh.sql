@@ -108,23 +108,28 @@ FROM
                       ,SUM(SUM(mem_value)) OVER
                          (PARTITION BY studentid
                                       ,grade_level
+                                      ,yearid
                           ORDER BY studentid
                                   ,calendardate
                           ROWS UNBOUNDED PRECEDING) AS rolling_mem
                       ,SUM(SUM(tardy_value)) OVER
                          (PARTITION BY studentid
+                                      ,grade_level
+                                      ,yearid
                           ORDER BY studentid
                                   ,calendardate
                           ROWS UNBOUNDED PRECEDING) AS rolling_tardy
                       ,MAX(reporting_hash) OVER
                           (PARTITION BY studentid
                                        ,grade_level
+                                       ,yearid
                           ORDER BY studentid
                                   ,calendardate
                           ROWS UNBOUNDED PRECEDING) AS max_hash
                       ,MIN(reporting_hash) OVER
                           (PARTITION BY studentid
                                        ,grade_level
+                                       ,yearid
                           ORDER BY studentid
                                   ,calendardate
                           ROWS UNBOUNDED PRECEDING) AS min_hash
@@ -155,7 +160,6 @@ FROM
                           FROM students
                           LEFT OUTER JOIN PS_ADAADM_DAILY_CTOD att
                             ON students.id = att.studentid
-                           --AND students.id = 2580
                           LEFT OUTER JOIN schools
                             ON att.schoolid = schools.school_number
                           WHERE students.enroll_status <= 0
