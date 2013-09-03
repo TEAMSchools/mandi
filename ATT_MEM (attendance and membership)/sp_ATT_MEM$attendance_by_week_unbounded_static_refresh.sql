@@ -76,12 +76,14 @@ FROM
                  last_value(rolling_mem IGNORE NULLS) OVER 
                 (PARTITION BY studentid
                              ,grade_level
+                             ,yearid
                  ORDER BY  weeks.reporting_hash ASC)
                ,0) mem_dense
                ,nvl(
                  last_value(rolling_att IGNORE NULLS) OVER 
                 (PARTITION BY studentid 
                              ,grade_level
+                             ,yearid
                  ORDER BY  weeks.reporting_hash ASC)
                ,0) att_dense
         FROM
