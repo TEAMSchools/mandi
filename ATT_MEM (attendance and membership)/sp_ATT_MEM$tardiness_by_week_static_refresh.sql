@@ -7,7 +7,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
  
-CREATE PROCEDURE [dbo].[sp_ATT_MEM$tardiness_by_week#static|refresh] AS
+ALTER PROCEDURE [dbo].[sp_ATT_MEM$tardiness_by_week#static|refresh] AS
 BEGIN
 
  DECLARE @sql AS VARCHAR(MAX)='';
@@ -135,7 +135,7 @@ FROM
                               LEFT OUTER JOIN schools
                                 ON att.schoolid = schools.school_number
                               WHERE students.enroll_status <= 0
-                                AND students.id = 2495
+                                --AND students.id = 2495
                             ) level_1 
                         LEFT OUTER JOIN PS_ATTENDANCE_DAILY ATT_D
                           ON level_1.studentid=att_d.studentid
