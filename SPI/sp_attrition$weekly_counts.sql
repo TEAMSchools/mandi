@@ -1,7 +1,24 @@
-USE SPI
+USE [SPI]
 GO
 
-ALTER VIEW ATTRITION$weekly_counts AS
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+ 
+ALTER PROCEDURE [dbo].[sp_ATTRITION$weekly_counts#static|refresh] AS
+BEGIN
+
+ DECLARE @sql AS VARCHAR(MAX)='';
+
+ --STEP 1: make sure no temp table
+		IF OBJECT_ID(N'tempdb..#ATTRITION$weekly_counts#static|refresh') IS NOT NULL
+		BEGIN
+						DROP TABLE [#ATTRITION$weekly_counts#static|refresh]
+		END;
+		
+		--STEP 2: load into a TEMPORARY staging table.
 WITH week_scaffold AS
     (SELECT reporting_hash
            ,year
@@ -49,6 +66,7 @@ SELECT TOP 10000000000
       ,CAST(AVG(attr_dummy) * 100 AS NUMERIC (4,1)) AS pct_attr
       ,CAST(SUM(attr_dummy) AS INT) AS n_transf
       ,COUNT(*) AS N
+		INTO [#ATTRITION$weekly_counts#static|refresh]
 FROM    
    (SELECT wk.reporting_hash
           ,wk.academic_year
@@ -80,3 +98,45 @@ GROUP BY reporting_hash
              ,grade_level)
 ORDER BY reporting_hash
         ,school
+        
+  --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
+  --SELECT 1 FROM [ATT_MEM$weekly_off_track_totals] WITH (TABLOCKX);
+
+  --STEP 4: truncate 
+  EXEC('TRUNCATE TABLE dbo.[ATTRITION$weekly_counts#static]');
+
+  --STEP 5: disable all nonclustered indexes on table
+  SELECT @sql = @sql + 
+   'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name + ' DISABLE;' +CHAR(13)+CHAR(10)
+  FROM 
+   sys.indexes
+  JOIN 
+   sys.objects 
+   ON sys.indexes.object_id = sys.objects.object_id
+  WHERE sys.indexes.type_desc = 'NONCLUSTERED'
+   AND sys.objects.type_desc = 'USER_TABLE'
+   AND sys.objects.name = 'ATTRITION$weekly_counts#static';
+
+ EXEC (@sql);
+
+ -- step 3: insert rows from remote source
+ INSERT INTO SPI..[ATTRITION$weekly_counts#static]
+ SELECT *
+ FROM [#ATTRITION$weekly_counts#static|refresh];
+
+ -- Step 4: rebuld all nonclustered indexes on table
+ SELECT @sql = @sql + 
+  'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name +' REBUILD;' +CHAR(13)+CHAR(10)
+ FROM 
+  sys.indexes
+ JOIN 
+  sys.objects 
+  ON sys.indexes.object_id = sys.objects.object_id
+ WHERE sys.indexes.type_desc = 'NONCLUSTERED'
+  AND sys.objects.type_desc = 'USER_TABLE'
+  AND sys.objects.name = 'ATTRITION$weekly_counts#static';
+
+ EXEC (@sql);
+  
+END
+GO
