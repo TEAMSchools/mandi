@@ -29,9 +29,9 @@ FROM OPENQUERY(PS_TEAM, '
         ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field1'')  AS fp_wpmrate                  
         ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field2'')  AS fp_fluency
         ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field3'')  AS fp_accuracy
-        ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field4'')  AS fp_comp_within
-        ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field5'')  AS fp_comp_beyond
-        ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field6'')  AS fp_comp_about
+        ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field4'') AS INT)  AS fp_comp_within
+        ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field5'') AS INT)  AS fp_comp_beyond
+        ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field6'') AS INT)  AS fp_comp_about
         ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field7'') AS VARCHAR(20)) AS fp_keylever
         ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field1'') AS VARCHAR(20)) AS read_teacher
   FROM virtualtablesdata3 scores
@@ -46,3 +46,4 @@ JOIN COHORT$comprehensive_long cohort
  AND openq.test_date >= cohort.entrydate
  AND openq.test_date <= cohort.exitdate
  AND cohort.rn = 1
+GROUP BY openq.studentid, openq.lastfirst, openq.student_number, openq.test_date, openq.letter_level, openq.testid, openq.status, openq.fp_wpmrate, openq.fp_fluency, openq.fp_accuracy, openq.fp_comp_within, openq.fp_comp_beyond, openq.fp_comp_about, openq.fp_keylever, openq.read_teacher, cohort.schoolid, cohort.grade_level, cohort.abbreviation, cohort.year
