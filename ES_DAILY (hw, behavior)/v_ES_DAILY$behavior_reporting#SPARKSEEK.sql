@@ -14,11 +14,11 @@ SELECT student_number
       ,orange_total
       ,red_total
       ,behavior_days_total
-      ,CAST(ROUND(purple_total/behavior_days_total,2,1) AS FLOAT) AS purple_pct
-      ,CAST(ROUND(green_total/behavior_days_total,2,1) AS FLOAT) AS green_pct
-      ,CAST(ROUND(yellow_total/behavior_days_total,2,1) AS FLOAT) AS yellow_pct
-      ,CAST(ROUND(orange_total/behavior_days_total,2,1) AS FLOAT) AS orange_pct
-      ,CAST(ROUND(red_total/behavior_days_total,2,1) AS FLOAT) AS red_pct
+      ,CAST(ROUND(purple_total/behavior_days_total,2,1)*100 AS FLOAT) AS purple_pct
+      ,CAST(ROUND(green_total/behavior_days_total,2,1)*100	AS FLOAT) AS green_pct
+      ,CAST(ROUND(yellow_total/behavior_days_total,2,1)*100 AS FLOAT) AS yellow_pct
+      ,CAST(ROUND(orange_total/behavior_days_total,2,1)*100 AS FLOAT) AS orange_pct
+      ,CAST(ROUND(red_total/behavior_days_total,2,1)*100	AS FLOAT) AS red_pct
 FROM
 	   (SELECT student_number
 			  ,STUDENTID	  
@@ -52,7 +52,7 @@ FROM
 		FROM
 			  (SELECT *
 			   FROM ES_DAILY$daily_tracking_long
-			   WHERE att_date >= '2013-08-19'
+			   WHERE att_date >= '19-Aug-13'
 			   AND schoolid != 73255 --THRIVE has a different behavior system
 			  ) sub_1
 		GROUP BY student_number, studentid, schoolid, lastfirst, grade_level, team
