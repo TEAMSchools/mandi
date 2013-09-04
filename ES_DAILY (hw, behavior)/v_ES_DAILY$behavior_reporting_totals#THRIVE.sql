@@ -14,11 +14,11 @@ SELECT student_number
       ,orange_total
       ,red_total
       ,behavior_count_total
-      ,CAST(ROUND(pink_total/behavior_count_total,2,1) AS FLOAT) AS pink_pct
-      ,CAST(ROUND(green_total/behavior_count_total,2,1) AS FLOAT) AS green_pct
-      ,CAST(ROUND(yellow_total/behavior_count_total,2,1) AS FLOAT) AS yellow_pct
-      ,CAST(ROUND(orange_total/behavior_count_total,2,1) AS FLOAT) AS orange_pct
-      ,CAST(ROUND(red_total/behavior_count_total,2,1) AS FLOAT) AS red_pct
+      ,CAST(ROUND(pink_total/behavior_count_total,2,1)*100 AS FLOAT) AS pink_pct
+      ,CAST(ROUND(green_total/behavior_count_total,2,1)*100 AS FLOAT) AS green_pct
+      ,CAST(ROUND(yellow_total/behavior_count_total,2,1)*100 AS FLOAT) AS yellow_pct
+      ,CAST(ROUND(orange_total/behavior_count_total,2,1)*100 AS FLOAT) AS orange_pct
+      ,CAST(ROUND(red_total/behavior_count_total,2,1)*100 AS FLOAT) AS red_pct
 FROM
 		(SELECT student_number
 			   ,studentid
