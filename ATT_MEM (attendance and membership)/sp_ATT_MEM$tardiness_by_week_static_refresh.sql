@@ -170,7 +170,7 @@ FROM
                         (SELECT ROWNUM n
                          FROM ( SELECT 1 just_a_column
                                 FROM dual
-                                GROUP BY CUBE(1,2,3,4,5,6,7,8,9) )
+                                GROUP BY CUBE(1,2,3,4,5,6,7,8,9,10) )
                          ) sub        
                    WHERE n >= 52)
                WHERE reporting_hash >= 200432
