@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW MAP$comprehensive#identifiers AS
+ALTER VIEW MAP$comprehensive#identifiers AS
 SELECT cohort.schoolid
       ,cohort.grade_level
       ,cohort.cohort
@@ -97,7 +97,7 @@ SELECT cohort.schoolid
                       ON CAST(sq_0.student_number AS NVARCHAR) = map.studentid
                     ) sq_1
               ) sq_2
-      LEFT OUTER JOIN COHORT$comprehensive_long cohort 
+      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort 
         ON  CAST(cohort.studentid AS NVARCHAR) = sq_2.ps_studentid 
         AND sq_2.map_year_academic = cohort.year
         AND cohort.rn = 1
