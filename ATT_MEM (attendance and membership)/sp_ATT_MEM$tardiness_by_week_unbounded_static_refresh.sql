@@ -31,6 +31,7 @@ SELECT studentid
       ,mem
       ,tardy
       ,nvl(off_track,0) AS off_track
+      ,n
       ,percent_off_track
       ,CASE
          WHEN mem = 0 THEN null
@@ -45,7 +46,8 @@ FROM
       ,yearid
       ,reporting_hash
       ,SUM(mem_dense) AS mem
-      ,SUM(tardy_dense) AS tardy   
+      ,SUM(tardy_dense) AS tardy  
+      ,COUNT(*) AS n 
       ,SUM(off_track_indicator) AS off_track
       ,ROUND(AVG(off_track_indicator)*100,2) AS percent_off_track
 FROM
@@ -107,14 +109,14 @@ FROM
                       ,reporting_hash
                       ,mem_value
                       ,tardy_value
-                      ,SUM(SUM(mem_value)) OVER
+                      ,SUM(mem_value) OVER
                          (PARTITION BY studentid
                                       ,grade_level
                                       ,yearid
                           ORDER BY studentid
                                   ,calendardate
                           ROWS UNBOUNDED PRECEDING) AS rolling_mem
-                      ,SUM(SUM(tardy_value)) OVER
+                      ,SUM(tardy_value) OVER
                          (PARTITION BY studentid
                                       ,grade_level
                                       ,yearid
@@ -164,7 +166,7 @@ FROM
                             ON students.id = att.studentid
                           LEFT OUTER JOIN schools
                             ON att.schoolid = schools.school_number
-                          WHERE students.enroll_status <= 0
+                          --WHERE students.enroll_status <= 0
                         ) level_1 
                     LEFT OUTER JOIN PS_ATTENDANCE_DAILY ATT_D
                       ON level_1.studentid=att_d.studentid
