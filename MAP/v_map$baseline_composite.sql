@@ -39,6 +39,10 @@ SELECT TOP (100) PERCENT sub.*
          WHEN map_spr.testritscore IS NULL THEN map_fall.percentile_2011_norms
          ELSE map_spr.percentile_2011_norms
        END AS testpercentile
+      ,CASE 
+         WHEN map_spr.testritscore IS NULL THEN map_fall.TypicalFallToSpringGrowth
+         ELSE map_spr.TypicalSpringToSpringGrowth
+       END AS typical_growth_fallorspring_to_spring
 FROM
       (SELECT roster.*
              ,subj.*
