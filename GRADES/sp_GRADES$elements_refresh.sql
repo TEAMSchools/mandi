@@ -15,7 +15,7 @@ BEGIN
     DROP TABLE [#GRADES$elements_s1]
   END
   
-  IF OBJECT_ID(N'tempdb..#GRADES$elements_s2') IS NOT NULL
+  IF OBJECT_ID(N'tempdb..#GRADES$elemegnts_s2') IS NOT NULL
   BEGIN
     DROP TABLE [#GRADES$elements_s2]
   END
