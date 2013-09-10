@@ -61,6 +61,8 @@ BEGIN
      AND cc.termid >= 2300
      --JUST FOR TESTING
      --AND cc.studentid = 2542
+     --never use T trimester grades
+     AND SUBSTR(pgf.finalgradename, 0, 1) != ''T''
      --Rise uses Q for HW quality, others should be EXCLUDED
      AND (cc.schoolid = 73252 OR
      (cc.schoolid != 73252 AND SUBSTR(pgf.finalgradename, 0, 1) != ''Q''))  
