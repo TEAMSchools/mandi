@@ -12,24 +12,24 @@ ALTER PROCEDURE [dbo].[sp_GRADES$elements|refresh] AS
 BEGIN
   IF OBJECT_ID(N'tempdb..#GRADES$elements_s1') IS NOT NULL
   BEGIN
-      DROP TABLE [#GRADES$elements_s1]
+    DROP TABLE [#GRADES$elements_s1]
   END
   
   IF OBJECT_ID(N'tempdb..#GRADES$elements_s2') IS NOT NULL
   BEGIN
-      DROP TABLE [#GRADES$elements_s2]
+    DROP TABLE [#GRADES$elements_s2]
   END
 
   IF OBJECT_ID(N'tempdb..#GRADES$elements_s3') IS NOT NULL
   BEGIN
-      DROP TABLE [#GRADES$elements_s3]
+    DROP TABLE [#GRADES$elements_s3]
   END
 
   IF OBJECT_ID(N'tempdb..#GRADES$elements_final') IS NOT NULL
   BEGIN
-      DROP TABLE [#GRADES$elements_final]
+    DROP TABLE [#GRADES$elements_final]
   END
-  
+ 
   SELECT CAST(studentid AS INT) AS studentid
         ,CAST(schoolid AS INT) AS schoolid
         ,CAST(yearid AS INT) AS yearid
