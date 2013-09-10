@@ -17,10 +17,12 @@ SELECT TOP 1000000  --only necessary to allow ORDER BY rn to work
 		,thrive_am
 		,thrive_mid
 		,thrive_pm
+		,CAST(student_number AS VARCHAR(20)) + '_' + CAST(att_date AS VARCHAR(20)) AS hash
 FROM
 		(SELECT  ROW_NUMBER ()
 					OVER (ORDER BY scores.unique_id) AS rn				
 				,s.schoolid
+				--TROUBLE AHOY
 				,REPLACE(CONVERT(NVARCHAR,scores.ATT_DATE,6),' ','-') AS att_date						
 				,s.id AS studentid
 				,s.student_number
@@ -62,7 +64,7 @@ FROM
 				WHERE related_to_table = ''dailytracking''					
 				ORDER BY user_defined_date, schoolid, foreignKey
 				') scores
-		RIGHT JOIN STUDENTS s ON s.id = scores.studentid
+		JOIN STUDENTS s ON s.id = scores.studentid
 		WHERE s.enroll_status = 0
 		  AND s.grade_level < 5		  		  
 		) sub

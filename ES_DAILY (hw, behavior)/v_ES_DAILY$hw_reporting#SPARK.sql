@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW ES_DAILY$hw_reporting AS
+ALTER VIEW ES_DAILY$hw_reporting#SPARK AS
 SELECT student_number	  
 	  ,lastfirst
 	  ,grade_level
@@ -9,7 +9,7 @@ SELECT student_number
 	  ,hw_year_total
 	  ,hw_year_complete
 	  ,hw_year_missing
-	  ,CAST(ROUND(hw_year_complete/hw_year_total,2,1) AS FLOAT) AS hw_year_pct
+	  ,CAST(ROUND(hw_year_complete/hw_year_total,2,1)*100 AS FLOAT) AS hw_year_pct
 FROM
 		(SELECT student_number
 			  ,schoolid
@@ -31,3 +31,4 @@ FROM
 			  ) sub_1
 		GROUP BY student_number, schoolid, lastfirst, grade_level, team
 		) sub_2
+WHERE schoolid = 73254 --SPARK only

@@ -114,8 +114,7 @@ FROM
 						   END) AS counts_total_3
 				FROM
 					  (SELECT *
-					   FROM ES_DAILY$behavior_reporting_long#THRIVE
-					   WHERE att_date >= '2013-08-19'						
+					   FROM ES_DAILY$behavior_reporting_long#THRIVE					   			
 					  ) sub_1
 				GROUP BY student_number, studentid, lastfirst, grade_level, team
 				) sub_2
