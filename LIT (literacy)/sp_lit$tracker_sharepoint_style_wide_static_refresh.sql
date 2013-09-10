@@ -18,34 +18,33 @@ BEGIN
 			DROP TABLE [#LIT$step_headline_long#identifiers|refresh]
 		END
 		
-		--STEP 2: load into a TEMPORARY staging table.
+ --STEP 2: load into a TEMPORARY staging table.
 		SELECT *
 		INTO [#LIT$tracker_sharepoint_style_wide#static|refresh]
 		FROM LIT$tracker_sharepoint_style_wide 
   
-  --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
-  --SELECT 1 FROM [LIT$step_headline_long#identifiers] WITH (TABLOCKX);
+ --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
+		--SELECT 1 FROM [LIT$step_headline_long#identifiers] WITH (TABLOCKX);
 
-  --STEP 4: truncate 
-  EXEC('TRUNCATE TABLE dbo.[LIT$tracker_sharepoint_style_wide#static]');
+ --STEP 4: truncate 
+		EXEC('TRUNCATE TABLE dbo.[LIT$tracker_sharepoint_style_wide#static]');
 
-  --STEP 5: disable all nonclustered indexes on table
-  SELECT @sql = @sql + 
-   'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name + ' DISABLE;' +CHAR(13)+CHAR(10)
-  FROM 
-   sys.indexes
-  JOIN 
-   sys.objects 
-   ON sys.indexes.object_id = sys.objects.object_id
-  WHERE sys.indexes.type_desc = 'NONCLUSTERED'
-   AND sys.objects.type_desc = 'USER_TABLE'
-   AND sys.objects.name = 'LIT$tracker_sharepoint_style_wide#static';
+ --STEP 5: disable all nonclustered indexes on table
+		SELECT @sql = @sql + 
+			'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name + ' DISABLE;' +CHAR(13)+CHAR(10)
+		FROM sys.indexes
+		JOIN sys.objects 
+		  ON sys.indexes.object_id = sys.objects.object_id
+		WHERE sys.indexes.type_desc = 'NONCLUSTERED'
+		  AND sys.objects.type_desc = 'USER_TABLE'
+		  AND sys.objects.name = 'LIT$tracker_sharepoint_style_wide#static';
 
- EXEC (@sql);
+		EXEC (@sql);
 
  -- step 3: insert rows from remote source
  INSERT INTO [dbo].[LIT$tracker_sharepoint_style_wide#static]
-      ([Student Number]
+      ([schoolid]
+      ,[Student Number]
       ,[Grade Level]
       ,[TEAM]
       ,[Step Round]
