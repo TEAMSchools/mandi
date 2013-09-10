@@ -7,7 +7,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-ALTER PROCEDURE [dbo].[sp_GRADES$TEAM|refresh]
+ALTER PROCEDURE [dbo].[sp_GRADES$MS|refresh]
 AS
 BEGIN
  -- SET NOCOUNT ON added to prevent extra result sets from
@@ -20,7 +20,6 @@ BEGIN
    @v_grade_2              VARCHAR(2) = 'T2',
    @v_grade_3              VARCHAR(2) = 'T3',
    @v_grade_yr             VARCHAR(2) = 'Y1',
-   @v_schoolly_d           INT = 133570965,
   
    --courses to exclude
    @v_course_ex_advisory   VARCHAR(8) = 'Adv',
@@ -34,7 +33,7 @@ BEGIN
    @v_0                    INT = 0;
 
  --1. temp PGF
- CREATE TABLE #TEMP_GRADES$TEAM#PGF
+ CREATE TABLE #TEMP_GRADES$MS#PGF
   (SectionId INT, 
   StudentId INT,
   FinalgradeName VARCHAR(8), 
@@ -44,7 +43,7 @@ BEGIN
   );
 
  --2. temp stored grades
- CREATE TABLE #TEMP_GRADES$TEAM#SG
+ CREATE TABLE #TEMP_GRADES$MS#SG
   (Studentid INT,
   Course_Number VARCHAR(25),
   StoreCode VARCHAR(10),
@@ -52,7 +51,7 @@ BEGIN
   [Percent] FLOAT);
 
  --3. staging table 1
- CREATE TABLE #TEMP_GRADES$TEAM#STAGE_1
+ CREATE TABLE #TEMP_GRADES$MS#STAGE_1
   (STUDENTID INT, 
   STUDENT_NUMBER FLOAT,
   SCHOOLID INT,
@@ -65,7 +64,7 @@ BEGIN
   );
 
  --4. staging table 2
- CREATE TABLE #TEMP_GRADES$TEAM#STAGE_2
+ CREATE TABLE #TEMP_GRADES$MS#STAGE_2
   (STUDENTID INT,
   "STUDENT_NUMBER" FLOAT,
   "SCHOOLID" INT,
@@ -110,11 +109,11 @@ BEGIN
          ON pgf.sectionid = cc.sectionid 
          AND pgf.studentid = cc.studentid 	 
          AND cc.termid >= ' + CONVERT(VARCHAR,  @v_termid) + '
-         AND cc.schoolid = ' + CONVERT(VARCHAR, @v_schoolly_d) + '
+         AND cc.schoolid IN (73252, 133570965)
         WHERE pgf.finalgradename IN (''''' + @v_grade_1 + ''''','''''+ @v_grade_2 +''''','''''+ @v_grade_3 +''''')
         '');';
 
- INSERT INTO #TEMP_GRADES$TEAM#PGF
+ INSERT INTO #TEMP_GRADES$MS#PGF
  EXEC (@v_sql);
  
  --stored grades
@@ -135,9 +134,9 @@ BEGIN
    AND credit_type   != ''''' + @v_credit_ex_log + '''''
    AND course_number != ''''' + @v_course_ex_hr + '''''
    AND course_number != ''''' + @v_course_ex_chk + '''''
-   AND schoolid = ' + CONVERT(VARCHAR, @v_schoolly_d) + ''');';
+   AND schoolid IN (73252, 133570965)'');';
 
- INSERT INTO #TEMP_GRADES$TEAM#SG
+ INSERT INTO #TEMP_GRADES$MS#SG
  EXEC (@v_sql);
 
  --step 2: assemble student enrollments and course grades into first staging table
@@ -175,10 +174,10 @@ BEGIN
    INNER JOIN dbo.courses c
    ON (cc.course_number = c.course_number)
    WHERE s.enroll_status = @v_0
-   AND s.schoolid = @v_schoolly_d
+   AND s.schoolid IN (73252, 133570965)
    ) 
  )
- INSERT INTO #TEMP_GRADES$TEAM#STAGE_1
+ INSERT INTO #TEMP_GRADES$MS#STAGE_1
  SELECT STUDENTID, 
   STUDENT_NUMBER,
   SCHOOLID,
@@ -211,11 +210,11 @@ BEGIN
   ,MAX(CASE WHEN pgf.FinalgradeName = @v_grade_1 THEN  pgf.sectionid END) AS T1_enr_sectionid
   ,MAX(CASE WHEN pgf.FinalgradeName = @v_grade_2 THEN  pgf.sectionid END) AS T2_enr_sectionid
   ,MAX(CASE WHEN pgf.FinalgradeName = @v_grade_3 THEN  pgf.sectionid END) AS T3_enr_sectionid
- FROM #TEMP_GRADES$TEAM#STAGE_1 AS level_1
+ FROM #TEMP_GRADES$MS#STAGE_1 AS level_1
  --gradebook (PGFinalGrades) grades
  --FYI, assumption here is that a student is never enrolled in the same course
  --and term more than once
- LEFT OUTER JOIN #TEMP_GRADES$TEAM#PGF pgf
+ LEFT OUTER JOIN #TEMP_GRADES$MS#PGF pgf
   ON level_1.studentid     = pgf.studentid
   AND level_1.course_number = pgf.course_number
   AND pgf.finalgradename IN (@v_grade_1, @v_grade_2, @v_grade_3)
@@ -248,9 +247,9 @@ BEGIN
   ,MAX(CASE WHEN sg.StoreCode = @v_grade_2 THEN sg.grade END) AS T2_grade
   ,MAX(CASE WHEN sg.StoreCode = @v_grade_3 THEN sg.grade END) AS T3_grade
   ,MAX(CASE WHEN sg.StoreCode = @v_grade_yr THEN sg.grade END) AS y1_grade
- FROM #TEMP_GRADES$TEAM#STAGE_1 AS level_1
+ FROM #TEMP_GRADES$MS#STAGE_1 AS level_1
  --stored (StoredGrades) grades
- FULL JOIN #TEMP_GRADES$TEAM#SG sg
+ FULL JOIN #TEMP_GRADES$MS#SG sg
   ON (level_1.studentid     = sg.studentid
   AND level_1.course_number = sg.course_number
   AND sg.storecode IN (@v_grade_1, @v_grade_2, @v_grade_3, @v_grade_yr))
@@ -263,7 +262,7 @@ BEGIN
    ,level_1.credittype
    ,level_1.course_name
    ,level_1.credit_hours)
- INSERT INTO #TEMP_GRADES$TEAM#STAGE_2
+ INSERT INTO #TEMP_GRADES$MS#STAGE_2
  SELECT level_pgf.studentid
   ,level_pgf.student_number
   ,level_pgf.schoolid
@@ -295,8 +294,8 @@ BEGIN
    AND level_pgf.course_name = level_sg.course_name
    AND level_pgf.credit_hours	= level_sg.credit_hours);
  
- --step 3: truncate the grades$detail#team table
- EXEC ('TRUNCATE TABLE GRADES$DETAIL#TEAM');
+ --step 3: truncate the grades$detail#ms table
+ EXEC ('TRUNCATE TABLE GRADES$DETAIL#MS');
  
  --step 4: append to result table
  --average Y1 grade from trimester elements
@@ -314,8 +313,8 @@ BEGIN
      WHEN T3 IS NULL THEN 0
      ELSE 1
     END) AS term_valid
-   FROM #TEMP_GRADES$TEAM#STAGE_2 stage_2), 
- TEMP_GRADES$TEAM#STAGE_2 AS 
+   FROM #TEMP_GRADES$MS#STAGE_2 stage_2), 
+ TEMP_GRADES$MS#STAGE_2 AS 
  (
   SELECT studentid
     ,student_number
@@ -427,7 +426,8 @@ BEGIN
     WHEN Y1 >= 80 THEN 'B'
     WHEN Y1 >= 77 THEN 'C+'
     WHEN Y1 >= 70 THEN 'C'
-    WHEN Y1 >= 65 THEN 'NY'
+    WHEN Y1 >= 65 AND SCHOOLID = 133570965 THEN 'NY'
+    WHEN Y1 >= 65 AND SCHOOLID = 73252 THEN 'D'
     WHEN Y1  < 65 THEN 'F'
     ELSE NULL
    END Y1_letter    
@@ -447,8 +447,8 @@ BEGIN
     WHEN Y1 IS NOT NULL THEN credit_hours 
     ELSE NULL 
    END AS credit_hours_Y1
-  FROM TEMP_GRADES$TEAM#STAGE_2 stage_2), 
- TEMP_GRADES$TEAM#STAGE_FINAL AS
+  FROM TEMP_GRADES$MS#STAGE_2 stage_2), 
+ TEMP_GRADES$MS#STAGE_FINAL AS
  (
   SELECT studentid
    ,student_number
@@ -489,9 +489,9 @@ BEGIN
     ELSE 0 
     END Promo_Test 
   FROM level_2)
- INSERT INTO dbo.GRADES$DETAIL#TEAM
+ INSERT INTO dbo.GRADES$DETAIL#MS
  SELECT * 
- FROM TEMP_GRADES$TEAM#STAGE_FINAL;
+ FROM TEMP_GRADES$MS#STAGE_FINAL;
 END
 
 GO
