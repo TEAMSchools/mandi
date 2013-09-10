@@ -1,8 +1,10 @@
 USE KIPP_NJ
 GO
 
+ALTER VIEW reporting$reading_log AS
 WITH roster AS
   (SELECT studentid
+         ,s.student_number
          ,c.grade_level
          ,c.schoolid
          ,s.lastfirst
@@ -14,7 +16,7 @@ WITH roster AS
    JOIN KIPP_NJ..STUDENTS s
      ON c.studentid = s.id
     AND s.enroll_status = 0
-    AND s.ID = 4772
+    --AND s.ID = 4772
    WHERE year = 2013
      AND rn = 1
      AND c.schoolid != 999999
@@ -57,6 +59,13 @@ SELECT roster.*
       ,ar_cur.words AS hex_words
       ,ar_cur.words_goal AS hex_goal
       ,ar_cur.ontrack_words AS hex_needed
+      ,ar_cur.stu_status_words AS hex_on_track
+
+       --AR year
+      ,ar_year.mastery AS accuracy_overall
+      ,ar_year.words AS year_words
+      ,ar_cur.words_goal * 6 AS year_goal  
+      ,100 - ar_year.pct_fiction AS year_pct_nf 
 
 FROM roster
 --GRADES
@@ -126,6 +135,11 @@ LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_cur
  AND ar_cur.time_period_name = 'RT1'
  AND ar_cur.yearid = 2300
 
+--AR year
+LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_year
+  ON roster.studentid = ar_year.studentid
+ AND ar_year.time_period_name = 'Year'
+ AND ar_year.yearid = 2300
 
 --LEFT OUTER JOIN sri_lexile
 --  ON 1=2
