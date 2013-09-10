@@ -2,8 +2,8 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW LIT$FP_sharepoint_style_wide AS
-
-SELECT fp.LASTFIRST + '_' + fp.student_number AS [Student Number]
+SELECT CAST(fp.schoolid AS VARCHAR(20)) AS schoolid
+	  ,fp.LASTFIRST + '_' + CAST(fp.student_number AS VARCHAR(20)) AS [Student Number]
       ,fp.grade_level AS [Grade Level]
       ,s.team AS [Team]      
       ,test_date AS [Step Round]
@@ -83,4 +83,4 @@ SELECT fp.LASTFIRST + '_' + fp.student_number AS [Student Number]
 FROM LIT$FP_test_events_long#identifiers fp
 LEFT OUTER JOIN students s
 	ON s.id = fp.STUDENTID
-GROUP BY fp.LASTFIRST, fp.student_number, fp.grade_level, s.team, test_date, LETTER_LEVEL, status, fp.TESTID, fp.FP_ACCURACY, fp.FP_WPMRATE, fp.FP_FLUENCY
+GROUP BY fp.schoolid, fp.LASTFIRST, fp.student_number, fp.grade_level, s.team, test_date, LETTER_LEVEL, status, fp.TESTID, fp.FP_ACCURACY, fp.FP_WPMRATE, fp.FP_FLUENCY

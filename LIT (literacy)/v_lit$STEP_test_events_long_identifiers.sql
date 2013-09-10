@@ -20,7 +20,7 @@ SELECT openq.*
           ORDER BY openq.test_date DESC) AS rn_desc
 FROM OPENQUERY(PS_TEAM, '
 	SELECT s.id AS studentid                                    
-		  ,s.lastfirst
+		  ,s.lastfirst		  
 		  ,CAST(s.student_number AS VARCHAR(20)) AS student_number      
 		  ,user_defined_date AS test_date
 		  ,CAST(user_defined_text AS VARCHAR(20)) AS step_level

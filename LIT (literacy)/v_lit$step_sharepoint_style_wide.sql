@@ -1,9 +1,10 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW LIT$step_sharepoint_style_wide AS
+ALTER VIEW LIT$tracker_sharepoint_style_wide AS
 
-SELECT sub_2.lastfirst + '_' + sub_2.student_number AS "Student Number"
+SELECT sub_2.schoolid
+	  ,sub_2.lastfirst + '_' + sub_2.student_number AS "Student Number"
       ,grade_level AS "Grade Level"
       ,s.TEAM
       --,read_teacher AS "Guided Reading Teacher"
@@ -11,9 +12,13 @@ SELECT sub_2.lastfirst + '_' + sub_2.student_number AS "Student Number"
       ,color AS "Test Type" 
       ,CASE
         WHEN step_level IN ('PreDNA','Pre DNA') THEN 'Pre_DNA'
+        WHEN step_level = 'Pre' AND status = 'Did Not Achieve' THEN 'Pre_DNA'
         ELSE step_level
       END AS "Step Level"
-      ,status
+      ,CASE
+		WHEN STEP_LEVEL = 'Pre' THEN 'Achieved'
+		ELSE STATUS
+	  END AS status
       ,indep_lvl AS "Independent Level"
       ,instruct_lvl AS "Instructional Level"
 
@@ -303,7 +308,8 @@ SELECT sub_2.lastfirst + '_' + sub_2.student_number AS "Student Number"
       ,NULL AS "FP_L-Z_Fluency"            
       ,NULL AS "FP_L-Z_Comprehension"
 FROM
-     (SELECT studentid
+     (SELECT schoolid
+			,studentid
             ,lastfirst
             ,student_number            
             ,test_date
@@ -374,7 +380,7 @@ FROM
            (SELECT step.*				  
 			FROM LIT$step_test_events_long#identifiers step						
 			) sub_1
-	  GROUP BY studentid, lastfirst, student_number, test_date, step_level, testid, status, read_teacher
+	  GROUP BY schoolid, studentid, lastfirst, student_number, test_date, step_level, testid, status, read_teacher
 			  ,accuracy, accuracy_1a, accuracy_2b, cc_ct, cc_factual, cc_infer, cc_other, color, cp_121match
 			  ,cp_orient, cp_slw, devsp_final, devsp_first, devsp_ifbd, devsp_svs, indep_lvl, instruct_lvl
 			  ,ocomp_ct, ocomp_factual, ocomp_infer, ra_errors, reading_rate, rr_121match, rr_holdspattern
