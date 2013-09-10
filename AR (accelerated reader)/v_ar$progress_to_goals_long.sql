@@ -21,6 +21,7 @@ WITH long_goals AS
     FROM COHORT$comprehensive_long#static cohort
     JOIN students s 
       ON cohort.studentid = s.id  
+     --AND s.ID = 4772
     --year
     JOIN AR$GOALS_LONG_DECODE goals
        ON CAST(s.student_number AS NVARCHAR) = goals.student_number
@@ -52,6 +53,13 @@ WITH long_goals AS
              WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
              WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
              WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
+             --new middle school
+             WHEN time_period_name = 'Hexameter 1' THEN 'RT1'
+             WHEN time_period_name = 'Hexameter 2' THEN 'RT2'
+             WHEN time_period_name = 'Hexameter 3' THEN 'RT3'
+             WHEN time_period_name = 'Hexameter 4' THEN 'RT4'
+             WHEN time_period_name = 'Hexameter 5' THEN 'RT5'
+             WHEN time_period_name = 'Hexameter 6' THEN 'RT6'
              --elementary? (CAPSTONE?)
            END AS time_period_name
           ,goals.words_goal
@@ -62,6 +70,7 @@ WITH long_goals AS
     FROM COHORT$comprehensive_long#static cohort
     JOIN students s 
       ON cohort.studentid = s.id
+     --AND s.id = 4772
     JOIN AR$goals_long_decode goals
        ON CAST(s.student_number AS NVARCHAR) = goals.student_number
       AND goals.time_period_hierarchy = 2
@@ -112,10 +121,10 @@ SELECT totals.*
          WHEN GETDATE() > end_date THEN words_goal
        --during time period
          WHEN GETDATE() < end_date AND
-           GETDATE() >= start_date THEN
+           GETDATE() >= [start_date] THEN
            CASE
              WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-             ELSE (DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * words_goal)
+             ELSE (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
            END
        END AS ontrack_words
       ,CASE
@@ -126,7 +135,7 @@ SELECT totals.*
            GETDATE() >= start_date THEN
            CASE
              WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-             ELSE (DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * points_goal)
+             ELSE (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
            END
        END AS ontrack_points
       ,CASE
@@ -142,9 +151,9 @@ SELECT totals.*
            GETDATE() >= start_date THEN
            CASE
              WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-             WHEN words >= (DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * words_goal)
+             WHEN words >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
                THEN 'On Track'
-             WHEN words < (DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * words_goal)
+             WHEN words < (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
                THEN 'Off Track'
            END
        END AS stu_status_words
@@ -161,9 +170,9 @@ SELECT totals.*
            GETDATE() >= start_date THEN
            CASE
              WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-             WHEN points >= DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * points_goal
+             WHEN points >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
                THEN 'On Track'
-             WHEN points < DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * points_goal
+             WHEN points < (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
                THEN 'Off Track'
            END
        END AS stu_status_points
@@ -181,9 +190,9 @@ SELECT totals.*
            GETDATE() >= start_date THEN
            CASE
              WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-             WHEN words >= DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * words_goal 
+             WHEN words >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal) 
                THEN 1
-             WHEN words < DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * words_goal
+             WHEN words < (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
                THEN 0
            END
        END AS stu_status_words_numeric
@@ -201,9 +210,9 @@ SELECT totals.*
            GETDATE() >= start_date THEN
            CASE
              WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-             WHEN points >= DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * points_goal
+             WHEN points >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
                THEN 1
-             WHEN points < DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * points_goal
+             WHEN points < (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
                THEN 0
            END
        END AS stu_status_points_numeric
@@ -216,10 +225,10 @@ SELECT totals.*
            GETDATE() >= start_date THEN
            CASE
              WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-             WHEN words >= DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * words_goal
+             WHEN words >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
                THEN NULL
-             WHEN words < DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * words_goal
-               THEN (DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * words_goal) - words
+             WHEN words <(((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
+               THEN (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal) - words
            END
        END AS words_needed
       
@@ -231,10 +240,10 @@ SELECT totals.*
            GETDATE() >= start_date THEN
            CASE
              WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-             WHEN points >= DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * points_goal 
+             WHEN points >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal) 
                THEN NULL
-             WHEN points < DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * points_goal 
-               THEN (DATEDIFF(d, GETDATE(), start_date) / DATEDIFF(d, end_date, start_date) * points_goal) - points
+             WHEN points < (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal) 
+               THEN (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal) - points
            END
        END AS points_needed
       
