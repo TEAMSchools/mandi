@@ -60,12 +60,17 @@ SELECT roster.*
       ,ar_cur.words_goal AS hex_goal
       ,ar_cur.ontrack_words AS hex_needed
       ,ar_cur.stu_status_words AS hex_on_track
+      ,ar_cur.rank_words_grade_in_school AS hex_rank_words
 
        --AR year
-      ,ar_year.mastery AS accuracy_overall
       ,ar_year.words AS year_words
       ,ar_cur.words_goal * 6 AS year_goal  
       ,100 - ar_year.pct_fiction AS year_pct_nf 
+      ,ar_year.rank_words_grade_in_school AS year_rank_words
+      --accuracy
+      ,ar_year.mastery AS accuracy
+      ,ar_year.mastery_fiction AS accuracy_fiction
+      ,ar_year.mastery_nonfiction AS accuracy_nonfiction
 
 FROM roster
 --GRADES
