@@ -5,6 +5,8 @@ ALTER VIEW AR$progress_to_goals_long AS
 WITH long_goals AS 
     (SELECT cohort.studentid
           ,s.student_number
+          ,cohort.grade_level
+          ,cohort.schoolid
           ,goals.yearid
           ,1 AS time_hierarchy
           ,goals.time_period_name
@@ -22,6 +24,7 @@ WITH long_goals AS
     JOIN students s 
       ON cohort.studentid = s.id  
      --AND s.ID = 4772
+     --AND s.student_number >= 12866
     --year
     JOIN AR$GOALS_LONG_DECODE goals
        ON CAST(s.student_number AS NVARCHAR) = goals.student_number
@@ -33,6 +36,8 @@ WITH long_goals AS
 
     SELECT cohort.studentid
           ,s.student_number
+          ,cohort.grade_level
+          ,cohort.schoolid
           ,goals.yearid
           --standardize term names
           ,2 AS time_hierarchy
@@ -71,6 +76,7 @@ WITH long_goals AS
     JOIN students s 
       ON cohort.studentid = s.id
      --AND s.id = 4772
+     --AND s.student_number >= 12866
     JOIN AR$goals_long_decode goals
        ON CAST(s.student_number AS NVARCHAR) = goals.student_number
       AND goals.time_period_hierarchy = 2
@@ -112,6 +118,7 @@ WITH long_goals AS
              ) sub
       WHERE rn_desc = 1  
      )
+
 --query starts here
 
 SELECT totals.*
@@ -246,10 +253,54 @@ SELECT totals.*
                THEN (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal) - points
            END
        END AS points_needed
-      
+
+       --RANKS
+      ,RANK () OVER (PARTITION BY totals.schoolid
+                                 ,totals.grade_level
+                                 ,totals.yearid
+                                 ,totals.time_hierarchy
+                                 ,totals.time_period_name
+                     ORDER BY words DESC) AS rank_words_grade_in_school
+      ,RANK () OVER (PARTITION BY totals.grade_level
+                                 ,totals.yearid
+                                 ,totals.time_hierarchy
+                                 ,totals.time_period_name
+                     ORDER BY words DESC) AS rank_words_grade_in_network
+      ,RANK () OVER (PARTITION BY totals.schoolid
+                                 ,totals.yearid
+                                 ,totals.time_hierarchy
+                                 ,totals.time_period_name
+                     ORDER BY words DESC) AS rank_words_overall_in_school
+      ,RANK () OVER (PARTITION BY totals.yearid
+                                 ,totals.time_hierarchy
+                                 ,totals.time_period_name
+                     ORDER BY words DESC) AS rank_words_overall_in_network
+       --RANKS
+      ,RANK () OVER (PARTITION BY totals.schoolid
+                                 ,totals.grade_level
+                                 ,totals.yearid
+                                 ,totals.time_hierarchy
+                                 ,totals.time_period_name
+                     ORDER BY points DESC) AS rank_points_grade_in_school
+      ,RANK () OVER (PARTITION BY totals.grade_level
+                                 ,totals.yearid
+                                 ,totals.time_hierarchy
+                                 ,totals.time_period_name
+                     ORDER BY points DESC) AS rank_points_grade_in_network
+      ,RANK () OVER (PARTITION BY totals.schoolid
+                                 ,totals.yearid
+                                 ,totals.time_hierarchy
+                                 ,totals.time_period_name
+                     ORDER BY points DESC) AS rank_points_overall_in_school
+      ,RANK () OVER (PARTITION BY totals.yearid
+                                 ,totals.time_hierarchy
+                                 ,totals.time_period_name
+                     ORDER BY points DESC) AS rank_points_overall_in_network      
 FROM    
      (SELECT long_goals.studentid
             ,long_goals.student_number
+            ,long_goals.grade_level
+            ,long_goals.schoolid
             ,long_goals.yearid
             ,long_goals.time_hierarchy
             ,long_goals.time_period_name
@@ -266,8 +317,13 @@ FROM
                    WHEN ar_all.tipassed = 1 THEN ar_all.dpointsearned
                    ELSE 0
                  END) AS points
-            ,CAST(ROUND((SUM(ar_all.iquestionscorrect + 0.0)  / SUM(ar_all.iquestionspresented + 0.0)) * 100,0) AS INT) AS mastery
-            --,ROUND(AVG(ROUND((ar_all.iquestionscorrect/ar_all.iquestionspresented)*100,0)),0) AS mastery
+            ,CAST(ROUND((SUM(ar_all.iquestionscorrect + 0.0) / SUM(ar_all.iquestionspresented + 0.0)) * 100,0) AS INT) AS mastery
+            --per new RLog
+            ,CAST(ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iquestionscorrect ELSE NULL END + 0.0) / 
+               SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iquestionspresented ELSE NULL END + 0.0)) * 100,0) AS INT) AS mastery_fiction
+            ,CAST(ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction != 'F' THEN ar_all.iquestionscorrect ELSE NULL END + 0.0) / 
+               SUM(CASE WHEN ar_all.chfictionnonfiction != 'F' THEN ar_all.iquestionspresented ELSE NULL END + 0.0)) * 100,0) AS INT) AS mastery_nonfiction
+
             ,CAST(ROUND(
                     ((SUM(
                      CASE
@@ -294,6 +350,8 @@ FROM
        AND ar_all.tiRowStatus = 1
        GROUP BY long_goals.studentid
                ,long_goals.student_number
+               ,long_goals.grade_level
+               ,long_goals.schoolid
                ,long_goals.yearid
                ,long_goals.time_hierarchy
                ,long_goals.time_period_name

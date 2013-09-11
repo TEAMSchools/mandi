@@ -44,33 +44,6 @@ BEGIN
 
  -- step 3: insert rows from remote source
  INSERT INTO [dbo].[AR$progress_to_goals_long#static]
-      ([studentid]
-      ,[student_number]
-      ,[yearid]
-      ,[time_hierarchy]
-      ,[time_period_name]
-      ,[words_goal]
-      ,[points_goal]
-      ,[start_date]
-      ,[end_date]
-      ,[words]
-      ,[points]
-      ,[mastery]
-      ,[pct_fiction]
-      ,[avg_lexile]
-      ,[avg_rating]
-      ,[last_quiz]
-      ,[N_passed]
-      ,[N_total]
-      ,[last_book]
-      ,[ontrack_words]
-      ,[ontrack_points]
-      ,[stu_status_words]
-      ,[stu_status_points]
-      ,[stu_status_words_numeric]
-      ,[stu_status_points_numeric]
-      ,[words_needed]
-      ,[points_needed])
  SELECT *
  FROM [#AR$progress_to_goals_long#static|refresh];
 
