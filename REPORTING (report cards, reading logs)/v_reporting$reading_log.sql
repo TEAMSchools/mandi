@@ -22,7 +22,25 @@ WITH roster AS
      AND c.schoolid != 999999
      AND c.schoolid IN (73252, 133570965)
   )
- 
+
+  ,enrollments AS
+  (SELECT cc.termid AS termid
+         ,cc.studentid
+         ,sections.id AS sectionid
+         ,sections.section_number
+         ,courses.course_number
+         ,courses.course_name
+   FROM cc
+   JOIN sections
+     ON cc.sectionid = sections.id
+    AND cc.termid >= 2300
+   JOIN courses
+     ON sections.course_number = courses.course_number
+    AND courses.credittype LIKE 'ENG'
+   WHERE cc.dateenrolled <= GETDATE()
+	    AND cc.dateleft >= GETDATE()
+  )
+
   ,sri_lexile AS
     (SELECT *
      FROM OPENQUERY(KIPP_NWK, '
@@ -31,6 +49,7 @@ WITH roster AS
     )
     
 SELECT roster.*
+      ,enr.course_name + '|' + enr.section_number AS enr_hash
       ,gr.course_number
       ,gr.course_name
       ,gr.T1 AS cur_term_rdg_gr
@@ -45,6 +64,7 @@ SELECT roster.*
          ELSE map_fall.TestRITScore
        END AS map_baseline
       ,cur_rit.TestRITScore AS cur_RIT
+      ,cur_rit.TestPercentile AS cur_RIT_percentile
        --use MAP for lexile      
       ,CASE 
          WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.RITtoReadingScore
@@ -58,7 +78,7 @@ SELECT roster.*
        --AR cur
       ,ar_cur.words AS hex_words
       ,ar_cur.words_goal AS hex_goal
-      ,ar_cur.ontrack_words AS hex_needed
+      ,CAST(ROUND(ar_cur.ontrack_words,0) AS INT) AS hex_needed
       ,ar_cur.stu_status_words AS hex_on_track
       ,ar_cur.rank_words_grade_in_school AS hex_rank_words
 
@@ -73,6 +93,10 @@ SELECT roster.*
       ,ar_year.mastery_nonfiction AS accuracy_nonfiction
 
 FROM roster
+--ENR
+LEFT OUTER JOIN enrollments enr
+  ON roster.studentid = enr.studentid
+
 --GRADES
 LEFT OUTER JOIN KIPP_NJ..GRADES$DETAIL#MS gr
   ON roster.studentid = gr.studentid
@@ -119,6 +143,7 @@ LEFT OUTER JOIN
                  ,[TermName]
                  ,[MeasurementScale]
                  ,[TestRITScore]
+                 ,TestPercentile
                  ,[RITtoReadingScore]
                  ,ROW_NUMBER () 
                     OVER (PARTITION BY ps_studentid 
