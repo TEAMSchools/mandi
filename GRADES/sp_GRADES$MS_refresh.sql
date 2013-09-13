@@ -299,6 +299,7 @@ BEGIN
  
  --step 4: append to result table
  --average Y1 grade from trimester elements
+ --this needs to be selected and put into temp table THEN truncate THEN instert into final
  WITH level_1 AS
   (SELECT stage_2.*
     ,(CASE
@@ -489,10 +490,11 @@ BEGIN
     ELSE 0 
     END Promo_Test 
   FROM level_2)
+ --Need to put this into a temp table
  INSERT INTO dbo.GRADES$DETAIL#MS
  SELECT * 
  FROM TEMP_GRADES$MS#STAGE_FINAL;
 END
-
+--Truncate here and insert into final
 GO
 
