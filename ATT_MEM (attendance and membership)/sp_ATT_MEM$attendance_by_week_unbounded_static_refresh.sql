@@ -166,7 +166,7 @@ FROM
                             ON students.id = att.studentid
                           LEFT OUTER JOIN schools
                             ON att.schoolid = schools.school_number
-                          WHERE students.id = 2542
+                          --WHERE students.id = 2542
                         ) level_1 
                     LEFT OUTER JOIN PS_ATTENDANCE_DAILY ATT_D
                       ON level_1.studentid=att_d.studentid
