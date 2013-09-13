@@ -66,7 +66,8 @@ SELECT roster.*
       ,cur_rit.TestRITScore AS cur_RIT
       ,cur_rit.TestPercentile AS cur_RIT_percentile
        --use MAP for lexile      
-      ,CASE 
+      ,CASE
+         WHEN roster.grade_level = 7 AND roster.school = 'Rise' THEN CAST(sri_lexile.lexile AS NVARCHAR)
          WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.RITtoReadingScore
          WHEN map_fall.TestRITScore IS NULL THEN map_spr.RITtoReadingScore
          ELSE map_fall.RITtoReadingScore
@@ -171,6 +172,7 @@ LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_year
  AND ar_year.time_period_name = 'Year'
  AND ar_year.yearid = 2300
 
---LEFT OUTER JOIN sri_lexile
---  ON 1=2
+LEFT OUTER JOIN sri_lexile
+  ON CAST(roster.student_number AS NVARCHAR) = sri_lexile.base_student_number
+ AND sri_lexile.rn_lifetime = 1
 
