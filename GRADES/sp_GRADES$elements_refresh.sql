@@ -57,7 +57,11 @@ BEGIN
     FROM pgfinalgrades pgf
     JOIN cc
       ON pgf.sectionid = cc.sectionid 
-     AND pgf.studentid = cc.studentid 
+     AND pgf.studentid = cc.studentid
+     
+     --are we concerned about spurious 0s?
+     AND pgf.percent != 0
+     
      AND cc.termid >= 2300
      --JUST FOR TESTING
      --AND cc.studentid = 2542
@@ -161,18 +165,26 @@ BEGIN
   SELECT studentid
         ,schoolid
         ,yearid
-        ,course_number
+        ,CASE GROUPING(course_number) 
+           WHEN 1 THEN 'all_courses'
+           ELSE course_number
+         END AS course_number
         ,pgf_type
-        ,grade_1
-        ,grade_2
-        ,grade_3
-        ,grade_4
-        ,ROUND(
+        ,ROUND(AVG(grade_1),0) AS grade_1
+        ,ROUND(AVG(grade_2),0) AS grade_2
+        ,ROUND(AVG(grade_3),0) AS grade_3
+        ,ROUND(AVG(grade_4),0) AS grade_4
+        ,ROUND(AVG(ROUND(
            (ISNULL(grade_1, 0) + ISNULL(grade_2, 0) + ISNULL(grade_3, 0) + ISNULL(grade_4, 0)) / 
              (grade_1_ct + grade_2_ct + grade_3_ct + grade_4_ct)
-           ,1) AS simple_avg
+           ,1)),0) AS simple_avg
   INTO [#GRADES$elements_s3]
   FROM [#GRADES$elements_s2]
+  GROUP BY studentid
+        ,schoolid
+        ,yearid
+        ,pgf_type
+        ,ROLLUP(course_number)
   
   SELECT ele.*
         ,scales.letter_grade
