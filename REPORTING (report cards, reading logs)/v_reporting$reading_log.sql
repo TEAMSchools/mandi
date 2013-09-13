@@ -77,15 +77,15 @@ SELECT roster.*
       ,rl.wpm AS cur_fluency
  
        --AR cur
-      ,ar_cur.words AS hex_words
-      ,ar_cur.words_goal AS hex_goal
-      ,CAST(ROUND(ar_cur.ontrack_words,0) AS INT) AS hex_needed
+      ,replace(convert(varchar,convert(Money, ar_cur.words),1),'.00','') AS hex_words
+      ,replace(convert(varchar,convert(Money, ar_cur.words_goal),1),'.00','') AS hex_goal
+      ,replace(convert(varchar,convert(Money, CAST(ROUND(ar_cur.ontrack_words,0) AS INT)),1),'.00','') AS hex_needed
       ,ar_cur.stu_status_words AS hex_on_track
       ,ar_cur.rank_words_grade_in_school AS hex_rank_words
 
        --AR year
-      ,ar_year.words AS year_words
-      ,ar_cur.words_goal * 6 AS year_goal  
+      ,replace(convert(varchar,convert(Money, ar_year.words),1),'.00','') AS year_words
+      ,replace(convert(varchar,convert(Money, ar_cur.words_goal * 6),1),'.00','') AS year_goal  
       ,100 - ar_year.pct_fiction AS year_pct_nf 
       ,ar_year.rank_words_grade_in_school AS year_rank_words
       --accuracy
