@@ -3,7 +3,8 @@ GO
 
 ALTER VIEW PS$local_emails AS
 SELECT *
-FROM OPENQUERY(KIPP_NWK,'
-     SELECT *
-     FROM local_emails
+FROM OPENQUERY(PS_TEAM, '
+  SELECT id AS studentid
+        ,DBMS_LOB.SUBSTR(guardianemail,2000,1) AS guardianemail
+  FROM STUDENTS
 ')
