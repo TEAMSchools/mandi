@@ -414,7 +414,43 @@ FROM
        JOIN KIPP_NJ..GRADES$elements pivot_ele
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
-        AND pivot_ele.pgf_type = 'A'              
+        AND pivot_ele.pgf_type = 'A'                     
+       
+       UNION ALL
+       
+        --Q1
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q1' AS pivot_on
+	         ,CAST(pivot_ele.grade_1 AS VARCHAR) AS value
+       FROM rost
+       JOIN KIPP_NJ..GRADES$elements pivot_ele
+         ON rost.studentid = pivot_ele.studentid
+        AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'Q'
+       
+       UNION ALL
+        
+        --Q2
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q1' AS pivot_on
+	         ,CAST(pivot_ele.grade_2 AS VARCHAR) AS value
+       FROM rost
+       JOIN KIPP_NJ..GRADES$elements pivot_ele
+         ON rost.studentid = pivot_ele.studentid
+        AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'Q'
+       
+       UNION ALL
+        
+        --Q3
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q1' AS pivot_on
+	         ,CAST(pivot_ele.grade_3 AS VARCHAR) AS value
+       FROM rost
+       JOIN KIPP_NJ..GRADES$elements pivot_ele
+         ON rost.studentid = pivot_ele.studentid
+        AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'Q'              
        )sub
 --/*
 PIVOT (
@@ -428,7 +464,7 @@ PIVOT (
      ,rc1_credit_hours_T3
      ,rc1_credit_hours_Y1
      ,rc1_teacher_last
-     ,rc1_teacher_lastfirst     
+     ,rc1_teacher_lastfirst
      ,rc1_t1
      ,rc1_t2
      ,rc1_t3
@@ -450,10 +486,13 @@ PIVOT (
      ,rc1_weighted_points_y1
      ,rc1_H1
      ,rc1_H2
-     ,rc1_H3     
+     ,rc1_H3
      ,rc1_A1
      ,rc1_A2
      ,rc1_A3
+     ,rc1_Q1
+     ,rc1_Q2
+     ,rc1_Q3
      ,rc2_course_number
      ,rc2_credittype
      ,rc2_course_name
@@ -484,10 +523,13 @@ PIVOT (
      ,rc2_weighted_points_y1
      ,rc2_H1
      ,rc2_H2
-     ,rc2_H3     
+     ,rc2_H3
      ,rc2_A1
      ,rc2_A2
      ,rc2_A3
+     ,rc2_Q1
+     ,rc2_Q2
+     ,rc2_Q3
      ,rc3_course_number
      ,rc3_credittype
      ,rc3_course_name
@@ -496,7 +538,7 @@ PIVOT (
      ,rc3_credit_hours_T3
      ,rc3_credit_hours_Y1
      ,rc3_teacher_last
-     ,rc3_teacher_lastfirst     
+     ,rc3_teacher_lastfirst
      ,rc3_t1
      ,rc3_t2
      ,rc3_t3
@@ -518,10 +560,13 @@ PIVOT (
      ,rc3_weighted_points_y1
      ,rc3_H1
      ,rc3_H2
-     ,rc3_H3     
+     ,rc3_H3
      ,rc3_A1
      ,rc3_A2
      ,rc3_A3
+     ,rc3_Q1
+     ,rc3_Q2
+     ,rc3_Q3
      ,rc4_course_number
      ,rc4_credittype
      ,rc4_course_name
@@ -530,7 +575,7 @@ PIVOT (
      ,rc4_credit_hours_T3
      ,rc4_credit_hours_Y1
      ,rc4_teacher_last
-     ,rc4_teacher_lastfirst     
+     ,rc4_teacher_lastfirst
      ,rc4_t1
      ,rc4_t2
      ,rc4_t3
@@ -552,10 +597,13 @@ PIVOT (
      ,rc4_weighted_points_y1
      ,rc4_H1
      ,rc4_H2
-     ,rc4_H3     
+     ,rc4_H3
      ,rc4_A1
      ,rc4_A2
      ,rc4_A3
+     ,rc4_Q1
+     ,rc4_Q2
+     ,rc4_Q3
      ,rc5_course_number
      ,rc5_credittype
      ,rc5_course_name
@@ -564,7 +612,7 @@ PIVOT (
      ,rc5_credit_hours_T3
      ,rc5_credit_hours_Y1
      ,rc5_teacher_last
-     ,rc5_teacher_lastfirst     
+     ,rc5_teacher_lastfirst
      ,rc5_t1
      ,rc5_t2
      ,rc5_t3
@@ -586,10 +634,13 @@ PIVOT (
      ,rc5_weighted_points_y1
      ,rc5_H1
      ,rc5_H2
-     ,rc5_H3     
+     ,rc5_H3
      ,rc5_A1
      ,rc5_A2
      ,rc5_A3
+     ,rc5_Q1
+     ,rc5_Q2
+     ,rc5_Q3
      ,rc6_course_number
      ,rc6_credittype
      ,rc6_course_name
@@ -598,7 +649,7 @@ PIVOT (
      ,rc6_credit_hours_T3
      ,rc6_credit_hours_Y1
      ,rc6_teacher_last
-     ,rc6_teacher_lastfirst     
+     ,rc6_teacher_lastfirst
      ,rc6_t1
      ,rc6_t2
      ,rc6_t3
@@ -620,10 +671,13 @@ PIVOT (
      ,rc6_weighted_points_y1
      ,rc6_H1
      ,rc6_H2
-     ,rc6_H3     
+     ,rc6_H3
      ,rc6_A1
      ,rc6_A2
      ,rc6_A3
+     ,rc6_Q1
+     ,rc6_Q2
+     ,rc6_Q3
      ,rc7_course_number
      ,rc7_credittype
      ,rc7_course_name
@@ -632,7 +686,7 @@ PIVOT (
      ,rc7_credit_hours_T3
      ,rc7_credit_hours_Y1
      ,rc7_teacher_last
-     ,rc7_teacher_lastfirst     
+     ,rc7_teacher_lastfirst
      ,rc7_t1
      ,rc7_t2
      ,rc7_t3
@@ -654,10 +708,13 @@ PIVOT (
      ,rc7_weighted_points_y1
      ,rc7_H1
      ,rc7_H2
-     ,rc7_H3     
+     ,rc7_H3
      ,rc7_A1
      ,rc7_A2
      ,rc7_A3
+     ,rc7_Q1
+     ,rc7_Q2
+     ,rc7_Q3
      ,rc8_course_number
      ,rc8_credittype
      ,rc8_course_name
@@ -666,7 +723,7 @@ PIVOT (
      ,rc8_credit_hours_T3
      ,rc8_credit_hours_Y1
      ,rc8_teacher_last
-     ,rc8_teacher_lastfirst     
+     ,rc8_teacher_lastfirst
      ,rc8_t1
      ,rc8_t2
      ,rc8_t3
@@ -688,10 +745,13 @@ PIVOT (
      ,rc8_weighted_points_y1
      ,rc8_H1
      ,rc8_H2
-     ,rc8_H3     
+     ,rc8_H3
      ,rc8_A1
      ,rc8_A2
      ,rc8_A3
+     ,rc8_Q1
+     ,rc8_Q2
+     ,rc8_Q3
      ,rc9_course_number
      ,rc9_credittype
      ,rc9_course_name
@@ -700,7 +760,7 @@ PIVOT (
      ,rc9_credit_hours_T3
      ,rc9_credit_hours_Y1
      ,rc9_teacher_last
-     ,rc9_teacher_lastfirst     
+     ,rc9_teacher_lastfirst
      ,rc9_t1
      ,rc9_t2
      ,rc9_t3
@@ -722,10 +782,13 @@ PIVOT (
      ,rc9_weighted_points_y1
      ,rc9_H1
      ,rc9_H2
-     ,rc9_H3     
+     ,rc9_H3
      ,rc9_A1
      ,rc9_A2
      ,rc9_A3
+     ,rc9_Q1
+     ,rc9_Q2
+     ,rc9_Q3
      ,rc10_course_number
      ,rc10_credittype
      ,rc10_course_name
@@ -734,7 +797,7 @@ PIVOT (
      ,rc10_credit_hours_T3
      ,rc10_credit_hours_Y1
      ,rc10_teacher_last
-     ,rc10_teacher_lastfirst     
+     ,rc10_teacher_lastfirst
      ,rc10_t1
      ,rc10_t2
      ,rc10_t3
@@ -756,10 +819,13 @@ PIVOT (
      ,rc10_weighted_points_y1
      ,rc10_H1
      ,rc10_H2
-     ,rc10_H3     
+     ,rc10_H3
      ,rc10_A1
      ,rc10_A2
      ,rc10_A3
+     ,rc10_Q1
+     ,rc10_Q2
+     ,rc10_Q3
      )
 ) AS pwn3d
 --*/
