@@ -111,10 +111,31 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$elements ele
  AND ele.yearid = 23
 
 --F&P
-LEFT OUTER JOIN KIPP_NJ..LIT$FP_test_events_long#identifiers#static fp_base
+LEFT OUTER JOIN 
+   --team considers anything from may of prev year -> present as baseline
+  (SELECT fp.studentid
+         ,fp.letter_level
+         ,ROW_NUMBER() OVER
+            (PARTITION BY fp.studentid
+             ORDER BY fp.test_date DESC) AS rn
+   FROM KIPP_NJ..LIT$FP_test_events_long#identifiers#static fp
+   WHERE fp.year >= 2012
+     AND fp.test_date >= '01-MAY-2013'
+     AND fp.schoolid = 133570965
+   
+   UNION ALL
+
+   --Rise is taking a true 2013 baseline/diagnostic
+   SELECT fp.studentid
+         ,fp.letter_level
+         ,1
+   FROM KIPP_NJ..LIT$FP_test_events_long#identifiers#static fp
+   WHERE fp.[year] = 2013
+     AND fp.rn_asc = 1
+  ) fp_base
   ON roster.studentid = fp_base.studentid
- AND fp_base.year = 2013
- AND fp_base.rn_asc = 1
+  AND fp_base.rn = 1
+
 LEFT OUTER JOIN KIPP_NJ..LIT$FP_test_events_long#identifiers#static fp_cur
   ON roster.studentid = fp_cur.studentid
  AND fp_cur.year = 2013
