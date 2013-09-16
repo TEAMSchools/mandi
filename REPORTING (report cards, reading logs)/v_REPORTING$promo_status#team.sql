@@ -25,9 +25,7 @@ FROM
             ,y1_att_pts_pct
             ,att_string
             ,CASE 
-              WHEN y1_att_pts_pct < 90 THEN 'Off Track' --redundant
-              WHEN y1_att_pts_pct < 92 THEN 'Off Track'
-              WHEN y1_att_pts_pct >= 98 THEN 'On Track' --redundant
+              WHEN y1_att_pts_pct <= 90 THEN 'Off Track'           
               ELSE 'On Track' 
              END AS promo_status_att   
      FROM             
