@@ -236,6 +236,7 @@ SELECT roster.*
       ,promo.promo_status_att
       ,promo.promo_status_grades
       ,promo.attendance_points 
+      ,promo.y1_att_pts_pct
 
 FROM roster
 --INFO
