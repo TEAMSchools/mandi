@@ -13,7 +13,9 @@ ALTER PROCEDURE [dbo].[sp_PS$STUDENTS_refresh]
 AS
 BEGIN
 
-	DECLARE @sql AS VARCHAR(MAX)='';
+ BEGIN TRANSACTION
+	
+ DECLARE @sql AS VARCHAR(MAX)='';
 
 	 --STEP 1: make sure no temp table
 		IF OBJECT_ID(N'tempdb..#PS$STUDENTS|refresh') IS NOT NULL
@@ -501,5 +503,8 @@ BEGIN
 		AND sys.objects.name = 'STUDENTS';
 
 	EXEC (@sql);
+
+--need to commit after insert when this runs in a big Server Agent job
+COMMIT TRANSACTION
 
 END

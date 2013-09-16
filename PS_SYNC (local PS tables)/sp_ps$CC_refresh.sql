@@ -10,9 +10,11 @@ GO
 
 
 
-ALTER PROCEDURE [dbo].[sp_ps_CC_refresh]
+ALTER PROCEDURE [dbo].[sp_PS$CC_refresh]
 AS
 BEGIN
+
+ BEGIN TRANSACTION
 
  DECLARE @sql AS VARCHAR(MAX)='';
 
@@ -158,6 +160,9 @@ BEGIN
 
  EXEC (@sql);
 
+--need to commit after insert when this runs in a big Server Agent job
+COMMIT TRANSACTION
+
 END
-GO
+
 

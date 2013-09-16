@@ -12,6 +12,8 @@ ALTER PROCEDURE [dbo].[sp_PS$TEACHERS_refresh]
 AS
 BEGIN
 
+ BEGIN TRANSACTION
+
 	DECLARE @sql AS VARCHAR(MAX)='';
 
 	-- Step 1: truncate table
@@ -54,5 +56,7 @@ BEGIN
 	EXEC (@sql);
 
 END
+
+COMMIT TRANSACTION
 
 GO

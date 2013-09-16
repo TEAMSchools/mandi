@@ -10,11 +10,13 @@ GO
 
 
 
-ALTER PROCEDURE [dbo].[sp_ps_Sections_refresh]
+ALTER PROCEDURE [dbo].[sp_PS$SECTIONS_refresh]
 AS
 BEGIN
-
- DECLARE @sql AS VARCHAR(MAX)='';
+ 
+ BEGIN TRANSACTION
+ 
+DECLARE @sql AS VARCHAR(MAX)='';
 
  -- Step 1: truncate table
  EXEC('TRUNCATE TABLE dbo.[SECTIONS]');
@@ -219,6 +221,8 @@ BEGIN
 
  EXEC (@sql);
 
+--need to commit after insert when this runs in a big Server Agent job
+COMMIT TRANSACTION
+
 END
-GO
 

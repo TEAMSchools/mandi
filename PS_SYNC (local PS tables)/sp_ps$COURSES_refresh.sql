@@ -10,9 +10,11 @@ GO
 
 
 
-ALTER PROCEDURE [dbo].[sp_ps_Courses_refresh]
+ALTER PROCEDURE [dbo].[sp_PS$COURSES_refresh]
 AS
 BEGIN
+
+ BEGIN TRANSACTION
 
  DECLARE @sql AS VARCHAR(MAX)='';
 
@@ -278,8 +280,6 @@ BEGIN
       TO_CHAR(EXCLUDEFROMSTOREDGRADES) AS EXCLUDEFROMSTOREDGRADES
      FROM COURSES');
 
-
-
  -- Step 4: rebuld all nonclustered indexes on table
  SELECT @sql = @sql + 
   'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name +' REBUILD;' +CHAR(13)+CHAR(10)
@@ -294,6 +294,9 @@ BEGIN
 
  EXEC (@sql);
 
+--need to commit after insert when this runs in a big Server Agent job
+COMMIT TRANSACTION
+
 END
-GO
+
 
