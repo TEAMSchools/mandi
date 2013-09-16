@@ -381,6 +381,18 @@ FROM
         AND pivot_ele.pgf_type = 'H'
        
        UNION ALL
+       
+       --HY all courses
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'HY_all' AS pivot_on
+	         ,CAST(pivot_ele.simple_avg AS VARCHAR) AS value
+       FROM rost
+       JOIN KIPP_NJ..GRADES$elements pivot_ele
+         ON rost.studentid = pivot_ele.studentid
+        AND pivot_ele.course_number = 'all_courses'        
+        AND pivot_ele.pgf_type = 'H'                     
+       
+       UNION ALL
               
        --A1
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
@@ -396,7 +408,7 @@ FROM
         
         --A2
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
-	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_A1' AS pivot_on
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_A2' AS pivot_on
 	         ,CAST(pivot_ele.grade_2 AS VARCHAR) AS value
        FROM rost
        JOIN KIPP_NJ..GRADES$elements pivot_ele
@@ -408,12 +420,24 @@ FROM
         
         --A3
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
-	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_A1' AS pivot_on
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_A3' AS pivot_on
 	         ,CAST(pivot_ele.grade_3 AS VARCHAR) AS value
        FROM rost
        JOIN KIPP_NJ..GRADES$elements pivot_ele
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'A'                     
+       
+       UNION ALL
+        
+        --AY all courses
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'AY_all' AS pivot_on
+	         ,CAST(pivot_ele.simple_avg AS VARCHAR) AS value
+       FROM rost
+       JOIN KIPP_NJ..GRADES$elements pivot_ele
+         ON rost.studentid = pivot_ele.studentid
+        AND pivot_ele.course_number = 'all_courses'        
         AND pivot_ele.pgf_type = 'A'                     
        
        UNION ALL
@@ -432,7 +456,7 @@ FROM
         
         --Q2
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
-	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q1' AS pivot_on
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q2' AS pivot_on
 	         ,CAST(pivot_ele.grade_2 AS VARCHAR) AS value
        FROM rost
        JOIN KIPP_NJ..GRADES$elements pivot_ele
@@ -444,13 +468,25 @@ FROM
         
         --Q3
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
-	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q1' AS pivot_on
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q3' AS pivot_on
 	         ,CAST(pivot_ele.grade_3 AS VARCHAR) AS value
        FROM rost
        JOIN KIPP_NJ..GRADES$elements pivot_ele
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
         AND pivot_ele.pgf_type = 'Q'              
+        
+       UNION ALL 
+       
+         --QY all courses
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'QY_all' AS pivot_on
+	         ,CAST(pivot_ele.simple_avg AS VARCHAR) AS value
+       FROM rost
+       JOIN KIPP_NJ..GRADES$elements pivot_ele
+         ON rost.studentid = pivot_ele.studentid
+        AND pivot_ele.course_number = 'all_courses'        
+        AND pivot_ele.pgf_type = 'Q'                     
        )sub
 --/*
 PIVOT (
@@ -826,6 +862,9 @@ PIVOT (
      ,rc10_Q1
      ,rc10_Q2
      ,rc10_Q3
+     ,HY_all
+     ,AY_all
+     ,QY_all
      )
 ) AS pwn3d
 --*/
