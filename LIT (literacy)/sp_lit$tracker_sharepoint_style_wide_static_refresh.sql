@@ -15,7 +15,7 @@ BEGIN
  --STEP 1: make sure no temp table
 		IF OBJECT_ID(N'tempdb..#tracker_sharepoint_style_wide#static|refresh') IS NOT NULL
 		BEGIN
-			DROP TABLE [#LIT$step_headline_long#identifiers|refresh]
+			DROP TABLE [#tracker_sharepoint_style_wide#static|refresh]
 		END
 		
  --STEP 2: load into a TEMPORARY staging table.
