@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW MAP$rutgers_ready_student_goals AS
+ALTER VIEW MAP$rutgers_ready_student_goals AS
 
 WITH stu_roster AS
     (SELECT c.studentid
@@ -44,9 +44,9 @@ FROM
        LEFT OUTER JOIN KIPP_NJ..MAP$baseline_composite map_base
          ON stu_roster.studentid = map_base.studentid 
         AND stu_roster.year = map_base.year
-        AND map_base.measurementscale IN ('General Science', 'Language', 'Language Usage')
+        AND map_base.measurementscale IN ('Science - General Science', 'Language', 'Language Usage')
        --just for testing
-       WHERE map_base.testritscore IS NOT NULL
+       --WHERE map_base.testritscore IS NOT NULL
 
 
        /*

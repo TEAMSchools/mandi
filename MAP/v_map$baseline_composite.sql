@@ -23,7 +23,7 @@ WITH roster AS
    UNION
    SELECT 'Language Usage'
    UNION
-   SELECT 'General Science'
+   SELECT 'Science - General Science'
   )
   
 SELECT TOP (100) PERCENT sub.*
@@ -32,12 +32,12 @@ SELECT TOP (100) PERCENT sub.*
          ELSE map_spr.termname
        END AS termname
       ,CASE 
-         WHEN map_spr.testritscore IS NULL THEN map_fall.testritscore
-         ELSE map_spr.testritscore
+         WHEN map_spr.testritscore IS NULL THEN CAST(map_fall.testritscore AS INT)
+         ELSE CAST(map_spr.testritscore AS INT)
        END AS testritscore
       ,CASE 
-         WHEN map_spr.testritscore IS NULL THEN map_fall.percentile_2011_norms
-         ELSE map_spr.percentile_2011_norms
+         WHEN map_spr.testritscore IS NULL THEN CAST(map_fall.percentile_2011_norms AS INT)
+         ELSE CAST(map_spr.percentile_2011_norms AS INT)
        END AS testpercentile
       ,CASE 
          WHEN map_spr.testritscore IS NULL THEN map_fall.TypicalFallToSpringGrowth

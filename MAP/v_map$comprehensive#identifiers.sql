@@ -103,11 +103,11 @@ SELECT cohort.schoolid
         AND cohort.rn = 1
       LEFT OUTER JOIN MAP$norm_table#2008 norms_2008 
         ON  cohort.grade_level = norms_2008.grade 
-        AND sq_2.measurementscale = norms_2008.measurementscale 
+        AND REPLACE(sq_2.measurementscale, 'Science - General Science', 'General Science') = norms_2008.measurementscale 
         AND sq_2.testritscore = norms_2008.rit 
         AND sq_2.fallwinterspring = norms_2008.fallwinterspring
       LEFT OUTER JOIN MAP$norm_table#2011 norms_2011 
         ON  cohort.grade_level = norms_2011.grade 
-        AND sq_2.measurementscale = norms_2011.measurementscale 
+        AND REPLACE(sq_2.measurementscale, 'Science - General Science', 'General Science')  = norms_2011.measurementscale 
         AND sq_2.testritscore = norms_2011.rit 
         AND sq_2.fallwinterspring = norms_2011.fallwinterspring
