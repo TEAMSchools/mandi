@@ -6,10 +6,17 @@ GO
 
 ALTER VIEW PS$CUSTOM_STUDENTS AS
 SELECT *
-FROM OPENQUERY(KIPP_NWK,'
-     SELECT *
-     FROM CUSTOM_STUDENTS
-')
+FROM
+    (SELECT openq.*
+          ,ROW_NUMBER() OVER
+                 (PARTITION BY studentid
+                  ORDER BY studentid) AS rn
+    FROM OPENQUERY(KIPP_NWK,'
+         SELECT *           
+         FROM CUSTOM_STUDENTS
+         ')openq
+    )sub
+WHERE rn = 1
 
 /*
 CREATE MATERIALIZED VIEW CUSTOM_STUDENTS
