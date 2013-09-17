@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---CREATE VIEW REPORTING$report_card#Rise AS
+CREATE VIEW REPORTING$report_card#Rise AS
 WITH roster AS
      (SELECT s.student_number AS base_student_number
             ,s.id AS base_studentid
@@ -48,7 +48,7 @@ WITH roster AS
      JOIN KIPP_NJ..PS$local_emails local
        ON cs.studentid = local.studentid
     )       
-  
+
 SELECT roster.*
       ,info.*
       
@@ -208,16 +208,16 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_A1  END AS rc9_cur_assess_pct
       ,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_A1 END AS rc10_cur_assess_pct      
       --Q
-      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q1  END AS rc1_cur_assess_pct
-      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q1  END AS rc2_cur_assess_pct
-      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_Q1  END AS rc3_cur_assess_pct
-      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_Q1  END AS rc4_cur_assess_pct
-      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_Q1  END AS rc5_cur_assess_pct
-      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_Q1  END AS rc6_cur_assess_pct
-      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_Q1  END AS rc7_cur_assess_pct
-      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q1  END AS rc8_cur_assess_pct
-      ,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_Q1  END AS rc9_cur_assess_pct
-      ,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_Q1 END AS rc10_cur_assess_pct
+      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q1  END AS rc1_cur_qual_pct
+      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q1  END AS rc2_cur_qual_pct
+      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_Q1  END AS rc3_cur_qual_pct
+      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_Q1  END AS rc4_cur_qual_pct
+      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_Q1  END AS rc5_cur_qual_pct
+      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_Q1  END AS rc6_cur_qual_pct
+      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_Q1  END AS rc7_cur_qual_pct
+      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q1  END AS rc8_cur_qual_pct
+      ,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_Q1  END AS rc9_cur_qual_pct
+      ,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_Q1 END AS rc10_cur_qual_pct
       --All classes element averages
       ,gr_wide.HY_all AS homework_year_avg
       ,gr_wide.QY_all AS homework_qual_year_avg
@@ -333,10 +333,46 @@ SELECT roster.*
       ,map_math.spring_2011_percentile - map_math.fall_2010_percentile AS f2s_2010_11_math_pctle_chg
       ,map_math.fall_2010_percentile - map_math.spring_2010_percentile AS sum_2010_math_pctle_chg      
 
+--Literacy tracking
+--MAP$comprehensive#identifiers
+--LIT$FP_test_events_long#identifiers#static
+
+     --F&P
+     --update terms in JOIN
+     ,fp_base.letter_level AS fp_letter_base
+     ,fp_curr.letter_level AS fp_letter_curr
+     
+     --Lexile (from MAP)
+     --update terms in JOIN
+     ,CASE
+       WHEN lex_fall.RITtoReadingScore = 'BR' THEN 'Beginning Reader'
+       ELSE lex_fall.RITtoReadingScore
+      END AS lexile_base
+     --,lex_fall.RITtoReadingMin AS lexile_min_base
+     --,lex_fall.RITtoReadingMax AS lexile_max_base
+     /*
+     ,CASE
+       WHEN lex_fall.RITtoReadingScore <= 100  THEN 'K'
+       WHEN lex_fall.RITtoReadingScore <= 300  AND lex_fall.RITtoReadingScore > 100  THEN '1st'
+       WHEN lex_fall.RITtoReadingScore <= 500  AND lex_fall.RITtoReadingScore > 300  THEN '2nd'
+       WHEN lex_fall.RITtoReadingScore <= 600  AND lex_fall.RITtoReadingScore > 500  THEN '3rd'
+       WHEN lex_fall.RITtoReadingScore <= 700  AND lex_fall.RITtoReadingScore > 600  THEN '4th'
+       WHEN lex_fall.RITtoReadingScore <= 800  AND lex_fall.RITtoReadingScore > 700  THEN '5th'
+       WHEN lex_fall.RITtoReadingScore <= 900  AND lex_fall.RITtoReadingScore > 800  THEN '6th'
+       WHEN lex_fall.RITtoReadingScore <= 1000 AND lex_fall.RITtoReadingScore > 900  THEN '7th'
+       WHEN lex_fall.RITtoReadingScore <= 1100 AND lex_fall.RITtoReadingScore > 1000 THEN '8th'
+       WHEN lex_fall.RITtoReadingScore <= 1200 AND lex_fall.RITtoReadingScore > 1100 THEN '9th'
+       WHEN lex_fall.RITtoReadingScore <= 1300 AND lex_fall.RITtoReadingScore > 1200 THEN '10th'
+       WHEN lex_fall.RITtoReadingScore <= 1400 AND lex_fall.RITtoReadingScore > 1300 THEN '11th'
+       WHEN lex_fall.RITtoReadingScore  > 1400 THEN '12th'
+       ELSE NULL
+      END AS base_GLQ_starting
+      */
+
 --NJASK scores
 --NJASK$ela_wide
 --NJASK$math_wide
-      
+
       --Test name -- add a new line for each test year, delete oldest
       ,CASE WHEN njask_ela.score_2013 IS NOT NULL OR njask_math.score_2013 IS NOT NULL 
             THEN 'NJASK | Gr '+ njask_ela.gr_lev_2013 + ' | 2013' ELSE NULL END AS NJASK_13_Name
@@ -375,50 +411,83 @@ SELECT roster.*
 
       --Accelerated Reader
       --update terms in JOIN
-      ,ar_goals_yr.words
-      ,ar_goals_yr.words_goal
-      ,ar_goals_yr.ontrack_words
-      ,case when (ar_goals_yr.ontrack_words - ar_goals_yr.words) <= 0 then null 
-            else ar_goals_yr.ontrack_words - ar_goals_yr.words end as words_needed_yr
-      ,ar_goals_yr.rank_words_grade_in_school      
+      --AR year
+      ,replace(convert(varchar,convert(Money, ar_yr.words),1),'.00','') AS words_read_yr
+      ,replace(convert(varchar,convert(Money, ar_curr.words_goal * 6),1),'.00','') AS words_goal_yr      
+      ,ar_yr.rank_words_grade_in_school AS words_rank_yr_in_grade
+      ,ar_yr.mastery AS mastery_yr
       
-      ,case
-         when ar_goals_yr.stu_status_words = 'On Track' then 'Yes!'
-         when ar_goals_yr.stu_status_words = 'Off Track' then 'No'
-         else ar_goals_yr.stu_status_words
-       end as stu_status_words_yr  
-      ,ar_goals_yr.mastery
-      ,ar_goals_curr.words as words_read_cur_term
-      ,ar_goals_curr.words_goal as words_goal_cur_term
-      ,ar_goals_curr.stu_status_words as stu_status_words_cur_term
-      ,ar_goals_curr.rank_words_grade_in_school as words_rank_cur_term_in_grade
-      
+      --AR current
+      ,replace(convert(varchar,convert(Money, ar_curr.words),1),'.00','') AS words_read_cur_term
+      ,replace(convert(varchar,convert(Money, ar_curr.words_goal),1),'.00','') AS words_goal_cur_term
+      ,ar_curr.rank_words_grade_in_school AS words_rank_cur_term_in_grade
+      ,ar_curr.mastery AS mastery_curr
+       
+       --AR progress
+         --to year goal      
+      ,CASE
+        WHEN ar_yr.stu_status_words = 'On Track' THEN 'Yes!'
+        WHEN ar_yr.stu_status_words = 'Off Track' THEN 'No'
+        ELSE ar_yr.stu_status_words
+       END AS stu_status_words_yr      
+      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, CAST(ROUND(
+          CASE
+           WHEN ((ar_curr.words_goal * 6) - ar_yr.words) <= 0 THEN NULL 
+           ELSE (ar_curr.words_goal * 6) - ar_yr.words
+          END
+             ,0) AS INT)),1),'.00','') AS words_needed_yr
+       --to term goal       
+      ,CASE
+        WHEN ar_curr.stu_status_words = 'On Track' THEN 'Yes!'
+        WHEN ar_curr.stu_status_words = 'Off Track' THEN 'No'
+        ELSE ar_curr.stu_status_words
+       END AS stu_status_words_cur_term      
+      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, CAST(ROUND(
+          CASE
+           WHEN (ar_curr.words_goal - ar_curr.words) <= 0 THEN NULL 
+           ELSE ar_curr.words_goal - ar_curr.words
+          END
+             ,0) AS INT)),1),'.00','') AS words_needed_cur_term
 
 --Discipline
 --DISC$counts_wide
 --DISC$recent_incidents_wide
   
-      /*--Recent Incidents
+      --Recent Incidents
       ,disc_recent.disc_01_date_reported
       ,disc_recent.disc_01_given_by
-      ,case when disc_recent.disc_01_subject is null then disc_recent.disc_01_incident 
-            else disc_recent.disc_01_subject end as disc_01_incident
+      ,CASE
+        WHEN disc_recent.disc_01_subject IS NULL THEN disc_recent.disc_01_incident 
+        ELSE disc_recent.disc_01_subject
+       END AS disc_01_incident
+            
       ,disc_recent.disc_02_date_reported
       ,disc_recent.disc_02_given_by
-      ,case when disc_recent.disc_02_subject is null then disc_recent.disc_02_incident 
-            else disc_recent.disc_02_subject end as disc_02_incident
+      ,CASE
+        WHEN disc_recent.disc_02_subject IS NULL THEN disc_recent.disc_02_incident 
+        ELSE disc_recent.disc_02_subject
+       END AS disc_02_incident
+            
       ,disc_recent.disc_03_date_reported
       ,disc_recent.disc_03_given_by
-      ,case when disc_recent.disc_03_subject is null then disc_recent.disc_03_incident 
-            else disc_recent.disc_03_subject end as disc_03_incident
+      ,CASE 
+        WHEN disc_recent.disc_03_subject IS NULL THEN disc_recent.disc_03_incident 
+        ELSE disc_recent.disc_03_subject
+       END AS disc_03_incident
+            
       ,disc_recent.disc_04_date_reported
       ,disc_recent.disc_04_given_by
-      ,case when disc_recent.disc_04_subject is null then disc_recent.disc_04_incident 
-            else disc_recent.disc_04_subject end as disc_04_incident
+      ,CASE
+        WHEN disc_recent.disc_04_subject IS NULL THEN disc_recent.disc_04_incident 
+        ELSE disc_recent.disc_04_subject
+       END AS disc_04_incident
+            
       ,disc_recent.disc_05_date_reported
       ,disc_recent.disc_05_given_by
-      ,case when disc_recent.disc_05_subject is null then disc_recent.disc_05_incident 
-            else disc_recent.disc_05_subject end as disc_05_incident*/
+      ,CASE
+        WHEN disc_recent.disc_05_subject IS NULL THEN disc_recent.disc_05_incident 
+        ELSE disc_recent.disc_05_subject
+       END AS disc_05_incident
       
       --Discipline Counts
       ,ISNULL(disc_count.silent_lunches,0) AS silent_lunches
@@ -484,28 +553,53 @@ LEFT OUTER JOIN MAP$reading_wide map_read
 LEFT OUTER JOIN MAP$math_wide map_math
   ON roster.base_student_number = map_math.studentid
   
+--LITERACY -- upadate parameters for current term
+  --F&P
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base
+  ON roster.base_student_number = fp_base.STUDENT_NUMBER
+ AND fp_base.year = 2013
+ AND fp_base.rn_asc = 1
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr
+  ON roster.base_student_number = fp_curr.STUDENT_NUMBER
+ AND fp_curr.year = 2013
+ AND fp_curr.rn_desc = 1
+  --LEXILE
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_fall
+  ON roster.base_student_number = lex_fall.StudentID
+ AND lex_fall.MeasurementScale = 'Reading'
+ AND lex_fall.fallwinterspring = 'Fall'
+ AND lex_fall.map_year_academic = 2013
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_spring
+  ON roster.base_student_number = lex_spring.StudentID
+ AND lex_spring.MeasurementScale = 'Reading'
+ AND lex_spring.fallwinterspring = 'Spring'
+ AND lex_spring.map_year_academic = 2013
+  
 --NJASK
 LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela 
   ON roster.base_studentid = njask_ela.id
+ AND njask_ela.schoolid = 73252
 LEFT OUTER JOIN NJASK$MATH_WIDE njask_math
   ON roster.base_studentid = njask_math.id
+ AND njask_math.schoolid = 73252
 
 --DISCIPLINE
 LEFT OUTER JOIN DISC$counts_wide disc_count
   ON roster.base_studentid = disc_count.base_studentid
---LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent
-  --ON roster.base_student_number = disc_recent.base_studentid
+LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent
+  ON roster.base_studentid = disc_recent.base_studentid
 
 --ED TECH
---ACCELERATED READER
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_goals_yr
-  ON roster.base_studentid = ar_goals_yr.studentid
- AND ar_goals_yr.yearid >= 2300
- AND ar_goals_yr.time_period_name = 'Year'
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_goals_curr
-  ON roster.base_studentid = ar_goals_curr.studentid
- AND ar_goals_curr.yearid >= 2300
- AND ar_goals_curr.time_period_name = 'RT1'
+  --ACCELERATED READER
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr
+  ON roster.base_studentid = ar_yr.studentid 
+ AND ar_yr.time_period_name = 'Year'
+ AND ar_yr.yearid = 2300
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr
+  ON roster.base_studentid = ar_curr.studentid 
+ AND ar_curr.time_period_name = 'RT1'
+ AND ar_curr.yearid = 2300
+
 
 /* NOT USED FOR PROGRESS REPORTS
 --GRADEBOOK COMMMENTS -- upadate fieldname and parameter for current term
@@ -533,4 +627,4 @@ LEFT OUTER JOIN PS$comments_gradebooks comment_rc6
   ON gr_wide.rc6_T1_enr_sectionid = comment_rc6.sectionid
  AND gr_wide.studentid = comment_rc6.studentid
  AND comment_rc6.finalgradename = 'T1'
- --*/
+--*/
