@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW REPORTING$report_card#Rise AS
+ALTER VIEW REPORTING$report_card#Rise AS
 WITH roster AS
      (SELECT s.student_number AS base_student_number
             ,s.id AS base_studentid
@@ -58,12 +58,14 @@ SELECT roster.*
       ,gr_wide.rc1_teacher_last            
       ,gr_wide.rc1_t1_ltr AS rc1_cur_term_ltr      --change field name for current term
       ,ROUND(gr_wide.rc1_T1,0) AS rc1_cur_term_pct --change field name for current term
-      ,gr_wide.rc1_T1_ltr AS rc1_T1_term_ltr
+      /*
+      ,gr_wide.rc1_T1_ltr AS rc1_T1_term_ltr      
       ,gr_wide.rc1_T2_ltr AS rc1_T2_term_ltr
       ,gr_wide.rc1_T3_ltr AS rc1_T3_term_ltr
       ,ROUND(gr_wide.rc1_T1,0) AS rc1_T1_term_pct
       ,ROUND(gr_wide.rc1_T2,0) AS rc1_T2_term_pct
       ,ROUND(gr_wide.rc1_T3,0) AS rc1_T3_term_pct
+      */
       ,ROUND(gr_wide.rc1_y1,0) AS rc1_y1_pct
       ,gr_wide.rc1_y1_ltr
       
@@ -71,12 +73,14 @@ SELECT roster.*
       ,gr_wide.rc2_teacher_last            
       ,gr_wide.rc2_t1_ltr AS rc2_cur_term_ltr      --change field name for current term
       ,ROUND(gr_wide.rc2_T1,0) AS rc2_cur_term_pct --change field name for current term
-      ,gr_wide.rc2_T1_ltr AS rc2_T1_term_ltr
+      /*
+      ,gr_wide.rc2_T1_ltr AS rc2_T1_term_ltr      
       ,gr_wide.rc2_T2_ltr AS rc2_T2_term_ltr
       ,gr_wide.rc2_T3_ltr AS rc2_T3_term_ltr
       ,ROUND(gr_wide.rc2_T1,0) AS rc2_T1_term_pct
       ,ROUND(gr_wide.rc2_T2,0) AS rc2_T2_term_pct
       ,ROUND(gr_wide.rc2_T3,0) AS rc2_T3_term_pct
+      */
       ,ROUND(gr_wide.rc2_y1,0) AS rc2_y1_pct
       ,gr_wide.rc2_y1_ltr
       
@@ -84,12 +88,14 @@ SELECT roster.*
       ,gr_wide.rc3_teacher_last            
       ,gr_wide.rc3_t1_ltr AS rc3_cur_term_ltr      --change field name for current term
       ,ROUND(gr_wide.rc3_T1,0) AS rc3_cur_term_pct --change field name for current term
-      ,gr_wide.rc3_T1_ltr AS rc3_T1_term_ltr
+      /*
+      ,gr_wide.rc3_T1_ltr AS rc3_T1_term_ltr      
       ,gr_wide.rc3_T2_ltr AS rc3_T2_term_ltr
       ,gr_wide.rc3_T3_ltr AS rc3_T3_term_ltr
       ,ROUND(gr_wide.rc3_T1,0) AS rc3_T1_term_pct
       ,ROUND(gr_wide.rc3_T2,0) AS rc3_T2_term_pct
       ,ROUND(gr_wide.rc3_T3,0) AS rc3_T3_term_pct
+      */
       ,ROUND(gr_wide.rc3_y1,0) AS rc3_y1_pct
       ,gr_wide.rc3_y1_ltr
       
@@ -97,12 +103,14 @@ SELECT roster.*
       ,gr_wide.rc4_teacher_last            
       ,gr_wide.rc4_t1_ltr AS rc4_cur_term_ltr      --change field name for current term
       ,ROUND(gr_wide.rc4_T1,0) AS rc4_cur_term_pct --change field name for current term
-      ,gr_wide.rc4_T1_ltr AS rc4_T1_term_ltr
+      /*
+      ,gr_wide.rc4_T1_ltr AS rc4_T1_term_ltr      
       ,gr_wide.rc4_T2_ltr AS rc4_T2_term_ltr
       ,gr_wide.rc4_T3_ltr AS rc4_T3_term_ltr
       ,ROUND(gr_wide.rc4_T1,0) AS rc4_T1_term_pct
       ,ROUND(gr_wide.rc4_T2,0) AS rc4_T2_term_pct
       ,ROUND(gr_wide.rc4_T3,0) AS rc4_T3_term_pct
+      */
       ,ROUND(gr_wide.rc4_y1,0) AS rc4_y1_pct
       ,gr_wide.rc4_y1_ltr
       
@@ -110,12 +118,14 @@ SELECT roster.*
       ,gr_wide.rc5_teacher_last            
       ,gr_wide.rc5_t1_ltr AS rc5_cur_term_ltr      --change field name for current term
       ,ROUND(gr_wide.rc5_T1,0) AS rc5_cur_term_pct --change field name for current term
-      ,gr_wide.rc5_T1_ltr AS rc5_T1_term_ltr
+      /*
+      ,gr_wide.rc5_T1_ltr AS rc5_T1_term_ltr      
       ,gr_wide.rc5_T2_ltr AS rc5_T2_term_ltr
       ,gr_wide.rc5_T3_ltr AS rc5_T3_term_ltr
       ,ROUND(gr_wide.rc5_T1,0) AS rc5_T1_term_pct
       ,ROUND(gr_wide.rc5_T2,0) AS rc5_T2_term_pct
       ,ROUND(gr_wide.rc5_T3,0) AS rc5_T3_term_pct
+      */
       ,ROUND(gr_wide.rc5_y1,0) AS rc5_y1_pct
       ,gr_wide.rc5_y1_ltr
       
@@ -123,12 +133,14 @@ SELECT roster.*
       ,gr_wide.rc6_teacher_last            
       ,gr_wide.rc6_t1_ltr AS rc6_cur_term_ltr      --change field name for current term
       ,ROUND(gr_wide.rc6_T1,0) AS rc6_cur_term_pct --change field name for current term
-      ,gr_wide.rc6_T1_ltr AS rc6_T1_term_ltr
+      /*
+      ,gr_wide.rc6_T1_ltr AS rc6_T1_term_ltr     
       ,gr_wide.rc6_T2_ltr AS rc6_T2_term_ltr
       ,gr_wide.rc6_T3_ltr AS rc6_T3_term_ltr
       ,ROUND(gr_wide.rc6_T1,0) AS rc6_T1_term_pct
       ,ROUND(gr_wide.rc6_T2,0) AS rc6_T2_term_pct
       ,ROUND(gr_wide.rc6_T3,0) AS rc6_T3_term_pct
+      */
       ,ROUND(gr_wide.rc6_y1,0) AS rc6_y1_pct
       ,gr_wide.rc6_y1_ltr
       
@@ -136,15 +148,18 @@ SELECT roster.*
       ,gr_wide.rc7_teacher_last            
       ,gr_wide.rc7_t1_ltr AS rc7_cur_term_ltr      --change field name for current term
       ,ROUND(gr_wide.rc7_T1,0) AS rc7_cur_term_pct --change field name for current term
-      ,gr_wide.rc7_T1_ltr AS rc7_T1_term_ltr
+      /*
+      ,gr_wide.rc7_T1_ltr AS rc7_T1_term_ltr      
       ,gr_wide.rc7_T2_ltr AS rc7_T2_term_ltr
       ,gr_wide.rc7_T3_ltr AS rc7_T3_term_ltr
       ,ROUND(gr_wide.rc7_T1,0) AS rc7_T1_term_pct
       ,ROUND(gr_wide.rc7_T2,0) AS rc7_T2_term_pct
       ,ROUND(gr_wide.rc7_T3,0) AS rc7_T3_term_pct
+      */
       ,ROUND(gr_wide.rc7_y1,0) AS rc7_y1_pct
       ,gr_wide.rc7_y1_ltr
       
+      /*
       ,gr_wide.rc8_course_name
       ,gr_wide.rc8_teacher_last            
       ,gr_wide.rc8_t1_ltr AS rc8_cur_term_ltr      --change field name for current term
@@ -183,6 +198,7 @@ SELECT roster.*
       ,ROUND(gr_wide.rc10_T3,0) AS rc10_T3_term_pct
       ,ROUND(gr_wide.rc10_y1,0) AS rc10_y1_pct
       ,gr_wide.rc10_y1_ltr
+      */
 
       --current term component averages -- change term number (e.g. H1) on component fields for current term
       --H
@@ -193,9 +209,9 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_H1  END AS rc5_cur_hw_pct
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_H1  END AS rc6_cur_hw_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_H1  END AS rc7_cur_hw_pct
-      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H1  END AS rc8_cur_hw_pct
-      ,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_H1  END AS rc9_cur_hw_pct
-      ,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_H1 END AS rc10_cur_hw_pct      
+      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H1  END AS rc8_cur_hw_pct
+      --,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_H1  END AS rc9_cur_hw_pct
+      --,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_H1 END AS rc10_cur_hw_pct      
       --A
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_A1  END AS rc1_cur_assess_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_A1  END AS rc2_cur_assess_pct
@@ -204,9 +220,9 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_A1  END AS rc5_cur_assess_pct
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_A1  END AS rc6_cur_assess_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_A1  END AS rc7_cur_assess_pct
-      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_A1  END AS rc8_cur_assess_pct
-      ,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_A1  END AS rc9_cur_assess_pct
-      ,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_A1 END AS rc10_cur_assess_pct      
+      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_A1  END AS rc8_cur_assess_pct
+      --,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_A1  END AS rc9_cur_assess_pct
+      --,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_A1 END AS rc10_cur_assess_pct      
       --Q
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q1  END AS rc1_cur_qual_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q1  END AS rc2_cur_qual_pct
@@ -215,9 +231,9 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_Q1  END AS rc5_cur_qual_pct
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_Q1  END AS rc6_cur_qual_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_Q1  END AS rc7_cur_qual_pct
-      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q1  END AS rc8_cur_qual_pct
-      ,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_Q1  END AS rc9_cur_qual_pct
-      ,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_Q1 END AS rc10_cur_qual_pct
+      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q1  END AS rc8_cur_qual_pct
+      --,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_Q1  END AS rc9_cur_qual_pct
+      --,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_Q1 END AS rc10_cur_qual_pct
       --All classes element averages
       ,gr_wide.HY_all AS homework_year_avg
       ,gr_wide.QY_all AS homework_qual_year_avg
@@ -268,7 +284,6 @@ SELECT roster.*
       ,promo.promo_status_att
       ,promo.promo_status_hw
 
---/* TEST THIS VIEW WITHOUT NJASK AND MAP      
 --MAP scores
 --MAP$reading_wide
 --MAP$math_wide
@@ -341,6 +356,68 @@ SELECT roster.*
      --update terms in JOIN
      ,fp_base.letter_level AS fp_letter_base
      ,fp_curr.letter_level AS fp_letter_curr
+       --GLQ
+     ,CASE 
+       WHEN fp_curr.letter_level = 'AA' THEN '0'
+       WHEN fp_curr.letter_level = 'A' THEN '.3'
+       WHEN fp_curr.letter_level = 'B' THEN '.5'
+       WHEN fp_curr.letter_level = 'C' THEN '.7'
+       WHEN fp_curr.letter_level = 'D' THEN '1'
+       WHEN fp_curr.letter_level = 'E' THEN '1.2'
+       WHEN fp_curr.letter_level = 'F' THEN '1.4'
+       WHEN fp_curr.letter_level = 'G' THEN '1.6'
+       WHEN fp_curr.letter_level = 'H' THEN '1.8'
+       WHEN fp_curr.letter_level = 'I' THEN '2'
+       WHEN fp_curr.letter_level = 'J' THEN '2.2'
+       WHEN fp_curr.letter_level = 'K' THEN '2.4'
+       WHEN fp_curr.letter_level = 'L' THEN '2.6'
+       WHEN fp_curr.letter_level = 'M' THEN '2.8'
+       WHEN fp_curr.letter_level = 'N' THEN '3'
+       WHEN fp_curr.letter_level = 'O' THEN '3.5'
+       WHEN fp_curr.letter_level = 'P' THEN '3.8'
+       WHEN fp_curr.letter_level = 'Q' THEN '4'
+       WHEN fp_curr.letter_level = 'R' THEN '4.5'
+       WHEN fp_curr.letter_level = 'S' THEN '4.8'
+       WHEN fp_curr.letter_level = 'T' THEN '5'
+       WHEN fp_curr.letter_level = 'U' THEN '5.5'
+       WHEN fp_curr.letter_level = 'V' THEN '6'
+       WHEN fp_curr.letter_level = 'W' THEN '6.3'
+       WHEN fp_curr.letter_level = 'X' THEN '6.7'
+       WHEN fp_curr.letter_level = 'Y' THEN '7'
+       WHEN fp_curr.letter_level = 'Z' THEN '7.5'
+       WHEN fp_curr.letter_level = 'Z+' THEN '8' 
+       ELSE NULL
+      END AS fp_curr_GLQ
+     ,CASE WHEN fp_base.letter_level = 'AA' THEN '0'
+       WHEN fp_base.letter_level = 'A' THEN '.3'
+       WHEN fp_base.letter_level = 'B' THEN '.5'
+       WHEN fp_base.letter_level = 'C' THEN '.7'
+       WHEN fp_base.letter_level = 'D' THEN '1'
+       WHEN fp_base.letter_level = 'E' THEN '1.2'
+       WHEN fp_base.letter_level = 'F' THEN '1.4'
+       WHEN fp_base.letter_level = 'G' THEN '1.6'
+       WHEN fp_base.letter_level = 'H' THEN '1.8'
+       WHEN fp_base.letter_level = 'I' THEN '2'
+       WHEN fp_base.letter_level = 'J' THEN '2.2'
+       WHEN fp_base.letter_level = 'K' THEN '2.4'
+       WHEN fp_base.letter_level = 'L' THEN '2.6'
+       WHEN fp_base.letter_level = 'M' THEN '2.8'
+       WHEN fp_base.letter_level = 'N' THEN '3'
+       WHEN fp_base.letter_level = 'O' THEN '3.5'
+       WHEN fp_base.letter_level = 'P' THEN '3.8'
+       WHEN fp_base.letter_level = 'Q' THEN '4'
+       WHEN fp_base.letter_level = 'R' THEN '4.5'
+       WHEN fp_base.letter_level = 'S' THEN '4.8'
+       WHEN fp_base.letter_level = 'T' THEN '5'
+       WHEN fp_base.letter_level = 'U' THEN '5.5'
+       WHEN fp_base.letter_level = 'V' THEN '6'
+       WHEN fp_base.letter_level = 'W' THEN '6.3'
+       WHEN fp_base.letter_level = 'X' THEN '6.7'
+       WHEN fp_base.letter_level = 'Y' THEN '7'
+       WHEN fp_base.letter_level = 'Z' THEN '7.5'
+       WHEN fp_base.letter_level = 'Z+' THEN '8' 
+       ELSE NULL
+      END AS fp_base_GLQ     
      
      --Lexile (from MAP)
      --update terms in JOIN
@@ -348,10 +425,11 @@ SELECT roster.*
        WHEN lex_fall.RITtoReadingScore = 'BR' THEN 'Beginning Reader'
        ELSE lex_fall.RITtoReadingScore
       END AS lexile_base
-     --,lex_fall.RITtoReadingMin AS lexile_min_base
-     --,lex_fall.RITtoReadingMax AS lexile_max_base
-     /*
+     --,lex_fall.RITtoReadingMin AS lexile_base_min
+     --,lex_fall.RITtoReadingMax AS lexile_base_max     
+       --GLQ
      ,CASE
+       WHEN lex_fall.RITtoReadingScore  = 'BR' THEN 'Beginning Reader'
        WHEN lex_fall.RITtoReadingScore <= 100  THEN 'K'
        WHEN lex_fall.RITtoReadingScore <= 300  AND lex_fall.RITtoReadingScore > 100  THEN '1st'
        WHEN lex_fall.RITtoReadingScore <= 500  AND lex_fall.RITtoReadingScore > 300  THEN '2nd'
@@ -366,8 +444,8 @@ SELECT roster.*
        WHEN lex_fall.RITtoReadingScore <= 1400 AND lex_fall.RITtoReadingScore > 1300 THEN '11th'
        WHEN lex_fall.RITtoReadingScore  > 1400 THEN '12th'
        ELSE NULL
-      END AS base_GLQ_starting
-      */
+      END AS lexile_base_GLQ
+      
 
 --NJASK scores
 --NJASK$ela_wide
@@ -379,32 +457,25 @@ SELECT roster.*
       ,CASE WHEN njask_ela.score_2012 IS NOT NULL OR njask_math.score_2012 IS NOT NULL 
             THEN 'NJASK | Gr '+ njask_ela.gr_lev_2012 + ' | 2012' ELSE NULL END AS NJASK_12_Name
       ,CASE WHEN njask_ela.score_2011 IS NOT NULL OR njask_math.score_2011 IS NOT NULL 
-            THEN 'NJASK | Gr '+ njask_ela.gr_lev_2011 + ' | 2011' ELSE NULL END AS NJASK_11_Name
-      ,CASE WHEN njask_ela.score_2010 IS NOT NULL OR njask_math.score_2010 IS NOT NULL 
-            THEN 'NJASK | Gr '+ njask_ela.gr_lev_2010 + ' | 2010' ELSE NULL END AS NJASK_10_Name      
+            THEN 'NJASK | Gr '+ njask_ela.gr_lev_2011 + ' | 2011' ELSE NULL END AS NJASK_11_Name      
       
       --ELA scores -- add a new line for each test year, delete oldest
       ,njask_ela.score_2013 AS ela_score_2013
       ,njask_ela.score_2012 AS ela_score_2012
-      ,njask_ela.score_2011 AS ela_score_2011
-      ,njask_ela.score_2010 AS ela_score_2010
+      ,njask_ela.score_2011 AS ela_score_2011      
       --ELA proficiency -- add a new line for each test year, delete oldest
       ,'(' + njask_ela.prof_2013 + ')' AS ela_prof_2013
       ,'(' + njask_ela.prof_2012 + ')' AS ela_prof_2012
-      ,'(' + njask_ela.prof_2011 + ')' AS ela_prof_2011
-      ,'(' + njask_ela.prof_2010 + ')' AS ela_prof_2010
+      ,'(' + njask_ela.prof_2011 + ')' AS ela_prof_2011      
 
       --Math scores -- add a new line for each test year, delete oldest
       ,njask_math.score_2013 AS math_score_2013
       ,njask_math.score_2012 AS math_score_2012
-      ,njask_math.score_2011 AS math_score_2011
-      ,njask_math.score_2010 AS math_score_2010
+      ,njask_math.score_2011 AS math_score_2011      
       --Math proficiency -- add a new line for each test year, delete oldest
       ,'(' + njask_math.prof_2013 + ')' AS math_prof_2013
       ,'(' + njask_math.prof_2012 + ')' AS math_prof_2012
       ,'(' + njask_math.prof_2011 + ')' AS math_prof_2011
-      ,'(' + njask_math.prof_2010 + ')' AS math_prof_2010
---*/
 
 --Ed Tech
 --AR$progress_to_goals_long#static
@@ -454,35 +525,35 @@ SELECT roster.*
 --DISC$recent_incidents_wide
   
       --Recent Incidents
-      ,disc_recent.disc_01_date_reported
+      ,CAST(disc_recent.disc_01_date_reported AS DATE) AS disc_01_date_reported
       ,disc_recent.disc_01_given_by
       ,CASE
         WHEN disc_recent.disc_01_subject IS NULL THEN disc_recent.disc_01_incident 
         ELSE disc_recent.disc_01_subject
        END AS disc_01_incident
             
-      ,disc_recent.disc_02_date_reported
+      ,CAST(disc_recent.disc_02_date_reported AS DATE) AS disc_02_date_reported
       ,disc_recent.disc_02_given_by
       ,CASE
         WHEN disc_recent.disc_02_subject IS NULL THEN disc_recent.disc_02_incident 
         ELSE disc_recent.disc_02_subject
        END AS disc_02_incident
             
-      ,disc_recent.disc_03_date_reported
+      ,CAST(disc_recent.disc_03_date_reported AS DATE) AS disc_03_date_reported
       ,disc_recent.disc_03_given_by
       ,CASE 
         WHEN disc_recent.disc_03_subject IS NULL THEN disc_recent.disc_03_incident 
         ELSE disc_recent.disc_03_subject
        END AS disc_03_incident
             
-      ,disc_recent.disc_04_date_reported
+      ,CAST(disc_recent.disc_04_date_reported AS DATE) AS disc_04_date_reported
       ,disc_recent.disc_04_given_by
       ,CASE
         WHEN disc_recent.disc_04_subject IS NULL THEN disc_recent.disc_04_incident 
         ELSE disc_recent.disc_04_subject
        END AS disc_04_incident
             
-      ,disc_recent.disc_05_date_reported
+      ,CAST(disc_recent.disc_05_date_reported AS DATE) AS disc_05_date_reported
       ,disc_recent.disc_05_given_by
       ,CASE
         WHEN disc_recent.disc_05_subject IS NULL THEN disc_recent.disc_05_incident 
