@@ -15,6 +15,9 @@ ORIGIN DATE: Fall 2011
 LAST MODIFIED: Fall 2013 (CB)
   
 */
+USE KIPP_NJ
+GO
+
 
 ALTER VIEW GPA$detail#Rise AS
 Select TOP (100) PERCENT *
@@ -54,13 +57,13 @@ FROM
                     ,GPA_T3
                     ,GPA_Y1
                     ,RANK() OVER (PARTITION BY schoolid  ORDER BY GPA_Y1 DESC) GPA_Y1_Rank
-                    ,RANK() OVER (PARTITION BY grade_level ORDER BY GPA_Y1 DESC) GPA_Y1_Rank_G
+                    ,RANK() OVER (PARTITION BY schoolid,grade_level ORDER BY GPA_Y1 DESC) GPA_Y1_Rank_G
                     ,RANK() OVER (PARTITION BY schoolid ORDER BY GPA_T1 DESC) GPA_T1_Rank
-                    ,RANK() OVER (PARTITION BY grade_level ORDER BY GPA_T1 DESC) GPA_T1_Rank_G
+                    ,RANK() OVER (PARTITION BY schoolid,grade_level ORDER BY GPA_T1 DESC) GPA_T1_Rank_G
                     ,RANK() OVER (PARTITION BY schoolid ORDER BY GPA_T2 DESC) GPA_T2_Rank
-                    ,RANK() OVER (PARTITION BY grade_level ORDER BY GPA_T2 DESC) GPA_T2_Rank_G
+                    ,RANK() OVER (PARTITION BY schoolid,grade_level ORDER BY GPA_T2 DESC) GPA_T2_Rank_G
                     ,RANK() OVER (PARTITION BY schoolid ORDER BY GPA_T3 DESC) GPA_T3_Rank
-                    ,RANK() OVER (PARTITION BY grade_level ORDER BY GPA_T3 DESC) GPA_T3_Rank_G
+                    ,RANK() OVER (PARTITION BY schoolid,grade_level ORDER BY GPA_T3 DESC) GPA_T3_Rank_G
                     ,elements
                     ,num_failing
                     ,failing
@@ -78,6 +81,7 @@ FROM
                            ,SUM(Promo_Test) AS num_failing
                            ,dbo.GROUP_CONCAT(failing_y1) AS failing
                     FROM KIPP_NJ..GRADES$detail#MS
+                    WHERE SCHOOLID = 73252
                     GROUP BY studentid, student_number, schoolid, lastfirst, grade_level
                     ) sub
              ) sub2
