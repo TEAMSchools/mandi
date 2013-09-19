@@ -242,6 +242,7 @@ SELECT roster.*
 --Attendance
 --ATT_MEM$attendance_percentages
 --ATT_MEM$attendance_counts
+      --year
       ,att_counts.absences_total           AS Y1_absences_total
       ,att_counts.absences_undoc           AS Y1_absences_undoc
       ,ROUND(att_pct.Y1_att_pct_total,0)   AS Y1_att_pct_total
@@ -249,7 +250,7 @@ SELECT roster.*
       ,att_counts.tardies_total            AS Y1_tardies_total
       ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total
       
-      --change field name for current term
+      --current term -- change field name
       ,att_counts.RT1_absences_total        AS curterm_absences_total
       ,att_counts.RT1_absences_undoc        AS curterm_absences_undoc
       ,ROUND(att_pct.RT1_att_pct_total,0)   AS curterm_att_pct_total
