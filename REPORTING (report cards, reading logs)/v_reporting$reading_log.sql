@@ -16,7 +16,10 @@ WITH roster AS
    JOIN KIPP_NJ..STUDENTS s
      ON c.studentid = s.id
     AND s.enroll_status = 0
-    --AND s.ID = 4772
+    
+   --AND s.ID = 4772
+    AND c.grade_level = 5
+    AND c.schoolid = 133570965
    WHERE year = 2013
      AND rn = 1
      AND c.schoolid != 999999
@@ -92,7 +95,7 @@ SELECT roster.*
       ,ar_year.mastery AS accuracy
       ,ar_year.mastery_fiction AS accuracy_fiction
       ,ar_year.mastery_nonfiction AS accuracy_nonfiction
-
+     
 FROM roster
 --ENR
 LEFT OUTER JOIN enrollments enr
@@ -132,6 +135,7 @@ LEFT OUTER JOIN
    FROM KIPP_NJ..LIT$FP_test_events_long#identifiers#static fp
    WHERE fp.[year] = 2013
      AND fp.rn_asc = 1
+     AND fp.schoolid = 73252
   ) fp_base
   ON roster.studentid = fp_base.studentid
   AND fp_base.rn = 1
