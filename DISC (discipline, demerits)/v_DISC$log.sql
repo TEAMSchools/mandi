@@ -1,19 +1,24 @@
 /*
+END OF SEPTEMBER AND IT'S ALREADY ~5000 ROWS!  THIS WILL PROBABLY NEED TO BECOME AN SP -> STATIC TABLE
+
 SQL Server Status: 2013-09-13 (LD6)
   Using open query to create view
   Need to revisit to create full table on SQL Server
-
+  Merged with NCA's merits and demerits (CB)
+  Added logtypeid for JOINS (CB)
+  Ported directly from PowerSchool (CB)
+  
 PURPOSE:
-  Decode and tag the log table from powerschool
+  Decode AND tag the log table FROM powerschool
 
 MAINTENANCE:
   MAINTENANCE YEARLY
-    dates on reporting terms need to be changed once calendars are in
-    entry date logic needs to be updated every school year
+    dates on reporting terms need to be changed once calendars are in entry date logic needs to be updated every school year
     
 MAJOR STRUCTURAL REVISIONS OR CHANGES:
   Consider joining to years/terms table to get reporting term dates?
   New disc subtypes added 2013-09-12
+  Ported to SQL Server, see top for detatils - CB
 
 CREATED BY:
   AM2
@@ -21,6 +26,8 @@ CREATED BY:
 ORIGIN DATE:
   Summer 2011
   
+LAST MODIFIED:
+  FALL 2013
 */
 
 
@@ -28,145 +35,222 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW DISC$log AS
+SELECT TOP (100) PERCENT *
+FROM
+(SELECT *
+ FROM OPENQUERY(PS_TEAM,'
+SELECT schoolid
+      ,CAST(studentid AS INT) AS studentid
+      ,entry_author
+      ,entry_date
+      ,logtypeid
+      ,subject      
+      --ES/MS codes      
+      ,CASE
+        WHEN subtype = ''01'' AND logtypeid = -100000 THEN ''Detention''
+        WHEN subtype =  ''1'' AND logtypeid = -100000 THEN ''Detention''
+        WHEN subtype = ''02'' AND logtypeid = -100000 THEN ''Silent Lunch''
+        WHEN subtype = ''02'' AND logtypeid = -100000 THEN ''Silent Lunch''
+        WHEN subtype =  ''3'' AND logtypeid = -100000 THEN ''Choices''
+        WHEN subtype = ''03'' AND logtypeid = -100000 THEN ''Choices''
+        WHEN subtype =  ''4'' AND logtypeid = -100000 THEN ''Bench''
+        WHEN subtype = ''04'' AND logtypeid = -100000 THEN ''Bench''
+        WHEN subtype =  ''5'' AND logtypeid = -100000 THEN ''ISS''
+        WHEN subtype = ''05'' AND logtypeid = -100000 THEN ''ISS''
+        WHEN subtype =  ''6'' AND logtypeid = -100000 THEN ''OSS''
+        WHEN subtype = ''06'' AND logtypeid = -100000 THEN ''OSS''
+        WHEN subtype =  ''7'' AND logtypeid = -100000 THEN ''Bus Warning''
+        WHEN subtype = ''07'' AND logtypeid = -100000 THEN ''Bus Warning''
+        WHEN subtype =  ''8'' AND logtypeid = -100000 THEN ''Bus Suspension''
+        WHEN subtype = ''08'' AND logtypeid = -100000 THEN ''Bus Suspension''             
+        WHEN subtype = ''9''  AND logtypeid = -100000 THEN ''Class Removal'' 
+        WHEN subtype = ''09'' AND logtypeid = -100000 THEN ''Class Removal'' 
+        WHEN subtype = ''10'' AND logtypeid = -100000 THEN ''Bullying''
+        ELSE NULL
+       END AS subtype
+      
+      --for UNION ALL 
+      ,NULL AS tier
+
+      --convert all of the incidenttype codes into long form.  this is admittedly dumb, but the 
+      --application doesn''t seem to store these IN any way that you could just join this turkey.
+      ,CASE 
+        WHEN discipline_incidenttype = ''CE''   THEN ''Cell Phone/Electronics''
+        WHEN discipline_incidenttype = ''C''    THEN ''Cheating''
+        WHEN discipline_incidenttype = ''CU''   THEN ''Cut Detention, Help Hour, Work Crew''
+        WHEN discipline_incidenttype = ''SP''   THEN ''Defacing School Property''
+        WHEN discipline_incidenttype = ''DM''   THEN ''Demerits (NCA)''
+        WHEN discipline_incidenttype = ''D''    THEN ''Dress Code''
+        WHEN discipline_incidenttype = ''DT''   THEN ''Disrespect (to Teacher)''
+        WHEN discipline_incidenttype = ''DS''   THEN ''Disrespect (to Student)''
+        WHEN discipline_incidenttype = ''L''    THEN ''Dishonesty/Forgery''
+        WHEN discipline_incidenttype = ''DIS''  THEN ''Disruptive/Misbehavior IN Class''
+        WHEN discipline_incidenttype = ''DOC''  THEN ''Misbehavior off School Campus''
+        WHEN discipline_incidenttype = ''FI''   THEN ''Fighting''
+        WHEN discipline_incidenttype = ''PF''   THEN ''Play Fighting/Inappropriate Touching''
+        WHEN discipline_incidenttype = ''GO''   THEN ''Going Somewhere w/o Permission''
+        WHEN discipline_incidenttype = ''G''    THEN ''Gum Chewing/CANDy/Food''
+        WHEN discipline_incidenttype = ''HR''   THEN ''Harassment/Bullying''
+        WHEN discipline_incidenttype = ''H''    THEN ''Homework''
+        WHEN discipline_incidenttype = ''M''    THEN ''Missing notices''
+        WHEN discipline_incidenttype = ''PA''   THEN ''Missing Major Assign. (NCA)''
+        WHEN discipline_incidenttype = ''NFI''  THEN ''Not Following Instructions''
+        WHEN discipline_incidenttype = ''P''    THEN ''Profanity''
+        WHEN discipline_incidenttype = ''TB''   THEN ''Talking to Benchster (TEAM/RISE)''
+        WHEN discipline_incidenttype = ''T''    THEN ''Tardy to School''
+        WHEN discipline_incidenttype = ''TC''   THEN ''Tardy to Class''
+        WHEN discipline_incidenttype = ''S''    THEN ''Theft/Stealing''
+        WHEN discipline_incidenttype = ''UA''   THEN ''Unexcused Absence''
+        WHEN discipline_incidenttype = ''EU''   THEN ''Unprepared or Off-Task IN Det.''
+        WHEN discipline_incidenttype = ''O''    THEN ''Other''
+        WHEN discipline_incidenttype = ''RCHT'' THEN ''Rise-Cheating''
+        WHEN discipline_incidenttype = ''RHON'' THEN ''Rise-Dishonesty''
+        WHEN discipline_incidenttype = ''RRSP'' THEN ''Rise-Disrespect''
+        WHEN discipline_incidenttype = ''RFHT'' THEN ''Rise-Fighting''
+        WHEN discipline_incidenttype = ''RNFD'' THEN ''Rise-NFD''
+        WHEN discipline_incidenttype = ''RLOG'' THEN ''Rise-Logistical''
+        WHEN discipline_incidenttype = ''ROTH'' THEN ''Rise-Other''
+        WHEN discipline_incidenttype = ''SEC''  THEN ''SPARK-Excessive Crying''
+        WHEN discipline_incidenttype = ''STB''  THEN ''SPARK-Talking Back''
+        WHEN discipline_incidenttype = ''SNC''  THEN ''SPARK-Name Calling''
+        WHEN discipline_incidenttype = ''SH''   THEN ''SPARK-Hitting''
+        WHEN discipline_incidenttype = ''ST''   THEN ''SPARK-Tantrum''
+        WHEN discipline_incidenttype = ''STO''  THEN ''SPARK-Wont Go To Time Out''
+        WHEN discipline_incidenttype = ''SDW''  THEN ''SPARK-Refusal To Do Work''
+        WHEN discipline_incidenttype = ''BED''  THEN ''BUS: Eating/Drinking''
+        WHEN discipline_incidenttype = ''BPR''  THEN ''BUS: Profanity''
+        WHEN discipline_incidenttype = ''BOL''  THEN ''BUS: Out of Line''
+        WHEN discipline_incidenttype = ''BMS''  THEN ''BUS: Moving Seats/StANDing''
+        WHEN discipline_incidenttype = ''BTK''  THEN ''BUS: Talking IN the morning''
+        WHEN discipline_incidenttype = ''BND''  THEN ''BUS: Not Following Directions''
+        WHEN discipline_incidenttype = ''BDY''  THEN ''BUS: Loud, Disruptive, or Yelling''
+        WHEN discipline_incidenttype = ''BTU''  THEN ''BUS: Throwing objects/Unsafe Behav.''
+        WHEN discipline_incidenttype = ''BDR''  THEN ''BUS: Disrespect''
+        WHEN discipline_incidenttype = ''BNC''  THEN ''BUS: Name Calling or Bullying''
+        WHEN discipline_incidenttype = ''BIP''  THEN ''BUS: Phones/iPods/Games''
+        WHEN discipline_incidenttype = ''BFI''  THEN ''BUS: Fighting''
+        WHEN discipline_incidenttype = ''BNR''  THEN ''BUS: Not reporting incidents''
+        ELSE NULL
+       END AS incident_decoded      
+      
+      --Reporting Terms
+      ,CASE
+        --Middle Schools (Rise & TEAM)
+        WHEN schoolid IN (73252,133570965) AND entry_date >= ''05-AUG-13'' AND entry_date <=''22-NOV-13'' THEN ''RT1''
+        WHEN schoolid IN (73252,133570965) AND entry_date >= ''25-NOV-13'' AND entry_date <=''07-MAR-14''  THEN ''RT2''
+        WHEN schoolid IN (73252,133570965) AND entry_date >= ''10-MAR-14'' AND entry_date <=''20-JUN-14'' THEN ''RT3''
+        --NCA
+        WHEN schoolid = 73253 AND entry_date >= ''03-SEP-13'' AND entry_date <=''08-NOV-13'' THEN ''RT1''
+        WHEN schoolid = 73253 AND entry_date >= ''12-NOV-13'' AND entry_date <=''27-JAN-14'' THEN ''RT2''
+        WHEN schoolid = 73253 AND entry_date >= ''03-FEB-14'' AND entry_date <=''04-APR-14'' THEN ''RT3''       
+        WHEN schoolid = 73253 AND entry_date >= ''21-APR-14'' AND entry_date <=''20-JUN-14'' THEN ''RT4''             
+        --Elementary Schools (SPARK, THRIVE, Seek)
+        WHEN schoolid IN (73254,73255,73256) AND entry_date >= ''19-AUG-13'' AND entry_date <=''30-AUG-13'' THEN ''RT1''
+        WHEN schoolid IN (73254,73255,73256) AND entry_date >= ''04-SEP-13'' AND entry_date <=''22-NOV-13'' THEN ''RT2''
+        WHEN schoolid IN (73254,73255,73256) AND entry_date >= ''25-NOV-13'' AND entry_date <=''14-FEB-14'' THEN ''RT3''             
+        WHEN schoolid IN (73254,73255,73256) AND entry_date >= ''25-FEB-14'' AND entry_date <=''16-MAY-14'' THEN ''RT4''
+        WHEN schoolid IN (73254,73255,73256) AND entry_date >= ''19-MAY-14'' AND entry_date <=''13-JUN-14'' THEN ''RT5''         
+        ELSE NULL
+       END AS RT
+      
+      ,ROW_NUMBER() OVER(
+          PARTITION BY studentid 
+              ORDER BY entry_date DESC) AS rn
+
+FROM log
+WHERE SchoolID != 999999
+  AND entry_date > TO_DATE(''2013-08-01'',''YYYY-MM-DD'') --update for new school year
+  AND entry_date < TO_DATE(''2014-06-30'',''YYYY-MM-DD'') --update for new school year   
+  AND studentid > 0
+  AND logtypeid = -100000
+')
+
+UNION ALL
 
 SELECT *
 FROM OPENQUERY(PS_TEAM,'
-
-select CAST(log.studentid AS INT) AS studentid
-,log.entry_author
-,log.entry_date
-,log.subject
-,case when log.subtype = ''01'' then ''Detention''
-      when log.subtype =  ''1'' then ''Detention''
-      when log.subtype = ''02'' then ''Silent Lunch''
-      when log.subtype = ''02'' then ''Silent Lunch''
-      when log.subtype =  ''3'' then ''Choices''
-      when log.subtype = ''03'' then ''Choices''
-      when log.subtype =  ''4'' then ''Bench''
-      when log.subtype = ''04'' then ''Bench''
-      when log.subtype =  ''5'' then ''ISS''
-      when log.subtype = ''05'' then ''ISS''
-      when log.subtype =  ''6'' then ''OSS''
-      when log.subtype = ''06'' then ''OSS''
-      when log.subtype =  ''7'' then ''Bus Warning''
-      when log.subtype = ''07'' then ''Bus Warning''
-      when log.subtype =  ''8'' then ''Bus Suspension''
-      when log.subtype = ''08'' then ''Bus Suspension''             
-      when log.subtype = ''9'' then ''Class Removal'' 
-      when log.subtype = ''09'' then ''Class Removal'' 
-      when log.subtype = ''10'' then ''Bullying'' 
+SELECT schoolid
+      ,CAST(studentid AS INT) AS studentid
+      ,entry_author
+      ,entry_date
+      ,logtypeid
+      ,subject      
+      --NCA merits
+      ,CASE
+        WHEN subtype = ''01'' AND logtypeid = 3023 THEN ''No Demerits''
+        WHEN subtype =  ''1'' AND logtypeid = 3023 THEN ''No Demerits''
+        WHEN subtype = ''02'' AND logtypeid = 3023 THEN ''Panther Pride''
+        WHEN subtype = ''02'' AND logtypeid = 3023 THEN ''Panther Pride''
+        WHEN subtype =  ''3'' AND logtypeid = 3023 THEN ''Work Crew''
+        WHEN subtype = ''03'' AND logtypeid = 3023 THEN ''Work Crew''
+        WHEN subtype =  ''4'' AND logtypeid = 3023 THEN ''Courage''
+        WHEN subtype = ''04'' AND logtypeid = 3023 THEN ''Courage''
+        WHEN subtype =  ''5'' AND logtypeid = 3023 THEN ''Excellence''
+        WHEN subtype = ''05'' AND logtypeid = 3023 THEN ''Excellence''
+        WHEN subtype =  ''6'' AND logtypeid = 3023 THEN ''Humanity''
+        WHEN subtype = ''06'' AND logtypeid = 3023 THEN ''Humanity''
+        WHEN subtype =  ''7'' AND logtypeid = 3023 THEN ''Leadership''
+        WHEN subtype = ''07'' AND logtypeid = 3023 THEN ''Leadership''
+        WHEN subtype =  ''8'' AND logtypeid = 3023 THEN ''Parent''
+        WHEN subtype = ''08'' AND logtypeid = 3023 THEN ''Parent'' 
+        WHEN subtype =  ''9'' AND logtypeid = 3023 THEN ''Other''
+        WHEN subtype = ''09'' AND logtypeid = 3023 THEN ''Other''       
+      --NCA demerits
+        WHEN subtype = ''01'' AND logtypeid = 3223 THEN ''Off Task''
+        WHEN subtype = ''02'' AND logtypeid = 3223 THEN ''Gum''
+        WHEN subtype = ''03'' AND logtypeid = 3223 THEN ''Eating/Drinking''
+        WHEN subtype = ''04'' AND logtypeid = 3223 THEN ''Play Fight''
+        WHEN subtype = ''05'' AND logtypeid = 3223 THEN ''Excessive Volume''
+        WHEN subtype = ''06'' AND logtypeid = 3223 THEN ''Language''
+        WHEN subtype = ''07'' AND logtypeid = 3223 THEN ''No Pass''
+        WHEN subtype = ''08'' AND logtypeid = 3223 THEN ''Uniform''
+        WHEN subtype = ''09'' AND logtypeid = 3223 THEN ''> 4 Min Late''
+        WHEN subtype = ''10'' AND logtypeid = 3223 THEN ''Other''
+        --WHEN subtype = ''11'' AND logtypeid = 3223 THEN ''T2 Other''
+        --WHEN subtype = ''12'' AND logtypeid = 3223 THEN ''Tier 3''
+        ELSE NULL
+       END AS subtype
+            
+      --Demerit tiers
+      ,CASE
+        WHEN subtype = ''01'' AND logtypeid = 3223 THEN ''Tier 1''
+        WHEN subtype = ''02'' AND logtypeid = 3223 THEN ''Tier 1''
+        WHEN subtype = ''03'' AND logtypeid = 3223 THEN ''Tier 1''
+        WHEN subtype = ''04'' AND logtypeid = 3223 THEN ''Tier 1''
+        WHEN subtype = ''05'' AND logtypeid = 3223 THEN ''Tier 1''
+        WHEN subtype = ''06'' AND logtypeid = 3223 THEN ''Tier 1''
+        WHEN subtype = ''07'' AND logtypeid = 3223 THEN ''Tier 1''
+        WHEN subtype = ''08'' AND logtypeid = 3223 THEN ''Tier 1''
+        WHEN subtype = ''09'' AND logtypeid = 3223 THEN ''Tier 1''
+        WHEN subtype = ''10'' AND logtypeid = 3223 THEN ''Tier 1''
+        WHEN subtype = ''11'' AND logtypeid = 3223 THEN ''Tier 1''
+        WHEN subtype = ''12'' AND logtypeid = 3223 THEN ''Tier 1''
+        ELSE NULL
+       END AS tier
+       
+      --for UNION ALL
+      ,NULL AS incident_decoded
       
+      --Reporting Terms
+      ,CASE        
+        --NCA
+        WHEN schoolid = 73253 AND entry_date >= TO_DATE(''2013-09-03'',''YYYY-MM-DD'') AND entry_date >= TO_DATE(''2013-11-08'',''YYYY-MM-DD'') THEN ''RT1''
+        WHEN schoolid = 73253 AND entry_date >= TO_DATE(''2013-11-12'',''YYYY-MM-DD'') AND entry_date >= TO_DATE(''2014-01-27'',''YYYY-MM-DD'') THEN ''RT2''
+        WHEN schoolid = 73253 AND entry_date >= TO_DATE(''2014-02-03'',''YYYY-MM-DD'') AND entry_date >= TO_DATE(''2014-04-04'',''YYYY-MM-DD'') THEN ''RT3''       
+        WHEN schoolid = 73253 AND entry_date >= TO_DATE(''2014-04-21'',''YYYY-MM-DD'') AND entry_date >= TO_DATE(''2014-06-20'',''YYYY-MM-DD'') THEN ''RT4''                     
+        ELSE NULL
+       END AS RT
       
-      else null end subtype
---convert all of the incidenttype codes into long form.  this is admittedly dumb, but the 
---application doesn''t seem to store these in any way that you could just join this turkey.
-,case 
-      when log.discipline_incidenttype = ''CE''   then ''Cell Phone/Electronics''
-      when log.discipline_incidenttype = ''C''    then ''Cheating''
-      when log.discipline_incidenttype = ''CU''   then ''Cut Detention, Help Hour, Work Crew''
-      when log.discipline_incidenttype = ''SP''   then ''Defacing School Property''
-      when log.discipline_incidenttype = ''DM''   then ''Demerits (NCA)''
-      when log.discipline_incidenttype = ''D''    then ''Dress Code''
-      when log.discipline_incidenttype = ''DT''   then ''Disrespect (to Teacher)''
-      when log.discipline_incidenttype = ''DS''   then ''Disrespect (to Student)''
-      when log.discipline_incidenttype = ''L''    then ''Dishonesty/Forgery''
-      when log.discipline_incidenttype = ''DIS''  then ''Disruptive/Misbehavior in Class''
-      when log.discipline_incidenttype = ''DOC''  then ''Misbehavior off School Campus''
-      when log.discipline_incidenttype = ''FI''   then ''Fighting''
-      when log.discipline_incidenttype = ''PF''   then ''Play Fighting/Inappropriate Touching''
-      when log.discipline_incidenttype = ''GO''   then ''Going Somewhere w/o Permission''
-      when log.discipline_incidenttype = ''G''    then ''Gum Chewing/Candy/Food''
-      when log.discipline_incidenttype = ''HR''   then ''Harassment/Bullying''
-      when log.discipline_incidenttype = ''H''    then ''Homework''
-      when log.discipline_incidenttype = ''M''    then ''Missing notices''
-      when log.discipline_incidenttype = ''PA''   then ''Missing Major Assign. (NCA)''
-      when log.discipline_incidenttype = ''NFI''  then ''Not Following Instructions''
-      when log.discipline_incidenttype = ''P''    then ''Profanity''
-      when log.discipline_incidenttype = ''TB''   then ''Talking to Benchster (TEAM/RISE)''
-      when log.discipline_incidenttype = ''T''    then ''Tardy to School''
-      when log.discipline_incidenttype = ''TC''   then ''Tardy to Class''
-      when log.discipline_incidenttype = ''S''    then ''Theft/Stealing''
-      when log.discipline_incidenttype = ''UA''   then ''Unexcused Absence''
-      when log.discipline_incidenttype = ''EU''   then ''Unprepared or Off-Task in Det.''
-      when log.discipline_incidenttype = ''O''    then ''Other''
-      when log.discipline_incidenttype = ''RCHT'' then ''Rise-Cheating''
-      when log.discipline_incidenttype = ''RHON'' then ''Rise-Dishonesty''
-      when log.discipline_incidenttype = ''RRSP'' then ''Rise-Disrespect''
-      when log.discipline_incidenttype = ''RFHT'' then ''Rise-Fighting''
-      when log.discipline_incidenttype = ''RNFD'' then ''Rise-NFD''
-      when log.discipline_incidenttype = ''RLOG'' then ''Rise-Logistical''
-      when log.discipline_incidenttype = ''ROTH'' then ''Rise-Other''
-      when log.discipline_incidenttype = ''SEC''  then ''SPARK-Excessive Crying''
-      when log.discipline_incidenttype = ''STB''  then ''SPARK-Talking Back''
-      when log.discipline_incidenttype = ''SNC''  then ''SPARK-Name Calling''
-      when log.discipline_incidenttype = ''SH''   then ''SPARK-Hitting''
-      when log.discipline_incidenttype = ''ST''   then ''SPARK-Tantrum''
-      when log.discipline_incidenttype = ''STO''  then ''SPARK-Wont Go To Time Out''
-      when log.discipline_incidenttype = ''SDW''  then ''SPARK-Refusal To Do Work''
-      when log.discipline_incidenttype = ''BED''  then ''BUS: Eating/Drinking''
-      when log.discipline_incidenttype = ''BPR''  then ''BUS: Profanity''
-      when log.discipline_incidenttype = ''BOL''  then ''BUS: Out of Line''
-      when log.discipline_incidenttype = ''BMS''  then ''BUS: Moving Seats/Standing''
-      when log.discipline_incidenttype = ''BTK''  then ''BUS: Talking in the morning''
-      when log.discipline_incidenttype = ''BND''  then ''BUS: Not Following Directions''
-      when log.discipline_incidenttype = ''BDY''  then ''BUS: Loud, Disruptive, or Yelling''
-      when log.discipline_incidenttype = ''BTU''  then ''BUS: Throwing objects/Unsafe Behav.''
-      when log.discipline_incidenttype = ''BDR''  then ''BUS: Disrespect''
-      when log.discipline_incidenttype = ''BNC''  then ''BUS: Name Calling or Bullying''
-      when log.discipline_incidenttype = ''BIP''  then ''BUS: Phones/iPods/Games''
-      when log.discipline_incidenttype = ''BFI''  then ''BUS: Fighting''
-      when log.discipline_incidenttype = ''BNR''  then ''BUS: Not reporting incidents''
-      else null end as incident_decoded,
+      ,ROW_NUMBER() OVER(
+          PARTITION BY studentid 
+              ORDER BY entry_date DESC) AS rn
 
- case  
---Middle Schools (Rise & TEAM)
-     when log.schoolid IN (73252,133570965)
-           and log.entry_date >= ''05-AUG-13'' and log.entry_date <=''22-NOV-13'' 
-           then ''RT1''
-     when log.schoolid IN (73252,133570965)
-           and log.entry_date >= ''25-NOV-13'' and log.entry_date <=''7-MAR-14'' 
-           then ''RT2''
-     when log.schoolid IN (73252,133570965)
-           and log.entry_date >= ''10-MAR-14'' and log.entry_date <=''20-JUN-14'' 
-           then ''RT3''
---NCA
-     when log.schoolid = 73253 
-           and log.entry_date >= ''03-SEP-13'' and log.entry_date <=''8-NOV-13''
-           then ''RT1''
-     when log.schoolid = 73253 
-           and log.entry_date >= ''12-NOV-13'' and log.entry_date <=''27-JAN-14''
-           then ''RT2''
-     when log.schoolid = 73253 
-           and log.entry_date >= ''3-FEB-14'' and log.entry_date <=''4-APR-14''
-           then ''RT3''       
-     when log.schoolid = 73253 
-           and log.entry_date >= ''21-APR-14'' and log.entry_date <=''20-JUN-14''
-           then ''RT4''             
---Elementary Schools (SPARK, THRIVE, Seek)
-     when log.schoolid IN (73254,73255,73256)
-           and log.entry_date >= ''19-AUG-13'' and log.entry_date <=''30-AUG-13''
-           then ''RT1''
-     when log.schoolid IN (73254,73255,73256)
-           and log.entry_date >= ''04-SEP-13'' and log.entry_date <=''22-NOV-13''
-           then ''RT2''
-     when log.schoolid IN (73254,73255,73256)
-           and log.entry_date >= ''25-NOV-13'' and log.entry_date <=''14-FEB-14''
-           then ''RT3''             
-     when log.schoolid IN (73254,73255,73256)
-           and log.entry_date >= ''25-FEB-14'' and log.entry_date <=''16-MAY-14''
-           then ''RT4''
-     when log.schoolid IN (73254,73255,73256)
-           and log.entry_date >= ''19-MAY-14'' and log.entry_date <=''13-JUN-14''
-           then ''RT5''         
-     else null end RT    
-     
-     ,row_number() over 
-                  (partition by log.studentid 
-                   order by log.entry_date desc) as rn
-      from log
-
---Remember to change entry date as well, when converting to a new year (2011-2012).
-
-where SchoolID != 999999 and entry_date > ''2013-08-01'' and entry_date < ''2014-06-30'' and logtypeid= -100000 and log.studentid > 0
-order by log.studentid, log.entry_date desc
+FROM log
+WHERE SchoolID != 999999
+  AND entry_date > TO_DATE(''2013-08-01'',''YYYY-MM-DD'') --update for new school year
+  AND entry_date < TO_DATE(''2014-06-30'',''YYYY-MM-DD'') --update for new school year   
+  AND studentid > 0
+  AND logtypeid IN (3223,3023)
 ')
+)sub
+ORDER BY schoolid, logtypeid, studentid, entry_date DESC
