@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW REPORTING$report_card#NCA AS
+ALTER VIEW REPORTING$report_card#NCA AS
 WITH roster AS
      (SELECT s.student_number AS base_student_number
             ,s.id AS base_studentid
@@ -306,7 +306,7 @@ SELECT roster.*
       ,CASE
         WHEN gr_wide.rc10_y1 >= 70 THEN gr_wide.rc10_credit_hours_Y1 --change field name for current term
         ELSE NULL
-       END AS rc10_earned_crhrs                                     --change field name for current term
+       END AS rc10_earned_crhrs                                      --change field name for current term
       /*
       ,gr_wide.rc10_q1_ltr AS rc10_q1_term_ltr      
       ,gr_wide.rc10_q2_ltr AS rc10_q2_term_ltr
@@ -431,15 +431,24 @@ SELECT roster.*
 
 --Literacy tracking
 --MAP$comprehensive#identifiers
-      --Lexile (from MAP)
-      --update year in JOIN
+      --Lexile (from MAP) -- update year in JOIN
+        --base for year
       ,CASE
         WHEN lex_base.RITtoReadingScore = 'BR' THEN 'Beginning Reader'
         ELSE lex_base.RITtoReadingScore
        END AS lexile_base
       --,lex_fall.RITtoReadingMin AS lexile_base_min
       --,lex_fall.RITtoReadingMax AS lexile_base_max
-      ,lex_base.TestPercentile
+      ,lex_base.TestPercentile AS lex_base_pct
+        
+        --current for year
+      ,CASE
+        WHEN lex_curr.RITtoReadingScore = 'BR' THEN 'Beginning Reader'
+        ELSE lex_curr.RITtoReadingScore
+       END AS lexile_curr
+      --,lex_curr.RITtoReadingMin AS lexile_curr_min
+      --,lex_curr.RITtoReadingMax AS lexile_curr_max
+      ,lex_curr.TestPercentile AS lex_curr_pct
 
 --Comments
 --PS$comments_gradebook
@@ -496,7 +505,13 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base
  AND lex_base.MeasurementScale = 'Reading'
  AND lex_base.fallwinterspring = 'Fall'
  AND lex_base.map_year_academic = 2013
- AND lex_base.rn = 1
+ AND lex_base.rn_base = 1
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr
+  ON roster.base_student_number = lex_base.StudentID
+ AND lex_base.MeasurementScale = 'Reading'
+ AND lex_base.fallwinterspring = 'Fall'
+ AND lex_base.map_year_academic = 2013
+ AND lex_base.rn_curr = 1
 /* 
 --NEED TO ADD RN_ASC & RN_DESC TO VIEW TO SEE CURRENT LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_spring
