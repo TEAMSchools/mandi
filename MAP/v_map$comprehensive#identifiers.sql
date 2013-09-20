@@ -10,6 +10,12 @@ SELECT cohort.schoolid
       ,norms_2008.percentile AS percentile_2008_norms
       ,norms_2011.percentile AS percentile_2011_norms
       ,sq_2.*
+      ,ROW_NUMBER() OVER 
+           (PARTITION BY sq_2.studentid, sq_2.map_year_academic
+                ORDER BY sq_2.teststartdate ASC, sq_2.teststarttime ASC) AS rn_base
+      ,ROW_NUMBER() OVER 
+           (PARTITION BY sq_2.studentid, sq_2.map_year_academic
+                ORDER BY sq_2.teststartdate DESC, sq_2.teststarttime DESC) AS rn_curr
       /*
       ,CASE
          --MATH ACT model
@@ -111,3 +117,6 @@ SELECT cohort.schoolid
         AND REPLACE(sq_2.measurementscale, 'Science - General Science', 'General Science')  = norms_2011.measurementscale 
         AND sq_2.testritscore = norms_2011.rit 
         AND sq_2.fallwinterspring = norms_2011.fallwinterspring
+WHERE map_year_academic = 2009
+  AND sq_2.StudentID = '10018'
+--ORDER BY STUDENTID, map_year_academic
