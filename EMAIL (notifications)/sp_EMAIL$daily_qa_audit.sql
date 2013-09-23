@@ -20,17 +20,23 @@ BEGIN
 	 @email_body										NVARCHAR(MAX)
 
  --variables that store various queries as text
+ ,@sql_audits          NVARCHAR(MAX)
  ,@sql_failed_jobs     NVARCHAR(MAX)
  ,@sql_views           NVARCHAR(MAX)
  
  --variables that catch the output of those queries in HTML format
+ ,@html_audits         NVARCHAR(MAX)
  ,@html_failed_jobs	   NVARCHAR(MAX)
  ,@html_views	         NVARCHAR(MAX)
  
  --needed for querying view refresh stats
  ,@return_value        INT
 	
-
+  SET @sql_audits = '
+    SELECT audit_type
+          ,result
+    FROM KIPP_NJ..QA$data_audit'
+                
   --use the return value to get the results from the QA table
   SET @sql_failed_jobs = '
     SELECT job_name
@@ -59,6 +65,7 @@ BEGIN
     WHERE batch_id =' + CAST(@return_value AS VARCHAR)
 
   --sp_TableToHTML is a procedure that TAKES a SQL statement and returns HTML
+  EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_audits, @html_audits OUTPUT  
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_views, @html_views OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_failed_jobs, @html_failed_jobs OUTPUT
   
@@ -95,6 +102,11 @@ SET @email_body =
   
 		<br>
 		<br>
+  <span style="med_text">Daily data audits</span> 
+'
++ @html_audits +
+'
+  <br>
   <span style="med_text">Failed SQL Server Agent Jobs (past 24 hours)</span>
 '
 + @html_failed_jobs + 
@@ -113,6 +125,7 @@ SET @email_body =
 EXEC [msdb].[dbo].sp_send_dbmail @profile_name = 'DataRobot'
 								,@body = @email_body
 								,@body_format ='HTML'
-								,@recipients = 'amartin@teamschools.org;ldesimon@teamschools.org;nmadigan@teamschools.org;cbini@teamschools.org;smircovich@teamschools.org;plebre@teamschools.org;kswearingen@teamschools.org'
+								,@recipients = 'amartin@teamschools.org'
+         --,@recipients = 'amartin@teamschools.org;ldesimon@teamschools.org;nmadigan@teamschools.org;cbini@teamschools.org;smircovich@teamschools.org;plebre@teamschools.org;kswearingen@teamschools.org'
 								,@subject = 'SQL Server: Audit/QA Results'
 END
