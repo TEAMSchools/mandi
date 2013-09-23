@@ -17,7 +17,7 @@ ORIGIN DATE: Fall 2011
 USE KIPP_NJ
 GO
 
-ALTER VIEW DISC$merits_demerits_count#NCA AS
+--ALTER VIEW DISC$merits_demerits_count#NCA AS
 SELECT s.id AS studentid
       ,s.student_number
       
@@ -123,3 +123,4 @@ LEFT OUTER JOIN (SELECT studentid
 
 WHERE s.schoolid = 73253
   AND s.enroll_status = 0
+  AND s.id = 3551
