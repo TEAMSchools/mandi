@@ -543,14 +543,6 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr
  AND lex_curr.fallwinterspring = 'Fall'
  AND lex_curr.map_year_academic = 2013
  AND lex_curr.rn_curr = 1
-/* 
---NEED TO ADD RN_ASC & RN_DESC TO VIEW TO SEE CURRENT LEXILE
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_spring
-  ON roster.base_student_number = lex_spring.StudentID
- AND lex_spring.MeasurementScale = 'Reading'
- AND lex_spring.fallwinterspring = 'Spring'
- AND lex_spring.map_year_academic = 2013
-*/
  
 --GRADEBOOK COMMMENTS -- upadate fieldname and parameter for current term
 LEFT OUTER JOIN PS$comments_gradebooks comment_rc1
