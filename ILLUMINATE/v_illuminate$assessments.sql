@@ -66,7 +66,7 @@ FROM
               ON a.assessment_id = tags.assessment_id
             ) sub1
      ) sub2
-
+/*
 PIVOT (
  MAX(tag)
  FOR tag_type
@@ -82,7 +82,7 @@ PIVOT (
     ,tag5
     ,tag6)
 ) AS piv
-
+--*/
 --WHERE title LIKE 'Math - G2 - FSA%'
 --WHERE type = 'fsa'
 --WHERE assessment_id = 1251
