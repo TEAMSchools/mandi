@@ -116,7 +116,5 @@ SELECT cohort.schoolid
         ON  cohort.grade_level = norms_2011.grade 
         AND REPLACE(sq_2.measurementscale, 'Science - General Science', 'General Science')  = norms_2011.measurementscale 
         AND sq_2.testritscore = norms_2011.rit 
-        AND sq_2.fallwinterspring = norms_2011.fallwinterspring
-WHERE map_year_academic = 2009
-  AND sq_2.StudentID = '10018'
+        AND sq_2.fallwinterspring = norms_2011.fallwinterspring  
 --ORDER BY STUDENTID, map_year_academic
