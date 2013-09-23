@@ -18,8 +18,8 @@ WITH roster AS
     AND s.enroll_status = 0
     
    --AND s.ID = 4772
-    AND c.grade_level = 5
-    AND c.schoolid = 133570965
+    --AND c.grade_level = 5
+    --AND c.schoolid = 133570965
    WHERE year = 2013
      AND rn = 1
      AND c.schoolid != 999999
