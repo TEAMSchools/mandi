@@ -464,6 +464,36 @@ SELECT roster.*
       ,comment_rc10.teacher_comment AS rc10_comment
       --for end of term report card comments
       ,comment_adv.teacher_comment  AS advisor_comment
+    
+--Discipline
+--DISC$merits_demerits_count#NCA
+      --Merits
+        --year
+      ,merits.teacher_merits_rt1
+        + merits.teacher_merits_rt2
+        + merits.teacher_merits_rt3
+        + merits.teacher_merits_rt4      AS teacher_merits_yr
+      ,merits.perfect_week_merits_rt1 
+        + merits.perfect_week_merits_rt2 
+        + merits.perfect_week_merits_rt3 
+        + merits.perfect_week_merits_rt4 AS perfect_week_yr
+      ,merits.total_merits_rt1 
+        + merits.total_merits_rt2 
+        + merits.total_merits_rt3 
+        + merits.total_merits_rt4        AS total_merits_yr      
+        --current
+      ,merits.teacher_merits_rt1         AS teacher_merits_curr -- update field name for current term
+      ,merits.perfect_week_merits_rt1    AS perfect_week_curr   -- update field name for current term
+      ,merits.total_merits_rt1           AS total_merits_curr   -- update field name for current term
+      
+      --Demerits
+        --year
+      ,merits.tier1_demerits_rt1
+        + merits.tier1_demerits_rt2
+        + merits.tier1_demerits_rt3
+        + merits.tier1_demerits_rt4      AS tier1_demerits_yr
+        --current -- update field name for current term
+      ,merits.tier1_demerits_rt4         AS tier1_demerits_curr -- update field name for current term
 
 FROM roster
 
@@ -506,12 +536,13 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base
  AND lex_base.fallwinterspring = 'Fall'
  AND lex_base.map_year_academic = 2013
  AND lex_base.rn_base = 1
+
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr
-  ON roster.base_student_number = lex_base.StudentID
- AND lex_base.MeasurementScale = 'Reading'
- AND lex_base.fallwinterspring = 'Fall'
- AND lex_base.map_year_academic = 2013
- AND lex_base.rn_curr = 1
+  ON roster.base_student_number = lex_curr.StudentID
+ AND lex_curr.MeasurementScale = 'Reading'
+ AND lex_curr.fallwinterspring = 'Fall'
+ AND lex_curr.map_year_academic = 2013
+ AND lex_curr.rn_curr = 1
 /* 
 --NEED TO ADD RN_ASC & RN_DESC TO VIEW TO SEE CURRENT LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_spring
@@ -565,3 +596,7 @@ LEFT OUTER JOIN PS$comments_gradebooks comment_rc10
 LEFT OUTER JOIN PS$comments_advisors comment_adv
  ON roster.base_studentid = comment_adv.id
 AND comment_adv.finalgradename = 'Q1'
+
+--MERITS & DEMERITS
+LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits
+  ON roster.base_studentid = merits.studentid
