@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$report_card#NCA AS
+--ALTER VIEW REPORTING$report_card#NCA AS
 WITH roster AS
      (SELECT s.student_number AS base_student_number
             ,s.id AS base_studentid
@@ -493,7 +493,7 @@ SELECT roster.*
         + merits.tier1_demerits_rt3
         + merits.tier1_demerits_rt4      AS tier1_demerits_yr
         --current -- update field name for current term
-      ,merits.tier1_demerits_rt4         AS tier1_demerits_curr -- update field name for current term
+      ,merits.tier1_demerits_rt1         AS tier1_demerits_curr -- update field name for current term
 
 FROM roster
 
