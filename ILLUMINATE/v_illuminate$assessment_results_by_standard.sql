@@ -4,7 +4,8 @@ GO
 ALTER VIEW ILLUMINATE$assessment_results_by_standard AS
 SELECT *
 FROM OPENQUERY(ILLUMINATE, '
- SELECT agg_resp_standard.*
+ SELECT s.local_student_id 
+       ,agg_resp_standard.*
        ,standards.parent_standard_id
        ,standards.category_id
        ,standards.subject_id
@@ -20,7 +21,9 @@ FROM OPENQUERY(ILLUMINATE, '
        ,perf_bands.label_number
        ,perf_bands.color
        ,perf_bands.is_mastery
- FROM dna_assessments.agg_student_responses_standard agg_resp_standard
+ FROM public.students s
+ JOIN dna_assessments.agg_student_responses_standard agg_resp_standard
+   ON s.student_id = agg_resp_standard.student_id
  JOIN standards.standards USING (standard_id)
    --not sure how the logic works behind the scenes but this view has the performance band id, which 
    --indicates the proficiency bucket name.
