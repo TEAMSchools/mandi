@@ -7,7 +7,12 @@ ALTER VIEW QA$data_audit AS
 --Any FARM status not in P, R, F?
 SELECT 'Demographic' AS audit_category
       ,'FARM data quality' AS audit_type
-      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' + CASE WHEN sub_2.N < 50 THEN sub_2.elements ELSE '50+ students' END AS result
+      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub_2.assertion = 'Pass' THEN ''
+           WHEN sub_2.N < 50 THEN sub_2.elements 
+           ELSE '50+ students' 
+         END AS result
 FROM
      (SELECT sub_1.assertion
             ,COUNT(*) AS N
@@ -35,7 +40,12 @@ UNION ALL
 --Any students with ethnicities?
 SELECT 'Demographic' AS audit_category
       ,'Missing Ethnicities' AS audit_type
-      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' + CASE WHEN sub_2.N < 50 THEN sub_2.elements ELSE '50+ students' END AS result
+      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub_2.assertion = 'Pass' THEN ''
+           WHEN sub_2.N < 50 THEN sub_2.elements 
+           ELSE '50+ students' 
+         END AS result
 FROM
      (SELECT sub_1.assertion
             ,COUNT(*) AS N
@@ -63,7 +73,12 @@ UNION ALL
 --Any Gender status not in M, F?
 SELECT 'Demographic' AS audit_category
       ,'Gender data quality' AS audit_type
-      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' + CASE WHEN sub_2.N < 50 THEN sub_2.elements ELSE '50+ students' END AS result
+      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub_2.assertion = 'Pass' THEN ''
+           WHEN sub_2.N < 50 THEN sub_2.elements 
+           ELSE '50+ students' 
+         END AS result
 FROM
      (SELECT sub_1.assertion
             ,COUNT(*) AS N
@@ -90,7 +105,12 @@ UNION ALL
 --Any SPED status not in ?
 SELECT 'Demographic' AS audit_category
       ,'IEP determination data quality' AS audit_type
-      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' + CASE WHEN sub_2.N < 50 THEN sub_2.elements ELSE '50+ students' END AS result
+      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub_2.assertion = 'Pass' THEN ''
+           WHEN sub_2.N < 50 THEN sub_2.elements 
+           ELSE '50+ students' 
+         END AS result
 FROM
      (SELECT sub_1.assertion
             ,COUNT(*) AS N
@@ -119,7 +139,12 @@ UNION ALL
 --Any students with missing state IDs?
 SELECT 'Demographic' AS audit_category
       ,'Missing State Student IDs' AS audit_type
-      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' + CASE WHEN sub_2.N < 50 THEN sub_2.elements ELSE '50+ students' END AS result
+      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub_2.assertion = 'Pass' THEN ''
+           WHEN sub_2.N < 50 THEN sub_2.elements 
+           ELSE '50+ students' 
+         END AS result
 FROM
      (SELECT sub_1.assertion
             ,COUNT(*) AS N
@@ -145,7 +170,12 @@ UNION ALL
 
 SELECT 'PS Config' AS audit_category
       ,'HR audit' AS audit_type
-      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' + CASE WHEN sub_2.N < 50 THEN sub_2.elements ELSE '50+ students' END AS result
+      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub_2.assertion = 'Pass' THEN ''
+           WHEN sub_2.N < 50 THEN sub_2.elements 
+           ELSE '50+ students' 
+         END AS result
 FROM
      (SELECT sub.assertion
             ,COUNT(*) AS N
@@ -187,7 +217,12 @@ UNION ALL
 --Any students with missing FTE IDs?
 SELECT 'PS Config' AS audit_category
       ,'Missing FTE IDs' AS audit_type
-      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' + CASE WHEN sub_2.N < 50 THEN sub_2.elements ELSE '50+ students' END AS result
+      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub_2.assertion = 'Pass' THEN ''
+           WHEN sub_2.N < 50 THEN sub_2.elements 
+           ELSE '50+ students' 
+         END AS result
 FROM
      (SELECT sub_1.assertion
             ,COUNT(*) AS N
@@ -214,7 +249,12 @@ UNION ALL
 --Any students with missing web IDs?
 SELECT 'PS Config' AS audit_category
       ,'Student/parent web accounts issues' AS audit_type
-      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' + CASE WHEN sub_2.N < 50 THEN sub_2.elements ELSE '50+ students' END AS result
+      ,sub_2.assertion + ' (n=' + CAST(sub_2.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub_2.assertion = 'Pass' THEN ''
+           WHEN sub_2.N < 50 THEN sub_2.elements 
+           ELSE '50+ students' 
+         END AS result
 FROM
      (SELECT sub_1.assertion
             ,COUNT(*) AS N
