@@ -82,12 +82,65 @@ WITH cohort AS
       SELECT 'General Science'
      )
 
-
-SELECT cohort.*
-      ,periods.*
-      ,scales.*
-FROM cohort
-JOIN periods
-  ON 1=1
-JOIN scales
-  ON 1=1
+SELECT base.*
+      ,map_start.testritscore AS start_rit
+      ,map_end.testritscore AS end_rit
+      ,map_start.percentile_2011_norms AS start_npr
+      ,map_end.percentile_2011_norms AS end_npr
+      ,map_end.testritscore - map_start.testritscore AS rit_change
+      ,map_start.grade_level AS start_grade_verif
+      ,map_end.grade_level AS end_grade_verif
+      ,map_start.termname AS start_term_verif
+      ,map_end.termname AS end_term_verif
+      --norm study data
+      ,CASE
+         WHEN base.period_numeric = 42 THEN norms.r42
+         WHEN base.period_numeric = 22 THEN norms.r22
+         WHEN base.period_numeric = 44 THEN norms.r44
+         WHEN base.period_numeric = 41 THEN norms.r41
+         WHEN base.period_numeric = 12 THEN norms.r12
+       END AS reported_growth_projection
+     ,CASE
+         WHEN base.period_numeric = 42 THEN norms.t42
+         WHEN base.period_numeric = 22 THEN norms.t22
+         WHEN base.period_numeric = 44 THEN norms.t44
+         WHEN base.period_numeric = 41 THEN norms.t41
+         WHEN base.period_numeric = 12 THEN norms.t12
+       END AS true_growth_projection
+      ,CASE
+         WHEN base.period_numeric = 42 THEN norms.s42
+         WHEN base.period_numeric = 22 THEN norms.s22
+         WHEN base.period_numeric = 44 THEN norms.s44
+         WHEN base.period_numeric = 41 THEN norms.s41
+         WHEN base.period_numeric = 12 THEN norms.s12
+       END AS std_dev_of_growth_projection
+FROM
+       --assembles scaffold of enrollments, goal periods, subjects
+      (SELECT cohort.*
+             ,periods.*
+             ,scales.*
+       FROM cohort
+       JOIN periods
+         ON 1=1
+       JOIN scales
+         ON 1=1
+       ) base
+--data for START of target period
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_start
+  ON base.studentid = map_start.ps_studentid
+ AND base.measurementscale = map_start.measurementscale
+ AND (base.year + base.lookback_modifier) = map_start.map_year_academic
+ AND base.start_term_string = map_start.fallwinterspring
+ AND map_start.rn = 1
+--data for END of target period
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_end
+  ON base.studentid = map_end.ps_studentid
+ AND base.measurementscale = map_end.measurementscale
+ AND base.year = map_end.map_year_academic
+ AND base.end_term_string = map_end.fallwinterspring
+ AND map_end.rn = 1
+--norms data
+LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norms
+  ON base.measurementscale = norms.subject
+ AND map_start.testritscore = norms.startrit
+ AND map_start.grade_level = norms.startgrade

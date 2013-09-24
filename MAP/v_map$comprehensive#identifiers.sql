@@ -106,7 +106,7 @@ SELECT cohort.schoolid
                           ,map.testid
                           ,map.teststartdate
                           ,map.testdurationminutes
-                          ,map.testritscore
+                          ,CAST(map.testritscore AS INT) AS testritscore
                           ,map.teststandarderror
                           ,map.testpercentile
                           ,map.typicalfalltofallgrowth
