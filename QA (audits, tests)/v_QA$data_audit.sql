@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW QA$data_audit AS
+--ALTER VIEW QA$data_audit AS
 
 --Added by AM2 on 9/23/2013
 --Any FARM status not in P, R, F?
@@ -209,6 +209,61 @@ FROM
 	           ) sub
       GROUP BY sub.assertion
       ) sub_2
+WHERE rn = 1
+
+UNION ALL
+
+--Added by AM2 on 9/24/2013
+--Any students with double enrollments in the same course?
+SELECT 'PS Config' AS audit_category
+      ,'Same Student / Course Cur Enrollments' AS audit_type
+      ,sub_3.assertion + ' (n=' + CAST(sub_3.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub_3.assertion = 'Pass' THEN ''
+           WHEN sub_3.N < 50 THEN sub_3.elements 
+           ELSE '50+ students' 
+         END AS result
+FROM
+      (SELECT sub_2.assertion
+             ,COUNT(*) AS N
+             ,dbo.GROUP_CONCAT(sub_2.hash) AS elements
+             ,ROW_NUMBER() OVER(ORDER BY sub_2.assertion ASC) AS rn
+       FROM
+             (SELECT sub_1.*
+                    ,sub_1.name + ' (' + sub_1.school + ')|' + sub_1.course_number AS hash
+                    ,CASE
+                       WHEN sub_1.n = 1 THEN 'Pass'
+                       WHEN sub_1.n > 1 THEN 'Fail'
+                     END AS assertion
+              FROM
+                    (SELECT s.id AS studentid
+                           ,s.first_name + ' ' + s.last_name AS name
+                           ,sch.abbreviation AS school
+                           ,sect.course_number
+                           ,COUNT(*) AS N
+                     FROM KIPP_NJ..STUDENTS s
+                     JOIN KIPP_NJ..CC
+                       ON s.id = cc.studentid
+                      --exclude dropped classes
+                      AND cc.sectionid > 0
+                      AND cc.termid >= 2300
+                      --has already started
+                      AND DATEDIFF(day, cc.dateenrolled, CURRENT_TIMESTAMP) >= 0
+                      --isn't in future
+                      AND DATEDIFF(day, CURRENT_TIMESTAMP, cc.dateleft) >= 0
+                     JOIN KIPP_NJ..SECTIONS sect
+                       ON cc.sectionid = sect.id
+                     JOIN KIPP_NJ..SCHOOLS sch
+                       ON s.schoolid = sch.school_number
+                     WHERE s.enroll_status = 0
+                     GROUP BY s.id
+                             ,sch.abbreviation
+                             ,s.first_name + ' ' + s.last_name
+                             ,sect.course_number
+                     ) sub_1
+              ) sub_2
+       GROUP BY sub_2.assertion
+       ) sub_3
 WHERE rn = 1
 
 UNION ALL
