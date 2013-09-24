@@ -180,7 +180,6 @@ FROM
      (SELECT sub.assertion
             ,COUNT(*) AS N
             ,dbo.GROUP_CONCAT(hash) AS elements
-             --there I fixed it
             ,ROW_NUMBER() OVER(ORDER BY sub.assertion ASC) AS rn
       FROM
 	           (SELECT s.id
