@@ -92,7 +92,73 @@ SELECT cohort.schoolid
                              WHEN SUBSTRING(termname, 1, CHARINDEX(' ', termname)) IN ('Winter', 'Spring')
                                THEN SUBSTRING(SUBSTRING(termname, CHARINDEX(' ', termname)+1, 100), 6, 4)
                            END AS map_year
-                          ,map.* 
+                          ,map.termname
+                          ,map.studentid
+                          ,map.schoolname
+                          ,CASE 
+                             WHEN map.measurementscale = 'Language' THEN 'Language Usage'
+                             ELSE map.measurementscale
+                           END AS measurementscale
+                          ,map.discipline
+                          ,map.growthmeasureyn
+                          ,map.testtype
+                          ,map.testname
+                          ,map.testid
+                          ,map.teststartdate
+                          ,map.testdurationminutes
+                          ,map.testritscore
+                          ,map.teststandarderror
+                          ,map.testpercentile
+                          ,map.typicalfalltofallgrowth
+                          ,map.typicalspringtospringgrowth
+                          ,map.typicalfalltospringgrowth
+                          ,map.typicalfalltowintergrowth
+                          ,map.rittoreadingscore
+                          ,map.rittoreadingmin
+                          ,map.rittoreadingmax
+                          ,map.goal1name
+                          ,map.goal1ritscore
+                          ,map.goal1stderr
+                          ,map.goal1range
+                          ,map.goal1adjective
+                          ,map.goal2name
+                          ,map.goal2ritscore
+                          ,map.goal2stderr
+                          ,map.goal2range
+                          ,map.goal2adjective
+                          ,map.goal3name
+                          ,map.goal3ritscore
+                          ,map.goal3stderr
+                          ,map.goal3range
+                          ,map.goal3adjective
+                          ,map.goal4name
+                          ,map.goal4ritscore
+                          ,map.goal4stderr
+                          ,map.goal4range
+                          ,map.goal4adjective
+                          ,map.goal5name
+                          ,map.goal5ritscore
+                          ,map.goal5stderr
+                          ,map.goal5range
+                          ,map.goal5adjective
+                          ,map.goal6name
+                          ,map.goal6ritscore
+                          ,map.goal6stderr
+                          ,map.goal6range
+                          ,map.goal6adjective
+                          ,map.goal7name
+                          ,map.goal7ritscore
+                          ,map.goal7stderr
+                          ,map.goal7range
+                          ,map.goal7adjective
+                          ,map.goal8name
+                          ,map.goal8ritscore
+                          ,map.goal8stderr
+                          ,map.goal8range
+                          ,map.goal8adjective
+                          ,map.teststarttime
+                          ,map.percentcorrect
+                          ,map.projectedproficiency 
                     FROM
                          (SELECT s.id AS ps_studentid
                                 ,s.student_number
