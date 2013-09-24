@@ -346,7 +346,6 @@ FROM
         ON CAST(long_goals.student_number AS NVARCHAR) = ar_all.student_number
        AND ar_all.dttaken >= long_goals.start_date_summer_bonus
        AND ar_all.dttaken <= long_goals.end_date
-       AND ar_all.tiPassed = 1 
        AND ar_all.tiRowStatus = 1
        GROUP BY long_goals.studentid
                ,long_goals.student_number
