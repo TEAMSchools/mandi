@@ -1,3 +1,7 @@
+USE KIPP_NJ 
+GO
+
+CREATE VIEW MAP$growth_measures_long AS
 WITH cohort AS
      (SELECT cohort.studentid
             ,cohort.grade_level
@@ -8,7 +12,6 @@ WITH cohort AS
       FROM KIPP_NJ..COHORT$comprehensive_long#static cohort
       WHERE cohort.grade_level <= 12
         AND cohort.rn = 1
-        AND cohort.studentid = 4754
       )
 
     ,periods AS
