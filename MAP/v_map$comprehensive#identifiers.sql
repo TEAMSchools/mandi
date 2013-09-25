@@ -11,10 +11,10 @@ SELECT cohort.schoolid
       ,norms_2011.percentile AS percentile_2011_norms
       ,sq_2.*
       ,ROW_NUMBER() OVER 
-           (PARTITION BY sq_2.studentid, sq_2.map_year_academic
+           (PARTITION BY sq_2.studentid, sq_2.map_year_academic, sq_2.measurementscale
                 ORDER BY sq_2.teststartdate ASC, sq_2.teststarttime ASC) AS rn_base
       ,ROW_NUMBER() OVER 
-           (PARTITION BY sq_2.studentid, sq_2.map_year_academic
+           (PARTITION BY sq_2.studentid, sq_2.map_year_academic, sq_2.measurementscale
                 ORDER BY sq_2.teststartdate DESC, sq_2.teststarttime DESC) AS rn_curr
       /*
       ,CASE
