@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW QA$data_audit AS
+ALTER VIEW QA$data_audit AS
 
 --Added by AM2 on 9/23/2013
 --Any FARM status not in P, R, F?
@@ -17,7 +17,6 @@ FROM
      (SELECT sub_1.assertion
             ,COUNT(*) AS N
             ,dbo.GROUP_CONCAT(sub_1.hash) AS elements
-             --there I fixed it
             ,ROW_NUMBER() OVER(ORDER BY sub_1.assertion ASC) AS rn
       FROM
             (SELECT s.first_name + ' ' + s.last_name + ' (' + sch.abbreviation + ')' AS hash
@@ -50,7 +49,6 @@ FROM
      (SELECT sub_1.assertion
             ,COUNT(*) AS N
             ,dbo.GROUP_CONCAT(sub_1.hash) AS elements
-             --there I fixed it
             ,ROW_NUMBER() OVER(ORDER BY sub_1.assertion ASC) AS rn
       FROM
             (SELECT s.first_name + ' ' + s.last_name + ' (' + sch.abbreviation + ')' AS hash
@@ -149,7 +147,6 @@ FROM
      (SELECT sub_1.assertion
             ,COUNT(*) AS N
             ,dbo.GROUP_CONCAT(sub_1.hash) AS elements
-             --there I fixed it
             ,ROW_NUMBER() OVER(ORDER BY sub_1.assertion ASC) AS rn
       FROM
             (SELECT s.first_name + ' ' + s.last_name + ' (' + sch.abbreviation + ')' AS hash
