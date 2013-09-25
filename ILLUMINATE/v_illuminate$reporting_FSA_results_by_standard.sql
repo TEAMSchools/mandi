@@ -12,7 +12,7 @@ FROM
                      ,s.team
                      ,assessments.title
                      ,results.assessment_id --probably easier to key off of
-                     --dates.week_number after table is created
+                     ,dates.time_per_name
                      ,assessments.subject
                      ,results.answered
                      ,CAST(ROUND(results.percent_correct,2,2) AS FLOAT) AS percent_correct
@@ -27,7 +27,7 @@ FROM
                      ,assessments.administered_at
                      ,gr.tag AS grade_tag
                      ,ISNULL(gr.tag,'GRADE')
-                       + '_' + SUBSTRING(assessments.title,CHARINDEX('FSA',assessments.title)+3,2) --FSA week derived from title name, no bueno -- use dates.week_number when table is created
+                       + '_' + ISNULL(dates.time_per_name,'WEEK')
                        + '_' + ISNULL(assessments.subject,'SUBJ')
                        + '_' + ISNULL(results.custom_code,'STD') --standard tested
                        + '_' + ISNULL(team,'TEAM')
@@ -41,11 +41,13 @@ FROM
                LEFT OUTER JOIN ILLUMINATE$assessments gr
                  ON results.assessment_id = gr.assessment_id
                 AND gr.tag_type = 'grade'      
-               --JOIN REPORTING$key_dates dates
-                 --ON assessments.administered_at >= dates.start_date
-                --AND assessments.administered_at <= dates.end_date
+               JOIN REPORTING$dates dates
+                 ON assessments.administered_at >= dates.start_date
+                AND assessments.administered_at <= dates.end_date
+                AND dates.identifier = 'FSA'
+                AND dates.schoolid = 'ES'
                WHERE s.schoolid IN (73254,73255,73256)
                  AND s.enroll_status = 0
-                 AND assessments.tag = 'fsa'        
+                 AND assessments.scope IN ('FSA','Site Assessment')
      )sub
 ORDER BY schoolid, reporting_hash
