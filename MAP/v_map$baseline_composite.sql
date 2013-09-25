@@ -43,6 +43,10 @@ SELECT TOP (100) PERCENT sub.*
          WHEN map_spr.testritscore IS NULL THEN map_fall.TypicalFallToSpringGrowth
          ELSE map_spr.TypicalSpringToSpringGrowth
        END AS typical_growth_fallorspring_to_spring
+      ,CASE 
+         WHEN map_spr.testritscore IS NULL THEN map_fall.rittoreadingscore
+         ELSE map_spr.rittoreadingscore
+       END AS lexile_score
 FROM
       (SELECT roster.*
              ,subj.*
