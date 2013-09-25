@@ -218,6 +218,6 @@ FROM
              AND log.entry_date >= TO_DATE(''2013-08-01'',''YYYY-MM-DD'') --update for new school year
              AND log.entry_date <= TO_DATE(''2014-06-30'',''YYYY-MM-DD'') --update for new school year
              --AND logtypeid IN (-100000,3223,3023)
-       ')
-     ) sub
+           ')
+      ) sub
 ORDER BY schoolid, logtypeid, studentid, entry_date DESC
