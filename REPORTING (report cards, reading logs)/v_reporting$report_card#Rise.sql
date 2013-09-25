@@ -316,8 +316,7 @@ SELECT roster.*
       ,map_read.fall_2010_percentile   AS f_2010_read_pctle
       ,map_read.spring_2011_rit AS spr_2011_read_rit
       ,map_read.fall_2010_rit   AS f_2010_read_rit
-      ,map_read.spring_2011_percentile - map_read.fall_2010_percentile AS f2s_2010_11_read_pctle_chg
-      ,map_read.fall_2010_percentile - map_read.spring_2010_percentile AS sum_2010_read_pctle_chg
+      ,map_read.spring_2011_percentile - map_read.fall_2010_percentile AS f2s_2010_11_read_pctle_chg      
             
       --MAP math -- add a new block for each test year, delete oldest
         --13-14
@@ -346,8 +345,7 @@ SELECT roster.*
       ,map_math.fall_2010_percentile AS f_2010_math_pctle
       ,map_math.spring_2011_rit AS spr_2011_math_rit
       ,map_math.fall_2010_rit AS f_2010_math_rit
-      ,map_math.spring_2011_percentile - map_math.fall_2010_percentile AS f2s_2010_11_math_pctle_chg
-      ,map_math.fall_2010_percentile - map_math.spring_2010_percentile AS sum_2010_math_pctle_chg      
+      ,map_math.spring_2011_percentile - map_math.fall_2010_percentile AS f2s_2010_11_math_pctle_chg      
 
 --Literacy tracking
 --MAP$comprehensive#identifiers
