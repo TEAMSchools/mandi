@@ -23,14 +23,16 @@ GO
 
 ALTER VIEW GPA$cumulative#NCA AS
 SELECT studentid
-      ,schoolid
+      --,schoolid
       ,ROUND(weighted_points / credit_hours,2) AS cumulative_Y1_gpa
-      ,audit_trail
+      ,earned_credits_cum
+      --,audit_trail
 FROM
      (SELECT studentid
             ,schoolid
             ,ROUND(SUM(CONVERT(FLOAT,weighted_points)),3) AS weighted_points
             ,SUM(CONVERT(FLOAT,potentialcrhrs)) AS credit_hours
+            ,SUM(earnedcrhrs) AS earned_credits_cum
             ,dbo.GROUP_CONCAT(audit_hash) AS audit_trail
       FROM OPENQUERY(PS_TEAM,'
              SELECT studentid
@@ -43,6 +45,7 @@ FROM
                    ,schoolid           
                    ,excludefromgpa
                    ,potentialcrhrs * gpa_points AS weighted_points
+                   ,earnedcrhrs
                    ,''|'' || course_number || ''_gr'' || grade_level || ''['' || percent ||'']'' || '' ('' || gpa_points || '' pts*'' || earnedcrhrs || '' earned_cr)/'' || potentialcrhrs || '' pot. cr'' || ''|'' AS audit_hash
              FROM storedgrades
              WHERE storecode = ''Y1''
