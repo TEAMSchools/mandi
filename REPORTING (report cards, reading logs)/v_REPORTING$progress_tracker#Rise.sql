@@ -6,7 +6,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW REPORTING$progress_tracker#Rise AS
+--ALTER VIEW REPORTING$progress_tracker#Rise AS
 
 SELECT TOP 100 PERCENT sub.*
 FROM
@@ -161,7 +161,7 @@ LEFT OUTER JOIN GRADES$wide_credit_core#MS grades
 LEFT OUTER JOIN GPA$detail#Rise gpa
   ON s.id = gpa.studentid
 
-LEFT OUTER JOIN PS$CUSTOM_STUDENTS custom
+LEFT OUTER JOIN CUSTOM_STUDENTS custom
   ON s.id = custom.studentid
 
 LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts
