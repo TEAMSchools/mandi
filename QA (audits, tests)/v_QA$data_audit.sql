@@ -123,7 +123,7 @@ FROM
              FROM KIPP_NJ..STUDENTS s
              JOIN KIPP_NJ..SCHOOLS sch
                ON s.schoolid = sch.school_number
-             JOIN KIPP_NJ..PS$CUSTOM_STUDENTS cust
+             JOIN KIPP_NJ..CUSTOM_STUDENTS cust
                ON s.id = cust.studentid
              WHERE s.enroll_status = 0
              ) sub_1
