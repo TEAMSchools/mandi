@@ -1,10 +1,13 @@
+--DEPRECATED, USE STATIC TABLE [CUSTOM_STUDENTS]
+
 USE KIPP_NJ
 GO
 
-ALTER VIEW PS$CUSTOM_STUDENTS AS
-SELECT DISTINCT *
+--ALTER VIEW PS$CUSTOM_STUDENTS AS
+SELECT *
 FROM OPENQUERY(PS_TEAM,'
-       SELECT s.id AS studentid
+       SELECT DISTINCT 
+              s.id AS studentid
              ,DBMS_LOB.SUBSTR(s.guardianemail,2000,1) AS guardianemail
              ,pvcs_SID.string_value   AS SID
              ,pvcs_adv.string_value   AS advisor
