@@ -15,7 +15,7 @@ WITH roster AS
       JOIN KIPP_NJ..STUDENTS s
         ON c.studentid = s.id
        AND s.enroll_status = 0
-      LEFT OUTER JOIN KIPP_NJ..PS$CUSTOM_STUDENTS cs
+      LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs
         ON cs.studentid = s.id
       WHERE year = 2013
         AND c.rn = 1        
