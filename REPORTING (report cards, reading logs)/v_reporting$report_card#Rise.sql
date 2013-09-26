@@ -41,7 +41,7 @@ WITH roster AS
            ,local.guardianemail
            ,cs.SPEDLEP AS SPED
            ,cs.lunch_balance AS lunch_balance
-     FROM KIPP_NJ..PS$CUSTOM_STUDENTS cs
+     FROM KIPP_NJ..CUSTOM_STUDENTS cs
      JOIN KIPP_NJ..STUDENTS s
        ON cs.studentid = s.id
       AND s.enroll_status = 0

@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW REPORTING$report_card#NCA AS
+ALTER VIEW REPORTING$report_card#NCA AS
 WITH roster AS
      (SELECT s.student_number AS base_student_number
             ,s.id AS base_studentid
@@ -40,7 +40,7 @@ WITH roster AS
            ,local.guardianemail
            ,cs.SPEDLEP AS SPED
            ,cs.lunch_balance AS lunch_balance
-     FROM KIPP_NJ..PS$CUSTOM_STUDENTS cs
+     FROM KIPP_NJ..CUSTOM_STUDENTS cs
      JOIN KIPP_NJ..STUDENTS s
        ON cs.studentid = s.id
       AND s.enroll_status = 0
@@ -78,7 +78,7 @@ SELECT roster.*
       ,nca_gpa.gpa_Y1
       --cumulative      
       ,gpa_cumulative.cumulative_Y1_gpa
-      ,gpa_cumulative.audit_trail AS cumulative_gpa_audit_trail
+      --,gpa_cumulative.audit_trail AS cumulative_gpa_audit_trail
       
 --Course Grades
 --GRADES$wide_all
