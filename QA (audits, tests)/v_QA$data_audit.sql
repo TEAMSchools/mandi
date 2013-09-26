@@ -211,6 +211,7 @@ UNION ALL
 
 --Added by AM2 on 9/24/2013
 --Any students with double enrollments in the same course?
+--Removed 'STUDY10' and 'HR' since there are current practices with double enrollments in those courses
 SELECT 'PS Config' AS audit_category
       ,'Same Student / Course Cur Enrollments' AS audit_type
       ,sub_3.assertion + ' (n=' + CAST(sub_3.n AS NVARCHAR) + ')' + ' | ' +
@@ -249,6 +250,7 @@ FROM
                       AND DATEDIFF(day, CURRENT_TIMESTAMP, cc.dateleft) >= 0
                      JOIN KIPP_NJ..SECTIONS sect
                        ON cc.sectionid = sect.id
+                      AND cc.course_number  NOT IN ('HR','STUDY10')
                      JOIN KIPP_NJ..SCHOOLS sch
                        ON s.schoolid = sch.school_number
                      WHERE s.enroll_status = 0
