@@ -44,26 +44,26 @@ FROM
 				  WHEN scores.schoolid = 73255 THEN scores.color_pm
 				END AS thrive_pm     
 		FROM OPENQUERY(PS_TEAM, '
-				SELECT  unique_id
-					   ,schoolid
-					   ,user_defined_date AS att_date
-					   ,foreignkey AS studentid
-					   ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field1'') hw
-					   ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field2'') color
-					   ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field3'') color_mid
-					   ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field4'') color_pm
-					   /*
-					   ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field5'') field5
-					   ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field6
-					   ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field7
-					   ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field8
-					   ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field9
-					   ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field10
-					   */
-				FROM virtualtablesdata2
-				WHERE related_to_table = ''dailytracking''					
-				ORDER BY user_defined_date, schoolid, foreignKey
-				') scores
+         SELECT unique_id
+	              ,schoolid
+	              ,user_defined_date AS att_date
+	              ,foreignkey AS studentid
+	              ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field1'') hw
+	              ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field2'') color
+	              ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field3'') color_mid
+	              ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field4'') color_pm
+	              /*
+	              ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field5'') field5
+	              ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field6
+	              ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field7
+	              ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field8
+	              ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field9
+	              ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field10
+	              */
+         FROM virtualtablesdata2
+         WHERE related_to_table = ''dailytracking''					
+         ORDER BY user_defined_date, schoolid, foreignKey
+         ') scores
 		JOIN STUDENTS s ON s.id = scores.studentid
 		WHERE s.enroll_status = 0
 		  AND s.grade_level < 5		  		  
