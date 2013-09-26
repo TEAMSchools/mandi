@@ -10,6 +10,12 @@ ALTER PROCEDURE sp_EMAIL$template (
  ,@stat_query1          AS NVARCHAR(MAX) = ''
  ,@stat_query2          AS NVARCHAR(MAX) = ''
  ,@stat_query3          AS NVARCHAR(MAX) = ''
+ ,@stat_query4          AS NVARCHAR(MAX) = ''
+  --labels for key stats
+ ,@stat_label1          AS NVARCHAR(50) = 'impact' 
+ ,@stat_label2          AS NVARCHAR(50) = 'freedom'
+ ,@stat_label3          AS NVARCHAR(50) = 'fun'
+ ,@stat_label4          AS NVARCHAR(50) = 'teamwork'      
   --main table and CSV
  ,@table_query          AS NVARCHAR(MAX) = ''
  ,@csv_toggle           AS VARCHAR(3) = 'On'
@@ -18,9 +24,10 @@ ALTER PROCEDURE sp_EMAIL$template (
 
 BEGIN
 
-  DECLARE @stat1_value          NVARCHAR(MAX) = '50'
-         ,@stat2_value          NVARCHAR(MAX)
-         ,@stat3_value          NVARCHAR(MAX)
+  DECLARE @stat1_value          NVARCHAR(MAX) = 'frrrt'
+         ,@stat2_value          NVARCHAR(MAX) = '75%'
+         ,@stat3_value          NVARCHAR(MAX) = '108'
+         ,@stat4_value          NVARCHAR(MAX) = '0.53'
          ,@table_html           NVARCHAR(MAX)
           
           --reuse CSS across messages
@@ -34,21 +41,149 @@ BEGIN
 
           --For CSV attachment
          ,@csv_attachment       NVARCHAR(500) = ''
+         ,@sqlCommand           NVARCHAR(1000)
+         ,@xx INT
+
+  --prep stat queries for sp_executesql
+  SET @stat_query1 = N'SET @X = (' + @stat_query1 + ')'
+  SET @stat_query2 = N'SET @X = (' + @stat_query2 + ')'
+  SET @stat_query3 = N'SET @X = (' + @stat_query3 + ')'
+  SET @stat_query4 = N'SET @X = (' + @stat_query4 + ')'
+
+  --use sp_executesql to set variables equal to results of these queries
+  EXEC sp_executesql @stat_query1, N'@X NVARCHAR(MAX) OUT', @stat1_value OUT
+  EXEC sp_executesql @stat_query2, N'@X NVARCHAR(MAX) OUT', @stat2_value OUT
+  EXEC sp_executesql @stat_query3, N'@X NVARCHAR(MAX) OUT', @stat3_value OUT
+  EXEC sp_executesql @stat_query4, N'@X NVARCHAR(MAX) OUT', @stat4_value OUT
+  
+  --SET @sqlCommand = 'SELECT @cnt=COUNT(*) FROM customers WHERE City = @city'
+  --SET @stat1_value = (select 'qwerty')
+  --SET @stat1_value = EVAL(@stat_query1)
+  --EXECUTE sp_executesql @sqlCommand, N'@farts NVARCHAR(MAX) OUTPUT', @farts=@stat1_value OUTPUT
+
+  --EXEC sp_executesql @stat_query1, N'@stat1_value NVARCHAR(MAX) OUT', @stat1_value OUT;
+ 
+  
+  --organize/build key stat table
+  IF @stat_count = 4
+    BEGIN
+      SET @email_stat_table = 
+       '<table width= "100%"  cellspacing="0" cellpadding="0">
+				      <tr>
+						      <th width="25%">
+						        <div class="stat_label">' +  @stat_label1 + '</div>
+						      </th>
+     							
+						      <th width="25%">
+						        <div class="stat_label">' +  @stat_label2 + '</div>
+						      </th>
+     							
+						      <th width="25%">
+						        <div class="stat_label">' +  @stat_label3 + '</div>
+						      </th>							
+
+						      <th width="25%">
+						        <div class="stat_label">' +  @stat_label4 + '</div>
+						      </th>							
+				      </tr>
+     					
+				      <tr>
+						      <td>
+						        <div class="stat">' + CAST(@stat1_value AS NVARCHAR) + '</div>
+						      </td>
+     							
+						      <td>
+						        <div class="stat">' + CAST(@stat2_value AS VARCHAR) + '</div>
+						      </td>
+     							
+						      <td>
+						        <div class="stat">' + CAST(@stat3_value AS VARCHAR) + '</div>
+						      </td>					
+
+						      <td>
+						        <div class="stat">' + CAST(@stat4_value AS VARCHAR) + '</div>
+						      </td>					
+				      </tr>
+        </table>'
+    END
+
+  IF @stat_count = 3
+    BEGIN
+      SET @email_stat_table = 
+       '<table width= "100%"  cellspacing="0" cellpadding="0">
+				      <tr>
+						      <th width="34%">
+						        <div class="stat_label">' +  @stat_label1 + '</div>
+						      </th>
+     							
+						      <th width="33%">
+						        <div class="stat_label">' +  @stat_label2 + '</div>
+						      </th>
+     							
+						      <th width="34%">
+						        <div class="stat_label">' +  @stat_label3 + '</div>
+						      </th>							
+				      </tr>
+     					
+				      <tr>
+						      <td>
+						        <div class="stat">' + CAST(@stat1_value AS VARCHAR) + '</div>
+						      </td>
+     							
+						      <td>
+						        <div class="stat">' + CAST(@stat2_value AS VARCHAR) + '</div>
+						      </td>
+     							
+						      <td>
+						        <div class="stat">' + CAST(@stat3_value AS VARCHAR) + '</div>
+						      </td>					
+				      </tr>
+        </table>'
+    END
+
+  IF @stat_count = 2
+    BEGIN
+      SET @email_stat_table = 
+       '<table width= "100%"  cellspacing="0" cellpadding="0">
+				      <tr>
+						      <th width="50%">
+						        <div class="stat_label">' +  @stat_label1 + '</div>
+						      </th>
+     							
+						      <th width="50%">
+						        <div class="stat_label">' +  @stat_label2 + '</div>
+						      </th>						
+				      </tr>
+     					
+				      <tr>
+						      <td>
+						        <div class="stat">' + CAST(@stat1_value AS VARCHAR) + '</div>
+						      </td>
+     							
+						      <td>
+						        <div class="stat">' + CAST(@stat2_value AS VARCHAR) + '</div>
+						      </td>	
+				      </tr>
+        </table>'
+    END
 
   IF @stat_count = 1
     BEGIN
       SET @email_stat_table = 
-          '<table>
-             <tr>
-               <td>
-                 <div class="stat">
-                   ' + @stat1_value + '
-                 </div>
-               </td>
-             </tr>
-           </table>'  
+       '<table width= "100%"  cellspacing="0" cellpadding="0">
+				      <tr>
+						      <th width="100%">
+						        <div class="stat_label">' +  @stat_label1 + '</div>
+						      </th>
+				      </tr>
+     					
+				      <tr>
+						      <td>
+						        <div class="stat">' + CAST(@stat1_value AS VARCHAR) + '</div>
+						      </td>
+				      </tr>
+        </table>'
     END
-  
   
   --dump the table_query to html
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @table_query, @table_html OUTPUT

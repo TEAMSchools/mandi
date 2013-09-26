@@ -110,18 +110,32 @@ BEGIN
   /* TEAM-SPECIFIC STUFF GOES HERE */
 
   body {
-  margin: 0;
-  font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 13px;
-  line-height: 20px;
-  color: #333333;
-  background-color: #ffffff;
+    margin: 0;
+    font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 20px;
+    color: #333333;
+    background-color: #ffffff;
   }
 
   .stat {
-  font-size: 66px;
-  font-style: bold;
+    font-family: "Helvetica", Verdana, sans-serif;
+    font-size: 96px;
+				font-weight: bold;
+				text-align: center;
+				margin: 0;
+				padding: 0;
   }
+
+		.stat_label {
+				font-size: 36px;
+				font-family: "Helvetica", Verdana, sans-serif;
+				font-weight: bold;
+				text-align: center;
+				margin: 0;
+				padding: 0;
+		}
+
   /* END TEAM-SPECIFIC STUFF */
 
 ';
