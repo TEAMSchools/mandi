@@ -2,16 +2,15 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ES_DAILY$behavior_reporting_long#Seek AS
-SELECT ROW_NUMBER()
-		OVER (ORDER BY rn) AS rn
-	  ,ATT_DATE
-	  ,STUDENT_NUMBER
-	  ,STUDENTID
-	  ,LASTFIRST
-	  ,GRADE_LEVEL
-	  ,TEAM
-	  ,hw
-	  ,color_day
-	  ,CAST(student_number AS VARCHAR(20)) + '_' + CAST(att_date AS VARCHAR(20)) AS hash
-FROM ES_DAILY$daily_tracking_long
+SELECT rn
+      ,att_date
+      ,student_number
+      ,studentid
+      ,lastfirst
+      ,grade_level
+      ,team
+      ,hw
+      ,color_day
+      ,CAST(student_number AS VARCHAR(20)) + '_' + CAST(att_date AS VARCHAR(20)) AS hash
+FROM ES_DAILY$daily_tracking_long#static
 WHERE SCHOOLID = 73256 --Seek only
