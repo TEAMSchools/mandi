@@ -30,12 +30,12 @@ WITH rost AS
                               WHEN credittype LIKE '%WLANG%'   THEN '6'
                               WHEN credittype LIKE '%ART%'     THEN '7'
                               WHEN credittype LIKE '%PHYSED%'  THEN '8'                              
-                              WHEN credittype LIKE '%LOG%'     THEN '9'
-                              --WHEN credittype LIKE '%STUDY%'   THEN NULL
+                              WHEN credittype LIKE '%STUDY%'   THEN '9' -- != Study Hall
+                              --WHEN credittype LIKE '%LOG%'     THEN '9' -- Study Hall = LOG
                             END
                   ) AS rn
          FROM KIPP_NJ..GRADES$DETAIL#NCA
-         WHERE credittype IN ('MATH','ENG','SCI','SOC','RHET','WLANG','ART','LOG','PHYSED')
+         WHERE credittype IN ('MATH','ENG','SCI','SOC','RHET','WLANG','ART','PHYSED','STUDY')
          )sub
    )
   
