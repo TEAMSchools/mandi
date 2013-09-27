@@ -42,9 +42,8 @@ FROM
         ON cohort.studentid = s.id
        AND cohort.rn = 1
        --AND cohort.year >= 2011
+       --AND s.STUDENT_NUMBER = 12726
        AND cohort.schoolid != 999999
-       
-       AND s.STUDENT_NUMBER = 12726
 
       JOIN AR$goals ar_default
         ON 'Default_Gr' + CAST(cohort.grade_level AS NVARCHAR) = ar_default.student_number
