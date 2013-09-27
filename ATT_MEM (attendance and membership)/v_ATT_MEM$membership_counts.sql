@@ -2,148 +2,65 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ATT_MEM$membership_counts AS
+--/*
 SELECT *
 FROM OPENQUERY(KIPP_NWK,'
-     SELECT id
-           ,lastfirst
-           ,schoolid
-           ,grade_level
-           ,CAST(mem AS FLOAT) AS mem
-           ,CAST(rt1_mem AS FLOAT) AS rt1_mem
-           ,CAST(rt2_mem AS FLOAT) AS rt2_mem
-           ,CAST(rt3_mem AS FLOAT) AS rt3_mem
-           ,CAST(rt4_mem AS FLOAT) AS rt4_mem
-           ,CAST(rt5_mem AS FLOAT) AS rt5_mem
-           ,CAST(rt6_mem AS FLOAT) AS rt6_mem
-     FROM membership_counts
+SELECT id
+,lastfirst
+,schoolid
+,grade_level
+,CAST(mem AS FLOAT) AS mem
+,CAST(rt1_mem AS FLOAT) AS rt1_mem
+,CAST(rt2_mem AS FLOAT) AS rt2_mem
+,CAST(rt3_mem AS FLOAT) AS rt3_mem
+,CAST(rt4_mem AS FLOAT) AS rt4_mem
+,CAST(rt5_mem AS FLOAT) AS rt5_mem
+,CAST(rt6_mem AS FLOAT) AS rt6_mem
+FROM membership_counts
 ')
-
+--*/
 /*
-
-CREATE MATERIALIZED VIEW MEMBERSHIP_COUNTS 
-NOCACHE 
-NOPARALLEL 
-BUILD IMMEDIATE 
-USING INDEX 
-REFRESH START WITH SYSDATE NEXT SYSDATE + (120/(24*60)) COMPLETE 
-DISABLE QUERY REWRITE AS 
-
-select id
-      ,lastfirst
-      ,schoolid
-      ,grade_level
-      ,sum(membershipvalue) as mem
-      ,sum(case
-           when RT = 'RT1' 
-           then membershipvalue
-           else 0
-           end) as RT1_mem
-      ,sum(case
-           when RT = 'RT2' 
-           then membershipvalue
-           else 0
-           end) as RT2_mem
-      ,sum(case
-           when RT = 'RT3' 
-           then membershipvalue
-           else 0
-           end) as RT3_mem
-      ,sum(case
-           when RT = 'RT4' 
-           then membershipvalue
-           else 0
-           end) as RT4_mem
-      ,sum(case
-           when RT = 'RT5' 
-           then membershipvalue
-           else 0
-           end) as RT5_mem
-      ,sum(case
-           when RT = 'RT6' 
-           then membershipvalue
-           else 0
-           end) as RT6_mem
-from
-(select s.id
-       ,s.lastfirst
-       ,s.schoolid
-       ,s.grade_level
-       ,ctod.calendardate
-       ,ctod.membershipvalue,
-         case 
-       --Middle Schools (Rise & TEAM)
-       when ctod.schoolid IN (73252,133570965)
-             and ctod.calendardate >= '05-AUG-13' and ctod.calendardate <='22-NOV-13' 
-             then 'RT1'
-       when ctod.schoolid IN (73252,133570965)
-             and ctod.calendardate >= '25-NOV-13' and ctod.calendardate <='07-MAR-14' 
-             then 'RT2'
-       when ctod.schoolid IN (73252,133570965)
-             and ctod.calendardate >= '10-MAR-14' and ctod.calendardate <='20-JUN-14' 
-             then 'RT3'
-       --NCA
-       when ctod.schoolid = 73253 
-             and ctod.calendardate >= '03-SEP-13' and ctod.calendardate <='08-NOV-13' 
-             then 'RT1'
-       when ctod.schoolid = 73253 
-             and ctod.calendardate >= '12-NOV-13' and ctod.calendardate <='27-JAN-14' 
-             then 'RT2'
-       when ctod.schoolid = 73253 
-             and ctod.calendardate >= '03-FEB-14' and ctod.calendardate <='04-APR-14' 
-             then 'RT3'
-       when ctod.schoolid = 73253 
-             and ctod.calendardate >= '21-APR-14' and ctod.calendardate <='20-JUN-14' 
-             then 'RT4'
-       --Elementary Schools (SPARK, THRIVE, Seek)
-       when ctod.schoolid IN (73254,73255,73256)
-             and ctod.calendardate >= '19-AUG-13' and ctod.calendardate <='30-AUG-13'
-             then 'RT1'
-       when ctod.schoolid IN (73254,73255,73256)
-             and ctod.calendardate >= '04-SEP-13' and ctod.calendardate <='22-NOV-13'
-             then 'RT2'
-       when ctod.schoolid IN (73254,73255,73256)
-             and ctod.calendardate >= '25-NOV-13' and ctod.calendardate <='14-FEB-14'
-             then 'RT3'             
-       when ctod.schoolid IN (73254,73255,73256)
-             and ctod.calendardate >= '25-FEB-14' and ctod.calendardate <='16-MAY-14'
-             then 'RT4'
-       when ctod.schoolid IN (73254,73255,73256)
-             and ctod.calendardate >= '19-MAY-14' and ctod.calendardate <='13-JUN-14'
-             then 'RT5'
-/*
-         --THRIVE
-       when ctod.schoolid = 73255
-             and ctod.calendardate >= '20-AUG-12' and ctod.calendardate <='31-AUG-12'
-             then 'RT1'
-       when ctod.schoolid = 73255
-             and ctod.calendardate >= '05-SEP-12' and ctod.calendardate <='20-NOV-12'
-             then 'RT2'
-       when ctod.schoolid = 73255
-             and ctod.calendardate >= '27-NOV-12' and ctod.calendardate <='15-FEB-13'
-             then 'RT3'             
-       when ctod.schoolid = 73255
-             and ctod.calendardate >= '26-FEB-13' and ctod.calendardate <='24-MAY-13'
-             then 'RT4'
-       when ctod.schoolid = 73255
-             and ctod.calendardate >= '28-MAY-13' and ctod.calendardate <='13-JUN-13'
-             then 'RT5'    
-       --TEAM
-       when ctod.schoolid = 133570965 
-             and ctod.calendardate >= '08-AUG-12' and ctod.calendardate <='20-NOV-12' 
-             then 'RT1'
-       when ctod.schoolid = 133570965 
-             and ctod.calendardate >= '26-NOV-12' and ctod.calendardate <='08-MAR-13' 
-             then 'RT2'
-       when ctod.schoolid = 133570965 
-             and ctod.calendardate >= '11-MAR-13' and ctod.calendardate <='21-JUN-13' 
-             then 'RT3'             
-*/
-       else null end RT   
-from students@PS_TEAM s
-left outer join pssis_adaadm_daily_ctod@PS_TEAM ctod on s.id = ctod.studentid 
-                                                    and ctod.calendardate > '01-AUG-13' 
-                                                    and ctod.calendardate <= sysdate
-where s.entrydate >= '01-AUG-13')
-group by id, lastfirst, schoolid, grade_level
-order by schoolid, grade_level, lastfirst
-*/
+SELECT s.id
+      ,s.lastfirst
+      ,s.schoolid
+      ,s.grade_level
+      ,SUM(CONVERT(INT,membershipvalue)) AS mem
+      ,SUM(CONVERT(INT,CASE WHEN RT = 'RT1' THEN membershipvalue ELSE 0 END)) AS RT1_mem
+      ,SUM(CONVERT(INT,CASE WHEN RT = 'RT2' THEN membershipvalue ELSE 0 END)) AS RT2_mem
+      ,SUM(CONVERT(INT,CASE WHEN RT = 'RT3' THEN membershipvalue ELSE 0 END)) AS RT3_mem
+      ,SUM(CONVERT(INT,CASE WHEN RT = 'RT4' THEN membershipvalue ELSE 0 END)) AS RT4_mem
+      ,SUM(CONVERT(INT,CASE WHEN RT = 'RT5' THEN membershipvalue ELSE 0 END)) AS RT5_mem
+      ,SUM(CONVERT(INT,CASE WHEN RT = 'RT6' THEN membershipvalue ELSE 0 END)) AS RT6_mem
+FROM STUDENTS s
+LEFT OUTER JOIN OPENQUERY(PS_TEAM,'
+     SELECT studentid
+           ,calendardate
+           ,membershipvalue
+           ,CASE
+             --Middle Schools (Rise & TEAM)
+             WHEN schoolid IN (73252,133570965) AND calendardate >= TO_DATE(''2013-08-05'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2013-11-22'',''YYYY-MM-DD'') THEN ''RT1''
+             WHEN schoolid IN (73252,133570965) AND calendardate >= TO_DATE(''2013-11-25'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2014-03-07'',''YYYY-MM-DD'') THEN ''RT2''
+             WHEN schoolid IN (73252,133570965) AND calendardate >= TO_DATE(''2014-03-10'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2014-06-20'',''YYYY-MM-DD'') THEN ''RT3''
+             --NCA
+             WHEN schoolid = 73253 AND calendardate >= TO_DATE(''2013-09-03'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2013-11-08'',''YYYY-MM-DD'') THEN ''RT1''
+             WHEN schoolid = 73253 AND calendardate >= TO_DATE(''2013-11-12'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2014-01-27'',''YYYY-MM-DD'') THEN ''RT2''
+             WHEN schoolid = 73253 AND calendardate >= TO_DATE(''2014-02-03'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2014-04-04'',''YYYY-MM-DD'') THEN ''RT3''
+             WHEN schoolid = 73253 AND calendardate >= TO_DATE(''2013-04-21'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2014-06-20'',''YYYY-MM-DD'') THEN ''RT4''
+             --Elementary Schools (SPARK, THRIVE, Seek)
+             WHEN schoolid IN (73254,73255,73256) AND calendardate >= TO_DATE(''2013-08-19'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2013-08-30'',''YYYY-MM-DD'') THEN ''RT1''
+             WHEN schoolid IN (73254,73255,73256) AND calendardate >= TO_DATE(''2013-09-04'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2013-11-22'',''YYYY-MM-DD'') THEN ''RT2''
+             WHEN schoolid IN (73254,73255,73256) AND calendardate >= TO_DATE(''2013-11-25'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2014-02-14'',''YYYY-MM-DD'') THEN ''RT3''
+             WHEN schoolid IN (73254,73255,73256) AND calendardate >= TO_DATE(''2014-02-25'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2014-05-16'',''YYYY-MM-DD'') THEN ''RT4''
+             WHEN schoolid IN (73254,73255,73256) AND calendardate >= TO_DATE(''2014-05-19'',''YYYY-MM-DD'') AND calendardate <= TO_DATE(''2014-06-13'',''YYYY-MM-DD'') THEN ''RT5''
+             ELSE NULL
+            END AS RT     
+     FROM pssis_adaadm_daily_ctod
+     WHERE calendardate >= TO_DATE(''2013-08-01'',''YYYY-MM-DD'')
+       AND calendardate <= TO_DATE(''2014-06-30'',''YYYY-MM-DD'')
+     --GROUP BY calendardate,membershipvalue
+     ') ctod
+   ON s.id = ctod.studentid
+WHERE s.entrydate >= '2013-08-01'
+GROUP BY s.id,s.lastfirst,s.schoolid,s.grade_level
+ORDER BY schoolid, grade_level, lastfirst
+--*/
