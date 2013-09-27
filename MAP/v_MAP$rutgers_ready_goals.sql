@@ -25,8 +25,8 @@ WITH stu_roster AS
    ,sci_lang AS
    (SELECT 'Science - General Science' AS measurementscale
           ,'General Science' AS alt_measurementscale
-    UNION
-    SELECT 'Language'
+    UNION 
+    SELECT 'Language' AS measurementscale
           ,'Language Usage' AS alt_measurementscale
    )
 
@@ -62,6 +62,7 @@ LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_goals rr_goals
 
 UNION ALL
 
+
 --SCIENCE AND LANGUAGE NEXT
 SELECT sub.*
       ,sub.baseline_rit + sub.rutgers_ready_goal AS rutgers_ready_rit
@@ -88,20 +89,16 @@ FROM
                 --top quartile
                 WHEN CAST(map_base.testpercentile AS INT) >= 75 AND CAST(map_base.testpercentile AS INT) < 100
                   THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)
-              END AS rutgers_ready_goal
-
-             
+              END AS rutgers_ready_goal       
        FROM stu_roster
        JOIN sci_lang
          ON 1=1
-        --AND stu_roster.grade_level <= 8
-        --AND stu_roster.grade_level >= 5
 
        --baseline (composite of Spring and Fall; pick best)
        LEFT OUTER JOIN KIPP_NJ..MAP$baseline_composite map_base
          ON stu_roster.studentid = map_base.studentid 
         AND stu_roster.year = map_base.year
-        AND sci_lang.measurementscale = map_base.measurementscale
+        AND sci_lang.alt_measurementscale = map_base.measurementscale
 
        LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norm
          ON sci_lang.alt_measurementscale = norm.subject
