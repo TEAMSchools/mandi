@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW REPORTING$progress_detail#NCA AS
+ALTER VIEW REPORTING$progress_detail#NCA AS
 WITH roster AS
      (SELECT s.id AS JOINID
             ,s.student_number AS ID
@@ -29,8 +29,9 @@ SELECT roster.ID
       ,gr.course_number AS COURSE_NUM
       ,gr.course_name AS COURSE_NAME
       ,t.lastfirst AS TEACHER
-      ,sec.section_number AS SECTION
-      ,Y1
+      ,sec.section_number AS SECT
+      ,cc.currentabsences AS [ABS]
+      ,cc.currenttardies AS TARDY,Y1
       ,Y1_letter AS Y1_LTR
       ,CASE
         WHEN Y1 <  70 THEN 'Failing'
@@ -52,9 +53,7 @@ SELECT roster.ID
         WHEN y1 >= 80 AND y1 < 90 THEN need_b_absolute
         WHEN y1 >= 90 THEN need_a_absolute
         ELSE NULL
-       END AS MAINTAIN      
-      ,cc.currentabsences AS [ABS]
-      ,cc.currenttardies AS TARDY
+       END AS MAINTAIN           
       ,ele_h.grade_1 AS H1
       ,ele_h.grade_2 AS H2
       ,ele_h.grade_3 AS H3
