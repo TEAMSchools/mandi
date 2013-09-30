@@ -12,12 +12,16 @@ WITH long_goals AS
           ,goals.time_period_name
           ,goals.words_goal
           ,goals.points_goal
+
+           --UPDATE: 09-30-2013.  Rise is killing this. Just use the goal start date
            --for Rise (and eventually others) summer words are 'bonus'
            --toward year goal.  this requires differentiating between
            --goal start date for calculation and for the join
-          ,CONVERT(datetime, CAST('07/01/' + CAST(DATEPART(YYYY,time_period_start) AS NVARCHAR) AS DATE), 101) AS start_date_summer_bonus
+          
+          --,CONVERT(datetime, CAST('07/01/' + CAST(DATEPART(YYYY,time_period_start) AS NVARCHAR) AS DATE), 101) AS start_date_summer_bonus
           --NULL AS start_date_summer_bonus
           --'01-JUN-13' AS start_date_summer_bonus
+          ,goals.time_period_start AS start_date_summer_bonus
           ,goals.time_period_start AS [start_date]
           ,goals.time_period_end AS end_date     
     FROM COHORT$comprehensive_long#static cohort

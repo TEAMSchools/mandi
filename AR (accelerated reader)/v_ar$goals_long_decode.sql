@@ -87,13 +87,13 @@ LEFT OUTER JOIN (
                       ,yearid
                       ,'Year' AS time_period_name
                       ,CASE
-                         WHEN schoolid = 73252 THEN '2013-09-03'
+                         WHEN schoolid = 73252 THEN '2013-06-15'
                          WHEN schoolid = 133570965 THEN '2013-08-12'
                          WHEN schoolid = 73253 THEN '2013-09-03' 
                        END AS time_period_start
                       ,CASE
-                         WHEN schoolid = 73252 THEN '2013-06-06'
-                         WHEN schoolid = 133570965 THEN '2013-08-12'
+                         WHEN schoolid = 73252 THEN '2014-06-06'
+                         WHEN schoolid = 133570965 THEN '2014-08-12'
                          WHEN schoolid = 73253 THEN '2014-06-11' 
                        END AS time_period_end
                       ,1 AS time_period_hierarchy
