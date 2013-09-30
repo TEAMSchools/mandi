@@ -71,6 +71,7 @@ SELECT roster.*
        --use MAP for lexile      
       ,CASE
          WHEN roster.grade_level = 7 AND roster.school = 'Rise' THEN CAST(sri_lexile.lexile AS NVARCHAR)
+         WHEN roster.grade_level = 6 AND roster.school = 'Rise' THEN CAST(sri_lexile.lexile AS NVARCHAR)
          WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.RITtoReadingScore
          WHEN map_fall.TestRITScore IS NULL THEN map_spr.RITtoReadingScore
          ELSE map_fall.RITtoReadingScore
