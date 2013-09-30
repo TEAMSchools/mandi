@@ -21,7 +21,7 @@ WITH rost AS
                ,course_number --used for JOIN with pivot fields                              
                ,ROW_NUMBER() OVER 
                   (PARTITION BY studentid
-                   ORDER BY CASE
+                    ORDER BY CASE
                               WHEN credittype LIKE '%ENG%'     THEN '1'
                               WHEN credittype LIKE '%RHET%'    THEN '2'
                               WHEN credittype LIKE '%MATH%'    THEN '3'
