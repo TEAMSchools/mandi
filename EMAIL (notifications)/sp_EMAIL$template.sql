@@ -2,9 +2,15 @@ USE KIPP_NJ
 GO
 
 ALTER PROCEDURE sp_EMAIL$template (
+  --MANDATORY FIELDS
   @email_recipients     AS NVARCHAR(4000)
  ,@email_subject        AS NVARCHAR(4000)
-  --how many key stats?  max of 3
+  --image stuff
+ ,@image_path1          AS NVARCHAR(100) = ''
+ ,@image_path2          AS NVARCHAR(100) = ''
+ ,@image_caption1       AS NVARCHAR(200) = ''
+ ,@image_caption2       AS NVARCHAR(200) = ''
+  --how many key stats?  max of 4
  ,@stat_count           AS INT = 0
   --queries for the key stats
  ,@stat_query1          AS NVARCHAR(MAX) = ''
@@ -12,12 +18,18 @@ ALTER PROCEDURE sp_EMAIL$template (
  ,@stat_query3          AS NVARCHAR(MAX) = ''
  ,@stat_query4          AS NVARCHAR(MAX) = ''
   --labels for key stats
- ,@stat_label1          AS NVARCHAR(50) = 'impact' 
- ,@stat_label2          AS NVARCHAR(50) = 'freedom'
- ,@stat_label3          AS NVARCHAR(50) = 'fun'
- ,@stat_label4          AS NVARCHAR(50) = 'teamwork'      
+ ,@stat_label1          AS NVARCHAR(50) = '' 
+ ,@stat_label2          AS NVARCHAR(50) = ''
+ ,@stat_label3          AS NVARCHAR(50) = ''
+ ,@stat_label4          AS NVARCHAR(50) = ''
+  --text
+ ,@explanatory_text1    AS NVARCHAR(MAX) = ''
+ ,@explanatory_text2    AS NVARCHAR(MAX) = ''
+ ,@explanatory_text3    AS NVARCHAR(MAX) = ''
+
   --main table and CSV
- ,@table_query          AS NVARCHAR(MAX) = ''
+ ,@table_query1         AS NVARCHAR(MAX) = ''
+ ,@table_query2         AS NVARCHAR(MAX) = ''
  ,@csv_toggle           AS VARCHAR(3) = 'On'
 ) AS
 
@@ -28,21 +40,19 @@ BEGIN
          ,@stat2_value          NVARCHAR(MAX) = '75%'
          ,@stat3_value          NVARCHAR(MAX) = '108'
          ,@stat4_value          NVARCHAR(MAX) = '0.53'
-         ,@table_html           NVARCHAR(MAX)
+
+         ,@table1_html          NVARCHAR(MAX) = ''
+         ,@table2_html          NVARCHAR(MAX) = ''
           
           --reuse CSS across messages
          ,@email_css            NVARCHAR(MAX) = dbo.fn_Email_CSS()
           
-          --holds dynamic SQL for constructing custom stat table
-         ,@make_stat_table      NVARCHAR(MAX)
           --default value for stat table is nothing
          ,@email_stat_table     NVARCHAR(MAX) = ''           
          ,@email_body           NVARCHAR(MAX)
 
           --For CSV attachment
          ,@csv_attachment       NVARCHAR(500) = ''
-         ,@sqlCommand           NVARCHAR(1000)
-         ,@xx INT
 
   --prep stat queries for sp_executesql
   SET @stat_query1 = N'SET @X = (' + @stat_query1 + ')'
@@ -54,15 +64,7 @@ BEGIN
   EXEC sp_executesql @stat_query1, N'@X NVARCHAR(MAX) OUT', @stat1_value OUT
   EXEC sp_executesql @stat_query2, N'@X NVARCHAR(MAX) OUT', @stat2_value OUT
   EXEC sp_executesql @stat_query3, N'@X NVARCHAR(MAX) OUT', @stat3_value OUT
-  EXEC sp_executesql @stat_query4, N'@X NVARCHAR(MAX) OUT', @stat4_value OUT
-  
-  --SET @sqlCommand = 'SELECT @cnt=COUNT(*) FROM customers WHERE City = @city'
-  --SET @stat1_value = (select 'qwerty')
-  --SET @stat1_value = EVAL(@stat_query1)
-  --EXECUTE sp_executesql @sqlCommand, N'@farts NVARCHAR(MAX) OUTPUT', @farts=@stat1_value OUTPUT
-
-  --EXEC sp_executesql @stat_query1, N'@stat1_value NVARCHAR(MAX) OUT', @stat1_value OUT;
- 
+  EXEC sp_executesql @stat_query4, N'@X NVARCHAR(MAX) OUT', @stat4_value OUT 
   
   --organize/build key stat table
   IF @stat_count = 4
@@ -185,16 +187,21 @@ BEGIN
         </table>'
     END
   
-  --dump the table_query to html
-  EXECUTE AlumniMirror.dbo.sp_TableToHTML @table_query, @table_html OUTPUT
-  --EXECUTE AlumniMirror.dbo.sp_TableToHTML 'SELECT ID FROM KIPP_NJ..STUDENTS', @data_html OUTPUT
+  --dump table_query1 to html
+  EXECUTE AlumniMirror.dbo.sp_TableToHTML @table_query1, @table1_html OUTPUT
+
+  --table_query2 to html, IF present
+  IF @table_query2 != ''
+    BEGIN
+      EXECUTE AlumniMirror.dbo.sp_TableToHTML @table_query2, @table2_html OUTPUT
+    END
 
   --attach a CSV file with data from the main table_query, if csv_toggle is set to 'on' (the default)
   IF LOWER(@csv_toggle) = 'on'
     BEGIN
       --dump to file
       EXEC [dbo].[sp_UTIL$table_to_CSV]
-		      @vcSqlQuery = @table_query,
+		      @vcSqlQuery = @table_query1,
 		      @vcFilePath = N'C:\data_robot\raw_exports\',
 		      @vcCsvFileLocation = @csv_attachment OUTPUT
 
@@ -224,20 +231,25 @@ BEGIN
       
        <span>
         ' + @email_stat_table + '
-       </span> 
-       <span style="med_text">
-          Hey Walters here''s some m-f''ing AR data
-          <br>
-          <br>
-          Sincerely,
-          <br>
-          -Data Robot
+       </span>
+       <br>
+       <span style="med_text"> 
+        ' + @explanatory_text1 + '
        </span> 
        <br>
+       <br>
        '
-       + @table_html +
+       + @table1_html +
        '
-
+       <br>
+       <span style="med_text"> 
+        ' + @explanatory_text2 + '
+       </span> 
+       <br>
+       <br>
+       '
+       + @table2_html +
+       '
      <!-- END CONTENT HERE -->
 
 		   </td>
