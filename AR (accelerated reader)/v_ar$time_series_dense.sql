@@ -33,11 +33,13 @@ WITH ar_activity AS
                  --words/points
                  --!only passed books!
                 ,CASE
-                   WHEN sq_2.tipassed = 1 THEN CAST(sq_2.words AS BIGINT)
+                   WHEN sq_2.tipassed = 1 AND sq_2.dtTaken >= ar.start_date
+                      THEN CAST(sq_2.words AS BIGINT)
                    ELSE 0
                  END AS words
                 ,CASE
-                   WHEN sq_2.tipassed = 1 THEN sq_2.points
+                   WHEN sq_2.tipassed = 1 AND sq_2.dtTaken >= ar.start_date
+                     THEN sq_2.points
                    ELSE 0
                  END AS points
                  --mastery
@@ -83,7 +85,7 @@ WITH ar_activity AS
                       --END SQ 1
                 LEFT OUTER JOIN KIPP_NJ..AR$test_event_detail arsp
                   ON CAST(sq_1.student_number AS VARCHAR) = arsp.student_number
-                 AND arsp.dtTaken >= '01-AUG-13'
+                 AND arsp.dtTaken >= '15-JUN-13'
                 ) sq_2
                 --END SQ 2
           LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar
@@ -193,31 +195,40 @@ FROM
                             --words/points
                            ,CASE
                               --leave future NULL
-                              WHEN (DATEPART(yyyy, GETDATE()) * 100) + DATEPART(wk, GETDATE()) > a.reporting_hash THEN NULL
+                              WHEN (DATEPART(yyyy, GETDATE()) * 100) + DATEPART(wk, GETDATE()) < a.reporting_hash THEN NULL
                               ELSE SUM(b.words) 
                             END AS dense_running_words
                            ,CASE
-                              WHEN (DATEPART(yyyy, GETDATE()) * 100) + DATEPART(wk, GETDATE()) > a.reporting_hash THEN NULL
+                              WHEN (DATEPART(yyyy, GETDATE()) * 100) + DATEPART(wk, GETDATE()) < a.reporting_hash THEN NULL
                               ELSE SUM(b.points) 
                             END AS dense_running_points
                             --mastery
                            ,CASE
+                              WHEN (DATEPART(yyyy, GETDATE()) * 100) + DATEPART(wk, GETDATE()) < a.reporting_hash THEN NULL
                               WHEN SUM(b.q_presented) = 0 THEN NULL
                               ELSE ROUND((SUM(b.q_correct) / SUM(b.q_presented)) * 100, 0) 
                             END AS dense_running_mastery
                             --genre
                            ,CASE
+                              WHEN (DATEPART(yyyy, GETDATE()) * 100) + DATEPART(wk, GETDATE()) < a.reporting_hash THEN NULL
                               WHEN SUM(b.raw_words_attempted) = 0 THEN NULL
                               ELSE ROUND((SUM(b.fiction_words) / SUM(b.raw_words_attempted)) * 100, 0) 
                             END AS dense_running_fiction_pct       
                             --text difficulty
                            ,CASE
+                              WHEN (DATEPART(yyyy, GETDATE()) * 100) + DATEPART(wk, GETDATE()) < a.reporting_hash THEN NULL
                               WHEN SUM(b.raw_words_attempted) = 0 THEN NULL
                               ELSE ROUND(SUM(b.lexile_numerator) / SUM(b.raw_words_attempted), 0) 
                             END AS dense_running_weighted_lexile_avg
                             --book count
-                           ,SUM(b.books_passed) AS dense_running_books_passed
-                           ,SUM(b.books_attempted) AS dense_running_books_attempted
+                           ,CASE
+                              WHEN (DATEPART(yyyy, GETDATE()) * 100) + DATEPART(wk, GETDATE()) < a.reporting_hash THEN NULL
+                              ELSE SUM(b.books_passed) 
+                            END AS dense_running_books_passed
+                           ,CASE 
+                              WHEN (DATEPART(yyyy, GETDATE()) * 100) + DATEPART(wk, GETDATE()) < a.reporting_hash THEN NULL
+                              ELSE SUM(b.books_attempted) 
+                            END AS dense_running_books_attempted
                            ,MIN(b.valid_for_goal) AS min_valid_week
                            ,MAX(b.valid_for_goal) AS valid_for_goal
                      FROM
