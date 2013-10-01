@@ -102,7 +102,7 @@ WITH ar_activity AS
          ,ROW_NUMBER() OVER
             (ORDER BY reporting_hash ASC) AS rn
      FROM KIPP_NJ..UTIL$reporting_weeks
-   WHERE reporting_hash >= 201327
+   WHERE reporting_hash >= 201325
      AND reporting_hash <= 201426
   )
   
