@@ -9,7 +9,7 @@ WITH stu_roster AS
            ,c.grade_level
            ,c.year
      FROM KIPP_NJ..COHORT$comprehensive_long#static c
-     WHERE c.year = 2013
+     WHERE c.year >= 2012
        AND c.schoolid != 999999
        AND c.rn = 1
     )
@@ -124,13 +124,13 @@ FROM
              ,CASE 
                 --bottom quartile
                 WHEN CAST(map_base.testpercentile AS INT) > 0   AND CAST(map_base.testpercentile AS INT) < 25 
-                  THEN ROUND(CAST(norm.r22 AS FLOAT) * 2.0, 0)
+                  THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0)
                 --2nd quartile
                 WHEN CAST(map_base.testpercentile AS INT) >= 25 AND CAST(map_base.testpercentile AS INT) < 50 
-                  THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.75, 0)
+                  THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0)
                 --3rd quartile
                 WHEN CAST(map_base.testpercentile AS INT) >= 50 AND CAST(map_base.testpercentile AS INT) < 75 
-                  THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0)
+                  THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)
                 --top quartile
                 WHEN CAST(map_base.testpercentile AS INT) >= 75 AND CAST(map_base.testpercentile AS INT) < 100
                   THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)
