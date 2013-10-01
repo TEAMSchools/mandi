@@ -1,12 +1,16 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW ILLUMINATE$reporting_FSA_results_by_standard AS
+ALTER VIEW ILLUMINATE$reporting_FSA_results_by_standard_wr AS
 SELECT TOP (100) PERCENT
        sub.*
       ,week_num + '_' 
         + CONVERT(VARCHAR,grade_level) + '_' 
         + CONVERT(VARCHAR,rn) AS meta_hash
+      ,CONVERT(VARCHAR,student_number) + '_'  
+        + week_num + '_' 
+        + CONVERT(VARCHAR,rn) AS meta_stu_hash
+
 FROM
      (SELECT s.schoolid
             ,s.id AS studentid
@@ -15,7 +19,7 @@ FROM
             ,co.grade_level
             ,s.team
             ,assessments.title
-            ,results.assessment_id --probably easiest to key off of in excel
+            ,results.assessment_id --probably easier to key off of
             ,dates.time_per_name AS week_num
             ,assessments.subject
             ,results.answered
@@ -45,7 +49,7 @@ FROM
                 PARTITION BY s.id, dates.time_per_name, co.grade_level
                     ORDER BY results.custom_code) AS rn
       FROM STUDENTS s
-      LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results
+      LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard results
         ON s.student_number = results.local_student_id
       LEFT OUTER JOIN ILLUMINATE$assessments assessments
         ON results.assessment_id = assessments.assessment_id
@@ -59,6 +63,7 @@ FROM
        AND dates.schoolid = 'ES'
       WHERE s.schoolid IN (73254,73255,73256)
         AND s.enroll_status = 0
+        AND results.custom_code not in ('CCSS.LA.3.R', 'CCSS.LA.3.RL', 'CCSS.LA.4.L.4.6')
         --AND assessments.scope IN ('FSA','Site Assessment')
       ) sub
 --ORDER BY schoolid, grade_level, week_num, team, studentid, subject, standard

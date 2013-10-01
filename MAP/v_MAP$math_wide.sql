@@ -9,10 +9,11 @@ MAINTENANCE:
     Add new termnames for year, comment out/kill anything beyond past 4 years
   
 MAJOR STRUCTURAL REVISIONS OR CHANGES:
-  Major simplicification on 7/12/12 - the query was looking directly @ map_comprehensive and was written to look at comprehensive_with_identifiers.
+  -Major simplicification on 7/12/12 - the query was looking directly @ map_comprehensive and was written to look at comprehensive_with_identifiers.
     This removed a lot of cruft devoted to breaking out terms, sorting by growth measure, etc.
     This will *definitely* need to get tweaked if we intend to start reporting college readiness/rutgers goals (and we do!)
-  "Ported" to Server via OPENQUERY, Oracle source code included below -CB
+  -"Ported" to Server via OPENQUERY, Oracle source code included below -CB
+  -Rebuilt in SQL Server -CB
 
 CREATED BY:
   AM2
@@ -28,102 +29,125 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$math_wide AS
-SELECT *
-FROM OPENQUERY(KIPP_NWK,'
-       SELECT STUDENTID
-             --,CAST(SPRING_2014_RIT AS INT)               AS SPRING_2014_RIT
-             --,CAST(SPRING_2014_PERCENTILE AS INT)        AS SPRING_2014_PERCENTILE
-             --,CAST(SPRING_2014_FALLTOSPRING_GOAL AS INT) AS SPRING_2014_FALLTOSPRING_GOAL
-             --,CAST(WINTER_2013_RIT AS INT)               AS WINTER_2013_RIT
-             --,CAST(WINTER_2013_PERCENTILE AS INT)        AS WINTER_2013_PERCENTILE
-             --,CAST(WINTER_2013_FALLTOSPRING_GOAL AS INT) AS WINTER_2013_FALLTOSPRING_GOAL
-             ,CAST(FALL_2013_RIT AS INT)                 AS FALL_2013_RIT
-             ,CAST(FALL_2013_PERCENTILE AS INT)          AS FALL_2013_PERCENTILE
-             ,CAST(FALL_2013_FALLTOSPRING_GOAL AS INT)   AS FALL_2013_FALLTOSPRING_GOAL
-             ,CAST(SPRING_2013_RIT AS INT)               AS SPRING_2013_RIT
-             ,CAST(SPRING_2013_PERCENTILE AS INT)        AS SPRING_2013_PERCENTILE
-             ,CAST(SPRING_2013_FALLTOSPRING_GOAL AS INT) AS SPRING_2013_FALLTOSPRING_GOAL
-             ,CAST(WINTER_2012_RIT AS INT)               AS WINTER_2012_RIT
-             ,CAST(WINTER_2012_PERCENTILE AS INT)        AS WINTER_2012_PERCENTILE
-             ,CAST(WINTER_2012_FALLTOSPRING_GOAL AS INT) AS WINTER_2012_FALLTOSPRING_GOAL
-             ,CAST(FALL_2012_RIT AS INT)                 AS FALL_2012_RIT
-             ,CAST(FALL_2012_PERCENTILE AS INT)          AS FALL_2012_PERCENTILE
-             ,CAST(FALL_2012_FALLTOSPRING_GOAL AS INT)   AS FALL_2012_FALLTOSPRING_GOAL
-             ,CAST(SPRING_2012_RIT AS INT)               AS SPRING_2012_RIT
-             ,CAST(SPRING_2012_PERCENTILE AS INT)        AS SPRING_2012_PERCENTILE
-             ,CAST(SPRING_2012_FALLTOSPRING_GOAL AS INT) AS SPRING_2012_FALLTOSPRING_GOAL
-             ,CAST(WINTER_2011_RIT AS INT)               AS WINTER_2011_RIT
-             ,CAST(WINTER_2011_PERCENTILE AS INT)        AS WINTER_2011_PERCENTILE
-             ,CAST(WINTER_2011_FALLTOSPRING_GOAL AS INT) AS WINTER_2011_FALLTOSPRING_GOAL
-             ,CAST(FALL_2011_RIT AS INT)                 AS FALL_2011_RIT
-             ,CAST(FALL_2011_PERCENTILE AS INT)          AS FALL_2011_PERCENTILE
-             ,CAST(FALL_2011_FALLTOSPRING_GOAL AS INT)   AS FALL_2011_FALLTOSPRING_GOAL
-             ,CAST(SPRING_2011_RIT AS INT)               AS SPRING_2011_RIT
-             ,CAST(SPRING_2011_PERCENTILE AS INT)        AS SPRING_2011_PERCENTILE
-             ,CAST(SPRING_2011_FALLTOSPRING_GOAL AS INT) AS SPRING_2011_FALLTOSPRING_GOAL
-             ,CAST(WINTER_2010_RIT AS INT)               AS WINTER_2010_RIT
-             ,CAST(WINTER_2010_PERCENTILE AS INT)        AS WINTER_2010_PERCENTILE
-             ,CAST(WINTER_2010_FALLTOSPRING_GOAL AS INT) AS WINTER_2010_FALLTOSPRING_GOAL
-             ,CAST(FALL_2010_RIT AS INT)                 AS FALL_2010_RIT
-             ,CAST(FALL_2010_PERCENTILE AS INT)          AS FALL_2010_PERCENTILE
-             ,CAST(FALL_2010_FALLTOSPRING_GOAL AS INT)   AS FALL_2010_FALLTOSPRING_GOAL
-             ,CAST(SPRING_2010_RIT AS INT)               AS SPRING_2010_RIT
-             ,CAST(SPRING_2010_PERCENTILE AS INT)        AS SPRING_2010_PERCENTILE
-             --,CAST(SPRING_2010_FALLTOSPRING_GOAL AS INT) AS SPRING_2010_FALLTOSPRING_GOAL
-             --,CAST(WINTER_2009_RIT AS INT)               AS WINTER_2009_RIT
-             --,CAST(WINTER_2009_PERCENTILE AS INT)        AS WINTER_2009_PERCENTILE
-             --,CAST(WINTER_2009_FALLTOSPRING_GOAL AS INT) AS WINTER_2009_FALLTOSPRING_GOAL
-             --,CAST(FALL_2009_RIT AS INT)                 AS FALL_2009_RIT
-             --,CAST(FALL_2009_PERCENTILE AS INT)          AS FALL_2009_PERCENTILE
-             --,CAST(FALL_2009_FALLTOSPRING_GOAL AS INT)   AS FALL_2009_FALLTOSPRING_GOAL
-             --,CAST(SPRING_2009_RIT AS INT)               AS SPRING_2009_RIT
-             --,CAST(SPRING_2009_PERCENTILE AS INT)        AS SPRING_2009_PERCENTILE
-             --,CAST(SPRING_2009_FALLTOSPRING_GOAL AS INT) AS SPRING_2009_FALLTOSPRING_GOAL
-             --,CAST(WINTER_2008_RIT AS INT)               AS WINTER_2008_RIT
-             --,CAST(WINTER_2008_PERCENTILE AS INT)        AS WINTER_2008_PERCENTILE
-             --,CAST(WINTER_2008_FALLTOSPRING_GOAL AS INT) AS WINTER_2008_FALLTOSPRING_GOAL
-             --,CAST(FALL_2008_RIT AS INT)                 AS FALL_2008_RIT
-             --,CAST(FALL_2008_PERCENTILE AS INT)          AS FALL_2008_PERCENTILE
-             --,CAST(FALL_2008_FALLTOSPRING_GOAL AS INT)   AS FALL_2008_FALLTOSPRING_GOAL
-       FROM MAP$math_wide
-       ')
+SELECT s.id AS studentid
+      
+      -- 13-14
+      ,map_s14.testritscore AS SPRING_2014_RIT
+      ,map_s14.testpercentile AS SPRING_2014_PERCENTILE
+      ,map_w13.testritscore AS WINTER_2013_RIT
+      ,map_w13.testpercentile AS WINTER_2013_PERCENTILE
+      ,map_f13.testritscore AS FALL_2013_RIT
+      ,map_f13.testpercentile AS FALL_2013_PERCENTILE
+      ,map_f13.typicalfalltospringgrowth AS FALL_2013_FALLTOSPRING_GOAL
+      
+      -- 12-13
+      ,map_s13.testritscore AS SPRING_2013_RIT
+      ,map_s13.testpercentile AS SPRING_2013_PERCENTILE
+      ,map_w12.testritscore AS WINTER_2012_RIT
+      ,map_w12.testpercentile AS WINTER_2012_PERCENTILE
+      ,map_f12.testritscore AS FALL_2012_RIT
+      ,map_f12.testpercentile AS FALL_2012_PERCENTILE
+      ,map_f12.typicalfalltospringgrowth AS FALL_2012_FALLTOSPRING_GOAL
+      
+      -- 11-12
+      ,map_s12.testritscore AS SPRING_2012_RIT
+      ,map_s12.testpercentile AS SPRING_2012_PERCENTILE
+      ,map_w11.testritscore AS WINTER_2011_RIT
+      ,map_w11.testpercentile AS WINTER_2011_PERCENTILE
+      ,map_f11.testritscore AS FALL_2011_RIT
+      ,map_f11.testpercentile AS FALL_2011_PERCENTILE
+      ,map_f11.typicalfalltospringgrowth AS FALL_2011_FALLTOSPRING_GOAL
 
-/*
-SELECT *
-FROM 
-     (SELECT studentid
-            ,termname
-            ,testritscore
-            ,testpercentile
-            ,CASE
-              WHEN fallwinterspring = 'Fall' THEN typicalfalltospringgrowth 
-              ELSE NULL
-             END as falltospring_goal
-      FROM map$comprehensive_identifiers
-      WHERE measurementscale = 'Mathematics'
-        AND rn=1
-     )
-     
-S PIVOT(
-  MAX(testritscore) AS rit
- ,MAX(testpercentile) AS percentile
- ,MAX(falltospring_goal) AS falltospring_goal
-  FOR termname IN ('Fall 2013'   Fall_2013
-                  ,'Spring 2013' Spring_2013
-                  ,'Winter 2012' Winter_2012
-                  ,'Fall 2012'   Fall_2012
-                  ,'Spring 2012' Spring_2012
-                  ,'Winter 2011' Winter_2011
-                  ,'Fall 2011'   Fall_2011
-                  ,'Spring 2011' Spring_2011
-                  ,'Winter 2010' Winter_2010
-                  ,'Fall 2010'   Fall_2010
-                  ,'Spring 2010' Spring_2010
-                  ,'Winter 2009' Winter_2009
-                  ,'Fall 2009'   Fall_2009
-                  ,'Spring 2009' Spring_2009
-                  ,'Winter 2008' Winter_2008
-                  ,'Fall 2008'   Fall_2008
-                  )
-       )
-*/
+      -- 10-11
+      ,map_s11.testritscore AS SPRING_2011_RIT
+      ,map_s11.testpercentile AS SPRING_2011_PERCENTILE
+      ,map_w10.testritscore AS WINTER_2010_RIT
+      ,map_w10.testpercentile AS WINTER_2010_PERCENTILE
+      ,map_f10.testritscore AS FALL_2010_RIT
+      ,map_f10.testpercentile AS FALL_2010_PERCENTILE
+      ,map_f10.typicalfalltospringgrowth AS FALL_2010_FALLTOSPRING_GOAL
+
+      -- SPR '10
+      ,map_s10.testritscore AS SPRING_2010_RIT
+      ,map_s10.testpercentile AS SPRING_2010_PERCENTILE
+
+FROM STUDENTS s
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_s14
+  ON s.student_number = map_s14.studentid
+ AND map_s14.map_year_academic = 2013
+ AND map_s14.fallwinterspring_numeric = 3
+ AND map_s14.measurementscale = 'Mathematics'
+ AND map_s14.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_w13
+  ON s.student_number = map_w13.studentid
+ AND map_w13.map_year_academic = 2013
+ AND map_w13.fallwinterspring_numeric = 2
+ AND map_w13.measurementscale = 'Mathematics'
+ AND map_w13.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_f13
+  ON s.student_number = map_f13.studentid
+ AND map_f13.map_year_academic = 2013
+ AND map_f13.fallwinterspring_numeric = 1
+ AND map_f13.measurementscale = 'Mathematics'
+ AND map_f13.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_s13
+  ON s.student_number = map_s13.studentid
+ AND map_s13.map_year_academic = 2012
+ AND map_s13.fallwinterspring_numeric = 3
+ AND map_s13.measurementscale = 'Mathematics'
+ AND map_s13.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_w12
+  ON s.student_number = map_w12.studentid
+ AND map_w12.map_year_academic = 2012
+ AND map_w12.fallwinterspring_numeric = 2
+ AND map_w12.measurementscale = 'Mathematics'
+ AND map_w12.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_f12
+  ON s.student_number = map_f12.studentid
+ AND map_f12.map_year_academic = 2012
+ AND map_f12.fallwinterspring_numeric = 1
+ AND map_f12.measurementscale = 'Mathematics'
+ AND map_f12.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_s12
+  ON s.student_number = map_s12.studentid
+ AND map_s12.map_year_academic = 2011
+ AND map_s12.fallwinterspring_numeric = 3
+ AND map_s12.measurementscale = 'Mathematics'
+ AND map_s12.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_w11
+  ON s.student_number = map_w11.studentid
+ AND map_w11.map_year_academic = 2011
+ AND map_w11.fallwinterspring_numeric = 2
+ AND map_w11.measurementscale = 'Mathematics'
+ AND map_w11.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_f11
+  ON s.student_number = map_f11.studentid
+ AND map_f11.map_year_academic = 2011
+ AND map_f11.fallwinterspring_numeric = 1
+ AND map_f11.measurementscale = 'Mathematics'
+ AND map_f11.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_s11
+  ON s.student_number = map_s11.studentid
+ AND map_s11.map_year_academic = 2010
+ AND map_s11.fallwinterspring_numeric = 3
+ AND map_s11.measurementscale = 'Mathematics'
+ AND map_s11.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_w10
+  ON s.student_number = map_w10.studentid
+ AND map_w10.map_year_academic = 2010
+ AND map_w10.fallwinterspring_numeric = 2
+ AND map_w10.measurementscale = 'Mathematics'
+ AND map_w10.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_f10
+  ON s.student_number = map_f10.studentid
+ AND map_f10.map_year_academic = 2010
+ AND map_f10.fallwinterspring_numeric = 1
+ AND map_f10.measurementscale = 'Mathematics'
+ AND map_f10.rn=1
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_s10
+  ON s.student_number = map_s10.studentid
+ AND map_s10.map_year_academic = 2009
+ AND map_s10.fallwinterspring_numeric = 3
+ AND map_s10.measurementscale = 'Mathematics'
+ AND map_s10.rn=1
+WHERE s.enroll_status = 0
