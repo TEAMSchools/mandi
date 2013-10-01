@@ -29,7 +29,10 @@ FROM
 			         ,yellow_total_1 + yellow_total_2 + yellow_total_3 AS yellow_total
 			         ,orange_total_1 + orange_total_2 + orange_total_3 AS orange_total
 			         ,red_total_1 + red_total_2 + red_total_3 AS red_total
-			         ,counts_total_1 + counts_total_2 + counts_total_3 AS behavior_count_total
+			         ,CASE
+			           WHEN counts_total_1 + counts_total_2 + counts_total_3 = 0 THEN NULL
+			           ELSE counts_total_1 + counts_total_2 + counts_total_3
+			          END AS behavior_count_total
 		    FROM
 			        (SELECT student_number
 					             ,studentid	  
@@ -57,13 +60,13 @@ FROM
 					             ,SUM(CASE	WHEN color_2 = 'Red' THEN 1.0	ELSE 0 END) AS red_total_2
 					             ,SUM(CASE	WHEN color_3 = 'Red' THEN 1.0	ELSE 0 END) AS red_total_3			  
 					             --total counts
-					             ,SUM(CASE WHEN color_1 IS NOT NULL THEN 1.0 ELSE NULL END) AS counts_total_1
-					             ,SUM(CASE WHEN color_2 IS NOT NULL THEN 1.0 ELSE NULL END) AS counts_total_2
-					             ,SUM(CASE WHEN color_3 IS NOT NULL THEN 1.0 ELSE NULL END) AS counts_total_3
+					             ,SUM(CASE WHEN color_1 IS NOT NULL THEN 1.0 ELSE 0 END) AS counts_total_1
+					             ,SUM(CASE WHEN color_2 IS NOT NULL THEN 1.0 ELSE 0 END) AS counts_total_2
+					             ,SUM(CASE WHEN color_3 IS NOT NULL THEN 1.0 ELSE 0 END) AS counts_total_3
 				        FROM
 					            (SELECT *
 					             FROM ES_DAILY$behavior_reporting_long#THRIVE
-					             --WHERE schoolid = 73255
+					             --WHERE schoolid = 73255					             
 					            ) sub_1
 				        GROUP BY student_number, studentid, lastfirst, grade_level, team
 				       ) sub_2
