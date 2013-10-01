@@ -15,7 +15,7 @@ FROM
             ,co.grade_level
             ,s.team
             ,assessments.title
-            ,results.assessment_id --probably easier to key off of
+            ,results.assessment_id --probably easiest to key off of in excel
             ,dates.time_per_name AS week_num
             ,assessments.subject
             ,results.answered
@@ -45,7 +45,7 @@ FROM
                 PARTITION BY s.id, dates.time_per_name, co.grade_level
                     ORDER BY results.custom_code) AS rn
       FROM STUDENTS s
-      LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard results
+      LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results
         ON s.student_number = results.local_student_id
       LEFT OUTER JOIN ILLUMINATE$assessments assessments
         ON results.assessment_id = assessments.assessment_id
