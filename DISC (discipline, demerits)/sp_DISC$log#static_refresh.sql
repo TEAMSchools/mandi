@@ -188,6 +188,7 @@ BEGIN
           ON oq.entry_date >= dates.start_date
          AND oq.entry_date <= dates.end_date
          AND oq.schoolid = dates.schoolid
+         AND dates.identifier = 'RT'
      ) q;
 
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
