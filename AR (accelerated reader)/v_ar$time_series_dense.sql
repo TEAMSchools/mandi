@@ -198,7 +198,9 @@ FROM
               FROM   
                      --ALL DATA AND DENSIFICATION HAPPENS HERE.  EVERYTHING ABOVE THIS
                      --IS ON TRACK/OFF TRACK DETERMINATION
-                    (SELECT a.studentid
+                    (
+                     
+                     SELECT a.studentid
                            ,a.reporting_hash
                            ,a.week_start
                            ,a.week_end
@@ -376,13 +378,14 @@ FROM
                             ON dense_weeks.studentid = goal_stuff.studentid
                           ) b
                        ON a.studentid = b.studentid
+                      AND a.time_period_name = b.time_period_name
+                      --UNBOUND BACKWARDS
                       AND b.reporting_hash <= a.reporting_hash
                       --BUT NOT IN THE PAST!
                       AND b.week_end >= a.stu_start_date
                       --AND NOT BEYOND THE GOAL DATE!
                       AND b.week_start <= a.goal_end_date
-
-                     GROUP BY a.studentid
+                      GROUP BY a.studentid
                              ,a.reporting_hash
                              ,a.week_start
                              ,a.week_end
@@ -394,6 +397,8 @@ FROM
                              ,a.words_goal
                              ,a.points_goal
                              ,a.rn
+
+
                      ) sub
               ) sub
        ) sub
