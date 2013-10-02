@@ -71,8 +71,8 @@ WITH ar_activity AS
                       --START SQ 1: STUDENTS
                       (SELECT c.studentid
                              ,s.student_number
-                       FROM KIPP_NJ..COHORT$comprehensive_long#static c
-                       JOIN KIPP_NJ..STUDENTS s
+                       FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
+                       JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
                          ON c.studentid = s.id
                         AND c.year = 2013
                         AND c.rn = 1
@@ -83,12 +83,12 @@ WITH ar_activity AS
                         --AND s.id IN (2995, 4077, 4681)
                       ) sq_1
                       --END SQ 1
-                LEFT OUTER JOIN KIPP_NJ..AR$test_event_detail arsp
+                LEFT OUTER JOIN KIPP_NJ..AR$test_event_detail arsp WITH (NOLOCK)
                   ON CAST(sq_1.student_number AS VARCHAR) = arsp.student_number
                  AND arsp.dtTaken >= '15-JUN-13'
                 ) sq_2
                 --END SQ 2
-          LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar
+          LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH (NOLOCK)
             ON sq_2.studentid = ar.studentid
            AND ar.time_hierarchy = 1
            AND ar.yearid >= 2300
@@ -99,9 +99,11 @@ WITH ar_activity AS
  
  ,reporting_weeks AS 
   (SELECT reporting_hash AS synthetic_hash
+         ,weekday_start AS week_start
+         ,weekday_sun AS week_end
          ,ROW_NUMBER() OVER
             (ORDER BY reporting_hash ASC) AS rn
-     FROM KIPP_NJ..UTIL$reporting_weeks
+     FROM KIPP_NJ..UTIL$reporting_weeks_days WITH (NOLOCK)
    WHERE reporting_hash >= 201325
      AND reporting_hash <= 201426
   )
@@ -116,21 +118,29 @@ WITH ar_activity AS
           END AS stu_start_date
          ,goals.time_period_start AS goal_start_date
          ,goals.time_period_end AS goal_end_date
+         ,goals.time_period_hierarchy
+         ,goals.time_period_name
          ,goals.words_goal
          ,goals.points_goal
    FROM KIPP_NJ..AR$goals_long_decode goals
-   JOIN KIPP_NJ..STUDENTS s
+   JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
      ON goals.student_number = CAST(s.STUDENT_NUMBER AS VARCHAR)
     AND s.enroll_status = 0
    WHERE goals.yearid = 2300
-     AND goals.time_period_hierarchy = 1
   )
 
 
 /* !! END CTEs, QUERY STARTS HERE!! */
 
-SELECT TOP (100) PERCENT studentid
-      ,reporting_hash
+SELECT TOP (100) PERCENT 
+       CAST(studentid AS INT) AS studentid
+      ,CAST(reporting_hash AS INT) AS reporting_hash
+      ,week_start
+      ,week_end
+      ,time_period_hierarchy
+      ,time_period_name
+      ,goal_start_date
+      ,goal_end_date
       ,words_goal
       ,points_goal
       ,dense_running_words
@@ -155,15 +165,18 @@ SELECT TOP (100) PERCENT studentid
       ,dense_running_books_passed
       ,dense_running_books_attempted
       ,year_goal_index
+      --,min_valid_week
+      --,valid_for_goal
 FROM
       (SELECT sub.*
              ,CASE 
                 WHEN year_goal_index IS NULL THEN NULL
                 ELSE 
                   ROUND(
-                    (CAST(year_goal_index AS FLOAT)/ 
+                    (CAST(year_goal_index AS FLOAT) / 
                       CAST(MAX(year_goal_index) OVER 
-                         (PARTITION BY studentid) AS FLOAT)
+                         (PARTITION BY studentid
+                                      ,time_period_name) AS FLOAT)
                        ) * CAST(words_goal AS FLOAT)
                   ,0)
                END AS target_words
@@ -171,24 +184,31 @@ FROM
                 WHEN year_goal_index IS NULL THEN NULL
                 ELSE 
                   ROUND(
-                    (CAST(year_goal_index AS FLOAT)/ 
+                    (CAST(year_goal_index AS FLOAT) / 
                       CAST(MAX(year_goal_index) OVER 
-                         (PARTITION BY studentid) AS FLOAT)
+                         (PARTITION BY studentid
+                                      ,time_period_name) AS FLOAT)
                        ) * CAST(points_goal AS FLOAT)
                   ,0)
                END AS target_points
        FROM
              
              (SELECT sub.*
-                    ,(valid_for_goal - min_valid_week) + 1 AS year_goal_index
+                    ,(valid_for_goal - min_valid_week) AS year_goal_index
               FROM   
                      --ALL DATA AND DENSIFICATION HAPPENS HERE.  EVERYTHING ABOVE THIS
                      --IS ON TRACK/OFF TRACK DETERMINATION
-                    (SELECT a.studentid
+                    (
+                     
+                     SELECT a.studentid
                            ,a.reporting_hash
+                           ,a.week_start
+                           ,a.week_end
                            ,a.stu_start_date
                            ,a.goal_start_date
                            ,a.goal_end_date
+                           ,a.time_period_hierarchy
+                           ,a.time_period_name
                            ,a.words_goal
                            ,a.points_goal
                            ,a.rn
@@ -235,9 +255,13 @@ FROM
                             --*A* has densified weeks, enrollments, etc
                            (SELECT dense_weeks.studentid
                                   ,dense_weeks.synthetic_hash AS reporting_hash
+                                  ,dense_weeks.week_start
+                                  ,dense_weeks.week_end
                                   ,goal_stuff.stu_start_date
                                   ,goal_stuff.goal_start_date
                                   ,goal_stuff.goal_end_date
+                                  ,goal_stuff.time_period_hierarchy
+                                  ,goal_stuff.time_period_name
                                   ,goal_stuff.words_goal
                                   ,goal_stuff.points_goal
                                   ,dense_weeks.rn
@@ -250,9 +274,11 @@ FROM
                             RIGHT OUTER JOIN 
                                 (SELECT id AS studentid
                                        ,reporting_weeks.synthetic_hash
+                                       ,reporting_weeks.week_start
+                                       ,reporting_weeks.week_end
                                        ,reporting_weeks.rn
                                  FROM reporting_weeks
-                                 JOIN KIPP_NJ..STUDENTS s
+                                 JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
                                    ON 1=1
                                   AND s.enroll_status = 0
                                   --for testing - limit to one school/grade
@@ -272,9 +298,13 @@ FROM
                          --*B* has all the analytic, densified goodness
                          (SELECT dense_weeks.studentid
                                 ,dense_weeks.synthetic_hash AS reporting_hash
+                                ,dense_weeks.week_start
+                                ,dense_weeks.week_end
                                 ,goal_stuff.stu_start_date
                                 ,goal_stuff.goal_start_date
                                 ,goal_stuff.goal_end_date
+                                ,goal_stuff.time_period_hierarchy
+                                ,goal_stuff.time_period_name
                                  --this is where the magic happens - 
                                    --LOOK at the week number generated by the process below
                                    --EVALUATE if it INSIDE or OUTSIDE of the student's goal window
@@ -329,9 +359,11 @@ FROM
                           RIGHT OUTER JOIN 
                               (SELECT id AS studentid
                                      ,reporting_weeks.synthetic_hash
+                                     ,reporting_weeks.week_start
+                                     ,reporting_weeks.week_end
                                      ,reporting_weeks.rn
                                FROM reporting_weeks
-                               JOIN KIPP_NJ..STUDENTS s
+                               JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
                                  ON 1=1
                                 AND s.enroll_status = 0
                                 --for testing - limit to one school/grade
@@ -346,16 +378,27 @@ FROM
                             ON dense_weeks.studentid = goal_stuff.studentid
                           ) b
                        ON a.studentid = b.studentid
+                      AND a.time_period_name = b.time_period_name
+                      --UNBOUND BACKWARDS
                       AND b.reporting_hash <= a.reporting_hash
-
-                     GROUP BY a.studentid
+                      --BUT NOT IN THE PAST!
+                      AND b.week_end >= a.stu_start_date
+                      --AND NOT BEYOND THE GOAL DATE!
+                      AND b.week_start <= a.goal_end_date
+                      GROUP BY a.studentid
                              ,a.reporting_hash
+                             ,a.week_start
+                             ,a.week_end
                              ,a.stu_start_date      
                              ,a.goal_start_date
                              ,a.goal_end_date
+                             ,a.time_period_hierarchy
+                             ,a.time_period_name
                              ,a.words_goal
                              ,a.points_goal
                              ,a.rn
+
+
                      ) sub
               ) sub
        ) sub
