@@ -71,8 +71,8 @@ WITH ar_activity AS
                       --START SQ 1: STUDENTS
                       (SELECT c.studentid
                              ,s.student_number
-                       FROM KIPP_NJ..COHORT$comprehensive_long#static c
-                       JOIN KIPP_NJ..STUDENTS s
+                       FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
+                       JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
                          ON c.studentid = s.id
                         AND c.year = 2013
                         AND c.rn = 1
@@ -83,12 +83,12 @@ WITH ar_activity AS
                         --AND s.id IN (2995, 4077, 4681)
                       ) sq_1
                       --END SQ 1
-                LEFT OUTER JOIN KIPP_NJ..AR$test_event_detail arsp
+                LEFT OUTER JOIN KIPP_NJ..AR$test_event_detail arsp WITH (NOLOCK)
                   ON CAST(sq_1.student_number AS VARCHAR) = arsp.student_number
                  AND arsp.dtTaken >= '15-JUN-13'
                 ) sq_2
                 --END SQ 2
-          LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar
+          LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH (NOLOCK)
             ON sq_2.studentid = ar.studentid
            AND ar.time_hierarchy = 1
            AND ar.yearid >= 2300
@@ -103,7 +103,7 @@ WITH ar_activity AS
          ,weekday_sun AS week_end
          ,ROW_NUMBER() OVER
             (ORDER BY reporting_hash ASC) AS rn
-     FROM KIPP_NJ..UTIL$reporting_weeks_days
+     FROM KIPP_NJ..UTIL$reporting_weeks_days WITH (NOLOCK)
    WHERE reporting_hash >= 201325
      AND reporting_hash <= 201426
   )
@@ -123,7 +123,7 @@ WITH ar_activity AS
          ,goals.words_goal
          ,goals.points_goal
    FROM KIPP_NJ..AR$goals_long_decode goals
-   JOIN KIPP_NJ..STUDENTS s
+   JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
      ON goals.student_number = CAST(s.STUDENT_NUMBER AS VARCHAR)
     AND s.enroll_status = 0
    WHERE goals.yearid = 2300
@@ -132,8 +132,9 @@ WITH ar_activity AS
 
 /* !! END CTEs, QUERY STARTS HERE!! */
 
-SELECT TOP (100) PERCENT studentid
-      ,reporting_hash
+SELECT TOP (100) PERCENT 
+       CAST(studentid AS INT) AS studentid
+      ,CAST(reporting_hash AS INT) AS reporting_hash
       ,week_start
       ,week_end
       ,time_period_hierarchy
@@ -275,7 +276,7 @@ FROM
                                        ,reporting_weeks.week_end
                                        ,reporting_weeks.rn
                                  FROM reporting_weeks
-                                 JOIN KIPP_NJ..STUDENTS s
+                                 JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
                                    ON 1=1
                                   AND s.enroll_status = 0
                                   --for testing - limit to one school/grade
@@ -360,7 +361,7 @@ FROM
                                      ,reporting_weeks.week_end
                                      ,reporting_weeks.rn
                                FROM reporting_weeks
-                               JOIN KIPP_NJ..STUDENTS s
+                               JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
                                  ON 1=1
                                 AND s.enroll_status = 0
                                 --for testing - limit to one school/grade
