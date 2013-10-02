@@ -1,12 +1,13 @@
-/*
-END OF SEPTEMBER AND IT'S ALREADY ~5000 ROWS!  THIS WILL PROBABLY NEED TO BECOME AN SP -> STATIC TABLE (CB)
+--DEPRECATED, USE STATIC TABLE DISC$log#static
 
+/*
 SQL Server Status: 2013-09-13 (LD6)
   Using open query to create view
   Need to revisit to create full table on SQL Server
   Merged with NCA's merits and demerits (CB)
   Added logtypeid for JOINS (CB)
   Ported directly from PowerSchool (CB)
+  Retired 10/1/13 (CB)
   
 PURPOSE:
   Decode AND tag the log table FROM powerschool
@@ -29,7 +30,6 @@ ORIGIN DATE:
 LAST MODIFIED:
   FALL 2013
 */
-
 
 USE KIPP_NJ 
 GO
