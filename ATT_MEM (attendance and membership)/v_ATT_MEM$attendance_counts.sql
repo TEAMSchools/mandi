@@ -139,27 +139,13 @@ LEFT OUTER JOIN
       FROM            
            (SELECT studentid
                   ,psad.att_date
-                  ,psad.att_code
-                  --ADD TERMS TO REPORTING$dates TABLE AND TURN THIS INTO A SQL SERVER JOIN TO THE OPENQUERY
-                  ,CASE
-                    --Middle Schools (Rise & TEAM)
-                    WHEN psad.schoolid IN (73252,133570965) AND psad.att_date >= '2013-08-05' AND psad.att_date <= '2013-11-22' THEN 'RT1'
-                    WHEN psad.schoolid IN (73252,133570965) AND psad.att_date >= '2013-11-25' AND psad.att_date <= '2014-03-07' THEN 'RT2'
-                    WHEN psad.schoolid IN (73252,133570965) AND psad.att_date >= '2014-03-10' AND psad.att_date <= '2014-06-20' THEN 'RT3'
-                    --NCA
-                    WHEN psad.schoolid = 73253 AND psad.att_date >= '2013-09-03' AND psad.att_date <= '2013-11-08' THEN 'RT1'
-                    WHEN psad.schoolid = 73253 AND psad.att_date >= '2013-11-12' AND psad.att_date <= '2014-01-27' THEN 'RT2'
-                    WHEN psad.schoolid = 73253 AND psad.att_date >= '2014-02-03' AND psad.att_date <= '2014-04-04' THEN 'RT3'
-                    WHEN psad.schoolid = 73253 AND psad.att_date >= '2014-04-21' AND psad.att_date <= '2014-06-20' THEN 'RT4'
-                    --Elementary Schools (SPARK, THRIVE, Seek)
-                    WHEN psad.schoolid IN (73254,73255,73256) AND psad.att_date >= '2013-08-19' AND psad.att_date <= '2013-08-30' THEN 'RT1'
-                    WHEN psad.schoolid IN (73254,73255,73256) AND psad.att_date >= '2013-09-04' AND psad.att_date <= '2013-11-22' THEN 'RT2'
-                    WHEN psad.schoolid IN (73254,73255,73256) AND psad.att_date >= '2013-11-25' AND psad.att_date <= '2014-02-14' THEN 'RT3'
-                    WHEN psad.schoolid IN (73254,73255,73256) AND psad.att_date >= '2014-02-25' AND psad.att_date <= '2014-05-16' THEN 'RT4'
-                    WHEN psad.schoolid IN (73254,73255,73256) AND psad.att_date >= '2014-05-19' AND psad.att_date <= '2014-06-13' THEN 'RT5'
-                    ELSE NULL
-                   END AS RT
+                  ,psad.att_code                  
+                  ,dates.time_per_name AS RT
             FROM ATTENDANCE psad
+            JOIN REPORTING$dates dates
+              ON psad.att_date >= dates.start_date
+             AND psad.att_date <= dates.end_date
+             AND psad.schoolid = dates.schoolid
             WHERE psad.att_code IS NOT NULL
            ) sub
       GROUP BY studentid
