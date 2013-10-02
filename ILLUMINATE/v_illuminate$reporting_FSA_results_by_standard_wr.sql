@@ -60,7 +60,7 @@ FROM
         ON assessments.administered_at >= dates.start_date
        AND assessments.administered_at <= dates.end_date
        AND dates.identifier = 'FSA'
-       AND dates.schoolid = 'ES'
+       AND dates.school_level = 'ES'
       WHERE s.schoolid IN (73254,73255,73256)
         AND s.enroll_status = 0
         AND results.custom_code not in ('CCSS.LA.3.R', 'CCSS.LA.3.RL', 'CCSS.LA.4.L.4.6')
