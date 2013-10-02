@@ -23,33 +23,33 @@ WITH roster AS
      )
 
     ,info AS
-    (SELECT s.id
-           ,s.web_id
-           ,s.web_password
-           ,s.student_web_id
-           ,s.student_web_password
-           ,s.street
-           ,s.city
-           ,s.home_phone
-           ,cs.advisor
-           ,cs.advisor_email
-           ,cs.advisor_cell
-           ,cs.mother_cell
-           ,CASE WHEN cs.mother_home is NULL THEN cs.mother_day ELSE cs.mother_home END AS mother_daytime
-           ,cs.father_cell
-           ,CASE WHEN cs.father_home is NULL THEN cs.father_day ELSE cs.father_home END AS father_daytime
-           ,local.guardianemail
-           ,cs.SPEDLEP AS SPED
-           ,cs.lunch_balance AS lunch_balance
-     FROM KIPP_NJ..CUSTOM_STUDENTS cs
-     JOIN KIPP_NJ..STUDENTS s
-       ON cs.studentid = s.id
-      AND s.enroll_status = 0
-     JOIN KIPP_NJ..PS$local_emails local
-       ON cs.studentid = local.studentid
-    )       
+     (SELECT s.id
+            ,s.web_id
+            ,s.web_password
+            ,s.student_web_id
+            ,s.student_web_password
+            ,s.street
+            ,s.city
+            ,s.home_phone
+            ,cs.advisor
+            ,cs.advisor_email
+            ,cs.advisor_cell
+            ,cs.mother_cell
+            ,CASE WHEN cs.mother_home is NULL THEN cs.mother_day ELSE cs.mother_home END AS mother_daytime
+            ,cs.father_cell
+            ,CASE WHEN cs.father_home is NULL THEN cs.father_day ELSE cs.father_home END AS father_daytime
+            ,local.guardianemail
+            ,cs.SPEDLEP AS SPED
+            ,cs.lunch_balance AS lunch_balance
+      FROM KIPP_NJ..CUSTOM_STUDENTS cs
+      JOIN KIPP_NJ..STUDENTS s
+        ON cs.studentid = s.id
+       AND s.enroll_status = 0
+      JOIN KIPP_NJ..PS$local_emails local
+        ON cs.studentid = local.studentid      
+     )       
 
-SELECT roster.*
+SELECT DISTINCT roster.*
       ,info.*
       
 --Course Grades
@@ -647,10 +647,10 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_spring
   
 --NJASK
 LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela 
-  ON roster.base_studentid = njask_ela.id
+  ON roster.base_studentid = njask_ela.studentid
  AND njask_ela.schoolid = 73252
 LEFT OUTER JOIN NJASK$MATH_WIDE njask_math
-  ON roster.base_studentid = njask_math.id
+  ON roster.base_studentid = njask_math.studentid
  AND njask_math.schoolid = 73252
 
 --DISCIPLINE
