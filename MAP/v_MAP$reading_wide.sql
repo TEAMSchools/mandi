@@ -30,44 +30,44 @@ ALTER VIEW MAP$reading_wide AS
 SELECT s.id AS studentid
       
       -- 13-14
-      ,map_s14.testritscore AS SPRING_2014_RIT
-      ,map_s14.testpercentile AS SPRING_2014_PERCENTILE
-      ,map_w13.testritscore AS WINTER_2013_RIT
-      ,map_w13.testpercentile AS WINTER_2013_PERCENTILE
-      ,map_f13.testritscore AS FALL_2013_RIT
-      ,map_f13.testpercentile AS FALL_2013_PERCENTILE
-      ,map_f13.typicalfalltospringgrowth AS FALL_2013_FALLTOSPRING_GOAL
+      ,CONVERT(FLOAT,map_s14.testritscore) AS SPRING_2014_RIT
+      ,CONVERT(FLOAT,map_s14.testpercentile) AS SPRING_2014_PERCENTILE
+      ,CONVERT(FLOAT,map_w13.testritscore) AS WINTER_2013_RIT
+      ,CONVERT(FLOAT,map_w13.testpercentile) AS WINTER_2013_PERCENTILE
+      ,CONVERT(FLOAT,map_f13.testritscore) AS FALL_2013_RIT
+      ,CONVERT(FLOAT,map_f13.testpercentile) AS FALL_2013_PERCENTILE
+      ,CONVERT(FLOAT,map_f13.typicalfalltospringgrowth) AS FALL_2013_FALLTOSPRING_GOAL
       
       -- 12-13
-      ,map_s13.testritscore AS SPRING_2013_RIT
-      ,map_s13.testpercentile AS SPRING_2013_PERCENTILE
-      ,map_w12.testritscore AS WINTER_2012_RIT
-      ,map_w12.testpercentile AS WINTER_2012_PERCENTILE
-      ,map_f12.testritscore AS FALL_2012_RIT
-      ,map_f12.testpercentile AS FALL_2012_PERCENTILE
-      ,map_f12.typicalfalltospringgrowth AS FALL_2012_FALLTOSPRING_GOAL
+      ,CONVERT(FLOAT,map_s13.testritscore) AS SPRING_2013_RIT
+      ,CONVERT(FLOAT,map_s13.testpercentile) AS SPRING_2013_PERCENTILE
+      ,CONVERT(FLOAT,map_w12.testritscore) AS WINTER_2012_RIT
+      ,CONVERT(FLOAT,map_w12.testpercentile) AS WINTER_2012_PERCENTILE
+      ,CONVERT(FLOAT,map_f12.testritscore) AS FALL_2012_RIT
+      ,CONVERT(FLOAT,map_f12.testpercentile) AS FALL_2012_PERCENTILE
+      ,CONVERT(FLOAT,map_f12.typicalfalltospringgrowth) AS FALL_2012_FALLTOSPRING_GOAL
       
       -- 11-12
-      ,map_s12.testritscore AS SPRING_2012_RIT
-      ,map_s12.testpercentile AS SPRING_2012_PERCENTILE
-      ,map_w11.testritscore AS WINTER_2011_RIT
-      ,map_w11.testpercentile AS WINTER_2011_PERCENTILE
-      ,map_f11.testritscore AS FALL_2011_RIT
-      ,map_f11.testpercentile AS FALL_2011_PERCENTILE
-      ,map_f11.typicalfalltospringgrowth AS FALL_2011_FALLTOSPRING_GOAL
+      ,CONVERT(FLOAT,map_s12.testritscore) AS SPRING_2012_RIT
+      ,CONVERT(FLOAT,map_s12.testpercentile) AS SPRING_2012_PERCENTILE
+      ,CONVERT(FLOAT,map_w11.testritscore) AS WINTER_2011_RIT
+      ,CONVERT(FLOAT,map_w11.testpercentile) AS WINTER_2011_PERCENTILE
+      ,CONVERT(FLOAT,map_f11.testritscore) AS FALL_2011_RIT
+      ,CONVERT(FLOAT,map_f11.testpercentile) AS FALL_2011_PERCENTILE
+      ,CONVERT(FLOAT,map_f11.typicalfalltospringgrowth) AS FALL_2011_FALLTOSPRING_GOAL
 
       -- 10-11
-      ,map_s11.testritscore AS SPRING_2011_RIT
-      ,map_s11.testpercentile AS SPRING_2011_PERCENTILE
-      ,map_w10.testritscore AS WINTER_2010_RIT
-      ,map_w10.testpercentile AS WINTER_2010_PERCENTILE
-      ,map_f10.testritscore AS FALL_2010_RIT
-      ,map_f10.testpercentile AS FALL_2010_PERCENTILE
-      ,map_f10.typicalfalltospringgrowth AS FALL_2010_FALLTOSPRING_GOAL
+      ,CONVERT(FLOAT,map_s11.testritscore) AS SPRING_2011_RIT
+      ,CONVERT(FLOAT,map_s11.testpercentile) AS SPRING_2011_PERCENTILE
+      ,CONVERT(FLOAT,map_w10.testritscore) AS WINTER_2010_RIT
+      ,CONVERT(FLOAT,map_w10.testpercentile) AS WINTER_2010_PERCENTILE
+      ,CONVERT(FLOAT,map_f10.testritscore) AS FALL_2010_RIT
+      ,CONVERT(FLOAT,map_f10.testpercentile) AS FALL_2010_PERCENTILE
+      ,CONVERT(FLOAT,map_f10.typicalfalltospringgrowth) AS FALL_2010_FALLTOSPRING_GOAL
 
       -- SPR '10
-      ,map_s10.testritscore AS SPRING_2010_RIT
-      ,map_s10.testpercentile AS SPRING_2010_PERCENTILE
+      ,CONVERT(FLOAT,map_s10.testritscore) AS SPRING_2010_RIT
+      ,CONVERT(FLOAT,map_s10.testpercentile) AS SPRING_2010_PERCENTILE
 
 FROM STUDENTS s
 LEFT OUTER JOIN MAP$comprehensive#identifiers map_s14

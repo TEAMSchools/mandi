@@ -8,68 +8,68 @@ SELECT TOP (100) PERCENT
       ,s.schoolid
       ,s.grade_level      
       --full year
-      ,absences_undoc + absences_doc AS absences_total
-      ,absences_undoc
-      ,absences_doc
-      ,tardies_reg + tardies_T10 AS tardies_total
-      ,tardies_reg
-      ,tardies_T10
-      ,iss
-      ,oss
+      ,ISNULL(absences_undoc + absences_doc,0) AS absences_total
+      ,ISNULL(absences_undoc,0) AS absences_undoc
+      ,ISNULL(absences_doc,0) AS absences_doc
+      ,ISNULL(tardies_reg + tardies_T10,0) AS tardies_total
+      ,ISNULL(tardies_reg,0) AS tardies_reg
+      ,ISNULL(tardies_T10,0) AS tardies_T10
+      ,ISNULL(iss,0) AS iss
+      ,ISNULL(oss,0) AS oss
       --RT1
-      ,rt1_absences_undoc + rt1_absences_doc AS rt1_absences_total
-      ,rt1_absences_undoc
-      ,rt1_absences_doc
-      ,rt1_tardies_reg + rt1_tardies_T10 AS rt1_tardies_total
-      ,rt1_tardies_reg
-      ,rt1_tardies_T10
-      ,rt1_iss
-      ,rt1_oss
+      ,ISNULL(rt1_absences_undoc + rt1_absences_doc,0) AS rt1_absences_total
+      ,ISNULL(rt1_absences_undoc,0) AS rt1_absences_undoc
+      ,ISNULL(rt1_absences_doc,0) AS rt1_absences_doc
+      ,ISNULL(rt1_tardies_reg + rt1_tardies_T10,0) AS rt1_tardies_total
+      ,ISNULL(rt1_tardies_reg,0) AS rt1_tardies_reg
+      ,ISNULL(rt1_tardies_T10,0) AS rt1_tardies_T10
+      ,ISNULL(rt1_iss,0) AS rt1_iss
+      ,ISNULL(rt1_oss,0) AS rt1_oss
       --rt2
-      ,rt2_absences_undoc + rt2_absences_doc AS rt2_absences_total
-      ,rt2_absences_undoc
-      ,rt2_absences_doc
-      ,rt2_tardies_reg + rt2_tardies_T10 AS rt2_tardies_total
-      ,rt2_tardies_reg
-      ,rt2_tardies_T10
-      ,rt2_iss
-      ,rt2_oss
+      ,ISNULL(rt2_absences_undoc + rt2_absences_doc,0) AS rt2_absences_total
+      ,ISNULL(rt2_absences_undoc,0) AS rt2_absences_undoc
+      ,ISNULL(rt2_absences_doc,0) AS rt2_absences_doc
+      ,ISNULL(rt2_tardies_reg + rt2_tardies_T10,0) AS rt2_tardies_total
+      ,ISNULL(rt2_tardies_reg,0) AS rt2_tardies_reg
+      ,ISNULL(rt2_tardies_T10,0) AS rt2_tardies_T10
+      ,ISNULL(rt2_iss,0) AS rt2_iss
+      ,ISNULL(rt2_oss,0) AS rt2_oss
       --rt3
-      ,rt3_absences_undoc + rt3_absences_doc AS rt3_absences_total
-      ,rt3_absences_undoc
-      ,rt3_absences_doc
-      ,rt3_tardies_reg + rt3_tardies_T10 AS rt3_tardies_total
-      ,rt3_tardies_reg
-      ,rt3_tardies_T10
-      ,rt3_iss
-      ,rt3_oss
+      ,ISNULL(rt3_absences_undoc + rt3_absences_doc,0) AS rt3_absences_total
+      ,ISNULL(rt3_absences_undoc,0) AS rt3_absences_undoc
+      ,ISNULL(rt3_absences_doc,0) AS rt3_absences_doc
+      ,ISNULL(rt3_tardies_reg + rt3_tardies_T10,0) AS rt3_tardies_total
+      ,ISNULL(rt3_tardies_reg,0) AS rt3_tardies_reg
+      ,ISNULL(rt3_tardies_T10,0) AS rt3_tardies_T10
+      ,ISNULL(rt3_iss,0) AS rt3_iss
+      ,ISNULL(rt3_oss,0) AS rt3_oss
       --rt4
-      ,rt4_absences_undoc + rt4_absences_doc AS rt4_absences_total
-      ,rt4_absences_undoc
-      ,rt4_absences_doc
-      ,rt4_tardies_reg + rt4_tardies_T10 AS rt4_tardies_total
-      ,rt4_tardies_reg
-      ,rt4_tardies_T10
-      ,rt4_iss
-      ,rt4_oss
+      ,ISNULL(rt4_absences_undoc + rt4_absences_doc,0) AS rt4_absences_total
+      ,ISNULL(rt4_absences_undoc,0) AS rt4_absences_undoc
+      ,ISNULL(rt4_absences_doc,0) AS rt4_absences_doc
+      ,ISNULL(rt4_tardies_reg + rt4_tardies_T10,0) AS rt4_tardies_total
+      ,ISNULL(rt4_tardies_reg,0) AS rt4_tardies_reg
+      ,ISNULL(rt4_tardies_T10,0) AS rt4_tardies_T10
+      ,ISNULL(rt4_iss,0) AS rt4_iss
+      ,ISNULL(rt4_oss,0) AS rt4_oss
       --rt5
-      ,rt5_absences_undoc + rt5_absences_doc AS rt5_absences_total
-      ,rt5_absences_undoc
-      ,rt5_absences_doc
-      ,rt5_tardies_reg + rt5_tardies_T10 AS rt5_tardies_total
-      ,rt5_tardies_reg
-      ,rt5_tardies_T10
-      ,rt5_iss
-      ,rt5_oss
+      ,ISNULL(rt5_absences_undoc + rt5_absences_doc,0) AS rt5_absences_total
+      ,ISNULL(rt5_absences_undoc,0) AS rt5_absences_undoc
+      ,ISNULL(rt5_absences_doc,0) AS rt5_absences_doc
+      ,ISNULL(rt5_tardies_reg + rt5_tardies_T10,0) AS rt5_tardies_total
+      ,ISNULL(rt5_tardies_reg,0) AS rt5_tardies_reg
+      ,ISNULL(rt5_tardies_T10,0) AS rt5_tardies_T10
+      ,ISNULL(rt5_iss,0) AS rt5_iss
+      ,ISNULL(rt5_oss,0) AS rt5_oss
       --rt6
-      ,rt6_absences_undoc + rt6_absences_doc AS rt6_absences_total
-      ,rt6_absences_undoc
-      ,rt6_absences_doc
-      ,rt6_tardies_reg + rt6_tardies_T10 AS rt6_tardies_total
-      ,rt6_tardies_reg
-      ,rt6_tardies_T10
-      ,rt6_iss
-      ,rt6_oss
+      ,ISNULL(rt6_absences_undoc + rt6_absences_doc,0) AS rt6_absences_total
+      ,ISNULL(rt6_absences_undoc,0) AS rt6_absences_undoc
+      ,ISNULL(rt6_absences_doc,0) AS rt6_absences_doc
+      ,ISNULL(rt6_tardies_reg + rt6_tardies_T10,0) AS rt6_tardies_total
+      ,ISNULL(rt6_tardies_reg,0) AS rt6_tardies_reg
+      ,ISNULL(rt6_tardies_T10,0) AS rt6_tardies_T10
+      ,ISNULL(rt6_iss,0) AS rt6_iss
+      ,ISNULL(rt6_oss,0) AS rt6_oss
 FROM STUDENTS s
 LEFT OUTER JOIN 
      (SELECT studentid
