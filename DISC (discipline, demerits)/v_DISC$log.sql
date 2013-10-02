@@ -37,7 +37,7 @@ GO
 --ALTER VIEW DISC$log AS
 SELECT TOP (100) PERCENT *
 FROM
-     (SELECT schoolid
+     (SELECT oq.schoolid
             ,CAST(studentid AS INT) AS studentid
             ,entry_author
             ,entry_date
@@ -176,27 +176,7 @@ FROM
               WHEN discipline_incidenttype = 'BNR' THEN 'BUS: Not reporting incidents'
               ELSE NULL
              END AS incident_decoded
-
-            --Reporting Terms
-            ,CASE
-              --Middle Schools (Rise & TEAM)
-              WHEN schoolid IN (73252,133570965) AND entry_date >= '2013-08-05' AND entry_date <= '2013-11-22' THEN 'RT1'
-              WHEN schoolid IN (73252,133570965) AND entry_date >= '2013-11-25' AND entry_date <= '2014-03-07' THEN 'RT2'
-              WHEN schoolid IN (73252,133570965) AND entry_date >= '2014-03-10' AND entry_date <= '2014-06-20' THEN 'RT3'
-              --NCA
-              WHEN schoolid = 73253 AND entry_date >= '2013-09-03' AND entry_date <= '2013-11-08' THEN 'RT1'
-              WHEN schoolid = 73253 AND entry_date >= '2013-11-12' AND entry_date <= '2014-01-27' THEN 'RT2'
-              WHEN schoolid = 73253 AND entry_date >= '2014-02-03' AND entry_date <= '2014-04-04' THEN 'RT3'
-              WHEN schoolid = 73253 AND entry_date >= '2014-04-21' AND entry_date <= '2014-06-20' THEN 'RT4'
-              --Elementary Schools (SPARK, THRIVE, Seek)
-              WHEN schoolid IN (73254,73255,73256) AND entry_date >= '2013-08-19' AND entry_date <= '2013-08-30' THEN 'RT1'
-              WHEN schoolid IN (73254,73255,73256) AND entry_date >= '2013-09-04' AND entry_date <= '2013-11-22' THEN 'RT2'
-              WHEN schoolid IN (73254,73255,73256) AND entry_date >= '2013-11-25' AND entry_date <= '2014-02-14' THEN 'RT3'
-              WHEN schoolid IN (73254,73255,73256) AND entry_date >= '2014-02-25' AND entry_date <= '2014-05-16' THEN 'RT4'
-              WHEN schoolid IN (73254,73255,73256) AND entry_date >= '2014-05-19' AND entry_date <= '2014-06-13' THEN 'RT5'
-              ELSE NULL
-             END AS RT
-
+            ,dates.time_per_name AS RT
             ,ROW_NUMBER() OVER(
                 PARTITION BY studentid
                     ORDER BY entry_date DESC) AS rn
@@ -212,12 +192,16 @@ FROM
                  ,discipline_incidenttype
            FROM STUDENTS s
            LEFT OUTER JOIN log
-           ON s.id = log.studentid
+             ON s.id = log.studentid
            WHERE s.schoolid != 999999
              AND s.enroll_status = 0
              AND log.entry_date >= TO_DATE(''2013-08-01'',''YYYY-MM-DD'') --update for new school year
              AND log.entry_date <= TO_DATE(''2014-06-30'',''YYYY-MM-DD'') --update for new school year
              --AND logtypeid IN (-100000,3223,3023)
-           ')
-      ) sub
+           ') oq
+      JOIN REPORTING$dates dates
+        ON oq.entry_date >= dates.start_date
+       AND oq.entry_date <= dates.end_date
+       AND oq.schoolid = dates.schoolid
+     ) sub
 ORDER BY schoolid, logtypeid, studentid, entry_date DESC
