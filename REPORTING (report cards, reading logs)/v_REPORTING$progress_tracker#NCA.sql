@@ -104,7 +104,7 @@ LEFT OUTER JOIN ATT_MEM$att_percentages att_pct
 --GPA
 LEFT OUTER JOIN GPA$detail#NCA nca_gpa
   ON roster.studentid = nca_gpa.studentid
-LEFT OUTER JOIN GPA$cumulative#NCA gpa_cumulative
+LEFT OUTER JOIN GPA$cumulative gpa_cumulative
   ON roster.studentid = gpa_cumulative.studentid
   
 --GRADES
