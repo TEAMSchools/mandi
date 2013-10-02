@@ -17,7 +17,7 @@ ORIGIN DATE: Fall 2011
 USE KIPP_NJ
 GO
 
---ALTER VIEW DISC$merits_demerits_count#NCA AS
+ALTER VIEW DISC$merits_demerits_count#NCA AS
 SELECT s.id AS studentid
       ,s.student_number
       
@@ -67,7 +67,6 @@ SELECT s.id AS studentid
       ,ISNULL(tier3_demerits_rt4,0) AS tier3_demerits_rt4
 
 FROM STUDENTS s
-
 --Merits
 LEFT OUTER JOIN (SELECT studentid             
                        --teacher merits
@@ -82,7 +81,7 @@ LEFT OUTER JOIN (SELECT studentid
                        ,(perfect.perfect_weeks_rt2 * 3) AS perfect_week_merits_rt2
                        ,(perfect.perfect_weeks_rt3 * 3) AS perfect_week_merits_rt3
                        ,(perfect.perfect_weeks_rt4 * 3) AS perfect_week_merits_rt4
-                 FROM DISC$log merits        
+                 FROM DISC$log#static merits
                  LEFT OUTER JOIN disc$perfect_weeks#NCA perfect
                    ON studentid = perfect_studentid
                  WHERE logtypeid = 3023
@@ -115,12 +114,11 @@ LEFT OUTER JOIN (SELECT studentid
                        ,SUM(CASE when demerits.rt = 'RT2' and demerits.tier = 'Tier 3' THEN 1 ELSE 0 END) AS tier3_demerits_rt2
                        ,SUM(CASE when demerits.rt = 'RT3' and demerits.tier = 'Tier 3' THEN 1 ELSE 0 END) AS tier3_demerits_rt3
                        ,SUM(CASE when demerits.rt = 'RT4' and demerits.tier = 'Tier 3' THEN 1 ELSE 0 END) AS tier3_demerits_rt4                             
-                 FROM DISC$log demerits                   
+                 FROM DISC$log#static demerits                   
                  WHERE logtypeid = 3223                 
                  GROUP BY studentid
                 ) demerits
   ON s.id = demerits.studentid
-
 WHERE s.schoolid = 73253
   AND s.enroll_status = 0
-  AND s.id = 3551
+  --AND s.id = 3551

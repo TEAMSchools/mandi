@@ -21,7 +21,7 @@ ORIGIN DATE: Fall 2011
 USE KIPP_NJ
 GO
 
-ALTER VIEW DISC$perfect_weeka#NCA AS
+ALTER VIEW DISC$perfect_weeks#NCA AS
 SELECT TOP (100) PERCENT *
 FROM
 (SELECT perfect_student_number
@@ -79,9 +79,9 @@ FROM
                            ,wk.reporting_hash AS wk
                            ,CASE 
                              WHEN wk.reporting_hash >= 201417 THEN 'RT4'
-                             WHEN wk.reporting_hash >= 201405 THEN 'RT3'
-                             WHEN wk.reporting_hash >= 201346 THEN 'RT2'
-                             WHEN wk.reporting_hash >= 201335 THEN 'RT1'
+                             WHEN wk.reporting_hash >= 201405 AND wk.reporting_hash < 201417 THEN 'RT3'
+                             WHEN wk.reporting_hash >= 201346 AND wk.reporting_hash < 201405 THEN 'RT2'
+                             WHEN wk.reporting_hash >= 201335 AND wk.reporting_hash < 201346 THEN 'RT1'
                              ELSE NULL
                             END perfect_RT
                      FROM
@@ -100,7 +100,7 @@ FROM
                       AND wk.reporting_hash <= 201426
                       AND wk.reporting_hash NOT IN (201901) --exclude any weeks that are school breaks here                     
                      ) sub2
-               LEFT OUTER JOIN DISC$log demerits
+               LEFT OUTER JOIN DISC$log#static demerits
                  ON perfect_studentid = demerits.studentid
                 AND demerits.logtypeid = 3223
                 AND demerits.schoolid = 73253
