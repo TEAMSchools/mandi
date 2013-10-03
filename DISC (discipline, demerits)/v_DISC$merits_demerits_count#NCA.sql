@@ -65,6 +65,14 @@ SELECT s.id AS studentid
       ,ISNULL(tier3_demerits_rt2,0) AS tier3_demerits_rt2
       ,ISNULL(tier3_demerits_rt3,0) AS tier3_demerits_rt3
       ,ISNULL(tier3_demerits_rt4,0) AS tier3_demerits_rt4
+      
+      --DETENTION
+      ,ISNULL(total_detention,0) AS total_detention
+      --by reporting term
+      ,ISNULL(total_detention_rt1,0) AS total_detention_rt1
+      ,ISNULL(total_detention_rt2,0) AS total_detention_rt2
+      ,ISNULL(total_detention_rt3,0) AS total_detention_rt3
+      ,ISNULL(total_detention_rt4,0) AS total_detention_rt4
 
 FROM STUDENTS s
 --Merits
@@ -119,6 +127,39 @@ LEFT OUTER JOIN (SELECT studentid
                  GROUP BY studentid
                 ) demerits
   ON s.id = demerits.studentid
+
+--Detention
+LEFT OUTER JOIN (SELECT studentid                       
+                       ,COUNT(detention.rn) AS total_detention                       
+                       --by reporting term
+                       ,SUM(CASE when detention.rt = 'RT1' THEN 1 ELSE 0 END) AS total_detention_rt1
+                       ,SUM(CASE when detention.rt = 'RT2' THEN 1 ELSE 0 END) AS total_detention_rt2
+                       ,SUM(CASE when detention.rt = 'RT3' THEN 1 ELSE 0 END) AS total_detention_rt3
+                       ,SUM(CASE when detention.rt = 'RT4' THEN 1 ELSE 0 END) AS total_detention_rt4                       
+                       --by tier
+                       ,SUM(CASE when detention.tier = 'Tier 1' THEN 1 ELSE 0 END) AS total_tier1_detention
+                       ,SUM(CASE when detention.tier = 'Tier 2' THEN 1 ELSE 0 END) AS total_tier2_detention
+                       ,SUM(CASE when detention.tier = 'Tier 3' THEN 1 ELSE 0 END) AS total_tier3_detention                       
+                       --tier by reporting term
+                       ,SUM(CASE when detention.rt = 'RT1' and detention.tier = 'Tier 1' THEN 1 ELSE 0 END) AS tier1_detention_rt1
+                       ,SUM(CASE when detention.rt = 'RT2' and detention.tier = 'Tier 1' THEN 1 ELSE 0 END) AS tier1_detention_rt2
+                       ,SUM(CASE when detention.rt = 'RT3' and detention.tier = 'Tier 1' THEN 1 ELSE 0 END) AS tier1_detention_rt3
+                       ,SUM(CASE when detention.rt = 'RT4' and detention.tier = 'Tier 1' THEN 1 ELSE 0 END) AS tier1_detention_rt4                       
+                       ,SUM(CASE when detention.rt = 'RT1' and detention.tier = 'Tier 2' THEN 1 ELSE 0 END) AS tier2_detention_rt1
+                       ,SUM(CASE when detention.rt = 'RT2' and detention.tier = 'Tier 2' THEN 1 ELSE 0 END) AS tier2_detention_rt2
+                       ,SUM(CASE when detention.rt = 'RT3' and detention.tier = 'Tier 2' THEN 1 ELSE 0 END) AS tier2_detention_rt3
+                       ,SUM(CASE when detention.rt = 'RT4' and detention.tier = 'Tier 2' THEN 1 ELSE 0 END) AS tier2_detention_rt4                       
+                       ,SUM(CASE when detention.rt = 'RT1' and detention.tier = 'Tier 3' THEN 1 ELSE 0 END) AS tier3_detention_rt1
+                       ,SUM(CASE when detention.rt = 'RT2' and detention.tier = 'Tier 3' THEN 1 ELSE 0 END) AS tier3_detention_rt2
+                       ,SUM(CASE when detention.rt = 'RT3' and detention.tier = 'Tier 3' THEN 1 ELSE 0 END) AS tier3_detention_rt3
+                       ,SUM(CASE when detention.rt = 'RT4' and detention.tier = 'Tier 3' THEN 1 ELSE 0 END) AS tier3_detention_rt4                             
+                 FROM DISC$log#static detention                   
+                 WHERE logtypeid = -100000                 
+                 GROUP BY studentid
+                ) detention
+  ON s.id = detention.studentid
+
+
 WHERE s.schoolid = 73253
   AND s.enroll_status = 0
   --AND s.id = 3551
