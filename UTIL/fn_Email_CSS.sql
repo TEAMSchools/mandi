@@ -118,6 +118,13 @@ BEGIN
     background-color: #ffffff;
   }
 
+  .annotation {
+    font-size: 10px;
+    line-height: 12px;
+				margin: 0;
+				padding: 0;
+  }
+
   .stat {
     font-family: "Helvetica", Verdana, sans-serif;
     font-size: 96px;

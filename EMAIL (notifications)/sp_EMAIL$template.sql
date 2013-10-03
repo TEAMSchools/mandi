@@ -5,32 +5,34 @@ ALTER PROCEDURE sp_EMAIL$template (
   --MANDATORY FIELDS
   @email_recipients     AS NVARCHAR(4000)
  ,@email_subject        AS NVARCHAR(4000)
-  --image stuff
- ,@image_path1          AS NVARCHAR(100) = ''
- ,@image_path2          AS NVARCHAR(100) = ''
- ,@image_caption1       AS NVARCHAR(200) = ''
- ,@image_caption2       AS NVARCHAR(200) = ''
   --how many key stats?  max of 4
  ,@stat_count           AS INT = 0
   --queries for the key stats
- ,@stat_query1          AS NVARCHAR(MAX) = ''
- ,@stat_query2          AS NVARCHAR(MAX) = ''
- ,@stat_query3          AS NVARCHAR(MAX) = ''
- ,@stat_query4          AS NVARCHAR(MAX) = ''
+ ,@stat_query1          AS NVARCHAR(MAX) = ' '
+ ,@stat_query2          AS NVARCHAR(MAX) = ' '
+ ,@stat_query3          AS NVARCHAR(MAX) = ' '
+ ,@stat_query4          AS NVARCHAR(MAX) = ' '
   --labels for key stats
- ,@stat_label1          AS NVARCHAR(50) = '' 
- ,@stat_label2          AS NVARCHAR(50) = ''
- ,@stat_label3          AS NVARCHAR(50) = ''
- ,@stat_label4          AS NVARCHAR(50) = ''
+ ,@stat_label1          AS NVARCHAR(50) = ' ' 
+ ,@stat_label2          AS NVARCHAR(50) = ' '
+ ,@stat_label3          AS NVARCHAR(50) = ' '
+ ,@stat_label4          AS NVARCHAR(50) = ' '
+  --image stuff
+ ,@image_toggle         AS VARCHAR(3) = 'Off'
+ ,@image_path1          AS NVARCHAR(100) = ''
+ ,@image_path2          AS NVARCHAR(100) = ''
+ ,@image_caption1       AS NVARCHAR(200) = ' '
+ ,@image_caption2       AS NVARCHAR(200) = ' '
   --text
- ,@explanatory_text1    AS NVARCHAR(MAX) = ''
- ,@explanatory_text2    AS NVARCHAR(MAX) = ''
- ,@explanatory_text3    AS NVARCHAR(MAX) = ''
+ ,@explanatory_text1    AS NVARCHAR(MAX) = ' '
+ ,@explanatory_text2    AS NVARCHAR(MAX) = ' '
+ ,@explanatory_text3    AS NVARCHAR(MAX) = ' '
 
   --main table and CSV
- ,@table_query1         AS NVARCHAR(MAX) = ''
- ,@table_query2         AS NVARCHAR(MAX) = ''
+ ,@table_query1         AS NVARCHAR(MAX) = ' '
+ ,@table_query2         AS NVARCHAR(MAX) = ' '
  ,@csv_toggle           AS VARCHAR(3) = 'On'
+ ,@which_csv            AS INT = 1
 ) AS
 
 
@@ -47,11 +49,14 @@ BEGIN
           --reuse CSS across messages
          ,@email_css            NVARCHAR(MAX) = dbo.fn_Email_CSS()
           
-          --default value for stat table is nothing
+          --default value for supplementary tables is nothing
          ,@email_stat_table     NVARCHAR(MAX) = ''           
+         ,@email_image_table    NVARCHAR(MAX) = ''
+         
          ,@email_body           NVARCHAR(MAX)
 
           --For CSV attachment
+         ,@csv_query            NVARCHAR(MAX)
          ,@csv_attachment       NVARCHAR(500) = ''
 
   --prep stat queries for sp_executesql
@@ -187,13 +192,48 @@ BEGIN
         </table>'
     END
   
+  IF (@image_toggle = 'On' AND @image_path2 != '')
+    BEGIN
+      SET @email_image_table =
+        '<table width= "100%"  cellspacing="0" cellpadding="0">
+           <tr>
+             <td colspan="2">
+               <div class="annotation"><i><center>Images contain student data 
+                 and are only visible while signed on to the TEAM domain (or on VPN).</center></i></div>
+             </td>
+           </tr>
+           <tr>
+             <td width= "50%">
+               <div style=display: block; margin:0 auto;">
+                 <img src="' + @image_path1 + '" width="660">
+               </div>
+             </td>
+             <td width= "50%">
+               <div style=display: block; margin:0 auto;">
+                 <img src="' + @image_path2 + '" width="660">
+               </div>
+             </td>
+           </tr>
+         </table>'
+    END
+
   --dump table_query1 to html
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @table_query1, @table1_html OUTPUT
 
   --table_query2 to html, IF present
-  IF @table_query2 != ''
+  IF @table_query2 != ' '
     BEGIN
       EXECUTE AlumniMirror.dbo.sp_TableToHTML @table_query2, @table2_html OUTPUT
+    END
+
+  IF @which_csv = 1
+    BEGIN
+      SET @csv_query = @table_query1
+    END
+
+  IF @which_csv = 2
+    BEGIN
+      SET @csv_query = @table_query2
     END
 
   --attach a CSV file with data from the main table_query, if csv_toggle is set to 'on' (the default)
@@ -201,7 +241,7 @@ BEGIN
     BEGIN
       --dump to file
       EXEC [dbo].[sp_UTIL$table_to_CSV]
-		      @vcSqlQuery = @table_query1,
+		      @vcSqlQuery = @csv_query,
 		      @vcFilePath = N'C:\data_robot\raw_exports\',
 		      @vcCsvFileLocation = @csv_attachment OUTPUT
 
@@ -231,6 +271,10 @@ BEGIN
       
        <span>
         ' + @email_stat_table + '
+       </span>
+       <br>
+       <span>
+        ' + @email_image_table + '
        </span>
        <br>
        <span style="med_text"> 
