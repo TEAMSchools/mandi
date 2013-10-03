@@ -146,11 +146,12 @@ LEFT OUTER JOIN
               ON psad.att_date >= dates.start_date
              AND psad.att_date <= dates.end_date
              AND psad.schoolid = dates.schoolid
-            WHERE psad.att_code IS NOT NULL
+             AND dates.identifier = 'RT'
+            WHERE psad.att_code IS NOT NULL                  
            ) sub
       GROUP BY studentid
      ) psad
   ON s.id = psad.studentid
 WHERE s.entrydate >= '2013-08-01'
---AND s.enroll_status = 0
-ORDER BY s.schoolid, s.grade_level, s.lastfirst
+--ORDER BY s.schoolid, s.grade_level, s.lastfirst
+ORDER BY absences_total DESC
