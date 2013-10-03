@@ -149,12 +149,14 @@ SELECT TOP (100) PERCENT
       ,target_points
       ,CASE
          WHEN target_words IS NULL THEN NULL
+         WHEN dense_running_words = 0 THEN 0
          WHEN dense_running_words >= target_words THEN 1
          WHEN dense_running_words <  target_words THEN 0
          ELSE NULL
        END AS on_track_status_words
       ,CASE
          WHEN target_points IS NULL THEN NULL
+         WHEN dense_running_points = 0 THEN 0
          WHEN dense_running_points >= target_points THEN 1
          WHEN dense_running_points <  target_points THEN 0
          ELSE NULL
