@@ -463,7 +463,7 @@ SELECT roster.*
       ,comment_rc9.teacher_comment  AS rc9_comment
       ,comment_rc10.teacher_comment AS rc10_comment
       --for end of term report card comments
-      ,comment_adv.teacher_comment  AS advisor_comment
+      ,comment_adv.advisor_comment  AS advisor_comment
     
 --Discipline
 --DISC$merits_demerits_count#NCA
@@ -545,47 +545,47 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr
  AND lex_curr.rn_curr = 1
  
 --GRADEBOOK COMMMENTS -- upadate fieldname and parameter for current term
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc1
+LEFT OUTER JOIN PS$comments#static comment_rc1
   ON gr_wide.rc1_Q1_enr_sectionid = comment_rc1.sectionid
- AND gr_wide.studentid = comment_rc1.studentid
+ AND gr_wide.studentid = comment_rc1.id
  AND comment_rc1.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc2
+LEFT OUTER JOIN PS$comments#static comment_rc2
   ON gr_wide.rc2_Q1_enr_sectionid = comment_rc2.sectionid
- AND gr_wide.studentid = comment_rc2.studentid
+ AND gr_wide.studentid = comment_rc2.id
  AND comment_rc2.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc3
+LEFT OUTER JOIN PS$comments#static comment_rc3
   ON gr_wide.rc3_q1_enr_sectionid = comment_rc3.sectionid
- AND gr_wide.studentid = comment_rc3.studentid
+ AND gr_wide.studentid = comment_rc3.id
  AND comment_rc3.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc4
+LEFT OUTER JOIN PS$comments#static comment_rc4
   ON gr_wide.rc4_q1_enr_sectionid = comment_rc4.sectionid
- AND gr_wide.studentid = comment_rc4.studentid
+ AND gr_wide.studentid = comment_rc4.id
  AND comment_rc4.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc5
+LEFT OUTER JOIN PS$comments#static comment_rc5
   ON gr_wide.rc5_q1_enr_sectionid = comment_rc5.sectionid
- AND gr_wide.studentid = comment_rc5.studentid
+ AND gr_wide.studentid = comment_rc5.id
  AND comment_rc5.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc6
+LEFT OUTER JOIN PS$comments#static comment_rc6
   ON gr_wide.rc6_q1_enr_sectionid = comment_rc6.sectionid
- AND gr_wide.studentid = comment_rc6.studentid
+ AND gr_wide.studentid = comment_rc6.id
  AND comment_rc6.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc7
+LEFT OUTER JOIN PS$comments#static comment_rc7
   ON gr_wide.rc7_Q1_enr_sectionid = comment_rc7.sectionid
- AND gr_wide.studentid = comment_rc7.studentid
+ AND gr_wide.studentid = comment_rc7.id
  AND comment_rc7.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc8
+LEFT OUTER JOIN PS$comments#static comment_rc8
   ON gr_wide.rc8_Q1_enr_sectionid = comment_rc8.sectionid
- AND gr_wide.studentid = comment_rc8.studentid
+ AND gr_wide.studentid = comment_rc8.id
  AND comment_rc8.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc9
+LEFT OUTER JOIN PS$comments#static comment_rc9
   ON gr_wide.rc9_Q1_enr_sectionid = comment_rc9.sectionid
- AND gr_wide.studentid = comment_rc9.studentid
+ AND gr_wide.studentid = comment_rc9.id
  AND comment_rc9.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc10
+LEFT OUTER JOIN PS$comments#static comment_rc10
   ON gr_wide.rc10_Q1_enr_sectionid = comment_rc10.sectionid
- AND gr_wide.studentid = comment_rc10.studentid
+ AND gr_wide.studentid = comment_rc10.id
  AND comment_rc10.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments_advisors comment_adv
+LEFT OUTER JOIN PS$comments#static comment_adv
  ON roster.base_studentid = comment_adv.id
 AND comment_adv.finalgradename = 'Q1'
 
