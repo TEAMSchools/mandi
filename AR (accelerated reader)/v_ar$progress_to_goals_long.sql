@@ -97,6 +97,7 @@ WITH long_goals AS
                    ,goals.time_period_hierarchy
                    ,goals.time_period_start
                    ,goals.time_period_end
+                   ,detail.dttaken AS last_book_date
                    ,CAST(DATEPART(MM, detail.dttaken) AS NVARCHAR) + '/' 
                      + CAST(DATEPART(DD, detail.dttaken) AS NVARCHAR) + ' '
                      + detail.vchcontenttitle + ' (' 
@@ -126,6 +127,7 @@ WITH long_goals AS
 --query starts here
 
 SELECT totals.*
+      ,last_book.last_book_date
       ,last_book.title_string AS last_book
       ,CASE
       --time period over
