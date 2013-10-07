@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW ATT_MEM$attendance_counts AS
+--ALTER VIEW ATT_MEM$attendance_counts AS
 SELECT TOP (100) PERCENT
        s.id
       ,s.lastfirst
@@ -70,18 +70,27 @@ SELECT TOP (100) PERCENT
       ,ISNULL(rt6_tardies_T10,0) AS rt6_tardies_T10
       ,ISNULL(rt6_iss,0) AS rt6_iss
       ,ISNULL(rt6_oss,0) AS rt6_oss
+      --cur
+      ,ISNULL(cur_absences_undoc + cur_absences_doc,0) AS cur_absences_total
+      ,ISNULL(cur_absences_undoc,0) AS cur_absences_undoc
+      ,ISNULL(cur_absences_doc,0) AS cur_absences_doc
+      ,ISNULL(cur_tardies_reg + cur_tardies_T10,0) AS cur_tardies_total
+      ,ISNULL(cur_tardies_reg,0) AS cur_tardies_reg
+      ,ISNULL(cur_tardies_T10,0) AS cur_tardies_T10
+      ,ISNULL(cur_iss,0) AS cur_iss
+      ,ISNULL(cur_oss,0) AS cur_oss
 FROM STUDENTS s
 LEFT OUTER JOIN 
      (SELECT studentid
             --Y1
-            ,SUM(CASE WHEN att_code = 'A'   THEN 1.0 ELSE 0.0 END) AS absences_undoc
-            ,SUM(CASE WHEN att_code = 'AD'  THEN 1.0
-                      WHEN att_code = 'D'   THEN 1.0 ELSE 0.0 END) AS absences_doc
-            ,SUM(CASE WHEN att_code = 'AE'  THEN 1.0 ELSE 0.0 END) AS excused_absences
-            ,SUM(CASE WHEN att_code = 'T'   THEN 1.0 ELSE 0.0 END) AS tardies_reg
-            ,SUM(CASE WHEN att_code = 'T10' THEN 1.0 ELSE 0.0 END) AS tardies_T10
-            ,SUM(CASE WHEN att_code = 'S'   THEN 1.0 ELSE 0.0 END) AS ISS
-            ,SUM(CASE WHEN att_code = 'OS'  THEN 1.0 ELSE 0.0 END) AS OSS
+            ,SUM(CASE WHEN att_code = 'A'   AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS absences_undoc
+            ,SUM(CASE WHEN att_code = 'AD'  AND RT != 'CUR' THEN 1.0
+                      WHEN att_code = 'D'   AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS absences_doc
+            ,SUM(CASE WHEN att_code = 'AE'  AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS excused_absences
+            ,SUM(CASE WHEN att_code = 'T'   AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS tardies_reg
+            ,SUM(CASE WHEN att_code = 'T10' AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS tardies_T10
+            ,SUM(CASE WHEN att_code = 'S'   AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS ISS
+            ,SUM(CASE WHEN att_code = 'OS'  AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS OSS
             --RT1
             ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_absences_undoc
             ,SUM(CASE WHEN att_code = 'AD'  AND RT = 'RT1' THEN 1.0
@@ -136,6 +145,15 @@ LEFT OUTER JOIN
             ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_tardies_T10
             ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_ISS
             ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_OSS
+             --cur
+            ,SUM(CASE WHEN att_code = 'A'   AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_absences_undoc
+            ,SUM(CASE WHEN att_code = 'AD'  AND RT = 'CUR' THEN 1.0
+                      WHEN att_code = 'D'   AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_absences_doc
+            ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_excused_absences
+            ,SUM(CASE WHEN att_code = 'T'   AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_tardies_reg
+            ,SUM(CASE WHEN att_code = 'T10' AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_tardies_T10
+            ,SUM(CASE WHEN att_code = 'S'   AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_ISS
+            ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_OSS
       FROM            
            (SELECT studentid
                   ,psad.att_date
@@ -147,11 +165,27 @@ LEFT OUTER JOIN
              AND psad.att_date <= dates.end_date
              AND psad.schoolid = dates.schoolid
              AND dates.identifier = 'RT'
-            WHERE psad.att_code IS NOT NULL                  
+            WHERE psad.att_code IS NOT NULL               
+            
+            UNION ALL
+            
+            SELECT psad.studentid
+                  ,psad.att_date
+                  ,psad.att_code                  
+                  ,'CUR' AS RT            
+            FROM ATTENDANCE psad
+            JOIN REPORTING$dates curterm
+              ON curterm.identifier = 'RT'
+             AND curterm.start_date <= GETDATE()
+             AND curterm.end_date >= GETDATE()
+             AND psad.schoolid = curterm.schoolid
+            WHERE psad.att_code IS NOT NULL                          
+              AND psad.att_date >= curterm.start_date
+              AND psad.att_date <= curterm.end_date
            ) sub
       GROUP BY studentid
      ) psad
   ON s.id = psad.studentid
-WHERE s.entrydate >= '2013-08-01'
+WHERE s.entrydate >= '2013-08-01'    
 --ORDER BY s.schoolid, s.grade_level, s.lastfirst
 ORDER BY absences_total DESC
