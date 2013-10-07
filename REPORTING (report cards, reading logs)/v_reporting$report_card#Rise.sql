@@ -664,11 +664,11 @@ LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr
   ON roster.base_studentid = ar_yr.studentid 
  AND ar_yr.time_period_name = 'Year'
- AND ar_yr.yearid = 2300
+ AND ar_yr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr
   ON roster.base_studentid = ar_curr.studentid 
  AND ar_curr.time_period_name = 'RT1'
- AND ar_curr.yearid = 2300
+ AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 
 
 /* NOT USED FOR PROGRESS REPORTS
