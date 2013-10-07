@@ -18,33 +18,39 @@ ALTER PROCEDURE sp_EMAIL$template (
  ,@stat_label3          AS NVARCHAR(50) = ' '
  ,@stat_label4          AS NVARCHAR(50) = ' '
   --image stuff
- ,@image_toggle         AS VARCHAR(3) = 'Off'
+ ,@image_count          AS TINYINT = 0
  ,@image_path1          AS NVARCHAR(200) = ''
  ,@image_path2          AS NVARCHAR(200) = ''
   --text
  ,@explanatory_text1    AS NVARCHAR(MAX) = ' '
  ,@explanatory_text2    AS NVARCHAR(MAX) = ' '
  ,@explanatory_text3    AS NVARCHAR(MAX) = ' '
+ ,@explanatory_text4    AS NVARCHAR(MAX) = ' '
 
-  --main table and CSV
+  --table queries
  ,@table_query1         AS NVARCHAR(MAX) = ' '
  ,@table_query2         AS NVARCHAR(MAX) = ' '
+ ,@table_query3         AS NVARCHAR(MAX) = ' '
+
  ,@table_style1         AS NVARCHAR(20) = 'CSS_small'
  ,@table_style2         AS NVARCHAR(20) = 'CSS_medium'
+ ,@table_style3         AS NVARCHAR(20) = 'CSS_medium'
+ 
  ,@csv_toggle           AS VARCHAR(3) = 'On'
- ,@which_csv            AS INT = 1
+ ,@csv_query            AS NVARCHAR(MAX) = ' '
 ) AS
 
 
 BEGIN
 
-  DECLARE @stat1_value          NVARCHAR(MAX) = 'frrrt'
-         ,@stat2_value          NVARCHAR(MAX) = '75%'
-         ,@stat3_value          NVARCHAR(MAX) = '108'
-         ,@stat4_value          NVARCHAR(MAX) = '0.53'
+  DECLARE @stat1_value          NVARCHAR(MAX) = '-'
+         ,@stat2_value          NVARCHAR(MAX) = '-%'
+         ,@stat3_value          NVARCHAR(MAX) = '-'
+         ,@stat4_value          NVARCHAR(MAX) = '-'
 
          ,@table1_html          NVARCHAR(MAX) = ''
          ,@table2_html          NVARCHAR(MAX) = ''
+         ,@table3_html          NVARCHAR(MAX) = ''
           
           --reuse CSS across messages
          ,@email_css            NVARCHAR(MAX) = dbo.fn_Email_CSS()
@@ -56,7 +62,6 @@ BEGIN
          ,@email_body           NVARCHAR(MAX)
 
           --For CSV attachment
-         ,@csv_query            NVARCHAR(MAX)
          ,@csv_attachment       NVARCHAR(500) = ''
 
   --prep stat queries for sp_executesql
@@ -204,7 +209,7 @@ BEGIN
         </table>'
     END
   
-  IF (@image_toggle = 'On' AND @image_path2 != '')
+  IF (@image_count = 2 AND @image_path2 != '')
     BEGIN
       SET @email_image_table =
         '<table width= "100%"  cellspacing="0" cellpadding="0">
@@ -229,7 +234,7 @@ BEGIN
          </table>'
     END
 
-  IF (@image_toggle = 'On' AND @image_path2 = '')
+  IF (@image_count = 1 AND @image_path1 = '')
     BEGIN
       SET @email_image_table =
         '<table width= "100%"  cellspacing="0" cellpadding="0">
@@ -261,14 +266,10 @@ BEGIN
       EXECUTE AlumniMirror.dbo.sp_TableToHTML @table_query2, @table2_html OUTPUT, @table_style2
     END
 
-  IF @which_csv = 1
+  --table_query2 to html, IF present
+  IF @table_query3 != ' '
     BEGIN
-      SET @csv_query = @table_query1
-    END
-
-  IF @which_csv = 2
-    BEGIN
-      SET @csv_query = @table_query2
+      EXECUTE AlumniMirror.dbo.sp_TableToHTML @table_query3, @table3_html OUTPUT, @table_style3
     END
 
   --attach a CSV file with data from the main table_query, if csv_toggle is set to 'on' (the default)
@@ -285,7 +286,6 @@ BEGIN
     END
 
   SET @email_body = 
-
   '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
    <html xmlns="http://www.w3.org/1999/xhtml">
    <head>
@@ -334,6 +334,14 @@ BEGIN
        <span style="med_text"> 
         ' + @explanatory_text3 + '
        </span> 
+       <br>
+       <br>
+       '
+       + @table3_html +
+       '
+       <br>
+       <span style="med_text"> 
+        ' + @explanatory_text4 + '
 
      <!-- END CONTENT HERE -->
 

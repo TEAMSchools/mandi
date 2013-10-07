@@ -3,7 +3,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW ILLUMINATE$assessment_results_by_standard AS
+ALTER VIEW ILLUMINATE$assessment_results_by_standard AS
 SELECT *
 FROM OPENQUERY(ILLUMINATE, '
        SELECT s.local_student_id 
