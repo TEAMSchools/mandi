@@ -26,6 +26,7 @@ WITH cur_term AS
           ,dense.dense_running_words
           ,dense.target_words
           ,CAST(dense.on_track_status_words AS FLOAT) AS on_track_status_words
+          ,CAST(dense.on_track_status_points AS FLOAT) AS on_track_status_points
           ,dense.dense_running_mastery
           ,dense.dense_running_fiction_pct
           ,dense.dense_running_weighted_lexile_avg
@@ -67,11 +68,12 @@ WITH cur_term AS
 
 SELECT *
 FROM
-     (SELECT sub.*
-            ,enr_aggregates.n
-            ,enr_aggregates.students
+    (SELECT sub.*
+           ,enr_aggregates.n
+           ,enr_aggregates.students
      FROM 
             (SELECT sub.school
+                   ,'WORDS' AS row_type
                    ,CASE GROUPING(sub.grade_level)
 		                    WHEN 1 THEN 'All Grades'
 		                    ELSE CAST(sub.grade_level AS NVARCHAR)
@@ -147,6 +149,90 @@ FROM
                    ,sub.section_number
           ) enr_aggregates
         ON sub.eng_enr = enr_aggregates.eng_enr
+
+      UNION ALL
+      SELECT sub.*
+            ,enr_aggregates.n
+            ,enr_aggregates.students
+      FROM 
+             (SELECT sub.school
+                    ,'POINTS' AS row_type
+                    ,CASE GROUPING(sub.grade_level)
+                       WHEN 1 THEN 'All Grades'
+                       ELSE CAST(sub.grade_level AS NVARCHAR)
+                     END AS grade_level
+                    ,CASE GROUPING(sub.eng_enr)
+                       WHEN 1 THEN 'All'
+                       ELSE sub.eng_enr
+                     END AS eng_enr
+                    ,sub.time_period_name
+                    ,sub.week_start
+                    --join to enrollments HERE
+                    ,CAST(ROUND(AVG(sub.on_track_status_points) * 100, 0) AS VARCHAR) AS pct_on_track
+                    /*
+                    ,ROW_NUMBER() OVER
+                       (PARTITION BY sub.school
+                                    ,sub.grade_level
+                                    ,sub.time_period_name
+                        ORDER BY sub.week_start_full) AS rn
+                     */
+              FROM
+                    (SELECT ar_stats.school
+                           ,ar_stats.grade_level
+                           ,enr.course_number
+                           ,enr.section_number
+                           ,enr.course_name + ': ' + enr.section_number AS eng_enr
+                           ,ar_stats.week_start
+                           ,ar_stats.week_start_full
+                           ,ar_stats.time_period_name
+                           ,ar_stats.on_track_status_points
+                     FROM ar_stats
+                     JOIN enr
+                       ON ar_stats.studentid = enr.studentid
+                     WHERE time_period_name = 'Year'
+                     --current term
+                     UNION ALL
+                     SELECT ar_stats.school
+                           ,ar_stats.grade_level
+                           ,enr.course_number
+                           ,enr.section_number
+                           ,enr.course_name + ': ' + enr.section_number AS eng_enr
+                           ,ar_stats.week_start
+                           ,ar_stats.week_start_full
+                           ,ar_stats.time_period_name
+                           ,ar_stats.on_track_status_points
+                     FROM ar_stats
+                     JOIN cur_term
+                       ON ar_stats.time_period_name = cur_term.time_per_name
+                      AND CAST(ar_stats.schoolid AS INT) = CAST(cur_term.schoolid AS INT)
+                     JOIN enr
+                       ON ar_stats.studentid = enr.studentid
+                     ) sub
+             GROUP BY sub.school
+                      ,CUBE(
+                         sub.grade_level
+                        ,sub.eng_enr)
+                      ,sub.week_start
+                      ,sub.week_start_full
+                      ,sub.time_period_name
+             ) sub
+       LEFT OUTER JOIN
+           (SELECT sub.course_number
+                  ,sub.course_name
+                  ,sub.section_number
+                  ,sub.course_name + ': ' + sub.section_number AS eng_enr
+                  ,SUBSTRING(dbo.GROUP_CONCAT_DS(sub.stu_name, '|', 1), 1, 25) AS students
+                  ,COUNT(*) AS n
+            FROM
+                  (SELECT *
+                   FROM enr
+                   ) sub
+            GROUP BY sub.course_number
+                    ,sub.course_name
+                    ,sub.section_number
+           ) enr_aggregates
+         ON sub.eng_enr = enr_aggregates.eng_enr
+
       ) sub
 PIVOT (
   MAX(pct_on_track)
