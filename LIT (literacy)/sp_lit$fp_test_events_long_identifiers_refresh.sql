@@ -7,7 +7,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-ALTER PROCEDURE [dbo].[sp_LIT$FP_test_events_long#identifiers|refresh] AS
+--ALTER PROCEDURE [dbo].[sp_LIT$FP_test_events_long#identifiers|refresh] AS
 BEGIN
 
  DECLARE @sql AS VARCHAR(MAX)='';
@@ -65,7 +65,9 @@ BEGIN
       ,[abbreviation]
       ,[year]
       ,[rn_asc]
-      ,[rn_desc])
+      ,[rn_desc]
+      ,[GLEQ]
+      ,[level_number])
  SELECT *
  FROM [#LIT$FP_test_events_long#identifiers|refresh];
 
