@@ -11,7 +11,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW GRADES$detail_placeholder#MS AS
+--ALTER VIEW GRADES$detail_placeholder#MS AS
 
 
 SELECT TOP 100 PERCENT sub2.*
