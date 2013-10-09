@@ -1,13 +1,11 @@
---this is hack as of 9/14
 --only shows 5 core credit types
---dependent on grades$wide_credittype#MS (which is dependent on grades$detail_placeholder#MS)
+--dependent on grades$wide_credittype#MS > grades$detail_placeholder#MS
 
 
 USE KIPP_NJ
 GO
 
---ALTER VIEW DELETE$progress_tracker#Rise_temp AS
-
+ALTER VIEW REPORTING$progress_tracker#Rise_refresh AS
 WITH roster AS
        (SELECT s.id
               ,s.student_number
@@ -26,8 +24,8 @@ WITH roster AS
               ,cs.father_cell
               ,cs.father_home
               ,cs.guardianemail AS contactemail
-        FROM STUDENTS s
-        LEFT OUTER JOIN CUSTOM_STUDENTS cs
+        FROM STUDENTS s WITH (NOLOCK)
+        LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
           ON s.id = cs.studentid
         WHERE s.schoolid = 73252
           AND s.enroll_status = 0
@@ -35,7 +33,7 @@ WITH roster AS
        )
        
 SELECT ROW_NUMBER() OVER(
-       ORDER BY roster.grade_level, roster.lastfirst)  AS Count
+           ORDER BY roster.grade_level, roster.lastfirst)  AS Count
       ,roster.*
        
 --ATTENDANCE
@@ -64,10 +62,7 @@ SELECT ROW_NUMBER() OVER(
       ,promo.GPA_Promo_Status_Grades
       ,promo.promo_status_att
       ,promo.promo_status_hw
-      ,CASE
-        WHEN (ROUND((((membership_counts.mem * .105) - promo.attendance_points) / -.105) + .5,0)) <= 0 THEN NULL
-        ELSE (ROUND((((membership_counts.mem * .105) - promo.attendance_points) / -.105) + .5,0))
-       END AS days_to_perfect
+      ,promo.days_to_perfect
 
 --GPA
       ,CONVERT(FLOAT,gpa.gpa_t1) AS gpa_t1
@@ -78,6 +73,9 @@ SELECT ROW_NUMBER() OVER(
       ,gpa.GPA_T3_Rank_G AS GPA_T3_RANK
       ,CONVERT(FLOAT,gpa.gpa_y1) AS gpa_y1       
       ,gpa.GPA_Y1_Rank_G AS GPA_Y1_RANK
+      ,gpa.elements
+      ,gpa.num_failing
+      ,gpa.failing
 
 --COURSE GRADES
       ,grades.rc1_course_number AS ENGLISH_course_number
@@ -99,7 +97,7 @@ SELECT ROW_NUMBER() OVER(
       ,grades.rc1_y1_ltr AS ENGLISH_y1_ltr
       ,grades.rc1_t1_enr_sectionid AS ENGLISH_t1_enr_sectionid
       ,grades.rc1_t2_enr_sectionid AS ENGLISH_t2_enr_sectionid
-      ,grades.rc1_t2_enr_sectionid AS ENGLISH_t2_enr_sectionid
+      ,grades.rc1_t2_enr_sectionid AS ENGLISH_t3_enr_sectionid
       ,grades.rc1_gpa_points_t1 AS ENGLISH_gpa_points_t1
       ,grades.rc1_gpa_points_t2 AS ENGLISH_gpa_points_t2
       ,grades.rc1_gpa_points_t3 AS ENGLISH_gpa_points_t3
@@ -139,7 +137,7 @@ SELECT ROW_NUMBER() OVER(
       ,grades.rc2_y1_ltr AS RHET_y1_ltr
       ,grades.rc2_t1_enr_sectionid AS RHET_t1_enr_sectionid
       ,grades.rc2_t2_enr_sectionid AS RHET_t2_enr_sectionid
-      ,grades.rc2_t2_enr_sectionid AS RHET_t2_enr_sectionid
+      ,grades.rc2_t2_enr_sectionid AS RHET_t3_enr_sectionid
       ,grades.rc2_gpa_points_t1 AS RHET_gpa_points_t1
       ,grades.rc2_gpa_points_t2 AS RHET_gpa_points_t2
       ,grades.rc2_gpa_points_t3 AS RHET_gpa_points_t3
@@ -179,7 +177,7 @@ SELECT ROW_NUMBER() OVER(
       ,grades.rc3_y1_ltr AS MATH_y1_ltr
       ,grades.rc3_t1_enr_sectionid AS MATH_t1_enr_sectionid
       ,grades.rc3_t2_enr_sectionid AS MATH_t2_enr_sectionid
-      ,grades.rc3_t2_enr_sectionid AS MATH_t2_enr_sectionid
+      ,grades.rc3_t2_enr_sectionid AS MATH_t3_enr_sectionid
       ,grades.rc3_gpa_points_t1 AS MATH_gpa_points_t1
       ,grades.rc3_gpa_points_t2 AS MATH_gpa_points_t2
       ,grades.rc3_gpa_points_t3 AS MATH_gpa_points_t3
@@ -200,11 +198,26 @@ SELECT ROW_NUMBER() OVER(
       ,CONVERT(FLOAT,grades.rc3_A2) AS MATH_A2
       ,CONVERT(FLOAT,grades.rc3_A3) AS MATH_A3
       
+      ,grades.rc4_course_number AS SCIENCE_course_number
+      ,grades.rc4_credittype AS SCIENCE_credittype
+      ,grades.rc4_course_name AS SCIENCE_course_name
+      ,grades.rc4_credit_hours_T1 AS SCIENCE_credit_hours_T1
+      ,grades.rc4_credit_hours_T2 AS SCIENCE_credit_hours_T2
+      ,grades.rc4_credit_hours_T3 AS SCIENCE_credit_hours_T3
+      ,grades.rc4_credit_hours_Y1 AS SCIENCE_credit_hours_Y1
+      ,grades.rc4_teacher_last AS SCIENCE_teacher_last
+      ,grades.rc4_teacher_lastfirst AS SCIENCE_teacher_lastfirst
+      ,CONVERT(FLOAT,grades.rc4_t1) AS SCIENCE_t1
+      ,CONVERT(FLOAT,grades.rc4_t2) AS SCIENCE_t2
+      ,CONVERT(FLOAT,grades.rc4_t3) AS SCIENCE_t3
+      ,CONVERT(FLOAT,grades.rc4_y1) AS SCIENCE_y1
+      ,grades.rc4_t1_ltr AS SCIENCE_t1_ltr
+      ,grades.rc4_t2_ltr AS SCIENCE_t2_ltr
       ,grades.rc4_t3_ltr AS SCIENCE_t3_ltr
       ,grades.rc4_y1_ltr AS SCIENCE_y1_ltr
       ,grades.rc4_t1_enr_sectionid AS SCIENCE_t1_enr_sectionid
       ,grades.rc4_t2_enr_sectionid AS SCIENCE_t2_enr_sectionid
-      ,grades.rc4_t2_enr_sectionid AS SCIENCE_t2_enr_sectionid
+      ,grades.rc4_t2_enr_sectionid AS SCIENCE_t3_enr_sectionid
       ,grades.rc4_gpa_points_t1 AS SCIENCE_gpa_points_t1
       ,grades.rc4_gpa_points_t2 AS SCIENCE_gpa_points_t2
       ,grades.rc4_gpa_points_t3 AS SCIENCE_gpa_points_t3
@@ -244,7 +257,7 @@ SELECT ROW_NUMBER() OVER(
       ,grades.rc5_y1_ltr AS SOC_y1_ltr
       ,grades.rc5_t1_enr_sectionid AS SOC_t1_enr_sectionid
       ,grades.rc5_t2_enr_sectionid AS SOC_t2_enr_sectionid
-      ,grades.rc5_t2_enr_sectionid AS SOC_t2_enr_sectionid
+      ,grades.rc5_t2_enr_sectionid AS SOC_t3_enr_sectionid
       ,grades.rc5_gpa_points_t1 AS SOC_gpa_points_t1
       ,grades.rc5_gpa_points_t2 AS SOC_gpa_points_t2
       ,grades.rc5_gpa_points_t3 AS SOC_gpa_points_t3
@@ -271,12 +284,7 @@ SELECT ROW_NUMBER() OVER(
          + CONVERT(FLOAT,grades.rc4_y1) 
          + CONVERT(FLOAT,grades.rc5_y1)) / 5) AS Core_Avg
       ,CONVERT(FLOAT,grades.HY_all) AS HW_Avg
-      ,CONVERT(FLOAT,grades.QY_all) AS HW_Q_Avg
-
---UNUSED?
-      ,NULL AS ELEMENTS
-      ,NULL AS NUM_FAILING
-      ,NULL AS FAILING
+      ,CONVERT(FLOAT,grades.QY_all) AS HW_Q_Avg      
 
 --Literacy tracking
 --MAP$comprehensive#identifiers
@@ -288,7 +296,7 @@ SELECT ROW_NUMBER() OVER(
      ,lex_curr.rittoreadingscore AS CUR_LEX
        --GLQ
      ,CASE
-       WHEN lex_base.RITtoReadingScore  = 'BR' THEN 'Beginning Reader'
+       WHEN lex_base.RITtoReadingScore  = 'BR' THEN NULL
        WHEN lex_base.RITtoReadingScore <= 100  THEN 'K'
        WHEN lex_base.RITtoReadingScore <= 300  AND lex_base.RITtoReadingScore > 100  THEN '1st'
        WHEN lex_base.RITtoReadingScore <= 500  AND lex_base.RITtoReadingScore > 300  THEN '2nd'
@@ -305,7 +313,7 @@ SELECT ROW_NUMBER() OVER(
        ELSE NULL
       END AS BASE_LEX_GLQ_STARTING
      ,CASE
-       WHEN lex_curr.RITtoReadingScore  = 'BR' THEN 'Beginning Reader'
+       WHEN lex_curr.RITtoReadingScore  = 'BR' THEN NULL
        WHEN lex_curr.RITtoReadingScore <= 100  THEN 'K'
        WHEN lex_curr.RITtoReadingScore <= 300  AND lex_curr.RITtoReadingScore > 100  THEN '1st'
        WHEN lex_curr.RITtoReadingScore <= 500  AND lex_curr.RITtoReadingScore > 300  THEN '2nd'
@@ -422,6 +430,67 @@ SELECT ROW_NUMBER() OVER(
       ,map_math.fall_2010_percentile AS f_2010_math_pctle
       ,map_math.spring_2011_rit AS spr_2011_math_rit
       ,map_math.fall_2010_rit AS f_2010_math_rit      
+      
+      --MAP langauge -- add a new block for each test year, delete oldest
+        --13-14
+      --,map_lang.spring_2014_percentile AS spr_2014_lang_pctle
+      ,map_lang.fall_2013_percentile AS f_2013_lang_pctle
+      --,map_lang.spring_2014_rit AS spr_2014_lang_rit
+      ,map_lang.fall_2013_rit AS f_2013_lang_rit            
+        --12-13
+      ,map_lang.spring_2013_percentile AS spr_2013_lang_pctle
+      ,map_lang.fall_2012_percentile AS f_2012_lang_pctle
+      ,map_lang.spring_2013_rit AS spr_2013_lang_rit
+      ,map_lang.fall_2012_rit AS f_2012_lang_rit      
+        --11-12
+      ,map_lang.spring_2012_percentile AS spr_2012_lang_pctle
+      ,map_lang.fall_2011_percentile AS f_2011_lang_pctle      
+      ,map_lang.spring_2012_rit AS spr_2012_lang_rit
+      ,map_lang.fall_2011_rit AS f_2011_lang_rit      
+        --10-11
+      ,map_lang.spring_2011_percentile AS spr_2011_lang_pctle
+      ,map_lang.fall_2010_percentile AS f_2010_lang_pctle
+      ,map_lang.spring_2011_rit AS spr_2011_lang_rit
+      ,map_lang.fall_2010_rit AS f_2010_lang_rit      
+      
+      --MAP science gen -- add a new block for each test year, delete oldest
+        --13-14
+      --,map_gen.spring_2014_percentile AS spr_2014_gen_pctle
+      ,map_gen.fall_2013_percentile AS f_2013_gen_pctle
+      --,map_gen.spring_2014_rit AS spr_2014_gen_rit
+      ,map_gen.fall_2013_rit AS f_2013_gen_rit            
+        --12-13
+      ,map_gen.spring_2013_percentile AS spr_2013_gen_pctle
+      ,map_gen.fall_2012_percentile AS f_2012_gen_pctle
+      ,map_gen.spring_2013_rit AS spr_2013_gen_rit
+      ,map_gen.fall_2012_rit AS f_2012_gen_rit      
+        --11-12
+      ,map_gen.spring_2012_percentile AS spr_2012_gen_pctle
+      ,map_gen.fall_2011_percentile AS f_2011_gen_pctle      
+      ,map_gen.spring_2012_rit AS spr_2012_gen_rit
+      ,map_gen.fall_2011_rit AS f_2011_gen_rit      
+        --10-11
+      ,map_gen.spring_2011_percentile AS spr_2011_gen_pctle
+      ,map_gen.fall_2010_percentile AS f_2010_gen_pctle
+      ,map_gen.spring_2011_rit AS spr_2011_gen_rit
+      ,map_gen.fall_2010_rit AS f_2010_gen_rit      
+      
+      --MAP cp -- add a new block for each test year, delete oldest      
+        --12-13
+      ,map_cp.spring_2013_percentile AS spr_2013_cp_pctle
+      ,map_cp.fall_2012_percentile AS f_2012_cp_pctle
+      ,map_cp.spring_2013_rit AS spr_2013_cp_rit
+      ,map_cp.fall_2012_rit AS f_2012_cp_rit      
+        --11-12
+      ,map_cp.spring_2012_percentile AS spr_2012_cp_pctle
+      ,map_cp.fall_2011_percentile AS f_2011_cp_pctle      
+      ,map_cp.spring_2012_rit AS spr_2012_cp_rit
+      ,map_cp.fall_2011_rit AS f_2011_cp_rit      
+        --10-11
+      ,map_cp.spring_2011_percentile AS spr_2011_cp_pctle
+      ,map_cp.fall_2010_percentile AS f_2010_cp_pctle
+      ,map_cp.spring_2011_rit AS spr_2011_cp_rit
+      ,map_cp.fall_2010_rit AS f_2010_cp_rit      
 
 --NJASK scores
 --NJASK$ela_wide
@@ -431,13 +500,13 @@ SELECT ROW_NUMBER() OVER(
       ,njask_ela.score_2013 AS ela_score_2013
       ,njask_ela.score_2012 AS ela_score_2012
       ,njask_ela.score_2011 AS ela_score_2011      
-      ,njask_ela.Score_2010 AS ela_score_2010
+      ,njask_ela.Score_2010 AS ela_score_2010      
       --ELA proficiency -- add a new line for each test year, delete oldest
       ,njask_ela.prof_2013 AS ela_prof_2013
       ,njask_ela.prof_2012 AS ela_prof_2012
       ,njask_ela.prof_2011 AS ela_prof_2011      
       ,njask_ela.Prof_2010 AS ela_prof_2010
-
+      
       --Math scores -- add a new line for each test year, delete oldest
       ,njask_math.score_2013 AS math_score_2013
       ,njask_math.score_2012 AS math_score_2012
@@ -449,41 +518,94 @@ SELECT ROW_NUMBER() OVER(
       ,njask_math.prof_2011 AS math_prof_2011      
       ,njask_math.Prof_2010 AS math_prof_2010
       
+      --Math grade level -- add a new line for each test year, delete oldest
+      ,njask_math.gr_lev_2013 AS njask_gr_lev_2013
+      ,njask_math.gr_lev_2012 AS njask_gr_lev_2012
+      ,njask_math.gr_lev_2011 AS njask_gr_lev_2011      
+      ,njask_math.gr_lev_2010 AS njask_gr_lev_2010
+      
+--DISCIPLINE
+      ,disc_recent.disc_01_date_reported
+      ,disc_recent.disc_01_given_by
+      ,CASE
+        WHEN disc_recent.disc_01_subject IS NULL THEN disc_recent.disc_01_incident 
+        ELSE disc_recent.disc_01_subject
+       END AS disc_01_incident
+      ,disc_recent.disc_02_date_reported
+      ,disc_recent.disc_02_given_by
+      ,CASE 
+        WHEN disc_recent.disc_02_subject IS NULL THEN disc_recent.disc_02_incident 
+        ELSE disc_recent.disc_02_subject
+       END AS disc_02_incident
+      ,disc_recent.disc_03_date_reported
+      ,disc_recent.disc_03_given_by
+      ,CASE
+        WHEN disc_recent.disc_03_subject IS NULL THEN disc_recent.disc_03_incident 
+        ELSE disc_recent.disc_03_subject
+       END AS disc_03_incident
+      ,disc_recent.disc_04_date_reported
+      ,disc_recent.disc_04_given_by
+      ,CASE
+        WHEN disc_recent.disc_04_subject IS NULL THEN disc_recent.disc_04_incident 
+        ELSE disc_recent.disc_04_subject
+       END AS disc_04_incident
+      ,disc_recent.disc_05_date_reported
+      ,disc_recent.disc_05_given_by
+      ,CASE
+        WHEN disc_recent.disc_05_subject IS NULL THEN disc_recent.disc_05_incident 
+        ELSE disc_recent.disc_05_subject
+       END AS disc_05_incident
+            
+      ,CASE WHEN roster.grade_level <= 6 THEN 'Bench' ELSE 'Choices' END AS bench_choices_label
+      ,CASE WHEN (disc_count.iss + disc_count.oss) > 0 THEN 'Yes' ELSE 'No' END AS ISS_OSS
+      ,ISNULL(disc_count.silent_lunches,0) AS Y1_silent_lunches      
+      ,ISNULL(disc_count.rt1_silent_lunches,0) AS t1_silent_lunches
+      ,ISNULL(disc_count.rt2_silent_lunches,0) AS t2_silent_lunches
+      ,ISNULL(disc_count.rt3_silent_lunches,0) AS t3_silent_lunches
+      ,ISNULL(disc_count.detentions,0) AS Y1_detentions      
+      ,ISNULL(disc_count.rt1_detentions,0) AS t1_detentions
+      ,ISNULL(disc_count.rt2_detentions,0) AS t2_detentions      
+      ,ISNULL(disc_count.rt3_detentions,0) AS t3_detentions
+      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.bench,0) ELSE ISNULL(disc_count.choices,0) END AS Y1_bench_choices      
+      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt1_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T1_bench_choices
+      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt2_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T2_bench_choices
+      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt3_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T3_bench_choices
+      
 FROM roster
 
 --Attendance
-LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts
+LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
   ON roster.id = att_counts.id
-LEFT OUTER JOIN ATT_MEM$att_percentages att_pct
+LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON roster.id = att_pct.id
-LEFT OUTER JOIN ATT_MEM$membership_counts membership_counts
+LEFT OUTER JOIN ATT_MEM$membership_counts membership_counts WITH (NOLOCK)
   ON roster.id = membership_counts.id
 
 --Grades & GPA
-LEFT OUTER JOIN GRADES$wide_credit_core#MS grades
+LEFT OUTER JOIN GRADES$wide_credit_core#MS grades WITH (NOLOCK)
   ON roster.ID = grades.studentid
-LEFT OUTER JOIN GPA$detail#Rise gpa
+LEFT OUTER JOIN GPA$detail#Rise gpa WITH (NOLOCK)
   ON roster.id = gpa.studentid
-LEFT OUTER JOIN REPORTING$promo_status#Rise promo
+LEFT OUTER JOIN REPORTING$promo_status#Rise promo WITH (NOLOCK)
   ON roster.id = promo.studentid
   
 --LITERACY -- upadate parameters for current term
   --F&P
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
   ON roster.student_number = fp_base.STUDENT_NUMBER
  AND fp_base.year = 2013
  AND fp_base.rn_asc = 1
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
   ON roster.student_number = fp_curr.STUDENT_NUMBER
  AND fp_curr.year = 2013
  AND fp_curr.rn_desc = 1
   --LEXILE
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.student_number = lex_base.StudentID
  AND lex_base.MeasurementScale = 'Reading'
  AND lex_base.rn_base = 1
  AND lex_base.map_year_academic = 2013
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
   ON roster.student_number = lex_curr.StudentID
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
@@ -491,27 +613,38 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr
   
 --ED TECH
   --ACCELERATED READER
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
   ON roster.id = ar_yr.studentid 
  AND ar_yr.time_period_name = 'Year'
  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.id = ar_curr.studentid 
  AND ar_curr.time_period_name = 'RT1'
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 
 --MAP
-LEFT OUTER JOIN MAP$reading_wide map_read
-  ON roster.student_number = map_read.studentid
-LEFT OUTER JOIN MAP$math_wide map_math
-  ON roster.student_number = map_math.studentid
+LEFT OUTER JOIN MAP$reading_wide map_read WITH (NOLOCK)
+  ON roster.id = map_read.studentid
+LEFT OUTER JOIN MAP$math_wide map_math WITH (NOLOCK)
+  ON roster.id = map_math.studentid
+LEFT OUTER JOIN MAP$language_wide map_lang WITH (NOLOCK)
+  ON roster.id = map_lang.studentid
+LEFT OUTER JOIN MAP$sci_gen_wide map_gen WITH (NOLOCK)
+  ON roster.id = map_gen.studentid
+LEFT OUTER JOIN MAP$sci_cp_wide map_cp WITH (NOLOCK)
+  ON roster.id = map_cp.studentid
   
 --NJASK
-LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela 
+LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
   ON roster.id = njask_ela.studentid
  AND njask_ela.schoolid = 73252
-LEFT OUTER JOIN NJASK$MATH_WIDE njask_math
+ AND njask_ela.rn = 1
+LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
   ON roster.id = njask_math.studentid
  AND njask_math.schoolid = 73252
 
-ORDER BY roster.GRADE_LEVEL, roster.LASTFIRST
+--Discipline
+LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent
+  ON roster.id = disc_recent.studentid
+LEFT OUTER JOIN DISC$counts_wide disc_count
+  ON roster.id = disc_count.base_studentid
