@@ -6,6 +6,7 @@ SELECT studentid
       ,student_number
       ,attendance_points
       ,y1_att_pts_pct
+      ,days_to_perfect
       ,att_string
       ,GPA_Promo_Status_Grades
       ,promo_status_att
@@ -22,6 +23,10 @@ FROM
             ,student_number
             ,attendance_points
             ,y1_att_pts_pct
+            ,CASE
+              WHEN (ROUND((((mem * .105) - attendance_points) / -.105) + .5,0)) <= 0 THEN 'n/a'
+              ELSE CONVERT(VARCHAR,(ROUND((((mem * .105) - attendance_points) / -.105) + .5,0)))
+             END AS days_to_perfect
             ,att_string
             ,promo_status_grades
             ,CASE 
@@ -81,15 +86,20 @@ FROM
                  ,ac.absences_total + FLOOR(ac.tardies_total/3) AS attendance_points
                  ,ROUND(((mem.mem - (ac.absences_total + FLOOR(ac.tardies_total/3))) / mem.mem) * 100,2) AS y1_att_pts_pct
                  ,rise_hw.simple_avg
+                 ,mem.mem
            FROM STUDENTS s
-           LEFT OUTER JOIN GRADES$wide_all#MS gr_wide ON s.id = gr_wide.studentid
-           LEFT OUTER JOIN GPA$detail#Rise Rise_GPA ON s.id = Rise_GPA.studentid
-           LEFT OUTER JOIN ATT_MEM$attendance_counts ac ON s.id = ac.id
-           LEFT OUTER JOIN ATT_MEM$membership_counts mem ON s.id = mem.id
+           LEFT OUTER JOIN GRADES$wide_all#MS gr_wide
+             ON s.id = gr_wide.studentid
+           LEFT OUTER JOIN GPA$detail#Rise Rise_GPA
+             ON s.id = Rise_GPA.studentid
+           LEFT OUTER JOIN ATT_MEM$attendance_counts ac
+             ON s.id = ac.id
+           LEFT OUTER JOIN ATT_MEM$membership_counts mem
+             ON s.id = mem.id
            LEFT OUTER JOIN GRADES$elements rise_hw
-                        ON s.id = rise_hw.studentid
-                       AND rise_hw.pgf_type = 'H'
-                       AND rise_hw.course_number = 'all_courses'
+             ON s.id = rise_hw.studentid
+            AND rise_hw.pgf_type = 'H'
+            AND rise_hw.course_number = 'all_courses'
            WHERE s.schoolid = 73252 AND s.enroll_status = 0              
            )sub
      )sub1
