@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW ILLUMINATE$assessment_results_by_standard#cube AS
+ALTER VIEW ILLUMINATE$assessment_results_by_standard#cube AS
 SELECT sub.*
 FROM
       (SELECT sub.*
