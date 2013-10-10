@@ -118,8 +118,8 @@ WITH long_goals AS
              FROM AR$goals_long_decode goals
              JOIN AR$test_event_detail detail
                ON goals.student_number = detail.student_number
-              AND detail.dtTaken >= goals.time_period_start
-              AND detail.dtTaken <= goals.time_period_end
+              AND CAST(detail.dtTaken AS DATE) >= CAST(goals.time_period_start AS DATE)
+              AND CAST(detail.dtTaken AS DATE) <= CAST(goals.time_period_end AS DATE)
              ) sub
       WHERE rn_desc = 1  
      )
@@ -350,8 +350,8 @@ FROM
       FROM long_goals
       LEFT OUTER JOIN AR$test_event_detail ar_all
         ON CAST(long_goals.student_number AS NVARCHAR) = ar_all.student_number
-       AND ar_all.dttaken >= long_goals.start_date_summer_bonus
-       AND ar_all.dttaken <= long_goals.end_date
+       AND CAST(ar_all.dttaken AS DATE) >= CAST(long_goals.start_date_summer_bonus AS DATE)
+       AND CAST(ar_all.dttaken AS DATE) <= CAST(long_goals.end_date AS DATE)
        AND ar_all.tiRowStatus = 1
        GROUP BY long_goals.studentid
                ,long_goals.student_number
