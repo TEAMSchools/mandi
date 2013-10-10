@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW MAP$best_baseline AS
+ALTER VIEW MAP$best_baseline AS
 WITH roster AS
   (SELECT studentid
          ,grade_level
@@ -14,7 +14,7 @@ WITH roster AS
      ON cohort.SCHOOLID = schools.SCHOOL_NUMBER
    WHERE schoolid != 999999
      AND rn = 1
-     AND cohort.studentid = 2877
+     --AND cohort.studentid = 2877
   )
  
  ,subj AS
