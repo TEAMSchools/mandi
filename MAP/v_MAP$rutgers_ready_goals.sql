@@ -12,7 +12,7 @@ WITH stu_roster AS
      WHERE c.year >= 2012
        AND c.schoolid != 999999
        AND c.rn = 1
-       AND c.studentid = 2877
+       --AND c.studentid = 2877
     )
    
    ,math_read AS
