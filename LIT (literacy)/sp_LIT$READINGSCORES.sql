@@ -182,7 +182,74 @@ BEGIN
 
  -- step 6: insert into final destination
  INSERT INTO [dbo].[READINGSCORES]
- SELECT *
+ SELECT studentid
+       ,CONVERT(DATE,test_date) AS test_date
+       ,testid
+       ,step_ltr_level 
+       ,status
+       ,color
+       ,CASE
+         WHEN instruct_lvl = 'aa' THEN 'AA'
+         ELSE instruct_lvl
+        END AS instruct_lvel
+       ,CASE
+         WHEN indep_lvl = 'aa' THEN 'AA'
+         ELSE indep_lvl
+        END AS indep_lvl
+       ,read_teacher
+       ,CONVERT(FLOAT,name_ass) AS name_ass
+       ,CONVERT(FLOAT,ltr_nameid) AS ltr_nameid
+       ,CONVERT(FLOAT,ltr_soundid) AS ltr_soundid
+       ,CONVERT(FLOAT,pa_rhymingwds) AS pa_rhymingwds
+       ,CONVERT(FLOAT,pa_mfs) AS pa_mfs
+       ,CONVERT(FLOAT,pa_segmentation) AS pa_segmentation
+       ,CONVERT(FLOAT,cp_orient) AS cp_orient
+       ,CONVERT(FLOAT,cp_121match) AS cp_121match
+       ,CONVERT(FLOAT,cp_slw) AS cp_slw
+       ,CONVERT(FLOAT,devsp_first) AS devsp_first
+       ,CONVERT(FLOAT,devsp_svs) AS devsp_svs
+       ,CONVERT(FLOAT,devsp_final) AS devsp_final
+       ,CONVERT(FLOAT,devsp_ifbd) AS devsp_ifbd
+       ,CONVERT(FLOAT,devsp_longvp) AS devsp_longvp
+       ,CONVERT(FLOAT,devsp_rcontv) AS devsp_rcontv
+       ,CONVERT(FLOAT,devsp_vcelvp) AS devsp_vcelvp
+       ,CONVERT(FLOAT,devsp_vowldig) AS devsp_vowldig
+       ,CONVERT(FLOAT,devsp_cmplxb) AS devsp_cmplxb
+       ,CONVERT(FLOAT,devsp_eding) AS devsp_eding
+       ,CONVERT(FLOAT,devsp_doubsylj) AS devsp_doubsylj
+       ,CONVERT(FLOAT,devsp_longv2sw) AS devsp_longv2sw
+       ,CONVERT(FLOAT,devsp_rcont2sw) AS devsp_rcont2sw
+       ,CONVERT(FLOAT,rr_121match) AS rr_121match
+       ,CONVERT(FLOAT,rr_holdspattern) AS rr_holdspattern
+       ,CONVERT(FLOAT,rr_understanding) AS rr_understanding
+       ,accuracy
+       ,CONVERT(FLOAT,accuracy_1a) AS accuracy_1a
+       ,CONVERT(FLOAT,accuracy_2b) AS accuracy_2b
+       ,CONVERT(FLOAT,ra_errors) AS ra_errors
+       ,CONVERT(FLOAT,cc_factual) AS cc_factual
+       ,CONVERT(FLOAT,cc_infer) AS cc_infer
+       ,CONVERT(FLOAT,cc_other) AS cc_other
+       ,CONVERT(FLOAT,cc_ct) AS cc_ct
+       ,CONVERT(FLOAT,ocomp_factual) AS ocomp_factual
+       ,CONVERT(FLOAT,ocomp_ct) AS ocomp_ct
+       ,CONVERT(FLOAT,ocomp_infer) AS ocomp_infer
+       ,CONVERT(FLOAT,scomp_factual) AS scomp_factual
+       ,CONVERT(FLOAT,scomp_infer) AS scomp_infer
+       ,CONVERT(FLOAT,scomp_ct) AS scomp_ct
+       ,CONVERT(FLOAT,wcomp_fact) AS wcomp_fact
+       ,CONVERT(FLOAT,wcomp_infer) AS wcomp_infer
+       ,CONVERT(FLOAT,wcomp_ct) AS wcomp_ct
+       ,CONVERT(FLOAT,retelling) AS retelling
+       ,CONVERT(FLOAT,total_vwlattmpt) AS total_vwlattmpt
+       ,reading_rate
+       ,CONVERT(FLOAT,fluency) AS fluency
+       ,CONVERT(FLOAT,fp_wpmrate) AS fp_wpmrate
+       ,CONVERT(FLOAT,fp_fluency) AS fp_fluency
+       ,CONVERT(FLOAT,fp_accuracy) AS fp_accuracy
+       ,CONVERT(FLOAT,fp_comp_within) AS fp_comp_within
+       ,CONVERT(FLOAT,fp_comp_beyond) AS fp_comp_beyond
+       ,CONVERT(FLOAT,fp_comp_about) AS fp_comp_about
+       ,fp_keylever
  FROM [#LIT$READINGSCORES|refresh];
 
  -- Step 4: rebuld all nonclustered indexes on table
