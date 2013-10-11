@@ -173,6 +173,11 @@ FROM
       (SELECT sub.*
              ,CASE 
                 WHEN year_goal_index IS NULL THEN NULL
+                --gah random divide by zeros
+                WHEN CAST(MAX(year_goal_index) OVER 
+                         (PARTITION BY studentid
+                                      ,time_period_name) AS FLOAT) = 0 THEN NULL
+                WHEN words_goal = 0 THEN NULL
                 ELSE 
                   ROUND(
                     (CAST(year_goal_index AS FLOAT) / 
@@ -184,6 +189,11 @@ FROM
                END AS target_words
              ,CASE 
                 WHEN year_goal_index IS NULL THEN NULL
+                --gah random divide by zeros
+                WHEN CAST(MAX(year_goal_index) OVER 
+                         (PARTITION BY studentid
+                                      ,time_period_name) AS FLOAT) = 0 THEN NULL
+                WHEN points_goal = 0 THEN NULL
                 ELSE 
                   ROUND(
                     (CAST(year_goal_index AS FLOAT) / 
