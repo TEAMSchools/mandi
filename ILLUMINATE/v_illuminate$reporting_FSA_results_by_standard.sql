@@ -21,9 +21,12 @@ FROM
             ,results.answered
             ,CAST(ROUND(results.percent_correct,2,2) AS FLOAT) AS percent_correct
             ,CASE
-              WHEN results.percent_correct >= 0  AND results.percent_correct < 60 THEN 1
-              WHEN results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
-              WHEN results.percent_correct >= 80 THEN 3
+              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 0  AND results.percent_correct < 60 THEN 1
+              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
+              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 80 THEN 3
+              WHEN assessments.subject = 'Writing' AND results.percent_correct >= 0  AND results.percent_correct < 16.6 THEN 1
+              --WHEN assessments.subject = 'Writing' AND results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
+              WHEN assessments.subject = 'Writing' AND results.percent_correct >= 16.6 THEN 3
               ELSE NULL
              END AS proficiency
             ,results.custom_code AS standard
