@@ -16,6 +16,22 @@ SELECT openq.*
          (PARTITION BY openq.studentid, cohort.year
               ORDER BY openq.test_date DESC) AS rn_desc
       ,CASE
+        WHEN status = 'Achieved'
+        THEN
+         ROW_NUMBER() OVER
+           (PARTITION BY openq.studentid, cohort.year
+                ORDER BY openq.test_date ASC)
+        ELSE NULL
+       END AS achv_base
+      ,CASE
+        WHEN status = 'Achieved'
+        THEN
+         ROW_NUMBER() OVER
+           (PARTITION BY openq.studentid, cohort.year
+                ORDER BY openq.test_date DESC)
+        ELSE NULL
+       END AS achv_cur
+      ,CASE
         WHEN letter_level = 'AA' THEN 0.0
         WHEN letter_level = 'A' THEN 0.3
         WHEN letter_level = 'B' THEN 0.5
