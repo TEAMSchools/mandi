@@ -2,7 +2,6 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW GPA$detail#TEAM AS
-
 SELECT TOP (100) PERCENT *
 FROM
       (SELECT studentid
@@ -53,6 +52,8 @@ FROM
                   ,case when credittype NOT IN ('COCUR','WLANG') then course_y1 else null end as core_course_y1
                   ,case when credittype NOT IN ('COCUR','WLANG') then failing_y1 else null end as core_failing_y1
                   ,case when credittype NOT IN ('COCUR','WLANG') then promo_test else null end as core_promo_test
-            FROM GRADES$DETAIL#MS) sub1
-      GROUP BY studentid, student_number, schoolid, lastfirst, grade_level) sub2
+            FROM GRADES$DETAIL#MS
+           ) sub1
+      GROUP BY studentid, student_number, schoolid, lastfirst, grade_level
+     ) sub2
 ORDER BY grade_level, lastfirst
