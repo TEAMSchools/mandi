@@ -8,7 +8,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
---ALTER PROCEDURE [dbo].[sp_REPORTING$progress_tracker#Rise_static|refresh] AS
+ALTER PROCEDURE [dbo].[sp_REPORTING$progress_tracker#Rise_static|refresh] AS
 BEGIN
 
  DECLARE @sql AS VARCHAR(MAX)='';
@@ -22,7 +22,7 @@ BEGIN
 		--STEP 2: load into a TEMPORARY staging table.  
   SELECT *
 		INTO [#REPORTING$progress_tracker#Rise_static|refresh]
-		FROM REPORTING$progress_tracker#Rise_refresh
+		FROM REPORTING$progress_tracker#Rise_refresh WITH(NOLOCK)
    
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
   --SELECT 1 FROM [LIT$FP_test_events_long#identifiers] WITH (TABLOCKX);

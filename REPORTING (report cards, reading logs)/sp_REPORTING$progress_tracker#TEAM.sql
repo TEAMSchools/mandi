@@ -22,7 +22,7 @@ BEGIN
 		--STEP 2: load into a TEMPORARY staging table.  
   SELECT *
 		INTO [#REPORTING$progress_tracker#TEAM_static|refresh]
-		FROM REPORTING$progress_tracker#TEAM_refresh
+		FROM REPORTING$progress_tracker#TEAM_refresh WITH(NOLOCK)
    
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
   --SELECT 1 FROM [LIT$FP_test_events_long#identifiers] WITH (TABLOCKX);
