@@ -1,7 +1,9 @@
+--NCA Blue
+
 USE KIPP_NJ
 GO
 
---ALTER VIEW REPORTING$progress_tracker#NCA AS
+ALTER VIEW REPORTING$progress_tracker#NCA AS
 WITH roster AS
      (SELECT s.student_number
             ,s.id AS studentid
@@ -45,54 +47,124 @@ SELECT student_number
       ,num_failing
       ,points_goal_yr
       ,points_yr
-      ,map_sci_pctile_cur
-      ,map_math_pctile_cur
-      ,map_read_pctile_cur
+      ,map_sci_pct
+      ,map_math_pct
+      ,map_read_pct
       ,lexile_cur
-      ,total_merits_yr      
-      ,total_merits_curr
-      ,total_demerits_yr
-      ,total_demerits_curr
+      ,merits_yr      
+      ,merits_curr
+      ,demerits_yr
+      ,demerits_curr
 
 --PROFICIENCY METRICS      
       ,CASE
-        WHEN att_pct_yr >= 95 THEN 1
-        WHEN att_pct_yr >= 93 AND att_pct_yr < 95 THEN 2
-        WHEN att_pct_yr >= 90 AND att_pct_yr < 93 THEN 3
-        WHEN att_pct_yr < 90 THEN 4
-       END AS att_pct_prof
+        WHEN att_pct_yr >= 95 THEN 4
+        WHEN att_pct_yr >= 93 AND att_pct_yr < 95 THEN 3
+        WHEN att_pct_yr >= 90 AND att_pct_yr < 93 THEN 2
+        WHEN att_pct_yr < 90 THEN 1
+       END AS att_pct_counts_yr_prof
       ,CASE
-        WHEN inv_tardy_pct_yr >= 98 THEN 1
-        WHEN inv_tardy_pct_yr >= 95 AND inv_tardy_pct_yr < 98 THEN 2
-        WHEN inv_tardy_pct_yr >= 90 AND inv_tardy_pct_yr < 95 THEN 3
-        WHEN inv_tardy_pct_yr <  90 THEN 4
+        WHEN inv_tardy_pct_yr >= 98 THEN 4
+        WHEN inv_tardy_pct_yr >= 95 AND inv_tardy_pct_yr < 98 THEN 3
+        WHEN inv_tardy_pct_yr >= 90 AND inv_tardy_pct_yr < 95 THEN 2
+        WHEN inv_tardy_pct_yr <  90 THEN 1
        END AS on_time_pct_prof      
       ,CASE
-        WHEN suspensions =  0 THEN 2
-        WHEN suspensions >= 1 THEN 4
-       END AS suspensions_prof
-      /*
-      ,gpa_ytd      
-      ,gpa_cum
-      ,earned_credits_cum
-      ,AY_all     
-      ,HY_all     
-      ,PY_all
-      --,CY_all
-      ,E1_all
-      ,E2_all
-      ,num_failing
-      ,points_goal_yr
-      ,points_yr
-      ,map_sci_pctile_cur
-      ,map_math_pctile_cur
-      ,map_read_pctile_cur
-      ,lexile_cur
-      ,total_merits_yr      
-      ,total_merits_curr
-      ,total_demerits_yr
-      ,total_demerits_curr
-      */
+        WHEN suspensions =  0 THEN 3
+        WHEN suspensions >= 1 THEN 1
+       END AS suspensions_prof      
+      ,CASE
+        WHEN gpa_ytd >= 3.0 THEN 4
+        WHEN gpa_ytd >= 2.5 AND gpa_ytd < 3.0 THEN 3
+        WHEN gpa_ytd >= 2.0 AND gpa_ytd < 2.5 THEN 2
+        WHEN gpa_ytd <  2.0 THEN 1
+       END AS gpa_ytd_prof
+      ,CASE
+        WHEN gpa_cum >= 3.0 THEN 4
+        WHEN gpa_cum >= 2.5 AND gpa_cum < 3.0 THEN 3
+        WHEN gpa_cum >= 2.0 AND gpa_cum < 2.5 THEN 2
+        WHEN gpa_cum <  2.0 THEN 1
+       END AS gpa_cum_prof
+      ,CASE        
+        WHEN grade_level = 10 AND earned_credits_cum >  30 THEN 4
+        WHEN grade_level = 10 AND earned_credits_cum =  30 THEN 3
+        WHEN grade_level = 10 AND earned_credits_cum >= 25 AND earned_credits_cum < 30 THEN 2
+        WHEN grade_level = 10 AND earned_credits_cum <  25 THEN 1
+        WHEN grade_level = 11 AND earned_credits_cum >  60 THEN 4
+        WHEN grade_level = 11 AND earned_credits_cum =  60 THEN 3
+        WHEN grade_level = 11 AND earned_credits_cum >= 55 AND earned_credits_cum < 60 THEN 2
+        WHEN grade_level = 11 AND earned_credits_cum <  55 THEN 1
+        WHEN grade_level = 12 AND earned_credits_cum >  90 THEN 4
+        WHEN grade_level = 12 AND earned_credits_cum =  90 THEN 3
+        WHEN grade_level = 12 AND earned_credits_cum >= 85 AND earned_credits_cum < 90 THEN 2
+        WHEN grade_level = 12 AND earned_credits_cum <  85 THEN 1
+       END AS earned_credits_cum_prof
+      ,CASE
+        WHEN AY_all >= 87 THEN 4
+        WHEN AY_all <  87 AND AY_all >= 80  THEN 3
+        WHEN AY_all <  80 AND AY_all >= 70  THEN 2
+        WHEN AY_all <  70  THEN 1
+       END AS AY_all_prof
+      ,CASE
+        WHEN HY_all >= 90 THEN 4
+        WHEN HY_all <  90 AND HY_all >= 83  THEN 3
+        WHEN HY_all <  83 AND HY_all >= 75  THEN 2
+        WHEN HY_all <  75  THEN 1
+       END AS HY_all_prof
+      ,CASE
+        WHEN PY_all >= 87 THEN 4
+        WHEN PY_all <  87 AND PY_all >= 83  THEN 3
+        WHEN PY_all <  83 AND PY_all >= 75  THEN 2
+        WHEN PY_all <  75  THEN 1
+       END AS PY_all_prof
+      ,CASE
+        WHEN E1_all >= 87 THEN 4
+        WHEN E1_all <  87 AND E1_all >= 80  THEN 3
+        WHEN E1_all <  80 AND E1_all >= 70  THEN 2
+        WHEN E1_all <  70  THEN 1
+       END AS E1_all_prof            
+      ,CASE
+        WHEN E2_all >= 87 THEN 4
+        WHEN E2_all <  87 AND E2_all >= 80  THEN 3
+        WHEN E2_all <  80 AND E2_all >= 70  THEN 2
+        WHEN E2_all <  70  THEN 1
+       END AS E2_all_prof      
+      ,CASE
+        WHEN num_failing = 0 THEN 3
+        WHEN num_failing = 1 THEN 2
+        WHEN num_failing > 1 THEN 1
+       END AS num_failing_prof
+      --,points_goal_yr,points_yr -- prof is relative to goal
+      ,CASE
+        WHEN map_sci_pct >= 75 THEN 4
+        WHEN map_sci_pct <  75 AND map_sci_pct >= 62 THEN 3
+        WHEN map_sci_pct <  62 AND map_sci_pct >= 50 THEN 2
+        WHEN map_sci_pct <  50 THEN 1
+       END AS map_sci_pct_prof
+      ,CASE
+        WHEN map_math_pct >= 75 THEN 4
+        WHEN map_math_pct <  75 AND map_math_pct >= 62 THEN 3
+        WHEN map_math_pct <  62 AND map_math_pct >= 50 THEN 2
+        WHEN map_math_pct <  50 THEN 1
+       END AS map_math_pct_prof
+      ,CASE
+        WHEN map_read_pct >= 75 THEN 4
+        WHEN map_read_pct <  75 AND map_read_pct >= 62 THEN 3
+        WHEN map_read_pct <  62 AND map_read_pct >= 50 THEN 2
+        WHEN map_read_pct <  50 THEN 1
+       END AS map_read_pct_prof                        
+      ,CASE
+        WHEN merits_curr >= 25 THEN 4
+        WHEN merits_curr <  25 AND merits_curr >= 15 THEN 3
+        WHEN merits_curr <  15 AND merits_curr >= 10 THEN 2
+        WHEN merits_curr <  10 THEN 1
+       END AS merits_curr_prof      
+      ,CASE
+        WHEN demerits_curr >  12 THEN 1
+        WHEN demerits_curr <= 12 AND demerits_curr >= 7 THEN 2
+        WHEN demerits_curr <=  6 AND demerits_curr >= 4 THEN 3
+        WHEN demerits_curr <=  3 THEN 4
+       END AS demerits_curr_prof
 FROM
      (SELECT roster.*                 
      --Attendance
@@ -147,9 +219,9 @@ FROM
 
      --MAP & Lexile scores -- update academic year in JOIN
      --MAP$comprehensive#identifiers
-           ,map_sci_cur.testpercentile AS map_sci_pctile_cur
-           ,map_math_cur.testpercentile AS map_math_pctile_cur
-           ,map_read_cur.testpercentile AS map_read_pctile_cur
+           ,map_sci_cur.testpercentile AS map_sci_pct
+           ,map_math_cur.testpercentile AS map_math_pct
+           ,map_read_cur.testpercentile AS map_read_pct
            ,map_read_cur.rittoreadingscore AS lexile_cur
          
      --Discipline
@@ -159,18 +231,18 @@ FROM
            ,merits.total_merits_rt1 
              + merits.total_merits_rt2 
              + merits.total_merits_rt3 
-             + merits.total_merits_rt4 AS total_merits_yr      
+             + merits.total_merits_rt4 AS merits_yr      
              --current            
-           ,merits.total_merits_rt1    AS total_merits_curr   -- update field name for current term
+           ,merits.total_merits_rt1    AS merits_curr   -- update field name for current term
            
            --Demerits
              --year
            ,merits.total_demerits_rt1
              + merits.total_demerits_rt2
              + merits.total_demerits_rt3
-             + merits.total_demerits_rt4 AS total_demerits_yr
-             --current -- update field name for current term
-           ,merits.total_demerits        AS total_demerits_curr -- update field name for current term
+             + merits.total_demerits_rt4 AS demerits_yr
+             --current
+           ,merits.total_demerits_rt1    AS demerits_curr -- update field name for current term
            
      FROM roster
       
