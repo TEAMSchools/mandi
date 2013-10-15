@@ -8,7 +8,7 @@ WITH calendar AS
      WHERE n < (365 * 40)
     )
 
-SELECT sub.*
+SELECT TOP 10000000000 sub.*
       ,CAST(sub.year_part AS NVARCHAR) + CAST(sub.week_part AS NVARCHAR) AS reporting_hash
 FROM
    (SELECT date
@@ -17,3 +17,4 @@ FROM
          ,RIGHT('00' + CAST(DATEPART(iso_week, calendar.date) AS VARCHAR(2)), 2) AS week_part
    FROM calendar
    ) sub
+ORDER BY date ASC

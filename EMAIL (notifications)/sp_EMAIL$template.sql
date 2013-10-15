@@ -358,7 +358,7 @@ BEGIN
 								,@body = @email_body
 								,@body_format ='HTML'
 								,@recipients = @email_recipients
-        ,@blind_copy_recipients = 'amartin@teamschools.org'
+        ,@blind_copy_recipients = 'amartin@teamschools.org;ldesimon@teamschools.org'
         ,@subject = @email_subject
         ,@file_attachments = @csv_attachment
 END
