@@ -463,7 +463,7 @@ SELECT roster.*
       ,comment_rc9.teacher_comment  AS rc9_comment
       ,comment_rc10.teacher_comment AS rc10_comment
       --for end of term report card comments
-      ,comment_adv.advisor_comment  AS advisor_comment
+      --,comment_adv.advisor_comment  AS advisor_comment
     
 --Discipline
 --DISC$merits_demerits_count#NCA
@@ -528,21 +528,17 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr
  AND ar_curr.time_period_name = 'RT1' --update every quarter
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
  
---LITERACY -- upadate parameters for current term
   --LEXILE
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.base_student_number = lex_base.StudentID
  AND lex_base.MeasurementScale = 'Reading'
- AND lex_base.fallwinterspring = 'Fall'
- AND lex_base.map_year_academic = 2013
  AND lex_base.rn_base = 1
-
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr
+ AND lex_base.map_year_academic = 2013
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
   ON roster.base_student_number = lex_curr.StudentID
  AND lex_curr.MeasurementScale = 'Reading'
- AND lex_curr.fallwinterspring = 'Fall'
- AND lex_curr.map_year_academic = 2013
  AND lex_curr.rn_curr = 1
+ AND lex_curr.map_year_academic = 2013
  
 --GRADEBOOK COMMMENTS -- upadate fieldname and parameter for current term
 LEFT OUTER JOIN PS$comments#static comment_rc1
@@ -585,9 +581,11 @@ LEFT OUTER JOIN PS$comments#static comment_rc10
   ON gr_wide.rc10_Q1_enr_sectionid = comment_rc10.sectionid
  AND gr_wide.studentid = comment_rc10.id
  AND comment_rc10.finalgradename = 'Q1'
+/* --CAUSING DUPES
 LEFT OUTER JOIN PS$comments#static comment_adv
  ON roster.base_studentid = comment_adv.id
 AND comment_adv.finalgradename = 'Q1'
+--*/
 
 --MERITS & DEMERITS
 LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits

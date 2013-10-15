@@ -296,7 +296,7 @@ SELECT ROW_NUMBER() OVER(
      ,lex_curr.rittoreadingscore AS CUR_LEX
        --GLQ
      ,CASE
-       WHEN lex_base.RITtoReadingScore  = 'BR' THEN NULL
+       WHEN lex_base.RITtoReadingScore  = 'BR' THEN 'Pre-K'
        WHEN lex_base.RITtoReadingScore <= 100  THEN 'K'
        WHEN lex_base.RITtoReadingScore <= 300  AND lex_base.RITtoReadingScore > 100  THEN '1st'
        WHEN lex_base.RITtoReadingScore <= 500  AND lex_base.RITtoReadingScore > 300  THEN '2nd'
@@ -313,7 +313,7 @@ SELECT ROW_NUMBER() OVER(
        ELSE NULL
       END AS BASE_LEX_GLQ_STARTING
      ,CASE
-       WHEN lex_curr.RITtoReadingScore  = 'BR' THEN NULL
+       WHEN lex_curr.RITtoReadingScore  = 'BR' THEN 'Pre-K'
        WHEN lex_curr.RITtoReadingScore <= 100  THEN 'K'
        WHEN lex_curr.RITtoReadingScore <= 300  AND lex_curr.RITtoReadingScore > 100  THEN '1st'
        WHEN lex_curr.RITtoReadingScore <= 500  AND lex_curr.RITtoReadingScore > 300  THEN '2nd'
@@ -594,11 +594,11 @@ LEFT OUTER JOIN REPORTING$promo_status#Rise promo WITH (NOLOCK)
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
   ON roster.student_number = fp_base.STUDENT_NUMBER
  AND fp_base.year = 2013
- AND fp_base.rn_asc = 1
+ AND fp_base.achv_base = 1
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
   ON roster.student_number = fp_curr.STUDENT_NUMBER
  AND fp_curr.year = 2013
- AND fp_curr.rn_desc = 1
+ AND fp_curr.achv_cur = 1
   --LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.student_number = lex_base.StudentID

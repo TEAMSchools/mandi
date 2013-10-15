@@ -637,11 +637,11 @@ LEFT OUTER JOIN REPORTING$promo_status#TEAM promo WITH (NOLOCK)
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
   ON roster.student_number = fp_base.STUDENT_NUMBER
  AND fp_base.year = 2013
- AND fp_base.rn_asc = 1
+ AND fp_base.achv_base = 1
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
   ON roster.student_number = fp_curr.STUDENT_NUMBER
  AND fp_curr.year = 2013
- AND fp_curr.rn_desc = 1
+ AND fp_curr.achv_cur = 1
   --LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.student_number = lex_base.StudentID
