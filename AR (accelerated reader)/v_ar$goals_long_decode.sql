@@ -154,12 +154,12 @@ LEFT OUTER JOIN (
          ) sub
   WHERE rn = 1
   ) ar_specific
-  ON CAST(sub_1.student_number AS VARCHAR) = ar_specific.student_number
+  ON CAST(sub_1.student_number AS CHAR) = ar_specific.student_number
  AND sub_1.schoolid = ar_specific.schoolid
  AND sub_1.yearid = ar_specific.yearid
  AND sub_1.time_period_name = ar_specific.time_period_name
  AND sub_1.time_period_hierarchy = ar_specific.time_period_hierarchy
-/*
+
 --union picks up any specific goals where there is NO corresponding default.
 UNION
 SELECT CAST(student_number AS nvarchar)
@@ -173,4 +173,3 @@ SELECT CAST(student_number AS nvarchar)
       ,time_period_hierarchy
 FROM AR$goals
 WHERE student_number NOT LIKE 'Default_%'
-*/

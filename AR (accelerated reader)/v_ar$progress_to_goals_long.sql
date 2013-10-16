@@ -76,20 +76,19 @@ WITH long_goals AS
           ,goals.time_period_start AS start_date_summer_bonus
           ,goals.time_period_start AS start_date
           ,goals.time_period_end AS end_date
-    FROM COHORT$comprehensive_long#static cohort
-    JOIN students s 
+    FROM KIPP_NJ..COHORT$comprehensive_long#static cohort
+    JOIN KIPP_NJ..STUDENTS s 
       ON cohort.studentid = s.id
      --AND s.id = 4772
      --AND s.student_number >= 12866
-    JOIN AR$goals_long_decode goals
+    JOIN KIPP_NJ..AR$goals_long_decode goals
        ON CAST(s.student_number AS NVARCHAR) = goals.student_number
       AND goals.time_period_hierarchy = 2
       AND ((year - 1990) * 100) = goals.yearid
       AND cohort.year >= 2011
       AND cohort.rn = 1
-    ),
-      
-      last_book AS
+    )
+     ,last_book AS
      (SELECT sub.*
       FROM
             (SELECT goals.student_number
@@ -116,7 +115,7 @@ WITH long_goals AS
                                   ,goals.time_period_end
                       ORDER BY detail.dttaken DESC) AS rn_desc
              FROM AR$goals_long_decode goals
-             JOIN AR$test_event_detail detail
+             JOIN AR$test_event_detail#static detail
                ON goals.student_number = detail.student_number
               AND CAST(detail.dtTaken AS DATE) >= CAST(goals.time_period_start AS DATE)
               AND CAST(detail.dtTaken AS DATE) <= CAST(goals.time_period_end AS DATE)
@@ -125,7 +124,6 @@ WITH long_goals AS
      )
 
 --query starts here
-
 SELECT totals.*
       ,last_book.last_book_date
       ,last_book.title_string AS last_book
@@ -348,7 +346,7 @@ FROM
             ,SUM(ar_all.tipassed) AS N_passed
             ,COUNT(ar_all.iuserid) AS N_total      
       FROM long_goals
-      LEFT OUTER JOIN AR$test_event_detail ar_all
+      LEFT OUTER JOIN AR$test_event_detail#static ar_all
         ON CAST(long_goals.student_number AS NVARCHAR) = ar_all.student_number
        AND CAST(ar_all.dttaken AS DATE) >= CAST(long_goals.start_date_summer_bonus AS DATE)
        AND CAST(ar_all.dttaken AS DATE) <= CAST(long_goals.end_date AS DATE)
