@@ -51,15 +51,15 @@ FROM
             ,ROW_NUMBER() OVER(
                 PARTITION BY s.id, dates.time_per_name, co.grade_level
                     ORDER BY results.custom_code) AS rn
-      FROM STUDENTS s
-      LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard results
+      FROM STUDENTS s WITH(NOLOCK)
+      LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard results WITH(NOLOCK)
         ON s.student_number = results.local_student_id
-      LEFT OUTER JOIN ILLUMINATE$assessments assessments
+      LEFT OUTER JOIN ILLUMINATE$assessments assessments WITH(NOLOCK)
         ON results.assessment_id = assessments.assessment_id
-      LEFT OUTER JOIN COHORT$comprehensive_long#static co
+      LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
         ON s.id = co.studentid
        AND co.year = DATEPART(YYYY,assessments.administered_at)  
-      JOIN REPORTING$dates dates
+      JOIN REPORTING$dates dates WITH(NOLOCK)
         ON assessments.administered_at >= dates.start_date
        AND assessments.administered_at <= dates.end_date
        AND dates.identifier = 'FSA'

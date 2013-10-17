@@ -39,23 +39,23 @@ FROM
               + '_' + ISNULL(results.custom_code,'STD') --standard tested
               + '_' + ISNULL(team,'TEAM')
               + '_' + ISNULL(CONVERT(VARCHAR,student_number),'00000')
-             AS reporting_hash
+               AS reporting_hash
             ,ISNULL(dates.time_per_name,'WEEK')
               + '_' + ISNULL(CONVERT(VARCHAR,co.grade_level),'GRADE')
               + '_' + ISNULL(results.custom_code,'STD') --standard tested
-             AS rollup_hash
+               AS rollup_hash
             ,ROW_NUMBER() OVER(
                 PARTITION BY s.id, dates.time_per_name, co.grade_level
                     ORDER BY results.custom_code) AS rn
-      FROM STUDENTS s
-      LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results
+      FROM STUDENTS s  WITH(NOLOCK)
+      LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results WITH(NOLOCK)
         ON s.student_number = results.local_student_id
-      LEFT OUTER JOIN ILLUMINATE$assessments assessments
+      LEFT OUTER JOIN ILLUMINATE$assessments assessments WITH(NOLOCK)
         ON results.assessment_id = assessments.assessment_id
-      LEFT OUTER JOIN COHORT$comprehensive_long#static co
+      LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
         ON s.id = co.studentid
        AND co.year = DATEPART(YYYY,assessments.administered_at)  
-      JOIN REPORTING$dates dates
+      JOIN REPORTING$dates dates WITH(NOLOCK)
         ON assessments.administered_at >= dates.start_date
        AND assessments.administered_at <= dates.end_date
        AND dates.identifier = 'FSA'
@@ -64,4 +64,3 @@ FROM
         AND s.enroll_status = 0
         --AND assessments.scope IN ('FSA','Site Assessment')
       ) sub
---ORDER BY schoolid, grade_level, week_num, team, studentid, subject, standard
