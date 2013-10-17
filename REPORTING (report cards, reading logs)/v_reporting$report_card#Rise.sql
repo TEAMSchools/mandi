@@ -10,8 +10,8 @@ WITH roster AS
             ,s.last_name AS stu_lastname
             ,c.grade_level AS stu_grade_level
             ,s.team AS travel_group            
-      FROM KIPP_NJ..COHORT$comprehensive_long#static c      
-      JOIN KIPP_NJ..STUDENTS s
+      FROM KIPP_NJ..COHORT$comprehensive_long#static c  WITH (NOLOCK)
+      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
         ON c.studentid = s.id
        AND s.enroll_status = 0
        --AND s.ID = 2484
@@ -38,18 +38,16 @@ WITH roster AS
             ,CASE WHEN cs.mother_home is NULL THEN cs.mother_day ELSE cs.mother_home END AS mother_daytime
             ,cs.father_cell
             ,CASE WHEN cs.father_home is NULL THEN cs.father_day ELSE cs.father_home END AS father_daytime
-            ,local.guardianemail
+            ,cs.guardianemail
             ,cs.SPEDLEP AS SPED
             ,cs.lunch_balance AS lunch_balance
-      FROM KIPP_NJ..CUSTOM_STUDENTS cs
-      JOIN KIPP_NJ..STUDENTS s
+      FROM KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
+      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
         ON cs.studentid = s.id
-       AND s.enroll_status = 0
-      JOIN KIPP_NJ..PS$local_emails local
-        ON cs.studentid = local.studentid      
+       AND s.enroll_status = 0      
      )       
 
-SELECT DISTINCT roster.*
+SELECT roster.*
       ,info.*
       
 --Course Grades
@@ -356,94 +354,52 @@ SELECT DISTINCT roster.*
      ,fp_base.letter_level AS fp_letter_base
      ,fp_curr.letter_level AS fp_letter_curr
        --GLQ
-     ,CASE 
-       WHEN fp_curr.letter_level = 'AA' THEN '0'
-       WHEN fp_curr.letter_level = 'A' THEN '.3'
-       WHEN fp_curr.letter_level = 'B' THEN '.5'
-       WHEN fp_curr.letter_level = 'C' THEN '.7'
-       WHEN fp_curr.letter_level = 'D' THEN '1'
-       WHEN fp_curr.letter_level = 'E' THEN '1.2'
-       WHEN fp_curr.letter_level = 'F' THEN '1.4'
-       WHEN fp_curr.letter_level = 'G' THEN '1.6'
-       WHEN fp_curr.letter_level = 'H' THEN '1.8'
-       WHEN fp_curr.letter_level = 'I' THEN '2'
-       WHEN fp_curr.letter_level = 'J' THEN '2.2'
-       WHEN fp_curr.letter_level = 'K' THEN '2.4'
-       WHEN fp_curr.letter_level = 'L' THEN '2.6'
-       WHEN fp_curr.letter_level = 'M' THEN '2.8'
-       WHEN fp_curr.letter_level = 'N' THEN '3'
-       WHEN fp_curr.letter_level = 'O' THEN '3.5'
-       WHEN fp_curr.letter_level = 'P' THEN '3.8'
-       WHEN fp_curr.letter_level = 'Q' THEN '4'
-       WHEN fp_curr.letter_level = 'R' THEN '4.5'
-       WHEN fp_curr.letter_level = 'S' THEN '4.8'
-       WHEN fp_curr.letter_level = 'T' THEN '5'
-       WHEN fp_curr.letter_level = 'U' THEN '5.5'
-       WHEN fp_curr.letter_level = 'V' THEN '6'
-       WHEN fp_curr.letter_level = 'W' THEN '6.3'
-       WHEN fp_curr.letter_level = 'X' THEN '6.7'
-       WHEN fp_curr.letter_level = 'Y' THEN '7'
-       WHEN fp_curr.letter_level = 'Z' THEN '7.5'
-       WHEN fp_curr.letter_level = 'Z+' THEN '8' 
-       ELSE NULL
-      END AS fp_curr_GLQ
-     ,CASE WHEN fp_base.letter_level = 'AA' THEN '0'
-       WHEN fp_base.letter_level = 'A' THEN '.3'
-       WHEN fp_base.letter_level = 'B' THEN '.5'
-       WHEN fp_base.letter_level = 'C' THEN '.7'
-       WHEN fp_base.letter_level = 'D' THEN '1'
-       WHEN fp_base.letter_level = 'E' THEN '1.2'
-       WHEN fp_base.letter_level = 'F' THEN '1.4'
-       WHEN fp_base.letter_level = 'G' THEN '1.6'
-       WHEN fp_base.letter_level = 'H' THEN '1.8'
-       WHEN fp_base.letter_level = 'I' THEN '2'
-       WHEN fp_base.letter_level = 'J' THEN '2.2'
-       WHEN fp_base.letter_level = 'K' THEN '2.4'
-       WHEN fp_base.letter_level = 'L' THEN '2.6'
-       WHEN fp_base.letter_level = 'M' THEN '2.8'
-       WHEN fp_base.letter_level = 'N' THEN '3'
-       WHEN fp_base.letter_level = 'O' THEN '3.5'
-       WHEN fp_base.letter_level = 'P' THEN '3.8'
-       WHEN fp_base.letter_level = 'Q' THEN '4'
-       WHEN fp_base.letter_level = 'R' THEN '4.5'
-       WHEN fp_base.letter_level = 'S' THEN '4.8'
-       WHEN fp_base.letter_level = 'T' THEN '5'
-       WHEN fp_base.letter_level = 'U' THEN '5.5'
-       WHEN fp_base.letter_level = 'V' THEN '6'
-       WHEN fp_base.letter_level = 'W' THEN '6.3'
-       WHEN fp_base.letter_level = 'X' THEN '6.7'
-       WHEN fp_base.letter_level = 'Y' THEN '7'
-       WHEN fp_base.letter_level = 'Z' THEN '7.5'
-       WHEN fp_base.letter_level = 'Z+' THEN '8' 
-       ELSE NULL
-      END AS fp_base_GLQ     
+     ,fp_curr.GLEQ AS fp_curr_GLQ
+     ,fp_base.GLEQ AS fp_base_GLQ     
      
      --Lexile (from MAP)
      --update terms in JOIN
      ,CASE
-       WHEN lex_fall.RITtoReadingScore = 'BR' THEN 'Beginning Reader'
-       ELSE lex_fall.RITtoReadingScore
+       WHEN lex_base.RITtoReadingScore = 'BR' THEN 'Beginning Reader'
+       ELSE lex_base.RITtoReadingScore
       END AS lexile_base
-     --,lex_fall.RITtoReadingMin AS lexile_base_min
-     --,lex_fall.RITtoReadingMax AS lexile_base_max     
+     --,lex_base.RITtoReadingMin AS lexile_base_min
+     --,lex_base.RITtoReadingMax AS lexile_base_max     
        --GLQ
      ,CASE
-       WHEN lex_fall.RITtoReadingScore  = 'BR' THEN 'Beginning Reader'
-       WHEN lex_fall.RITtoReadingScore <= 100  THEN 'K'
-       WHEN lex_fall.RITtoReadingScore <= 300  AND lex_fall.RITtoReadingScore > 100  THEN '1st'
-       WHEN lex_fall.RITtoReadingScore <= 500  AND lex_fall.RITtoReadingScore > 300  THEN '2nd'
-       WHEN lex_fall.RITtoReadingScore <= 600  AND lex_fall.RITtoReadingScore > 500  THEN '3rd'
-       WHEN lex_fall.RITtoReadingScore <= 700  AND lex_fall.RITtoReadingScore > 600  THEN '4th'
-       WHEN lex_fall.RITtoReadingScore <= 800  AND lex_fall.RITtoReadingScore > 700  THEN '5th'
-       WHEN lex_fall.RITtoReadingScore <= 900  AND lex_fall.RITtoReadingScore > 800  THEN '6th'
-       WHEN lex_fall.RITtoReadingScore <= 1000 AND lex_fall.RITtoReadingScore > 900  THEN '7th'
-       WHEN lex_fall.RITtoReadingScore <= 1100 AND lex_fall.RITtoReadingScore > 1000 THEN '8th'
-       WHEN lex_fall.RITtoReadingScore <= 1200 AND lex_fall.RITtoReadingScore > 1100 THEN '9th'
-       WHEN lex_fall.RITtoReadingScore <= 1300 AND lex_fall.RITtoReadingScore > 1200 THEN '10th'
-       WHEN lex_fall.RITtoReadingScore <= 1400 AND lex_fall.RITtoReadingScore > 1300 THEN '11th'
-       WHEN lex_fall.RITtoReadingScore  > 1400 THEN '12th'
+       WHEN lex_base.RITtoReadingScore  = 'BR' THEN 'Pre-K'
+       WHEN lex_base.RITtoReadingScore <= 100  THEN 'K'
+       WHEN lex_base.RITtoReadingScore <= 300  AND lex_base.RITtoReadingScore > 100  THEN '1st'
+       WHEN lex_base.RITtoReadingScore <= 500  AND lex_base.RITtoReadingScore > 300  THEN '2nd'
+       WHEN lex_base.RITtoReadingScore <= 600  AND lex_base.RITtoReadingScore > 500  THEN '3rd'
+       WHEN lex_base.RITtoReadingScore <= 700  AND lex_base.RITtoReadingScore > 600  THEN '4th'
+       WHEN lex_base.RITtoReadingScore <= 800  AND lex_base.RITtoReadingScore > 700  THEN '5th'
+       WHEN lex_base.RITtoReadingScore <= 900  AND lex_base.RITtoReadingScore > 800  THEN '6th'
+       WHEN lex_base.RITtoReadingScore <= 1000 AND lex_base.RITtoReadingScore > 900  THEN '7th'
+       WHEN lex_base.RITtoReadingScore <= 1100 AND lex_base.RITtoReadingScore > 1000 THEN '8th'
+       WHEN lex_base.RITtoReadingScore <= 1200 AND lex_base.RITtoReadingScore > 1100 THEN '9th'
+       WHEN lex_base.RITtoReadingScore <= 1300 AND lex_base.RITtoReadingScore > 1200 THEN '10th'
+       WHEN lex_base.RITtoReadingScore <= 1400 AND lex_base.RITtoReadingScore > 1300 THEN '11th'
+       WHEN lex_base.RITtoReadingScore  > 1400 THEN '12th'
        ELSE NULL
       END AS lexile_base_GLQ
+     ,CASE
+       WHEN lex_curr.RITtoReadingScore  = 'BR' THEN 'Pre-K'
+       WHEN lex_curr.RITtoReadingScore <= 100  THEN 'K'
+       WHEN lex_curr.RITtoReadingScore <= 300  AND lex_curr.RITtoReadingScore > 100  THEN '1st'
+       WHEN lex_curr.RITtoReadingScore <= 500  AND lex_curr.RITtoReadingScore > 300  THEN '2nd'
+       WHEN lex_curr.RITtoReadingScore <= 600  AND lex_curr.RITtoReadingScore > 500  THEN '3rd'
+       WHEN lex_curr.RITtoReadingScore <= 700  AND lex_curr.RITtoReadingScore > 600  THEN '4th'
+       WHEN lex_curr.RITtoReadingScore <= 800  AND lex_curr.RITtoReadingScore > 700  THEN '5th'
+       WHEN lex_curr.RITtoReadingScore <= 900  AND lex_curr.RITtoReadingScore > 800  THEN '6th'
+       WHEN lex_curr.RITtoReadingScore <= 1000 AND lex_curr.RITtoReadingScore > 900  THEN '7th'
+       WHEN lex_curr.RITtoReadingScore <= 1100 AND lex_curr.RITtoReadingScore > 1000 THEN '8th'
+       WHEN lex_curr.RITtoReadingScore <= 1200 AND lex_curr.RITtoReadingScore > 1100 THEN '9th'
+       WHEN lex_curr.RITtoReadingScore <= 1300 AND lex_curr.RITtoReadingScore > 1200 THEN '10th'
+       WHEN lex_curr.RITtoReadingScore <= 1400 AND lex_curr.RITtoReadingScore > 1300 THEN '11th'
+       WHEN lex_curr.RITtoReadingScore  > 1400 THEN '12th'
+       ELSE NULL
+      END AS lexile_curr_GLQ
       
 
 --NJASK scores
@@ -599,77 +555,77 @@ LEFT OUTER JOIN info
   ON roster.base_studentid = info.id
 
 --GRADES
-LEFT OUTER JOIN GRADES$wide_all#MS gr_wide
+LEFT OUTER JOIN GRADES$wide_all#MS gr_wide WITH (NOLOCK)
   ON roster.base_studentid = gr_wide.studentid
 
 --ATTENDANCE
-LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts
+LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
   ON roster.base_studentid = att_counts.id
-LEFT OUTER JOIN ATT_MEM$att_percentages att_pct
+LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON roster.base_studentid = att_pct.id
 
 --GPA
-LEFT OUTER JOIN GPA$detail#Rise rise_gpa
+LEFT OUTER JOIN GPA$detail#Rise rise_gpa WITH (NOLOCK)
   ON roster.base_studentid = rise_gpa.studentid
 
 --PROMO STATUS  
-LEFT OUTER JOIN REPORTING$promo_status#Rise promo
+LEFT OUTER JOIN REPORTING$promo_status#Rise promo WITH (NOLOCK)
   ON roster.base_studentid = promo.studentid
 --ORDER BY stu_grade_level, travel_group, stu_lastfirst
 
 --MAP
-LEFT OUTER JOIN MAP$reading_wide map_read
-  ON roster.base_student_number = map_read.studentid
-LEFT OUTER JOIN MAP$math_wide map_math
-  ON roster.base_student_number = map_math.studentid
+LEFT OUTER JOIN MAP$reading_wide map_read WITH (NOLOCK)
+  ON roster.base_studentid = map_read.studentid
+LEFT OUTER JOIN MAP$math_wide map_math WITH (NOLOCK)
+  ON roster.base_studentid = map_math.studentid
   
 --LITERACY -- upadate parameters for current term
   --F&P
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base
-  ON roster.base_student_number = fp_base.STUDENT_NUMBER
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
+  ON roster.base_student_number = fp_base.student_number
  AND fp_base.year = 2013
  AND fp_base.rn_asc = 1
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr
-  ON roster.base_student_number = fp_curr.STUDENT_NUMBER
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
+  ON roster.base_student_number = fp_curr.student_number
  AND fp_curr.year = 2013
  AND fp_curr.rn_desc = 1
   --LEXILE
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_fall
-  ON roster.base_student_number = lex_fall.StudentID
- AND lex_fall.MeasurementScale = 'Reading'
- AND lex_fall.fallwinterspring = 'Fall'
- AND lex_fall.map_year_academic = 2013
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_spring
-  ON roster.base_student_number = lex_spring.StudentID
- AND lex_spring.MeasurementScale = 'Reading'
- AND lex_spring.fallwinterspring = 'Spring'
- AND lex_spring.map_year_academic = 2013
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
+  ON roster.base_student_number = lex_base.studentid
+ AND lex_base.MeasurementScale = 'Reading'
+ AND lex_base.rn_base = 1
+ AND lex_base.map_year_academic = 2013
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
+  ON roster.base_student_number = lex_curr.studentid
+ AND lex_curr.MeasurementScale = 'Reading'
+ AND lex_curr.rn_curr = 1
+ AND lex_curr.map_year_academic = 2013
   
 --NJASK
-LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela 
+LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
   ON roster.base_studentid = njask_ela.studentid
  AND njask_ela.schoolid = 73252
-LEFT OUTER JOIN NJASK$MATH_WIDE njask_math
+ AND njask_ela.rn = 1
+LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
   ON roster.base_studentid = njask_math.studentid
  AND njask_math.schoolid = 73252
 
 --DISCIPLINE
-LEFT OUTER JOIN DISC$counts_wide disc_count
+LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)
   ON roster.base_studentid = disc_count.base_studentid
-LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent
-  ON roster.base_studentid = disc_recent.base_studentid
+LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
+  ON roster.base_studentid = disc_recent.studentid
 
 --ED TECH
   --ACCELERATED READER
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
   ON roster.base_studentid = ar_yr.studentid 
  AND ar_yr.time_period_name = 'Year'
  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.base_studentid = ar_curr.studentid 
  AND ar_curr.time_period_name = 'RT1'
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
-
 
 /* NOT USED FOR PROGRESS REPORTS
 --GRADEBOOK COMMMENTS -- upadate fieldname and parameter for current term

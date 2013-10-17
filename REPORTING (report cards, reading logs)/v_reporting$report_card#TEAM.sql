@@ -539,5 +539,6 @@ LEFT OUTER JOIN PS$comments#static comment_rc10 WITH (NOLOCK)
  AND gr_wide.studentid = comment_rc10.id
  AND comment_rc10.finalgradename = 'T1'
 LEFT OUTER JOIN PS$comments#static comment_adv WITH (NOLOCK)
- ON roster.base_studentid = comment_adv.id
-AND comment_adv.finalgradename = 'T1'
+  ON roster.base_studentid = comment_adv.id
+ AND comment_adv.finalgradename = 'T1'
+ AND comment_adv.advisor_comment IS NOT NULL
