@@ -31,7 +31,7 @@ WITH reporting_weeks AS
            ,goals.time_period_name
            ,goals.words_goal
            ,goals.points_goal
-     FROM KIPP_NJ..AR$goals_long_decode goals
+     FROM KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
        ON goals.student_number = CAST(s.STUDENT_NUMBER AS VARCHAR)
       AND s.enroll_status = 0

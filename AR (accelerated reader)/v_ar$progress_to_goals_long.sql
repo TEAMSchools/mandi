@@ -24,17 +24,23 @@ WITH long_goals AS
           ,goals.time_period_start AS start_date_summer_bonus
           ,goals.time_period_start AS [start_date]
           ,goals.time_period_end AS end_date     
-    FROM COHORT$comprehensive_long#static cohort
-    JOIN students s 
-      ON cohort.studentid = s.id  
+    FROM COHORT$comprehensive_long#static cohort WITH (NOLOCK)
+    JOIN students s WITH (NOLOCK)
+      ON cohort.studentid = s.id
+     
+     --AND s.grade_level = 8
+     --AND s.schoolid = 73252
      --AND s.ID = 4772
      --AND s.student_number >= 12866
+
     --year
-    JOIN AR$GOALS_LONG_DECODE goals
-       ON CAST(s.student_number AS NVARCHAR) = goals.student_number
+    JOIN AR$goals_long_decode#static goals WITH (NOLOCK)
+       ON CAST(s.student_number AS VARCHAR) = goals.student_number
       AND goals.time_period_hierarchy = 1
       AND cohort.rn = 1
       AND ((cohort.year - 1990) * 100) = goals.yearid
+
+      --AND goals.yearid = 2300
     --term
     UNION ALL
 
@@ -76,17 +82,24 @@ WITH long_goals AS
           ,goals.time_period_start AS start_date_summer_bonus
           ,goals.time_period_start AS start_date
           ,goals.time_period_end AS end_date
-    FROM KIPP_NJ..COHORT$comprehensive_long#static cohort
-    JOIN KIPP_NJ..STUDENTS s 
+    FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH (NOLOCK)
+    JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
       ON cohort.studentid = s.id
      --AND s.id = 4772
      --AND s.student_number >= 12866
-    JOIN KIPP_NJ..AR$goals_long_decode goals
-       ON CAST(s.student_number AS NVARCHAR) = goals.student_number
+
+     --AND s.grade_level = 8
+     --AND s.schoolid = 73252
+
+    JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
+       ON CAST(s.student_number AS VARCHAR) = goals.student_number
       AND goals.time_period_hierarchy = 2
       AND ((year - 1990) * 100) = goals.yearid
       AND cohort.year >= 2011
       AND cohort.rn = 1
+
+      AND goals.yearid = 2300
+      --AND goals.time_period_name = 'Hexameter 2'
     )
      ,last_book AS
      (SELECT sub.*
@@ -114,8 +127,8 @@ WITH long_goals AS
                                   ,goals.time_period_start
                                   ,goals.time_period_end
                       ORDER BY detail.dttaken DESC) AS rn_desc
-             FROM AR$goals_long_decode goals
-             JOIN AR$test_event_detail#static detail
+             FROM AR$goals_long_decode#static goals WITH (NOLOCK)
+             JOIN AR$test_event_detail#static detail WITH (NOLOCK)
                ON goals.student_number = detail.student_number
               AND CAST(detail.dtTaken AS DATE) >= CAST(goals.time_period_start AS DATE)
               AND CAST(detail.dtTaken AS DATE) <= CAST(goals.time_period_end AS DATE)
@@ -346,8 +359,8 @@ FROM
             ,SUM(ar_all.tipassed) AS N_passed
             ,COUNT(ar_all.iuserid) AS N_total      
       FROM long_goals
-      LEFT OUTER JOIN AR$test_event_detail#static ar_all
-        ON CAST(long_goals.student_number AS NVARCHAR) = ar_all.student_number
+      LEFT OUTER JOIN AR$test_event_detail#static ar_all WITH (NOLOCK)
+        ON CAST(long_goals.student_number AS VARCHAR) = ar_all.student_number
        AND CAST(ar_all.dttaken AS DATE) >= CAST(long_goals.start_date_summer_bonus AS DATE)
        AND CAST(ar_all.dttaken AS DATE) <= CAST(long_goals.end_date AS DATE)
        AND ar_all.tiRowStatus = 1
@@ -370,3 +383,9 @@ LEFT OUTER JOIN last_book
  AND totals.time_hierarchy = last_book.time_period_hierarchy
  AND totals.start_date = last_book.time_period_start
  AND totals.end_date = last_book.time_period_end
+
+/*
+ORDER BY time_hierarchy DESC
+        ,time_period_name ASC
+        ,student_number
+*/

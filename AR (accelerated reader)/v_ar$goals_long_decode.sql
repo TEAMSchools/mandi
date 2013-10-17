@@ -2,7 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW AR$goals_long_decode AS
-SELECT CAST(sub_1.student_number AS NVARCHAR) AS student_number
+SELECT CAST(sub_1.student_number AS VARCHAR) AS student_number
       ,sub_1.schoolid
       ,CASE
          WHEN ar_specific.student_number IS NULL THEN sub_1.words_goal
@@ -37,28 +37,25 @@ FROM
             ,ar_default.time_period_start
             ,ar_default.time_period_end
             ,ar_default.time_period_hierarchy
-      FROM COHORT$comprehensive_long#static cohort
-      JOIN STUDENTS s
+      FROM COHORT$comprehensive_long#static cohort WITH (NOLOCK)
+      JOIN STUDENTS s WITH (NOLOCK)
         ON cohort.studentid = s.id
        AND cohort.rn = 1
        --AND cohort.year >= 2011
        --AND s.STUDENT_NUMBER = 12726
        AND cohort.schoolid != 999999
 
-      JOIN AR$goals ar_default
-        ON 'Default_Gr' + CAST(cohort.grade_level AS NVARCHAR) = ar_default.student_number
+      AND cohort.year = 2013
+      --AND cohort.GRADE_LEVEL = 8
+      --AND cohort.SCHOOLID = 73252
+
+      JOIN AR$goals ar_default WITH (NOLOCK)
+        ON 'Default_Gr' + CAST(cohort.grade_level AS VARCHAR) = CAST(ar_default.student_number AS VARCHAR)
        AND cohort.schoolid = ar_default.schoolid
        AND CAST(((cohort.year - 1990) * 100) AS INT) = ar_default.yearid  
       ) sub_1
-/*
-LEFT OUTER JOIN AR$goals ar_specific
-  ON CAST(sub_1.student_number AS VARCHAR) = ar_specific.student_number
- AND sub_1.schoolid = ar_specific.schoolid
- AND sub_1.yearid = ar_specific.yearid
- AND sub_1.time_period_name = ar_specific.time_period_name
- AND sub_1.time_period_hierarchy = ar_specific.time_period_hierarchy
-*/
 LEFT OUTER JOIN (
+  --YEAR
   SELECT sub.*
   FROM
         (SELECT sub.*
@@ -71,8 +68,8 @@ LEFT OUTER JOIN (
                   ) AS rn
          FROM  
                (SELECT ar.* 
-                      ,'1_REAL' AS force_sort
-                FROM AR$goals ar
+                      ,1 AS force_sort
+                FROM AR$goals ar WITH (NOLOCK)
                 WHERE student_number NOT LIKE 'Default%'
                   AND student_number IS NOT NULL
                   AND student_number != ''
@@ -97,7 +94,7 @@ LEFT OUTER JOIN (
                          WHEN schoolid = 73253 THEN '2014-06-11' 
                        END AS time_period_end
                       ,1 AS time_period_hierarchy
-                      ,'2_PROJ' AS force_sort
+                      ,2 AS force_sort
                 FROM
                       (SELECT sub.*
                              ,ROUND(
@@ -129,7 +126,7 @@ LEFT OUTER JOIN (
                                 )
                               ,0) AS proj_points_goal_year
                        FROM
-                             (SELECT sub.student_number
+                            (SELECT sub.student_number
                                    ,sub.schoolid
                                    ,sub.yearid
                                    ,SUM(words_goal) AS total_words_goal
@@ -140,7 +137,7 @@ LEFT OUTER JOIN (
                              FROM
                                    (SELECT ar.*
                                           ,DATEDIFF(day, ar.time_period_start, ar.time_period_end) AS num_days
-                                    FROM KIPP_NJ..AR$goals ar
+                                    FROM KIPP_NJ..AR$goals ar WITH (NOLOCK)
                                     WHERE time_period_hierarchy = 2
                                       AND yearid = 2300
                                       AND student_number IS NOT NULL
@@ -153,16 +150,28 @@ LEFT OUTER JOIN (
                 ) sub
          ) sub
   WHERE rn = 1
+  
+  UNION ALL
+
+  SELECT ar_spec_h2.*
+        ,1 AS force_sort
+        ,1 AS rn
+  FROM AR$goals ar_spec_h2 WITH (NOLOCK)
+  WHERE ar_spec_h2.time_period_hierarchy = 2
+    AND student_number NOT LIKE 'Default%'
+    AND student_number IS NOT NULL
+    AND student_number != ''
   ) ar_specific
-  ON CAST(sub_1.student_number AS CHAR) = ar_specific.student_number
+  ON CAST(sub_1.student_number AS VARCHAR) = CAST(ar_specific.student_number AS VARCHAR)
  AND sub_1.schoolid = ar_specific.schoolid
  AND sub_1.yearid = ar_specific.yearid
  AND sub_1.time_period_name = ar_specific.time_period_name
  AND sub_1.time_period_hierarchy = ar_specific.time_period_hierarchy
 
 --union picks up any specific goals where there is NO corresponding default.
+
 UNION
-SELECT CAST(student_number AS nvarchar)
+SELECT CAST(student_number AS VARCHAR)
       ,schoolid
       ,words_goal
       ,points_goal
@@ -171,5 +180,5 @@ SELECT CAST(student_number AS nvarchar)
       ,time_period_start
       ,time_period_end
       ,time_period_hierarchy
-FROM AR$goals
+FROM AR$goals WITH (NOLOCK)
 WHERE student_number NOT LIKE 'Default_%'
