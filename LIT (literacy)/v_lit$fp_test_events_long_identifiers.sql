@@ -2,124 +2,338 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW LIT$FP_test_events_long#identifiers AS
-SELECT openq.*
-      ,cohort.schoolid
-      ,cohort.grade_level
-      ,cohort.abbreviation
-      ,cohort.year    
-       --helps to determine first test event FOR a student IN a year
-      ,ROW_NUMBER() OVER
-         (PARTITION BY openq.studentid, cohort.year
-              ORDER BY openq.test_date ASC) AS rn_asc
-       --helps to determine last test event FOR a student IN a year
-      ,ROW_NUMBER() OVER
-         (PARTITION BY openq.studentid, cohort.year
-              ORDER BY openq.test_date DESC) AS rn_desc
+SELECT sub.*
+--/*
       ,CASE
-        WHEN status = 'Achieved'
-        THEN
-         ROW_NUMBER() OVER
-           (PARTITION BY openq.studentid, cohort.year
-                ORDER BY openq.test_date ASC)
+        WHEN sub.status = 'Achieved'
+        THEN sub.GLEQ - base.GLEQ
         ELSE NULL
-       END AS achv_base
+       END AS GLEQ_growth_ytd
       ,CASE
-        WHEN status = 'Achieved'
-        THEN
-         ROW_NUMBER() OVER
-           (PARTITION BY openq.studentid, cohort.year
-                ORDER BY openq.test_date DESC)
+        WHEN sub.status = 'Achieved'
+        THEN sub.level_number - base.level_number
         ELSE NULL
-       END AS achv_cur
+       END AS level_growth_ytd
+--*/
       ,CASE
-        WHEN letter_level = 'AA' THEN 0.0
-        WHEN letter_level = 'A' THEN 0.3
-        WHEN letter_level = 'B' THEN 0.5
-        WHEN letter_level = 'C' THEN 0.7
-        WHEN letter_level = 'D' THEN 1.0
-        WHEN letter_level = 'E' THEN 1.2
-        WHEN letter_level = 'F' THEN 1.4
-        WHEN letter_level = 'G' THEN 1.6
-        WHEN letter_level = 'H' THEN 1.8
-        WHEN letter_level = 'I' THEN 2.0
-        WHEN letter_level = 'J' THEN 2.2
-        WHEN letter_level = 'K' THEN 2.4
-        WHEN letter_level = 'L' THEN 2.6
-        WHEN letter_level = 'M' THEN 2.8
-        WHEN letter_level = 'N' THEN 3.0
-        WHEN letter_level = 'O' THEN 3.5
-        WHEN letter_level = 'P' THEN 3.8
-        WHEN letter_level = 'Q' THEN 4.0
-        WHEN letter_level = 'R' THEN 4.5
-        WHEN letter_level = 'S' THEN 4.8
-        WHEN letter_level = 'T' THEN 5.0
-        WHEN letter_level = 'U' THEN 5.5
-        WHEN letter_level = 'V' THEN 6.0
-        WHEN letter_level = 'W' THEN 6.3
-        WHEN letter_level = 'X' THEN 6.7
-        WHEN letter_level = 'Y' THEN 7.0
-        WHEN letter_level = 'Z' THEN 7.5
-        WHEN letter_level = 'Z+' THEN 8.0
+        WHEN sub.status = 'Achieved'
+        THEN sub.GLEQ - prev.GLEQ
         ELSE NULL
-       END AS GLEQ
+       END AS GLEQ_growth_prev
       ,CASE
-        WHEN letter_level = 'AA' THEN 0
-        WHEN letter_level = 'A' THEN 1
-        WHEN letter_level = 'B' THEN 2
-        WHEN letter_level = 'C' THEN 3
-        WHEN letter_level = 'D' THEN 4
-        WHEN letter_level = 'E' THEN 5
-        WHEN letter_level = 'F' THEN 6
-        WHEN letter_level = 'G' THEN 7
-        WHEN letter_level = 'H' THEN 8
-        WHEN letter_level = 'I' THEN 9
-        WHEN letter_level = 'J' THEN 10
-        WHEN letter_level = 'K' THEN 11
-        WHEN letter_level = 'L' THEN 12
-        WHEN letter_level = 'M' THEN 13
-        WHEN letter_level = 'N' THEN 14
-        WHEN letter_level = 'O' THEN 15
-        WHEN letter_level = 'P' THEN 16
-        WHEN letter_level = 'Q' THEN 17
-        WHEN letter_level = 'R' THEN 18
-        WHEN letter_level = 'S' THEN 19
-        WHEN letter_level = 'T' THEN 20
-        WHEN letter_level = 'U' THEN 21
-        WHEN letter_level = 'V' THEN 22
-        WHEN letter_level = 'W' THEN 23
-        WHEN letter_level = 'X' THEN 24
-        WHEN letter_level = 'Y' THEN 25
-        WHEN letter_level = 'Z' THEN 26
-        WHEN letter_level = 'Z+' THEN 27
+        WHEN sub.status = 'Achieved'
+        THEN sub.level_number - prev.level_number
         ELSE NULL
-       END AS level_number
+       END AS level_growth_prev
+FROM
 
-FROM OPENQUERY(PS_TEAM,'
-  SELECT s.id AS studentid                                    
-        ,s.lastfirst        
-        ,CAST(s.student_number AS VARCHAR(20)) AS student_number
-        ,user_defined_date AS test_date
-        ,CAST(user_defined_text AS VARCHAR(20)) AS letter_level
-        ,foreignkey_alpha AS testid
-        ,user_defined_text2 AS status           
-        ,ROUND(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field1''),0)  AS fp_wpmrate                  
-        ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field2'')  AS fp_fluency
-        ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field3'')  AS fp_accuracy
-        ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field4'') AS INT)  AS fp_comp_within
-        ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field5'') AS INT)  AS fp_comp_beyond
-        ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field6'') AS INT)  AS fp_comp_about
-        ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field7'') AS VARCHAR(20)) AS fp_keylever
-        ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field21'') AS VARCHAR(20)) AS read_teacher
-  FROM virtualtablesdata3 scores
-  JOIN students s
-    ON s.id = scores.foreignKey 
-  WHERE scores.related_to_table = ''readingScores'' 
-    AND user_defined_text IS NOT NULL 
-    AND foreignkey_alpha = ''3273''
-') openq
-JOIN COHORT$comprehensive_long cohort
-  ON openq.studentid = cohort.studentid
- AND openq.test_date >= cohort.entrydate
- AND openq.test_date <= cohort.exitdate
- AND cohort.rn = 1
-GROUP BY openq.studentid, openq.lastfirst, openq.student_number, openq.test_date, openq.letter_level, openq.testid, openq.status, openq.fp_wpmrate, openq.fp_fluency, openq.fp_accuracy, openq.fp_comp_within, openq.fp_comp_beyond, openq.fp_comp_about, openq.fp_keylever, openq.read_teacher, cohort.schoolid, cohort.grade_level, cohort.abbreviation, cohort.year
+--ALL TEST EVENTS
+     (SELECT rs.testid 
+            ,cohort.schoolid
+            ,cohort.grade_level
+            ,cohort.year
+            ,cohort.abbreviation      
+            ,s.id AS studentid      
+            ,s.student_number
+            ,s.lastfirst      
+            ,rs.test_date
+            ,rs.step_ltr_level AS letter_level
+            ,rs.status           
+            ,rs.fp_wpmrate                  
+            ,rs.fp_fluency
+            ,rs.fp_accuracy
+            ,rs.fp_comp_within
+            ,rs.fp_comp_beyond
+            ,rs.fp_comp_about
+            ,rs.fp_keylever
+            ,rs.read_teacher       
+            ,CASE
+              WHEN step_ltr_level = 'AA' THEN 0.0
+              WHEN step_ltr_level = 'A' THEN 0.3
+              WHEN step_ltr_level = 'B' THEN 0.5
+              WHEN step_ltr_level = 'C' THEN 0.7
+              WHEN step_ltr_level = 'D' THEN 1.0
+              WHEN step_ltr_level = 'E' THEN 1.2
+              WHEN step_ltr_level = 'F' THEN 1.4
+              WHEN step_ltr_level = 'G' THEN 1.6
+              WHEN step_ltr_level = 'H' THEN 1.8
+              WHEN step_ltr_level = 'I' THEN 2.0
+              WHEN step_ltr_level = 'J' THEN 2.2
+              WHEN step_ltr_level = 'K' THEN 2.4
+              WHEN step_ltr_level = 'L' THEN 2.6
+              WHEN step_ltr_level = 'M' THEN 2.8
+              WHEN step_ltr_level = 'N' THEN 3.0
+              WHEN step_ltr_level = 'O' THEN 3.5
+              WHEN step_ltr_level = 'P' THEN 3.8
+              WHEN step_ltr_level = 'Q' THEN 4.0
+              WHEN step_ltr_level = 'R' THEN 4.5
+              WHEN step_ltr_level = 'S' THEN 4.8
+              WHEN step_ltr_level = 'T' THEN 5.0
+              WHEN step_ltr_level = 'U' THEN 5.5
+              WHEN step_ltr_level = 'V' THEN 6.0
+              WHEN step_ltr_level = 'W' THEN 6.3
+              WHEN step_ltr_level = 'X' THEN 6.7
+              WHEN step_ltr_level = 'Y' THEN 7.0
+              WHEN step_ltr_level = 'Z' THEN 7.5
+              WHEN step_ltr_level = 'Z+' THEN 8.0
+              ELSE NULL
+             END AS GLEQ
+            ,CASE
+              WHEN step_ltr_level = 'AA' THEN 0
+              WHEN step_ltr_level = 'A' THEN 1
+              WHEN step_ltr_level = 'B' THEN 2
+              WHEN step_ltr_level = 'C' THEN 3
+              WHEN step_ltr_level = 'D' THEN 4
+              WHEN step_ltr_level = 'E' THEN 5
+              WHEN step_ltr_level = 'F' THEN 6
+              WHEN step_ltr_level = 'G' THEN 7
+              WHEN step_ltr_level = 'H' THEN 8
+              WHEN step_ltr_level = 'I' THEN 9
+              WHEN step_ltr_level = 'J' THEN 10
+              WHEN step_ltr_level = 'K' THEN 11
+              WHEN step_ltr_level = 'L' THEN 12
+              WHEN step_ltr_level = 'M' THEN 13
+              WHEN step_ltr_level = 'N' THEN 14
+              WHEN step_ltr_level = 'O' THEN 15
+              WHEN step_ltr_level = 'P' THEN 16
+              WHEN step_ltr_level = 'Q' THEN 17
+              WHEN step_ltr_level = 'R' THEN 18
+              WHEN step_ltr_level = 'S' THEN 19
+              WHEN step_ltr_level = 'T' THEN 20
+              WHEN step_ltr_level = 'U' THEN 21
+              WHEN step_ltr_level = 'V' THEN 22
+              WHEN step_ltr_level = 'W' THEN 23
+              WHEN step_ltr_level = 'X' THEN 24
+              WHEN step_ltr_level = 'Y' THEN 25
+              WHEN step_ltr_level = 'Z' THEN 26
+              WHEN step_ltr_level = 'Z+' THEN 27
+              ELSE NULL
+             END AS level_number             
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, rs.status
+                      ORDER BY rs.test_date ASC, step_ltr_level ASC)
+              ELSE NULL
+             END AS achv_base
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, rs.status
+                      ORDER BY rs.test_date DESC, step_ltr_level DESC)
+              ELSE NULL
+             END AS achv_curr
+            ,CASE
+              WHEN status = 'Did Not Achieve' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, rs.status
+                      ORDER BY rs.test_date ASC, step_ltr_level DESC)
+              ELSE NULL
+             END AS dna_base
+            ,CASE
+              WHEN status = 'Did Not Achieve' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, rs.status
+                      ORDER BY rs.test_date DESC, step_ltr_level ASC)
+              ELSE NULL
+             END AS dna_curr
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, rs.status
+                      ORDER BY rs.test_date ASC, step_ltr_level ASC)
+              ELSE NULL
+             END AS achv_base_all
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, rs.status
+                      ORDER BY rs.test_date DESC, step_ltr_level DESC)
+              ELSE NULL
+             END AS achv_curr_all
+      FROM READINGSCORES rs
+      JOIN STUDENTS s
+        ON rs.studentid = s.id
+      JOIN COHORT$comprehensive_long#static cohort
+        ON rs.studentid = cohort.studentid
+       AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+       AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+       AND cohort.rn = 1
+      WHERE testid = 3273      
+     ) sub
+
+--BASE ACHIEVED TEST FOR YEAR
+LEFT OUTER JOIN 
+     (SELECT *
+      FROM
+           (SELECT rs.studentid
+                  ,cohort.year            
+                  ,CASE
+                    WHEN step_ltr_level = 'AA' THEN 0.0
+                    WHEN step_ltr_level = 'A' THEN 0.3
+                    WHEN step_ltr_level = 'B' THEN 0.5
+                    WHEN step_ltr_level = 'C' THEN 0.7
+                    WHEN step_ltr_level = 'D' THEN 1.0
+                    WHEN step_ltr_level = 'E' THEN 1.2
+                    WHEN step_ltr_level = 'F' THEN 1.4
+                    WHEN step_ltr_level = 'G' THEN 1.6
+                    WHEN step_ltr_level = 'H' THEN 1.8
+                    WHEN step_ltr_level = 'I' THEN 2.0
+                    WHEN step_ltr_level = 'J' THEN 2.2
+                    WHEN step_ltr_level = 'K' THEN 2.4
+                    WHEN step_ltr_level = 'L' THEN 2.6
+                    WHEN step_ltr_level = 'M' THEN 2.8
+                    WHEN step_ltr_level = 'N' THEN 3.0
+                    WHEN step_ltr_level = 'O' THEN 3.5
+                    WHEN step_ltr_level = 'P' THEN 3.8
+                    WHEN step_ltr_level = 'Q' THEN 4.0
+                    WHEN step_ltr_level = 'R' THEN 4.5
+                    WHEN step_ltr_level = 'S' THEN 4.8
+                    WHEN step_ltr_level = 'T' THEN 5.0
+                    WHEN step_ltr_level = 'U' THEN 5.5
+                    WHEN step_ltr_level = 'V' THEN 6.0
+                    WHEN step_ltr_level = 'W' THEN 6.3
+                    WHEN step_ltr_level = 'X' THEN 6.7
+                    WHEN step_ltr_level = 'Y' THEN 7.0
+                    WHEN step_ltr_level = 'Z' THEN 7.5
+                    WHEN step_ltr_level = 'Z+' THEN 8.0
+                    ELSE NULL
+                   END AS GLEQ
+                  ,CASE
+                    WHEN step_ltr_level = 'AA' THEN 0
+                    WHEN step_ltr_level = 'A' THEN 1
+                    WHEN step_ltr_level = 'B' THEN 2
+                    WHEN step_ltr_level = 'C' THEN 3
+                    WHEN step_ltr_level = 'D' THEN 4
+                    WHEN step_ltr_level = 'E' THEN 5
+                    WHEN step_ltr_level = 'F' THEN 6
+                    WHEN step_ltr_level = 'G' THEN 7
+                    WHEN step_ltr_level = 'H' THEN 8
+                    WHEN step_ltr_level = 'I' THEN 9
+                    WHEN step_ltr_level = 'J' THEN 10
+                    WHEN step_ltr_level = 'K' THEN 11
+                    WHEN step_ltr_level = 'L' THEN 12
+                    WHEN step_ltr_level = 'M' THEN 13
+                    WHEN step_ltr_level = 'N' THEN 14
+                    WHEN step_ltr_level = 'O' THEN 15
+                    WHEN step_ltr_level = 'P' THEN 16
+                    WHEN step_ltr_level = 'Q' THEN 17
+                    WHEN step_ltr_level = 'R' THEN 18
+                    WHEN step_ltr_level = 'S' THEN 19
+                    WHEN step_ltr_level = 'T' THEN 20
+                    WHEN step_ltr_level = 'U' THEN 21
+                    WHEN step_ltr_level = 'V' THEN 22
+                    WHEN step_ltr_level = 'W' THEN 23
+                    WHEN step_ltr_level = 'X' THEN 24
+                    WHEN step_ltr_level = 'Y' THEN 25
+                    WHEN step_ltr_level = 'Z' THEN 26
+                    WHEN step_ltr_level = 'Z+' THEN 27
+                    ELSE NULL
+                   END AS level_number            
+                  ,CASE
+                    WHEN status = 'Achieved' THEN
+                     ROW_NUMBER() OVER
+                       (PARTITION BY rs.studentid, cohort.year, rs.status
+                            ORDER BY rs.test_date ASC, step_ltr_level ASC)
+                    ELSE NULL
+                   END AS achv_base
+            FROM READINGSCORES rs      
+            JOIN COHORT$comprehensive_long#static cohort
+              ON rs.studentid = cohort.studentid
+             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+             AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+             AND cohort.rn = 1
+            WHERE testid = 3273
+           ) sq_1
+      WHERE sq_1.achv_base = 1
+     ) base
+  ON sub.studentid = base.studentid
+ AND sub.year = base.year
+
+--PREVIOUS TEST ACHIEVED FOR YEAR
+LEFT OUTER JOIN 
+     (SELECT *
+      FROM
+           (SELECT rs.studentid
+                  ,cohort.year            
+                  ,CASE
+                    WHEN step_ltr_level = 'AA' THEN 0.0
+                    WHEN step_ltr_level = 'A' THEN 0.3
+                    WHEN step_ltr_level = 'B' THEN 0.5
+                    WHEN step_ltr_level = 'C' THEN 0.7
+                    WHEN step_ltr_level = 'D' THEN 1.0
+                    WHEN step_ltr_level = 'E' THEN 1.2
+                    WHEN step_ltr_level = 'F' THEN 1.4
+                    WHEN step_ltr_level = 'G' THEN 1.6
+                    WHEN step_ltr_level = 'H' THEN 1.8
+                    WHEN step_ltr_level = 'I' THEN 2.0
+                    WHEN step_ltr_level = 'J' THEN 2.2
+                    WHEN step_ltr_level = 'K' THEN 2.4
+                    WHEN step_ltr_level = 'L' THEN 2.6
+                    WHEN step_ltr_level = 'M' THEN 2.8
+                    WHEN step_ltr_level = 'N' THEN 3.0
+                    WHEN step_ltr_level = 'O' THEN 3.5
+                    WHEN step_ltr_level = 'P' THEN 3.8
+                    WHEN step_ltr_level = 'Q' THEN 4.0
+                    WHEN step_ltr_level = 'R' THEN 4.5
+                    WHEN step_ltr_level = 'S' THEN 4.8
+                    WHEN step_ltr_level = 'T' THEN 5.0
+                    WHEN step_ltr_level = 'U' THEN 5.5
+                    WHEN step_ltr_level = 'V' THEN 6.0
+                    WHEN step_ltr_level = 'W' THEN 6.3
+                    WHEN step_ltr_level = 'X' THEN 6.7
+                    WHEN step_ltr_level = 'Y' THEN 7.0
+                    WHEN step_ltr_level = 'Z' THEN 7.5
+                    WHEN step_ltr_level = 'Z+' THEN 8.0
+                    ELSE NULL
+                   END AS GLEQ
+                  ,CASE
+                    WHEN step_ltr_level = 'AA' THEN 0
+                    WHEN step_ltr_level = 'A' THEN 1
+                    WHEN step_ltr_level = 'B' THEN 2
+                    WHEN step_ltr_level = 'C' THEN 3
+                    WHEN step_ltr_level = 'D' THEN 4
+                    WHEN step_ltr_level = 'E' THEN 5
+                    WHEN step_ltr_level = 'F' THEN 6
+                    WHEN step_ltr_level = 'G' THEN 7
+                    WHEN step_ltr_level = 'H' THEN 8
+                    WHEN step_ltr_level = 'I' THEN 9
+                    WHEN step_ltr_level = 'J' THEN 10
+                    WHEN step_ltr_level = 'K' THEN 11
+                    WHEN step_ltr_level = 'L' THEN 12
+                    WHEN step_ltr_level = 'M' THEN 13
+                    WHEN step_ltr_level = 'N' THEN 14
+                    WHEN step_ltr_level = 'O' THEN 15
+                    WHEN step_ltr_level = 'P' THEN 16
+                    WHEN step_ltr_level = 'Q' THEN 17
+                    WHEN step_ltr_level = 'R' THEN 18
+                    WHEN step_ltr_level = 'S' THEN 19
+                    WHEN step_ltr_level = 'T' THEN 20
+                    WHEN step_ltr_level = 'U' THEN 21
+                    WHEN step_ltr_level = 'V' THEN 22
+                    WHEN step_ltr_level = 'W' THEN 23
+                    WHEN step_ltr_level = 'X' THEN 24
+                    WHEN step_ltr_level = 'Y' THEN 25
+                    WHEN step_ltr_level = 'Z' THEN 26
+                    WHEN step_ltr_level = 'Z+' THEN 27
+                    ELSE NULL
+                   END AS level_number            
+                  ,CASE
+                    WHEN status = 'Achieved' THEN
+                     ROW_NUMBER() OVER
+                       (PARTITION BY rs.studentid, rs.status
+                            ORDER BY rs.test_date DESC, step_ltr_level DESC)
+                    ELSE NULL
+                   END AS achv_curr_all
+            FROM READINGSCORES rs      
+            JOIN COHORT$comprehensive_long#static cohort
+              ON rs.studentid = cohort.studentid
+             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+             AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+             AND cohort.rn = 1
+            WHERE testid = 3273
+           ) sq_2
+      --WHERE sq_2.achv_curr > 1
+     ) prev
+  ON sub.studentid = prev.studentid
+ AND sub.achv_curr_all = (prev.achv_curr_all - 1)
