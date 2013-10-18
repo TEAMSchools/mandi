@@ -30,8 +30,8 @@ FROM
             ,att_string
             ,promo_status_grades
             ,CASE 
-               WHEN y1_att_pts_pct < 90 THEN 'Off Track'
-               WHEN y1_att_pts_pct < 92 AND y1_att_pts_pct >= 90 THEN 'Warning'
+               WHEN y1_att_pts_pct < 89.5 THEN 'Off Track'
+               WHEN y1_att_pts_pct < 92 AND y1_att_pts_pct >= 89.5 THEN 'Warning'
                WHEN y1_att_pts_pct >= 98 THEN 'Honors'
                ELSE 'Satisfactory' 
              END AS promo_status_att
