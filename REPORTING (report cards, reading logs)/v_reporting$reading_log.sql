@@ -59,7 +59,10 @@ SELECT roster.*
       ,gr.Y1 AS y1_rdg_gr
       ,ele.grade_1 AS cur_term_rdg_hw_avg
       ,ele.simple_avg AS y1_rdg_hw_avg
-      ,fp_base.letter_level AS fp_base_lettter
+      ,CASE
+        WHEN fp_base.letter_level IS NULL THEN fp_cur.letter_level
+        ELSE fp_base.letter_level
+       END AS fp_base_lettter
       ,fp_cur.letter_level AS fp_cur_letter
       ,CASE 
          WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.TestRITScore
@@ -115,36 +118,13 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$elements ele
  AND ele.yearid = 23
 
 --F&P
-LEFT OUTER JOIN 
-   --team considers anything from may of prev year -> present as baseline
-  (SELECT fp.studentid
-         ,fp.letter_level
-         ,ROW_NUMBER() OVER
-            (PARTITION BY fp.studentid
-             ORDER BY fp.test_date DESC) AS rn
-   FROM KIPP_NJ..LIT$FP_test_events_long#identifiers#static fp
-   WHERE fp.year >= 2012
-     AND fp.test_date >= '01-MAY-2013'
-     AND fp.schoolid = 133570965
-   
-   UNION ALL
-
-   --Rise is taking a true 2013 baseline/diagnostic
-   SELECT fp.studentid
-         ,fp.letter_level
-         ,1
-   FROM KIPP_NJ..LIT$FP_test_events_long#identifiers#static fp
-   WHERE fp.[year] = 2013
-     AND fp.rn_asc = 1
-     AND fp.schoolid = 73252
-  ) fp_base
-  ON roster.studentid = fp_base.studentid
-  AND fp_base.rn = 1
-
-LEFT OUTER JOIN KIPP_NJ..LIT$FP_test_events_long#identifiers#static fp_cur
-  ON roster.studentid = fp_cur.studentid
- AND fp_cur.year = 2013
- AND fp_cur.rn_desc = 1
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_cur
+  ON roster.STUDENTID = fp_cur.studentid
+ AND fp_cur.achv_curr_all = 1
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base
+  ON roster.STUDENTID = fp_base.studentid
+ AND fp_base.achv_base = 1
+ AND fp_base.year = 2013
 
 --RIT, NWEA LEXILE
 LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_fall
@@ -189,7 +169,7 @@ LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl
 --AR current
 LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_cur
   ON roster.studentid = ar_cur.studentid
- AND ar_cur.time_period_name = 'RT1'
+ AND ar_cur.time_period_name = 'RT2'
  AND ar_cur.yearid = 2300
 
 --AR year
@@ -201,4 +181,3 @@ LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_year
 LEFT OUTER JOIN sri_lexile
   ON CAST(roster.student_number AS NVARCHAR) = sri_lexile.base_student_number
  AND sri_lexile.rn_lifetime = 1
-
