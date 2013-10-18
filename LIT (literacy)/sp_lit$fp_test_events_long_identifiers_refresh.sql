@@ -44,32 +44,7 @@ BEGIN
  EXEC (@sql);
 
  -- step 3: insert rows from remote source
- INSERT INTO [dbo].[LIT$FP_test_events_long#identifiers#static]
-      ([STUDENTID]
-      ,[LASTFIRST]
-      ,[STUDENT_NUMBER]
-      ,[TEST_DATE]
-      ,[LETTER_LEVEL]
-      ,[TESTID]
-      ,[STATUS]
-      ,[FP_WPMRATE]
-      ,[FP_FLUENCY]
-      ,[FP_ACCURACY]
-      ,[FP_COMP_WITHIN]
-      ,[FP_COMP_BEYOND]
-      ,[FP_COMP_ABOUT]
-      ,[FP_KEYLEVER]
-      ,[READ_TEACHER]
-      ,[schoolid]
-      ,[grade_level]
-      ,[abbreviation]
-      ,[year]
-      ,[rn_asc]
-      ,[rn_desc]
-      ,[achv_base]
-      ,[achv_cur]
-      ,[GLEQ]
-      ,[level_number])
+ INSERT INTO [dbo].[LIT$FP_test_events_long#identifiers#static]      
  SELECT *
  FROM [#LIT$FP_test_events_long#identifiers|refresh];
 
