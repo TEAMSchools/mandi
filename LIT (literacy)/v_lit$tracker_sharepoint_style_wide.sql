@@ -40,7 +40,7 @@ SELECT CAST([schoolid] AS VARCHAR(20)) AS [schoolid]
 	  ,CAST([FP_L-Z_Rate] AS VARCHAR(20)) AS [FP_L-Z_Rate]
 	  ,CAST([FP_L-Z_Fluency] AS VARCHAR(100)) AS [FP_L-Z_Fluency]
 	  ,CAST([FP_L-Z_Comprehension] AS VARCHAR(20)) AS [FP_L-Z_Comprehension]
-FROM [KIPP_NJ].[dbo].[LIT$STEP_sharepoint_style_wide]
+FROM [KIPP_NJ].[dbo].[LIT$STEP_sharepoint_style_wide] WITH(NOLOCK)
   
 UNION ALL
 
@@ -82,7 +82,7 @@ SELECT CAST([schoolid] AS VARCHAR(20)) AS [schoolid]
 	  ,CAST([FP_L-Z_Rate] AS VARCHAR(20)) AS [FP_L-Z_Rate]
 	  ,CAST([FP_L-Z_Fluency] AS VARCHAR(100)) AS [FP_L-Z_Fluency]
 	  ,CAST([FP_L-Z_Comprehension] AS VARCHAR(20)) AS [FP_L-Z_Comprehension]
-FROM [KIPP_NJ].[dbo].[LIT$FP_sharepoint_style_wide]
+FROM [KIPP_NJ].[dbo].[LIT$FP_sharepoint_style_wide] WITH(NOLOCK)
 
 --in case something breaks with the union on the static tables
 /*
