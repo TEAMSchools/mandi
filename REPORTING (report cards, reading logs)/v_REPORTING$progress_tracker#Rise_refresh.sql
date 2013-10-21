@@ -571,7 +571,7 @@ SELECT ROW_NUMBER() OVER(
       ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt2_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T2_bench_choices
       ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt3_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T3_bench_choices
       
-FROM roster
+FROM roster WITH (NOLOCK)
 
 --Attendance
 LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
@@ -598,7 +598,7 @@ LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
   ON roster.student_number = fp_curr.STUDENT_NUMBER
  AND fp_curr.year = 2013
- AND fp_curr.achv_cur = 1
+ AND fp_curr.achv_curr = 1
   --LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.student_number = lex_base.StudentID
