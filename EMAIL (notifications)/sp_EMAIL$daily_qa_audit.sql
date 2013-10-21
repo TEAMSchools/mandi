@@ -22,6 +22,7 @@ BEGIN
  --variables that store various queries as text
  ,@sql_demog_audits      NVARCHAR(MAX)
  ,@sql_psconfig_audits   NVARCHAR(MAX)
+ ,@sql_illuminate_audits NVARCHAR(MAX)
  ,@sql_integ_audits      NVARCHAR(MAX)
  ,@sql_last_refresh      NVARCHAR(MAX)
  ,@sql_failed_jobs       NVARCHAR(MAX)
@@ -30,6 +31,7 @@ BEGIN
  --variables that catch the output of those queries in HTML format
  ,@html_demog_audits     NVARCHAR(MAX)
  ,@html_psconfig_audits  NVARCHAR(MAX)
+ ,@html_illuminate_audits NVARCHAR(MAX)
  ,@html_integ_audits     NVARCHAR(MAX)
  ,@html_last_refresh     NVARCHAR(MAX)
  ,@html_failed_jobs	     NVARCHAR(MAX)
@@ -69,6 +71,12 @@ BEGIN
     FROM KIPP_NJ..QA$data_audit
     WHERE audit_category = ''PS Config''
     '                
+  SET @sql_illuminate_audits = '
+    SELECT audit_type
+          ,result
+    FROM KIPP_NJ..QA$data_audit
+    WHERE audit_category = ''Illuminate''
+  '
 
   SET @sql_integ_audits = '
     SELECT audit_type
@@ -125,6 +133,7 @@ BEGIN
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_demog_audits, @html_demog_audits OUTPUT  
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_psconfig_audits, @html_psconfig_audits OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_integ_audits, @html_integ_audits OUTPUT
+  EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_illuminate_audits, @html_illuminate_audits OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_last_refresh, @html_last_refresh OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_views, @html_views OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_failed_jobs, @html_failed_jobs OUTPUT
@@ -170,6 +179,11 @@ SET @email_body =
   <span style="med_text">PowerSchool Configuration Audits</span> 
 '
 + @html_psconfig_audits +
+'
+<br>
+  <span style="med_text">Illuminate Data Audits</span> 
+'
++ @html_illuminate_audits +
 '
 		<br>
   <span style="med_text">Data Integration Audits</span> 
