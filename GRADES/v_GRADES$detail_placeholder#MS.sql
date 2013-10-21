@@ -11,7 +11,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW GRADES$detail_placeholder#MS AS
+ALTER VIEW GRADES$detail_placeholder#MS AS
 
 
 SELECT TOP 100 PERCENT sub2.*
@@ -46,7 +46,7 @@ FROM
                 OVER 
                (PARTITION BY s.id
                 ORDER BY s.lastfirst) AS rn
-        FROM students s
+        FROM students s WITH (NOLOCK)
         JOIN t500 t on s.student_number != t.id
 
         WHERE s.schoolid IN (73252,133570965)
@@ -56,7 +56,7 @@ FROM
        sub
    )
    sub1
-LEFT OUTER JOIN GRADES$DETAIL#MS grades 
+LEFT OUTER JOIN GRADES$DETAIL#MS grades WITH (NOLOCK)
   ON sub1.studentid = grades.studentid 
   AND sub1.credittype = grades.credittype
 )

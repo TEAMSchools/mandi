@@ -27,7 +27,7 @@ WITH ps_style AS
 
 SELECT sub.id AS scale_id
       ,sub.name AS scale_name
-      ,sub.description
+      ,CAST(sub.description AS VARCHAR) AS description
       ,sub.letter_grade
       ,sub.grade_points
       ,sub.low_cut
