@@ -344,3 +344,85 @@ FROM
       (SELECT DateDiff(hour, MAX(import_time), CURRENT_TIMESTAMP) AS AR_freshness      
        FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_IMPORT_LOG].[dbo].[IMPORT_LOG]
        ) sub
+
+UNION ALL
+
+--Added by AM2 on 10/21/2013
+--are there any illuminate assessments in the next two weeks with a problematic created on / administered on date.
+
+SELECT 'Illuminate' AS audit_category
+      ,'Date administered errors' AS audit_type
+      ,sub.assertion + ' (n=' + CAST(sub.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub.assertion = 'Pass' THEN ''
+           WHEN sub.N < 50 THEN sub.elements 
+           ELSE '50+ assessments' 
+         END AS result
+FROM 
+      (SELECT sub.assertion
+             ,COUNT(*) AS N
+             ,dbo.GROUP_CONCAT_D(sub.hash, ' | ') AS elements
+             ,ROW_NUMBER() OVER
+               (ORDER BY sub.assertion) AS rn
+       FROM
+             (SELECT illu.title
+                    ,illu.tags
+                    ,illu.user_id
+                    ,staff_decode.staff_name
+                    ,staff_decode.school
+                    ,illu.grade1 AS grade_lev        
+                    ,illu.created_at
+                    ,illu.administered_at
+                    ,illu.assertion
+                    ,staff_decode.school + ': ' + CAST(illu.grade1 AS VARCHAR) + ' ' + staff_decode.staff_name + ' (' + illu.title + ' | ' + illu.tags + ' ' + CAST(illu.created_at AS VARCHAR)+ '/' + CAST(illu.administered_at AS VARCHAR) +')' AS hash
+              FROM
+                    (SELECT [assessment_id]
+                           ,[title]
+                           ,[description]
+                           ,[user_id]
+                           ,CAST([created_at] AS DATE) AS created_at
+                           ,[updated_at]
+                           ,[administered_at]
+                           ,[tags]
+                           ,[subject]
+                           ,[scope]
+                           ,[grade1]
+                           ,CASE
+                              --created at should probably not equal administered at
+                              WHEN CAST(asmt.created_at AS DATE) = asmt.administered_at THEN 'Fail'
+                              ELSE 'Pass'
+                            END AS assertion
+                       FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments] asmt
+                       WHERE asmt.tags LIKE '%FSA%'
+                       --exclude deleted FSAs
+                       AND deleted_at IS NULL
+                       --if it's older than 2 weeks, whatever
+                       AND DATEDIFF(day, GETDATE(), CAST(asmt.administered_at AS DATE)) > -14
+                       --if it was updated 2 + days after administration, probably stef or someone looked at it and it is OK
+                       AND DATEDIFF(day, administered_at, CAST(asmt.updated_at AS DATE)) < 2
+                     ) illu
+              LEFT OUTER JOIN 
+                  (SELECT oq.user_id AS illu_id
+                          ,oq.first_name
+                          ,oq.last_name
+                          ,oq.first_name + ' ' + oq.last_name AS staff_name
+                          ,oq.local_user_id
+                          ,oq.username
+                          ,oq.active
+                          ,sch.abbreviation AS school
+                    FROM OPENQUERY(ILLUMINATE,'
+                            SELECT u.*
+                            FROM public.users u
+                            ') oq
+                    LEFT OUTER JOIN KIPP_NJ..TEACHERS tch
+                      ON oq.local_user_id = CAST(tch.id AS VARCHAR)
+                    LEFT OUTER JOIN KIPP_NJ..SCHOOLS sch
+                      ON tch.schoolid = sch.school_number
+                    WHERE oq.active = 1)
+                staff_decode
+                ON CAST(illu.user_id AS VARCHAR) = CAST(staff_decode.illu_id AS VARCHAR)
+              ) sub
+       GROUP BY sub.assertion
+       ) sub
+WHERE rn = 1
+

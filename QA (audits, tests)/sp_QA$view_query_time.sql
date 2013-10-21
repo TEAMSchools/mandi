@@ -21,6 +21,8 @@ BEGIN
   --timing
   DECLARE @refresh_seconds DECIMAL(8,1)
   DECLARE @start_time DATETIME
+  --message
+  DECLARE @console_output VARCHAR(400)
   --this gets returned
   DECLARE @record_batch INT
   --a cursor to loop over the views
@@ -51,6 +53,11 @@ BEGIN
                         FROM [' + @viewname + ']'
         --start timing
         SET @start_time = GETDATE()
+        
+        --be verbose
+        SET @console_output = 'Examining ' + @viewname
+        RAISERROR (@console_output, 0, 1) WITH NOWAIT
+
         --execute the dynamic SQL                
         EXEC sp_executesql @sql
         EXEC sp_executesql @sql_all
