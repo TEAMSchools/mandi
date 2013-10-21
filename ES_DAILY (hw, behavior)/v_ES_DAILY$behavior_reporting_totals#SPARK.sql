@@ -34,3 +34,4 @@ FROM
 		    WHERE schoolid = 73254
 		    GROUP BY student_number, studentid, lastfirst, grade_level, team
 		   ) sub
+WHERE behavior_days_total != 0
