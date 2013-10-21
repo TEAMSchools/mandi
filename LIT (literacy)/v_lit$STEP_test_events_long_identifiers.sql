@@ -2,89 +2,303 @@ USE [KIPP_NJ]
 GO
 
 ALTER VIEW LIT$STEP_test_events_long#identifiers AS
-
-SELECT openq.*
-      ,cohort.schoolid
-      ,cohort.grade_level
-      ,cohort.abbreviation
-      ,cohort.year
-       --helps to determine first test event FOR a student IN a year
-      ,ROW_NUMBER() OVER
-         (PARTITION BY openq.studentid
-                      ,cohort.year
-          ORDER BY openq.test_date ASC) AS rn_asc
-       --helps to determine last test event FOR a student IN a year
-      ,ROW_NUMBER() OVER
-         (PARTITION BY openq.studentid
-                      ,cohort.year
-          ORDER BY openq.test_date DESC) AS rn_desc
-FROM OPENQUERY(PS_TEAM, '
-	SELECT s.id AS studentid                                    
-		  ,s.lastfirst		  
-		  ,CAST(s.student_number AS VARCHAR(20)) AS student_number      
-		  ,user_defined_date AS test_date
-		  ,CAST(user_defined_text AS VARCHAR(20)) AS step_level
-		  ,foreignkey_alpha AS testid
-		  ,user_defined_text2 AS status
-		  ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field1'')  AS color
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field2'') AS VARCHAR(20)) AS instruct_lvl
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field3'') AS VARCHAR(20)) AS indep_lvl
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field4'') AS INT)  AS name_ass
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field5'') AS INT)  AS ltr_nameid
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field6'') AS INT)  AS ltr_soundid
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field7'') AS INT)  AS pa_rhymingwds
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field8'') AS INT)  AS cp_orient
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field9'') AS INT)  AS cp_121match
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field10'') AS INT) AS cp_slw
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field11'') AS INT) AS pa_mfs
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field12'') AS INT) AS devsp_first
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field13'') AS INT) AS devsp_svs
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field14'') AS INT) AS devsp_final
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field15'') AS INT) AS rr_121match
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field16'') AS INT) AS rr_holdspattern
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field17'') AS INT) AS rr_understanding
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field18'') AS INT) AS pa_segmentation
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field19'') AS INT) AS accuracy_1a
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field20'') AS INT) AS accuracy_2b
-		  ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field21'') AS read_teacher
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field22'') AS INT) AS cc_factual
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field23'') AS INT) AS cc_infer
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field24'') AS INT) AS cc_other
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field25'') AS VARCHAR(20)) AS accuracy
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field26'') AS INT) AS cc_ct
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field27'') AS INT) AS total_vwlattmpt
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field28'') AS INT) AS ra_errors
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field29'') AS VARCHAR(20)) AS reading_rate
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field30'') AS INT) AS fluency
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field31'') AS INT) AS devsp_ifbd
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field32'') AS INT) AS ocomp_factual
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field33'') AS INT) AS ocomp_ct
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field34'') AS INT) AS scomp_factual
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field35'') AS INT) AS scomp_infer
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field36'') AS INT) AS scomp_ct
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field37'') AS INT) AS devsp_longvp
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field38'') AS INT) AS devsp_rcontv
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field39'') AS INT) AS ocomp_infer
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field40'') AS INT) AS devsp_vcelvp
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field41'') AS INT) AS devsp_vowldig
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field42'') AS INT) AS devsp_cmplxb
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field43'') AS INT) AS wcomp_fact
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field44'') AS INT) AS wcomp_infer
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field45'') AS INT) AS retelling
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field46'') AS INT) AS wcomp_ct
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field47'') AS INT) AS devsp_eding
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field48'') AS INT) AS devsp_doubsylj
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field49'') AS INT) AS devsp_longv2sw
-		  ,CAST(PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field50'') AS INT) AS devsp_rcont2sw
-	FROM virtualtablesdata3 scores
-	JOIN students s ON s.id = scores.foreignKey  
-	WHERE scores.related_to_table = ''readingScores'' 
-	  AND user_defined_text IS NOT NULL  
-	  AND foreignkey_alpha > 3273 -- STEP DATA ONLY	                
-	ORDER BY scores.schoolid, s.grade_level, s.team, s.lastfirst, scores.user_defined_date DESC
-	') openq
-JOIN COHORT$comprehensive_long cohort
-  ON openq.studentid = cohort.studentid
- AND openq.test_date >= cohort.entrydate
- AND openq.test_date <= cohort.exitdate
- AND cohort.rn = 1
+SELECT sub.*
+--/*
+      ,CASE
+        WHEN sub.status = 'Achieved'
+        THEN sub.GLEQ - base.GLEQ
+        ELSE NULL
+       END AS GLEQ_growth_ytd
+      ,CASE
+        WHEN sub.status = 'Achieved'
+        THEN sub.level_number - base.level_number
+        ELSE NULL
+       END AS level_growth_ytd
+--*/
+      ,CASE
+        WHEN sub.status = 'Achieved'
+        THEN sub.GLEQ - prev.GLEQ
+        ELSE NULL
+       END AS GLEQ_growth_prev
+      ,CASE
+        WHEN sub.status = 'Achieved'
+        THEN sub.level_number - prev.level_number
+        ELSE NULL
+       END AS level_growth_prev
+      ,sub.ABBREVIATION AS schoolyr
+FROM
+     (SELECT rs.testid 
+            ,cohort.schoolid
+            ,cohort.grade_level      
+            ,cohort.year
+            ,cohort.abbreviation
+            ,s.id AS studentid
+		          ,s.student_number
+		          ,s.lastfirst      
+		          ,rs.test_date
+		          ,rs.step_ltr_level AS step_level
+		          ,rs.status
+		          ,rs.color
+		          ,rs.instruct_lvl
+		          ,rs.indep_lvl
+		          ,rs.name_ass
+		          ,rs.ltr_nameid
+		          ,rs.ltr_soundid
+		          ,rs.pa_rhymingwds
+		          ,rs.cp_orient
+		          ,rs.cp_121match
+		          ,rs.cp_slw
+		          ,rs.pa_mfs
+		          ,rs.devsp_first
+		          ,rs.devsp_svs
+		          ,rs.devsp_final
+		          ,rs.rr_121match
+		          ,rs.rr_holdspattern
+		          ,rs.rr_understanding
+		          ,rs.pa_segmentation
+		          ,rs.accuracy_1a
+		          ,rs.accuracy_2b		        
+		          ,rs.cc_factual
+		          ,rs.cc_infer
+		          ,rs.cc_other
+		          ,rs.accuracy
+		          ,rs.cc_ct
+		          ,rs.total_vwlattmpt
+		          ,rs.ra_errors
+		          ,rs.reading_rate
+		          ,rs.fluency
+		          ,rs.devsp_ifbd
+		          ,rs.ocomp_factual
+		          ,rs.ocomp_ct
+		          ,rs.scomp_factual
+		          ,rs.scomp_infer
+		          ,rs.scomp_ct
+		          ,rs.devsp_longvp
+		          ,rs.devsp_rcontv
+		          ,rs.ocomp_infer
+		          ,rs.devsp_vcelvp
+		          ,rs.devsp_vowldig
+		          ,rs.devsp_cmplxb
+		          ,rs.wcomp_fact
+		          ,rs.wcomp_infer
+		          ,rs.retelling
+		          ,rs.wcomp_ct
+		          ,rs.devsp_eding
+		          ,rs.devsp_doubsylj
+		          ,rs.devsp_longv2sw
+		          ,rs.devsp_rcont2sw
+		          ,rs.read_teacher
+            ,CASE
+              WHEN step_ltr_level = 'Pre' THEN 0.0
+              WHEN step_ltr_level = '1'   THEN 0.0
+              WHEN step_ltr_level = '2'   THEN 0.3
+              WHEN step_ltr_level = '3'   THEN 0.7
+              WHEN step_ltr_level = '4'   THEN 1.2
+              WHEN step_ltr_level = '5'   THEN 1.6
+              WHEN step_ltr_level = '6'   THEN 2.0
+              WHEN step_ltr_level = '7'   THEN 2.4
+              WHEN step_ltr_level = '8'   THEN 2.6
+              WHEN step_ltr_level = '9'   THEN 2.8
+              WHEN step_ltr_level = '10'  THEN 3.0
+              WHEN step_ltr_level = '11'  THEN 3.5
+              WHEN step_ltr_level = '12'  THEN 3.8        
+              ELSE NULL
+             END AS GLEQ
+            ,CASE
+              WHEN step_ltr_level = 'Pre' THEN 0        
+              ELSE CONVERT(INT,step_ltr_level)
+             END AS level_number                        
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, rs.status
+                      ORDER BY rs.test_date ASC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) ASC)
+              ELSE NULL
+             END AS achv_base
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, rs.status
+                      ORDER BY rs.test_date DESC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
+              ELSE NULL
+             END AS achv_curr
+            ,CASE
+              WHEN status = 'Did Not Achieve' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, rs.status
+                      ORDER BY rs.test_date ASC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
+              ELSE NULL
+             END AS dna_base
+            ,CASE
+              WHEN status = 'Did Not Achieve' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, rs.status
+                      ORDER BY rs.test_date DESC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) ASC)
+              ELSE NULL
+             END AS dna_curr
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, rs.status
+                      ORDER BY rs.test_date ASC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) ASC)
+              ELSE NULL
+             END AS achv_base_all
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, rs.status
+                      ORDER BY rs.test_date DESC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
+              ELSE NULL
+             END AS achv_curr_all
+      FROM READINGSCORES rs
+      JOIN STUDENTS s
+        ON rs.studentid = s.id
+      JOIN COHORT$comprehensive_long#static cohort
+        ON rs.studentid = cohort.studentid
+       AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+       AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+       AND cohort.rn = 1
+      WHERE testid != 3273
+     ) sub
+--/*
+--BASE TEST ACHIEVED FOR EACH SCHOOL YEAR
+LEFT OUTER JOIN
+     (SELECT *
+      FROM
+           (SELECT cohort.year            
+                 ,rs.studentid
+                 ,CASE
+                   WHEN step_ltr_level = 'Pre' THEN 0.0
+                   WHEN step_ltr_level = '1' THEN 0.0
+                   WHEN step_ltr_level = '2' THEN 0.3
+                   WHEN step_ltr_level = '3' THEN 0.7
+                   WHEN step_ltr_level = '4' THEN 1.2
+                   WHEN step_ltr_level = '5' THEN 1.6
+                   WHEN step_ltr_level = '6' THEN 2.0
+                   WHEN step_ltr_level = '7' THEN 2.4
+                   WHEN step_ltr_level = '8' THEN 2.6
+                   WHEN step_ltr_level = '9' THEN 2.8
+                   WHEN step_ltr_level = '10' THEN 3.0
+                   WHEN step_ltr_level = '11' THEN 3.5
+                   WHEN step_ltr_level = '12' THEN 3.8        
+                   ELSE NULL
+                  END AS GLEQ
+                 ,CASE
+                   WHEN step_ltr_level = 'Pre' THEN 0        
+                   ELSE CONVERT(INT,step_ltr_level)
+                  END AS level_number
+                 --helps to determine first test event FOR a student IN a year
+                 ,CASE
+                   WHEN status = 'Achieved' THEN
+                    ROW_NUMBER() OVER
+                      (PARTITION BY rs.studentid, cohort.year, rs.status
+                           ORDER BY rs.test_date ASC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) ASC)
+                   ELSE NULL
+                  END AS achv_base
+                 --helps to determine last test event FOR a student IN a year          
+           FROM READINGSCORES rs      
+           JOIN COHORT$comprehensive_long#static cohort
+             ON rs.studentid = cohort.studentid
+            AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+            AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+            AND cohort.rn = 1
+           WHERE testid != 3273
+          )sq1
+    WHERE sq1.achv_base = 1      
+   ) base
+  ON sub.studentid = base.studentid
+ AND sub.year = base.year 
+--*/
+--/*
+--PREVIOUS TEST ACHIEVED IN SAME SCHOOL YEAR
+LEFT OUTER JOIN 
+     (SELECT *
+      FROM
+           (SELECT cohort.year            
+                 ,rs.studentid
+                 ,CASE
+                   WHEN step_ltr_level = 'Pre' THEN 0.0
+                   WHEN step_ltr_level = '1' THEN 0.0
+                   WHEN step_ltr_level = '2' THEN 0.3
+                   WHEN step_ltr_level = '3' THEN 0.7
+                   WHEN step_ltr_level = '4' THEN 1.2
+                   WHEN step_ltr_level = '5' THEN 1.6
+                   WHEN step_ltr_level = '6' THEN 2.0
+                   WHEN step_ltr_level = '7' THEN 2.4
+                   WHEN step_ltr_level = '8' THEN 2.6
+                   WHEN step_ltr_level = '9' THEN 2.8
+                   WHEN step_ltr_level = '10' THEN 3.0
+                   WHEN step_ltr_level = '11' THEN 3.5
+                   WHEN step_ltr_level = '12' THEN 3.8        
+                   ELSE NULL
+                  END AS GLEQ
+                 ,CASE
+                   WHEN step_ltr_level = 'Pre' THEN 0        
+                   ELSE CONVERT(INT,step_ltr_level)
+                  END AS level_number            
+                 ,CASE
+                   WHEN status = 'Achieved' THEN
+                    ROW_NUMBER() OVER
+                      (PARTITION BY rs.studentid, rs.status
+                           ORDER BY rs.test_date DESC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
+                   ELSE NULL
+             END AS achv_curr_all
+           FROM READINGSCORES rs      
+           JOIN COHORT$comprehensive_long#static cohort
+             ON rs.studentid = cohort.studentid
+            AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+            AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+            AND cohort.rn = 1
+           WHERE testid != 3273             
+          ) sq_3
+      --WHERE sq_3.achv_curr > 1
+     ) prev
+  ON sub.studentid = prev.studentid
+ AND sub.achv_curr_all = (prev.achv_curr_all - 1) 
+--*/
+/*
+--BASE TEST ACHIEVED OVERALL -- kind of useless, overall GLEQ growth is the same as GLEQ for most recent test
+LEFT OUTER JOIN 
+     (SELECT *
+      FROM
+           (SELECT cohort.year            
+                 ,rs.studentid
+                 ,CASE
+                   WHEN step_ltr_level = 'Pre' THEN 0.0
+                   WHEN step_ltr_level = '1' THEN 0.0
+                   WHEN step_ltr_level = '2' THEN 0.3
+                   WHEN step_ltr_level = '3' THEN 0.7
+                   WHEN step_ltr_level = '4' THEN 1.2
+                   WHEN step_ltr_level = '5' THEN 1.6
+                   WHEN step_ltr_level = '6' THEN 2.0
+                   WHEN step_ltr_level = '7' THEN 2.4
+                   WHEN step_ltr_level = '8' THEN 2.6
+                   WHEN step_ltr_level = '9' THEN 2.8
+                   WHEN step_ltr_level = '10' THEN 3.0
+                   WHEN step_ltr_level = '11' THEN 3.5
+                   WHEN step_ltr_level = '12' THEN 3.8        
+                   ELSE NULL
+                  END AS GLEQ
+                 ,CASE
+                   WHEN step_ltr_level = 'Pre' THEN 0        
+                   ELSE CONVERT(INT,step_ltr_level)
+                  END AS level_number            
+                 ,CASE
+                   WHEN status = 'Achieved' THEN
+                    ROW_NUMBER() OVER
+                      (PARTITION BY rs.studentid, rs.status
+                           ORDER BY rs.test_date ASC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) ASC)
+                   ELSE NULL
+                  END AS achv_base_all            
+           FROM READINGSCORES rs      
+           JOIN COHORT$comprehensive_long#static cohort
+             ON rs.studentid = cohort.studentid
+            AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+            AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+            AND cohort.rn = 1
+           WHERE testid != 3273             
+          ) sq_2
+      WHERE sq_2.achv_base_all = 1
+     ) overall
+  ON sub.studentid = overall.studentid
+--*/

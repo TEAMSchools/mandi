@@ -2,9 +2,8 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW LIT$tracker_sharepoint_style_wide AS
-
 SELECT sub_2.schoolid
-	     ,sub_2.lastfirst + '_' + sub_2.student_number AS "Student Number"
+	     ,sub_2.lastfirst + '_' + CONVERT(VARCHAR,sub_2.student_number) AS "Student Number"
       ,grade_level AS "Grade Level"
       ,s.TEAM
       --,read_teacher AS "Guided Reading Teacher"
