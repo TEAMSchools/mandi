@@ -13,23 +13,26 @@ BEGIN
  DECLARE @sql AS VARCHAR(MAX)='';
 
   --STEP 1: make sure no temp table
-		IF OBJECT_ID(N'tempdb..#GPA$cumulative|refresh') IS NOT NULL
+		IF OBJECT_ID(N'tempdb..#GPA$cumulative|refresh1') IS NOT NULL
 		BEGIN
-						DROP TABLE [#GPA$cumulative|refresh]
+						DROP TABLE [#GPA$cumulative|refresh1]
 		END
 
   --STEP 2: load into a TEMPORARY staging table.
   SELECT *
-		INTO [#GPA$cumulative|refresh]
+		INTO [#GPA$cumulative|refresh1]
   FROM (SELECT studentid
-              --,schoolid
               ,ROUND(weighted_points / credit_hours,2) AS cumulative_Y1_gpa
               ,earned_credits_cum
-              --,audit_trail
-        FROM (SELECT studentid
-                    ,schoolid
+              ,audit_trail
+              ,schoolid
+        FROM (SELECT studentid AS studentid
+                    ,schoolid AS schoolid
                     ,ROUND(SUM(CONVERT(FLOAT,weighted_points)),3) AS weighted_points
-                    ,SUM(CONVERT(FLOAT,potentialcrhrs)) AS credit_hours
+                    ,CASE
+                      WHEN SUM(CONVERT(FLOAT,potentialcrhrs)) = 0 THEN NULL
+                      ELSE SUM(CONVERT(FLOAT,potentialcrhrs))
+                     END AS credit_hours
                     ,SUM(earnedcrhrs) AS earned_credits_cum
                     ,dbo.GROUP_CONCAT(audit_hash) AS audit_trail
               FROM OPENQUERY(PS_TEAM,'
@@ -47,7 +50,7 @@ BEGIN
                            ,''|'' || course_number || ''_gr'' || grade_level || ''['' || percent ||'']'' || '' ('' || gpa_points || '' pts*'' || earnedcrhrs || '' earned_cr)/'' || potentialcrhrs || '' pot. cr'' || ''|'' AS audit_hash
                      FROM storedgrades
                      WHERE storecode = ''Y1''
-                       AND schoolid = 73253
+                       AND schoolid IN (73252, 73253, 133570965)
                        AND excludefromgpa != 1
                      ')                  
               GROUP BY studentid, schoolid
@@ -81,7 +84,7 @@ BEGIN
  -- STEP 6: insert into final destination
  INSERT INTO [dbo].[GPA$cumulative]
  SELECT *
- FROM [#GPA$cumulative|refresh];
+ FROM [#GPA$cumulative|refresh1];
 
  
  -- STEP 7: rebuld all nonclustered indexes on table

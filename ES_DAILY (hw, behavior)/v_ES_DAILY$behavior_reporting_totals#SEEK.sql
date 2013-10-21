@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW ES_DAILY$behavior_reporting_totals#Seek AS
+--ALTER VIEW ES_DAILY$behavior_reporting_totals#Seek AS
 SELECT student_number
 	     ,studentid
       ,lastfirst
@@ -34,3 +34,4 @@ FROM
 			   WHERE schoolid = 73256 --Seek only			   
 		    GROUP BY student_number, studentid, schoolid, lastfirst, grade_level, team
 		   ) sub_1
+WHERE behavior_days_total != 0

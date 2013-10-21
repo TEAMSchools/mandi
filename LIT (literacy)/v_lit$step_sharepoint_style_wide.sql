@@ -4,7 +4,7 @@ GO
 ALTER VIEW LIT$tracker_sharepoint_style_wide AS
 
 SELECT sub_2.schoolid
-	  ,sub_2.lastfirst + '_' + sub_2.student_number AS "Student Number"
+	     ,sub_2.lastfirst + '_' + sub_2.student_number AS "Student Number"
       ,grade_level AS "Grade Level"
       ,s.TEAM
       --,read_teacher AS "Guided Reading Teacher"
@@ -16,9 +16,9 @@ SELECT sub_2.schoolid
         ELSE step_level
       END AS "Step Level"
       ,CASE
-		WHEN STEP_LEVEL = 'Pre' THEN 'Achieved'
-		ELSE STATUS
-	  END AS status
+		      WHEN STEP_LEVEL = 'Pre' THEN 'Achieved'
+		      ELSE STATUS
+	      END AS status
       ,indep_lvl AS "Independent Level"
       ,instruct_lvl AS "Instructional Level"
 
@@ -27,14 +27,14 @@ SELECT sub_2.schoolid
         --testid 3280, STEP Pre
         WHEN testid = 3280 AND name_ass <  4 THEN 'Below_' + CAST(name_ass AS VARCHAR(20))
         WHEN testid = 3280 AND name_ass >= 4 THEN 'Meets_' + CAST(name_ass AS VARCHAR(20))
-      END AS "Pre _ Name"
+       END AS "Pre _ Name"
       
       -- STEP PRE:          PHONICS AWARENESS - RHYMING WORDS
       ,CASE
         --testid 3280, STEP Pre
         WHEN testid = 3280 AND pa_rhymingwds <  6 THEN 'Below_' + CAST(pa_rhymingwds AS VARCHAR(20))
         WHEN testid = 3280 AND pa_rhymingwds >= 6 THEN 'Meets_' + CAST(pa_rhymingwds AS VARCHAR(20))
-      END AS "Pre _ Ph. Aw.-Rhyme"
+       END AS "Pre _ Ph. Aw.-Rhyme"
 
       -- STEPS PRE to 01:    CONCEPTS ABOUT PRINT (AGGREGATED)
       ,CASE
@@ -45,7 +45,7 @@ SELECT sub_2.schoolid
         --testid 3281, STEP 01
         WHEN testid = 3281 AND cp_prof <  10 THEN 'Below_' + CAST(cp_prof AS VARCHAR(20))
         WHEN testid = 3281 AND cp_prof >= 10 THEN 'Meets_' + CAST(cp_prof AS VARCHAR(20))
-      END AS "Pre - 1 _ Concepts about Print"
+       END AS "Pre - 1 _ Concepts about Print"
       
       -- STEPS PRE to 02:    LETTER ID - NAME
       ,CASE
@@ -75,21 +75,21 @@ SELECT sub_2.schoolid
         --testid 3380, STEP 03
         WHEN testid = 3380 AND ltr_soundid <  24 THEN /*'Below_' +*/ ltr_soundid
         WHEN testid = 3380 AND ltr_soundid >= 24 THEN /*--'Meets_' +*/ ltr_soundid
-      END AS "Pre - 3 _ LID Sound"
+       END AS "Pre - 3 _ LID Sound"
 
       -- STEP 01:             PHONEMIC AWARENESS - MATCHING FIRST SOUNDS
       ,CASE
         --testid 3281, STEP 01
         WHEN testid = 3281 AND pa_mfs <  6 THEN 'Below_' + CAST(pa_mfs AS VARCHAR(20))
         WHEN testid = 3281 AND pa_mfs >= 6 THEN 'Meets_' + CAST(pa_mfs AS VARCHAR(20))
-      END AS "STEP 1 _ PA-1st"
+       END AS "STEP 1 _ PA-1st"
       
       -- STEP 01:             READING RECORD
       ,CASE
         --testid 3281, STEP 01
         WHEN testid = 3281 AND rr_prof <  5 THEN 'Below_' + CAST(rr_prof AS VARCHAR(20))
         WHEN testid = 3281 AND rr_prof >= 5 THEN 'Meets_' + CAST(rr_prof AS VARCHAR(20))
-      END AS "STEP 1 _ Reading Record"
+       END AS "STEP 1 _ Reading Record"
       
       -- STEPS 01 to 03:      DEVELOPMENTAL SPELLING (AGGREGATE)
       ,CASE
@@ -309,7 +309,7 @@ SELECT sub_2.schoolid
       ,NULL AS "FP_L-Z_Comprehension"
 FROM
      (SELECT schoolid
-			,studentid
+			         ,studentid
             ,lastfirst
             ,student_number            
             ,test_date
@@ -378,16 +378,13 @@ FROM
             ,SUM(wcomp_fact + wcomp_infer + wcomp_ct) AS wcomp_prof            --proficiency critera for STEP(s) 9-12
       FROM           
            (SELECT step.*				  
-			FROM LIT$step_test_events_long#identifiers step						
-			) sub_1
-	  GROUP BY schoolid, studentid, lastfirst, student_number, test_date, step_level, testid, status, read_teacher
-			  ,accuracy, accuracy_1a, accuracy_2b, cc_ct, cc_factual, cc_infer, cc_other, color, cp_121match
-			  ,cp_orient, cp_slw, devsp_final, devsp_first, devsp_ifbd, devsp_svs, indep_lvl, instruct_lvl
-			  ,ocomp_ct, ocomp_factual, ocomp_infer, ra_errors, reading_rate, rr_121match, rr_holdspattern
-              ,rr_understanding, scomp_ct, scomp_factual, scomp_infer, wcomp_ct, wcomp_fact, wcomp_infer
-              ,devsp_cmplxb, devsp_doubsylj, devsp_eding, devsp_longv2sw, devsp_longvp, devsp_rcont2sw         ,devsp_rcontv
-              ,devsp_vcelvp, devsp_vowldig, fluency, ltr_nameid, ltr_soundid, name_ass, pa_mfs, pa_rhymingwds
-              ,pa_segmentation, retelling, total_vwlattmpt
-) sub_2
+            FROM LIT$step_test_events_long#identifiers step						
+           ) sub_1
+	  GROUP BY schoolid, studentid, lastfirst, student_number, test_date, step_level, testid, status, read_teacher,accuracy, accuracy_1a, accuracy_2b, cc_ct
+	    ,cc_factual, cc_infer, cc_other, color, cp_121match, cp_orient, cp_slw, devsp_final, devsp_first, devsp_ifbd, devsp_svs, indep_lvl, instruct_lvl
+			  ,ocomp_ct, ocomp_factual, ocomp_infer, ra_errors, reading_rate, rr_121match, rr_holdspattern, rr_understanding, scomp_ct, scomp_factual, scomp_infer
+			  ,wcomp_ct, wcomp_fact, wcomp_infer,devsp_cmplxb, devsp_doubsylj, devsp_eding, devsp_longv2sw, devsp_longvp, devsp_rcont2sw,devsp_rcontv,devsp_vcelvp
+			  ,devsp_vowldig, fluency, ltr_nameid, ltr_soundid, name_ass, pa_mfs, pa_rhymingwds,pa_segmentation, retelling, total_vwlattmpt
+  ) sub_2
 JOIN students s
   ON s.id = studentid

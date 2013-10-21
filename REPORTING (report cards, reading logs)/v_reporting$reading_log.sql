@@ -60,10 +60,14 @@ SELECT roster.*
       ,ele.grade_1 AS cur_term_rdg_hw_avg
       ,ele.simple_avg AS y1_rdg_hw_avg
       ,CASE
-        WHEN fp_base.letter_level IS NULL THEN fp_cur.letter_level
-        ELSE fp_base.letter_level
-       END AS fp_base_lettter
-      ,fp_cur.letter_level AS fp_cur_letter
+        WHEN fp_base.letter_level IS NOT NULL THEN fp_base.letter_level
+        WHEN fp_base.letter_level IS NULL AND fp_cur.letter_level IS NOT NULL THEN fp_cur.letter_level
+        ELSE fp_dna_base.letter_level
+       END AS fp_base_letter
+      ,CASE
+        WHEN fp_cur.letter_level IS NULL THEN fp_dna_curr.letter_level
+        ELSE fp_cur.letter_level
+       END AS fp_cur_letter
       ,CASE 
          WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.TestRITScore
          WHEN map_fall.TestRITScore IS NULL THEN map_spr.TestRITScore
@@ -125,6 +129,14 @@ LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base
   ON roster.STUDENTID = fp_base.studentid
  AND fp_base.achv_base = 1
  AND fp_base.year = 2013
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_dna_base
+  ON roster.STUDENTID = fp_dna_base.studentid
+ AND fp_dna_base.dna_base = 1
+ AND fp_dna_base.year = 2013
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_dna_curr
+  ON roster.STUDENTID = fp_dna_curr.studentid
+ AND fp_dna_curr.dna_curr = 1
+ AND fp_dna_curr.year = 2013
 
 --RIT, NWEA LEXILE
 LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_fall
