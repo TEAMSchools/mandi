@@ -22,6 +22,7 @@ BEGIN
  --variables that store various queries as text
  ,@sql_demog_audits      NVARCHAR(MAX)
  ,@sql_psconfig_audits   NVARCHAR(MAX)
+ ,@sql_warehouse_audits  NVARCHAR(MAX)
  ,@sql_illuminate_audits NVARCHAR(MAX)
  ,@sql_integ_audits      NVARCHAR(MAX)
  ,@sql_last_refresh      NVARCHAR(MAX)
@@ -31,6 +32,7 @@ BEGIN
  --variables that catch the output of those queries in HTML format
  ,@html_demog_audits     NVARCHAR(MAX)
  ,@html_psconfig_audits  NVARCHAR(MAX)
+ ,@html_warehouse_audits NVARCHAR(MAX)
  ,@html_illuminate_audits NVARCHAR(MAX)
  ,@html_integ_audits     NVARCHAR(MAX)
  ,@html_last_refresh     NVARCHAR(MAX)
@@ -71,6 +73,14 @@ BEGIN
     FROM KIPP_NJ..QA$data_audit
     WHERE audit_category = ''PS Config''
     '                
+
+  SET @sql_warehouse_audits = '
+    SELECT audit_type
+          ,result
+    FROM KIPP_NJ..QA$data_audit
+    WHERE audit_category = ''Data Warehouse Config''
+    '                
+
   SET @sql_illuminate_audits = '
     SELECT audit_type
           ,result
@@ -121,11 +131,12 @@ BEGIN
     GROUP BY job_name'
 
   --run the view timing test
+  --SET @return_value = 139 --testing
   EXEC	@return_value = [dbo].sp_QA$view_query_time
 
   SET @sql_views = '
     SELECT object_name AS "non-cached views"
-          ,CAST(CAST(refresh_time / 1000.0 AS NUMERIC(4,2)) AS NVARCHAR(MAX)) AS "seconds to refresh"
+          ,CAST(CAST(refresh_time / 1000.0 AS NUMERIC(8,2)) AS NVARCHAR(MAX)) AS "seconds to refresh"
     FROM KIPP_NJ.dbo.QA$response_time_results
     WHERE batch_id =' + CAST(@return_value AS VARCHAR)
 
@@ -134,6 +145,7 @@ BEGIN
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_psconfig_audits, @html_psconfig_audits OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_integ_audits, @html_integ_audits OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_illuminate_audits, @html_illuminate_audits OUTPUT
+  EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_warehouse_audits, @html_warehouse_audits OUTPUT  
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_last_refresh, @html_last_refresh OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_views, @html_views OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_failed_jobs, @html_failed_jobs OUTPUT
@@ -181,6 +193,11 @@ SET @email_body =
 + @html_psconfig_audits +
 '
 <br>
+  <span style="med_text">Data Warehouse Config Audits</span> 
+'
++ @html_warehouse_audits +
+'
+<br>
   <span style="med_text">Illuminate Data Audits</span> 
 '
 + @html_illuminate_audits +
@@ -206,10 +223,9 @@ SET @email_body =
 '
   <br>
   <span style="med_text">Refresh time for non-cached views</span>
-' 
- --non cached view refresh time
- + @html_views +
 '
+ --non cached view refresh time
+ +  @html_views  + '
 </body>
 </html>
 '

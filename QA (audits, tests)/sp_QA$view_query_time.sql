@@ -28,8 +28,8 @@ BEGIN
   --a cursor to loop over the views
   DECLARE csr CURSOR LOCAL FOR 
     SELECT views.name
-    FROM sys.views views
-    JOIN sys.extended_properties props
+    FROM KIPP_NJ.sys.views views
+    JOIN KIPP_NJ.sys.extended_properties props
       ON views.object_id = props.major_id
      AND props.name = 'has_static_cache'
      AND props.value != 'TRUE'
@@ -50,7 +50,7 @@ BEGIN
         SET @sql = 'DECLARE @test NVARCHAR(MAX) 
                     SELECT @test = checksum(*) FROM [' + @viewname + ']'
         SET @sql_all = 'SELECT * 
-                        FROM [' + @viewname + ']'
+                        FROM [' + @viewname + '] WITH (NOLOCK)'
         --start timing
         SET @start_time = GETDATE()
         

@@ -426,3 +426,38 @@ FROM
        ) sub
 WHERE rn = 1
 
+UNION ALL
+
+--Added by AM2 on 10/22/2013
+--all views on KIPP_NJ should be tagged static cache/no static cache.
+SELECT 'Data Warehouse Config' AS audit_category
+      ,'Views lacking static/nonstatic tags' AS audit_type
+      ,sub.assertion + ' (n=' + CAST(sub.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub.assertion = 'Pass' THEN ''
+           WHEN sub.N < 50 THEN sub.elements 
+           ELSE '50+ assessments' 
+         END AS result
+FROM      
+      (SELECT sub.assertion
+             ,COUNT(*) AS N
+             ,dbo.GROUP_CONCAT_D(sub.name, '|') AS elements
+             ,ROW_NUMBER() OVER
+               (ORDER BY sub.assertion) AS rn
+       FROM
+            (SELECT views.name
+                   ,props.name AS prop_name
+                   ,props.value AS prop_value
+                   ,CASE
+                      WHEN props.name IS NOT NULL THEN 'Pass'
+                      WHEN props.name IS NULL THEN 'Fail'
+                    END AS assertion
+              FROM KIPP_NJ.sys.views views
+              LEFT OUTER JOIN KIPP_NJ.sys.extended_properties props
+                ON views.object_id = props.major_id
+               AND props.name IN ('has_static_cache')
+              WHERE is_ms_shipped=0 
+            ) sub
+       GROUP BY sub.assertion
+       ) sub
+WHERE rn = 1
