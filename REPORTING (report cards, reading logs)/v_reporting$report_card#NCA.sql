@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$report_card#NCA AS
+--ALTER VIEW REPORTING$report_card#NCA AS
 WITH roster AS
      (SELECT s.student_number AS base_student_number
             ,s.id AS base_studentid
