@@ -25,7 +25,18 @@ SELECT sub.*
         THEN sub.level_number - prev.level_number
         ELSE NULL
        END AS level_growth_prev
-      ,sub.ABBREVIATION AS schoolyr
+--/*
+      ,CASE
+        WHEN sub.status = 'Achieved'
+        THEN sub.GLEQ - tri.GLEQ
+        ELSE NULL
+       END AS GLEQ_growth_tri
+      ,CASE
+        WHEN sub.status = 'Achieved'
+        THEN sub.level_number - tri.level_number
+        ELSE NULL
+       END AS level_growth_tri
+--*/
 FROM
      (SELECT rs.testid 
             ,cohort.schoolid
@@ -34,8 +45,9 @@ FROM
             ,cohort.abbreviation
             ,s.id AS studentid
 		          ,s.student_number
-		          ,s.lastfirst      
-		          ,rs.test_date
+		          ,s.lastfirst 
+		          ,dates.time_per_name
+		          ,rs.test_date		          
 		          ,rs.step_ltr_level AS step_level
 		          ,rs.status
 		          ,rs.color
@@ -87,7 +99,17 @@ FROM
 		          ,rs.devsp_doubsylj
 		          ,rs.devsp_longv2sw
 		          ,rs.devsp_rcont2sw
-		          ,rs.read_teacher
+		          ,rs.cc_prof1
+            ,rs.cc_prof2
+            ,rs.cp_prof
+            ,rs.devsp_prof1
+            ,rs.devsp_prof2
+            ,rs.ocomp_prof1
+            ,rs.ocomp_prof2
+            ,rs.rr_prof
+            ,rs.scomp_prof
+            ,rs.wcomp_prof
+		          ,rs.genre
             ,CASE
               WHEN step_ltr_level = 'Pre' THEN 0.0
               WHEN step_ltr_level = '1'   THEN 0.0
@@ -150,14 +172,46 @@ FROM
                       ORDER BY rs.test_date DESC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
               ELSE NULL
              END AS achv_curr_all
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
+                      ORDER BY rs.test_date ASC, step_ltr_level ASC)
+              ELSE NULL
+             END AS achv_base_tri
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
+                      ORDER BY rs.test_date DESC, step_ltr_level DESC)
+              ELSE NULL
+             END AS achv_curr_tri
+            ,CASE
+              WHEN status = 'Did Not Achieve' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
+                      ORDER BY rs.test_date ASC, step_ltr_level DESC)
+              ELSE NULL
+             END AS dna_base_tri
+            ,CASE
+              WHEN status = 'Did Not Achieve' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
+                      ORDER BY rs.test_date DESC, step_ltr_level ASC)
+              ELSE NULL
+             END AS dna_curr_tri
       FROM READINGSCORES rs
       JOIN STUDENTS s
         ON rs.studentid = s.id
-      JOIN COHORT$comprehensive_long#static cohort
+      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort
         ON rs.studentid = cohort.studentid
        AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
        AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
        AND cohort.rn = 1
+      LEFT OUTER JOIN REPORTING$dates dates
+        ON rs.test_date >= dates.start_date
+       AND rs.test_date <= dates.end_date
+       AND dates.identifier = 'LIT'
       WHERE testid != 3273
      ) sub
 --/*
@@ -197,7 +251,7 @@ LEFT OUTER JOIN
                   END AS achv_base
                  --helps to determine last test event FOR a student IN a year          
            FROM READINGSCORES rs      
-           JOIN COHORT$comprehensive_long#static cohort
+           LEFT OUTER JOIN COHORT$comprehensive_long#static cohort
              ON rs.studentid = cohort.studentid
             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
             AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
@@ -244,26 +298,30 @@ LEFT OUTER JOIN
                    ELSE NULL
              END AS achv_curr_all
            FROM READINGSCORES rs      
-           JOIN COHORT$comprehensive_long#static cohort
+           LEFT OUTER JOIN COHORT$comprehensive_long#static cohort
              ON rs.studentid = cohort.studentid
             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
             AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
             AND cohort.rn = 1
-           WHERE testid != 3273             
+           WHERE testid != 3273
           ) sq_3
       --WHERE sq_3.achv_curr > 1
      ) prev
   ON sub.studentid = prev.studentid
  AND sub.achv_curr_all = (prev.achv_curr_all - 1) 
 --*/
-/*
---BASE TEST ACHIEVED OVERALL -- kind of useless, overall GLEQ growth is the same as GLEQ for most recent test
+--BASE TEST ACHIEVED FOR TRIMESTER
 LEFT OUTER JOIN 
      (SELECT *
       FROM
-           (SELECT cohort.year            
-                 ,rs.studentid
-                 ,CASE
+           (SELECT rs.studentid
+                  ,cohort.year            
+                  ,CASE
+                    WHEN dates.time_per_name = 'Diagnostic' THEN 'T1'
+                    WHEN dates.time_per_name = 'T1' THEN 'T2'
+                    WHEN dates.time_per_name = 'T2' THEN 'T3'
+                   END AS time_per_name
+                  ,CASE
                    WHEN step_ltr_level = 'Pre' THEN 0.0
                    WHEN step_ltr_level = '1' THEN 0.0
                    WHEN step_ltr_level = '2' THEN 0.3
@@ -282,23 +340,29 @@ LEFT OUTER JOIN
                  ,CASE
                    WHEN step_ltr_level = 'Pre' THEN 0        
                    ELSE CONVERT(INT,step_ltr_level)
-                  END AS level_number            
+                  END AS level_number                    
                  ,CASE
                    WHEN status = 'Achieved' THEN
                     ROW_NUMBER() OVER
-                      (PARTITION BY rs.studentid, rs.status
-                           ORDER BY rs.test_date ASC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) ASC)
+                      (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
+                           ORDER BY rs.test_date DESC, step_ltr_level DESC)
                    ELSE NULL
-                  END AS achv_base_all            
-           FROM READINGSCORES rs      
-           JOIN COHORT$comprehensive_long#static cohort
-             ON rs.studentid = cohort.studentid
-            AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
-            AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
-            AND cohort.rn = 1
-           WHERE testid != 3273             
-          ) sq_2
-      WHERE sq_2.achv_base_all = 1
-     ) overall
-  ON sub.studentid = overall.studentid
---*/
+                  END AS achv_curr_tri
+            FROM READINGSCORES rs      
+            LEFT OUTER JOIN COHORT$comprehensive_long#static cohort
+              ON rs.studentid = cohort.studentid
+             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+             AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+             AND cohort.rn = 1
+            LEFT OUTER JOIN REPORTING$dates dates
+              ON rs.test_date >= dates.start_date
+             AND rs.test_date <= dates.end_date
+             AND dates.identifier = 'LIT'
+            WHERE testid != 3273
+           ) sq_3
+      WHERE sq_3.achv_curr_tri = 1
+        AND sq_3.time_per_name IS NOT NULL
+     ) tri
+  ON sub.studentid = tri.studentid
+ AND sub.year = tri.year
+ AND sub.time_per_name = tri.time_per_name
