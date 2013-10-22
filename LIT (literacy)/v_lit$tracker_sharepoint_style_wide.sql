@@ -3,7 +3,9 @@ GO
 
 ALTER VIEW LIT$tracker_sharepoint_style_wide AS
 SELECT CAST([schoolid] AS VARCHAR(20)) AS [schoolid]
-	  ,CAST([Student Number] AS VARCHAR(100)) AS [Student Number]
+	  
+	  ,[Student Number] AS [Student Number]
+	  
 	  ,CAST([Grade Level] AS VARCHAR(20)) AS [Grade Level]
 	  ,CAST([Team] AS VARCHAR(20)) AS [Team]
 	  ,[Step Round]
@@ -12,6 +14,7 @@ SELECT CAST([schoolid] AS VARCHAR(20)) AS [schoolid]
 	  ,CAST([status] AS VARCHAR(20)) AS [Status]
 	  ,CAST([Independent Level] AS VARCHAR(20)) AS [Independent Level]
 	  ,CAST([Instructional Level] AS VARCHAR(20)) AS [Instructional Level]
+	  
 	  ,CAST([Pre _ Name] AS VARCHAR(20)) AS [Pre _ Name]
 	  ,CAST([Pre _ Ph. Aw.-Rhyme] AS VARCHAR(20)) AS [Pre _ Ph. Aw.-Rhyme]
 	  ,CAST([Pre - 1 _ Concepts about Print] AS VARCHAR(20)) AS [Pre - 1 _ Concepts about Print]
@@ -26,6 +29,7 @@ SELECT CAST([schoolid] AS VARCHAR(20)) AS [schoolid]
 	  ,CAST([STEP 2 - 3 _ Comprehension] AS VARCHAR(20)) AS [STEP 2 - 3 _ Comprehension]
 	  ,CAST([STEP 3 - 12 _ Acurracy] AS VARCHAR(20)) AS [STEP 3 - 12 _ Acurracy]
 	  ,CAST([STEP 4 - 12 _ Fluency] AS VARCHAR(20)) AS [STEP 4 - 12 _ Fluency]
+	  
 	  ,CAST([STEP 4 - 5 _ Comprehension] AS VARCHAR(20)) AS [STEP 4 - 5 _ Comprehension]
 	  ,CAST([STEP 4 - 5 _ Dev. Spell] AS VARCHAR(20)) AS [STEP 4 - 5 _ Dev. Spell]
 	  ,CAST([STEP 4 - 12 _ Rate] AS VARCHAR(20)) AS [STEP 4 - 12 _ Rate]
@@ -40,8 +44,9 @@ SELECT CAST([schoolid] AS VARCHAR(20)) AS [schoolid]
 	  ,CAST([FP_L-Z_Rate] AS VARCHAR(20)) AS [FP_L-Z_Rate]
 	  ,CAST([FP_L-Z_Fluency] AS VARCHAR(100)) AS [FP_L-Z_Fluency]
 	  ,CAST([FP_L-Z_Comprehension] AS VARCHAR(20)) AS [FP_L-Z_Comprehension]
+   
 FROM [KIPP_NJ].[dbo].[LIT$STEP_sharepoint_style_wide] WITH(NOLOCK)
-  
+ 
 UNION ALL
 
 SELECT CAST([schoolid] AS VARCHAR(20)) AS [schoolid]
