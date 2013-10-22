@@ -21,13 +21,15 @@ BEGIN
   --timing
   DECLARE @refresh_seconds DECIMAL(8,1)
   DECLARE @start_time DATETIME
+  --message
+  DECLARE @console_output VARCHAR(400)
   --this gets returned
   DECLARE @record_batch INT
   --a cursor to loop over the views
   DECLARE csr CURSOR LOCAL FOR 
     SELECT views.name
-    FROM sys.views views
-    JOIN sys.extended_properties props
+    FROM KIPP_NJ.sys.views views
+    JOIN KIPP_NJ.sys.extended_properties props
       ON views.object_id = props.major_id
      AND props.name = 'has_static_cache'
      AND props.value != 'TRUE'
@@ -48,9 +50,14 @@ BEGIN
         SET @sql = 'DECLARE @test NVARCHAR(MAX) 
                     SELECT @test = checksum(*) FROM [' + @viewname + ']'
         SET @sql_all = 'SELECT * 
-                        FROM [' + @viewname + ']'
+                        FROM [' + @viewname + '] WITH (NOLOCK)'
         --start timing
         SET @start_time = GETDATE()
+        
+        --be verbose
+        SET @console_output = 'Examining ' + @viewname
+        RAISERROR (@console_output, 0, 1) WITH NOWAIT
+
         --execute the dynamic SQL                
         EXEC sp_executesql @sql
         EXEC sp_executesql @sql_all
