@@ -4,7 +4,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW ILLUMINATE$assessments AS
+--ALTER VIEW ILLUMINATE$assessments AS
 SELECT *
 FROM
      (SELECT oq.assessment_id

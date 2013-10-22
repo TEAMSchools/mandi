@@ -56,6 +56,7 @@ FROM
         ON s.student_number = results.local_student_id
       LEFT OUTER JOIN ILLUMINATE$assessments assessments WITH(NOLOCK)
         ON results.assessment_id = assessments.assessment_id
+       AND assessments.deleted_at IS NULL
       LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
         ON s.id = co.studentid
        AND co.year = DATEPART(YYYY,assessments.administered_at)  
