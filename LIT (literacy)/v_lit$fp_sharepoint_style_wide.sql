@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW LIT$FP_sharepoint_style_wide AS
+--ALTER VIEW LIT$FP_sharepoint_style_wide AS
 SELECT CAST(fp.schoolid AS VARCHAR(20)) AS schoolid
 	  ,fp.LASTFIRST + '_' + CAST(fp.student_number AS VARCHAR(20)) AS [Student Number]
       ,fp.grade_level AS [Grade Level]

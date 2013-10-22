@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW LIT$tracker_sharepoint_style_wide AS
+ALTER VIEW LIT$STEP_sharepoint_style_wide AS
 SELECT sub_2.schoolid
 	     ,sub_2.lastfirst + '_' + CONVERT(VARCHAR,sub_2.student_number) AS "Student Number"
       ,grade_level AS "Grade Level"
@@ -315,7 +315,7 @@ FROM
             ,step_level
             ,testid
             ,status
-            ,read_teacher
+            --,read_teacher
             ,accuracy
             ,accuracy_1a
             ,accuracy_2b
@@ -379,7 +379,7 @@ FROM
            (SELECT step.*				  
             FROM LIT$step_test_events_long#identifiers step						
            ) sub_1
-	  GROUP BY schoolid, studentid, lastfirst, student_number, test_date, step_level, testid, status, read_teacher,accuracy, accuracy_1a, accuracy_2b, cc_ct
+	  GROUP BY schoolid, studentid, lastfirst, student_number, test_date, step_level, testid, status, accuracy, accuracy_1a, accuracy_2b, cc_ct
 	    ,cc_factual, cc_infer, cc_other, color, cp_121match, cp_orient, cp_slw, devsp_final, devsp_first, devsp_ifbd, devsp_svs, indep_lvl, instruct_lvl
 			  ,ocomp_ct, ocomp_factual, ocomp_infer, ra_errors, reading_rate, rr_121match, rr_holdspattern, rr_understanding, scomp_ct, scomp_factual, scomp_infer
 			  ,wcomp_ct, wcomp_fact, wcomp_infer,devsp_cmplxb, devsp_doubsylj, devsp_eding, devsp_longv2sw, devsp_longvp, devsp_rcont2sw,devsp_rcontv,devsp_vcelvp
