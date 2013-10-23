@@ -319,7 +319,7 @@ BEGIN
        <br>
        <br>
        '
-       + @table1_html +
+       + ISNULL(@table1_html, ' ') +
        '
        <br>
        <span style="med_text"> 
@@ -328,7 +328,7 @@ BEGIN
        <br>
        <br>
        '
-       + @table2_html +
+       + ISNULL(@table2_html, ' ') +
        '
        <br>
        <span style="med_text"> 
@@ -337,7 +337,7 @@ BEGIN
        <br>
        <br>
        '
-       + @table3_html +
+       + ISNULL(@table3_html, ' ') +
        '
        <br>
        <span style="med_text"> 
