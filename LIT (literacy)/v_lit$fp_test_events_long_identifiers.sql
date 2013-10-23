@@ -392,9 +392,9 @@ LEFT OUTER JOIN
            (SELECT rs.studentid
                   ,cohort.year            
                   ,CASE
-                    WHEN dates.time_per_name = 'Diagnostic' THEN 'T1'
-                    WHEN dates.time_per_name = 'T1' THEN 'T2'
+                    WHEN dates.time_per_name = 'Diagnostic' THEN 'T2'
                     WHEN dates.time_per_name = 'T2' THEN 'T3'
+                    WHEN dates.time_per_name = 'T3' THEN 'EOY'
                    END AS time_per_name
                   ,CASE
                     WHEN step_ltr_level = 'AA' THEN 0.0
