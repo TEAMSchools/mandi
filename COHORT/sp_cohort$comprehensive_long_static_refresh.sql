@@ -23,9 +23,6 @@ BEGIN
 		INTO [#COHORT$comprehensive_long#static|refresh]
   FROM COHORT$comprehensive_long cohort
    
-  --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
-  --SELECT 1 FROM [LIT$step_headline_long#identifiers] WITH (TABLOCKX);
-
   --STEP 4: truncate result table
   EXEC('TRUNCATE TABLE dbo.[COHORT$comprehensive_long#static]');
 

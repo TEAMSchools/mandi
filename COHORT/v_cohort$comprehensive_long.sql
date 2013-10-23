@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW COHORT$comprehensive_long AS
+ALTER VIEW COHORT$comprehensive_long AS
 SELECT * 
 FROM OPENQUERY(PS_TEAM, '
      select unioned_tables.studentid
