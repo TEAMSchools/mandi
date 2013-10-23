@@ -505,8 +505,8 @@ FROM
                            ,[scope]
                            ,[grade1]
                            ,CASE
-                              --tags should have three items (ie two commas)
-                              WHEN len(asmt.tags) - len(replace(asmt.tags,',','')) = 2 THEN 'Pass'
+                              --tags should have three or more items (ie two commas)
+                              WHEN len(asmt.tags) - len(replace(asmt.tags,',','')) >= 2 THEN 'Pass'
                               ELSE 'Fail'
                             END AS assertion
                        FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments] asmt
