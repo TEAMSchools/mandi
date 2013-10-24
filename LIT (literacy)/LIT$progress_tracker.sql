@@ -388,6 +388,19 @@ SELECT
       ,map.rittoreadingmax AS lexile_max
       ,map.rittoreadingmin AS lexile_min      
       
+--REPORTING HASHES
+      ,CASE
+        WHEN status = 'Achieved' THEN CONVERT(VARCHAR,time_per_name) + '_' 
+                                       + CONVERT(VARCHAR,status) + '_' 
+                                       + CONVERT(VARCHAR,year) + '_' 
+                                       + CONVERT(VARCHAR,achv_curr_tri)
+        WHEN status = 'Did Not Achieve' THEN CONVERT(VARCHAR,time_per_name) + '_' 
+                                              + CONVERT(VARCHAR,status) + '_' 
+                                              + CONVERT(VARCHAR,year) + '_' 
+                                              + CONVERT(VARCHAR,dna_base_tri)
+        ELSE NULL
+       END AS reporting_hash
+      
 FROM
      (SELECT testid
             ,schoolid
