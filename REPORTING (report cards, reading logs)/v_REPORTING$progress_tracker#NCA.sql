@@ -3,7 +3,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW REPORTING$progress_tracker#NCA AS
+ALTER VIEW REPORTING$progress_tracker#NCA AS
 WITH roster AS
      (SELECT s.student_number
             ,s.id AS studentid
@@ -25,7 +25,7 @@ WITH roster AS
      )
 
 SELECT ROW_NUMBER() OVER(          
-           ORDER BY studentid) AS rn
+           ORDER BY grade_level, advisor, lastfirst) AS rn
       ,student_number
       ,studentid
       ,lastfirst
