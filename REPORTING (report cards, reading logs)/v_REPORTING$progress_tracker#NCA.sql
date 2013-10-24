@@ -3,7 +3,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$progress_tracker#NCA AS
+--ALTER VIEW REPORTING$progress_tracker#NCA AS
 WITH roster AS
      (SELECT s.student_number
             ,s.id AS studentid
@@ -24,7 +24,9 @@ WITH roster AS
         AND c.schoolid = 73253
      )
 
-SELECT student_number
+SELECT ROW_NUMBER() OVER(          
+           ORDER BY studentid) AS rn
+      ,student_number
       ,studentid
       ,lastfirst
       ,first_name
@@ -254,9 +256,10 @@ FROM
        
      --GPA
      LEFT OUTER JOIN GPA$detail#NCA nca_gpa WITH (NOLOCK)
-       ON roster.studentid = nca_gpa.studentid
+       ON roster.studentid = nca_gpa.studentid      
      LEFT OUTER JOIN GPA$cumulative gpa_cumulative WITH (NOLOCK)
        ON roster.studentid = gpa_cumulative.studentid
+      AND gpa_cumulative.schoolid = 73253
        
      --GRADES
      LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide WITH (NOLOCK)
