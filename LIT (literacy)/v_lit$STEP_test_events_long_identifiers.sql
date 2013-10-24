@@ -200,15 +200,15 @@ FROM
                       ORDER BY rs.test_date DESC, step_ltr_level ASC)
               ELSE NULL
              END AS dna_curr_tri
-      FROM READINGSCORES rs
-      JOIN STUDENTS s
+      FROM READINGSCORES rs WITH(NOLOCK)
+      JOIN STUDENTS s WITH(NOLOCK)
         ON rs.studentid = s.id
-      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort
+      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
         ON rs.studentid = cohort.studentid
        AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
        AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
        AND cohort.rn = 1
-      LEFT OUTER JOIN REPORTING$dates dates
+      LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
         ON rs.test_date >= dates.start_date
        AND rs.test_date <= dates.end_date
        AND dates.identifier = 'LIT'
@@ -250,8 +250,8 @@ LEFT OUTER JOIN
                    ELSE NULL
                   END AS achv_base
                  --helps to determine last test event FOR a student IN a year          
-           FROM READINGSCORES rs      
-           LEFT OUTER JOIN COHORT$comprehensive_long#static cohort
+           FROM READINGSCORES rs WITH(NOLOCK)      
+           LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
              ON rs.studentid = cohort.studentid
             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
             AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
@@ -297,8 +297,8 @@ LEFT OUTER JOIN
                            ORDER BY rs.test_date DESC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
                    ELSE NULL
              END AS achv_curr_all
-           FROM READINGSCORES rs      
-           LEFT OUTER JOIN COHORT$comprehensive_long#static cohort
+           FROM READINGSCORES rs WITH(NOLOCK)      
+           LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
              ON rs.studentid = cohort.studentid
             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
             AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
@@ -348,13 +348,13 @@ LEFT OUTER JOIN
                            ORDER BY rs.test_date DESC, step_ltr_level DESC)
                    ELSE NULL
                   END AS achv_curr_tri
-            FROM READINGSCORES rs      
-            LEFT OUTER JOIN COHORT$comprehensive_long#static cohort
+            FROM READINGSCORES rs WITH(NOLOCK)      
+            LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
               ON rs.studentid = cohort.studentid
              AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
              AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
              AND cohort.rn = 1
-            LEFT OUTER JOIN REPORTING$dates dates
+            LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
               ON rs.test_date >= dates.start_date
              AND rs.test_date <= dates.end_date
              AND dates.identifier = 'LIT'

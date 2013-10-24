@@ -377,7 +377,7 @@ FROM
             ,SUM(wcomp_fact + wcomp_infer + wcomp_ct) AS wcomp_prof            --proficiency critera for STEP(s) 9-12
       FROM           
            (SELECT step.*				  
-            FROM LIT$step_test_events_long#identifiers step						
+            FROM LIT$step_test_events_long#identifiers step WITH(NOLOCK)
            ) sub_1
 	  GROUP BY schoolid, studentid, lastfirst, student_number, test_date, step_level, testid, status, accuracy, accuracy_1a, accuracy_2b, cc_ct
 	    ,cc_factual, cc_infer, cc_other, color, cp_121match, cp_orient, cp_slw, devsp_final, devsp_first, devsp_ifbd, devsp_svs, indep_lvl, instruct_lvl

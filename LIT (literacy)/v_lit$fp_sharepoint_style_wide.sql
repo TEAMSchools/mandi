@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW LIT$FP_sharepoint_style_wide AS
+ALTER VIEW LIT$FP_sharepoint_style_wide AS
 SELECT CAST(fp.schoolid AS VARCHAR(20)) AS schoolid
 	  ,fp.LASTFIRST + '_' + CAST(fp.student_number AS VARCHAR(20)) AS [Student Number]
       ,fp.grade_level AS [Grade Level]
@@ -80,7 +80,7 @@ SELECT CAST(fp.schoolid AS VARCHAR(20)) AS schoolid
         WHEN testid = 3273 AND SUM(fp_comp_within + fp_comp_beyond + fp_comp_about) = 8 THEN 'Meets_8/9- Satisfactory'
         WHEN testid = 3273 AND SUM(fp_comp_within + fp_comp_beyond + fp_comp_about) = 9 THEN 'Meets_9/9- Excellent'        
       END AS [FP_L-Z_Comprehension]
-FROM LIT$FP_test_events_long#identifiers#static fp
-LEFT OUTER JOIN students s
+FROM LIT$FP_test_events_long#identifiers#static fp WITH(NOLOCK)
+LEFT OUTER JOIN students s WITH(NOLOCK)
 	ON s.id = fp.STUDENTID
 GROUP BY fp.schoolid, fp.LASTFIRST, fp.student_number, fp.grade_level, s.team, test_date, LETTER_LEVEL, status, fp.TESTID, fp.FP_ACCURACY, fp.FP_WPMRATE, fp.FP_FLUENCY
