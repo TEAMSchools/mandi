@@ -93,6 +93,8 @@ SELECT roster.*
       ,replace(convert(varchar,convert(Money, CAST(ROUND(ar_cur.ontrack_words,0) AS INT)),1),'.00','') AS hex_needed
       ,ar_cur.stu_status_words AS hex_on_track
       ,ar_cur.rank_words_grade_in_school AS hex_rank_words
+      ,ar_cur.N_passed
+      ,ar_cur.N_total
 
        --AR year
       ,replace(convert(varchar,convert(Money, ar_year.words),1),'.00','') AS year_words
