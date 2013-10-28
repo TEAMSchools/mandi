@@ -79,10 +79,14 @@ SELECT ROW_NUMBER() OVER(
       ,map_math_pct
       ,map_read_pct
       ,lexile_cur
+      ,lexile_min
+      ,lexile_max
       ,merits_yr      
       ,merits_curr
       ,demerits_yr
       ,demerits_curr
+      ,subtype AS recent_merit
+      ,entry_date AS merit_date
       ,in_grade_denom
       ,CASE
         WHEN gpa_ytd IS NOT NULL THEN
@@ -98,6 +102,26 @@ SELECT ROW_NUMBER() OVER(
              ORDER BY gpa_cum DESC) 
         ELSE NULL
        END AS gpa_rank_cum
+      ,rc1_course_name
+      ,rc1_Y1
+      ,rc2_course_name
+      ,rc2_Y1
+      ,rc3_course_name
+      ,rc3_Y1
+      ,rc4_course_name
+      ,rc4_Y1
+      ,rc5_course_name
+      ,rc5_Y1
+      ,rc6_course_name
+      ,rc6_Y1
+      ,rc7_course_name
+      ,rc7_Y1
+      ,rc8_course_name
+      ,rc8_Y1
+      ,rc9_course_name
+      ,rc9_Y1
+      ,rc10_course_name
+      ,rc10_Y1
 --PROFICIENCY METRICS      
       ,CASE
         WHEN att_pct_yr >= 95 THEN 4
@@ -247,6 +271,26 @@ FROM
            --,gr_wide.CY_all
            ,gr_wide.E1_all
            ,gr_wide.E2_all
+           ,gr_wide.rc1_course_name
+           ,gr_wide.rc1_Y1
+           ,gr_wide.rc2_course_name
+           ,gr_wide.rc2_Y1
+           ,gr_wide.rc3_course_name
+           ,gr_wide.rc3_Y1
+           ,gr_wide.rc4_course_name
+           ,gr_wide.rc4_Y1
+           ,gr_wide.rc5_course_name
+           ,gr_wide.rc5_Y1
+           ,gr_wide.rc6_course_name
+           ,gr_wide.rc6_Y1
+           ,gr_wide.rc7_course_name
+           ,gr_wide.rc7_Y1
+           ,gr_wide.rc8_course_name
+           ,gr_wide.rc8_Y1
+           ,gr_wide.rc9_course_name
+           ,gr_wide.rc9_Y1
+           ,gr_wide.rc10_course_name
+           ,gr_wide.rc10_Y1
            
            --On-track?
            ,fail.courses
@@ -269,6 +313,8 @@ FROM
            ,map_math_cur.testpercentile AS map_math_pct
            ,map_read_cur.testpercentile AS map_read_pct
            ,map_read_cur.rittoreadingscore AS lexile_cur
+           ,map_read_cur.rittoreadingmin AS lexile_min
+           ,map_read_cur.rittoreadingmax AS lexile_max
          
      --Discipline
      --DISC$merits_demerits_count#NCA
@@ -289,6 +335,8 @@ FROM
              + merits.total_demerits_rt4 AS demerits_yr
              --current
            ,merits.total_demerits_rt1    AS demerits_curr -- update field name for current term
+           ,disc.subtype
+           ,disc.entry_date
            
      FROM roster
       
@@ -343,6 +391,10 @@ FROM
      --MERITS & DEMERITS
      LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits WITH (NOLOCK)
        ON roster.studentid = merits.studentid
+     LEFT OUTER JOIN DISC$log#static disc
+       ON roster.studentid = disc.studentid
+      AND disc.rn = 1
+      AND disc.logtypeid = 3023      
        
      LEFT OUTER JOIN (SELECT grade_level
                             ,MAX(peer_count) AS in_grade_denom
