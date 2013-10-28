@@ -14,21 +14,42 @@ BEGIN
  DECLARE @sql AS VARCHAR(MAX)='';
 
   --STEP 1: make sure no temp table
-		IF OBJECT_ID(N'tempdb..#DISC$log#static|refresh') IS NOT NULL
+		IF OBJECT_ID(N'tempdb..#DISC$log#static|refresh1') IS NOT NULL
 		BEGIN
-						DROP TABLE [#DISC$log#static|refresh]
+						DROP TABLE [#DISC$log#static|refresh1]
 		END
 
   --STEP 2: load into a TEMPORARY staging table.
   SELECT *
-		INTO [#DISC$log#static|refresh]
+		INTO [#DISC$log#static|refresh1]
   FROM (SELECT oq.schoolid
               ,CAST(studentid AS INT) AS studentid
               ,entry_author
-              ,entry_date
+              ,CONVERT(DATE,entry_date) AS entry_date
               ,logtypeid
               ,subject
-              ,CASE
+              ,entry      
+              ,consequence
+              ,CASE      
+                --ES Discipline Log
+                WHEN subtype = '01' AND logtypeid = 3123 THEN 'Tantrum - Dangerous'
+                WHEN subtype = '02' AND logtypeid = 3123 THEN 'Tantrum - Disruptive'
+                WHEN subtype = '03' AND logtypeid = 3123 THEN 'Aggr Phys Contact'
+                WHEN subtype = '04' AND logtypeid = 3123 THEN 'Inapprop Contact'
+                WHEN subtype = '05' AND logtypeid = 3123 THEN 'Inapprop. Contact'
+                WHEN subtype = '06' AND logtypeid = 3123 THEN 'Running Away'
+                WHEN subtype = '07' AND logtypeid = 3123 THEN 'Fighting'
+                WHEN subtype = '08' AND logtypeid = 3123 THEN 'Other - Please spec'
+            
+                --ES Bus Log
+                WHEN subtype = '01' AND logtypeid = 3124 THEN 'Bullying'
+                WHEN subtype = '02' AND logtypeid = 3124 THEN 'Disrespect'
+                WHEN subtype = '03' AND logtypeid = 3124 THEN 'Fighting'
+                WHEN subtype = '04' AND logtypeid = 3124 THEN 'Horseplay'
+                WHEN subtype = '05' AND logtypeid = 3124 THEN 'Moving / Standing'
+                WHEN subtype = '06' AND logtypeid = 3124 THEN 'Unsafe / Throwing'
+                WHEN subtype = '07' AND logtypeid = 3124 THEN '[OTHER]'
+               
                 --ES/MS codes
                 WHEN subtype = '1'  AND logtypeid = -100000 THEN 'Detention'
                 WHEN subtype = '01' AND logtypeid = -100000 THEN 'Detention'
@@ -49,6 +70,7 @@ BEGIN
                 WHEN subtype = '9'  AND logtypeid = -100000 THEN 'Class Removal'
                 WHEN subtype = '09' AND logtypeid = -100000 THEN 'Class Removal'
                 WHEN subtype = '10' AND logtypeid = -100000 THEN 'Bullying'
+                
                 --NCA merits
                 WHEN subtype = '01' AND logtypeid = 3023 THEN 'No Demerits'
                 WHEN subtype = '1'  AND logtypeid = 3023 THEN 'No Demerits'
@@ -68,6 +90,7 @@ BEGIN
                 WHEN subtype = '08' AND logtypeid = 3023 THEN 'Parent'
                 WHEN subtype = '9'  AND logtypeid = 3023 THEN 'Other'
                 WHEN subtype = '09' AND logtypeid = 3023 THEN 'Other'
+                
                 --NCA demerits
                 WHEN subtype = '01' AND logtypeid = 3223 THEN 'Off Task'
                 WHEN subtype = '02' AND logtypeid = 3223 THEN 'Gum'
@@ -100,9 +123,6 @@ BEGIN
                 WHEN subtype = '12' AND logtypeid = 3223 THEN 'Tier 1'
                 ELSE NULL
                END AS tier
-
-              --convert all of the incidenttype codes into long form. this is admittedly dumb,
-              --but PS doesn't seem to store these in any way that you could just JOIN this turkey.
               ,CASE
                 WHEN discipline_incidenttype = 'CE' THEN 'Cell Phone/Electronics'
                 WHEN discipline_incidenttype = 'C' THEN 'Cheating'
@@ -160,36 +180,76 @@ BEGIN
                 WHEN discipline_incidenttype = 'BFI' THEN 'BUS: Fighting'
                 WHEN discipline_incidenttype = 'BNR' THEN 'BUS: Not reporting incidents'
                 ELSE NULL
-               END AS incident_decoded
+               END AS incident_decoded                    
+              ,CASE
+                WHEN Discipline_ActionTaken = 'WR' THEN 'Wrote Reflection'
+                WHEN Discipline_ActionTaken = 'SPOKE' THEN 'Spoke with Staff'
+                WHEN Discipline_ActionTaken = 'CLASS' THEN 'Sent Back to Class'
+                WHEN Discipline_ActionTaken = 'CLASSR' THEN 'Sent Back to Class + Reflection'
+                WHEN Discipline_ActionTaken = 'CLASSS' THEN 'Sent Back to Class + Spoke'
+                WHEN Discipline_ActionTaken = 'STAYED' THEN 'Spent Remainder of Day'
+                WHEN Discipline_ActionTaken = 'STAYEDR' THEN 'Spent Day + Reflection'
+                WHEN Discipline_ActionTaken = 'STAYEDS' THEN 'Spent Day + Spoke'
+                WHEN Discipline_ActionTaken = 'S' THEN 'Suspension'
+                WHEN Discipline_ActionTaken = 'SR' THEN 'Suspension + Reflection'
+                WHEN Discipline_ActionTaken = 'SS' THEN 'Suspension + Spoke'
+                WHEN Discipline_ActionTaken = 'O' THEN 'OTHER'
+                ELSE NULL
+               END AS Discipline_ActionTaken_Detail
               ,dates.time_per_name AS RT
               ,ROW_NUMBER() OVER(
                   PARTITION BY studentid
                       ORDER BY entry_date DESC) AS rn
-
         FROM OPENQUERY(PS_TEAM,'
-               SELECT s.id AS studentid
-                     ,log.schoolid
+               SELECT studentid
+                     ,schoolid
                      ,entry_author
                      ,entry_date
                      ,logtypeid
                      ,subject
                      ,subtype
+                     ,NULL AS entry
+                     ,Discipline_ActionTaken
                      ,discipline_incidenttype
-               FROM STUDENTS s
-               LEFT OUTER JOIN log
-                 ON s.id = log.studentid
-               WHERE s.schoolid != 999999
-                 AND s.enroll_status = 0
-                 AND log.entry_date >= TO_DATE(''2013-08-01'',''YYYY-MM-DD'') --update for new school year
-                 AND log.entry_date <= TO_DATE(''2014-06-30'',''YYYY-MM-DD'') --update for new school year
-                 --AND logtypeid IN (-100000,3223,3023)
+                     ,consequence
+               FROM log               
+               WHERE log.entry_date >= TO_DATE(CASE
+                                                WHEN TO_CHAR(SYSDATE,''MON'') IN (''JAN'',''FEB'',''MAR'',''APR'',''MAY'',''JUN'',''JUL'') 
+                                                THEN TO_CHAR(TO_CHAR(SYSDATE,''YYYY'') - 1)
+                                                ELSE TO_CHAR(SYSDATE,''YYYY'')
+                                               END || ''-08-01'',''YYYY-MM-DD'')
+                 AND log.entry_date <= SYSDATE
+                 AND logtypeid IN (-100000,3223,3023,3123,3124)
+                 AND schoolid IN (73252,73253,133570965)
+               
+               UNION ALL
+               
+               SELECT studentid
+                     ,schoolid
+                     ,entry_author
+                     ,entry_date
+                     ,logtypeid
+                     ,subject
+                     ,subtype
+                     ,entry
+                     ,Discipline_ActionTaken
+                     ,discipline_incidenttype
+                     ,consequence
+               FROM log               
+               WHERE log.entry_date >= TO_DATE(CASE
+                                                WHEN TO_CHAR(SYSDATE,''MON'') IN (''JAN'',''FEB'',''MAR'',''APR'',''MAY'',''JUN'',''JUL'') 
+                                                THEN TO_CHAR(TO_CHAR(SYSDATE,''YYYY'') - 1)
+                                                ELSE TO_CHAR(SYSDATE,''YYYY'')
+                                               END || ''-08-01'',''YYYY-MM-DD'')
+                 AND log.entry_date <= SYSDATE
+                 AND logtypeid IN (-100000,3223,3023,3123,3124)
+                 AND schoolid IN (73254,73255,73256)
                ') oq
         JOIN REPORTING$dates dates
           ON oq.entry_date >= dates.start_date
          AND oq.entry_date <= dates.end_date
          AND oq.schoolid = dates.schoolid
-         AND dates.identifier = 'RT'
-     ) q;
+         AND dates.identifier = 'RT') sub;
 
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
     --SELECT 1 FROM [] WITH (TABLOCKX);
@@ -214,7 +274,7 @@ BEGIN
  -- STEP 6: insert into final destination
  INSERT INTO [dbo].[DISC$log#static]
  SELECT *
- FROM [#DISC$log#static|refresh]
+ FROM [#DISC$log#static|refresh1]
  ORDER BY schoolid, logtypeid, studentid, entry_date DESC;
  
  -- STEP 7: rebuld all nonclustered indexes on table
