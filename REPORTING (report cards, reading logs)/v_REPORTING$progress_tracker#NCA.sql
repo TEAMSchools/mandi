@@ -9,10 +9,22 @@ WITH roster AS
             ,s.id AS studentid
             ,s.lastfirst
             ,s.first_name
-            ,s.last_name
+            ,s.last_name                        
+            ,s.gender
+            ,CONVERT(DATE,s.dob) AS dob
+            ,s.student_web_id
+            ,s.student_web_password
+            ,s.home_phone
+            ,cs.mother_cell
+            ,cs.father_cell
             ,c.grade_level AS grade_level
+            ,s.classof
+            ,cs.guardianemail
             ,cs.advisor
             ,cs.SPEDLEP AS SPED
+            ,ROW_NUMBER() OVER(
+                PARTITION BY s.grade_level
+                    ORDER BY s.id) AS peer_count
       FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
       JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
         ON c.studentid = s.id
@@ -25,17 +37,30 @@ WITH roster AS
      )
 
 SELECT ROW_NUMBER() OVER(          
-           ORDER BY grade_level, advisor, lastfirst) AS rn
+           ORDER BY lastfirst) AS rn
       ,student_number
       ,studentid
       ,lastfirst
       ,first_name
-      ,last_name
+      ,last_name                        
+      ,gender
+      ,dob
+      ,student_web_id
+      ,student_web_password
+      ,home_phone
+      ,mother_cell
+      ,father_cell
       ,grade_level
+      ,classof
+      ,guardianemail
       ,advisor
       ,SPED
       ,att_pct_counts_yr
+      ,att_pct_yr
+      ,att_counts_yr
       ,on_time_pct      
+      ,inv_tardy_pct_yr
+      ,tardy_count_yr
       ,suspensions
       ,gpa_ytd      
       ,gpa_cum
@@ -47,6 +72,7 @@ SELECT ROW_NUMBER() OVER(
       ,E1_all
       ,E2_all
       ,num_failing
+      ,courses AS courses_failing
       ,points_goal_yr
       ,points_yr
       ,map_sci_pct
@@ -57,7 +83,21 @@ SELECT ROW_NUMBER() OVER(
       ,merits_curr
       ,demerits_yr
       ,demerits_curr
-
+      ,in_grade_denom
+      ,CASE
+        WHEN gpa_ytd IS NOT NULL THEN
+         ROW_NUMBER() OVER(
+         PARTITION BY grade_level
+             ORDER BY gpa_ytd DESC) 
+        ELSE NULL
+       END AS gpa_rank_ytd
+      ,CASE
+        WHEN gpa_cum IS NOT NULL THEN
+         ROW_NUMBER() OVER(
+         PARTITION BY grade_level
+             ORDER BY gpa_cum DESC) 
+        ELSE NULL
+       END AS gpa_rank_cum
 --PROFICIENCY METRICS      
       ,CASE
         WHEN att_pct_yr >= 95 THEN 4
@@ -169,23 +209,26 @@ SELECT ROW_NUMBER() OVER(
        END AS demerits_curr_prof
 FROM
      (SELECT roster.*                 
+            ,dem.in_grade_denom
      --Attendance
      --ATT_MEM$attendance_percentages
      --ATT_MEM$attendance_counts
            --year
            ,ROUND(att_pct.Y1_att_pct_total,0) AS att_pct_yr
-           ,att_counts.absences_total AS att_counts_yr
+           ,ROUND(att_counts.absences_total,0) AS att_counts_yr
            ,CONVERT(VARCHAR,ROUND(att_pct.Y1_att_pct_total,0))
               + '% ('
-              + CONVERT(VARCHAR,att_counts.absences_total)
-              + ')'                                     AS att_pct_counts_yr
+              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.absences_total))
+              + ')'                                     
+               AS att_pct_counts_yr
            ,CONVERT(VARCHAR,(100 - ROUND(att_pct.Y1_tardy_pct_total,0)))
               + '% ('
-              + CONVERT(VARCHAR,att_counts.tardies_total)
-              + ')'                                     AS on_time_pct
+              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.tardies_total))
+              + ')'                                     
+               AS on_time_pct
            ,(100 - ROUND(att_pct.Y1_tardy_pct_total,0)) AS inv_tardy_pct_yr
-           ,att_counts.tardies_total                    AS tardy_count_yr
-           ,att_counts.OSS                              AS suspensions
+           ,ROUND(att_counts.tardies_total,0)           AS tardy_count_yr
+           ,ROUND(att_counts.OSS,0)                     AS suspensions
            
      --GPA
      --GPA$detail#nca
@@ -206,6 +249,7 @@ FROM
            ,gr_wide.E2_all
            
            --On-track?
+           ,fail.courses
            ,CASE
              WHEN fail.num_failing IS NULL THEN 0
              ELSE fail.num_failing
@@ -266,6 +310,7 @@ FROM
        ON roster.studentid = gr_wide.studentid
      LEFT OUTER JOIN (SELECT studentid
                             ,COUNT(fail.y1) AS num_failing
+                            ,dbo.GROUP_CONCAT_DS(fail.course_name, CHAR(10), 1) AS courses
                       FROM GRADES$DETAIL#NCA fail WITH (NOLOCK)
                       WHERE fail.y1 < 70
                       GROUP BY studentid) fail
@@ -298,4 +343,10 @@ FROM
      --MERITS & DEMERITS
      LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits WITH (NOLOCK)
        ON roster.studentid = merits.studentid
+       
+     LEFT OUTER JOIN (SELECT grade_level
+                            ,MAX(peer_count) AS in_grade_denom
+                      FROM roster
+                      GROUP BY grade_level) dem
+       ON roster.grade_level = dem.grade_level       
     ) sub_1
