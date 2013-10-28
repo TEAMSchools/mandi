@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW LIT$progress_tracker AS
+--ALTER VIEW LIT$progress_tracker AS
 SELECT
 
 --STUDENT IDENTIFIERS
@@ -390,11 +390,13 @@ SELECT
       
 --REPORTING HASHES
       ,CASE
-        WHEN status = 'Achieved' THEN CONVERT(VARCHAR,time_per_name) + '_' 
+        WHEN status = 'Achieved' THEN CONVERT(VARCHAR,scores.student_number) + '_'
+                                       + CONVERT(VARCHAR,time_per_name) + '_' 
                                        + CONVERT(VARCHAR,status) + '_' 
                                        + CONVERT(VARCHAR,year) + '_' 
-                                       + CONVERT(VARCHAR,achv_curr_tri)
-        WHEN status = 'Did Not Achieve' THEN CONVERT(VARCHAR,time_per_name) + '_' 
+                                       + CONVERT(VARCHAR,achv_base_tri)
+        WHEN status = 'Did Not Achieve' THEN CONVERT(VARCHAR,scores.student_number) + '_'
+                                              + CONVERT(VARCHAR,time_per_name) + '_' 
                                               + CONVERT(VARCHAR,status) + '_' 
                                               + CONVERT(VARCHAR,year) + '_' 
                                               + CONVERT(VARCHAR,dna_base_tri)
