@@ -193,7 +193,14 @@ BEGIN
                 WHEN Discipline_ActionTaken = 'S' THEN 'Suspension'
                 WHEN Discipline_ActionTaken = 'SR' THEN 'Suspension + Reflection'
                 WHEN Discipline_ActionTaken = 'SS' THEN 'Suspension + Spoke'
-                WHEN Discipline_ActionTaken = 'O' THEN 'OTHER'
+                WHEN Discipline_ActionTaken = 'SCR' THEN 'Stayed in class - wrote reflection/ apology'
+                WHEN Discipline_ActionTaken = 'SCP' THEN 'Stayed in class - called parent'
+                WHEN Discipline_ActionTaken = 'SCT' THEN 'Stayed in class - time out'
+                WHEN Discipline_ActionTaken = 'SCTO' THEN 'Stayed in class - time out in other class'
+                WHEN Discipline_ActionTaken = 'ORR' THEN 'Office referral - wrote reflection/apology'
+                WHEN Discipline_ActionTaken = 'ORO' THEN 'Office referral - spent remainder of day elsewhere'
+                WHEN Discipline_ActionTaken = 'ORS' THEN 'Office referral - suspension '
+                WHEN Discipline_ActionTaken = 'O' THEN 'Other'                
                 ELSE NULL
                END AS Discipline_ActionTaken_Detail
               ,dates.time_per_name AS RT
