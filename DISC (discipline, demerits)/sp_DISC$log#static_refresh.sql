@@ -205,7 +205,7 @@ BEGIN
                END AS Discipline_ActionTaken_Detail
               ,dates.time_per_name AS RT
               ,ROW_NUMBER() OVER(
-                  PARTITION BY studentid
+                  PARTITION BY studentid, logtypeid
                       ORDER BY entry_date DESC) AS rn
         FROM OPENQUERY(PS_TEAM,'
                SELECT studentid
