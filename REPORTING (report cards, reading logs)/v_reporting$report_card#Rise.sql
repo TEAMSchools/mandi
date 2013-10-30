@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW REPORTING$report_card#Rise AS
+ALTER VIEW REPORTING$report_card#Rise AS
 WITH roster AS
      (SELECT s.student_number AS base_student_number
             ,s.id AS base_studentid
@@ -351,11 +351,17 @@ SELECT roster.*
 
      --F&P
      --update terms in JOIN
-     ,fp_base.letter_level AS fp_letter_base
+     ,CASE
+       WHEN fp_base.letter_level IS NOT NULL THEN fp_base.letter_level
+       ELSE fp_curr.letter_level
+      END AS fp_letter_base
      ,fp_curr.letter_level AS fp_letter_curr
        --GLQ
      ,fp_curr.GLEQ AS fp_curr_GLQ
-     ,fp_base.GLEQ AS fp_base_GLQ     
+     ,CASE
+       WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ
+       ELSE fp_curr.GLEQ
+      END AS fp_base_GLQ
      
      --Lexile (from MAP)
      --update terms in JOIN
@@ -587,7 +593,7 @@ LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
  AND fp_base.achv_base = 1
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
   ON roster.base_student_number = fp_curr.student_number
- AND fp_curr.year = 2013
+ --AND fp_curr.year = 2013
  AND fp_curr.achv_curr_all = 1
   --LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)

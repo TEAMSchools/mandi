@@ -332,16 +332,25 @@ SELECT ROW_NUMBER() OVER(
 
      --F&P
      --update terms in JOIN
-     ,fp_base.letter_level AS start_letter
+     ,CASE
+       WHEN fp_base.letter_level IS NOT NULL THEN fp_base.letter_level
+       ELSE fp_curr.letter_level
+      END AS start_letter
      ,fp_curr.letter_level AS end_letter
        --GLQ
-     ,fp_base.GLEQ AS Start_GLEQ
+     ,CASE
+       WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ
+       ELSE fp_curr.GLEQ
+      END AS Start_GLEQ
      ,fp_curr.GLEQ AS End_GLEQ
-     ,(fp_curr.GLEQ - fp_base.GLEQ) AS GLEQ_Growth
+     ,(fp_curr.GLEQ - CASE WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ ELSE fp_curr.GLEQ END) AS GLEQ_Growth
        --Level #
-     ,fp_base.level_number AS [Start_#]
+     ,CASE
+       WHEN fp_base.level_number IS NOT NULL THEN fp_base.level_number
+       ELSE fp_curr.level_number
+      END AS [Start_#]
      ,fp_curr.level_number AS [End_#]
-     ,(fp_curr.level_number - fp_base.level_number) AS [Levels_grown]
+     ,(fp_curr.level_number - CASE WHEN fp_base.level_number IS NOT NULL THEN fp_base.level_number ELSE fp_curr.level_number END) AS [Levels_grown]
       
 --Accelerated Reader
 --update terms in JOIN
@@ -597,8 +606,8 @@ LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
  AND fp_base.achv_base = 1
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
   ON roster.student_number = fp_curr.STUDENT_NUMBER
- AND fp_curr.year = 2013
- AND fp_curr.achv_curr = 1
+ --AND fp_curr.year = 2013
+ AND fp_curr.achv_curr_all = 1
   --LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.student_number = lex_base.StudentID
