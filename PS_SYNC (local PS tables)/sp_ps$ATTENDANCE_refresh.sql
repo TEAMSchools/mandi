@@ -28,11 +28,11 @@ BEGIN
          --N.B. all data will be reset August 1st every year
          WHERE att_date >= TO_DATE(CASE
                                     WHEN TO_CHAR(SYSDATE,''MON'') IN (''JAN'',''FEB'',''MAR'',''APR'',''MAY'',''JUN'',''JUL'')
-                                    THEN TO_CHAR(TO_CHAR(SYSDATE,''YYYY'') - 1)
-                                    ELSE TO_CHAR(SYSDATE,''YYYY'')
+                                    THEN TO_CHAR(TO_CHAR(SYSDATE,''YYYY'') - 3)
+                                    ELSE TO_CHAR(TO_CHAR(SYSDATE,''YYYY'') - 2)
                                    END || ''-08-01'',''YYYY-MM-DD'')
            AND att_date <= SYSDATE
-         ORDER BY studentid, att_date
+         ORDER BY att_date
          ');
    
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
