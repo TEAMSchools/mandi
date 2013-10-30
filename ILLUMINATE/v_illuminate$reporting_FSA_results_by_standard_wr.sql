@@ -49,7 +49,7 @@ FROM
               + '_' + ISNULL(results.custom_code,'STD') --standard tested
              AS rollup_hash
             ,ROW_NUMBER() OVER(
-                PARTITION BY dates.time_per_name, assessments.grade1
+                PARTITION BY dates.time_per_name, assessments.grade1, s.id
                     ORDER BY results.custom_code) AS rn
       FROM STUDENTS s WITH(NOLOCK)
       LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard results WITH(NOLOCK)

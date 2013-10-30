@@ -45,7 +45,7 @@ FROM
               + '_' + ISNULL(results.custom_code,'STD') --standard tested
                AS rollup_hash
             ,ROW_NUMBER() OVER(
-                PARTITION BY s.id, dates.time_per_name, co.grade_level
+                PARTITION BY dates.time_per_name, assessments.grade1, s.id
                     ORDER BY results.custom_code) AS rn
       FROM STUDENTS s  WITH(NOLOCK)
       LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results WITH(NOLOCK)
@@ -67,6 +67,3 @@ FROM
         AND results.custom_code NOT IN ('TES.CCSS.LA.K.W.K.3.b','TES.CCSS.LA.K.W.K.3.c','TES.CCSS.LA.K.W.K.3.d','TES.CCSS.LA.K.W.K.3.i','TES.CCSS.LA.K.W.K.3.j'
                                           ,'TES.CCSS.LA.K.W.K.3.g','TES.CCSS.LA.K.W.K.3')
       ) sub
---WHERE GRADE_LEVEL = 2
---AND week_num LIKE '%07'
---AND subject LIKE 'Math%'
