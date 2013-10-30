@@ -55,7 +55,7 @@ WITH reporting_weeks AS
              WHEN arsp.chFictionNonFiction = 'F' THEN arsp.iWordCount
              ELSE 0
            END AS fiction_words
-          ,arsp.iwordcount AS words_attempted
+          ,CAST(arsp.iwordcount AS BIGINT) AS words_attempted
           ,arsp.ialternatebooklevel_2 AS book_lexile
           ,arsp.tipassed
           ,1 AS dummy
@@ -69,9 +69,10 @@ WITH reporting_weeks AS
             AND c.rn = 1
             AND s.enroll_status = 0
             ) sq_1
-    LEFT OUTER JOIN KIPP_NJ..AR$test_event_detail arsp WITH (NOLOCK)
+    LEFT OUTER JOIN KIPP_NJ..AR$test_event_detail#static arsp WITH (NOLOCK)
       ON CAST(sq_1.student_number AS VARCHAR) = arsp.student_number
      AND arsp.dtTaken >= '15-JUN-13'
+     AND arsp.dtTaken IS NOT NULL
     )
 
 SELECT CAST(studentid AS INT) AS studentid
