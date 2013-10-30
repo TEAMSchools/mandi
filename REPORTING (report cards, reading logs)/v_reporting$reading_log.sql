@@ -105,6 +105,12 @@ SELECT roster.*
       ,ar_year.mastery AS accuracy
       ,ar_year.mastery_fiction AS accuracy_fiction
       ,ar_year.mastery_nonfiction AS accuracy_nonfiction
+
+      --accuracy cur term
+      ,ar_cur.mastery AS cur_accuracy
+      ,ar_cur.mastery_fiction AS cur_accuracy_fiction
+      ,ar_cur.mastery_nonfiction AS cur_accuracy_nonfiction
+
      
 FROM roster
 --ENR
