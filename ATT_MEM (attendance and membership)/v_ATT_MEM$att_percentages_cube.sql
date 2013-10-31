@@ -28,6 +28,7 @@ FROM
           JOIN STUDENTS s
             ON s.id = att.id
           WHERE att.schoolid != 999999
+            AND s.EXITDATE >= GETDATE()
           GROUP BY CUBE (att.schoolid, s.grade_level)    
           ) sub
      ) sub2
