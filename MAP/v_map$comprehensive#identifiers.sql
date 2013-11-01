@@ -16,7 +16,6 @@ SELECT cohort.schoolid
       ,ROW_NUMBER() OVER 
            (PARTITION BY sq_2.studentid, sq_2.map_year_academic, sq_2.measurementscale
                 ORDER BY sq_2.teststartdate DESC, sq_2.teststarttime DESC) AS rn_curr
-      /*
       ,CASE
          --MATH ACT model
          WHEN sq_2.measurementscale = 'Mathematics'
@@ -45,7 +44,6 @@ SELECT cohort.schoolid
                   ,0)
          ELSE NULL
        END AS proj_ACT_subj_score
-      */
       FROM
             (SELECT CASE
                       WHEN teststartdate >= '01-AUG-14' AND teststartdate <= '01-JUL-15'
