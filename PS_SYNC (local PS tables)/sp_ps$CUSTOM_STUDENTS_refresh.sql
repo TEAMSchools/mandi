@@ -38,6 +38,7 @@ BEGIN
                ,pvcs_dad_h.string_value AS father_home      
                ,pvcs_LS.string_value    AS lunch_status_1112
                ,pvcs_LB.string_value    AS lunch_balance
+               ,pvcs_diy.string_value   AS diy_nickname
          FROM STUDENTS s
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_adv   ON s.id = pvcs_adv.studentid   AND pvcs_adv.field_name   = ''Advisor''
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_adv_e ON s.id = pvcs_adv_e.studentid AND pvcs_adv_e.field_name = ''Advisor_Email''
@@ -52,6 +53,7 @@ BEGIN
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_SID   ON s.id = pvcs_SID.studentid   AND pvcs_SID.field_name   = ''SID''
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_LS    ON s.id = pvcs_LS.studentid    AND pvcs_LS.field_name    = ''Lunch_Status_1112''
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_LB    ON s.id = pvcs_LB.studentid    AND pvcs_LB.field_name    = ''Lunch_Balance''
+         LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_diy   ON s.id = pvcs_diy.studentid   AND pvcs_diy.field_name   = ''DIYNickname''
          WHERE s.enroll_status = 0
          ');
          
