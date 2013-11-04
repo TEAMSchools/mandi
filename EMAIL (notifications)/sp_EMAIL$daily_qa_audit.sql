@@ -24,6 +24,7 @@ BEGIN
  ,@sql_psconfig_audits   NVARCHAR(MAX)
  ,@sql_warehouse_audits  NVARCHAR(MAX)
  ,@sql_illuminate_audits NVARCHAR(MAX)
+ ,@sql_account_audits    NVARCHAR(MAX)
  ,@sql_integ_audits      NVARCHAR(MAX)
  ,@sql_last_refresh      NVARCHAR(MAX)
  ,@sql_failed_jobs       NVARCHAR(MAX)
@@ -34,6 +35,7 @@ BEGIN
  ,@html_psconfig_audits  NVARCHAR(MAX)
  ,@html_warehouse_audits NVARCHAR(MAX)
  ,@html_illuminate_audits NVARCHAR(MAX)
+ ,@html_account_audits   NVARCHAR(MAX)
  ,@html_integ_audits     NVARCHAR(MAX)
  ,@html_last_refresh     NVARCHAR(MAX)
  ,@html_failed_jobs	     NVARCHAR(MAX)
@@ -86,6 +88,13 @@ BEGIN
           ,result
     FROM KIPP_NJ..QA$data_audit
     WHERE audit_category = ''Illuminate''
+  '
+
+  SET @sql_account_audits = '
+    SELECT audit_type
+          ,result
+    FROM KIPP_NJ..QA$data_audit
+    WHERE audit_category = ''Student Account''
   '
 
   SET @sql_integ_audits = '
@@ -145,6 +154,7 @@ BEGIN
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_psconfig_audits, @html_psconfig_audits OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_integ_audits, @html_integ_audits OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_illuminate_audits, @html_illuminate_audits OUTPUT
+  EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_account_audits, @html_account_audits OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_warehouse_audits, @html_warehouse_audits OUTPUT  
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_last_refresh, @html_last_refresh OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_views, @html_views OUTPUT
@@ -201,6 +211,11 @@ SET @email_body =
   <span style="med_text">Illuminate Data Audits</span> 
 '
 + @html_illuminate_audits +
+'
+<br>
+  <span style="med_text">Student Account Audits</span> 
+'
++ @html_account_audits +
 '
 		<br>
   <span style="med_text">Data Integration Audits</span> 

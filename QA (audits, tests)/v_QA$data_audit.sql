@@ -542,3 +542,40 @@ FROM
        GROUP BY sub.assertion
        ) sub
 WHERE rn = 1
+
+--Added by AM2 on 11/03/2013
+--Do FASTT Math logins work?
+UNION ALL
+
+SELECT 'Student Account' AS audit_category
+      ,'FASTT Math' AS audit_type
+      ,sub.assertion + ' (n=' + CAST(sub.n AS NVARCHAR) + ')' + ' | ' +
+         CASE 
+           WHEN sub.assertion = 'Pass' THEN ''
+           WHEN sub.N < 50 THEN sub.elements 
+           ELSE '50+ students' 
+         END AS result
+FROM
+      (SELECT sub.assertion
+             ,dbo.GROUP_CONCAT(sub.hash) AS elements  
+             ,COUNT(*) AS N
+             ,ROW_NUMBER() OVER(ORDER BY sub.assertion ASC) AS rn
+       FROM
+             (SELECT SUBSTRING(s.first_name, 1, 1) + '. ' + s.last_name + ' [' + tests.outcome + ']' hash
+                    ,CASE 
+                       WHEN tests.outcome LIKE 'FAILED%' THEN 'Fail'
+                       WHEN tests.outcome = 'PASSED' THEN 'Pass'
+                     END AS assertion 
+              FROM KIPP_NJ..STUDENTS s
+              LEFT OUTER JOIN KIPP_NJ..[QA$student_login_tests] tests
+                ON s.id = tests.studentid
+               AND tests.product = 'FASTT Math'
+               AND CAST(tests.tested_on AS DATE) = CAST(GETDATE() AS DATE)
+              WHERE s.schoolid = 73254
+                AND s.enroll_status = 0
+                AND s.grade_level > 0
+              ) sub
+       WHERE sub.assertion IS NOT NULL
+       GROUP BY sub.assertion
+       ) sub
+WHERE rn = 1

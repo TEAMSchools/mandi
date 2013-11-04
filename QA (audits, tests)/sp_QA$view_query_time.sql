@@ -33,6 +33,7 @@ BEGIN
       ON views.object_id = props.major_id
      AND props.name = 'has_static_cache'
      AND props.value != 'TRUE'
+     --AND views.name LIKE 'UTIL%'
     WHERE is_ms_shipped=0 
     ORDER by views.name
   
