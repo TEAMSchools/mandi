@@ -40,10 +40,11 @@ BEGIN
 		USING new_data staging
 					ON target.studentid = staging.studentid
     AND target.product = staging.product
-				AND target.tested_on = staging.tested_on
+				AND CAST(target.tested_on AS DATE) = CAST(staging.tested_on AS DATE)
 		WHEN MATCHED THEN
 				UPDATE SET  
 						target.outcome = staging.outcome
+     ,target.tested_on = staging.tested_on
 		WHEN NOT MATCHED BY target THEN
 		INSERT (product
 									,studentid

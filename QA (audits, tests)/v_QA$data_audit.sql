@@ -567,10 +567,13 @@ FROM
                        WHEN tests.outcome = 'PASSED' THEN 'Pass'
                      END AS assertion 
               FROM KIPP_NJ..STUDENTS s
-              LEFT OUTER JOIN KIPP_NJ..[QA$student_login_tests] tests
-                ON s.id = tests.studentid
-               AND tests.product = 'FASTT Math'
-               AND CAST(tests.tested_on AS DATE) = CAST(GETDATE() AS DATE)
+             LEFT OUTER JOIN 
+               (SELECT tests.*
+                FROM KIPP_NJ..[QA$student_login_tests] tests
+                WHERE tests.product = 'FASTT Math'
+                AND CAST(tests.tested_on AS DATE) = CAST(GETDATE() AS DATE)
+               ) tests
+              ON s.id = tests.studentid
               WHERE s.schoolid = 73254
                 AND s.enroll_status = 0
                 AND s.grade_level > 0
