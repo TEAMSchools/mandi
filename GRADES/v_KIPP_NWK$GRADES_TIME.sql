@@ -236,7 +236,10 @@ FROM
                                            AND cc.dateenrolled <= arb_dates.date_value
                                            AND cc.dateleft >= arb_dates.date_value
                                            AND cc.termid >= 2300
-                                           --AND students.id = 3551
+                                           
+                                           --AND students.ID = 532
+                                           --AND cc.course_number = 'ART12'
+                                           
                                           JOIN sections
                                             ON cc.sectionid = sections.id
                                           --sync_sectionenrollmentmap is a bridge into PSM tables
@@ -286,7 +289,7 @@ FROM
                               JOIN psm_reportingterm
                                 ON psm_finalgradesetup.reportingtermid = psm_reportingterm.id
                                 --Rise uses Q_ for HW quality.  Not wanted here.
-                               AND NOT (sub_2.schoolid = 73252 AND psm_reportingterm.name IN ('Q1','Q2','Q3','E1','E2'))
+                                --AND NOT (sub_2.schoolid = 73252 AND psm_reportingterm.name IN ('Q1','Q2','Q3','E1','E2'))
                                 --these guys tramatically increased query cost.  can we leave off?
                                    AND psm_reportingterm.startdate <= sub_2.dateassignmentdue
                                    AND psm_reportingterm.enddate   >= sub_2.dateassignmentdue
@@ -317,9 +320,21 @@ FROM
                                    --WHERE stu_studentid = 4253
                                    --  AND course_number = 'GYM20'
                               ) sub_3
-                        JOIN psm_finalgradesetup
+                        --pushed a change here - ART12 was returning multiple finalgradesetups
+                        --decode by ID (which is purportedly sequential?) to get most recent finalgradesetup
+                        --per sectionid and reporting term.
+                        JOIN
+                            (SELECT psm_finalgradesetup.*
+                                   ,ROW_NUMBER() OVER
+                                     (PARTITION BY psm_finalgradesetup.reportingtermid
+                                                  ,psm_finalgradesetup.sectionid
+                                      ORDER BY psm_finalgradesetup.ID DESC) AS rn
+                             FROM psm_finalgradesetup
+                            ) psm_finalgradesetup
                           ON psm_finalgradesetup.sectionid = sub_3.psm_sectionid
                          AND psm_finalgradesetup.reportingtermid = sub_3.reportingtermid
+                         AND psm_finalgradesetup.rn = 1
+                         
                         LEFT OUTER JOIN psm_gradingformula
                             ON psm_finalgradesetup.gradingformulaid = psm_gradingformula.id
                         LEFT OUTER JOIN psm_gradingformulaweighting
