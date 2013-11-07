@@ -68,7 +68,7 @@ BEGIN
                      FROM virtualtablesdata2
                      WHERE related_to_table = ''dailytracking''					            
                      ') scores
-		            JOIN STUDENTS s
+		            JOIN STUDENTS s WITH (NOLOCK)
 		              ON s.id = scores.studentid
 		            WHERE s.enroll_status = 0
 		              AND s.grade_level < 5		    
