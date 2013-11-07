@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW LIT$progress_tracker AS
+ALTER VIEW LIT$progress_tracker AS
 SELECT
 
 --STUDENT IDENTIFIERS
@@ -503,6 +503,7 @@ FROM
             ,level_growth_tri
             ,time_per_name
       FROM LIT$FP_test_events_long#identifiers#static
+      WHERE year = 2013
 
       UNION ALL
 
@@ -605,6 +606,7 @@ FROM
             ,level_growth_tri
             ,time_per_name
       FROM LIT$STEP_test_events_long#identifiers
+      WHERE year = 2013
      ) scores
 JOIN LIT$proficiency prof
   ON scores.testid = prof.testid
