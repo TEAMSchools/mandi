@@ -6,11 +6,10 @@ SELECT TOP (100) PERCENT
        sub.*
       ,week_num + '_' 
         + CONVERT(VARCHAR,grade_level) + '_' 
-        + CONVERT(VARCHAR,rn) AS meta_hash
+        + CONVERT(VARCHAR,fsa_std_rn) AS meta_hash
       ,CONVERT(VARCHAR,student_number) + '_'  
         + week_num + '_' 
-        + CONVERT(VARCHAR,rn) AS meta_stu_hash
-
+        + CONVERT(VARCHAR,fsa_std_rn) AS meta_stu_hash
 FROM
      (SELECT s.schoolid
             ,s.id AS studentid
@@ -48,15 +47,21 @@ FROM
               + '_' + ISNULL(CONVERT(VARCHAR,co.grade_level),'GRADE')
               + '_' + ISNULL(results.custom_code,'STD') --standard tested
              AS rollup_hash
+            ,assessments.fsa_std_rn
+            /*
+            --now using row number from assessment feed
             ,ROW_NUMBER() OVER(
-                PARTITION BY dates.time_per_name, assessments.grade1, s.id
+                PARTITION BY dates.time_per_name, assessments.grade_level, s.id
                     ORDER BY results.custom_code) AS rn
+            --*/
       FROM STUDENTS s WITH(NOLOCK)
       LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard results WITH(NOLOCK)
         ON s.student_number = results.local_student_id
       LEFT OUTER JOIN ILLUMINATE$assessments assessments WITH(NOLOCK)
         ON results.assessment_id = assessments.assessment_id
-       AND assessments.deleted_at IS NULL
+       AND results.standard_id = assessments.standard_id
+       AND s.grade_level = assessments.grade_level
+       --AND assessments.deleted_at IS NULL
       LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
         ON s.id = co.studentid
        AND co.year = DATEPART(YYYY,assessments.administered_at)  
