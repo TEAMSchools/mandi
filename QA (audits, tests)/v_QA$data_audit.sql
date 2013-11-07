@@ -349,6 +349,8 @@ UNION ALL
 
 --Added by AM2 on 10/21/2013
 --are there any illuminate assessments in the next two weeks with a problematic created on / administered on date.
+  --Modified by CB on 11/07/2013
+  --grade1 = grade_level, description = test_descr, no deleted_tests
 
 SELECT 'Illuminate' AS audit_category
       ,'Date administered errors' AS audit_type
@@ -370,15 +372,15 @@ FROM
                     ,illu.user_id
                     ,staff_decode.staff_name
                     ,staff_decode.school
-                    ,illu.grade1 AS grade_lev        
+                    ,illu.grade_level AS grade_lev        
                     ,illu.created_at
                     ,illu.administered_at
                     ,illu.assertion
-                    ,staff_decode.school + ': ' + CAST(illu.grade1 AS VARCHAR) + ' ' + staff_decode.staff_name + ' (' + illu.title + ' | ' + illu.tags + ' ' + CAST(illu.created_at AS VARCHAR)+ '/' + CAST(illu.administered_at AS VARCHAR) +')' AS hash
+                    ,staff_decode.school + ': ' + CAST(illu.grade_level AS VARCHAR) + ' ' + staff_decode.staff_name + ' (' + illu.title + ' | ' + illu.tags + ' ' + CAST(illu.created_at AS VARCHAR)+ '/' + CAST(illu.administered_at AS VARCHAR) +')' AS hash
               FROM
                     (SELECT [assessment_id]
                            ,[title]
-                           ,[description]
+                           ,[test_descr]
                            ,[user_id]
                            ,CAST([created_at] AS DATE) AS created_at
                            ,[updated_at]
@@ -386,7 +388,7 @@ FROM
                            ,[tags]
                            ,[subject]
                            ,[scope]
-                           ,[grade1]
+                           ,[grade_level]
                            ,CASE
                               --created at should probably not equal administered at
                               WHEN CAST(asmt.created_at AS DATE) = asmt.administered_at THEN 'Fail'
@@ -395,7 +397,7 @@ FROM
                        FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments] asmt
                        WHERE asmt.tags LIKE '%FSA%'
                        --exclude deleted FSAs
-                       AND deleted_at IS NULL
+                       --AND deleted_at IS NULL
                        --if it's older than 2 weeks, whatever
                        AND DATEDIFF(day, GETDATE(), CAST(asmt.administered_at AS DATE)) > -14
                        --if it was updated 2 + days after administration, probably stef or someone looked at it and it is OK
@@ -466,6 +468,8 @@ UNION ALL
 
 --Added by AM2 on 10/22/2013
 --are there any illuminate assessments that don't have three tags?
+  --Modified by CB on 11/07/2013
+  --grade1 = grade_level, description = test_descr, no deleted_tests
 
 SELECT 'Illuminate' AS audit_category
       ,'Tag count' AS audit_type
@@ -487,15 +491,15 @@ FROM
                     ,illu.user_id
                     ,staff_decode.staff_name
                     ,staff_decode.school
-                    ,illu.grade1 AS grade_lev        
+                    ,illu.grade_level AS grade_lev        
                     ,illu.created_at
                     ,illu.administered_at
                     ,illu.assertion
-                    ,staff_decode.school + ': ' + CAST(illu.grade1 AS VARCHAR) + ' ' + staff_decode.staff_name + ' (' + illu.title + ' | ' + illu.tags + ' ' + CAST(illu.created_at AS VARCHAR)+ '/' + CAST(illu.administered_at AS VARCHAR) +')' AS hash
+                    ,staff_decode.school + ': ' + CAST(illu.grade_level AS VARCHAR) + ' ' + staff_decode.staff_name + ' (' + illu.title + ' | ' + illu.tags + ' ' + CAST(illu.created_at AS VARCHAR)+ '/' + CAST(illu.administered_at AS VARCHAR) +')' AS hash
               FROM
                     (SELECT [assessment_id]
                            ,[title]
-                           ,[description]
+                           ,[test_descr]
                            ,[user_id]
                            ,CAST([created_at] AS DATE) AS created_at
                            ,[updated_at]
@@ -503,7 +507,7 @@ FROM
                            ,[tags]
                            ,[subject]
                            ,[scope]
-                           ,[grade1]
+                           ,[grade_level]
                            ,CASE
                               --tags should have three or more items (ie two commas)
                               WHEN len(asmt.tags) - len(replace(asmt.tags,',','')) >= 2 THEN 'Pass'
@@ -512,7 +516,7 @@ FROM
                        FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments] asmt
                        WHERE asmt.tags LIKE '%FSA%'
                        --exclude deleted FSAs
-                       AND deleted_at IS NULL
+                       --AND deleted_at IS NULL
                        --if it's older than 2 weeks, whatever
                        AND DATEDIFF(day, GETDATE(), CAST(asmt.administered_at AS DATE)) > -14
                        --if it was updated 2 + days after administration, probably stef or someone looked at it and it is OK
