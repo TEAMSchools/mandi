@@ -2,7 +2,9 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ILLUMINATE$assessment_results_by_standard#cube AS
-SELECT sub.*
+SELECT s.schoolid
+      ,s.grade_level
+      ,sub.*
 FROM
       (SELECT sub.*
              ,ROW_NUMBER () OVER
@@ -27,6 +29,8 @@ FROM
                 ON illum.custom_code = stds.standard
               ) sub
        ) sub
+JOIN STUDENTS s
+  ON sub.local_student_id = s.student_number
 WHERE rn = 1
 --ORDER BY local_student_id 
 --        ,standard_custom_code
