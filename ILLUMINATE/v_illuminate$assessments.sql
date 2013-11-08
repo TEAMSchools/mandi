@@ -1,5 +1,5 @@
 --created to join assessment titles and related info directly off sql server view --LD6 2013-09-18
---long by standard and grade level --CB 2013-11-06
+--long by standard, school, and grade level --CB 2013-11-08
 
 USE KIPP_NJ
 GO
@@ -9,15 +9,15 @@ SELECT *
 FROM
 (SELECT *
        ,ROW_NUMBER() OVER
-           (PARTITION BY fsa_week, schoolid, grade_level, scope
+           (PARTITION BY fsa_week, schoolid, grade_level
                 ORDER BY standards_tested) AS fsa_std_rn
        ,ROW_NUMBER() OVER
            (PARTITION BY schoolid, standards_tested                
                 ORDER BY administered_at) AS std_freq_rn
  FROM
       (SELECT oq.assessment_id
-             --no hard-coded schoolid, derived from test creator
-             ,CASE WHEN t.lastfirst = 'Test, Admin' THEN NULL ELSE t.schoolid END AS schoolid
+             --no hard-coded schoolid, derived from JOIN to distinct test results
+             ,sch.schoolid
              ,oq.title
              ,oq.description AS test_descr
              --/*
@@ -102,19 +102,40 @@ FROM
               LEFT OUTER JOIN standards.standards std
                 ON a_std.standard_id = std.standard_id
               ') oq            
-       LEFT OUTER JOIN TEACHERS t
+       LEFT OUTER JOIN TEACHERS t WITH (NOLOCK)
          ON oq.state_id = t.teachernumber
-       LEFT OUTER JOIN REPORTING$dates fsa_dates
+       LEFT OUTER JOIN REPORTING$dates fsa_dates WITH (NOLOCK)
          ON oq.administered_at >= fsa_dates.start_date
         AND oq.administered_at <= fsa_dates.end_date
         AND fsa_dates.identifier = 'FSA'         
        --deleted tests are kept in the database for the record
+       LEFT OUTER JOIN (SELECT DISTINCT
+                               co.schoolid
+                              ,oq.assessment_id
+                        FROM OPENQUERY(ILLUMINATE,'
+                        SELECT agg.assessment_id       
+                              ,s.local_student_id
+                              ,a.administered_at
+                        FROM dna_assessments.agg_student_responses agg
+                        JOIN public.students s
+                          ON agg.student_id = s.student_id
+                        JOIN dna_assessments.assessments a
+                          ON agg.assessment_id = a.assessment_id
+                        ') oq 
+                        JOIN STUDENTS s WITH (NOLOCK)
+                          ON oq.local_student_id = s.student_number
+                        JOIN COHORT$comprehensive_long#static co
+                          ON s.id = co.studentid
+                         --this is going to be an issue around January
+                         AND DATEPART(YYYY,oq.administered_at) = co.YEAR) sch         
+         ON oq.assessment_id = sch.assessment_id       
        WHERE oq.deleted_at IS NULL
       ) sub 
 ) sub_2
 --WHERE schoolid = 73254 AND subject = 'Comprehension' AND grade_level = 2
 --WHERE standards_tested = 'CCSS.LA.2.RI.2.5'
---ORDER BY schoolid, standards_tested--, administered_at
+--WHERE assessment_id = 1637
+--ORDER BY standards_tested--, administered_at
            
 /*
 PIVOT (
