@@ -15,12 +15,13 @@ SELECT sub.*
       ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'
         + ISNULL(CONVERT(VARCHAR,team),'HR') + '_'
         + ISNULL(CONVERT(VARCHAR,[standard]),'STD') + '_'
-        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') + '_'
-        + ISNULL(CONVERT(VARCHAR,administered_at),'DATE') AS time_hash
+        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') + '_' AS time_hash
       ,ISNULL(CONVERT(VARCHAR,student_number),'SN') + '_'        
         + ISNULL(CONVERT(VARCHAR,[standard]),'STD') + '_'
-        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') + '_'
-        + ISNULL(CONVERT(VARCHAR,administered_at),'DATE') AS stu_time_hash
+        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') + '_' AS stu_time_hash
+      ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'        
+        + ISNULL(CONVERT(VARCHAR,[standard]),'STD') + '_'
+        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') + '_' AS school_time_hash
 FROM
      (SELECT co.schoolid
             ,co.grade_level
