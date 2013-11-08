@@ -1,7 +1,7 @@
 USE SPI
 GO
 
-CREATE VIEW TIME_SERIES_GRADES$weekly_off_track_totals AS
+ALTER VIEW TIME_SERIES_GRADES$weekly_off_track_totals AS
 SELECT *
 FROM OPENQUERY(KIPP_NWK, '
   SELECT schools.abbreviation AS school
@@ -43,7 +43,7 @@ FROM OPENQUERY(KIPP_NWK, '
               FROM GRADES$TIME_SERIES#COUNTS counts
               JOIN cohort$comprehensive_long s
                 ON s.studentid = counts.studentid
-               AND s.year = 2012
+               AND s.year = 2013
                AND s.rn = 1
               )
         WHERE to_char(date_value, ''D'') = 6 
