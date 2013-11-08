@@ -158,6 +158,7 @@ FROM
                        (SELECT att.studentid AS studentid
                               ,students.lastfirst
                               ,att.grade_level
+                              ,att.schoolid
                               ,schools.abbreviation AS school
                               ,att.calendardate
                               ,att.membershipvalue AS mem_value
@@ -174,6 +175,7 @@ FROM
                     JOIN TERMS
                       ON level_1.calendardate >= terms.firstday
                      AND level_1.calendardate <= terms.lastday
+                     AND level_1.schoolid = terms.schoolid
                      AND terms.portion = 1
                     WHERE level_1.mem_value != 0
                     ) level_2      
