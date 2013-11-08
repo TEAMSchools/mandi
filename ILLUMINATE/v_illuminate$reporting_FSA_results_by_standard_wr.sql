@@ -61,6 +61,7 @@ FROM
         ON results.assessment_id = assessments.assessment_id
        AND results.standard_id = assessments.standard_id
        AND s.grade_level = assessments.grade_level
+       AND s.schoolid = assessments.schoolid
        --AND assessments.deleted_at IS NULL
       LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
         ON s.id = co.studentid

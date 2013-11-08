@@ -15,12 +15,13 @@ SELECT sub.*
       ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'
         + ISNULL(CONVERT(VARCHAR,team),'HR') + '_'
         + ISNULL(CONVERT(VARCHAR,[standard]),'STD') + '_'
-        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') + '_'
-        + ISNULL(CONVERT(VARCHAR,administered_at),'DATE') AS time_hash
+        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') + '_' AS time_hash
       ,ISNULL(CONVERT(VARCHAR,student_number),'SN') + '_'        
         + ISNULL(CONVERT(VARCHAR,[standard]),'STD') + '_'
-        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') + '_'
-        + ISNULL(CONVERT(VARCHAR,administered_at),'DATE') AS stu_time_hash
+        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') + '_' AS stu_time_hash
+      ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'        
+        + ISNULL(CONVERT(VARCHAR,[standard]),'STD') + '_'
+        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') + '_' AS school_time_hash
 FROM
      (SELECT co.schoolid
             ,co.grade_level
@@ -37,6 +38,15 @@ FROM
             ,results.description AS std_descr
             ,results.answered
             ,CAST(ROUND(results.percent_correct,2,2) AS FLOAT) AS percent_correct
+            ,CASE
+              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 0  AND results.percent_correct < 60 THEN 1
+              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
+              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 80 THEN 3
+              WHEN assessments.subject = 'Writing' AND results.percent_correct >= 0  AND results.percent_correct < 16.6 THEN 1
+              --WHEN assessments.subject = 'Writing' AND results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
+              WHEN assessments.subject = 'Writing' AND results.percent_correct >= 16.6 THEN 3
+              ELSE NULL
+             END AS proficiency
             ,std.std_count_subject
             ,assessments.std_freq_rn            
       FROM ILLUMINATE$assessment_results_by_standard#static results WITH(NOLOCK)
