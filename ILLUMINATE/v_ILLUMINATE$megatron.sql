@@ -81,13 +81,13 @@ FROM
                       ELSE NULL
                      END
        AND co.RN = 1
-      JOIN ILLUMINATE$assessments assessments WITH(NOLOCK)
+      JOIN ILLUMINATE$assessments#static assessments WITH(NOLOCK)
         ON results.assessment_id = assessments.assessment_id
        AND results.standard_id = assessments.standard_id
        AND co.grade_level = assessments.grade_level
        AND co.schoolid = assessments.schoolid
        AND co.year = assessments.academic_year
-      LEFT OUTER JOIN ILLUMINATE$standards_tested#static std
+      LEFT OUTER JOIN ILLUMINATE$standards_tested#static std WITH (NOLOCK)
         ON assessments.academic_year = std.year
        AND co.schoolid = std.schoolid
        AND co.grade_level = std.grade_level

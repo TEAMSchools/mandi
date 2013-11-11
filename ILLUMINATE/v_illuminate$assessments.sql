@@ -128,7 +128,7 @@ FROM
                                     ') oq 
                              JOIN STUDENTS s WITH (NOLOCK)
                                ON oq.local_student_id = s.student_number
-                             JOIN COHORT$comprehensive_long#static co
+                             JOIN COHORT$comprehensive_long#static co WITH (NOLOCK)
                                ON s.id = co.studentid
                               --this is going to be an issue around January
                               AND DATEPART(YYYY,oq.administered_at) = co.YEAR) sch         
