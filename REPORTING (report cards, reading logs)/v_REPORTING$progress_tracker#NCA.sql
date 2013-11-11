@@ -75,9 +75,12 @@ SELECT ROW_NUMBER() OVER(
       ,courses AS courses_failing
       ,points_goal_yr
       ,points_yr
-      ,map_sci_pct
+      ,map_sci_pct      
       ,map_math_pct
       ,map_read_pct
+      ,map_sci_rit      
+      ,map_math_rit
+      ,map_read_rit
       ,lexile_cur
       ,lexile_min
       ,lexile_max
@@ -231,6 +234,7 @@ SELECT ROW_NUMBER() OVER(
         WHEN demerits_curr <=  6 AND demerits_curr >= 4 THEN 3
         WHEN demerits_curr <=  3 THEN 4
        END AS demerits_curr_prof
+      ,NULL AS lexile_cur_prof
 FROM
      (SELECT roster.*                 
             ,dem.in_grade_denom
@@ -310,8 +314,11 @@ FROM
      --MAP & Lexile scores -- update academic year in JOIN
      --MAP$comprehensive#identifiers
            ,map_sci_cur.testpercentile AS map_sci_pct
+           ,map_sci_cur.testritscore AS map_sci_rit
            ,map_math_cur.testpercentile AS map_math_pct
+           ,map_math_cur.testritscore AS map_math_rit
            ,map_read_cur.testpercentile AS map_read_pct
+           ,map_read_cur.testritscore AS map_read_rit
            ,map_read_cur.rittoreadingscore AS lexile_cur
            ,map_read_cur.rittoreadingmin AS lexile_min
            ,map_read_cur.rittoreadingmax AS lexile_max
@@ -338,7 +345,7 @@ FROM
            ,disc.subtype
            ,disc.entry_date
            
-     FROM roster
+     FROM roster WITH (NOLOCK)
       
      --ATTENDANCE
      LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
@@ -362,7 +369,7 @@ FROM
                       FROM GRADES$DETAIL#NCA fail WITH (NOLOCK)
                       WHERE fail.y1 < 70
                       GROUP BY studentid) fail
-     ON roster.studentid = fail.studentid
+       ON roster.studentid = fail.studentid
        
      --ED TECH
        --ACCELERATED READER
@@ -391,14 +398,14 @@ FROM
      --MERITS & DEMERITS
      LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits WITH (NOLOCK)
        ON roster.studentid = merits.studentid
-     LEFT OUTER JOIN DISC$log#static disc
+     LEFT OUTER JOIN DISC$log#static disc WITH (NOLOCK)
        ON roster.studentid = disc.studentid
       AND disc.rn = 1
       AND disc.logtypeid = 3023      
        
      LEFT OUTER JOIN (SELECT grade_level
                             ,MAX(peer_count) AS in_grade_denom
-                      FROM roster
+                      FROM roster WITH (NOLOCK)
                       GROUP BY grade_level) dem
        ON roster.grade_level = dem.grade_level       
     ) sub_1
