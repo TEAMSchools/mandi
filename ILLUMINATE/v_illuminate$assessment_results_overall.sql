@@ -4,7 +4,8 @@ GO
 ALTER VIEW ILLUMINATE$assessment_results_overall AS
 SELECT *
 FROM OPENQUERY(ILLUMINATE, '
- SELECT agg_resp.*
+ SELECT s.local_student_id AS student_number
+       ,agg_resp.*
        ,perf_bands.performance_band_set_id
        ,perf_bands.minimum_value
        ,perf_bands.label
@@ -15,4 +16,6 @@ FROM OPENQUERY(ILLUMINATE, '
    --not sure how the logic works behind the scenes but this view has the performance band id, which 
    --indicates the proficiency bucket name.
  JOIN dna_assessments.performance_bands perf_bands USING (performance_band_id)
+ JOIN public.students s
+   ON s.student_id = agg_resp.student_id
 ')
