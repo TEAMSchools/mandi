@@ -11,11 +11,11 @@ WITH roster AS
             ,c.grade_level AS GR
             ,cs.advisor AS ADVISOR
             ,cs.SPEDLEP AS IEP
-      FROM KIPP_NJ..COHORT$comprehensive_long#static c
-      JOIN KIPP_NJ..STUDENTS s
+      FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
+      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
         ON c.studentid = s.id
        AND s.enroll_status = 0
-      LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs
+      LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
         ON cs.studentid = s.id
       WHERE year = 2013
         AND c.rn = 1        
@@ -81,33 +81,33 @@ SELECT roster.ID
       ,gpa.GPA_Q2
       ,gpa.GPA_Q3
       ,gpa.GPA_Q4
-FROM roster
-LEFT OUTER JOIN GRADES$DETAIL#NCA gr
+FROM roster WITH (NOLOCK)
+LEFT OUTER JOIN GRADES$DETAIL#NCA gr WITH (NOLOCK)
   ON roster.joinid = gr.studentid
-LEFT OUTER JOIN SECTIONS sec
+LEFT OUTER JOIN SECTIONS sec WITH (NOLOCK)
   ON gr.q1_enr_sectionid = sec.ID --update every quarter
  AND sec.termid >= dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN TEACHERS t
+LEFT OUTER JOIN TEACHERS t WITH (NOLOCK)
   ON t.id = sec.teacher
-LEFT OUTER JOIN CC cc
+LEFT OUTER JOIN CC cc WITH (NOLOCK)
   ON gr.q1_enr_sectionid = cc.sectionid --update every quarter
  AND roster.joinid = cc.studentid
  AND cc.termid >= dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN GRADES$elements ele_h
+LEFT OUTER JOIN GRADES$elements ele_h WITH (NOLOCK)
   ON gr.studentid = ele_h.studentid
  AND gr.course_number = ele_h.course_number
  AND ele_h.pgf_type = 'H'
-LEFT OUTER JOIN GRADES$elements ele_a
+LEFT OUTER JOIN GRADES$elements ele_a WITH (NOLOCK)
   ON gr.studentid = ele_a.studentid
  AND gr.course_number = ele_a.course_number
  AND ele_a.pgf_type = 'A'
-LEFT OUTER JOIN GRADES$elements ele_c
+LEFT OUTER JOIN GRADES$elements ele_c WITH (NOLOCK)
   ON gr.studentid = ele_c.studentid
  AND gr.course_number = ele_c.course_number
  AND ele_c.pgf_type = 'C'
-LEFT OUTER JOIN GRADES$elements ele_p
+LEFT OUTER JOIN GRADES$elements ele_p WITH (NOLOCK)
   ON gr.studentid = ele_p.studentid
  AND gr.course_number = ele_p.course_number
  AND ele_p.pgf_type = 'P'
-LEFT OUTER JOIN GPA$detail#NCA gpa
+LEFT OUTER JOIN GPA$detail#NCA gpa WITH (NOLOCK)
   ON roster.joinid = gpa.studentid
