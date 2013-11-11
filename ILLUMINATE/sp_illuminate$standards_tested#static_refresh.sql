@@ -9,7 +9,7 @@ GO
 
 
 
-ALTER PROCEDURE [sp_ILLUMINATE$standards_tested#static|refresh] AS
+--ALTER PROCEDURE [sp_ILLUMINATE$standards_tested#static|refresh] AS
 BEGIN
 
  DECLARE @sql AS VARCHAR(MAX)='';
@@ -29,7 +29,11 @@ BEGIN
                      ORDER BY [standard]) AS std_count_subject
         FROM
              (SELECT DISTINCT
-                     DATEPART(YYYY,administered_at) AS year
+                     CASE
+                      WHEN DATEPART(MM,administered_at) >= 07 THEN DATEPART(YYYY,administered_at)
+                      WHEN DATEPART(MM,administered_at) < 07 THEN (DATEPART(YYYY,administered_at) - 1)
+                      ELSE NULL
+                     END AS year
                     ,schoolid
                     ,grade_level
                     ,[subject]
