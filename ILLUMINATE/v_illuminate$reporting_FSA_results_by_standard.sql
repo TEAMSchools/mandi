@@ -54,11 +54,12 @@ FROM
       FROM STUDENTS s  WITH(NOLOCK)
       LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results WITH(NOLOCK)
         ON s.student_number = results.local_student_id
-      LEFT OUTER JOIN ILLUMINATE$assessments assessments WITH(NOLOCK)
+      LEFT OUTER JOIN ILLUMINATE$assessments#static assessments WITH(NOLOCK)
         ON results.assessment_id = assessments.assessment_id
        AND results.standard_id = assessments.standard_id       
        AND s.grade_level = assessments.grade_level
        AND s.schoolid = assessments.schoolid
+       AND assessments.academic_year = 2013
        --AND assessments.deleted_at IS NULL
       LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
         ON s.id = co.studentid
