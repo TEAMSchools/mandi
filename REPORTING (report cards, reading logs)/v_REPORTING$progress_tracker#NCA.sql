@@ -5,7 +5,8 @@ GO
 
 ALTER VIEW REPORTING$progress_tracker#NCA AS
 WITH roster AS
-     (SELECT s.student_number
+     (
+      SELECT s.student_number
             ,s.id AS studentid
             ,s.lastfirst
             ,s.first_name
