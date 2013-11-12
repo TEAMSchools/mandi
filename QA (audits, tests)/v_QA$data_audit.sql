@@ -394,7 +394,7 @@ FROM
                               WHEN CAST(asmt.created_at AS DATE) = asmt.administered_at THEN 'Fail'
                               ELSE 'Pass'
                             END AS assertion
-                       FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments] asmt
+                       FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments#static] asmt
                        WHERE asmt.tags LIKE '%FSA%'
                        --exclude deleted FSAs
                        --AND deleted_at IS NULL
@@ -513,7 +513,7 @@ FROM
                               WHEN len(asmt.tags) - len(replace(asmt.tags,',','')) >= 2 THEN 'Pass'
                               ELSE 'Fail'
                             END AS assertion
-                       FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments] asmt
+                       FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments#static] asmt
                        WHERE asmt.tags LIKE '%FSA%'
                        --exclude deleted FSAs
                        --AND deleted_at IS NULL
