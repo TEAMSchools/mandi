@@ -2,22 +2,75 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ILLUMINATE$megatron AS
+WITH roster AS
+     (
+      SELECT s.id AS studentid
+            ,s.student_number
+            ,s.lastfirst
+            ,co.schoolid
+            ,co.grade_level
+            ,s.team
+            ,s.gender
+            ,cs.spedlep
+            ,co.year
+      FROM STUDENTS s WITH (NOLOCK)
+      LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
+        ON s.id = cs.studentid
+      LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH (NOLOCK)
+        ON s.id = co.studentid  
+       --AND co.year = 2013
+       AND co.rn = 1
+      WHERE s.enroll_status = 0
+     )
+
+     ,assessments AS
+      (
+       SELECT a.assessment_id
+             ,a.schoolid
+             ,a.grade_level
+             ,a.title
+             ,a.subject
+             ,a.scope
+             ,a.standards_tested
+             ,a.standard_id
+             ,a.parent_standard_id
+             ,a.academic_year
+             ,a.administered_at
+             ,a.std_freq_rn
+             ,std.std_count_subject             
+       FROM ILLUMINATE$assessments#static a WITH (NOLOCK)
+       JOIN ILLUMINATE$standards_tested#static std WITH (NOLOCK)
+         ON a.academic_year = std.year
+        AND a.schoolid = std.schoolid
+        AND a.grade_level = std.grade_level
+        AND a.subject = std.subject
+        AND a.standard_id = std.standard_id       
+      )
+
 SELECT schoolid
       ,grade_level
       ,studentid
       ,student_number
       ,lastfirst
       ,team
-      ,assessment_id
+      ,sub.assessment_id
       ,title
       ,subject
       ,scope
-      ,administered_at
-      ,standard
-      ,std_descr
-      ,answered
-      ,percent_correct
-      ,proficiency
+      ,sub.administered_at
+      ,sub.standards_tested AS standard
+      ,NULL AS std_descr
+      ,results.answered
+      ,CAST(ROUND(results.percent_correct,2,2) AS FLOAT) AS percent_correct
+      ,CASE
+        WHEN sub.subject != 'Writing' AND results.percent_correct >= 0  AND results.percent_correct < 60 THEN 1
+        WHEN sub.subject != 'Writing' AND results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
+        WHEN sub.subject != 'Writing' AND results.percent_correct >= 80 THEN 3
+        WHEN sub.subject = 'Writing' AND results.percent_correct >= 0  AND results.percent_correct < 16.6 THEN 1
+        --WHEN sub.subject = 'Writing' AND results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
+        WHEN sub.subject = 'Writing' AND results.percent_correct >= 16.6 THEN 3
+        ELSE NULL
+       END AS proficiency
       ,std_count_subject
       ,std_freq_rn
       ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'
@@ -31,67 +84,47 @@ SELECT schoolid
         + ISNULL(CONVERT(VARCHAR,student_number),'SN') AS stu_overview_hash
       ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'
         + ISNULL(CONVERT(VARCHAR,team),'HR') + '_'
-        + ISNULL(CONVERT(VARCHAR,[standard]),'STD') + '_'
+        + ISNULL(CONVERT(VARCHAR,standards_tested),'STD') + '_'
         + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') AS time_hash
-      ,ISNULL(CONVERT(VARCHAR,student_number),'SN') + '_'        
-        + ISNULL(CONVERT(VARCHAR,[standard]),'STD') + '_'
+      ,ISNULL(CONVERT(VARCHAR,student_number),'SN') + '_'
+        + ISNULL(CONVERT(VARCHAR,standards_tested),'STD') + '_'
         + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') AS stu_time_hash
-      ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'        
-        + ISNULL(CONVERT(VARCHAR,[standard]),'STD') + '_'
+      ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'
+        + ISNULL(CONVERT(VARCHAR,standards_tested),'STD') + '_'
         + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') AS school_time_hash
-      ,SPEDLEP
+      ,spedlep AS SPED
+      --,results.points
+      --,results.points_possible
+      --,results.number_of_questions
 FROM
-     (SELECT co.schoolid
-            ,co.grade_level
-            ,s.id AS studentid
-            ,s.student_number
-            ,s.lastfirst
-            ,s.team            
-            ,results.assessment_id
-            ,assessments.title            
+     (
+      SELECT roster.studentid
+            ,roster.student_number
+            ,roster.lastfirst
+            ,roster.schoolid
+            ,roster.grade_level
+            ,roster.team
+            ,roster.gender
+            ,roster.spedlep
+            ,roster.year
+            ,assessments.assessment_id
+            ,assessments.title
             ,assessments.subject
             ,assessments.scope
-            ,assessments.administered_at            
-            ,results.custom_code AS standard
-            ,results.description AS std_descr
-            ,results.answered
-            ,CAST(ROUND(results.percent_correct,2,2) AS FLOAT) AS percent_correct
-            ,CASE
-              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 0  AND results.percent_correct < 60 THEN 1
-              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
-              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 80 THEN 3
-              WHEN assessments.subject = 'Writing' AND results.percent_correct >= 0  AND results.percent_correct < 16.6 THEN 1
-              --WHEN assessments.subject = 'Writing' AND results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
-              WHEN assessments.subject = 'Writing' AND results.percent_correct >= 16.6 THEN 3
-              ELSE NULL
-             END AS proficiency
-            ,std.std_count_subject
-            ,assessments.std_freq_rn            
-            ,cs.SPEDLEP
-      FROM ILLUMINATE$assessment_results_by_standard#static results WITH(NOLOCK)
-      JOIN STUDENTS s WITH(NOLOCK)
-        ON results.local_student_id = s.student_number      
-      LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
-        ON s.id = cs.studentid
-      JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
-        ON s.id = co.studentid
-       AND co.year = CASE
-                      WHEN DATEPART(MM,results.administered_at) >= 07 THEN DATEPART(YYYY,results.administered_at)
-                      WHEN DATEPART(MM,results.administered_at) <= 07 THEN (DATEPART(YYYY,results.administered_at) - 1)
-                      ELSE NULL
-                     END
-       AND co.RN = 1
-      JOIN ILLUMINATE$assessments#static assessments WITH(NOLOCK)
-        ON results.assessment_id = assessments.assessment_id
-       AND results.standard_id = assessments.standard_id
-       AND co.grade_level = assessments.grade_level
-       AND co.schoolid = assessments.schoolid
-       AND co.year = assessments.academic_year
-      LEFT OUTER JOIN ILLUMINATE$standards_tested#static std WITH (NOLOCK)
-        ON assessments.academic_year = std.year
-       AND co.schoolid = std.schoolid
-       AND co.grade_level = std.grade_level
-       AND assessments.subject = std.subject
-       AND assessments.standard_id = std.standard_id
-      WHERE s.enroll_status = 0
+            ,assessments.standards_tested
+            ,assessments.standard_id
+            ,assessments.parent_standard_id
+            ,assessments.academic_year
+            ,assessments.administered_at
+            ,assessments.std_freq_rn
+            ,assessments.std_count_subject
+      FROM roster WITH (NOLOCK)
+      JOIN assessments WITH (NOLOCK)
+        ON roster.schoolid = assessments.schoolid
+       AND roster.grade_level = assessments.grade_level
+       AND roster.year = assessments.academic_year      
      ) sub
+LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results WITH (NOLOCK)
+  ON sub.student_number = results.local_student_id
+ AND sub.assessment_id = results.assessment_id
+ AND sub.standard_id = results.standard_id
