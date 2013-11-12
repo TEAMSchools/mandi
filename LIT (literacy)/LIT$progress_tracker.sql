@@ -449,6 +449,9 @@ FROM
                                                     + CONVERT(VARCHAR,dna_base_tri)
               ELSE NULL
              END AS reporting_hash
+            ,scores.la_reading_lvl
+            ,scores.la_GLEQ
+            ,scores.la_level_number
             
       FROM
            (SELECT testid
@@ -549,8 +552,11 @@ FROM
                   ,GLEQ_growth_tri
                   ,level_growth_tri
                   ,time_per_name
+                  ,la_reading_lvl
+                  ,la_GLEQ
+                  ,la_level_number
             FROM LIT$FP_test_events_long#identifiers#static
-            WHERE year = 2013
+            WHERE year >= 2012
 
             UNION ALL
 
@@ -652,8 +658,11 @@ FROM
                   ,GLEQ_growth_tri
                   ,level_growth_tri
                   ,time_per_name
+                  ,la_reading_lvl
+                  ,la_GLEQ
+                  ,la_level_number
             FROM LIT$STEP_test_events_long#identifiers
-            WHERE year = 2013
+            WHERE year >= 2012
            ) scores
       JOIN LIT$proficiency prof
         ON scores.testid = prof.testid
