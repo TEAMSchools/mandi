@@ -50,17 +50,18 @@ BEGIN
            --indicates the proficiency bucket name.
          JOIN dna_assessments.performance_bands perf_bands
            USING (performance_band_id)
-         LEFT OUTER JOIN (SELECT a.assessment_id
-                     ,a.administered_at             
-                     ,fs.standard_id
-                     ,GROUP_CONCAT(sheet_label) AS sheet_label       
-               FROM dna_assessments.assessments a
-               LEFT OUTER JOIN dna_assessments.fields f       
-                 ON a.assessment_id = f.assessment_id
-               LEFT OUTER JOIN dna_assessments.field_standards fs
-                 ON f.field_id = fs.field_id
-               GROUP BY a.assessment_id, fs.standard_id, a.administered_at
-              ) ques
+         LEFT OUTER JOIN (
+                          SELECT a.assessment_id
+                                ,a.administered_at             
+                                ,fs.standard_id
+                                ,GROUP_CONCAT(sheet_label) AS sheet_label       
+                          FROM dna_assessments.assessments a
+                          LEFT OUTER JOIN dna_assessments.fields f       
+                            ON a.assessment_id = f.assessment_id
+                          LEFT OUTER JOIN dna_assessments.field_standards fs
+                            ON f.field_id = fs.field_id
+                          GROUP BY a.assessment_id, fs.standard_id, a.administered_at
+                         ) ques
            ON standards.standard_id = ques.standard_id
           AND agg_resp_standard.assessment_id = ques.assessment_id
           ');
