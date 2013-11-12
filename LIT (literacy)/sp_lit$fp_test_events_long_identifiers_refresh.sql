@@ -13,14 +13,14 @@ BEGIN
  DECLARE @sql AS VARCHAR(MAX)='';
 
  --STEP 1: make sure no temp table
-		IF OBJECT_ID(N'tempdb..#LIT$FP_test_events_long#identifiers|refresh') IS NOT NULL
+		IF OBJECT_ID(N'tempdb..#LIT$FP_test_events_long#identifiers|refresh1') IS NOT NULL
 		BEGIN
-						DROP TABLE [#LIT$FP_test_events_long#identifiers|refresh]
+						DROP TABLE [#LIT$FP_test_events_long#identifiers|refresh1]
 		END
 		
 		--STEP 2: load into a TEMPORARY staging table.
 		SELECT *
-		INTO [#LIT$FP_test_events_long#identifiers|refresh]
+		INTO [#LIT$FP_test_events_long#identifiers|refresh1]
   FROM [LIT$FP_test_events_long#identifiers] WITH(NOLOCK)
    
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
@@ -46,7 +46,7 @@ BEGIN
  -- step 3: insert rows from remote source
  INSERT INTO [dbo].[LIT$FP_test_events_long#identifiers#static]      
  SELECT *
- FROM [#LIT$FP_test_events_long#identifiers|refresh];
+ FROM [#LIT$FP_test_events_long#identifiers|refresh1];
 
  -- Step 4: rebuld all nonclustered indexes on table
  SELECT @sql = @sql + 
