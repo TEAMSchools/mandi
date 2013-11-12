@@ -35,8 +35,8 @@ BEGIN
                   (PARTITION BY step.studentid
                                ,cohort.year
                    ORDER BY step.date_taken DESC) AS rn_desc
-         FROM LIT$step_headline_long step
-         JOIN COHORT$comprehensive_long cohort
+         FROM LIT$step_headline_long step WITH (NOLOCK)
+         JOIN COHORT$comprehensive_long#static cohort WITH (NOLOCK)
            ON step.studentid = cohort.studentid
           AND step.date_taken >= cohort.entrydate
           AND step.date_taken <= cohort.exitdate
