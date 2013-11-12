@@ -38,6 +38,9 @@ SELECT sub.*
         ELSE NULL
        END AS level_growth_tri
 --*/
+      ,highest.step_ltr_level AS la_reading_lvl
+      ,highest.GLEQ AS la_GLEQ
+      ,highest.level_number AS la_level_number
 FROM
 
 --ALL TEST EVENTS
@@ -52,7 +55,12 @@ FROM
             ,rs.test_date
             ,dates.time_per_name
             ,rs.step_ltr_level AS letter_level
-            ,rs.status           
+            ,rs.instruct_lvl
+            ,CASE 
+              WHEN rs.indep_lvl IS NULL THEN rs.step_ltr_level 
+              ELSE rs.step_ltr_level 
+             END AS indep_lvl
+            ,rs.status
             ,rs.fp_wpmrate                  
             ,rs.fp_fluency
             ,rs.fp_accuracy
@@ -484,3 +492,97 @@ LEFT OUTER JOIN
   ON sub.studentid = tri.studentid
  AND sub.year = tri.year
  AND sub.time_per_name = tri.time_per_name
+--*/
+--/*
+--MOST RECENTLY ACHIEVED ALL TIME
+LEFT OUTER JOIN 
+     (
+      SELECT *
+      FROM
+           (SELECT rs.studentid                  
+                  ,rs.step_ltr_level
+                  ,CASE
+                    WHEN step_ltr_level = 'AA' THEN 0.0
+                    WHEN step_ltr_level = 'A' THEN 0.3
+                    WHEN step_ltr_level = 'B' THEN 0.5
+                    WHEN step_ltr_level = 'C' THEN 0.7
+                    WHEN step_ltr_level = 'D' THEN 1.0
+                    WHEN step_ltr_level = 'E' THEN 1.2
+                    WHEN step_ltr_level = 'F' THEN 1.4
+                    WHEN step_ltr_level = 'G' THEN 1.6
+                    WHEN step_ltr_level = 'H' THEN 1.8
+                    WHEN step_ltr_level = 'I' THEN 2.0
+                    WHEN step_ltr_level = 'J' THEN 2.2
+                    WHEN step_ltr_level = 'K' THEN 2.4
+                    WHEN step_ltr_level = 'L' THEN 2.6
+                    WHEN step_ltr_level = 'M' THEN 2.8
+                    WHEN step_ltr_level = 'N' THEN 3.0
+                    WHEN step_ltr_level = 'O' THEN 3.5
+                    WHEN step_ltr_level = 'P' THEN 3.8
+                    WHEN step_ltr_level = 'Q' THEN 4.0
+                    WHEN step_ltr_level = 'R' THEN 4.5
+                    WHEN step_ltr_level = 'S' THEN 4.8
+                    WHEN step_ltr_level = 'T' THEN 5.0
+                    WHEN step_ltr_level = 'U' THEN 5.5
+                    WHEN step_ltr_level = 'V' THEN 6.0
+                    WHEN step_ltr_level = 'W' THEN 6.3
+                    WHEN step_ltr_level = 'X' THEN 6.7
+                    WHEN step_ltr_level = 'Y' THEN 7.0
+                    WHEN step_ltr_level = 'Z' THEN 7.5
+                    WHEN step_ltr_level = 'Z+' THEN 8.0
+                    ELSE NULL
+                   END AS GLEQ
+                  ,CASE
+                    WHEN step_ltr_level = 'AA' THEN 0
+                    WHEN step_ltr_level = 'A' THEN 1
+                    WHEN step_ltr_level = 'B' THEN 2
+                    WHEN step_ltr_level = 'C' THEN 3
+                    WHEN step_ltr_level = 'D' THEN 4
+                    WHEN step_ltr_level = 'E' THEN 5
+                    WHEN step_ltr_level = 'F' THEN 6
+                    WHEN step_ltr_level = 'G' THEN 7
+                    WHEN step_ltr_level = 'H' THEN 8
+                    WHEN step_ltr_level = 'I' THEN 9
+                    WHEN step_ltr_level = 'J' THEN 10
+                    WHEN step_ltr_level = 'K' THEN 11
+                    WHEN step_ltr_level = 'L' THEN 12
+                    WHEN step_ltr_level = 'M' THEN 13
+                    WHEN step_ltr_level = 'N' THEN 14
+                    WHEN step_ltr_level = 'O' THEN 15
+                    WHEN step_ltr_level = 'P' THEN 16
+                    WHEN step_ltr_level = 'Q' THEN 17
+                    WHEN step_ltr_level = 'R' THEN 18
+                    WHEN step_ltr_level = 'S' THEN 19
+                    WHEN step_ltr_level = 'T' THEN 20
+                    WHEN step_ltr_level = 'U' THEN 21
+                    WHEN step_ltr_level = 'V' THEN 22
+                    WHEN step_ltr_level = 'W' THEN 23
+                    WHEN step_ltr_level = 'X' THEN 24
+                    WHEN step_ltr_level = 'Y' THEN 25
+                    WHEN step_ltr_level = 'Z' THEN 26
+                    WHEN step_ltr_level = 'Z+' THEN 27
+                    ELSE NULL
+                   END AS level_number            
+                 ,CASE
+                   WHEN status = 'Achieved' THEN
+                    ROW_NUMBER() OVER
+                      (PARTITION BY rs.studentid, rs.status
+                           ORDER BY rs.test_date DESC, step_ltr_level DESC)
+                   ELSE NULL
+                  END AS achv_curr_all
+            FROM READINGSCORES rs WITH(NOLOCK)      
+            LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
+              ON rs.studentid = cohort.studentid
+             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+             AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+             AND cohort.rn = 1
+            LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
+              ON rs.test_date >= dates.start_date
+             AND rs.test_date <= dates.end_date
+             AND dates.identifier = 'LIT'
+            WHERE testid = 3273
+           ) sq_4
+      WHERE sq_4.achv_curr_all = 1    
+     ) highest
+  ON sub.studentid = highest.studentid
+--*/
