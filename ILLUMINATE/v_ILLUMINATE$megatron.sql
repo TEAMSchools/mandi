@@ -37,7 +37,9 @@ WITH roster AS
              ,a.academic_year
              ,a.administered_at
              ,a.std_freq_rn
-             ,std.std_count_subject             
+             ,std.std_count_subject
+             ,a.fsa_std_rn
+             ,a.fsa_week
        FROM ILLUMINATE$assessments#static a WITH (NOLOCK)
        JOIN ILLUMINATE$standards_tested#static std WITH (NOLOCK)
          ON a.academic_year = std.year
@@ -76,7 +78,8 @@ SELECT schoolid
       ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'
         + ISNULL(CONVERT(VARCHAR,grade_level),'GR') + '_'
         + ISNULL(CONVERT(VARCHAR,subject),'SUBJ') + '_'
-        + ISNULL(CONVERT(VARCHAR,std_count_subject),'0') AS overview_hash
+        + ISNULL(CONVERT(VARCHAR,std_count_subject),'RN') AS overview_hash        
+      /*      
       ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'
         + ISNULL(CONVERT(VARCHAR,grade_level),'GR') + '_'
         + ISNULL(CONVERT(VARCHAR,subject),'SUBJ') + '_'
@@ -86,12 +89,17 @@ SELECT schoolid
         + ISNULL(CONVERT(VARCHAR,team),'HR') + '_'
         + ISNULL(CONVERT(VARCHAR,standards_tested),'STD') + '_'
         + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') AS time_hash
+      --*/
+      ,ISNULL(CONVERT(VARCHAR,fsa_week),'WEEK') + '_'
+        + ISNULL(CONVERT(VARCHAR,grade_level),'GR') + '_'
+        + ISNULL(CONVERT(VARCHAR,fsa_std_rn),'RN') AS fsa_hash
+      ,NULL AS time_hash
       ,ISNULL(CONVERT(VARCHAR,student_number),'SN') + '_'
         + ISNULL(CONVERT(VARCHAR,standards_tested),'STD') + '_'
-        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') AS stu_time_hash
+        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'RN') AS stu_time_hash
       ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'
         + ISNULL(CONVERT(VARCHAR,standards_tested),'STD') + '_'
-        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'0') AS school_time_hash
+        + ISNULL(CONVERT(VARCHAR,std_freq_rn),'RN') AS school_time_hash
       ,spedlep AS SPED
       --,results.points
       --,results.points_possible
@@ -118,6 +126,8 @@ FROM
             ,assessments.administered_at
             ,assessments.std_freq_rn
             ,assessments.std_count_subject
+            ,assessments.fsa_std_rn
+            ,assessments.fsa_week
       FROM roster WITH (NOLOCK)
       JOIN assessments WITH (NOLOCK)
         ON roster.schoolid = assessments.schoolid
