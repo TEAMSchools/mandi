@@ -252,7 +252,7 @@ BEGIN
                  AND logtypeid IN (-100000,3223,3023,3123,3124)
                  AND schoolid IN (73254,73255,73256)
                ') oq
-        JOIN REPORTING$dates dates
+        JOIN REPORTING$dates dates WITH (NOLOCK)
           ON oq.entry_date >= dates.start_date
          AND oq.entry_date <= dates.end_date
          AND oq.schoolid = dates.schoolid
