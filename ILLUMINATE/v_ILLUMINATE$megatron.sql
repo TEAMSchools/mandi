@@ -71,7 +71,11 @@ SELECT schoolid
         WHEN sub.subject = 'Writing' AND results.percent_correct >= 0  AND results.percent_correct < 16.6 THEN 1
         --WHEN sub.subject = 'Writing' AND results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
         WHEN sub.subject = 'Writing' AND results.percent_correct >= 16.6 THEN 3
-        ELSE NULL
+        WHEN sub.schoolid = 73254 AND sub.subject NOT IN ('Comprehension','Math','Phonics','Grammar','Writing') AND results.percent_correct < 25 THEN 1
+        WHEN sub.schoolid = 73254 AND sub.subject NOT IN ('Comprehension','Math','Phonics','Grammar','Writing') AND results.percent_correct >= 25 AND results.percent_correct < 50 THEN 2
+        WHEN sub.schoolid = 73254 AND sub.subject NOT IN ('Comprehension','Math','Phonics','Grammar','Writing') AND results.percent_correct >= 50 AND results.percent_correct < 75 THEN 3
+        WHEN sub.schoolid = 73254 AND sub.subject NOT IN ('Comprehension','Math','Phonics','Grammar','Writing') AND results.percent_correct >= 75 THEN 4
+        ELSE CONVERT(FLOAT,results.label_number)
        END AS proficiency
       ,std_count_subject
       ,std_freq_rn
@@ -101,6 +105,8 @@ SELECT schoolid
         + ISNULL(CONVERT(VARCHAR,standards_tested),'STD') + '_'
         + ISNULL(CONVERT(VARCHAR,std_freq_rn),'RN') AS school_time_hash
       ,spedlep AS SPED
+      ,CONVERT(FLOAT,results.label_number) AS label_number
+      ,results.perf_band_label AS proficiency_label
       --,results.points
       --,results.points_possible
       --,results.number_of_questions
