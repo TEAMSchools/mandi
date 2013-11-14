@@ -21,35 +21,53 @@ BEGIN
   --STEP 2: load into a TEMPORARY staging table.
   SELECT *
 		INTO [#ES_DAILY$daily_tracking_long#static|refresh]
-  FROM (SELECT ROW_NUMBER() OVER(
+  FROM (
+        SELECT ROW_NUMBER() OVER(
                   PARTITION BY schoolid 
                       ORDER BY att_date) AS rn
-		            ,schoolid
-		            ,REPLACE(CONVERT(NVARCHAR,att_date, 6),' ','-') AS att_date
-		            ,studentid
-		            ,student_number
-		            ,lastfirst
-		            ,grade_level
-		            ,team
-		            ,hw
-		            ,color_day
-		            ,thrive_am
-		            ,thrive_mid
-		            ,thrive_pm
-		            ,CAST(student_number AS VARCHAR(20)) + '_' + CAST(REPLACE(CONVERT(NVARCHAR,att_date,6),' ','-') AS VARCHAR(20)) AS hash
-        FROM	(SELECT s.schoolid			         
-			                 ,scores.att_date
-			                 ,s.id AS studentid
-			                 ,s.student_number
-			                 ,s.lastfirst
-			                 ,s.grade_level
-			                 ,s.team								
-			                 ,scores.hw
-			                 ,CASE WHEN scores.schoolid = 73255 THEN NULL ELSE scores.color END AS color_day
-			                 ,CASE WHEN scores.schoolid = 73255 THEN scores.color     END AS thrive_am
-			                 ,CASE WHEN scores.schoolid = 73255 THEN scores.color_mid END AS thrive_mid
-			                 ,CASE WHEN scores.schoolid = 73255 THEN scores.color_pm  END AS thrive_pm
-		            FROM OPENQUERY(PS_TEAM,'
+              ,schoolid
+              ,REPLACE(CONVERT(VARCHAR,att_date, 6),' ','-') AS att_date
+              ,studentid
+              ,student_number
+              ,lastfirst
+              ,grade_level
+              ,team
+              ,hw
+              ,color_day
+              ,thrive_am
+              ,thrive_mid
+              ,thrive_pm
+              ,CAST(student_number AS VARCHAR(20)) + '_' + CAST(REPLACE(CONVERT(NVARCHAR,att_date,6),' ','-') AS VARCHAR(20)) AS hash
+              ,SPEDLEP
+              ,day_of_week
+              ,dw_numeric
+              ,day_part
+              ,month_part
+              ,year_part
+              ,week_part
+              ,reporting_hash
+        FROM	(
+              SELECT s.schoolid			         
+                    ,scores.att_date
+                    ,s.id AS studentid
+                    ,s.student_number
+                    ,s.lastfirst
+                    ,s.grade_level
+                    ,s.team								
+                    ,scores.hw
+                    ,CASE WHEN scores.schoolid = 73255 THEN NULL ELSE scores.color END AS color_day
+                    ,CASE WHEN scores.schoolid = 73255 THEN scores.color     END AS thrive_am
+                    ,CASE WHEN scores.schoolid = 73255 THEN scores.color_mid END AS thrive_mid
+                    ,CASE WHEN scores.schoolid = 73255 THEN scores.color_pm  END AS thrive_pm
+                    ,cs.SPEDLEP
+                    ,cal.day_of_week
+                    ,cal.dw_numeric
+                    ,cal.day_part
+                    ,cal.month_part
+                    ,cal.year_part
+                    ,cal.week_part
+                    ,cal.reporting_hash
+              FROM OPENQUERY(PS_TEAM,'
                      SELECT schoolid
                            ,user_defined_date AS att_date
                            ,foreignkey AS studentid
@@ -68,11 +86,15 @@ BEGIN
                      FROM virtualtablesdata2
                      WHERE related_to_table = ''dailytracking''					            
                      ') scores
-		            JOIN STUDENTS s WITH (NOLOCK)
-		              ON s.id = scores.studentid
-		            WHERE s.enroll_status = 0
-		              AND s.grade_level < 5		    
-	            ) sub_1	    
+              JOIN STUDENTS s WITH (NOLOCK)
+                ON s.id = scores.studentid
+              LEFT OUTER JOIN CUSTOM_STUDENTS cs
+                ON s.id = cs.studentid
+              JOIN UTIL$reporting_days cal
+                ON scores.att_date = cal.date
+              WHERE s.enroll_status = 0            
+                AND s.grade_level < 5
+             ) sub_1	    
        ) sub_2;
 
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
