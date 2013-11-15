@@ -235,7 +235,29 @@ SELECT ROW_NUMBER() OVER(
         WHEN demerits_curr <=  6 AND demerits_curr >= 4 THEN 3
         WHEN demerits_curr <=  3 THEN 4
        END AS demerits_curr_prof
-      ,NULL AS lexile_cur_prof
+      ,CASE
+        WHEN lexile_cur = 'BR' THEN NULL
+        WHEN grade_level = 9 AND lexile_cur <  900  THEN 1
+        WHEN grade_level = 9 AND lexile_cur >= 900  AND lexile_cur < 1000 THEN 2
+        WHEN grade_level = 9 AND lexile_cur >= 1000 AND lexile_cur < 1050 THEN 3
+        WHEN grade_level = 9 AND lexile_cur >= 1050 THEN 4
+        --
+        WHEN grade_level = 10 AND lexile_cur <  1000 THEN 1
+        WHEN grade_level = 10 AND lexile_cur >= 1000 AND lexile_cur < 1100 THEN 2
+        WHEN grade_level = 10 AND lexile_cur >= 1100 AND lexile_cur < 1150 THEN 3
+        WHEN grade_level = 10 AND lexile_cur >= 1150 THEN 4
+        --
+        WHEN grade_level = 11 AND lexile_cur <  1100 THEN 1
+        WHEN grade_level = 11 AND lexile_cur >= 1100 AND lexile_cur < 1200 THEN 2
+        WHEN grade_level = 11 AND lexile_cur >= 1200 AND lexile_cur < 1250 THEN 3
+        WHEN grade_level = 11 AND lexile_cur >= 1250 THEN 4
+        --
+        WHEN grade_level = 12 AND lexile_cur <  1200 THEN 1
+        WHEN grade_level = 12 AND lexile_cur >= 1200 AND lexile_cur < 1300 THEN 2
+        WHEN grade_level = 12 AND lexile_cur >= 1300 AND lexile_cur < 1350 THEN 3
+        WHEN grade_level = 12 AND lexile_cur >= 1350 THEN 4
+        ELSE NULL
+       END AS lexile_cur_prof
 FROM
      (SELECT roster.*                 
             ,dem.in_grade_denom
@@ -333,7 +355,7 @@ FROM
              + merits.total_merits_rt3 
              + merits.total_merits_rt4 AS merits_yr      
              --current            
-           ,merits.total_merits_rt1    AS merits_curr   -- update field name for current term
+           ,merits.total_merits_rt2    AS merits_curr   -- update field name for current term
            
            --Demerits
              --year
@@ -342,7 +364,7 @@ FROM
              + merits.total_demerits_rt3
              + merits.total_demerits_rt4 AS demerits_yr
              --current
-           ,merits.total_demerits_rt1    AS demerits_curr -- update field name for current term
+           ,merits.total_demerits_rt2    AS demerits_curr -- update field name for current term
            ,disc.subtype
            ,disc.entry_date
            
