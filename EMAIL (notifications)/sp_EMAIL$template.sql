@@ -26,15 +26,18 @@ ALTER PROCEDURE sp_EMAIL$template (
  ,@explanatory_text2    AS NVARCHAR(MAX) = ' '
  ,@explanatory_text3    AS NVARCHAR(MAX) = ' '
  ,@explanatory_text4    AS NVARCHAR(MAX) = ' '
+ ,@explanatory_text5    AS NVARCHAR(MAX) = ' '
 
   --table queries
  ,@table_query1         AS NVARCHAR(MAX) = ' '
  ,@table_query2         AS NVARCHAR(MAX) = ' '
  ,@table_query3         AS NVARCHAR(MAX) = ' '
+ ,@table_query4         AS NVARCHAR(MAX) = ' '
 
  ,@table_style1         AS NVARCHAR(20) = 'CSS_small'
  ,@table_style2         AS NVARCHAR(20) = 'CSS_medium'
  ,@table_style3         AS NVARCHAR(20) = 'CSS_medium'
+ ,@table_style4         AS NVARCHAR(20) = 'CSS_medium'
  
  ,@csv_toggle           AS VARCHAR(3) = 'On'
  ,@csv_query            AS NVARCHAR(MAX) = ' '
@@ -51,6 +54,7 @@ BEGIN
          ,@table1_html          NVARCHAR(MAX) = ''
          ,@table2_html          NVARCHAR(MAX) = ''
          ,@table3_html          NVARCHAR(MAX) = ''
+         ,@table4_html          NVARCHAR(MAX) = ''
           
           --reuse CSS across messages
          ,@email_css            NVARCHAR(MAX) = dbo.fn_Email_CSS()
@@ -209,7 +213,7 @@ BEGIN
         </table>'
     END
   
-  IF (@image_count = 2 AND @image_path2 != '')
+  IF (@image_count = 2 AND @image_path2 != ' ')
     BEGIN
       SET @email_image_table =
         '<table width= "100%"  cellspacing="0" cellpadding="0">
@@ -234,7 +238,7 @@ BEGIN
          </table>'
     END
 
-  IF (@image_count = 1 AND @image_path1 = '')
+  IF (@image_count = 1 AND @image_path1 != ' ')
     BEGIN
       SET @email_image_table =
         '<table width= "100%"  cellspacing="0" cellpadding="0">
@@ -247,7 +251,7 @@ BEGIN
            <tr>
              <td width= "100%">
                <div style=display: block; margin:0 auto;">
-                 <center><img src="' + @image_path1 + '" width="500"></center>
+                 <center><img src="' + @image_path1 + '" width="1000"></center>
                </div>
              </td>
            </tr>
@@ -270,6 +274,11 @@ BEGIN
   IF @table_query3 != ' '
     BEGIN
       EXECUTE AlumniMirror.dbo.sp_TableToHTML @table_query3, @table3_html OUTPUT, @table_style3
+    END
+
+  IF @table_query4 != ' '
+    BEGIN
+      EXECUTE AlumniMirror.dbo.sp_TableToHTML @table_query4, @table4_html OUTPUT, @table_style4
     END
 
   --attach a CSV file with data from the main table_query, if csv_toggle is set to 'on' (the default)
@@ -342,6 +351,15 @@ BEGIN
        <br>
        <span style="med_text"> 
         ' + @explanatory_text4 + '
+       </span> 
+       <br>
+       <br>
+       '
+       + ISNULL(@table4_html, ' ') +
+       '
+       <br>
+       <span style="med_text"> 
+        ' + @explanatory_text5 + '
 
      <!-- END CONTENT HERE -->
 

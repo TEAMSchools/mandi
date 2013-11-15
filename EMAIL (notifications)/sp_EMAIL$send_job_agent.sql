@@ -17,7 +17,7 @@ SET @job_start = GETDATE()
 DECLARE send_email CURSOR FOR
   SELECT job_name
         ,id
-  FROM KIPP_NJ..EMAIL$template_queue
+  FROM KIPP_NJ..EMAIL$template_queue WITH (NOLOCK)
   WHERE SENT IS NULL
     AND send_at <= GETDATE()
   FOR READ ONLY

@@ -30,14 +30,19 @@ DECLARE
  ,@explanatory_text2    NVARCHAR(MAX)
  ,@explanatory_text3    NVARCHAR(MAX)
  ,@explanatory_text4    NVARCHAR(MAX)
+ ,@explanatory_text5    NVARCHAR(MAX)
 
   --main table and CSV
  ,@table_query1         NVARCHAR(MAX)
  ,@table_query2         NVARCHAR(MAX)
  ,@table_query3         NVARCHAR(MAX)
+ ,@table_query4         NVARCHAR(MAX)
+
  ,@table_style1         NVARCHAR(20)
  ,@table_style2         NVARCHAR(20)
  ,@table_style3         NVARCHAR(20)
+ ,@table_style4         NVARCHAR(20)
+
  ,@csv_toggle           VARCHAR(3)
  ,@csv_query            NVARCHAR(MAX)
 
@@ -47,7 +52,7 @@ DECLARE
   --1. load in parameters from the EMAIL$template_jobs table, given a job name
 SELECT 
   @email_recipients = email_recipients
- ,@email_subject = email_subject
+ ,@email_subject = RTRIM(email_subject)
  ,@send_again = send_again
  ,@stat_count = stat_count
  ,@stat_query1 = stat_query1
@@ -65,15 +70,18 @@ SELECT
  ,@explanatory_text2 = explanatory_text2
  ,@explanatory_text3 = explanatory_text3
  ,@explanatory_text4 = explanatory_text4
+ ,@explanatory_text5 = explanatory_text5
  ,@csv_toggle = csv_toggle
  ,@csv_query = csv_query
  ,@table_query1 = table_query1
  ,@table_query2 = table_query2
  ,@table_query3 = table_query3
+ ,@table_query4 = table_query4
  ,@table_style1 = table_style1
  ,@table_style2 = table_style2
  ,@table_style3 = table_style3
-FROM KIPP_NJ..EMAIL$template_jobs
+ ,@table_style4 = table_style4
+FROM KIPP_NJ..EMAIL$template_jobs WITH (NOLOCK)
 WHERE job_name = @job_name
 
 --build dynamic datepaths
@@ -108,11 +116,14 @@ EXECUTE dbo.sp_EMAIL$template
  ,@explanatory_text2 = @explanatory_text2
  ,@explanatory_text3 = @explanatory_text3
  ,@explanatory_text4 = @explanatory_text4
+ ,@explanatory_text5 = @explanatory_text5
 
  ,@table_query1 = @table_query1
  ,@table_query2 = @table_query2
  ,@table_query3 = @table_query3
+ ,@table_query4 = @table_query4
 
  ,@table_style1 = @table_style1
  ,@table_style2 = @table_style2
- ,@table_style3 = @table_style3;
+ ,@table_style3 = @table_style3
+ ,@table_style4 = @table_style4;
