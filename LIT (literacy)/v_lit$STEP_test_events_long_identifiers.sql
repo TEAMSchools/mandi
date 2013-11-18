@@ -179,30 +179,44 @@ FROM
               WHEN status = 'Achieved' THEN
                ROW_NUMBER() OVER
                  (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
-                      ORDER BY rs.test_date ASC, step_ltr_level ASC)
+                      ORDER BY rs.test_date ASC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) ASC)
               ELSE NULL
              END AS achv_base_tri
             ,CASE
               WHEN status = 'Achieved' THEN
                ROW_NUMBER() OVER
                  (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
-                      ORDER BY rs.test_date DESC, step_ltr_level DESC)
+                      ORDER BY rs.test_date DESC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
               ELSE NULL
              END AS achv_curr_tri
             ,CASE
               WHEN status = 'Did Not Achieve' THEN
                ROW_NUMBER() OVER
                  (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
-                      ORDER BY rs.test_date ASC, step_ltr_level DESC)
+                      ORDER BY rs.test_date ASC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
               ELSE NULL
              END AS dna_base_tri
             ,CASE
               WHEN status = 'Did Not Achieve' THEN
                ROW_NUMBER() OVER
                  (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
-                      ORDER BY rs.test_date DESC, step_ltr_level ASC)
+                      ORDER BY rs.test_date DESC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) ASC)
               ELSE NULL
-             END AS dna_curr_tri            
+             END AS dna_curr_tri           
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
+                      ORDER BY CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
+              ELSE NULL
+             END AS achv_high_tri
+            ,CASE
+              WHEN status = 'Did Not Achieve' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
+                      ORDER BY CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) ASC)
+              ELSE NULL
+             END AS dna_low_tri
       FROM READINGSCORES rs WITH(NOLOCK)
       JOIN STUDENTS s WITH(NOLOCK)
         ON rs.studentid = s.id
@@ -299,7 +313,7 @@ LEFT OUTER JOIN
                       (PARTITION BY rs.studentid, rs.status
                            ORDER BY rs.test_date DESC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
                    ELSE NULL
-             END AS achv_curr_all
+                  END AS achv_curr_all
            FROM READINGSCORES rs WITH(NOLOCK)      
            LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
              ON rs.studentid = cohort.studentid
@@ -349,7 +363,7 @@ LEFT OUTER JOIN
                    WHEN status = 'Achieved' THEN
                     ROW_NUMBER() OVER
                       (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
-                           ORDER BY rs.test_date DESC, step_ltr_level DESC)
+                           ORDER BY rs.test_date DESC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
                    ELSE NULL
                   END AS achv_curr_tri
             FROM READINGSCORES rs WITH(NOLOCK)      
