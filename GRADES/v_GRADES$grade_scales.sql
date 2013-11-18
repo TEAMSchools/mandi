@@ -11,7 +11,7 @@ WITH ps_style AS
                  ,description
            FROM gradescaleitem
            WHERE gradescaleid = -1
-             AND NAME IN (''NCA 2011'', ''Default'', ''TEAM Academy 2010'')
+             AND NAME IN (''NCA 2011'', ''Default'', ''TEAM Academy 2010'',''NCA Honors'')
           ) 
 
        SELECT base.*
