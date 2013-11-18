@@ -362,10 +362,11 @@ SELECT ROW_NUMBER() OVER(
      ,NULL AS ONTRACK_WORDS_YR
      
      --AR current
-     ,replace(convert(varchar,convert(Money, ar_curr.words),1),'.00','') AS words_read_cur_term
-     ,replace(convert(varchar,convert(Money, ar_curr.words_goal),1),'.00','') AS words_goal_cur_term
-     ,ar_curr.rank_words_grade_in_school AS words_rank_cur_term_in_grade
-     ,ar_curr.mastery AS mastery_curr
+     --current trimester = current HEX + previous HEX
+     ,replace(convert(varchar,convert(Money, ar_curr.words + ar_curr2.words),1),'.00','') AS words_read_cur_term
+     ,replace(convert(varchar,convert(Money, ar_curr.words_goal + ar_curr2.words_goal),1),'.00','') AS words_goal_cur_term
+     ,ar_curr2.rank_words_grade_in_school AS words_rank_cur_term_in_grade
+     ,ar_curr2.mastery AS mastery_curr
       
       --AR progress
         --to year goal      
@@ -381,14 +382,14 @@ SELECT ROW_NUMBER() OVER(
        END,0) AS INT)),1),'.00','') AS words_needed_yr
       --to term goal       
      ,CASE
-       WHEN ar_curr.stu_status_words = 'On Track' THEN 'Yes!'
-       WHEN ar_curr.stu_status_words = 'Off Track' THEN 'No'
-       ELSE ar_curr.stu_status_words
+       WHEN ar_curr2.stu_status_words = 'On Track' THEN 'Yes!'
+       WHEN ar_curr2.stu_status_words = 'Off Track' THEN 'No'
+       ELSE ar_curr2.stu_status_words
       END AS stu_status_words_cur_term      
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CAST(ROUND(
        CASE
-        WHEN (ar_curr.words_goal - ar_curr.words) <= 0 THEN NULL 
-        ELSE ar_curr.words_goal - ar_curr.words
+        WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN NULL 
+        ELSE ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words))
        END,0) AS INT)),1),'.00','') AS words_needed_cur_term
      ,gpa.Y1_Dem AS IN_GRADE_DENOM
       
@@ -630,6 +631,10 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.id = ar_curr.studentid 
  AND ar_curr.time_period_name = 'RT1'
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
+  ON roster.id = ar_curr2.studentid 
+ AND ar_curr2.time_period_name = 'RT2'
+ AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
 --MAP
 LEFT OUTER JOIN MAP$reading_wide map_read WITH (NOLOCK)
