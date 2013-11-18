@@ -63,10 +63,12 @@ SELECT ROW_NUMBER() OVER(
       ,inv_tardy_pct_yr
       ,tardy_count_yr
       ,suspensions
+      ,ISS
+      ,OSS
       ,gpa_ytd      
       ,gpa_cum
       ,earned_credits_cum
-      ,AY_all     
+      ,AY_all           
       ,HY_all     
       ,PY_all
       --,CY_all
@@ -74,8 +76,12 @@ SELECT ROW_NUMBER() OVER(
       ,E2_all
       ,num_failing
       ,courses AS courses_failing
-      ,points_goal_yr
+      ,points_cur
+      ,points_goal_cur
+      ,status_cur
       ,points_yr
+      ,points_goal_yr
+      ,status_yr
       ,map_sci_pct      
       ,map_math_pct
       ,map_read_pct
@@ -91,6 +97,9 @@ SELECT ROW_NUMBER() OVER(
       ,demerits_curr
       ,subtype AS recent_merit
       ,entry_date AS merit_date
+      ,disc_ISS
+      ,disc_OSS
+      ,detentions
       ,in_grade_denom
       ,CASE
         WHEN gpa_ytd IS NOT NULL THEN
@@ -108,24 +117,77 @@ SELECT ROW_NUMBER() OVER(
        END AS gpa_rank_cum
       ,rc1_course_name
       ,rc1_Y1
+      ,rc1_Q1
+      ,rc1_Q2
+      ,rc1_Q3
+      ,rc1_Q4           
       ,rc2_course_name
       ,rc2_Y1
+      ,rc2_Q1
+      ,rc2_Q2
+      ,rc2_Q3
+      ,rc2_Q4
       ,rc3_course_name
       ,rc3_Y1
+      ,rc3_Q1
+      ,rc3_Q2
+      ,rc3_Q3
+      ,rc3_Q4
       ,rc4_course_name
       ,rc4_Y1
+      ,rc4_Q1
+      ,rc4_Q2
+      ,rc4_Q3
+      ,rc4_Q4
       ,rc5_course_name
       ,rc5_Y1
+      ,rc5_Q1
+      ,rc5_Q2
+      ,rc5_Q3
+      ,rc5_Q4
       ,rc6_course_name
       ,rc6_Y1
+      ,rc6_Q1
+      ,rc6_Q2
+      ,rc6_Q3
+      ,rc6_Q4
       ,rc7_course_name
       ,rc7_Y1
+      ,rc7_Q1
+      ,rc7_Q2
+      ,rc7_Q3
+      ,rc7_Q4
       ,rc8_course_name
       ,rc8_Y1
+      ,rc8_Q1
+      ,rc8_Q2
+      ,rc8_Q3
+      ,rc8_Q4
       ,rc9_course_name
       ,rc9_Y1
+      ,rc9_Q1
+      ,rc9_Q2
+      ,rc9_Q3
+      ,rc9_Q4
       ,rc10_course_name
       ,rc10_Y1
+      ,rc10_Q1
+      ,rc10_Q2
+      ,rc10_Q3
+      ,rc10_Q4
+      ,a1
+      ,a2
+      ,a3
+      ,a4      
+      ,h1
+      ,h2
+      ,h3
+      ,h4
+      ,p1
+      ,p2
+      ,p3
+      ,p4
+     
 --PROFICIENCY METRICS      
       ,CASE
         WHEN att_pct_yr >= 95 THEN 4
@@ -198,7 +260,79 @@ SELECT ROW_NUMBER() OVER(
         WHEN E2_all <  87 AND E2_all >= 80  THEN 3
         WHEN E2_all <  80 AND E2_all >= 70  THEN 2
         WHEN E2_all <  70  THEN 1
-       END AS E2_all_prof      
+       END AS E2_all_prof
+      ,CASE
+        WHEN A1 >= 87 THEN 4
+        WHEN A1 < 87 AND A1 >= 80 THEN 3
+        WHEN A1 < 80 AND A1 >= 70 THEN 2
+        WHEN A1 < 70 THEN 1
+        END AS A1_prof
+        ,CASE
+        WHEN H1 >= 90 THEN 4
+        WHEN H1 < 90 AND H1 >= 83 THEN 3
+        WHEN H1 < 83 AND H1 >= 75 THEN 2
+        WHEN H1 < 75 THEN 1
+        END AS H1_prof
+        ,CASE
+        WHEN P1 >= 87 THEN 4
+        WHEN P1 < 87 AND P1 >= 83 THEN 3
+        WHEN P1 < 83 AND P1 >= 75 THEN 2
+        WHEN P1 < 75 THEN 1
+        END AS P1_prof
+        ,CASE
+        WHEN A2 >= 87 THEN 4
+        WHEN A2 < 87 AND A2 >= 80 THEN 3
+        WHEN A2 < 80 AND A2 >= 70 THEN 2
+        WHEN A2 < 70 THEN 1
+        END AS A2_prof
+        ,CASE
+        WHEN H2 >= 90 THEN 4
+        WHEN H2 < 90 AND H2 >= 83 THEN 3
+        WHEN H2 < 83 AND H2 >= 75 THEN 2
+        WHEN H2 < 75 THEN 1
+        END AS H2_prof
+        ,CASE
+        WHEN P2 >= 87 THEN 4
+        WHEN P2 < 87 AND P2 >= 83 THEN 3
+        WHEN P2 < 83 AND P2 >= 75 THEN 2
+        WHEN P2 < 75 THEN 1
+        END AS P2_prof
+        ,CASE
+        WHEN A3 >= 87 THEN 4
+        WHEN A3 < 87 AND A3 >= 80 THEN 3
+        WHEN A3 < 80 AND A3 >= 70 THEN 2
+        WHEN A3 < 70 THEN 1
+        END AS A3_prof
+        ,CASE
+        WHEN H3 >= 90 THEN 4
+        WHEN H3 < 90 AND H3 >= 83 THEN 3
+        WHEN H3 < 83 AND H3 >= 75 THEN 2
+        WHEN H3 < 75 THEN 1
+        END AS H3_prof
+        ,CASE
+        WHEN P3 >= 87 THEN 4
+        WHEN P3 < 87 AND P3 >= 83 THEN 3
+        WHEN P3 < 83 AND P3 >= 75 THEN 2
+        WHEN P3 < 75 THEN 1
+        END AS P3_prof
+        ,CASE
+        WHEN A4 >= 87 THEN 4
+        WHEN A4 < 87 AND A4 >= 80 THEN 3
+        WHEN A4 < 80 AND A4 >= 70 THEN 2
+        WHEN A4 < 70 THEN 1
+        END AS A4_prof
+        ,CASE
+        WHEN H4 >= 90 THEN 4
+        WHEN H4 < 90 AND H4 >= 83 THEN 3
+        WHEN H4 < 83 AND H4 >= 75 THEN 2
+        WHEN H4 < 75 THEN 1
+        END AS H4_prof
+        ,CASE
+        WHEN P4 >= 87 THEN 4
+        WHEN P4 < 87 AND P4 >= 83 THEN 3
+        WHEN P4 < 83 AND P4 >= 75 THEN 2
+        WHEN P4 < 75 THEN 1
+        END AS P4_prof
       ,CASE
         WHEN num_failing = 0 THEN 3
         WHEN num_failing = 1 THEN 2
@@ -258,6 +392,18 @@ SELECT ROW_NUMBER() OVER(
         WHEN grade_level = 12 AND lexile_cur >= 1350 THEN 4
         ELSE NULL
        END AS lexile_cur_prof
+      ,CASE
+        WHEN status_cur = 'Off Track' AND status_yr = 'Off Track' THEN 1
+        WHEN status_cur = 'Off Track' AND status_yr = 'On Track' THEN 2
+        WHEN status_cur = 'On Track' THEN 3
+        WHEN status_cur = 'On Track' AND points_cur > points_goal_cur THEN 4
+       END AS points_cur_prof
+      ,CASE
+        WHEN status_yr = 'Off Track' THEN 1
+        WHEN status_yr = 'Off Track' AND status_cur = 'On Track' THEN 2
+        WHEN status_yr = 'On Track' THEN 3
+        WHEN status_yr = 'On Track' AND points_yr > points_goal_yr THEN 4
+       END AS points_yr_prof
 FROM
      (SELECT roster.*                 
             ,dem.in_grade_denom
@@ -279,7 +425,9 @@ FROM
                AS on_time_pct
            ,(100 - ROUND(att_pct.Y1_tardy_pct_total,0)) AS inv_tardy_pct_yr
            ,ROUND(att_counts.tardies_total,0)           AS tardy_count_yr
-           ,ROUND(att_counts.OSS,0)                     AS suspensions
+           ,ROUND(att_counts.OSS,0) AS suspensions
+           ,ROUND(att_counts.iss,0) AS ISS
+           ,ROUND(att_counts.oss,0) AS OSS
            
      --GPA
      --GPA$detail#nca
@@ -292,7 +440,7 @@ FROM
            
      --Course Grades
      --GRADES$wide_all     
-           ,gr_wide.AY_all     
+           ,gr_wide.AY_all                
            ,gr_wide.HY_all     
            ,gr_wide.PY_all
            --,gr_wide.CY_all
@@ -300,24 +448,84 @@ FROM
            ,gr_wide.E2_all
            ,gr_wide.rc1_course_name
            ,gr_wide.rc1_Y1
+           ,gr_wide.rc1_Q1
+           ,gr_wide.rc1_Q2
+           ,gr_wide.rc1_Q3
+           ,gr_wide.rc1_Q4           
            ,gr_wide.rc2_course_name
            ,gr_wide.rc2_Y1
+           ,gr_wide.rc2_Q1
+           ,gr_wide.rc2_Q2
+           ,gr_wide.rc2_Q3
+           ,gr_wide.rc2_Q4
            ,gr_wide.rc3_course_name
            ,gr_wide.rc3_Y1
+           ,gr_wide.rc3_Q1
+           ,gr_wide.rc3_Q2
+           ,gr_wide.rc3_Q3
+           ,gr_wide.rc3_Q4
            ,gr_wide.rc4_course_name
            ,gr_wide.rc4_Y1
+           ,gr_wide.rc4_Q1
+           ,gr_wide.rc4_Q2
+           ,gr_wide.rc4_Q3
+           ,gr_wide.rc4_Q4
            ,gr_wide.rc5_course_name
            ,gr_wide.rc5_Y1
+           ,gr_wide.rc5_Q1
+           ,gr_wide.rc5_Q2
+           ,gr_wide.rc5_Q3
+           ,gr_wide.rc5_Q4
            ,gr_wide.rc6_course_name
            ,gr_wide.rc6_Y1
+           ,gr_wide.rc6_Q1
+           ,gr_wide.rc6_Q2
+           ,gr_wide.rc6_Q3
+           ,gr_wide.rc6_Q4
            ,gr_wide.rc7_course_name
            ,gr_wide.rc7_Y1
+           ,gr_wide.rc7_Q1
+           ,gr_wide.rc7_Q2
+           ,gr_wide.rc7_Q3
+           ,gr_wide.rc7_Q4
            ,gr_wide.rc8_course_name
            ,gr_wide.rc8_Y1
+           ,gr_wide.rc8_Q1
+           ,gr_wide.rc8_Q2
+           ,gr_wide.rc8_Q3
+           ,gr_wide.rc8_Q4
            ,gr_wide.rc9_course_name
            ,gr_wide.rc9_Y1
+           ,gr_wide.rc9_Q1
+           ,gr_wide.rc9_Q2
+           ,gr_wide.rc9_Q3
+           ,gr_wide.rc9_Q4
            ,gr_wide.rc10_course_name
            ,gr_wide.rc10_Y1
+           ,gr_wide.rc10_Q1
+           ,gr_wide.rc10_Q2
+           ,gr_wide.rc10_Q3
+           ,gr_wide.rc10_Q4
+           ,ele_a.grade_1 AS a1
+           ,ele_a.grade_2 AS a2
+           ,ele_a.grade_3 AS a3
+           ,ele_a.grade_4 AS a4
+           ,ele_c.grade_1 AS c1
+           ,ele_c.grade_2 AS c2
+           ,ele_c.grade_3 AS c3
+           ,ele_c.grade_4 AS c4
+           ,ele_e.grade_1 AS e1
+           ,ele_e.grade_2 AS e2
+           ,ele_e.grade_3 AS e3
+           ,ele_e.grade_4 AS e4
+           ,ele_h.grade_1 AS h1
+           ,ele_h.grade_2 AS h2
+           ,ele_h.grade_3 AS h3
+           ,ele_h.grade_4 AS h4
+           ,ele_p.grade_1 AS p1
+           ,ele_p.grade_2 AS p2
+           ,ele_p.grade_3 AS p3
+           ,ele_p.grade_4 AS p4
            
            --On-track?
            ,fail.courses
@@ -330,9 +538,13 @@ FROM
      --AR$progress_to_goals_long#static
 
            --Accelerated Reader      
-           --AR year      
+           --AR year
+           ,CONVERT(FLOAT,ar_cur.points) AS points_cur
+           ,ar_cur.points_goal AS points_goal_cur
+           ,ar_cur.stu_status_points AS status_cur
+           ,CONVERT(FLOAT,ar_yr.points) AS points_yr
            ,ar_yr.points_goal AS points_goal_yr
-           ,ROUND(ar_yr.points,0) AS points_yr
+           ,ar_yr.stu_status_points AS status_yr
 
      --MAP & Lexile scores -- update academic year in JOIN
      --MAP$comprehensive#identifiers
@@ -367,6 +579,9 @@ FROM
            ,merits.total_demerits_rt2    AS demerits_curr -- update field name for current term
            ,disc.subtype
            ,disc.entry_date
+           ,dcounts.ISS AS disc_ISS
+           ,dcounts.OSS AS disc_OSS
+           ,dcounts.detentions
            
      FROM roster WITH (NOLOCK)
       
@@ -393,13 +608,51 @@ FROM
                       WHERE fail.y1 < 70
                       GROUP BY studentid) fail
        ON roster.studentid = fail.studentid
+     LEFT OUTER JOIN GRADES$elements ele_a
+       ON roster.studentid = ele_a.studentid
+      AND ele_a.schoolid = 73253
+      AND ele_a.yearid = 23
+      AND ele_a.course_number = 'all_courses'
+      AND ele_a.pgf_type = 'A'
+     LEFT OUTER JOIN GRADES$elements ele_c
+       ON roster.studentid = ele_c.studentid
+      AND ele_c.schoolid = 73253
+      AND ele_c.yearid = 23
+      AND ele_c.course_number = 'all_courses'
+      AND ele_c.pgf_type = 'C'
+     LEFT OUTER JOIN GRADES$elements ele_e
+       ON roster.studentid = ele_e.studentid
+      AND ele_e.schoolid = 73253
+      AND ele_e.yearid = 23
+      AND ele_e.course_number = 'all_courses'
+      AND ele_e.pgf_type = 'E'
+     LEFT OUTER JOIN GRADES$elements ele_h
+       ON roster.studentid = ele_h.studentid
+      AND ele_h.schoolid = 73253
+      AND ele_h.yearid = 23
+      AND ele_h.course_number = 'all_courses'
+      AND ele_h.pgf_type = 'H'
+     LEFT OUTER JOIN GRADES$elements ele_p
+       ON roster.studentid = ele_p.studentid
+      AND ele_p.schoolid = 73253
+      AND ele_p.yearid = 23
+      AND ele_p.course_number = 'all_courses'
+      AND ele_p.pgf_type = 'P'
        
      --ED TECH
        --ACCELERATED READER
-     LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
-       ON roster.studentid = ar_yr.studentid 
-      AND ar_yr.time_period_name = 'Year'
+     LEFT OUTER JOIN AR$progress_to_goals_long#static ar_cur
+       ON roster .studentid = ar_cur.studentid      
+      AND ar_cur.yearid = dbo.fn_Global_Term_Id()
+      AND GETDATE() >= ar_cur.start_date
+      AND GETDATE() <= ar_cur.end_date
+      AND ar_cur.time_hierarchy = 2
+     LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr
+       ON roster .studentid = ar_yr.studentid      
       AND ar_yr.yearid = dbo.fn_Global_Term_Id()
+      AND GETDATE() >= ar_yr.start_date
+      AND GETDATE() <= ar_yr.end_date
+      AND ar_yr.time_hierarchy = 1 
       
      --MAP (LEXILE)
      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_read_cur WITH (NOLOCK)
@@ -425,6 +678,8 @@ FROM
        ON roster.studentid = disc.studentid
       AND disc.rn = 1
       AND disc.logtypeid = 3023      
+     LEFT OUTER JOIN DISC$counts_wide dcounts
+       ON roster.studentid = dcounts.base_studentid
        
      LEFT OUTER JOIN (SELECT grade_level
                             ,MAX(peer_count) AS in_grade_denom
