@@ -50,7 +50,7 @@ BEGIN
                           ,oq.scope            
                           ,oq.custom_code AS standards_tested
                           ,oq.label AS standard_type
-                          ,oq.description AS standard_descr
+                          ,oq.std_descr AS standard_descr
                           ,oq.user_id
                           ,t.lastfirst AS created_by
                           --needed to get clean row number for FSA standard by week

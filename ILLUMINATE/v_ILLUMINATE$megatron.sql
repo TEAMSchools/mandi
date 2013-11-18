@@ -40,6 +40,7 @@ WITH roster AS
              ,std.std_count_subject
              ,a.fsa_std_rn
              ,a.fsa_week
+             ,a.standard_descr
        FROM ILLUMINATE$assessments#static a WITH (NOLOCK)
        JOIN ILLUMINATE$standards_tested#static std WITH (NOLOCK)
          ON a.academic_year = std.year
@@ -61,7 +62,7 @@ SELECT schoolid
       ,scope
       ,sub.administered_at
       ,sub.standards_tested AS standard
-      ,NULL AS std_descr
+      ,sub.standard_descr AS std_descr
       ,results.answered
       ,CAST(ROUND(results.percent_correct,2,2) AS FLOAT) AS percent_correct
       ,CASE
@@ -134,6 +135,7 @@ FROM
             ,assessments.std_count_subject
             ,assessments.fsa_std_rn
             ,assessments.fsa_week
+            ,assessments.standard_descr
       FROM roster WITH (NOLOCK)
       JOIN assessments WITH (NOLOCK)
         ON roster.schoolid = assessments.schoolid
