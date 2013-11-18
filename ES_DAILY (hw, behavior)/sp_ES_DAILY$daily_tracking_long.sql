@@ -7,7 +7,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-ALTER PROCEDURE [sp_ES_DAILY$daily_tracking_long#static|refresh] AS
+--ALTER PROCEDURE [sp_ES_DAILY$daily_tracking_long#static|refresh] AS
 BEGIN
 
  DECLARE @sql AS VARCHAR(MAX)='';
@@ -88,9 +88,9 @@ BEGIN
                      ') scores
               JOIN STUDENTS s WITH (NOLOCK)
                 ON s.id = scores.studentid
-              LEFT OUTER JOIN CUSTOM_STUDENTS cs
+              LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
                 ON s.id = cs.studentid
-              JOIN UTIL$reporting_days cal
+              JOIN UTIL$reporting_days cal WITH (NOLOCK)
                 ON scores.att_date = cal.date
               WHERE s.enroll_status = 0            
                 AND s.grade_level < 5
