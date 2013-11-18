@@ -441,7 +441,7 @@ FROM
                                              + CONVERT(VARCHAR,time_per_name) + '_' 
                                              + CONVERT(VARCHAR,status) + '_' 
                                              + CONVERT(VARCHAR,year) + '_' 
-                                             + CONVERT(VARCHAR,achv_base_tri)
+                                             + CONVERT(VARCHAR,achv_curr_tri)
               WHEN status = 'Did Not Achieve' THEN CONVERT(VARCHAR,scores.student_number) + '_'
                                                     + CONVERT(VARCHAR,time_per_name) + '_' 
                                                     + CONVERT(VARCHAR,status) + '_' 
