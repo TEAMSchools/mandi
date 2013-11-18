@@ -4,7 +4,7 @@ GO
 ALTER VIEW LIT$progress_tracker AS
 SELECT sub.*
       ,CASE
-        WHEN status = 'Did Not Achieve' AND dna_base_tri = 1 THEN
+        WHEN status = 'Did Not Achieve' AND dna_low_tri = 1 THEN
          ISNULL(name_ass_prof,'')
            + ISNULL(ltr_nameid_prof,'')
            + ISNULL(ltr_soundid_prof,'')
@@ -441,18 +441,19 @@ FROM
                                              + CONVERT(VARCHAR,time_per_name) + '_' 
                                              + CONVERT(VARCHAR,status) + '_' 
                                              + CONVERT(VARCHAR,year) + '_' 
-                                             + CONVERT(VARCHAR,achv_curr_tri)
+                                             + CONVERT(VARCHAR,achv_high_tri)
               WHEN status = 'Did Not Achieve' THEN CONVERT(VARCHAR,scores.student_number) + '_'
                                                     + CONVERT(VARCHAR,time_per_name) + '_' 
                                                     + CONVERT(VARCHAR,status) + '_' 
                                                     + CONVERT(VARCHAR,year) + '_' 
-                                                    + CONVERT(VARCHAR,dna_base_tri)
+                                                    + CONVERT(VARCHAR,dna_low_tri)
               ELSE NULL
              END AS reporting_hash
             ,scores.la_reading_lvl
             ,scores.la_GLEQ
             ,scores.la_level_number
-            
+            ,scores.achv_high_tri
+            ,scores.dna_low_tri
       FROM
            (SELECT testid
                   ,schoolid
@@ -555,6 +556,8 @@ FROM
                   ,la_reading_lvl
                   ,la_GLEQ
                   ,la_level_number
+                  ,NULL AS achv_high_tri
+                  ,NULL AS dna_low_tri
             FROM LIT$FP_test_events_long#identifiers#static
             WHERE year >= 2012
 
@@ -661,6 +664,8 @@ FROM
                   ,la_reading_lvl
                   ,la_GLEQ
                   ,la_level_number
+                  ,achv_high_tri
+                  ,dna_low_tri
             FROM LIT$STEP_test_events_long#identifiers
             WHERE year >= 2012
            ) scores
