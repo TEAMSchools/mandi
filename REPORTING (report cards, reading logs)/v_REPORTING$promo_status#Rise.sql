@@ -87,16 +87,16 @@ FROM
                  ,ROUND(((mem.mem - (ac.absences_total + FLOOR(ac.tardies_total/3))) / mem.mem) * 100,2) AS y1_att_pts_pct
                  ,rise_hw.simple_avg
                  ,mem.mem
-           FROM STUDENTS s
-           LEFT OUTER JOIN GRADES$wide_all#MS gr_wide
+           FROM STUDENTS s WITH (NOLOCK)
+           LEFT OUTER JOIN GRADES$wide_all#MS gr_wide WITH (NOLOCK)
              ON s.id = gr_wide.studentid
-           LEFT OUTER JOIN GPA$detail#Rise Rise_GPA
+           LEFT OUTER JOIN GPA$detail#Rise Rise_GPA WITH (NOLOCK)
              ON s.id = Rise_GPA.studentid
-           LEFT OUTER JOIN ATT_MEM$attendance_counts ac
+           LEFT OUTER JOIN ATT_MEM$attendance_counts ac WITH (NOLOCK)
              ON s.id = ac.id
-           LEFT OUTER JOIN ATT_MEM$membership_counts mem
+           LEFT OUTER JOIN ATT_MEM$membership_counts mem WITH (NOLOCK)
              ON s.id = mem.id
-           LEFT OUTER JOIN GRADES$elements rise_hw
+           LEFT OUTER JOIN GRADES$elements rise_hw WITH (NOLOCK)
              ON s.id = rise_hw.studentid
             AND rise_hw.pgf_type = 'H'
             AND rise_hw.course_number = 'all_courses'

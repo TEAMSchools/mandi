@@ -608,31 +608,31 @@ FROM
                       WHERE fail.y1 < 70
                       GROUP BY studentid) fail
        ON roster.studentid = fail.studentid
-     LEFT OUTER JOIN GRADES$elements ele_a
+     LEFT OUTER JOIN GRADES$elements ele_a WITH (NOLOCK)
        ON roster.studentid = ele_a.studentid
       AND ele_a.schoolid = 73253
       AND ele_a.yearid = 23
       AND ele_a.course_number = 'all_courses'
       AND ele_a.pgf_type = 'A'
-     LEFT OUTER JOIN GRADES$elements ele_c
+     LEFT OUTER JOIN GRADES$elements ele_c WITH (NOLOCK)
        ON roster.studentid = ele_c.studentid
       AND ele_c.schoolid = 73253
       AND ele_c.yearid = 23
       AND ele_c.course_number = 'all_courses'
       AND ele_c.pgf_type = 'C'
-     LEFT OUTER JOIN GRADES$elements ele_e
+     LEFT OUTER JOIN GRADES$elements ele_e WITH (NOLOCK)
        ON roster.studentid = ele_e.studentid
       AND ele_e.schoolid = 73253
       AND ele_e.yearid = 23
       AND ele_e.course_number = 'all_courses'
       AND ele_e.pgf_type = 'E'
-     LEFT OUTER JOIN GRADES$elements ele_h
+     LEFT OUTER JOIN GRADES$elements ele_h WITH (NOLOCK)
        ON roster.studentid = ele_h.studentid
       AND ele_h.schoolid = 73253
       AND ele_h.yearid = 23
       AND ele_h.course_number = 'all_courses'
       AND ele_h.pgf_type = 'H'
-     LEFT OUTER JOIN GRADES$elements ele_p
+     LEFT OUTER JOIN GRADES$elements ele_p WITH (NOLOCK)
        ON roster.studentid = ele_p.studentid
       AND ele_p.schoolid = 73253
       AND ele_p.yearid = 23
@@ -641,13 +641,13 @@ FROM
        
      --ED TECH
        --ACCELERATED READER
-     LEFT OUTER JOIN AR$progress_to_goals_long#static ar_cur
+     LEFT OUTER JOIN AR$progress_to_goals_long#static ar_cur WITH (NOLOCK)
        ON roster .studentid = ar_cur.studentid      
       AND ar_cur.yearid = dbo.fn_Global_Term_Id()
       AND GETDATE() >= ar_cur.start_date
       AND GETDATE() <= ar_cur.end_date
       AND ar_cur.time_hierarchy = 2
-     LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr
+     LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
        ON roster .studentid = ar_yr.studentid      
       AND ar_yr.yearid = dbo.fn_Global_Term_Id()
       AND GETDATE() >= ar_yr.start_date
@@ -678,7 +678,7 @@ FROM
        ON roster.studentid = disc.studentid
       AND disc.rn = 1
       AND disc.logtypeid = 3023      
-     LEFT OUTER JOIN DISC$counts_wide dcounts
+     LEFT OUTER JOIN DISC$counts_wide dcounts WITH (NOLOCK)
        ON roster.studentid = dcounts.base_studentid
        
      LEFT OUTER JOIN (SELECT grade_level

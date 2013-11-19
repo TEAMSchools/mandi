@@ -38,20 +38,20 @@ SELECT s.id AS studentid
       ,dlog05.subtype AS DISC_05_subtype
       ,dlog05.incident_decoded AS DISC_05_incident
       
-FROM STUDENTS s
-LEFT OUTER JOIN DISC$log#static dlog01
+FROM STUDENTS s WITH (NOLOCK)
+LEFT OUTER JOIN DISC$log#static dlog01 WITH (NOLOCK)
   ON s.id = dlog01.studentid
  AND dlog01.rn = 1
-LEFT OUTER JOIN DISC$log#static dlog02
+LEFT OUTER JOIN DISC$log#static dlog02 WITH (NOLOCK)
   ON s.id = dlog02.studentid
  AND dlog02.rn = 2
-LEFT OUTER JOIN DISC$log#static dlog03
+LEFT OUTER JOIN DISC$log#static dlog03 WITH (NOLOCK)
   ON s.id = dlog03.studentid
  AND dlog03.rn = 3
-LEFT OUTER JOIN DISC$log#static dlog04
+LEFT OUTER JOIN DISC$log#static dlog04 WITH (NOLOCK)
   ON s.id = dlog04.studentid
  AND dlog04.rn = 4
-LEFT OUTER JOIN DISC$log#static dlog05
+LEFT OUTER JOIN DISC$log#static dlog05 WITH (NOLOCK)
   ON s.id = dlog05.studentid
  AND dlog05.rn = 5
 WHERE s.enroll_status = 0

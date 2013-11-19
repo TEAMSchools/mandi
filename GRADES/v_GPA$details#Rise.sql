@@ -20,7 +20,7 @@ GO
 
 
 ALTER VIEW GPA$detail#Rise AS
-Select TOP (100) PERCENT *
+SELECT TOP (100) PERCENT *
 FROM
        (SELECT studentid
              ,student_number
@@ -80,7 +80,7 @@ FROM
                            ,ROUND(SUM(weighted_points_Y1)/SUM(credit_hours_Y1),2) AS GPA_Y1
                            ,SUM(Promo_Test) AS num_failing
                            ,dbo.GROUP_CONCAT(failing_y1) AS failing
-                    FROM KIPP_NJ..GRADES$detail#MS
+                    FROM KIPP_NJ..GRADES$detail#MS WITH (NOLOCK)
                     WHERE SCHOOLID = 73252
                     GROUP BY studentid, student_number, schoolid, lastfirst, grade_level
                     ) sub

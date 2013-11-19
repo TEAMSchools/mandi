@@ -108,8 +108,8 @@ SELECT s.id AS base_studentid
       ,SUM(CASE WHEN log.subtype = 'Class Removal' AND log.rt = 'RT6' THEN 1 ELSE NULL END) rt6_class_removal
       ,SUM(CASE WHEN log.subtype = 'Bullying' AND log.rt = 'RT6' THEN 1 ELSE NULL END) rt6_bullying
 
-FROM STUDENTS s
-LEFT OUTER JOIN DISC$log#static log
+FROM STUDENTS s WITH (NOLOCK)
+LEFT OUTER JOIN DISC$log#static log WITH (NOLOCK)
   ON s.id = log.studentid
 WHERE s.enroll_status = 0
 GROUP BY s.id, s.grade_level, s.lastfirst, s.schoolid

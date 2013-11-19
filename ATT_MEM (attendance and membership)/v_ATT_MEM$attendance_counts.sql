@@ -87,7 +87,7 @@ SELECT TOP (100) PERCENT
       ,ISNULL(cur_iss,0) AS cur_iss
       ,ISNULL(cur_oss,0) AS cur_oss
       ,ISNULL(cur_early_dismiss,0) AS cur_early_dismiss
-FROM STUDENTS s
+FROM STUDENTS s WITH (NOLOCK)
 LEFT OUTER JOIN 
      (SELECT studentid
             --Y1
@@ -175,8 +175,8 @@ LEFT OUTER JOIN
                   ,psad.att_date
                   ,psad.att_code                  
                   ,dates.time_per_name AS RT
-            FROM ATTENDANCE psad
-            JOIN REPORTING$dates dates
+            FROM ATTENDANCE psad WITH (NOLOCK)
+            JOIN REPORTING$dates dates WITH (NOLOCK)
               ON psad.att_date >= dates.start_date
              AND psad.att_date <= dates.end_date
              AND psad.schoolid = dates.schoolid
@@ -189,8 +189,8 @@ LEFT OUTER JOIN
                   ,psad.att_date
                   ,psad.att_code                  
                   ,'CUR' AS RT            
-            FROM ATTENDANCE psad
-            JOIN REPORTING$dates curterm
+            FROM ATTENDANCE psad WITH (NOLOCK)
+            JOIN REPORTING$dates curterm WITH (NOLOCK)
               ON curterm.identifier = 'RT'
              AND curterm.start_date <= GETDATE()
              AND curterm.end_date >= GETDATE()

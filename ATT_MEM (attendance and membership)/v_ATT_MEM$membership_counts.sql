@@ -14,14 +14,14 @@ SELECT s.id
       ,SUM(CONVERT(FLOAT,CASE WHEN RT  = 'RT5' THEN membershipvalue END)) AS RT5_mem
       ,SUM(CONVERT(FLOAT,CASE WHEN RT  = 'RT6' THEN membershipvalue END)) AS RT6_mem
       ,SUM(CONVERT(FLOAT,CASE WHEN RT  = 'CUR' THEN membershipvalue END)) AS CUR_mem
-FROM STUDENTS s
+FROM STUDENTS s WITH (NOLOCK)
 LEFT OUTER JOIN
      (SELECT studentid
             ,calendardate
             ,membershipvalue
             ,dates.time_per_name AS RT     
-      FROM MEMBERSHIP mem
-      JOIN REPORTING$dates dates
+      FROM MEMBERSHIP mem WITH (NOLOCK)
+      JOIN REPORTING$dates dates WITH (NOLOCK)
         ON mem.calendardate >= dates.start_date
        AND mem.calendardate <= dates.end_date       
        AND mem.schoolid = dates.schoolid
@@ -32,8 +32,8 @@ LEFT OUTER JOIN
             ,calendardate
             ,membershipvalue
             ,'CUR' AS RT            
-      FROM MEMBERSHIP mem
-      JOIN REPORTING$dates curterm
+      FROM MEMBERSHIP mem WITH (NOLOCK)
+      JOIN REPORTING$dates curterm WITH (NOLOCK)
         ON curterm.identifier = 'RT'
        AND curterm.start_date <= GETDATE()
        AND curterm.end_date >= GETDATE()

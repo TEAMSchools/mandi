@@ -62,16 +62,16 @@ FROM
                     + CAST(mem.mem AS VARCHAR) AS att_string
                   ,ac.absences_total + FLOOR(ac.tardies_total/3) AS attendance_points
                   ,ROUND(((mem.mem - (ac.absences_total + FLOOR(ac.tardies_total/3))) / mem.mem) * 100,2) AS y1_att_pts_pct
-            FROM STUDENTS s
-            LEFT OUTER JOIN GRADES$wide_all#MS gr_wide
+            FROM STUDENTS s WITH (NOLOCK)
+            LEFT OUTER JOIN GRADES$wide_all#MS gr_wide WITH (NOLOCK)
               ON s.id = gr_wide.studentid
-            LEFT OUTER JOIN GPA$detail#TEAM team_GPA
+            LEFT OUTER JOIN GPA$detail#TEAM team_GPA WITH (NOLOCK)
               ON s.id = TEAM_GPA.studentid
-            LEFT OUTER JOIN ATT_MEM$attendance_counts ac
+            LEFT OUTER JOIN ATT_MEM$attendance_counts ac WITH (NOLOCK)
               ON s.id = ac.id
-            LEFT OUTER JOIN ATT_MEM$membership_counts mem
+            LEFT OUTER JOIN ATT_MEM$membership_counts mem WITH (NOLOCK)
               ON s.id = mem.id            
-            LEFT OUTER JOIN GRADES$elements team_hw
+            LEFT OUTER JOIN GRADES$elements team_hw WITH (NOLOCK)
               ON s.id = team_hw.studentid 
              AND team_hw.pgf_type = 'H'
              AND team_hw.course_number = 'all_courses'

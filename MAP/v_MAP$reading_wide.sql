@@ -69,80 +69,80 @@ SELECT s.id AS studentid
       ,CONVERT(FLOAT,map_s10.testritscore) AS SPRING_2010_RIT
       ,CONVERT(FLOAT,map_s10.testpercentile) AS SPRING_2010_PERCENTILE
 
-FROM STUDENTS s
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_s14
+FROM STUDENTS s WITH (NOLOCK)
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_s14 WITH (NOLOCK)
   ON s.student_number = map_s14.studentid
  AND map_s14.map_year_academic = 2013
  AND map_s14.fallwinterspring_numeric = 3
  AND map_s14.measurementscale = 'Reading'
  AND map_s14.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_w13
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_w13 WITH (NOLOCK)
   ON s.student_number = map_w13.studentid
  AND map_w13.map_year_academic = 2013
  AND map_w13.fallwinterspring_numeric = 2
  AND map_w13.measurementscale = 'Reading'
  AND map_w13.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_f13
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_f13 WITH (NOLOCK)
   ON s.student_number = map_f13.studentid
  AND map_f13.map_year_academic = 2013
  AND map_f13.fallwinterspring_numeric = 1
  AND map_f13.measurementscale = 'Reading'
  AND map_f13.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_s13
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_s13 WITH (NOLOCK)
   ON s.student_number = map_s13.studentid
  AND map_s13.map_year_academic = 2012
  AND map_s13.fallwinterspring_numeric = 3
  AND map_s13.measurementscale = 'Reading'
  AND map_s13.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_w12
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_w12 WITH (NOLOCK)
   ON s.student_number = map_w12.studentid
  AND map_w12.map_year_academic = 2012
  AND map_w12.fallwinterspring_numeric = 2
  AND map_w12.measurementscale = 'Reading'
  AND map_w12.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_f12
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_f12 WITH (NOLOCK)
   ON s.student_number = map_f12.studentid
  AND map_f12.map_year_academic = 2012
  AND map_f12.fallwinterspring_numeric = 1
  AND map_f12.measurementscale = 'Reading'
  AND map_f12.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_s12
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_s12 WITH (NOLOCK)
   ON s.student_number = map_s12.studentid
  AND map_s12.map_year_academic = 2011
  AND map_s12.fallwinterspring_numeric = 3
  AND map_s12.measurementscale = 'Reading'
  AND map_s12.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_w11
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_w11 WITH (NOLOCK)
   ON s.student_number = map_w11.studentid
  AND map_w11.map_year_academic = 2011
  AND map_w11.fallwinterspring_numeric = 2
  AND map_w11.measurementscale = 'Reading'
  AND map_w11.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_f11
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_f11 WITH (NOLOCK)
   ON s.student_number = map_f11.studentid
  AND map_f11.map_year_academic = 2011
  AND map_f11.fallwinterspring_numeric = 1
  AND map_f11.measurementscale = 'Reading'
  AND map_f11.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_s11
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_s11 WITH (NOLOCK)
   ON s.student_number = map_s11.studentid
  AND map_s11.map_year_academic = 2010
  AND map_s11.fallwinterspring_numeric = 3
  AND map_s11.measurementscale = 'Reading'
  AND map_s11.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_w10
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_w10 WITH (NOLOCK)
   ON s.student_number = map_w10.studentid
  AND map_w10.map_year_academic = 2010
  AND map_w10.fallwinterspring_numeric = 2
  AND map_w10.measurementscale = 'Reading'
  AND map_w10.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_f10
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_f10 WITH (NOLOCK)
   ON s.student_number = map_f10.studentid
  AND map_f10.map_year_academic = 2010
  AND map_f10.fallwinterspring_numeric = 1
  AND map_f10.measurementscale = 'Reading'
  AND map_f10.rn=1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map_s10
+LEFT OUTER JOIN MAP$comprehensive#identifiers map_s10 WITH (NOLOCK)
   ON s.student_number = map_s10.studentid
  AND map_s10.map_year_academic = 2009
  AND map_s10.fallwinterspring_numeric = 3

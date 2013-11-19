@@ -161,22 +161,22 @@ SELECT cohort.schoolid
                          (SELECT s.id AS ps_studentid
                                 ,s.student_number
                                 ,s.lastfirst
-                          FROM KIPP_NJ..STUDENTS s
+                          FROM KIPP_NJ..STUDENTS s WITH (NOLOCK)
                           ) sq_0
-                    JOIN NWEA..map$cdf map 
+                    JOIN NWEA..map$cdf map WITH (NOLOCK)
                       ON CAST(sq_0.student_number AS NVARCHAR) = map.studentid
                     ) sq_1
               ) sq_2
-      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort 
+      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort  WITH (NOLOCK)
         ON  CAST(cohort.studentid AS NVARCHAR) = sq_2.ps_studentid 
         AND sq_2.map_year_academic = cohort.year
         AND cohort.rn = 1
-      LEFT OUTER JOIN MAP$norm_table#2008 norms_2008 
+      LEFT OUTER JOIN MAP$norm_table#2008 norms_2008  WITH (NOLOCK)
         ON  cohort.grade_level = norms_2008.grade 
         AND REPLACE(sq_2.measurementscale, 'Science - General Science', 'General Science') = norms_2008.measurementscale 
         AND sq_2.testritscore = norms_2008.rit 
         AND sq_2.fallwinterspring = norms_2008.fallwinterspring
-      LEFT OUTER JOIN MAP$norm_table#2011 norms_2011 
+      LEFT OUTER JOIN MAP$norm_table#2011 norms_2011  WITH (NOLOCK)
         ON  cohort.grade_level = norms_2011.grade 
         AND REPLACE(sq_2.measurementscale, 'Science - General Science', 'General Science')  = norms_2011.measurementscale 
         AND sq_2.testritscore = norms_2011.rit 

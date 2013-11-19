@@ -52,7 +52,7 @@ FROM
                   ,case when credittype NOT IN ('COCUR','WLANG') then course_y1 else null end as core_course_y1
                   ,case when credittype NOT IN ('COCUR','WLANG') then failing_y1 else null end as core_failing_y1
                   ,case when credittype NOT IN ('COCUR','WLANG') then promo_test else null end as core_promo_test
-            FROM GRADES$DETAIL#MS
+            FROM GRADES$DETAIL#MS WITH (NOLOCK)
            ) sub1
       GROUP BY studentid, student_number, schoolid, lastfirst, grade_level
      ) sub2

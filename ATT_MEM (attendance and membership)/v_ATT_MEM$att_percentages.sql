@@ -69,6 +69,6 @@ SELECT att.id
       ,ISNULL((CASE WHEN rt5_mem = 0 THEN NULL ELSE ROUND((rt5_tardies_T10 / rt5_mem) * 100,2) END),0) AS rt5_tardy_pct_T10
       ,ISNULL((CASE WHEN rt6_mem = 0 THEN NULL ELSE ROUND((rt6_tardies_T10 / rt6_mem) * 100,2) END),0) AS rt6_tardy_pct_T10
       ,ISNULL((CASE WHEN cur_mem = 0 THEN NULL ELSE ROUND((cur_tardies_T10 / cur_mem) * 100,2) END),0) AS cur_tardy_pct_T10
-FROM KIPP_NJ..ATT_MEM$attendance_counts att
-LEFT OUTER JOIN ATT_MEM$membership_counts mem
+FROM KIPP_NJ..ATT_MEM$attendance_counts att WITH (NOLOCK)
+LEFT OUTER JOIN ATT_MEM$membership_counts mem  WITH (NOLOCK)
   ON att.id = mem.id
