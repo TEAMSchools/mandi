@@ -202,6 +202,20 @@ FROM
                       ORDER BY rs.test_date DESC, step_ltr_level ASC)
               ELSE NULL
              END AS dna_curr_tri
+            ,CASE
+              WHEN status = 'Achieved' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
+                      ORDER BY step_ltr_level DESC)
+              ELSE NULL
+             END AS achv_high_tri
+            ,CASE
+              WHEN status = 'Did Not Achieve' THEN
+               ROW_NUMBER() OVER
+                 (PARTITION BY rs.studentid, cohort.year, dates.time_per_name, rs.status
+                      ORDER BY step_ltr_level ASC)
+              ELSE NULL
+             END AS dna_low_tri
       FROM READINGSCORES rs WITH(NOLOCK)
       JOIN STUDENTS s WITH(NOLOCK)
         ON rs.studentid = s.id

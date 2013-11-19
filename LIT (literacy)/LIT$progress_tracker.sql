@@ -556,8 +556,8 @@ FROM
                   ,la_reading_lvl
                   ,la_GLEQ
                   ,la_level_number
-                  ,NULL AS achv_high_tri
-                  ,NULL AS dna_low_tri
+                  ,achv_high_tri
+                  ,dna_low_tri
             FROM LIT$FP_test_events_long#identifiers#static
             WHERE year >= 2012
 
