@@ -41,6 +41,14 @@ WITH roster AS
              ,a.fsa_std_rn
              ,a.fsa_week
              ,a.standard_descr
+             ,CASE
+               WHEN a.scope = 'District Benchmark' AND DATEPART(MM,a.administered_at) = 11 THEN 'TA1'
+               WHEN a.scope = 'District Benchmark' AND DATEPART(MM,a.administered_at) = 02 THEN 'TA2'
+               WHEN a.scope = 'District Benchmark' AND DATEPART(MM,a.administered_at) = 05 THEN 'TA3'
+              END AS test_type
+             ,ROW_NUMBER() OVER
+                (PARTITION BY assessment_id
+                     ORDER BY standards_tested) AS std_rn
        FROM ILLUMINATE$assessments#static a WITH (NOLOCK)
        JOIN ILLUMINATE$standards_tested#static std WITH (NOLOCK)
          ON a.academic_year = std.year
@@ -98,7 +106,10 @@ SELECT schoolid
       ,ISNULL(CONVERT(VARCHAR,fsa_week),'WEEK') + '_'
         + ISNULL(CONVERT(VARCHAR,grade_level),'GR') + '_'
         + ISNULL(CONVERT(VARCHAR,fsa_std_rn),'RN') AS fsa_hash
-      ,NULL AS time_hash
+      ,ISNULL(CONVERT(VARCHAR,standards_tested),'STD') + '_'
+        + ISNULL(CONVERT(VARCHAR,grade_level),'GR') + '_'
+        + ISNULL(CONVERT(VARCHAR,test_type),'TEST') + '_'
+        + ISNULL(CONVERT(VARCHAR,std_rn),'RN') AS TA_hash
       ,ISNULL(CONVERT(VARCHAR,student_number),'SN') + '_'
         + ISNULL(CONVERT(VARCHAR,standards_tested),'STD') + '_'
         + ISNULL(CONVERT(VARCHAR,std_freq_rn),'RN') AS stu_time_hash
@@ -107,10 +118,16 @@ SELECT schoolid
         + ISNULL(CONVERT(VARCHAR,std_freq_rn),'RN') AS school_time_hash
       ,spedlep AS SPED
       ,CONVERT(FLOAT,results.label_number) AS label_number
-      ,results.perf_band_label AS proficiency_label
+      ,results.perf_band_label AS proficiency_label      
       --,results.points
       --,results.points_possible
       --,results.number_of_questions
+      ,ISNULL(CONVERT(VARCHAR,student_number),'SN') + '_'
+        + ISNULL(CONVERT(VARCHAR,standards_tested),'STD') + '_'
+        + ISNULL(CONVERT(VARCHAR,grade_level),'GR') + '_'
+        + ISNULL(CONVERT(VARCHAR,test_type),'TEST') + '_'
+        + ISNULL(CONVERT(VARCHAR,std_rn),'RN') AS stu_TA_hash
+      ,test_type
 FROM
      (
       SELECT roster.studentid
@@ -136,6 +153,8 @@ FROM
             ,assessments.fsa_std_rn
             ,assessments.fsa_week
             ,assessments.standard_descr
+            ,assessments.std_rn
+            ,assessments.test_type
       FROM roster WITH (NOLOCK)
       JOIN assessments WITH (NOLOCK)
         ON roster.schoolid = assessments.schoolid
