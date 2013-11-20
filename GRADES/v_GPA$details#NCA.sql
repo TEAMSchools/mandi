@@ -37,7 +37,7 @@ FROM
             ,ROUND(SUM(weighted_points_Y1)/SUM(credit_hours_Y1),2) AS GPA_Y1   
             ,SUM(Promo_Test) AS num_failing
             ,dbo.GROUP_CONCAT(failing_y1) AS failing
-      FROM KIPP_NJ..GRADES$detail#NCA
+      FROM KIPP_NJ..GRADES$detail#NCA WITH (NOLOCK)
       GROUP BY studentid, student_number, schoolid, lastfirst, grade_level
      ) sub
 ORDER BY grade_level, lastfirst

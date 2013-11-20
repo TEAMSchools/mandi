@@ -28,23 +28,23 @@ SELECT TOP (100) PERCENT
       ,NJASK10.NJASK_Proficiency  AS Prof_2010
       ,NJASK10.test_grade_level   AS Gr_Lev_2010   
 
-FROM STUDENTS s
-LEFT OUTER JOIN NJASK$detail#static NJASK13
+FROM STUDENTS s WITH (NOLOCK)
+LEFT OUTER JOIN NJASK$detail#static NJASK13 WITH (NOLOCK)
   ON s.id = NJASK13.studentid
  AND NJASK13.subject    = 'Math'                            
  AND NJASK13.test_date >= '2013-01-01'                      
  AND NJASK13.test_date <= '2013-06-01'                      
-LEFT OUTER JOIN NJASK$detail#static NJASK12
+LEFT OUTER JOIN NJASK$detail#static NJASK12 WITH (NOLOCK)
   ON s.id = NJASK12.studentid          
  AND NJASK12.subject    = 'Math'                            
  AND NJASK12.test_date >= '2012-01-01'                      
  AND NJASK12.test_date <= '2012-06-01'                      
-LEFT OUTER JOIN NJASK$detail#static NJASK11
+LEFT OUTER JOIN NJASK$detail#static NJASK11 WITH (NOLOCK)
   ON s.id = NJASK11.studentid          
  AND NJASK11.subject    = 'Math'                           
  AND NJASK11.test_date >= '2011-01-01'                      
  AND NJASK11.test_date <= '2011-06-01'                      
-LEFT OUTER JOIN NJASK$detail#static NJASK10
+LEFT OUTER JOIN NJASK$detail#static NJASK10 WITH (NOLOCK)
   ON s.id = NJASK10.studentid           
  AND NJASK10.subject    = 'Math'                            
  AND NJASK10.test_date >= '2010-01-01'                       
