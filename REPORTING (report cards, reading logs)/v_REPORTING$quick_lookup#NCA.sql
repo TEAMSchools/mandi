@@ -1,104 +1,95 @@
 USE KIPP_NJ
 GO
 
+ALTER VIEW REPORTING$quick_lookup#NCA AS
+
 SELECT s.student_number AS SN
       ,s.lastfirst AS Name
       ,s.grade_level AS Gr
       ,cs.Advisor
       ,cs.SPEDLEP AS SPED
-      
+
       --GPA      
-      ,nca_GPA.GPA_q1 AS GPA_q1
-      ,nca_GPA.GPA_q2 AS GPA_q2
-      ,nca_GPA.GPA_q3 AS GPA_q3
-      ,nca_GPA.GPA_q4 AS GPA_q4
-      ,nca_GPA.GPA_y1 AS GPA_y1      
-      
+      ,nca_GPA.GPA_q1 AS GPA_Q1
+      ,nca_GPA.GPA_q2 AS GPA_Q2
+      ,nca_GPA.GPA_q3 AS GPA_Q3
+      ,nca_GPA.GPA_q4 AS GPA_Q4
+      ,nca_GPA.GPA_y1 AS GPA_Y1      
       --cumulative GPA
       ,GPA_cum.cumulative_Y1_GPA AS GPA_cum
---    ,GPA_cumulative.audit_trail AS cumulative_GPA_audit_trail
+      --,GPA_cumulative.audit_trail AS cumulative_GPA_audit_trail
 
---Attendance
+--Attendance      
       --absences
-      ,att.absences_total AS abs_y1
-      ,round(att_pct.y1_att_pct_total,0) AS abs_y1_pct      
-      ,att.RT1_absences_total AS abs_q1
-      ,att.RT2_absences_total AS abs_q2
-      ,att.RT3_absences_total AS abs_q3
-      ,att.RT4_absences_total AS abs_q4
---    ,round(att_pct.rt1_att_pct_total,0) AS abs_q1_pct
---    ,round(att_pct.rt2_att_pct_total,0) AS abs_q2_pct
---    ,round(att_pct.rt3_att_pct_total,0) AS abs_q3_pct
---    ,round(att_pct.rt4_att_pct_total,0) AS abs_q4_pct      
+      ,att.absences_total AS Abs_Y1
+      ,ROUND(att_Pct.y1_att_Pct_total,0) AS Abs_Y1_Pct      
+      ,att.RT1_absences_total AS Abs_Q1
+      ,att.RT2_absences_total AS Abs_Q2
+      ,att.RT3_absences_total AS Abs_Q3
+      ,att.RT4_absences_total AS Abs_Q4
+      ,ROUND(att_Pct.rt1_att_Pct_total,0) AS Abs_Q1_Pct
+      ,ROUND(att_Pct.rt2_att_Pct_total,0) AS Abs_Q2_Pct
+      ,ROUND(att_Pct.rt3_att_Pct_total,0) AS Abs_Q3_Pct
+      ,ROUND(att_Pct.rt4_att_Pct_total,0) AS Abs_Q4_Pct      
       --tardies
-      ,att.tardies_total AS t_y1
-      ,round(att_pct.y1_tardy_pct_total,0) AS t_y1_pct
-      ,att.RT1_tardies_total AS t_q1
-      ,att.RT2_tardies_total AS t_q2
-      ,att.RT3_tardies_total AS t_q3
-      ,att.RT4_tardies_total AS t_q4
---    ,round(att_pct.rt1_tardy_pct_total,0) AS t_q1_pct
---    ,round(att_pct.rt2_tardy_pct_total,0) AS t_q2_pct
---    ,round(att_pct.rt3_tardy_pct_total,0) AS t_q3_pct
---    ,round(att_pct.rt4_tardy_pct_total,0) AS t_q4_pct
+      ,att.tardies_total AS T_Y1
+      ,ROUND(att_Pct.y1_tardy_Pct_total,0) AS T_Y1_Pct
+      ,att.RT1_tardies_total AS T_Q1
+      ,att.RT2_tardies_total AS T_Q2
+      ,att.RT3_tardies_total AS T_Q3
+      ,att.RT4_tardies_total AS T_Q4
+      ,ROUND(att_Pct.rt1_tardy_Pct_total,0) AS T_Q1_Pct
+      ,ROUND(att_Pct.rt2_tardy_Pct_total,0) AS T_Q2_Pct
+      ,ROUND(att_Pct.rt3_tardy_Pct_total,0) AS T_Q3_Pct
+      ,ROUND(att_Pct.rt4_tardy_Pct_total,0) AS T_Q4_Pct
 
+--Behavior      
       --merits
-      ,merits.total_merits AS m_y1_total
-      ,merits.teacher_merits AS m_y1_teacher
-      ,merits.perfect_week_merits AS m_y1_perfect
-      ,merits.total_merits_rt1 AS m_Q1_total
-      ,merits.total_merits_rt2 AS m_Q2_total
-      ,merits.total_merits_rt3 AS m_Q3_total
-      ,merits.total_merits_rt4 AS m_Q4_total      
+      ,merits.total_merits AS M_Y1_total
+      ,merits.teacher_merits AS M_Y1_teacher
+      ,merits.perfect_week_merits AS M_Y1_perfect
+      ,merits.total_merits_rt1 AS M_Q1_total
+      ,merits.total_merits_rt2 AS M_Q2_total
+      ,merits.total_merits_rt3 AS M_Q3_total
+      ,merits.total_merits_rt4 AS M_Q4_total            
+      --merits by type
+      ,merits.teacher_merits_rt1 AS M_Q1_teacher
+      ,merits.perfect_week_merits_rt1 AS M_Q1_perfect
+      ,merits.teacher_merits_rt2 AS M_Q2_teacher
+      ,merits.perfect_week_merits_rt2 AS M_Q2_perfect
+      ,merits.teacher_merits_rt3 AS M_Q3_teacher
+      ,merits.perfect_week_merits_rt3 AS M_Q3_perfect
+      ,merits.teacher_merits_rt4 AS M_Q4_teacher
+      ,merits.perfect_week_merits_rt4 AS M_Q4_perfect
       --demerits      
-      ,merits.total_tier1_demerits AS demerits_Y1
-      ,merits.tier1_demerits_rt1 AS demerits_Q1
-      ,merits.tier1_demerits_rt2 AS demerits_Q2
-      ,merits.tier1_demerits_rt3 AS demerits_Q3
-      ,merits.tier1_demerits_rt4 AS demerits_Q4
-      ,null AS Merit_Extended
-      ,merits.teacher_merits_rt1 AS m_Q1_teacher
-      ,merits.perfect_week_merits_rt1 AS m_Q1_perfect
-      ,merits.teacher_merits_rt2 AS m_Q2_teacher
-      ,merits.perfect_week_merits_rt2 AS m_Q2_perfect
-      ,merits.teacher_merits_rt3 AS m_Q3_teacher
-      ,merits.perfect_week_merits_rt3 AS m_Q3_perfect
-      ,merits.teacher_merits_rt4 AS m_Q4_teacher
-      ,merits.perfect_week_merits_rt4 AS m_Q4_perfect
+      ,merits.total_tier1_demerits AS Demerits_Y1
+      ,merits.tier1_demerits_rt1 AS Demerits_Q1
+      ,merits.tier1_demerits_rt2 AS Demerits_Q2
+      ,merits.tier1_demerits_rt3 AS Demerits_Q3
+      ,merits.tier1_demerits_rt4 AS Demerits_Q4
+      ,dcounts.detentions AS Detentions_Y1
+      ,dcounts.rt1_detentions AS Detentions_Q1
+      ,dcounts.rt2_detentions AS Detentions_Q2
+      ,dcounts.rt3_detentions AS Detentions_Q3
+      ,dcounts.rt4_detentions AS Detentions_Q4
 
---placeholders
-      ,'Go to Reading Data report' AS AR_PTS_Q1
-      ,null AS AR_PTS_Q2
-      ,null AS AR_PTS_Q3
-      ,null AS AR_PTS_Q4
-      ,null AS AR_PTS_YR
-      ,null AS AR_WORDS_Q1
-      ,null AS AR_WORDS_Q2
-      ,null AS AR_WORDS_Q3
-      ,null AS AR_WORDS_Q4
-      ,null AS AR_WORDS_YR
-      ,'Go to Reading Data report' AS sri_lexile_base
-      ,null AS sri_pctl_base
-      ,null AS sri_lexile_curterm
-      ,null AS sri_pctl_curterm
-      --AR
-/*      
-      ,ar_goals.points_earned_rt1 AS AR_PTS_Q1
-      ,ar_goals.points_earned_rt2 AS AR_PTS_Q2
-      ,ar_goals.points_earned_rt3 AS AR_PTS_Q3
-      ,ar_goals.points_earned_rt4 AS AR_PTS_Q4
-      ,ar_goals.points_earned_yr  AS AR_PTS_YR
-      ,ar_goals.words_read_rt1    AS AR_WORDS_Q1
-      ,ar_goals.words_read_rt2    AS AR_WORDS_Q2
-      ,ar_goals.words_read_rt3    AS AR_WORDS_Q3
-      ,ar_goals.words_read_rt4    AS AR_WORDS_Q4
-      ,ar_goals.words_read_yr     AS AR_WORDS_YR
-      -- SRI      
-      ,sri_base_11.lexile AS sri_lexile_base
-      ,sri_base_11.nce AS sri_pctl_base
-      ,sri_current.lexile AS sri_lexile_curterm
-      ,sri_current.nce AS sri_pctl_curterm
---*/
+--Reading
+      ,ar.AR_Pts_Q1
+      ,ar.AR_Pts_Q2
+      ,ar.AR_Pts_Q3
+      ,ar.AR_Pts_Q4
+      ,ar.AR_Pts_Yr
+      ,ar.AR_Words_Q1
+      ,ar.AR_Words_Q2
+      ,ar.AR_Words_Q3      
+      ,ar.AR_Words_Q4
+      ,ar.AR_Words_Yr
+      --Lexile
+      ,lex_base.rittoreadingscore AS Lexile_base
+      ,lex_cur.rittoreadingscore AS Lexile_current
+      --,lex_base.testpercentile AS map_pctl_base
+      --,lex_cur.testpercentile AS map_pctl_curterm
+
 /*      
       ,null AS Grades
       ,gr_wide.rc1_course_name
@@ -141,8 +132,6 @@ SELECT s.student_number AS SN
       ,gr_wide.rc10_teacher_last
       ,gr_wide.rc10_y1 AS rc10_y1_pct
       ,gr_wide.rc10_y1_ltr
---*/
-/*
       ,gr_wide.rc1_h1  AS rc1_cur_hw_pct
       ,gr_wide.rc2_h1  AS rc2_cur_hw_pct
       ,gr_wide.rc3_h1  AS rc3_cur_hw_pct
@@ -203,8 +192,6 @@ SELECT s.student_number AS SN
       ,gr_wide.rc8_current_tardies
       ,gr_wide.rc9_current_tardies
       ,gr_wide.rc10_current_tardies
---*/      
-/*
       ,gr_wide.rc1_E1 AS rc1_exam
       ,gr_wide.rc2_E1 AS rc2_exam
       ,gr_wide.rc3_E1 AS rc3_exam
@@ -215,7 +202,6 @@ SELECT s.student_number AS SN
       ,gr_wide.rc8_E1 AS rc8_exam
       ,gr_wide.rc9_E1 AS rc9_exam
       ,gr_wide.rc10_E1 AS rc10_exam
-
       ,gr_wide.rc1_E2 AS rc1_exam2
       ,gr_wide.rc2_E2 AS rc2_exam2
       ,gr_wide.rc3_E2 AS rc3_exam2
@@ -227,24 +213,77 @@ SELECT s.student_number AS SN
       ,gr_wide.rc9_E2 AS rc9_exam2
       ,gr_wide.rc10_E2 AS rc10_exam2
 --*/      
-FROM STUDENTS s   
-LEFT OUTER JOIN CUSTOM_STUDENTS cs
+FROM STUDENTS s WITH (NOLOCK)
+LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
   ON s.id = cs.studentid
-LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits
+LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits WITH (NOLOCK)
   ON s.id = merits.studentid
-LEFT OUTER JOIN ATT_MEM$attendance_counts att
+LEFT OUTER JOIN DISC$counts_wide dcounts WITH (NOLOCK)
+  ON s.ID = dcounts.base_studentid
+LEFT OUTER JOIN ATT_MEM$attendance_counts att WITH (NOLOCK)
   ON s.id = att.id
-LEFT OUTER JOIN ATT_MEM$att_percentages att_pct
+LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON s.id = att_pct.id
-LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide
+LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide WITH (NOLOCK)
   ON s.id = gr_wide.studentid
-LEFT OUTER JOIN GPA$detail#NCA nca_GPA
+LEFT OUTER JOIN GPA$detail#NCA nca_GPA WITH (NOLOCK)
   ON s.id = nca_GPA.studentid
-LEFT OUTER JOIN GPA$cumulative GPA_cum
+LEFT OUTER JOIN GPA$cumulative GPA_cum WITH (NOLOCK)
   ON s.id = GPA_cum.studentid
+ AND s.schoolid = GPA_cum.schoolid
+LEFT OUTER JOIN (
+                 SELECT s.id
+                       ,ar_Q1.points AS AR_Pts_Q1
+                       ,ar_q2.points AS AR_Pts_Q2
+                       ,ar_q3.points AS AR_Pts_Q3
+                       ,ar_q4.points AS AR_Pts_Q4
+                       ,ar_yr.points AS AR_Pts_Yr
+                       ,ar_Q1.words AS AR_Words_Q1
+                       ,ar_q2.words AS AR_Words_Q2
+                       ,ar_q3.words AS AR_Words_Q3      
+                       ,ar_q4.words AS AR_Words_Q4
+                       ,ar_yr.words AS AR_Words_Yr
+                       ,ROW_NUMBER() OVER
+                          (PARTITION BY s.lastfirst
+                           ORDER BY s.lastfirst) AS rn
+                 FROM STUDENTS s WITH (NOLOCK)
+                 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
+                   ON s.id = ar_yr.studentid 
+                  AND ar_yr.time_period_name = 'Year'
+                  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
+                 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q1 WITH (NOLOCK)
+                   ON s.id = ar_q1.studentid 
+                  AND ar_q1.time_period_name = 'RT1'
+                  AND ar_q1.yearid = dbo.fn_Global_Term_Id() 
+                 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q2 WITH (NOLOCK)
+                   ON s.id = ar_q2.studentid
+                  AND ar_q2.time_period_name = 'RT2'
+                  AND ar_q2.yearid = dbo.fn_Global_Term_Id() 
+                 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q3 WITH (NOLOCK)
+                   ON s.id = ar_q3.studentid
+                  AND ar_q3.time_period_name = 'RT3'
+                  AND ar_q3.yearid = dbo.fn_Global_Term_Id() 
+                 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q4 WITH (NOLOCK)
+                   ON s.id = ar_q4.studentid
+                  AND ar_q4.time_period_name = 'RT4'
+                  AND ar_q4.yearid = dbo.fn_Global_Term_Id() 
+                 WHERE s.SCHOOLID = 73253
+                   AND s.ENROLL_STATUS = 0
+                ) ar
+  ON s.id = ar.id
+ AND ar.rn = 1
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
+  ON s.id = lex_cur.ps_studentid
+ AND lex_cur.measurementscale  = 'Reading'
+ AND lex_cur.map_year_academic = 2013 --update yearly
+ AND lex_cur.rn_curr = 1
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
+  ON s.id = lex_base.ps_studentid
+ AND lex_base.measurementscale  = 'Reading'
+ AND lex_base.map_year_academic = 2013 --update yearly
+ AND lex_base.rn_base = 1
+
 /*
-LEFT OUTER JOIN AR$PROGRESS_TO_GOALS ar_goals
-  ON s.id = ar_goals.studentid
 LEFT OUTER JOIN sri_testing_history sri_base_11
   ON to_char(s.student_number) = sri_base_11.base_student_number
  AND sri_base_11.full_cycle_name = 'Baseline 12-13' and sri_base_11.rn_cycle = 1 
@@ -256,4 +295,3 @@ LEFT OUTER JOIN sri_testing_history sri_current
 --*/
 WHERE s.schoolid = 73253
   AND s.enroll_status = 0
-ORDER BY s.grade_level, s.lastfirst
