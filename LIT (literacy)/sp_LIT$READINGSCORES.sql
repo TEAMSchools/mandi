@@ -88,7 +88,7 @@ BEGIN
     FROM virtualtablesdata3 scores
     WHERE foreignkey_alpha > 3273
       AND related_to_table = ''readingScores'' 
-      AND user_defined_text IS NOT NULL 
+      --AND user_defined_text IS NOT NULL 
 
     UNION ALL
 
@@ -157,7 +157,7 @@ BEGIN
     FROM virtualtablesdata3 scores
     WHERE foreignkey_alpha = 3273
       AND related_to_table = ''readingScores'' 
-      AND user_defined_text IS NOT NULL 
+      --AND user_defined_text IS NOT NULL 
       ');
    
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
