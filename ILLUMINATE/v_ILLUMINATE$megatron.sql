@@ -45,9 +45,10 @@ WITH roster AS
                WHEN a.scope = 'District Benchmark' AND DATEPART(MM,a.administered_at) = 11 THEN 'TA1'
                WHEN a.scope = 'District Benchmark' AND DATEPART(MM,a.administered_at) = 02 THEN 'TA2'
                WHEN a.scope = 'District Benchmark' AND DATEPART(MM,a.administered_at) = 05 THEN 'TA3'
+               ELSE 'Site Assessment'
               END AS test_type
              ,ROW_NUMBER() OVER
-                (PARTITION BY assessment_id
+                (PARTITION BY a.assessment_id, a.grade_level
                      ORDER BY standards_tested) AS std_rn
        FROM ILLUMINATE$assessments#static a WITH (NOLOCK)
        JOIN ILLUMINATE$standards_tested#static std WITH (NOLOCK)
@@ -122,12 +123,17 @@ SELECT schoolid
       --,results.points
       --,results.points_possible
       --,results.number_of_questions
-      ,ISNULL(CONVERT(VARCHAR,student_number),'SN') + '_'
+      ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'
         + ISNULL(CONVERT(VARCHAR,standards_tested),'STD') + '_'
         + ISNULL(CONVERT(VARCHAR,grade_level),'GR') + '_'
         + ISNULL(CONVERT(VARCHAR,test_type),'TEST') + '_'
         + ISNULL(CONVERT(VARCHAR,std_rn),'RN') AS stu_TA_hash
       ,test_type
+      ,ISNULL(CONVERT(VARCHAR,schoolid),'SCHOOL') + '_'
+        + ISNULL(CONVERT(VARCHAR,grade_level),'GR') + '_'
+        + ISNULL(CONVERT(VARCHAR,subject),'SUBJ') + '_'
+        + ISNULL(CONVERT(VARCHAR,std_count_subject),'RN') + '_'
+        + ISNULL(CONVERT(VARCHAR,test_type),'TEST') AS TA_overview_hash   
 FROM
      (
       SELECT roster.studentid
