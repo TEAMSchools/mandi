@@ -1,19 +1,21 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW REPORTING$report_card#NCA AS
+ALTER VIEW REPORTING$report_card#NCA AS
 WITH roster AS
-     (SELECT s.student_number AS base_student_number
+     (
+      SELECT s.schoolid
+            ,s.student_number AS base_student_number
             ,s.id AS base_studentid
             ,s.lastfirst AS stu_lastfirst
             ,s.first_name AS stu_firstname
             ,s.last_name AS stu_lastname
-            ,c.grade_level AS stu_grade_level            
-      FROM KIPP_NJ..COHORT$comprehensive_long#static c      
-      JOIN KIPP_NJ..STUDENTS s
+            ,c.grade_level AS stu_grade_level
+      FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
+      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
         ON c.studentid = s.id
        AND s.enroll_status = 0
-       --AND s.ID = 3551
+       --AND s.ID = 639
        --AND s.ID IN (3551,3358)
        --AND s.ID BETWEEN 3000 AND 4000
       WHERE year = 2013
@@ -22,7 +24,8 @@ WITH roster AS
      )
 
     ,info AS
-    (SELECT s.id AS nomerge_id
+    (
+     SELECT s.id AS nomerge_id
            ,s.web_id
            ,s.web_password
            ,s.student_web_id
@@ -40,27 +43,38 @@ WITH roster AS
            ,local.guardianemail
            ,cs.SPEDLEP AS SPED
            ,cs.lunch_balance AS lunch_balance
-     FROM KIPP_NJ..CUSTOM_STUDENTS cs
-     JOIN KIPP_NJ..STUDENTS s
+     FROM KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
+     JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
        ON cs.studentid = s.id
       AND s.enroll_status = 0
-     JOIN KIPP_NJ..PS$local_emails local
-       ON cs.studentid = local.studentid
+      AND s.schoolid = 73253
+     JOIN KIPP_NJ..PS$local_emails local WITH (NOLOCK)
+       ON cs.studentid = local.studentid      
     )       
 
 SELECT roster.*
       ,info.*
-      
+
 --Attendance
 --ATT_MEM$attendance_percentages
 --ATT_MEM$attendance_counts
-      --year
-      ,att_counts.absences_total           AS Y1_absences_total
-      ,att_counts.absences_undoc           AS Y1_absences_undoc
-      ,ROUND(att_pct.Y1_att_pct_total,0)   AS Y1_att_pct_total
-      ,ROUND(att_pct.Y1_att_pct_undoc,0)   AS Y1_att_pct_undoc      
-      ,att_counts.tardies_total            AS Y1_tardies_total
-      ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total
+                                                                         /*
+                                                                         HIDDEN FOR RC Q1 - FIX THIS AFTER!!!
+                                                                         --year
+                                                                         ,att_counts.absences_total           AS Y1_absences_total
+                                                                         ,att_counts.absences_undoc           AS Y1_absences_undoc
+                                                                         ,ROUND(att_pct.Y1_att_pct_total,0)   AS Y1_att_pct_total
+                                                                         ,ROUND(att_pct.Y1_att_pct_undoc,0)   AS Y1_att_pct_undoc      
+                                                                         ,att_counts.tardies_total            AS Y1_tardies_total
+                                                                         ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total
+                                                                         */
+--ALIASED FOR RC Q1 ONLY -- KILL THIS WHEN YOU'RE FINISHED
+,att_counts.RT1_absences_total        AS Y1_absences_total
+,att_counts.RT1_absences_undoc        AS Y1_absences_undoc
+,ROUND(att_pct.RT1_att_pct_total,0)   AS Y1_att_pct_total
+,ROUND(att_pct.RT1_att_pct_undoc,0)   AS Y1_att_pct_undoc      
+,att_counts.RT1_tardies_total         AS Y1_tardies_total
+,ROUND(att_pct.RT1_tardy_pct_total,0) AS Y1_tardy_pct_total
       
       --current term -- change field name
       ,att_counts.RT1_absences_total        AS curterm_absences_total
@@ -463,22 +477,22 @@ SELECT roster.*
       ,comment_rc9.teacher_comment  AS rc9_comment
       ,comment_rc10.teacher_comment AS rc10_comment
       --for end of term report card comments
-      --,comment_adv.advisor_comment  AS advisor_comment
+      ,comment_adv.advisor_comment  AS advisor_comment
     
 --Discipline
 --DISC$merits_demerits_count#NCA
       --Merits
         --year
       ,merits.teacher_merits_rt1
-        + merits.teacher_merits_rt2
+        --+ merits.teacher_merits_rt2
         + merits.teacher_merits_rt3
         + merits.teacher_merits_rt4      AS teacher_merits_yr
       ,merits.perfect_week_merits_rt1 
-        + merits.perfect_week_merits_rt2 
+        --+ merits.perfect_week_merits_rt2 
         + merits.perfect_week_merits_rt3 
         + merits.perfect_week_merits_rt4 AS perfect_week_yr
       ,merits.total_merits_rt1 
-        + merits.total_merits_rt2 
+        --+ merits.total_merits_rt2 
         + merits.total_merits_rt3 
         + merits.total_merits_rt4        AS total_merits_yr      
         --current
@@ -489,45 +503,46 @@ SELECT roster.*
       --Demerits
         --year
       ,merits.tier1_demerits_rt1
-        + merits.tier1_demerits_rt2
+        --+ merits.tier1_demerits_rt2
         + merits.tier1_demerits_rt3
         + merits.tier1_demerits_rt4      AS tier1_demerits_yr
         --current -- update field name for current term
       ,merits.tier1_demerits_rt1         AS tier1_demerits_curr -- update field name for current term
 
-FROM roster
-
---INFO
-LEFT OUTER JOIN info
+FROM roster WITH (NOLOCK)
+LEFT OUTER JOIN info WITH (NOLOCK)
   ON roster.base_studentid = info.nomerge_id
-  
+
+
 --ATTENDANCE
-LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts
+LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
   ON roster.base_studentid = att_counts.id
-LEFT OUTER JOIN ATT_MEM$att_percentages att_pct
+LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON roster.base_studentid = att_pct.id
   
 --GPA
-LEFT OUTER JOIN GPA$detail#NCA nca_gpa
+LEFT OUTER JOIN GPA$detail#NCA nca_gpa WITH (NOLOCK)
   ON roster.base_studentid = nca_gpa.studentid
-LEFT OUTER JOIN GPA$cumulative gpa_cumulative
+LEFT OUTER JOIN GPA$cumulative gpa_cumulative WITH (NOLOCK)
   ON roster.base_studentid = gpa_cumulative.studentid
+ AND roster.schoolid = gpa_cumulative.schoolid
   
 --GRADES
-LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide
+LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide WITH (NOLOCK)
   ON roster.base_studentid = gr_wide.studentid
-  
+
 --ED TECH
   --ACCELERATED READER
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
   ON roster.base_studentid = ar_yr.studentid 
- AND ar_yr.time_period_name = 'Year'
+ --AND ar_yr.time_period_name = 'Year'
+ /*ONLY FOR Q1 REPORT CARDS DELETE DIS SHYT AND UNHASH ^DAT SHYT*/AND ar_yr.time_period_name = 'RT1'
  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.base_studentid = ar_curr.studentid 
  AND ar_curr.time_period_name = 'RT1' --update every quarter
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
- 
+
   --LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.base_student_number = lex_base.StudentID
@@ -539,54 +554,56 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
  AND lex_curr.map_year_academic = 2013
- 
+
+--/* 
 --GRADEBOOK COMMMENTS -- upadate fieldname and parameter for current term
-LEFT OUTER JOIN PS$comments#static comment_rc1
+LEFT OUTER JOIN PS$comments#static comment_rc1 WITH (NOLOCK)
   ON gr_wide.rc1_Q1_enr_sectionid = comment_rc1.sectionid
  AND gr_wide.studentid = comment_rc1.id
  AND comment_rc1.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments#static comment_rc2
+LEFT OUTER JOIN PS$comments#static comment_rc2 WITH (NOLOCK)
   ON gr_wide.rc2_Q1_enr_sectionid = comment_rc2.sectionid
  AND gr_wide.studentid = comment_rc2.id
  AND comment_rc2.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments#static comment_rc3
+LEFT OUTER JOIN PS$comments#static comment_rc3 WITH (NOLOCK)
   ON gr_wide.rc3_q1_enr_sectionid = comment_rc3.sectionid
  AND gr_wide.studentid = comment_rc3.id
  AND comment_rc3.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments#static comment_rc4
+LEFT OUTER JOIN PS$comments#static comment_rc4 WITH (NOLOCK)
   ON gr_wide.rc4_q1_enr_sectionid = comment_rc4.sectionid
  AND gr_wide.studentid = comment_rc4.id
  AND comment_rc4.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments#static comment_rc5
+LEFT OUTER JOIN PS$comments#static comment_rc5 WITH (NOLOCK)
   ON gr_wide.rc5_q1_enr_sectionid = comment_rc5.sectionid
  AND gr_wide.studentid = comment_rc5.id
  AND comment_rc5.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments#static comment_rc6
+LEFT OUTER JOIN PS$comments#static comment_rc6 WITH (NOLOCK)
   ON gr_wide.rc6_q1_enr_sectionid = comment_rc6.sectionid
  AND gr_wide.studentid = comment_rc6.id
  AND comment_rc6.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments#static comment_rc7
+LEFT OUTER JOIN PS$comments#static comment_rc7 WITH (NOLOCK)
   ON gr_wide.rc7_Q1_enr_sectionid = comment_rc7.sectionid
  AND gr_wide.studentid = comment_rc7.id
  AND comment_rc7.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments#static comment_rc8
+LEFT OUTER JOIN PS$comments#static comment_rc8 WITH (NOLOCK)
   ON gr_wide.rc8_Q1_enr_sectionid = comment_rc8.sectionid
  AND gr_wide.studentid = comment_rc8.id
  AND comment_rc8.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments#static comment_rc9
+LEFT OUTER JOIN PS$comments#static comment_rc9 WITH (NOLOCK)
   ON gr_wide.rc9_Q1_enr_sectionid = comment_rc9.sectionid
  AND gr_wide.studentid = comment_rc9.id
  AND comment_rc9.finalgradename = 'Q1'
-LEFT OUTER JOIN PS$comments#static comment_rc10
+LEFT OUTER JOIN PS$comments#static comment_rc10 WITH (NOLOCK)
   ON gr_wide.rc10_Q1_enr_sectionid = comment_rc10.sectionid
  AND gr_wide.studentid = comment_rc10.id
  AND comment_rc10.finalgradename = 'Q1'
-/* --CAUSING DUPES
-LEFT OUTER JOIN PS$comments#static comment_adv
- ON roster.base_studentid = comment_adv.id
-AND comment_adv.finalgradename = 'Q1'
+--/* ONLY USED ON RC
+LEFT OUTER JOIN PS$comments#static comment_adv WITH (NOLOCK)
+  ON roster.base_studentid = comment_adv.id
+ AND comment_adv.finalgradename = 'Q1'
+ AND comment_adv.course_number = 'HR'
 --*/
 
 --MERITS & DEMERITS
-LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits
+LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits WITH (NOLOCK)
   ON roster.base_studentid = merits.studentid
