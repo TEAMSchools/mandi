@@ -28,7 +28,8 @@ WITH long_goals AS
     JOIN students s WITH (NOLOCK)
       ON cohort.studentid = s.id
      
-     --AND s.grade_level = 8
+     --TESTING
+     --AND s.grade_level = 5
      --AND s.schoolid = 73252
      --AND s.ID = 4772
      --AND s.student_number >= 12866
@@ -40,7 +41,8 @@ WITH long_goals AS
       AND cohort.rn = 1
       AND ((cohort.year - 1990) * 100) = goals.yearid
 
-      --AND goals.yearid = 2300
+      --TESTING
+      --AND goals.yearid = 2400
     --term
     UNION ALL
 
@@ -85,11 +87,12 @@ WITH long_goals AS
     FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH (NOLOCK)
     JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
       ON cohort.studentid = s.id
+
+     --TESTING
+     --AND s.grade_level = 5
+     --AND s.schoolid = 73252
      --AND s.id = 4772
      --AND s.student_number >= 12866
-
-     --AND s.grade_level = 8
-     --AND s.schoolid = 73252
 
     JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
        ON CAST(s.student_number AS VARCHAR) = goals.student_number
@@ -98,7 +101,8 @@ WITH long_goals AS
       AND cohort.year >= 2011
       AND cohort.rn = 1
 
-      AND goals.yearid = 2300
+      --TESTING
+      --AND goals.yearid = 2300
       --AND goals.time_period_name = 'Hexameter 2'
     )
      ,last_book AS
@@ -164,15 +168,15 @@ SELECT totals.*
        END AS ontrack_points
       ,CASE
       --time period over
-         WHEN GETDATE() > end_date THEN
+         WHEN CAST(GETDATE() AS date) > end_date THEN
            CASE
              WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
              WHEN words >= words_goal THEN 'Met Goal'
              WHEN words < words_goal  THEN 'Missed Goal'
          END
        --during time period
-         WHEN GETDATE() < end_date AND
-           GETDATE() >= start_date THEN
+         WHEN CAST(GETDATE() AS date) <= end_date AND
+           CAST(GETDATE() AS date) >= start_date THEN
            CASE
              WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
              WHEN words >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
@@ -183,15 +187,15 @@ SELECT totals.*
        END AS stu_status_words
       ,CASE
       --time period over
-         WHEN GETDATE() > end_date THEN
+         WHEN CAST(GETDATE() AS date) > end_date THEN
            CASE
              WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
              WHEN points >= points_goal THEN 'Met Goal'
              WHEN points < points_goal  THEN 'Missed Goal'
          END
        --during time period
-         WHEN GETDATE() < end_date AND
-           GETDATE() >= start_date THEN
+         WHEN CAST(GETDATE() AS date) <= end_date AND
+           CAST(GETDATE() AS date) >= start_date THEN
            CASE
              WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
              WHEN points >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
@@ -203,15 +207,15 @@ SELECT totals.*
       
       ,CASE
       --time period over
-         WHEN GETDATE() > end_date THEN
+         WHEN CAST(GETDATE() AS date) > end_date THEN
            CASE
              WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
              WHEN words >= words_goal THEN 1
              WHEN words < words_goal  THEN 0
          END
        --during time period
-         WHEN GETDATE() < end_date AND
-           GETDATE() >= start_date THEN
+         WHEN CAST(GETDATE() AS date) <= end_date AND
+           CAST(GETDATE() AS date) >= start_date THEN
            CASE
              WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
              WHEN words >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal) 
@@ -223,15 +227,15 @@ SELECT totals.*
       
       ,CASE
       --time period over
-         WHEN GETDATE() > end_date THEN
+         WHEN CAST(GETDATE() AS date) > end_date THEN
            CASE
              WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
              WHEN points >= points_goal THEN 1
              WHEN points < points_goal  THEN 0
          END
        --during time period
-         WHEN GETDATE() < end_date AND
-           GETDATE() >= start_date THEN
+         WHEN CAST(GETDATE() AS date) <= end_date AND
+           CAST(GETDATE() AS date) >= start_date THEN
            CASE
              WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
              WHEN points >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
@@ -243,10 +247,10 @@ SELECT totals.*
       
       ,CASE
       --time period over
-         WHEN GETDATE() > end_date THEN NULL
+         WHEN CAST(GETDATE() AS date) > end_date THEN NULL
        --during time period
-         WHEN GETDATE() < end_date AND
-           GETDATE() >= start_date THEN
+         WHEN CAST(GETDATE() AS date) <= end_date AND
+           CAST(GETDATE() AS date) >= start_date THEN
            CASE
              WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
              WHEN words >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
@@ -258,10 +262,10 @@ SELECT totals.*
       
       ,CASE
       --time period over
-         WHEN GETDATE() > end_date THEN NULL
+         WHEN CAST(GETDATE() AS date) > end_date THEN NULL
        --during time period
-         WHEN GETDATE() < end_date AND
-           GETDATE() >= start_date THEN
+         WHEN CAST(GETDATE() AS date) <= end_date AND
+           CAST(GETDATE() AS date) >= start_date THEN
            CASE
              WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
              WHEN points >= (((DATEDIFF(d, [start_date], GETDATE())+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal) 
@@ -323,8 +327,8 @@ FROM
             ,long_goals.time_period_name
             ,long_goals.words_goal
             ,long_goals.points_goal
-            ,long_goals.start_date
-            ,long_goals.end_date
+            ,CAST(long_goals.start_date AS date) AS start_date
+            ,CAST(long_goals.end_date AS date) AS end_date
 
             ,SUM(CASE
                    WHEN ar_all.tipassed = 1 THEN CAST(ar_all.iwordcount AS BIGINT)
@@ -361,8 +365,8 @@ FROM
       FROM long_goals
       LEFT OUTER JOIN AR$test_event_detail#static ar_all WITH (NOLOCK)
         ON CAST(long_goals.student_number AS VARCHAR) = ar_all.student_number
-       AND CAST(ar_all.dttaken AS DATE) >= CAST(long_goals.start_date_summer_bonus AS DATE)
-       AND CAST(ar_all.dttaken AS DATE) <= CAST(long_goals.end_date AS DATE)
+       AND CAST(ar_all.dttaken AS date) >= CAST(long_goals.start_date_summer_bonus AS date)
+       AND CAST(ar_all.dttaken AS date) <= CAST(long_goals.end_date AS date)
        AND ar_all.tiRowStatus = 1
        GROUP BY long_goals.studentid
                ,long_goals.student_number

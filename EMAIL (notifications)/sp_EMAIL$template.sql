@@ -41,6 +41,7 @@ ALTER PROCEDURE sp_EMAIL$template (
  
  ,@csv_toggle           AS VARCHAR(3) = 'On'
  ,@csv_query            AS NVARCHAR(MAX) = ' '
+ ,@additional_attachment AS NVARCHAR(500) = ' '
 ) AS
 
 
@@ -292,6 +293,11 @@ BEGIN
 		      @vcCsvFileLocation = @csv_attachment OUTPUT
 
       SELECT	@csv_attachment AS N'@vcCsvFileLocation'
+
+      IF @additional_attachment != ' '
+        BEGIN
+          SET @csv_attachment = @csv_attachment + ';' + @additional_attachment
+        END     
     END
 
   SET @email_body = 

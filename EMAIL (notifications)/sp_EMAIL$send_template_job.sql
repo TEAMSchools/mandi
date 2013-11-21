@@ -45,6 +45,7 @@ DECLARE
 
  ,@csv_toggle           VARCHAR(3)
  ,@csv_query            NVARCHAR(MAX)
+ ,@additional_attachment NVARCHAR(4000)
 
   --IMAGE PATHS ARE DYNAMIC!
  ,@datepath_helper      NVARCHAR(50)
@@ -73,6 +74,7 @@ SELECT
  ,@explanatory_text5 = explanatory_text5
  ,@csv_toggle = csv_toggle
  ,@csv_query = csv_query
+ ,@additional_attachment = additional_attachment
  ,@table_query1 = table_query1
  ,@table_query2 = table_query2
  ,@table_query3 = table_query3
@@ -111,6 +113,8 @@ EXECUTE dbo.sp_EMAIL$template
 
  ,@csv_toggle = @csv_toggle
  ,@csv_query = @csv_query
+ 
+ ,@additional_attachment = @additional_attachment
 
  ,@explanatory_text1 = @explanatory_text1
  ,@explanatory_text2 = @explanatory_text2
