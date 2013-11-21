@@ -22,7 +22,7 @@ BEGIN
  DECLARE
   @v_termid               INT      = dbo.fn_Global_Term_Id(),
   @v_grade_1              VARCHAR(2) = 'Q1',   
-  @v_grade_2              VARCHAR(2) = 'Q2',
+  @v_grade_2              VARCHAR(2) = 'FOO',
   /* 
   EXAMPLE FOR IN-BETWEEN TERMS CALCULATION (EG REPORT CARD PREP)
   EXAMPLE IS END OF Q2
