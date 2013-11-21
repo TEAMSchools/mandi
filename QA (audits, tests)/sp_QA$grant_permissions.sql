@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE PROCEDURE sp_QA$grant_permissions AS
+ALTER PROCEDURE sp_QA$grant_permissions AS
 GRANT SELECT ON LIT$FP_test_events_long#identifiers#static TO db_data_tool_reader
 GRANT SELECT ON REPORTING$progress_tracker#NCA#static TO db_data_tool_reader
 GRANT SELECT ON REPORTING$progress_detail#NCA#static TO db_data_tool_reader
