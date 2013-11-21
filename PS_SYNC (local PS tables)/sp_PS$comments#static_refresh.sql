@@ -26,11 +26,8 @@ BEGIN
               ,cc.course_number
               ,tco.sectionid
               ,tco.finalgradename
-              ,tco.teacher_comment
-              ,CASE
-                WHEN cc.course_number IN ('HR','Adv') THEN tco.teacher_comment
-                ELSE NULL
-               END AS advisor_comment
+              ,CASE WHEN cc.course_number IN ('HR','Adv') THEN NULL ELSE tco.teacher_comment END AS teacher_comment
+              ,CASE WHEN cc.course_number IN ('HR','Adv') THEN tco.teacher_comment ELSE NULL END AS advisor_comment
         FROM STUDENTS s
         JOIN OPENQUERY(PS_TEAM,'
                SELECT pgf.studentid            

@@ -6,7 +6,8 @@ GO
 ALTER VIEW GRADES$wide_credit_core#MS AS
 
 WITH rost AS
-       (SELECT *
+       (
+        SELECT *
         FROM KIPP_NJ..GRADES$detail_placeholder#MS WITH (NOLOCK)
        )   
   
@@ -16,7 +17,7 @@ FROM
        (SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_course_number' AS pivot_on
 	            ,pivot_ele.course_number AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -27,7 +28,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_credittype' AS pivot_on
 	            ,pivot_ele.credittype AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -38,7 +39,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_course_name' AS pivot_on
 	            ,pivot_ele.course_name AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -49,7 +50,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_credit_hours_T1' AS pivot_on
 	            ,CAST(pivot_ele.credit_hours_t1 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -60,7 +61,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_credit_hours_T2' AS pivot_on
 	            ,CAST(pivot_ele.credit_hours_t2 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -71,7 +72,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_credit_hours_T3' AS pivot_on
 	            ,CAST(pivot_ele.credit_hours_t3 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -82,7 +83,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_credit_hours_Y1' AS pivot_on
 	            ,CAST(pivot_ele.credit_hours_y1 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -93,7 +94,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_teacher_last' AS pivot_on
 	            ,tch.last_name AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        LEFT OUTER JOIN KIPP_NJ..PS$teacher_by_last_enrollment tch WITH (NOLOCK)
          ON rost.studentid = tch.studentid
         AND rost.course_number = tch.course_number
@@ -104,7 +105,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_teacher_lastfirst' AS pivot_on
 	            ,tch.lastfirst AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        LEFT OUTER JOIN KIPP_NJ..PS$teacher_by_last_enrollment tch WITH (NOLOCK)
          ON rost.studentid = tch.studentid
         AND rost.course_number = tch.course_number
@@ -115,7 +116,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_T1' AS pivot_on
 	            ,CAST(pivot_ele.T1 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -126,7 +127,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_T2' AS pivot_on
 	            ,CAST(pivot_ele.T2 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -137,7 +138,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_T3' AS pivot_on
 	            ,CAST(pivot_ele.T3 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -148,7 +149,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Y1' AS pivot_on
 	            ,CAST(pivot_ele.Y1 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -159,7 +160,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_T1_ltr' AS pivot_on
 	         ,CAST(pivot_ele.T1_LETTER AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -170,7 +171,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_T2_ltr' AS pivot_on
 	         ,CAST(pivot_ele.T2_LETTER AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -181,7 +182,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_T3_ltr' AS pivot_on
 	         ,CAST(pivot_ele.T3_LETTER AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -192,7 +193,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Y1_ltr' AS pivot_on
 	         ,CAST(pivot_ele.Y1_LETTER AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -203,7 +204,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_t1_enr_sectionid' AS pivot_on
 	            ,CAST(pivot_ele.t1_enr_sectionid AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -214,7 +215,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_t2_enr_sectionid' AS pivot_on
 	            ,CAST(pivot_ele.t2_enr_sectionid AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -225,7 +226,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_t3_enr_sectionid' AS pivot_on
 	            ,CAST(pivot_ele.t3_enr_sectionid AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -237,7 +238,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_gpa_points_t1' AS pivot_on
 	            ,CAST(pivot_ele.gpa_points_t1 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -248,7 +249,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_gpa_points_t2' AS pivot_on
 	            ,CAST(pivot_ele.gpa_points_t2 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -259,7 +260,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_gpa_points_t3' AS pivot_on
 	            ,CAST(pivot_ele.gpa_points_t3 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -270,7 +271,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_gpa_points_y1' AS pivot_on
 	            ,CAST(pivot_ele.gpa_points_y1 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -281,7 +282,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_weighted_points_t1' AS pivot_on
 	            ,CAST(pivot_ele.weighted_points_t1 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -292,7 +293,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_weighted_points_t2' AS pivot_on
 	            ,CAST(pivot_ele.weighted_points_t2 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -303,7 +304,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_weighted_points_t3' AS pivot_on
 	            ,CAST(pivot_ele.weighted_points_t3 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -314,7 +315,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	            ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_weighted_points_y1' AS pivot_on
 	            ,CAST(pivot_ele.weighted_points_y1 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$DETAIL#MS pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -325,7 +326,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_H1' AS pivot_on
 	         ,CAST(pivot_ele.grade_1 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -337,7 +338,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_H2' AS pivot_on
 	         ,CAST(pivot_ele.grade_2 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -349,7 +350,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_H3' AS pivot_on
 	         ,CAST(pivot_ele.grade_3 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -361,7 +362,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_HY1' AS pivot_on
 	         ,CAST(pivot_ele.simple_avg AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -373,7 +374,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'HY_all' AS pivot_on
 	         ,CAST(pivot_ele.simple_avg AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND pivot_ele.course_number = 'all_courses'        
@@ -385,7 +386,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_A1' AS pivot_on
 	         ,CAST(pivot_ele.grade_1 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -397,7 +398,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_A1' AS pivot_on
 	         ,CAST(pivot_ele.grade_2 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -409,7 +410,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_A1' AS pivot_on
 	         ,CAST(pivot_ele.grade_3 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -421,7 +422,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q1' AS pivot_on
 	         ,CAST(pivot_ele.grade_1 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -433,7 +434,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q1' AS pivot_on
 	         ,CAST(pivot_ele.grade_2 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -445,7 +446,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q1' AS pivot_on
 	         ,CAST(pivot_ele.grade_3 AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -457,7 +458,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_QY1' AS pivot_on
 	         ,CAST(pivot_ele.simple_avg AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
@@ -469,7 +470,7 @@ FROM
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
 	         ,'QY_all' AS pivot_on
 	         ,CAST(pivot_ele.simple_avg AS VARCHAR) AS value
-       FROM rost
+       FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND pivot_ele.course_number = 'all_courses'        

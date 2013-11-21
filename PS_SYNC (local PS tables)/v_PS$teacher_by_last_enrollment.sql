@@ -24,12 +24,13 @@ FROM
             ,ROW_NUMBER() OVER(
                 PARTITION BY cc.studentid, cc.course_number
                     ORDER BY cc.termid DESC) AS rn
-      FROM CC
+      FROM CC WITH (NOLOCK)
       JOIN (SELECT id AS teacherid
                   ,lastfirst
                   ,last_name
                   ,first_name
-            FROM TEACHERS) tch_sub
+            FROM TEACHERS WITH (NOLOCK)
+            ) tch_sub
         ON cc.teacherid = tch_sub.teacherid
       WHERE cc.termid >= 2300
      ) sub1

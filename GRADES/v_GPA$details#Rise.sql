@@ -18,7 +18,6 @@ LAST MODIFIED: Fall 2013 (CB)
 USE KIPP_NJ
 GO
 
-
 ALTER VIEW GPA$detail#Rise AS
 SELECT TOP (100) PERCENT *
 FROM
@@ -80,9 +79,9 @@ FROM
                            ,ROUND(SUM(weighted_points_Y1)/SUM(credit_hours_Y1),2) AS GPA_Y1
                            ,SUM(Promo_Test) AS num_failing
                            ,dbo.GROUP_CONCAT(failing_y1) AS failing
-                    FROM KIPP_NJ..GRADES$detail#MS WITH (NOLOCK)
-                    WHERE SCHOOLID = 73252
-                    GROUP BY studentid, student_number, schoolid, lastfirst, grade_level
+                     FROM KIPP_NJ..GRADES$detail#MS WITH (NOLOCK)
+                     WHERE SCHOOLID = 73252
+                     GROUP BY studentid, student_number, schoolid, lastfirst, grade_level
                     ) sub
              ) sub2
        ) sub3
