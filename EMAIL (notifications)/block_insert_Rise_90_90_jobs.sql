@@ -66,7 +66,7 @@ WHILE 1 = 1
      VALUES
       (@this_job_name
       ,'auto'
-      ,'2013-11-25 07:11:00.000')
+      ,'2013-12-02 07:11:00.000')
 
  --end of cursor action
  END
