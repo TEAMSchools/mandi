@@ -52,6 +52,7 @@ FROM
          ON roster.studentid = am.base_studentid
         AND CAST(am.dtintervenedate AS date) >= roster.entrydate
         AND CAST(am.dtintervenedate AS date) <= roster.exitdate
+        AND am.dtmastereddate IS NULL
        ) sub
 JOIN [RM9-DSCHEDULER\SQLEXPRESS].[RL_RISE].[dbo].[am_Library] lib WITH (NOLOCK)
   ON sub.ilibraryid = lib.[iLibraryID]
