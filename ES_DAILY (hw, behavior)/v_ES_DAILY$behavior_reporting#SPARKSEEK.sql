@@ -33,9 +33,7 @@ FROM (
 		    FROM (
 		          SELECT *
 			         FROM ES_DAILY$daily_tracking_long#static
-			         WHERE att_date >= '04-Sep-13'
-			           AND att_date <= '22-Nov-13'
-			           AND schoolid IN (73254,73256) --THRIVE has a different behavior system
+			         WHERE schoolid IN (73254,73256) --THRIVE has a different behavior system
 			        ) sub_1
 		    GROUP BY student_number, studentid, schoolid, lastfirst, grade_level, team
 		   ) sub_2
