@@ -32,6 +32,8 @@ FROM
 			         ,SUM(CASE WHEN color_day IS NOT NULL THEN 1.0 ELSE NULL END) AS behavior_days_total
 		    FROM ES_DAILY$daily_tracking_long#static
 		    WHERE schoolid = 73254
+		      AND att_date >= '04-Sep-13'
+        AND att_date <= '22-Nov-13'
 		    GROUP BY student_number, studentid, lastfirst, grade_level, team
 		   ) sub
 WHERE behavior_days_total != 0

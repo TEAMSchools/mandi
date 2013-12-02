@@ -67,6 +67,8 @@ FROM
 					            (SELECT *
 					             FROM ES_DAILY$behavior_reporting_long#THRIVE
 					             --WHERE schoolid = 73255					             
+					             WHERE att_date >= '04-Sep-13'
+                    AND att_date <= '22-Nov-13'
 					            ) sub_1
 				        GROUP BY student_number, studentid, lastfirst, grade_level, team
 				       ) sub_2

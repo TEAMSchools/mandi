@@ -15,5 +15,7 @@ SELECT ROW_NUMBER()
 	     ,thrive_mid AS color_2
 	     ,thrive_pm  AS color_3
 	     ,CAST(student_number AS VARCHAR(20)) + '_' + CAST(att_date AS VARCHAR(20)) AS hash
-FROM ES_DAILY$daily_tracking_long#static
+FROM ES_DAILY$daily_tracking_long#static WITH (NOLOCK)
 WHERE SCHOOLID = 73255 --THRIVE only
+  AND att_date >= '04-Sep-13'
+  AND att_date <= '22-Nov-13'

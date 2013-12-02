@@ -23,6 +23,8 @@ FROM
 		    FROM
 			        (SELECT *
 			         FROM ES_DAILY$daily_tracking_long#static
+			         WHERE att_date >= '04-Sep-13'
+              AND att_date <= '22-Nov-13'
 			        ) sub_1
 		    GROUP BY student_number, schoolid, lastfirst, grade_level, team
 	    ) sub_2

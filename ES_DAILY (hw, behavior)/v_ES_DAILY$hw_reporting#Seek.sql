@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW ES_DAILY$hw_reporting#Seek AS
+ALTER VIEW ES_DAILY$hw_reporting#Seek AS
 SELECT student_number	  
       ,lastfirst
       ,grade_level
@@ -22,6 +22,8 @@ FROM
 		    FROM
 			        (SELECT *
 			         FROM ES_DAILY$daily_tracking_long#static
+			         WHERE att_date >= '04-Sep-13'
+              AND att_date <= '22-Nov-13'
 			        ) sub_1
 		    GROUP BY student_number, schoolid, lastfirst, grade_level, team
 		   ) sub_2
