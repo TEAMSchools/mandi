@@ -3,7 +3,8 @@ GO
 
 ALTER VIEW REPORTING$report_card#Rise AS
 WITH roster AS
-     (SELECT s.student_number AS base_student_number
+     (
+      SELECT s.student_number AS base_student_number
             ,s.id AS base_studentid
             ,s.lastfirst AS stu_lastfirst
             ,s.first_name AS stu_firstname
@@ -23,7 +24,8 @@ WITH roster AS
      )
 
     ,info AS
-     (SELECT s.id
+     (
+      SELECT s.id
             ,s.web_id
             ,s.web_password
             ,s.student_web_id
@@ -356,12 +358,12 @@ SELECT roster.*
        ELSE fp_curr.letter_level
       END AS fp_letter_base
      ,fp_curr.letter_level AS fp_letter_curr
-       --GLQ
-     ,fp_curr.GLEQ AS fp_curr_GLQ
+       --GLQ     
      ,CASE
        WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ
        ELSE fp_curr.GLEQ
       END AS fp_base_GLQ
+     ,fp_curr.GLEQ AS fp_curr_GLQ
      
      --Lexile (from MAP)
      --update terms in JOIN
@@ -438,48 +440,47 @@ SELECT roster.*
       ,'(' + njask_math.prof_2012 + ')' AS math_prof_2012
       ,'(' + njask_math.prof_2011 + ')' AS math_prof_2011
 
---Ed Tech
---AR$progress_to_goals_long#static
-
-      --Accelerated Reader
-      --update terms in JOIN
-      --AR year
-      ,replace(convert(varchar,convert(Money, ar_yr.words),1),'.00','') AS words_read_yr
-      ,replace(convert(varchar,convert(Money, ar_curr.words_goal * 6),1),'.00','') AS words_goal_yr      
-      ,ar_yr.rank_words_grade_in_school AS words_rank_yr_in_grade
-      ,ar_yr.mastery AS mastery_yr
+--Accelerated Reader
+--CURRENT = combination of hexemeters valid for current trimester
+--update terms in JOIN
+   --AR totals
+     --year
+     ,replace(convert(varchar,convert(Money, ar_yr.words),1),'.00','') AS words_read_yr
+     ,replace(convert(varchar,convert(Money, ar_curr.words_goal * 6),1),'.00','') AS words_goal_yr      
+     ,ar_yr.rank_words_grade_in_school AS words_rank_yr_in_grade
+     ,ar_yr.mastery AS mastery_yr
+     
+     --current
+     --current trimester = current HEX + previous HEX
+     ,replace(convert(varchar,convert(Money, ar_curr.words + ar_curr2.words),1),'.00','') AS words_read_cur_term
+     ,replace(convert(varchar,convert(Money, ar_curr.words_goal + ar_curr2.words_goal),1),'.00','') AS words_goal_cur_term
+     ,ar_curr2.rank_words_grade_in_school AS words_rank_cur_term_in_grade
+     ,ar_curr2.mastery AS mastery_curr
       
-      --AR current
-      ,replace(convert(varchar,convert(Money, ar_curr.words),1),'.00','') AS words_read_cur_term
-      ,replace(convert(varchar,convert(Money, ar_curr.words_goal),1),'.00','') AS words_goal_cur_term
-      ,ar_curr.rank_words_grade_in_school AS words_rank_cur_term_in_grade
-      ,ar_curr.mastery AS mastery_curr
-       
-       --AR progress
-         --to year goal      
-      ,CASE
-        WHEN ar_yr.stu_status_words = 'On Track' THEN 'Yes!'
-        WHEN ar_yr.stu_status_words = 'Off Track' THEN 'No'
-        ELSE ar_yr.stu_status_words
-       END AS stu_status_words_yr      
-      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, CAST(ROUND(
-          CASE
-           WHEN ((ar_curr.words_goal * 6) - ar_yr.words) <= 0 THEN NULL 
-           ELSE (ar_curr.words_goal * 6) - ar_yr.words
-          END
-             ,0) AS INT)),1),'.00','') AS words_needed_yr
-       --to term goal       
-      ,CASE
-        WHEN ar_curr.stu_status_words = 'On Track' THEN 'Yes!'
-        WHEN ar_curr.stu_status_words = 'Off Track' THEN 'No'
-        ELSE ar_curr.stu_status_words
-       END AS stu_status_words_cur_term      
-      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, CAST(ROUND(
-          CASE
-           WHEN (ar_curr.words_goal - ar_curr.words) <= 0 THEN NULL 
-           ELSE ar_curr.words_goal - ar_curr.words
-          END
-             ,0) AS INT)),1),'.00','') AS words_needed_cur_term
+    --AR progress
+      --to year goal      
+     ,CASE
+       WHEN ar_yr.stu_status_words = 'On Track' THEN 'Yes!'
+       WHEN ar_yr.stu_status_words = 'Off Track' THEN 'No'
+       --ELSE ar_yr.stu_status_words
+      END AS stu_status_words_yr   
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CAST(ROUND(
+       CASE
+        WHEN ((ar_curr.words_goal * 6) - ar_yr.words) <= 0 THEN NULL 
+        ELSE (ar_curr.words_goal * 6) - ar_yr.words
+       END,0) AS INT)),1),'.00','') AS words_needed_yr
+      --to term goal
+     ,CASE
+       WHEN ar_curr2.stu_status_words = 'On Track' THEN 'Yes!'
+       WHEN ar_curr2.stu_status_words = 'Off Track' THEN 'No'
+       WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) > 0 THEN 'Missed Goal'
+       ELSE ar_curr2.stu_status_words
+      END AS stu_status_words_cur_term
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CAST(ROUND(
+       CASE
+        WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN NULL
+        ELSE ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words))
+       END,0) AS INT)),1),'.00','') AS words_needed_cur_term
 
 --Discipline
 --DISC$counts_wide
@@ -544,7 +545,7 @@ SELECT roster.*
         ELSE ISNULL(disc_count.rt1_choices,0)
        END AS bench_choices_cur
 
-/* NOT USED FOR PROGRESS REPORTS
+--/* NOT USED FOR PROGRESS REPORTS
 --Comments
 --PS$comments_gradebook
       ,comment_rc1.teacher_comment AS rc1_comment
@@ -589,23 +590,22 @@ LEFT OUTER JOIN MAP$math_wide map_math WITH (NOLOCK)
   --F&P
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
   ON roster.base_student_number = fp_base.student_number
- AND fp_base.year = 2013
+ AND fp_base.year = 2013 -- upadate for current year
  AND fp_base.achv_base = 1
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
-  ON roster.base_student_number = fp_curr.student_number
- --AND fp_curr.year = 2013
+  ON roster.base_student_number = fp_curr.student_number 
  AND fp_curr.achv_curr_all = 1
   --LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.base_student_number = lex_base.studentid
  AND lex_base.MeasurementScale = 'Reading'
  AND lex_base.rn_base = 1
- AND lex_base.map_year_academic = 2013
+ AND lex_base.map_year_academic = 2013 -- upadate for current year
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
   ON roster.base_student_number = lex_curr.studentid
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
- AND lex_curr.map_year_academic = 2013
+ AND lex_curr.map_year_academic = 2013 -- upadate for current year
   
 --NJASK
 LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
@@ -632,31 +632,36 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.base_studentid = ar_curr.studentid 
  AND ar_curr.time_period_name = 'RT1'
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
+  ON roster.base_studentid = ar_curr2.studentid 
+ AND ar_curr2.time_period_name = 'RT2'
+ AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
-/* NOT USED FOR PROGRESS REPORTS
---GRADEBOOK COMMMENTS -- upadate fieldname and parameter for current term
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc1
+--/* NOT USED FOR PROGRESS REPORTS
+--GRADEBOOK COMMMENTS -- update fieldnames and parameters for current term
+LEFT OUTER JOIN PS$comments#static comment_rc1 WITH (NOLOCK)
   ON gr_wide.rc1_T1_enr_sectionid = comment_rc1.sectionid
- AND gr_wide.studentid = comment_rc1.studentid
+ AND gr_wide.studentid = comment_rc1.id
  AND comment_rc1.finalgradename = 'T1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc2
+LEFT OUTER JOIN PS$comments#static comment_rc2 WITH (NOLOCK)
   ON gr_wide.rc2_T1_enr_sectionid = comment_rc2.sectionid
- AND gr_wide.studentid = comment_rc2.studentid
+ AND gr_wide.studentid = comment_rc2.id
  AND comment_rc2.finalgradename = 'T1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc3
+LEFT OUTER JOIN PS$comments#static comment_rc3 WITH (NOLOCK)
   ON gr_wide.rc3_T1_enr_sectionid = comment_rc3.sectionid
- AND gr_wide.studentid = comment_rc3.studentid
+ AND gr_wide.studentid = comment_rc3.id
  AND comment_rc3.finalgradename = 'T1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc4
+LEFT OUTER JOIN PS$comments#static comment_rc4 WITH (NOLOCK)
   ON gr_wide.rc4_T1_enr_sectionid = comment_rc4.sectionid
- AND gr_wide.studentid = comment_rc4.studentid
+ AND gr_wide.studentid = comment_rc4.id
  AND comment_rc4.finalgradename = 'T1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc5
+LEFT OUTER JOIN PS$comments#static comment_rc5 WITH (NOLOCK)
   ON gr_wide.rc5_T1_enr_sectionid = comment_rc5.sectionid
- AND gr_wide.studentid = comment_rc5.studentid
+ AND gr_wide.studentid = comment_rc5.id
  AND comment_rc5.finalgradename = 'T1'
-LEFT OUTER JOIN PS$comments_gradebooks comment_rc6
+LEFT OUTER JOIN PS$comments#static comment_rc6 WITH (NOLOCK)
   ON gr_wide.rc6_T1_enr_sectionid = comment_rc6.sectionid
- AND gr_wide.studentid = comment_rc6.studentid
+ AND gr_wide.studentid = comment_rc6.id
  AND comment_rc6.finalgradename = 'T1'
+-- update fieldnames and parameters for current term
 --*/

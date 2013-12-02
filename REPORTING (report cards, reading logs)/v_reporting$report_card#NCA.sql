@@ -40,16 +40,14 @@ WITH roster AS
            ,CASE WHEN cs.mother_home is NULL THEN cs.mother_day ELSE cs.mother_home END AS mother_daytime
            ,cs.father_cell
            ,CASE WHEN cs.father_home is NULL THEN cs.father_day ELSE cs.father_home END AS father_daytime
-           ,local.guardianemail
+           ,cs.GUARDIANEMAIL           
            ,cs.SPEDLEP AS SPED
            ,cs.lunch_balance AS lunch_balance
      FROM KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
        ON cs.studentid = s.id
       AND s.enroll_status = 0
-      AND s.schoolid = 73253
-     JOIN KIPP_NJ..PS$local_emails local WITH (NOLOCK)
-       ON cs.studentid = local.studentid      
+      AND s.schoolid = 73253     
     )       
 
 SELECT roster.*
@@ -465,7 +463,7 @@ SELECT roster.*
       ,lex_curr.TestPercentile AS lex_curr_pct
 
 --Comments
---PS$comments_gradebook
+--PS$comments#static
       ,comment_rc1.teacher_comment  AS rc1_comment
       ,comment_rc2.teacher_comment  AS rc2_comment
       ,comment_rc3.teacher_comment  AS rc3_comment
