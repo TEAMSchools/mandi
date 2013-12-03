@@ -642,26 +642,26 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
 LEFT OUTER JOIN PS$comments#static comment_rc1 WITH (NOLOCK)
   ON gr_wide.rc1_T1_enr_sectionid = comment_rc1.sectionid
  AND gr_wide.studentid = comment_rc1.id
- AND comment_rc1.finalgradename = 'T1'
+ AND comment_rc1.finalgradename IN ('T1','Q1')
 LEFT OUTER JOIN PS$comments#static comment_rc2 WITH (NOLOCK)
   ON gr_wide.rc2_T1_enr_sectionid = comment_rc2.sectionid
  AND gr_wide.studentid = comment_rc2.id
- AND comment_rc2.finalgradename = 'T1'
+ AND comment_rc2.finalgradename IN ('T1','Q1')
 LEFT OUTER JOIN PS$comments#static comment_rc3 WITH (NOLOCK)
   ON gr_wide.rc3_T1_enr_sectionid = comment_rc3.sectionid
  AND gr_wide.studentid = comment_rc3.id
- AND comment_rc3.finalgradename = 'T1'
+ AND comment_rc3.finalgradename IN ('T1','Q1')
 LEFT OUTER JOIN PS$comments#static comment_rc4 WITH (NOLOCK)
   ON gr_wide.rc4_T1_enr_sectionid = comment_rc4.sectionid
  AND gr_wide.studentid = comment_rc4.id
- AND comment_rc4.finalgradename = 'T1'
+ AND comment_rc4.finalgradename IN ('T1','Q1')
 LEFT OUTER JOIN PS$comments#static comment_rc5 WITH (NOLOCK)
   ON gr_wide.rc5_T1_enr_sectionid = comment_rc5.sectionid
  AND gr_wide.studentid = comment_rc5.id
- AND comment_rc5.finalgradename = 'T1'
+ AND comment_rc5.finalgradename IN ('T1','Q1')
 LEFT OUTER JOIN PS$comments#static comment_rc6 WITH (NOLOCK)
   ON gr_wide.rc6_T1_enr_sectionid = comment_rc6.sectionid
  AND gr_wide.studentid = comment_rc6.id
- AND comment_rc6.finalgradename = 'T1'
+ AND comment_rc6.finalgradename IN ('T1','Q1')
 -- update fieldnames and parameters for current term
 --*/
