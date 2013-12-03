@@ -80,6 +80,7 @@ FROM
        AND co.year = DATEPART(YYYY,assessments.administered_at)        
       WHERE s.schoolid IN (73254,73255,73256)
         AND s.enroll_status = 0        
-        AND assessments.scope = 'District Benchmark'        
+        AND assessments.scope = 'District Benchmark'
+        AND assessments.standards_tested NOT IN ('CCSS.MA.4.4.NF.3.a','CCSS.MA.4.4.NF.3.b','CCSS.MA.4.4.NF.3.d','CCSS.MA.4.4.NF.4.a','CCSS.MA.4.4.NF.4.b','CCSS.MA.4.4.NF.4.c')
       ) sub
 --ORDER BY schoolid, grade_level, week_num, team, studentid, subject, standard
