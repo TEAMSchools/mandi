@@ -558,7 +558,7 @@ FROM
                   ,la_level_number
                   ,achv_high_tri
                   ,dna_low_tri
-            FROM LIT$FP_test_events_long#identifiers#static
+            FROM LIT$FP_test_events_long#identifiers#static WITH (NOLOCK)
             WHERE year >= 2012
 
             UNION ALL
@@ -666,16 +666,16 @@ FROM
                   ,la_level_number
                   ,achv_high_tri
                   ,dna_low_tri
-            FROM LIT$STEP_test_events_long#identifiers
+            FROM LIT$STEP_test_events_long#identifiers WITH (NOLOCK)
             WHERE year >= 2012
            ) scores
-      JOIN LIT$proficiency prof
+      JOIN LIT$proficiency prof WITH (NOLOCK)
         ON scores.testid = prof.testid
-      JOIN STUDENTS s
+      JOIN STUDENTS s WITH (NOLOCK)
         ON scores.studentid = s.id
-      LEFT OUTER JOIN CUSTOM_STUDENTS cs
+      LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
         ON scores.studentid = cs.studentid
-      LEFT OUTER JOIN MAP$comprehensive#identifiers map
+      LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH (NOLOCK)
         ON scores.studentid = map.ps_studentid
        AND scores.test_date >= DATEADD(WK,-8,map.teststartdate)
        AND scores.test_date <= DATEADD(WK,8,map.teststartdate)
