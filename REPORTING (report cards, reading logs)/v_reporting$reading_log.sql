@@ -189,7 +189,7 @@ LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl
 --AR current
 LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_cur
   ON roster.studentid = ar_cur.studentid
- AND ar_cur.time_period_name = 'RT2'
+ AND ar_cur.time_period_name = 'RT3'
  AND ar_cur.yearid = 2300
 
 --AR year

@@ -56,7 +56,15 @@ SELECT s.LASTFIRST
       ,eng2.COURSE_NAME AS eng2_course
       ,eng2.SECTION_NUMBER AS eng2_section
       ,eng2.LASTFIRST AS eng2_teacher
-      ,diff.LASTFIRST AS diff_teacher
+      ,diff.COURSE_NAME AS diff_block_class
+      ,diff.LASTFIRST AS diff_block_teacher
+      ,CASE        
+        WHEN diff.expression = '5(A)' THEN '4A'
+        WHEN diff.expression = '6(A)' THEN '4B'
+        WHEN diff.expression = '7(A)' THEN '4C'
+        WHEN diff.expression = '8(A)' THEN '4D'        
+        ELSE NULL
+       END AS lunch_assignment
       ,ar_q1.rank_points_grade_in_school AS AR_graderank_Q1
       ,ar_Q2.rank_points_grade_in_school AS AR_graderank_Q2
       ,ar_Q3.rank_points_grade_in_school AS AR_graderank_Q3
@@ -140,7 +148,7 @@ LEFT OUTER JOIN (
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID
                        ,c.COURSE_NAME
-                       ,cc.SECTION_NUMBER
+                       ,cc.SECTION_NUMBER                       
                        ,t.LASTFIRST
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
@@ -158,8 +166,9 @@ LEFT OUTER JOIN (
  AND eng2.rn = 2
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID     
-                       ,cc.TERMID  
+                       ,cc.TERMID                         
                        ,cc.COURSE_NUMBER
+                       ,c.COURSE_NAME
                        ,cc.SECTION_NUMBER
                        ,t.TEACHERNUMBER
                        ,t.LASTFIRST
@@ -168,6 +177,8 @@ LEFT OUTER JOIN (
                           (PARTITION BY cc.studentid
                                ORDER BY cc.course_number) AS rn
                  FROM CC WITH (NOLOCK)   
+                 JOIN COURSES c
+                   ON cc.COURSE_NUMBER = c.COURSE_NUMBER
                  JOIN TEACHERS t WITH (NOLOCK)
                    ON cc.TEACHERID = t.ID
                   AND t.TEACHERNUMBER NOT IN (815, 489)
