@@ -39,6 +39,9 @@ SELECT sub.*
       ,highest.step_ltr_level AS la_reading_lvl
       ,highest.GLEQ AS la_GLEQ
       ,highest.level_number AS la_level_number
+      ,highestms.step_ltr_level AS la_reading_lvl_ms
+      ,highestms.GLEQ AS la_GLEQ_ms
+      ,highestms.level_number AS la_level_number_ms
 --*/
 FROM
      (SELECT rs.testid 
@@ -386,6 +389,62 @@ LEFT OUTER JOIN
  AND sub.time_per_name = tri.time_per_name
 --*/
 --/*
+--MOST RECENTLY ACHIEVED, LAST YEAR
+LEFT OUTER JOIN 
+     (
+      SELECT *
+      FROM
+           (SELECT rs.studentid                  
+                  ,rs.step_ltr_level
+                  ,rs.test_date
+                  ,dates.yearid                  
+                  ,dates.time_per_name
+                  ,CASE
+                   WHEN step_ltr_level = 'Pre' THEN 0.0
+                   WHEN step_ltr_level = '1' THEN 0.0
+                   WHEN step_ltr_level = '2' THEN 0.3
+                   WHEN step_ltr_level = '3' THEN 0.7
+                   WHEN step_ltr_level = '4' THEN 1.2
+                   WHEN step_ltr_level = '5' THEN 1.6
+                   WHEN step_ltr_level = '6' THEN 2.0
+                   WHEN step_ltr_level = '7' THEN 2.4
+                   WHEN step_ltr_level = '8' THEN 2.6
+                   WHEN step_ltr_level = '9' THEN 2.8
+                   WHEN step_ltr_level = '10' THEN 3.0
+                   WHEN step_ltr_level = '11' THEN 3.5
+                   WHEN step_ltr_level = '12' THEN 3.8
+                   ELSE NULL
+                  END AS GLEQ
+                 ,CASE
+                   WHEN step_ltr_level = 'Pre' THEN 0       
+                   ELSE CONVERT(INT,step_ltr_level)
+                  END AS level_number
+                 ,CASE
+                   WHEN status = 'Achieved' THEN
+                    ROW_NUMBER() OVER
+                      (PARTITION BY rs.studentid, dates.yearid, rs.status
+                           ORDER BY rs.test_date DESC, CONVERT(INT,CASE WHEN step_ltr_level = 'Pre' THEN 0 ELSE step_ltr_level END) DESC)
+                   ELSE NULL
+                  END AS achv_curr
+            FROM READINGSCORES rs WITH(NOLOCK)      
+            LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
+              ON rs.studentid = cohort.studentid
+             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+             AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+             AND cohort.rn = 1
+            LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
+              ON rs.test_date >= dates.start_date
+             AND rs.test_date <= dates.end_date
+             AND dates.identifier = 'LIT'
+            WHERE testid != 3273              
+           ) sq_4
+      WHERE sq_4.achv_curr = 1
+        AND sq_4.yearid = 22
+        --AND sq_4.time_per_name = 'EOY'
+     ) highest
+  ON sub.studentid = highest.studentid
+--*/
+--/*
 --MOST RECENTLY ACHIEVED ALL TIME
 LEFT OUTER JOIN 
      (
@@ -433,6 +492,6 @@ LEFT OUTER JOIN
             WHERE testid != 3273
            ) sq_4
       WHERE sq_4.achv_curr_all = 1    
-     ) highest
-  ON sub.studentid = highest.studentid
+     ) highestms
+  ON sub.studentid = highestms.studentid
 --*/

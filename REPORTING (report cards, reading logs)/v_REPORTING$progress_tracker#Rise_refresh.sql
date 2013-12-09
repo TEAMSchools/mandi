@@ -384,8 +384,9 @@ SELECT ROW_NUMBER() OVER(
      ,CASE
        WHEN ar_curr2.stu_status_words = 'On Track' THEN 'Yes!'
        WHEN ar_curr2.stu_status_words = 'Off Track' THEN 'No'
+       WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) > 0 THEN 'Missed Goal'
        ELSE ar_curr2.stu_status_words
-      END AS stu_status_words_cur_term      
+      END AS stu_status_words_cur_term
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CAST(ROUND(
        CASE
         WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN NULL 

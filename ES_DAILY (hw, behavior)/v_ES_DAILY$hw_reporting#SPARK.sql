@@ -21,7 +21,7 @@ FROM
 			         ,SUM(CASE	WHEN hw = 'No'  THEN 1.0 END) AS hw_year_missing
 		    FROM
 			        (SELECT *
-			         FROM ES_DAILY$daily_tracking_long#static
+			         FROM ES_DAILY$daily_tracking_long#static			         
 			        ) sub_1
 		    GROUP BY student_number, schoolid, lastfirst, grade_level, team
 		   ) sub_2

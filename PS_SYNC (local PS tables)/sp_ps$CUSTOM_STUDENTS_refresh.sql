@@ -36,7 +36,7 @@ BEGIN
                ,pvcs_dad_c.string_value AS father_cell
                ,pvcs_dad_d.string_value AS father_day
                ,pvcs_dad_h.string_value AS father_home      
-               ,pvcs_LS.string_value    AS lunch_status_1112
+               ,pvcs_LS.string_value    AS lunch_status_1213
                ,pvcs_LB.string_value    AS lunch_balance
                ,pvcs_diy.string_value   AS diy_nickname
          FROM STUDENTS s
@@ -51,10 +51,10 @@ BEGIN
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_dad_d ON s.id = pvcs_dad_d.studentid AND pvcs_dad_d.field_name = ''fatherdayphone''
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_dad_h ON s.id = pvcs_dad_h.studentid AND pvcs_dad_h.field_name = ''Father_home_phone''
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_SID   ON s.id = pvcs_SID.studentid   AND pvcs_SID.field_name   = ''SID''
-         LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_LS    ON s.id = pvcs_LS.studentid    AND pvcs_LS.field_name    = ''Lunch_Status_1112''
+         LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_LS    ON s.id = pvcs_LS.studentid    AND pvcs_LS.field_name    = ''Lunch_Status_1213''
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_LB    ON s.id = pvcs_LB.studentid    AND pvcs_LB.field_name    = ''Lunch_Balance''
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_diy   ON s.id = pvcs_diy.studentid   AND pvcs_diy.field_name   = ''DIYNickname''
-         WHERE s.enroll_status = 0
+         --WHERE s.enroll_status = 0
          ');
          
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.

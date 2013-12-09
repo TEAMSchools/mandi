@@ -235,7 +235,8 @@ SELECT roster.*
       ,promo.promo_status_grades
       ,promo.attendance_points 
       ,promo.y1_att_pts_pct
-/*
+      
+--/*
 --MAP scores
 --MAP$reading_wide
 --MAP$math_wide
@@ -367,7 +368,9 @@ SELECT roster.*
       ,'(' + njask_math.prof_2013 + ')' AS math_prof_2013
       ,'(' + njask_math.prof_2012 + ')' AS math_prof_2012
       ,'(' + njask_math.prof_2011 + ')' AS math_prof_2011
+--*/
 
+/*
 --Ed Tech
 --AR$progress_to_goals_long#static
 
@@ -410,7 +413,9 @@ SELECT roster.*
            ELSE ar_curr.words_goal - ar_curr.words
           END
              ,0) AS INT)),1),'.00','') AS words_needed_cur_term
+--*/             
 
+/*
 --Comments
 --PS$comments_gradebook
       ,comment_rc1.teacher_comment  AS rc1_comment
@@ -426,6 +431,7 @@ SELECT roster.*
       --for end of term report card comments
       --,comment_adv.advisor_comment  AS advisor_comment
 --*/
+
 FROM roster
 --INFO
 LEFT OUTER JOIN info
@@ -451,41 +457,41 @@ LEFT OUTER JOIN REPORTING$promo_status#TEAM promo WITH (NOLOCK)
 
 --MAP
 LEFT OUTER JOIN MAP$reading_wide map_read WITH (NOLOCK)
-  ON roster.base_student_number = map_read.studentid
+  ON roster.base_studentid = map_read.studentid
 LEFT OUTER JOIN MAP$math_wide map_math WITH (NOLOCK)
-  ON roster.base_student_number = map_math.studentid
+  ON roster.base_studentid = map_math.studentid
   
 --LITERACY -- upadate parameters for current term
   --F&P
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
   ON roster.base_student_number = fp_base.student_number
- AND fp_base.year = 2013
+ AND fp_base.year = 2013 -- upadate for current year
  AND fp_base.achv_base = 1
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
-  ON roster.base_student_number = fp_curr.student_number
- AND fp_curr.year = 2013
+  ON roster.base_student_number = fp_curr.student_number 
  AND fp_curr.achv_curr_all = 1
   --LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
-  ON roster.base_student_number = lex_base.StudentID
+  ON roster.base_student_number = lex_base.studentid
  AND lex_base.MeasurementScale = 'Reading'
  AND lex_base.rn_base = 1
- AND lex_base.map_year_academic = 2013
+ AND lex_base.map_year_academic = 2013 -- upadate for current year
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
-  ON roster.base_student_number = lex_curr.StudentID
+  ON roster.base_student_number = lex_curr.studentid
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
- AND lex_curr.map_year_academic = 2013
+ AND lex_curr.map_year_academic = 2013 -- upadate for current year
   
 --NJASK
 LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
   ON roster.base_studentid = njask_ela.studentid
- AND njask_ela.schoolid = 73252
+ AND njask_ela.schoolid = 133570965
  AND njask_ela.rn = 1
 LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
   ON roster.base_studentid = njask_math.studentid
- AND njask_math.schoolid = 73252
+ AND njask_math.schoolid = 133570965
 
+/*
 --ED TECH
   --ACCELERATED READER
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
@@ -496,7 +502,9 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.base_studentid = ar_curr.studentid 
  AND ar_curr.time_period_name = 'RT1'
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
+--*/ 
  
+/* 
  --GRADEBOOK COMMMENTS -- upadate fieldname and parameter for current term
 LEFT OUTER JOIN PS$comments#static comment_rc1 WITH (NOLOCK)
   ON gr_wide.rc1_T1_enr_sectionid = comment_rc1.sectionid
@@ -542,3 +550,4 @@ LEFT OUTER JOIN PS$comments#static comment_adv WITH (NOLOCK)
   ON roster.base_studentid = comment_adv.id
  AND comment_adv.finalgradename = 'T1'
  AND comment_adv.advisor_comment IS NOT NULL
+--*/

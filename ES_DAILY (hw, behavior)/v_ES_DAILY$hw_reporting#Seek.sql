@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW ES_DAILY$hw_reporting#Seek AS
+ALTER VIEW ES_DAILY$hw_reporting#Seek AS
 SELECT student_number	  
       ,lastfirst
       ,grade_level
