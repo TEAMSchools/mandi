@@ -12,5 +12,5 @@ SELECT rn
       ,hw
       ,color_day
       ,CAST(student_number AS VARCHAR(20)) + '_' + CAST(att_date AS VARCHAR(20)) AS hash
-FROM ES_DAILY$daily_tracking_long#static
+FROM ES_DAILY$daily_tracking_long#static WITH (NOLOCK)
 WHERE SCHOOLID = 73256 --Seek only

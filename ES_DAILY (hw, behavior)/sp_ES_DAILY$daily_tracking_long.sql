@@ -7,7 +7,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
---ALTER PROCEDURE [sp_ES_DAILY$daily_tracking_long#static|refresh] AS
+ALTER PROCEDURE [sp_ES_DAILY$daily_tracking_long#static|refresh] AS
 BEGIN
 
  DECLARE @sql AS VARCHAR(MAX)='';

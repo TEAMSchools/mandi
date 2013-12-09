@@ -32,7 +32,7 @@ FROM
             FROM TEACHERS WITH (NOLOCK)
             ) tch_sub
         ON cc.teacherid = tch_sub.teacherid
-      WHERE cc.termid >= 2300
+      WHERE cc.termid >= dbo.fn_Global_Term_Id()
      ) sub1
 WHERE rn = 1
 ORDER BY schoolid, studentid, course_number
