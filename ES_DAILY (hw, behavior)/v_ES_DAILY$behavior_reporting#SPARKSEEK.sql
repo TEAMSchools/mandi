@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW ES_DAILY$behavior_reporting#SPARKSEEK AS
+ALTER VIEW ES_DAILY$behavior_reporting#SPARKSEEK AS
 SELECT student_number
 	     ,studentid
       ,lastfirst
@@ -18,7 +18,8 @@ SELECT student_number
       ,CAST(ROUND(yellow_total / behavior_days_total,2,1)*100 AS FLOAT) AS yellow_pct
       ,CAST(ROUND(orange_total / behavior_days_total,2,1)*100 AS FLOAT) AS orange_pct
       ,CAST(ROUND(red_total    / behavior_days_total,2,1)*100	AS FLOAT) AS red_pct
-FROM (SELECT student_number
+FROM (
+      SELECT student_number
 			         ,studentid
 			         ,lastfirst
 			         ,grade_level
@@ -29,10 +30,10 @@ FROM (SELECT student_number
 			         ,SUM(CASE	WHEN color_day = 'Orange'  THEN 1.0	ELSE 0 END)    AS orange_total
 			         ,SUM(CASE	WHEN color_day = 'Red'     THEN 1.0	ELSE 0 END)    AS red_total
 			         ,SUM(CASE	WHEN color_day IS NOT NULL THEN 1.0 ELSE NULL END) AS behavior_days_total
-		    FROM (SELECT *
-			         FROM ES_DAILY$daily_tracking_long
-			         WHERE att_date >= '19-Aug-13'
-			         AND schoolid != 73255 --THRIVE has a different behavior system
+		    FROM (
+		          SELECT *
+			         FROM ES_DAILY$daily_tracking_long#static
+			         WHERE schoolid IN (73254,73256) --THRIVE has a different behavior system
 			        ) sub_1
 		    GROUP BY student_number, studentid, schoolid, lastfirst, grade_level, team
 		   ) sub_2

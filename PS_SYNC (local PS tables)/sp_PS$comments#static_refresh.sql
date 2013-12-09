@@ -22,7 +22,8 @@ BEGIN
 		--STEP 2: load into a TEMPORARY staging table.
   SELECT *
 		INTO [#PS$comments#static|refresh]
-  FROM (SELECT s.id
+  FROM (
+        SELECT s.id
               ,cc.course_number
               ,tco.sectionid
               ,tco.finalgradename

@@ -57,6 +57,7 @@ WITH roster AS
         AND a.grade_level = std.grade_level
         AND a.subject = std.subject
         AND a.standard_id = std.standard_id       
+       WHERE a.scope = 'District Benchmark'
       )
 
 SELECT schoolid
@@ -165,9 +166,9 @@ FROM
       JOIN assessments WITH (NOLOCK)
         ON roster.schoolid = assessments.schoolid
        AND roster.grade_level = assessments.grade_level
-       AND roster.year = assessments.academic_year      
+       AND roster.year = assessments.academic_year
      ) sub
-LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results WITH (NOLOCK)
+JOIN ILLUMINATE$assessment_results_by_standard#static results WITH (NOLOCK)
   ON sub.student_number = results.local_student_id
  AND sub.assessment_id = results.assessment_id
  AND sub.standard_id = results.standard_id
