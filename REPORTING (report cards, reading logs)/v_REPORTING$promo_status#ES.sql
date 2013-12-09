@@ -29,7 +29,7 @@ WITH scaffold AS
        AND c.year = 2013
        AND c.rn = 1
        --testing
-       AND c.studentid = 2859
+       --AND c.studentid = 2859
        --AND CAST(rd.date AS date) <= '10/15/2013'
      )
 
@@ -103,7 +103,7 @@ WITH scaffold AS
            WHERE c.year = 2013
              AND c.rn = 1
              AND c.schoolid IN (73254, 73255, 73256)
-             AND c.studentid = 2859
+             --AND c.studentid = 2859
            ) sub
     WHERE rn = 1
     )
@@ -129,7 +129,7 @@ WITH scaffold AS
             AND c.year = 2013
             AND c.rn = 1
             --testing
-            AND c.studentid = 2859
+            --AND c.studentid = 2859
             --AND rd.date <= '10-15-2013'
            JOIN KIPP_NJ..ILLUMINATE$assessment_results_overall assess_ov
              ON s.student_number = assess_ov.student_number

@@ -87,7 +87,9 @@ SELECT cohort.schoolid
                           ,CASE
                              WHEN SUBSTRING(termname, 1, CHARINDEX(' ', termname)) = 'Fall'
                                THEN SUBSTRING(SUBSTRING(termname, CHARINDEX(' ', termname)+1, 100), 1, 4)
-                             WHEN SUBSTRING(termname, 1, CHARINDEX(' ', termname)) IN ('Winter', 'Spring')
+                             WHEN (SUBSTRING(termname, 1, CHARINDEX(' ', termname)) IN ('Winter', 'Spring') AND DATEPART(mm, map.TestStartDate) IN (11, 12))
+                               THEN SUBSTRING(SUBSTRING(termname, CHARINDEX(' ', termname), 100), 6, 4)
+                             WHEN (SUBSTRING(termname, 1, CHARINDEX(' ', termname)) IN ('Winter', 'Spring') AND DATEPART(mm, map.TestStartDate) IN (1, 2, 3, 4))
                                THEN SUBSTRING(SUBSTRING(termname, CHARINDEX(' ', termname)+1, 100), 6, 4)
                            END AS map_year
                           ,map.termname

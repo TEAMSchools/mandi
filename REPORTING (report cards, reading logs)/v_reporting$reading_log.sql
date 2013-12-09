@@ -20,6 +20,7 @@ WITH roster AS
    --AND s.ID = 4772
     --AND c.grade_level = 5
     --AND c.schoolid = 133570965
+    --AND s.student_number = 12135
    WHERE year = 2013
      AND rn = 1
      AND c.schoolid != 999999
@@ -55,7 +56,7 @@ SELECT roster.*
       ,enr.course_name + '|' + enr.section_number AS enr_hash
       ,gr.course_number
       ,gr.course_name
-      ,gr.T1 AS cur_term_rdg_gr
+      ,gr.T2 AS cur_term_rdg_gr
       ,gr.Y1 AS y1_rdg_gr
       ,ele.grade_1 AS cur_term_rdg_hw_avg
       ,ele.simple_avg AS y1_rdg_hw_avg
@@ -189,7 +190,7 @@ LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl
 --AR current
 LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_cur
   ON roster.studentid = ar_cur.studentid
- AND ar_cur.time_period_name = 'RT2'
+ AND ar_cur.time_period_name = 'RT3'
  AND ar_cur.yearid = 2300
 
 --AR year
