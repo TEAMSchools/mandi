@@ -42,33 +42,34 @@ FROM
                ELSE 'Satisfactory' 
              END AS promo_status_hw
             ,CASE 
-               WHEN GPA >= 3   AND GPA <3.5 AND promo_status_grades NOT LIKE '%Warning%' THEN 'Honors' 
+               WHEN GPA >= 3.0 AND GPA < 3.5 AND promo_status_grades NOT LIKE '%Warning%' THEN 'Honors' 
                WHEN GPA >= 3.5 AND promo_status_grades NOT LIKE '%Warning%' THEN 'High Honors' 
                ELSE promo_status_grades 
              END AS GPA_Promo_Status_Grades
      FROM
-          (SELECT s.id AS studentid
+          (
+           SELECT s.id AS studentid
                  ,s.student_number
                  ,CASE 
-                   WHEN (gr_wide.rc1_y1 < 65 OR
-                         gr_wide.rc2_y1 < 65 OR
-                         gr_wide.rc3_y1 < 65 OR
-                         gr_wide.rc4_y1 < 65 OR
-                         gr_wide.rc5_y1 < 65 OR
-                         gr_wide.rc6_y1 < 65 OR
-                         gr_wide.rc7_y1 < 65 OR
-                         gr_wide.rc8_y1 < 65) 
+                   WHEN (CONVERT(FLOAT,gr_wide.rc1_y1) < 65.0 OR
+                         CONVERT(FLOAT,gr_wide.rc2_y1) < 65.0 OR
+                         CONVERT(FLOAT,gr_wide.rc3_y1) < 65.0 OR
+                         CONVERT(FLOAT,gr_wide.rc4_y1) < 65.0 OR
+                         CONVERT(FLOAT,gr_wide.rc5_y1) < 65.0 OR
+                         CONVERT(FLOAT,gr_wide.rc6_y1) < 65.0 OR
+                         CONVERT(FLOAT,gr_wide.rc7_y1) < 65.0 OR
+                         CONVERT(FLOAT,gr_wide.rc8_y1) < 65.0) 
                          THEN 'Off Track'
-                   WHEN (gr_wide.rc1_y1 < 70 OR
-                         gr_wide.rc2_y1 < 70 OR
-                         gr_wide.rc3_y1 < 70 OR
-                         gr_wide.rc4_y1 < 70 OR
-                         gr_wide.rc5_y1 < 70 OR
-                         gr_wide.rc6_y1 < 70 OR
-                         gr_wide.rc7_y1 < 70 OR
-                         gr_wide.rc8_y1 < 70) 
+                   WHEN (CONVERT(FLOAT,gr_wide.rc1_y1) < 70.0 OR
+                         CONVERT(FLOAT,gr_wide.rc2_y1) < 70.0 OR
+                         CONVERT(FLOAT,gr_wide.rc3_y1) < 70.0 OR
+                         CONVERT(FLOAT,gr_wide.rc4_y1) < 70.0 OR
+                         CONVERT(FLOAT,gr_wide.rc5_y1) < 70.0 OR
+                         CONVERT(FLOAT,gr_wide.rc6_y1) < 70.0 OR
+                         CONVERT(FLOAT,gr_wide.rc7_y1) < 70.0 OR
+                         CONVERT(FLOAT,gr_wide.rc8_y1) < 70.0) 
                          THEN 'Warning'
-/*
+                   /*
                    WHEN (NVL(gr_wide.rc1_y1,100) >= 85 AND
                          NVL(gr_wide.rc2_y1,100) >= 85 AND
                          NVL(gr_wide.rc3_y1,100) >= 85 AND
@@ -78,7 +79,7 @@ FROM
                          NVL(gr_wide.rc7_y1,100) >= 85 AND
                          NVL(gr_wide.rc8_y1,100) >= 85)
                          THEN 'Honors'
---*/
+                   --*/
                    ELSE 'Satisfactory' 
                   END AS promo_status_grades
                  ,Rise_GPA.GPA_Y1 AS GPA

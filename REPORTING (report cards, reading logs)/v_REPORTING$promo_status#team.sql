@@ -45,14 +45,14 @@ FROM
                   ,mem.mem
                   ,team_hw.simple_avg
                   ,CASE
-                    WHEN ((gr_wide.rc1_y1 IS NOT NULL AND gr_wide.rc1_y1 < 70 AND gr_wide.rc1_credittype != 'COCUR') OR
-                          (gr_wide.rc2_y1 IS NOT NULL AND gr_wide.rc2_y1 < 70 AND gr_wide.rc2_credittype != 'COCUR') OR 
-                          (gr_wide.rc3_y1 IS NOT NULL AND gr_wide.rc3_y1 < 70 AND gr_wide.rc3_credittype != 'COCUR') OR
-                          (gr_wide.rc4_y1 IS NOT NULL AND gr_wide.rc4_y1 < 70 AND gr_wide.rc4_credittype != 'COCUR') OR
-                          (gr_wide.rc5_y1 IS NOT NULL AND gr_wide.rc5_y1 < 70 AND gr_wide.rc5_credittype != 'COCUR') OR
-                          (gr_wide.rc6_y1 IS NOT NULL AND gr_wide.rc6_y1 < 70 AND gr_wide.rc6_credittype != 'COCUR') OR
-                          (gr_wide.rc7_y1 IS NOT NULL AND gr_wide.rc7_y1 < 70 AND gr_wide.rc7_credittype != 'COCUR') OR
-                          (gr_wide.rc8_y1 IS NOT NULL AND gr_wide.rc8_y1 < 70 AND gr_wide.rc8_credittype != 'COCUR'))
+                    WHEN ((gr_wide.rc1_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc1_y1) < 70 AND gr_wide.rc1_credittype != 'COCUR') OR
+                          (gr_wide.rc2_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc2_y1) < 70 AND gr_wide.rc2_credittype != 'COCUR') OR 
+                          (gr_wide.rc3_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc3_y1) < 70 AND gr_wide.rc3_credittype != 'COCUR') OR
+                          (gr_wide.rc4_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc4_y1) < 70 AND gr_wide.rc4_credittype != 'COCUR') OR
+                          (gr_wide.rc5_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc5_y1) < 70 AND gr_wide.rc5_credittype != 'COCUR') OR
+                          (gr_wide.rc6_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc6_y1) < 70 AND gr_wide.rc6_credittype != 'COCUR') OR
+                          (gr_wide.rc7_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc7_y1) < 70 AND gr_wide.rc7_credittype != 'COCUR') OR
+                          (gr_wide.rc8_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc8_y1) < 70 AND gr_wide.rc8_credittype != 'COCUR'))
                           THEN 'Promotion In Doubt'
                     ELSE 'On Track'
                    END AS promo_status_grades           
