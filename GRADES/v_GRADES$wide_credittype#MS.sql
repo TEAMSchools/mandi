@@ -3,13 +3,13 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW GRADES$wide_credit_core#MS AS
+--ALTER VIEW GRADES$wide_credit_core#MS AS
 
 WITH rost AS
-       (
-        SELECT *
-        FROM KIPP_NJ..GRADES$detail_placeholder#MS WITH (NOLOCK)
-       )   
+     (
+      SELECT *
+      FROM KIPP_NJ..GRADES$detail_placeholder#MS WITH (NOLOCK)
+     )   
   
 SELECT *
 FROM
