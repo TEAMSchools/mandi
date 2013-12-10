@@ -6,13 +6,13 @@ SELECT TOP (100) PERCENT
        sub.*       
       ,CONVERT(VARCHAR,grade_level) + '_' 
         + CASE
-           WHEN standard = 'CCSS.LA.3.L.3.2' THEN CONVERT(VARCHAR,1)
+           WHEN schoolid = 73254 AND standard = 'CCSS.LA.3.L.3.2' THEN CONVERT(VARCHAR,1)
            ELSE CONVERT(VARCHAR,fsa_std_rn)
           END AS meta_hash
       ,CONVERT(VARCHAR,student_number) + '_'  
         + CONVERT(VARCHAR,subject) + '_' 
         + CASE
-           WHEN standard = 'CCSS.LA.3.L.3.2' THEN CONVERT(VARCHAR,1)
+           WHEN schoolid = 73254 AND standard = 'CCSS.LA.3.L.3.2' THEN CONVERT(VARCHAR,1)
            ELSE CONVERT(VARCHAR,fsa_std_rn)
           END AS meta_stu_hash
 FROM
