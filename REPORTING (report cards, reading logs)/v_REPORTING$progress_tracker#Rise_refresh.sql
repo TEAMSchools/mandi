@@ -1,36 +1,36 @@
 --only shows 5 core credit types
 --dependent on grades$wide_credittype#MS > grades$detail_placeholder#MS
 
-
 USE KIPP_NJ
 GO
 
 ALTER VIEW REPORTING$progress_tracker#Rise_refresh AS
 WITH roster AS
-       (SELECT s.id
-              ,s.student_number
-              ,s.schoolid
-              ,s.lastfirst
-              ,s.grade_level
-              ,s.team
-              ,cs.advisor       
-              ,cs.SPEDLEP
-              ,s.gender
-              ,s.mother
-              ,s.father       
-              ,s.home_phone
-              ,cs.mother_cell
-              ,cs.mother_home
-              ,cs.father_cell
-              ,cs.father_home
-              ,cs.guardianemail AS contactemail
-        FROM STUDENTS s WITH (NOLOCK)
-        LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
-          ON s.id = cs.studentid
-        WHERE s.schoolid = 73252
-          AND s.enroll_status = 0
-          --AND s.id = 4686
-       )
+     (
+      SELECT s.id
+            ,s.student_number
+            ,s.schoolid
+            ,s.lastfirst
+            ,s.grade_level
+            ,s.team
+            ,cs.advisor       
+            ,cs.SPEDLEP
+            ,s.gender
+            ,s.mother
+            ,s.father       
+            ,s.home_phone
+            ,cs.mother_cell
+            ,cs.mother_home
+            ,cs.father_cell
+            ,cs.father_home
+            ,cs.guardianemail AS contactemail
+      FROM STUDENTS s WITH (NOLOCK)
+      LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
+        ON s.id = cs.studentid
+      WHERE s.schoolid = 73252
+        AND s.enroll_status = 0
+        --AND s.id = 4686
+     )
        
 SELECT ROW_NUMBER() OVER(
            ORDER BY roster.grade_level, roster.lastfirst)  AS Count
@@ -358,7 +358,7 @@ SELECT ROW_NUMBER() OVER(
      ,replace(convert(varchar,convert(Money, ar_yr.words),1),'.00','') AS words_read_yr
      ,replace(convert(varchar,convert(Money, ar_curr.words_goal * 6),1),'.00','') AS words_goal_yr      
      ,ar_yr.rank_words_grade_in_school AS words_rank_yr_in_grade
-     ,ar_yr.mastery AS mastery_yr
+     --,CONVERT(FLOAT,ar_yr.mastery) AS mastery_yr
      ,NULL AS ONTRACK_WORDS_YR
      
      --AR current
@@ -366,7 +366,7 @@ SELECT ROW_NUMBER() OVER(
      ,replace(convert(varchar,convert(Money, ar_curr.words + ar_curr2.words),1),'.00','') AS words_read_cur_term
      ,replace(convert(varchar,convert(Money, ar_curr.words_goal + ar_curr2.words_goal),1),'.00','') AS words_goal_cur_term
      ,ar_curr2.rank_words_grade_in_school AS words_rank_cur_term_in_grade
-     ,ar_curr2.mastery AS mastery_curr
+     --,CONVERT(FLOAT,ar_curr2.mastery) AS mastery_curr
       
       --AR progress
         --to year goal      
@@ -630,11 +630,11 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.id = ar_curr.studentid 
- AND ar_curr.time_period_name = 'RT1'
+ AND ar_curr.time_period_name = 'RT2'
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
   ON roster.id = ar_curr2.studentid 
- AND ar_curr2.time_period_name = 'RT2'
+ AND ar_curr2.time_period_name = 'RT3'
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
 --MAP
