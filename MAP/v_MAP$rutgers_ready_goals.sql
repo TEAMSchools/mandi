@@ -8,7 +8,7 @@ WITH stu_roster AS
            ,c.lastfirst
            ,c.grade_level
            ,c.year
-     FROM KIPP_NJ..COHORT$comprehensive_long#static c
+     FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
      WHERE c.year >= 2012
        AND c.schoolid != 999999
        AND c.rn = 1
@@ -50,7 +50,7 @@ JOIN math_read
  AND stu_roster.grade_level >= 5
 
 --baseline (composite of Spring and Fall; pick best)
-LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline map_base
+LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base
   ON stu_roster.studentid = map_base.studentid 
  AND stu_roster.year = map_base.year
  AND math_read.measurementscale = map_base.measurementscale
@@ -98,7 +98,7 @@ FROM
         AND stu_roster.grade_level >= 4
 
        --baseline (composite of Spring and Fall; pick best)
-       LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline map_base
+       LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base
          ON stu_roster.studentid = map_base.studentid 
         AND stu_roster.year = map_base.year
         AND sci_lang.measurementscale = REPLACE(map_base.measurementscale, ' Usage', '')
@@ -171,7 +171,7 @@ FROM
         AND stu_roster.grade_level < 4
 
        --baseline (composite of Spring and Fall; pick best)
-       LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline map_base
+       LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base
          ON stu_roster.studentid = map_base.studentid 
         AND stu_roster.year = map_base.year
         AND sci_lang.measurementscale = REPLACE(map_base.measurementscale, ' Usage', '')
@@ -244,7 +244,7 @@ FROM
         AND stu_roster.grade_level <= 3
 
        --baseline (composite of Spring and Fall; pick best)
-       LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline map_base
+       LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base
          ON stu_roster.studentid = map_base.studentid 
         AND stu_roster.year = map_base.year
         AND math_read.measurementscale = map_base.measurementscale
@@ -291,7 +291,7 @@ FROM
         AND stu_roster.grade_level = 4
 
        --baseline (composite of Spring and Fall; pick best)
-       LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline map_base
+       LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base
          ON stu_roster.studentid = map_base.studentid 
         AND stu_roster.year = map_base.year
         AND math_read.measurementscale = map_base.measurementscale
