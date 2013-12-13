@@ -240,6 +240,7 @@ FROM
         ON rs.test_date >= dates.start_date
        AND rs.test_date <= dates.end_date
        AND dates.identifier = 'LIT'
+       AND dates.schoolid = cohort.SCHOOLID
       WHERE testid = 3273      
      ) sub
 
@@ -510,6 +511,7 @@ LEFT OUTER JOIN
               ON rs.test_date >= dates.start_date
              AND rs.test_date <= dates.end_date
              AND dates.identifier = 'LIT'
+             AND dates.schoolid = cohort.SCHOOLID
             WHERE testid = 3273
            ) sq_3
       WHERE sq_3.achv_curr_tri = 1
@@ -610,6 +612,7 @@ LEFT OUTER JOIN
               ON rs.test_date >= dates.start_date
              AND rs.test_date <= dates.end_date
              AND dates.identifier = 'LIT'
+             AND dates.schoolid = cohort.SCHOOLID
             WHERE testid = 3273
            ) sq_4
       WHERE sq_4.achv_curr = 1
@@ -704,6 +707,7 @@ LEFT OUTER JOIN
               ON rs.test_date >= dates.start_date
              AND rs.test_date <= dates.end_date
              AND dates.identifier = 'LIT'
+             AND dates.schoolid = cohort.SCHOOLID
             WHERE testid = 3273
            ) sq_4
       WHERE sq_4.achv_curr_all = 1    
@@ -755,6 +759,7 @@ LEFT OUTER JOIN
               ON rs.test_date >= dates.start_date
              AND rs.test_date <= dates.end_date
              AND dates.identifier = 'LIT'
+             AND dates.schoolid = cohort.SCHOOLID
             WHERE testid != 3273
            ) sq_4
       WHERE sq_4.achv_curr_all = 1    
