@@ -3,7 +3,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW GRADES$wide_credit_core#MS AS
+ALTER VIEW GRADES$wide_credit_core#MS AS
 
 WITH rost AS
      (
@@ -396,7 +396,7 @@ FROM
         
         --A2
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
-	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_A1' AS pivot_on
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_A2' AS pivot_on
 	         ,CAST(pivot_ele.grade_2 AS VARCHAR) AS value
        FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
@@ -408,7 +408,7 @@ FROM
         
         --A3
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
-	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_A1' AS pivot_on
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_A3' AS pivot_on
 	         ,CAST(pivot_ele.grade_3 AS VARCHAR) AS value
        FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
@@ -432,7 +432,7 @@ FROM
         
         --Q2
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
-	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q1' AS pivot_on
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q2' AS pivot_on
 	         ,CAST(pivot_ele.grade_2 AS VARCHAR) AS value
        FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
@@ -444,7 +444,7 @@ FROM
         
         --Q3
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
-	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q1' AS pivot_on
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_Q3' AS pivot_on
 	         ,CAST(pivot_ele.grade_3 AS VARCHAR) AS value
        FROM rost WITH (NOLOCK)
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
