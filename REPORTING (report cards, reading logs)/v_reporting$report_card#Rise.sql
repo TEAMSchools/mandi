@@ -14,10 +14,7 @@ WITH roster AS
       FROM KIPP_NJ..COHORT$comprehensive_long#static c  WITH (NOLOCK)
       JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
         ON c.studentid = s.id
-       AND s.enroll_status = 0
-       --AND s.ID = 2484
-       --AND s.ID IN (,2484)
-       --AND s.ID BETWEEN 2000 AND 3000
+       AND s.enroll_status = 0       
       WHERE year = 2013
         AND c.rn = 1        
         AND c.schoolid = 73252
@@ -27,9 +24,9 @@ WITH roster AS
      (
       SELECT s.id
             ,s.web_id
-            ,s.web_password
+            ,CASE WHEN s.web_password LIKE '{B64}%' THEN 'Changed By User' ELSE s.web_password END AS web_password
             ,s.student_web_id
-            ,s.student_web_password
+            ,CASE WHEN s.student_web_password LIKE '{B64}%' THEN 'Changed By User' ELSE s.student_web_password END AS student_web_password
             ,s.street
             ,s.city
             ,s.home_phone
@@ -54,230 +51,291 @@ SELECT roster.*
       
 --Course Grades
 --GRADES$wide_all
+    /*--RC1--*/
       ,gr_wide.rc1_course_name
-      ,gr_wide.rc1_teacher_last            
-      ,gr_wide.rc1_t1_ltr AS rc1_cur_term_ltr      --change field name for current term
-      ,ROUND(gr_wide.rc1_T1,0) AS rc1_cur_term_pct --change field name for current term
-      /*
-      ,gr_wide.rc1_T1_ltr AS rc1_T1_term_ltr      
-      ,gr_wide.rc1_T2_ltr AS rc1_T2_term_ltr
-      ,gr_wide.rc1_T3_ltr AS rc1_T3_term_ltr
-      ,ROUND(gr_wide.rc1_T1,0) AS rc1_T1_term_pct
-      ,ROUND(gr_wide.rc1_T2,0) AS rc1_T2_term_pct
-      ,ROUND(gr_wide.rc1_T3,0) AS rc1_T3_term_pct
-      */
+      ,gr_wide.rc1_teacher_last
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,gr_wide.rc1_t1_ltr AS rc1_cur_term_ltr
+      ,gr_wide.rc1_t2_ltr AS rc1_cur_term_ltr
+      --,gr_wide.rc1_t3_ltr AS rc1_cur_term_ltr      
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,ROUND(gr_wide.rc1_t1,0) AS rc1_cur_term_pct
+      ,ROUND(gr_wide.rc1_t2,0) AS rc1_cur_term_pct
+      --,ROUND(gr_wide.rc1_t3,0) AS rc1_cur_term_pct      
+
+      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      ,gr_wide.rc1_t1_ltr AS rc1_t1_term_ltr      
+      ,gr_wide.rc1_t2_ltr AS rc1_t2_term_ltr
+      ,gr_wide.rc1_t3_ltr AS rc1_t3_term_ltr
+      ,ROUND(gr_wide.rc1_t1,0) AS rc1_t1_term_pct
+      ,ROUND(gr_wide.rc1_t2,0) AS rc1_t2_term_pct
+      ,ROUND(gr_wide.rc1_t3,0) AS rc1_t3_term_pct
+      --*/
+      
       ,ROUND(gr_wide.rc1_y1,0) AS rc1_y1_pct
       ,gr_wide.rc1_y1_ltr
-      
-      ,gr_wide.rc2_course_name
-      ,gr_wide.rc2_teacher_last            
-      ,gr_wide.rc2_t1_ltr AS rc2_cur_term_ltr      --change field name for current term
-      ,ROUND(gr_wide.rc2_T1,0) AS rc2_cur_term_pct --change field name for current term
-      /*
-      ,gr_wide.rc2_T1_ltr AS rc2_T1_term_ltr      
-      ,gr_wide.rc2_T2_ltr AS rc2_T2_term_ltr
-      ,gr_wide.rc2_T3_ltr AS rc2_T3_term_ltr
-      ,ROUND(gr_wide.rc2_T1,0) AS rc2_T1_term_pct
-      ,ROUND(gr_wide.rc2_T2,0) AS rc2_T2_term_pct
-      ,ROUND(gr_wide.rc2_T3,0) AS rc2_T3_term_pct
-      */
-      ,ROUND(gr_wide.rc2_y1,0) AS rc2_y1_pct
-      ,gr_wide.rc2_y1_ltr
-      
-      ,gr_wide.rc3_course_name
-      ,gr_wide.rc3_teacher_last            
-      ,gr_wide.rc3_t1_ltr AS rc3_cur_term_ltr      --change field name for current term
-      ,ROUND(gr_wide.rc3_T1,0) AS rc3_cur_term_pct --change field name for current term
-      /*
-      ,gr_wide.rc3_T1_ltr AS rc3_T1_term_ltr      
-      ,gr_wide.rc3_T2_ltr AS rc3_T2_term_ltr
-      ,gr_wide.rc3_T3_ltr AS rc3_T3_term_ltr
-      ,ROUND(gr_wide.rc3_T1,0) AS rc3_T1_term_pct
-      ,ROUND(gr_wide.rc3_T2,0) AS rc3_T2_term_pct
-      ,ROUND(gr_wide.rc3_T3,0) AS rc3_T3_term_pct
-      */
-      ,ROUND(gr_wide.rc3_y1,0) AS rc3_y1_pct
-      ,gr_wide.rc3_y1_ltr
-      
-      ,gr_wide.rc4_course_name
-      ,gr_wide.rc4_teacher_last            
-      ,gr_wide.rc4_t1_ltr AS rc4_cur_term_ltr      --change field name for current term
-      ,ROUND(gr_wide.rc4_T1,0) AS rc4_cur_term_pct --change field name for current term
-      /*
-      ,gr_wide.rc4_T1_ltr AS rc4_T1_term_ltr      
-      ,gr_wide.rc4_T2_ltr AS rc4_T2_term_ltr
-      ,gr_wide.rc4_T3_ltr AS rc4_T3_term_ltr
-      ,ROUND(gr_wide.rc4_T1,0) AS rc4_T1_term_pct
-      ,ROUND(gr_wide.rc4_T2,0) AS rc4_T2_term_pct
-      ,ROUND(gr_wide.rc4_T3,0) AS rc4_T3_term_pct
-      */
-      ,ROUND(gr_wide.rc4_y1,0) AS rc4_y1_pct
-      ,gr_wide.rc4_y1_ltr
-      
-      ,gr_wide.rc5_course_name
-      ,gr_wide.rc5_teacher_last            
-      ,gr_wide.rc5_t1_ltr AS rc5_cur_term_ltr      --change field name for current term
-      ,ROUND(gr_wide.rc5_T1,0) AS rc5_cur_term_pct --change field name for current term
-      /*
-      ,gr_wide.rc5_T1_ltr AS rc5_T1_term_ltr      
-      ,gr_wide.rc5_T2_ltr AS rc5_T2_term_ltr
-      ,gr_wide.rc5_T3_ltr AS rc5_T3_term_ltr
-      ,ROUND(gr_wide.rc5_T1,0) AS rc5_T1_term_pct
-      ,ROUND(gr_wide.rc5_T2,0) AS rc5_T2_term_pct
-      ,ROUND(gr_wide.rc5_T3,0) AS rc5_T3_term_pct
-      */
-      ,ROUND(gr_wide.rc5_y1,0) AS rc5_y1_pct
-      ,gr_wide.rc5_y1_ltr
-      
-      ,gr_wide.rc6_course_name
-      ,gr_wide.rc6_teacher_last            
-      ,gr_wide.rc6_t1_ltr AS rc6_cur_term_ltr      --change field name for current term
-      ,ROUND(gr_wide.rc6_T1,0) AS rc6_cur_term_pct --change field name for current term
-      /*
-      ,gr_wide.rc6_T1_ltr AS rc6_T1_term_ltr     
-      ,gr_wide.rc6_T2_ltr AS rc6_T2_term_ltr
-      ,gr_wide.rc6_T3_ltr AS rc6_T3_term_ltr
-      ,ROUND(gr_wide.rc6_T1,0) AS rc6_T1_term_pct
-      ,ROUND(gr_wide.rc6_T2,0) AS rc6_T2_term_pct
-      ,ROUND(gr_wide.rc6_T3,0) AS rc6_T3_term_pct
-      */
-      ,ROUND(gr_wide.rc6_y1,0) AS rc6_y1_pct
-      ,gr_wide.rc6_y1_ltr
-      
-      ,gr_wide.rc7_course_name
-      ,gr_wide.rc7_teacher_last            
-      ,gr_wide.rc7_t1_ltr AS rc7_cur_term_ltr      --change field name for current term
-      ,ROUND(gr_wide.rc7_T1,0) AS rc7_cur_term_pct --change field name for current term
-      /*
-      ,gr_wide.rc7_T1_ltr AS rc7_T1_term_ltr      
-      ,gr_wide.rc7_T2_ltr AS rc7_T2_term_ltr
-      ,gr_wide.rc7_T3_ltr AS rc7_T3_term_ltr
-      ,ROUND(gr_wide.rc7_T1,0) AS rc7_T1_term_pct
-      ,ROUND(gr_wide.rc7_T2,0) AS rc7_T2_term_pct
-      ,ROUND(gr_wide.rc7_T3,0) AS rc7_T3_term_pct
-      */
-      ,ROUND(gr_wide.rc7_y1,0) AS rc7_y1_pct
-      ,gr_wide.rc7_y1_ltr
-      
-      /*
-      ,gr_wide.rc8_course_name
-      ,gr_wide.rc8_teacher_last            
-      ,gr_wide.rc8_t1_ltr AS rc8_cur_term_ltr      --change field name for current term
-      ,ROUND(gr_wide.rc8_T1,0) AS rc8_cur_term_pct --change field name for current term
-      ,gr_wide.rc8_T1_ltr AS rc8_T1_term_ltr
-      ,gr_wide.rc8_T2_ltr AS rc8_T2_term_ltr
-      ,gr_wide.rc8_T3_ltr AS rc8_T3_term_ltr
-      ,ROUND(gr_wide.rc8_T1,0) AS rc8_T1_term_pct
-      ,ROUND(gr_wide.rc8_T2,0) AS rc8_T2_term_pct
-      ,ROUND(gr_wide.rc8_T3,0) AS rc8_T3_term_pct
-      ,ROUND(gr_wide.rc8_y1,0) AS rc8_y1_pct
-      ,gr_wide.rc8_y1_ltr
-      
-      ,gr_wide.rc9_course_name
-      ,gr_wide.rc9_teacher_last            
-      ,gr_wide.rc9_t1_ltr AS rc9_cur_term_ltr      --change field name for current term
-      ,ROUND(gr_wide.rc9_T1,0) AS rc9_cur_term_pct --change field name for current term
-      ,gr_wide.rc9_T1_ltr AS rc9_T1_term_ltr
-      ,gr_wide.rc9_T2_ltr AS rc9_T2_term_ltr
-      ,gr_wide.rc9_T3_ltr AS rc9_T3_term_ltr
-      ,ROUND(gr_wide.rc9_T1,0) AS rc9_T1_term_pct
-      ,ROUND(gr_wide.rc9_T2,0) AS rc9_T2_term_pct
-      ,ROUND(gr_wide.rc9_T3,0) AS rc9_T3_term_pct
-      ,ROUND(gr_wide.rc9_y1,0) AS rc9_y1_pct
-      ,gr_wide.rc9_y1_ltr
-      
-      ,gr_wide.rc10_course_name
-      ,gr_wide.rc10_teacher_last            
-      ,gr_wide.rc10_t1_ltr AS rc10_cur_term_ltr      --change field name for current term
-      ,ROUND(gr_wide.rc10_T1,0) AS rc10_cur_term_pct --change field name for current term
-      ,gr_wide.rc10_T1_ltr AS rc10_T1_term_ltr
-      ,gr_wide.rc10_T2_ltr AS rc10_T2_term_ltr
-      ,gr_wide.rc10_T3_ltr AS rc10_T3_term_ltr
-      ,ROUND(gr_wide.rc10_T1,0) AS rc10_T1_term_pct
-      ,ROUND(gr_wide.rc10_T2,0) AS rc10_T2_term_pct
-      ,ROUND(gr_wide.rc10_T3,0) AS rc10_T3_term_pct
-      ,ROUND(gr_wide.rc10_y1,0) AS rc10_y1_pct
-      ,gr_wide.rc10_y1_ltr
-      */
 
-      --current term component averages -- change term number (e.g. H1) on component fields for current term
-      --H
-      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_H1  END AS rc1_cur_hw_pct
-      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_H1  END AS rc2_cur_hw_pct
-      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_H1  END AS rc3_cur_hw_pct
-      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_H1  END AS rc4_cur_hw_pct
-      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_H1  END AS rc5_cur_hw_pct
-      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_H1  END AS rc6_cur_hw_pct
-      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_H1  END AS rc7_cur_hw_pct
-      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H1  END AS rc8_cur_hw_pct
-      --,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_H1  END AS rc9_cur_hw_pct
-      --,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_H1 END AS rc10_cur_hw_pct      
+    /*--RC2--*/
+      ,gr_wide.RC2_course_name
+      ,gr_wide.RC2_teacher_last
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,gr_wide.RC2_t1_ltr AS RC2_cur_term_ltr
+      ,gr_wide.RC2_t2_ltr AS RC2_cur_term_ltr
+      --,gr_wide.RC2_t3_ltr AS RC2_cur_term_ltr      
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,ROUND(gr_wide.RC2_t1,0) AS RC2_cur_term_pct
+      ,ROUND(gr_wide.RC2_t2,0) AS RC2_cur_term_pct
+      --,ROUND(gr_wide.RC2_t3,0) AS RC2_cur_term_pct      
+      
+      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      ,gr_wide.RC2_t1_ltr AS RC2_t1_term_ltr      
+      ,gr_wide.RC2_t2_ltr AS RC2_t2_term_ltr
+      ,gr_wide.RC2_t3_ltr AS RC2_t3_term_ltr
+      ,ROUND(gr_wide.RC2_t1,0) AS RC2_t1_term_pct
+      ,ROUND(gr_wide.RC2_t2,0) AS RC2_t2_term_pct
+      ,ROUND(gr_wide.RC2_t3,0) AS RC2_t3_term_pct
+      --*/
+      
+      ,ROUND(gr_wide.RC2_y1,0) AS RC2_y1_pct
+      ,gr_wide.RC2_y1_ltr
+
+    /*--RC3--*/
+      ,gr_wide.RC3_course_name
+      ,gr_wide.RC3_teacher_last
+      
+    /*--UPDATE FOR CURRENT TERM--*/
+      --,gr_wide.RC3_t1_ltr AS RC3_cur_term_ltr
+      ,gr_wide.RC3_t2_ltr AS RC3_cur_term_ltr
+      --,gr_wide.RC3_t3_ltr AS RC3_cur_term_ltr      
+      
+    /*--UPDATE FOR CURRENT TERM--*/
+      --,ROUND(gr_wide.RC3_t1,0) AS RC3_cur_term_pct
+      ,ROUND(gr_wide.RC3_t2,0) AS RC3_cur_term_pct
+      --,ROUND(gr_wide.RC3_t3,0) AS RC3_cur_term_pct      
+      
+      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      ,gr_wide.RC3_t1_ltr AS RC3_t1_term_ltr      
+      ,gr_wide.RC3_t2_ltr AS RC3_t2_term_ltr
+      ,gr_wide.RC3_t3_ltr AS RC3_t3_term_ltr
+      ,ROUND(gr_wide.RC3_t1,0) AS RC3_t1_term_pct
+      ,ROUND(gr_wide.RC3_t2,0) AS RC3_t2_term_pct
+      ,ROUND(gr_wide.RC3_t3,0) AS RC3_t3_term_pct
+      --*/
+      
+      ,ROUND(gr_wide.RC3_y1,0) AS RC3_y1_pct
+      ,gr_wide.RC3_y1_ltr
+
+    /*--RC4--*/
+      ,gr_wide.RC4_course_name
+      ,gr_wide.RC4_teacher_last
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,gr_wide.RC4_t1_ltr AS RC4_cur_term_ltr
+      ,gr_wide.RC4_t2_ltr AS RC4_cur_term_ltr
+      --,gr_wide.RC4_t3_ltr AS RC4_cur_term_ltr
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,ROUND(gr_wide.RC4_t1,0) AS RC4_cur_term_pct
+      ,ROUND(gr_wide.RC4_t2,0) AS RC4_cur_term_pct
+      --,ROUND(gr_wide.RC4_t3,0) AS RC4_cur_term_pct
+      
+      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      ,gr_wide.RC4_t1_ltr AS RC4_t1_term_ltr      
+      ,gr_wide.RC4_t2_ltr AS RC4_t2_term_ltr
+      ,gr_wide.RC4_t3_ltr AS RC4_t3_term_ltr
+      ,ROUND(gr_wide.RC4_t1,0) AS RC4_t1_term_pct
+      ,ROUND(gr_wide.RC4_t2,0) AS RC4_t2_term_pct
+      ,ROUND(gr_wide.RC4_t3,0) AS RC4_t3_term_pct
+      --*/
+      
+      ,ROUND(gr_wide.RC4_y1,0) AS RC4_y1_pct
+      ,gr_wide.RC4_y1_ltr
+
+    /*--RC5--*/
+      ,gr_wide.RC5_course_name
+      ,gr_wide.RC5_teacher_last
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,gr_wide.RC5_t1_ltr AS RC5_cur_term_ltr
+      ,gr_wide.RC5_t2_ltr AS RC5_cur_term_ltr
+      --,gr_wide.RC5_t3_ltr AS RC5_cur_term_ltr
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,ROUND(gr_wide.RC5_t1,0) AS RC5_cur_term_pct
+      ,ROUND(gr_wide.RC5_t2,0) AS RC5_cur_term_pct
+      --,ROUND(gr_wide.RC5_t3,0) AS RC5_cur_term_pct
+      
+      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      ,gr_wide.RC5_t1_ltr AS RC5_t1_term_ltr      
+      ,gr_wide.RC5_t2_ltr AS RC5_t2_term_ltr
+      ,gr_wide.RC5_t3_ltr AS RC5_t3_term_ltr
+      ,ROUND(gr_wide.RC5_t1,0) AS RC5_t1_term_pct
+      ,ROUND(gr_wide.RC5_t2,0) AS RC5_t2_term_pct
+      ,ROUND(gr_wide.RC5_t3,0) AS RC5_t3_term_pct
+      --*/
+      
+      ,ROUND(gr_wide.RC5_y1,0) AS RC5_y1_pct
+      ,gr_wide.RC5_y1_ltr
+      
+    /*--RC6--*/
+      ,gr_wide.RC6_course_name
+      ,gr_wide.RC6_teacher_last
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,gr_wide.RC6_t1_ltr AS RC6_cur_term_ltr
+      ,gr_wide.RC6_t2_ltr AS RC6_cur_term_ltr
+      --,gr_wide.RC6_t3_ltr AS RC6_cur_term_ltr
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,ROUND(gr_wide.RC6_t1,0) AS RC6_cur_term_pct
+      ,ROUND(gr_wide.RC6_t2,0) AS RC6_cur_term_pct
+      --,ROUND(gr_wide.RC6_t3,0) AS RC6_cur_term_pct
+
+      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      ,gr_wide.RC6_t1_ltr AS RC6_t1_term_ltr      
+      ,gr_wide.RC6_t2_ltr AS RC6_t2_term_ltr
+      ,gr_wide.RC6_t3_ltr AS RC6_t3_term_ltr
+      ,ROUND(gr_wide.RC6_t1,0) AS RC6_t1_term_pct
+      ,ROUND(gr_wide.RC6_t2,0) AS RC6_t2_term_pct
+      ,ROUND(gr_wide.RC6_t3,0) AS RC6_t3_term_pct
+      --*/
+      
+      ,ROUND(gr_wide.RC6_y1,0) AS RC6_y1_pct
+      ,gr_wide.RC6_y1_ltr
+
+    /*--RC7--*/
+      ,gr_wide.RC7_course_name
+      ,gr_wide.RC7_teacher_last
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,gr_wide.RC7_t1_ltr AS RC7_cur_term_ltr
+      ,gr_wide.RC7_t2_ltr AS RC7_cur_term_ltr
+      --,gr_wide.RC7_t3_ltr AS RC7_cur_term_ltr
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,ROUND(gr_wide.RC7_t1,0) AS RC7_cur_term_pct
+      ,ROUND(gr_wide.RC7_t2,0) AS RC7_cur_term_pct
+      --,ROUND(gr_wide.RC7_t3,0) AS RC7_cur_term_pct
+      
+      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      ,gr_wide.RC7_t1_ltr AS RC7_t1_term_ltr      
+      ,gr_wide.RC7_t2_ltr AS RC7_t2_term_ltr
+      ,gr_wide.RC7_t3_ltr AS RC7_t3_term_ltr
+      ,ROUND(gr_wide.RC7_t1,0) AS RC7_t1_term_pct
+      ,ROUND(gr_wide.RC7_t2,0) AS RC7_t2_term_pct
+      ,ROUND(gr_wide.RC7_t3,0) AS RC7_t3_term_pct
+      --*/
+      
+      ,ROUND(gr_wide.RC7_y1,0) AS RC7_y1_pct
+      ,gr_wide.RC7_y1_ltr
+      
+    /*--RC8--*/
+      ,gr_wide.RC8_course_name
+      ,gr_wide.RC8_teacher_last
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,gr_wide.RC8_t1_ltr AS RC8_cur_term_ltr
+      ,gr_wide.RC8_t2_ltr AS RC8_cur_term_ltr
+      --,gr_wide.RC8_t3_ltr AS RC8_cur_term_ltr
+      
+       /*--UPDATE FOR CURRENT TERM--*/
+      --,ROUND(gr_wide.RC8_t1,0) AS RC8_cur_term_pct
+      ,ROUND(gr_wide.RC8_t2,0) AS RC8_cur_term_pct
+      --,ROUND(gr_wide.RC8_t3,0) AS RC8_cur_term_pct
+      
+      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      ,gr_wide.RC8_t1_ltr AS RC8_t1_term_ltr      
+      ,gr_wide.RC8_t2_ltr AS RC8_t2_term_ltr
+      ,gr_wide.RC8_t3_ltr AS RC8_t3_term_ltr
+      ,ROUND(gr_wide.RC8_t1,0) AS RC8_t1_term_pct
+      ,ROUND(gr_wide.RC8_t2,0) AS RC8_t2_term_pct
+      ,ROUND(gr_wide.RC8_t3,0) AS RC8_t3_term_pct
+      --*/
+      
+      ,ROUND(gr_wide.RC8_y1,0) AS RC8_y1_pct
+      ,gr_wide.RC8_y1_ltr
+
+    /*--current term component averages--*/
+       /*--UPDATE TERM NUMBER (e.g. H1) on FIELD for current term--*/
+       --H
+      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_H2  END AS rc1_cur_hw_pct
+      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_H2  END AS rc2_cur_hw_pct
+      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_H2  END AS rc3_cur_hw_pct
+      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_H2  END AS rc4_cur_hw_pct
+      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_H2  END AS rc5_cur_hw_pct
+      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_H2  END AS rc6_cur_hw_pct
+      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_H2  END AS rc7_cur_hw_pct
+      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H2  END AS rc8_cur_hw_pct
       --A
-      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_A1  END AS rc1_cur_assess_pct
-      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_A1  END AS rc2_cur_assess_pct
-      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_A1  END AS rc3_cur_assess_pct
-      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_A1  END AS rc4_cur_assess_pct
-      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_A1  END AS rc5_cur_assess_pct
-      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_A1  END AS rc6_cur_assess_pct
-      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_A1  END AS rc7_cur_assess_pct
-      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_A1  END AS rc8_cur_assess_pct
-      --,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_A1  END AS rc9_cur_assess_pct
-      --,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_A1 END AS rc10_cur_assess_pct      
+      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_A2  END AS rc1_cur_assess_pct
+      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_A2  END AS rc2_cur_assess_pct
+      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_A2  END AS rc3_cur_assess_pct
+      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_A2  END AS rc4_cur_assess_pct
+      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_A2  END AS rc5_cur_assess_pct
+      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_A2  END AS rc6_cur_assess_pct
+      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_A2  END AS rc7_cur_assess_pct
+      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_A2  END AS rc8_cur_assess_pct
       --Q
-      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q1  END AS rc1_cur_qual_pct
-      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q1  END AS rc2_cur_qual_pct
-      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_Q1  END AS rc3_cur_qual_pct
-      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_Q1  END AS rc4_cur_qual_pct
-      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_Q1  END AS rc5_cur_qual_pct
-      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_Q1  END AS rc6_cur_qual_pct
-      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_Q1  END AS rc7_cur_qual_pct
-      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q1  END AS rc8_cur_qual_pct
-      --,CASE WHEN gr_wide.rc9_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc9_Q1  END AS rc9_cur_qual_pct
-      --,CASE WHEN gr_wide.rc10_credittype = 'COCUR' THEN NULL ELSE gr_wide.rc10_Q1 END AS rc10_cur_qual_pct
+      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q2  END AS rc1_cur_qual_pct
+      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q2  END AS rc2_cur_qual_pct
+      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_Q2  END AS rc3_cur_qual_pct
+      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_Q2  END AS rc4_cur_qual_pct
+      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_Q2  END AS rc5_cur_qual_pct
+      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_Q2  END AS rc6_cur_qual_pct
+      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_Q2  END AS rc7_cur_qual_pct
+      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q2  END AS rc8_cur_qual_pct
+      
       --All classes element averages
       ,gr_wide.HY_all AS homework_year_avg
       ,gr_wide.QY_all AS homework_qual_year_avg
       ,gr_wide.AY_all AS assess_year_avg
 
---Attendance
+--Attendance & Tardies
 --ATT_MEM$attendance_percentages
---ATT_MEM$attendance_counts
-      --year
+--ATT_MEM$attendance_counts      
+     /*--Year--*/
       ,att_counts.absences_total           AS Y1_absences_total
       ,att_counts.absences_undoc           AS Y1_absences_undoc
       ,ROUND(att_pct.Y1_att_pct_total,0)   AS Y1_att_pct_total
       ,ROUND(att_pct.Y1_att_pct_undoc,0)   AS Y1_att_pct_undoc      
       ,att_counts.tardies_total            AS Y1_tardies_total
-      ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total
-      
-      --current term -- change field name
-      ,att_counts.RT1_absences_total        AS curterm_absences_total
-      ,att_counts.RT1_absences_undoc        AS curterm_absences_undoc
-      ,ROUND(att_pct.RT1_att_pct_total,0)   AS curterm_att_pct_total
-      ,ROUND(att_pct.RT1_att_pct_undoc,0)   AS curterm_att_pct_undoc      
-      ,att_counts.RT1_tardies_total         AS curterm_tardies_total
-      ,ROUND(att_pct.RT1_tardy_pct_total,0) AS curterm_tardy_pct_total
+      ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total      
+
+     /*--Current--*/
+       /*--UPDATE FIELD to current term--*/
+      ,att_counts.RT2_absences_total        AS curterm_absences_total
+      ,att_counts.RT2_absences_undoc        AS curterm_absences_undoc
+      ,ROUND(att_pct.RT2_att_pct_total,0)   AS curterm_att_pct_total
+      ,ROUND(att_pct.RT2_att_pct_undoc,0)   AS curterm_att_pct_undoc      
+      ,att_counts.RT2_tardies_total         AS curterm_tardies_total
+      ,ROUND(att_pct.RT2_tardy_pct_total,0) AS curterm_tardy_pct_total
 
 --GPA
 --GPA$detail#Rise
+    /*--Year--*/      
       ,rise_gpa.gpa_Y1
       ,rise_gpa.GPA_Y1_Rank_G
       ,rise_gpa.Y1_Dem
-      
-      --change field name for current term
-      ,rise_gpa.gpa_T1 AS gpa_curterm
+   
+   /*--Current Term--*/
+      /*--UPDATE FIELD FOR CURRENT TERM--*/
+      ,rise_gpa.GPA_T2 AS gpa_curterm
             
-      /*
-      --Unused fields
+    /*/*--Unused fields--*/
       ,rise_gpa.gpa_T#_rank AS gpa_curterm_rank
       ,rise_gpa.GPA_T#_Rank_G
       ,rise_gpa.elements
       ,rise_gpa.num_failing
       ,rise_gpa.failing
-      */
+      --*/
       
 --Promotional Criteria
 --REPORTING$promo_status#TEAM
+      ,promo.y1_att_pts_pct
       ,promo.attendance_points
       ,promo.att_string
       ,promo.promo_status_overall
@@ -453,9 +511,9 @@ SELECT roster.*
      --current
      --current trimester = current HEX + previous HEX
      ,replace(convert(varchar,convert(Money, ar_curr.words + ar_curr2.words),1),'.00','') AS words_read_cur_term
-     ,replace(convert(varchar,convert(Money, ar_curr.words_goal + ar_curr2.words_goal),1),'.00','') AS words_goal_cur_term
-     ,ar_curr2.rank_words_grade_in_school AS words_rank_cur_term_in_grade
-     ,ar_curr2.mastery AS mastery_curr
+     ,replace(convert(varchar,convert(Money, ar_curr.words_goal * 2),1),'.00','') AS words_goal_cur_term
+     ,ar_curr.rank_words_grade_in_school AS words_rank_cur_term_in_grade
+     ,ar_curr.mastery AS mastery_curr
       
     --AR progress
       --to year goal      
@@ -471,15 +529,15 @@ SELECT roster.*
        END,0) AS INT)),1),'.00','') AS words_needed_yr
       --to term goal
      ,CASE
-       WHEN ar_curr2.stu_status_words = 'On Track' THEN 'Yes!'
-       WHEN ar_curr2.stu_status_words = 'Off Track' THEN 'No'
-       WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) > 0 THEN 'Missed Goal'
-       ELSE ar_curr2.stu_status_words
+       WHEN ar_curr.stu_status_words = 'On Track' THEN 'Yes!'
+       WHEN ar_curr.stu_status_words = 'Off Track' THEN 'No'
+       WHEN ((ar_curr.words_goal * 2) - (ar_curr.words + ar_curr2.words)) > 0 THEN 'Missed Goal'
+       ELSE ar_curr.stu_status_words
       END AS stu_status_words_cur_term
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CAST(ROUND(
        CASE
-        WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN NULL
-        ELSE ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words))
+        WHEN ((ar_curr.words_goal * 2) - (ar_curr.words + ar_curr2.words)) <= 0 THEN NULL
+        ELSE ((ar_curr.words_goal * 2) - (ar_curr.words + ar_curr2.words))
        END,0) AS INT)),1),'.00','') AS words_needed_cur_term
 
 --Discipline
@@ -538,27 +596,27 @@ SELECT roster.*
         ELSE 'No'
        END AS ISS_OSS
        --upadate fieldnames for current term
-      ,ISNULL(disc_count.rt1_silent_lunches,0) AS cur_silent_lunches
-      ,ISNULL(disc_count.rt1_detentions,0) AS cur_detentions
+      ,ISNULL(disc_count.rt2_silent_lunches,0) AS cur_silent_lunches
+      ,ISNULL(disc_count.rt2_detentions,0) AS cur_detentions
       ,CASE
-        WHEN roster.stu_grade_level <= 6 THEN ISNULL(disc_count.rt1_bench,0)
-        ELSE ISNULL(disc_count.rt1_choices,0)
+        WHEN roster.stu_grade_level <= 6 THEN ISNULL(disc_count.rt2_bench,0)
+        ELSE ISNULL(disc_count.rt2_choices,0)
        END AS bench_choices_cur
 
---/* NOT USED FOR PROGRESS REPORTS
 --Comments
 --PS$comments_gradebook
+      /*/*--NOT USED FOR PROGRESS REPORTS--*/
       ,comment_rc1.teacher_comment AS rc1_comment
       ,comment_rc2.teacher_comment AS rc2_comment
       ,comment_rc3.teacher_comment AS rc3_comment
       ,comment_rc4.teacher_comment AS rc4_comment
       ,comment_rc5.teacher_comment AS rc5_comment
       ,comment_rc6.teacher_comment AS rc6_comment
---*/
+      --*/
 
-FROM roster
+FROM roster WITH (NOLOCK)
 --INFO
-LEFT OUTER JOIN info
+LEFT OUTER JOIN info WITH (NOLOCK)
   ON roster.base_studentid = info.id
 
 --GRADES
@@ -578,7 +636,6 @@ LEFT OUTER JOIN GPA$detail#Rise rise_gpa WITH (NOLOCK)
 --PROMO STATUS  
 LEFT OUTER JOIN REPORTING$promo_status#Rise promo WITH (NOLOCK)
   ON roster.base_studentid = promo.studentid
---ORDER BY stu_grade_level, travel_group, stu_lastfirst
 
 --MAP
 LEFT OUTER JOIN MAP$reading_wide map_read WITH (NOLOCK)
@@ -630,14 +687,14 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.base_studentid = ar_curr.studentid 
- AND ar_curr.time_period_name = 'RT1'
+ AND ar_curr.time_period_name = 'RT3'
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
   ON roster.base_studentid = ar_curr2.studentid 
- AND ar_curr2.time_period_name = 'RT2'
+ AND ar_curr2.time_period_name = 'RT4'
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
---/* NOT USED FOR PROGRESS REPORTS
+/*/*--NOT USED FOR PROGRESS REPORTS--*/
 --GRADEBOOK COMMMENTS -- update fieldnames and parameters for current term
 LEFT OUTER JOIN PS$comments#static comment_rc1 WITH (NOLOCK)
   ON gr_wide.rc1_T1_enr_sectionid = comment_rc1.sectionid
