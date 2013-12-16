@@ -14,6 +14,7 @@ FROM
             ,s.lastfirst
             ,co.grade_level
             ,s.team
+            ,cs.SPEDLEP
             ,assessments.title
             ,results.assessment_id --probably easiest to key off of in excel
             ,dates.time_per_name AS week_num
@@ -56,6 +57,8 @@ FROM
                     ORDER BY results.custom_code) AS rn
             --*/
       FROM STUDENTS s  WITH(NOLOCK)
+      LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+        ON s.id = cs.studentid
       LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results WITH(NOLOCK)
         ON s.student_number = results.local_student_id
       LEFT OUTER JOIN ILLUMINATE$assessments#static assessments WITH(NOLOCK)
