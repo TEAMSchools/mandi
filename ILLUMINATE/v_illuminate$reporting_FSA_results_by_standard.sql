@@ -3,18 +3,36 @@ GO
 
 ALTER VIEW ILLUMINATE$reporting_FSA_results_by_standard AS
 SELECT TOP (100) PERCENT
-       sub.*
+       schoolid
+      ,studentid
+      ,student_number
+      ,lastfirst
+      ,grade_level
+      ,team
+      ,title
+      ,assessment_id
+      ,week_num
+      ,subject
+      ,answered
+      ,percent_correct
+      ,proficiency
+      ,standard
+      ,description
+      ,administered_at
+      ,reporting_hash
+      ,rollup_hash
+      ,fsa_std_rn      
       ,week_num + '_' 
         + CONVERT(VARCHAR,grade_level) + '_' 
         + CONVERT(VARCHAR,fsa_std_rn) AS meta_hash
+      ,SPEDLEP
 FROM
      (SELECT s.schoolid
             ,s.id AS studentid
             ,s.student_number
             ,s.lastfirst
             ,co.grade_level
-            ,s.team
-            ,cs.SPEDLEP
+            ,s.team            
             ,assessments.title
             ,results.assessment_id --probably easiest to key off of in excel
             ,dates.time_per_name AS week_num
@@ -50,6 +68,7 @@ FROM
               + '_' + ISNULL(results.custom_code,'STD') --standard tested
                AS rollup_hash
             ,assessments.fsa_std_rn
+            ,cs.SPEDLEP
             /*
             --now using row number from assessment feed
             ,ROW_NUMBER() OVER(
