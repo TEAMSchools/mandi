@@ -26,7 +26,9 @@ SELECT s.id AS base_studentid
 
       --Year
       ,SUM(CASE WHEN log.subtype = 'Detention' THEN 1 ELSE NULL END) detentions
-      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' THEN 1 ELSE NULL END) silent_lunches
+      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' THEN 1
+                WHEN log.subtype = 'Silent Lunch (5 Day)' THEN 5
+                ELSE NULL END) silent_lunches
       ,SUM(CASE WHEN log.subtype = 'Choices' THEN 1 ELSE NULL END) choices
       ,SUM(CASE WHEN log.subtype = 'Bench' THEN 1 ELSE NULL END) bench
       ,SUM(CASE WHEN log.subtype = 'ISS' THEN 1 ELSE NULL END) ISS
@@ -34,11 +36,13 @@ SELECT s.id AS base_studentid
       ,SUM(CASE WHEN log.subtype = 'Bus Warning' THEN 1 ELSE NULL END) bus_warnings
       ,SUM(CASE WHEN log.subtype = 'Bus Suspension' THEN 1 ELSE NULL END) bus_suspensions
       ,SUM(CASE WHEN log.subtype = 'Class Removal' THEN 1 ELSE NULL END) class_removal
-      ,SUM(CASE WHEN log.subtype = 'Bullying' THEN 1 ELSE NULL END) Bullying
+      ,SUM(CASE WHEN log.subtype = 'Bullying' THEN 1 ELSE NULL END) Bullying      
 
       --RT1
       ,SUM(CASE WHEN log.subtype = 'Detention' AND log.rt = 'RT1' THEN 1 ELSE NULL END) rt1_detentions
-      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT1' THEN 1 ELSE NULL END) rt1_silent_lunches
+      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT1' THEN 1 
+                WHEN log.subtype = 'Silent Lunch (5 Day)' AND log.rt = 'RT1' THEN 5
+                ELSE NULL END) rt1_silent_lunches
       ,SUM(CASE WHEN log.subtype = 'Choices' AND log.rt = 'RT1' THEN 1 ELSE NULL END) rt1_choices
       ,SUM(CASE WHEN log.subtype = 'Bench' AND log.rt = 'RT1' THEN 1 ELSE NULL END) rt1_bench
       ,SUM(CASE WHEN log.subtype = 'ISS' AND log.rt = 'RT1' THEN 1 ELSE NULL END) rt1_ISS
@@ -50,7 +54,9 @@ SELECT s.id AS base_studentid
 
       --RT2
       ,SUM(CASE WHEN log.subtype = 'Detention' AND log.rt = 'RT2' THEN 1 ELSE NULL END) rt2_detentions
-      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT2' THEN 1 ELSE NULL END) rt2_silent_lunches
+      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT2' THEN 1 
+                WHEN log.subtype = 'Silent Lunch (5 Day)' AND log.rt = 'RT2' THEN 5
+                ELSE NULL END) rt2_silent_lunches
       ,SUM(CASE WHEN log.subtype = 'Choices' AND log.rt = 'RT2' THEN 1 ELSE NULL END) rt2_choices
       ,SUM(CASE WHEN log.subtype = 'Bench' AND log.rt = 'RT2' THEN 1 ELSE NULL END) rt2_bench
       ,SUM(CASE WHEN log.subtype = 'ISS' AND log.rt = 'RT2' THEN 1 ELSE NULL END) rt2_ISS
@@ -62,7 +68,9 @@ SELECT s.id AS base_studentid
 
       --RT3
       ,SUM(CASE WHEN log.subtype = 'Detention' AND log.rt = 'RT3' THEN 1 ELSE NULL END) rt3_detentions
-      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT3' THEN 1 ELSE NULL END) rt3_silent_lunches
+      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT3' THEN 1
+                WHEN log.subtype = 'Silent Lunch (5 Day)' AND log.rt = 'RT3' THEN 5
+                ELSE NULL END) rt3_silent_lunches
       ,SUM(CASE WHEN log.subtype = 'Choices' AND log.rt = 'RT3' THEN 1 ELSE NULL END) rt3_choices
       ,SUM(CASE WHEN log.subtype = 'Bench' AND log.rt = 'RT3' THEN 1 ELSE NULL END) rt3_bench
       ,SUM(CASE WHEN log.subtype = 'ISS' AND log.rt = 'RT3' THEN 1 ELSE NULL END) rt3_ISS
@@ -74,7 +82,9 @@ SELECT s.id AS base_studentid
 
       --RT4
       ,SUM(CASE WHEN log.subtype = 'Detention' AND log.rt = 'RT4' THEN 1 ELSE NULL END) rt4_detentions
-      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT4' THEN 1 ELSE NULL END) rt4_silent_lunches
+      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT4' THEN 1 
+                WHEN log.subtype = 'Silent Lunch (5 Day)' AND log.rt = 'RT4' THEN 5
+                ELSE NULL END) rt4_silent_lunches
       ,SUM(CASE WHEN log.subtype = 'Choices' AND log.rt = 'RT4' THEN 1 ELSE NULL END) rt4_choices
       ,SUM(CASE WHEN log.subtype = 'Bench' AND log.rt = 'RT4' THEN 1 ELSE NULL END) rt4_bench
       ,SUM(CASE WHEN log.subtype = 'ISS' AND log.rt = 'RT4' THEN 1 ELSE NULL END) rt4_ISS
@@ -86,7 +96,9 @@ SELECT s.id AS base_studentid
 
       --RT5
       ,SUM(CASE WHEN log.subtype = 'Detention' AND log.rt = 'RT5' THEN 1 ELSE NULL END) rt5_detentions
-      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT5' THEN 1 ELSE NULL END) rt5_silent_lunches
+      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT5' THEN 1 
+                WHEN log.subtype = 'Silent Lunch (5 Day)' AND log.rt = 'RT5' THEN 5
+                ELSE NULL END) rt5_silent_lunches
       ,SUM(CASE WHEN log.subtype = 'Choices' AND log.rt = 'RT5' THEN 1 ELSE NULL END) rt5_choices
       ,SUM(CASE WHEN log.subtype = 'Bench' AND log.rt = 'RT5' THEN 1 ELSE NULL END) rt5_bench
       ,SUM(CASE WHEN log.subtype = 'ISS' AND log.rt = 'RT5' THEN 1 ELSE NULL END) rt5_ISS
@@ -98,7 +110,9 @@ SELECT s.id AS base_studentid
 
       --RT6
       ,SUM(CASE WHEN log.subtype = 'Detention' AND log.rt = 'RT6' THEN 1 ELSE NULL END) rt6_detentions
-      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT6' THEN 1 ELSE NULL END) rt6_silent_lunches
+      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = 'RT6' THEN 1
+                WHEN log.subtype = 'Silent Lunch (5 Day)' AND log.rt = 'RT6' THEN 5
+                ELSE NULL END) rt6_silent_lunches
       ,SUM(CASE WHEN log.subtype = 'Choices' AND log.rt = 'RT6' THEN 1 ELSE NULL END) rt6_choices
       ,SUM(CASE WHEN log.subtype = 'Bench' AND log.rt = 'RT6' THEN 1 ELSE NULL END) rt6_bench
       ,SUM(CASE WHEN log.subtype = 'ISS' AND log.rt = 'RT6' THEN 1 ELSE NULL END) rt6_ISS

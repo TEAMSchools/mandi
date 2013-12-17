@@ -70,6 +70,7 @@ BEGIN
                 WHEN subtype = '9'  AND logtypeid = -100000 THEN 'Class Removal'
                 WHEN subtype = '09' AND logtypeid = -100000 THEN 'Class Removal'
                 WHEN subtype = '10' AND logtypeid = -100000 THEN 'Bullying'
+                WHEN subtype = '11' AND logtypeid = -100000 THEN 'Silent Lunch (5 Day)'
                 
                 --NCA merits
                 WHEN subtype = '01' AND logtypeid = 3023 THEN 'No Demerits'
