@@ -96,23 +96,83 @@ SELECT roster.*
       ,ar_cur.rank_words_grade_in_school AS hex_rank_words
       ,ar_cur.N_passed
       ,ar_cur.N_total
+      --accuracy cur term
+      ,ar_cur.mastery AS cur_accuracy
+      ,ar_cur.mastery_fiction AS cur_accuracy_fiction
+      ,ar_cur.mastery_nonfiction AS cur_accuracy_nonfiction
 
        --AR year
       ,replace(convert(varchar,convert(Money, ar_year.words),1),'.00','') AS year_words
       ,replace(convert(varchar,convert(Money, ar_cur.words_goal * 6),1),'.00','') AS year_goal  
       ,100 - ar_year.pct_fiction AS year_pct_nf 
       ,ar_year.rank_words_grade_in_school AS year_rank_words
-      --accuracy
+      --accuracy year
       ,ar_year.mastery AS accuracy
       ,ar_year.mastery_fiction AS accuracy_fiction
       ,ar_year.mastery_nonfiction AS accuracy_nonfiction
-
-      --accuracy cur term
-      ,ar_cur.mastery AS cur_accuracy
-      ,ar_cur.mastery_fiction AS cur_accuracy_fiction
-      ,ar_cur.mastery_nonfiction AS cur_accuracy_nonfiction
-
-     
+      
+      --AR by Hex
+        --Hex 1
+      ,replace(convert(varchar,convert(Money, ar_h1.words),1),'.00','') AS hex1_words
+      ,replace(convert(varchar,convert(Money, ar_h1.words_goal),1),'.00','') AS hex1_goal
+      ,CASE
+        WHEN CONVERT(FLOAT,ROUND((ar_h1.words / ar_h1.words_goal * 100),1)) > 100 THEN 100 
+        ELSE CONVERT(FLOAT,ROUND((ar_h1.words / ar_h1.words_goal * 100),1))
+       END AS hex1_pct_goal
+      ,ROUND((CONVERT(FLOAT,ar_h1.N_passed) / CONVERT(FLOAT,ar_h1.N_total) * 100),1) AS hex1_pct_passing
+      ,ar_h1.mastery_fiction AS hex1_accuracy_fiction
+      ,ar_h2.mastery_nonfiction AS hex1_accuracy_nonfiction
+        --Hex 2
+      ,replace(convert(varchar,convert(Money, ar_h2.words),1),'.00','') AS hex2_words
+      ,replace(convert(varchar,convert(Money, ar_h2.words_goal),1),'.00','') AS hex2_goal
+      ,CASE
+        WHEN CONVERT(FLOAT,ROUND((ar_h2.words / ar_h2.words_goal * 100),1)) > 100 THEN 100
+        ELSE CONVERT(FLOAT,ROUND((ar_h2.words / ar_h2.words_goal * 100),1))
+       END AS hex2_pct_goal
+      ,ROUND((CONVERT(FLOAT,ar_h2.N_passed) / CONVERT(FLOAT,ar_h2.N_total) * 100),1) AS hex2_pct_passing
+      ,ar_h2.mastery_fiction AS hex2_accuracy_fiction
+      ,ar_h2.mastery_nonfiction AS hex2_accuracy_nonfiction
+        --Hex 3
+      ,replace(convert(varchar,convert(Money, ar_h3.words),1),'.00','') AS hex3_words
+      ,replace(convert(varchar,convert(Money, ar_h3.words_goal),1),'.00','') AS hex3_goal
+      ,CASE
+        WHEN CONVERT(FLOAT,ROUND((ar_h3.words / ar_h3.words_goal * 100),1)) > 100 THEN 100
+        ELSE CONVERT(FLOAT,ROUND((ar_h3.words / ar_h3.words_goal * 100),1))
+       END AS hex3_pct_goal
+      ,ROUND((CONVERT(FLOAT,ar_h3.N_passed) / CONVERT(FLOAT,ar_h3.N_total) * 100),1) AS hex3_pct_passing
+      ,ar_h3.mastery_fiction AS hex3_accuracy_fiction
+      ,ar_h3.mastery_nonfiction AS hex3_accuracy_nonfiction
+        --Hex 4
+      ,replace(convert(varchar,convert(Money, ar_h4.words),1),'.00','') AS hex4_words
+      ,replace(convert(varchar,convert(Money, ar_h4.words_goal),1),'.00','') AS hex4_goal
+      ,CASE
+        WHEN CONVERT(FLOAT,ROUND((ar_h4.words / ar_h4.words_goal * 100),1)) > 100 THEN 100
+        ELSE CONVERT(FLOAT,ROUND((ar_h4.words / ar_h4.words_goal * 100),1))
+       END AS hex4_pct_goal
+      ,ROUND((CONVERT(FLOAT,ar_h4.N_passed) / CONVERT(FLOAT,ar_h4.N_total) * 100),1) AS hex4_pct_passing
+      ,ar_h4.mastery_fiction AS hex4_accuracy_fiction
+      ,ar_h4.mastery_nonfiction AS hex4_accuracy_nonfiction      
+        --Hex 5
+      ,replace(convert(varchar,convert(Money, ar_h5.words),1),'.00','') AS hex5_words
+      ,replace(convert(varchar,convert(Money, ar_h5.words_goal),1),'.00','') AS hex5_goal
+      ,CASE
+        WHEN CONVERT(FLOAT,ROUND((ar_h5.words / ar_h5.words_goal * 100),1)) > 100 THEN 100
+        ELSE CONVERT(FLOAT,ROUND((ar_h5.words / ar_h5.words_goal * 100),1))
+       END AS hex5_pct_goal
+      ,ROUND((CONVERT(FLOAT,ar_h5.N_passed) / CONVERT(FLOAT,ar_h5.N_total) * 100),1) AS hex5_pct_passing
+      ,ar_h5.mastery_fiction AS hex5_accuracy_fiction
+      ,ar_h5.mastery_nonfiction AS hex5_accuracy_nonfiction
+        --Hex 6
+      ,replace(convert(varchar,convert(Money, ar_h6.words),1),'.00','') AS hex6_words
+      ,replace(convert(varchar,convert(Money, ar_h6.words_goal),1),'.00','') AS hex6_goal
+      ,CASE
+        WHEN CONVERT(FLOAT,ROUND((ar_h6.words / ar_h6.words_goal * 100),1)) > 100 THEN 100
+        ELSE CONVERT(FLOAT,ROUND((ar_h6.words / ar_h6.words_goal * 100),1))
+       END AS hex6_pct_goal
+      ,ROUND((CONVERT(FLOAT,ar_h6.N_passed) / CONVERT(FLOAT,ar_h6.N_total) * 100),1) AS hex6_pct_passing
+      ,ar_h6.mastery_fiction AS hex6_accuracy_fiction
+      ,ar_h6.mastery_nonfiction AS hex6_accuracy_nonfiction
+      
 FROM roster
 --ENR
 LEFT OUTER JOIN enrollments enr
@@ -187,17 +247,43 @@ LEFT OUTER JOIN
 LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl
   ON CAST(roster.studentid AS NVARCHAR) = rl.studentid
 
---AR current
+--AR
+--current
 LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_cur
   ON roster.studentid = ar_cur.studentid
  AND ar_cur.time_period_name = 'RT3'
- AND ar_cur.yearid = 2300
-
---AR year
+ AND ar_cur.yearid = dbo.fn_Global_Term_Id() 
+--year
 LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_year
   ON roster.studentid = ar_year.studentid
  AND ar_year.time_period_name = 'Year'
- AND ar_year.yearid = 2300
+ AND ar_year.yearid = dbo.fn_Global_Term_Id()
+--individual hex 
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h1 WITH (NOLOCK)
+  ON roster.studentid = ar_h1.studentid 
+ AND ar_h1.time_period_name = 'RT1'
+ AND ar_h1.yearid = dbo.fn_Global_Term_Id() 
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h2 WITH (NOLOCK)
+  ON roster.studentid = ar_h2.studentid
+ AND ar_h2.time_period_name = 'RT2'
+ AND ar_h2.yearid = dbo.fn_Global_Term_Id() 
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h3 WITH (NOLOCK)
+  ON roster.studentid = ar_h3.studentid
+ AND ar_h3.time_period_name = 'RT3'
+ AND ar_h3.yearid = dbo.fn_Global_Term_Id() 
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h4 WITH (NOLOCK)
+  ON roster.studentid = ar_h4.studentid
+ AND ar_h4.time_period_name = 'RT4'
+ AND ar_h4.yearid = dbo.fn_Global_Term_Id()  
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h5 WITH (NOLOCK)
+  ON roster.studentid = ar_h5.studentid
+ AND ar_h5.time_period_name = 'RT5'
+ AND ar_h5.yearid = dbo.fn_Global_Term_Id()  
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h6 WITH (NOLOCK)
+  ON roster.studentid = ar_h6.studentid
+ AND ar_h6.time_period_name = 'RT6'
+ AND ar_h6.yearid = dbo.fn_Global_Term_Id()
+
 
 LEFT OUTER JOIN sri_lexile
   ON CAST(roster.student_number AS NVARCHAR) = sri_lexile.base_student_number
