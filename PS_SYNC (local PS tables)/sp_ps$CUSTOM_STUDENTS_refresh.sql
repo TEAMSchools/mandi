@@ -39,6 +39,7 @@ BEGIN
                ,pvcs_LS.string_value    AS lunch_status_1213
                ,pvcs_LB.string_value    AS lunch_balance
                ,pvcs_diy.string_value   AS diy_nickname
+               ,pvcs_504.string_value   AS status_504
          FROM STUDENTS s
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_adv   ON s.id = pvcs_adv.studentid   AND pvcs_adv.field_name   = ''Advisor''
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_adv_e ON s.id = pvcs_adv_e.studentid AND pvcs_adv_e.field_name = ''Advisor_Email''
@@ -54,6 +55,7 @@ BEGIN
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_LS    ON s.id = pvcs_LS.studentid    AND pvcs_LS.field_name    = ''Lunch_Status_1213''
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_LB    ON s.id = pvcs_LB.studentid    AND pvcs_LB.field_name    = ''Lunch_Balance''
          LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_diy   ON s.id = pvcs_diy.studentid   AND pvcs_diy.field_name   = ''DIYNickname''
+         LEFT OUTER JOIN PVSIS_CUSTOM_STUDENTS pvcs_504   ON s.id = pvcs_504.studentid   AND pvcs_504.field_name   = ''504_status''
          --WHERE s.enroll_status = 0
          ');
          
