@@ -65,6 +65,7 @@ SELECT s.LASTFIRST
         WHEN diff.expression = '8(A)' THEN '4D'        
         ELSE NULL
        END AS lunch_assignment
+      ,intv_block.group_name AS diff_block_assignment
       ,ar_q1.rank_points_grade_in_school AS AR_graderank_Q1
       ,ar_Q2.rank_points_grade_in_school AS AR_graderank_Q2
       ,ar_Q3.rank_points_grade_in_school AS AR_graderank_Q3
@@ -188,5 +189,8 @@ LEFT OUTER JOIN (
                    AND cc.COURSE_NUMBER != 'STUDY25'
                 ) diff
   ON s.id = diff.studentid
+--intervention block
+LEFT OUTER JOIN KIPP_NJ..[CUSTOM_GROUPINGS$intervention_block#NCA] intv_block
+  ON s.id = intv_block.studentid
 WHERE s.SCHOOLID = 73253
   AND s.ENROLL_STATUS = 0
