@@ -449,9 +449,20 @@ FROM
                                                     + CONVERT(VARCHAR,dna_low_tri)
               ELSE NULL
              END AS reporting_hash
-            ,scores.la_reading_lvl
-            ,scores.la_GLEQ
-            ,scores.la_level_number
+            ,CASE 
+              WHEN s.schoolid IN (73254,73255,73256) THEN scores.la_reading_lvl
+              WHEN s.schoolid IN (73252,133570965) THEN scores.la_reading_lvl_ms
+             END AS la_reading_lvl
+            ,CASE
+              WHEN s.schoolid IN (73254,73255,73256) THEN scores.la_GLEQ
+              WHEN s.schoolid IN (73252,133570965) THEN scores.la_GLEQ_ms
+             END AS la_GLEQ
+            ,CASE
+              WHEN s.schoolid IN (73254,73255,73256) THEN scores.la_level_number
+              WHEN s.schoolid IN (73252,133570965) THEN scores.la_level_number_ms
+             END AS la_level_number
+            ,la_wpmrate_ms
+            ,la_fp_keylever_ms
             ,scores.achv_high_tri
             ,scores.dna_low_tri
       FROM
@@ -556,6 +567,11 @@ FROM
                   ,la_reading_lvl
                   ,la_GLEQ
                   ,la_level_number
+                  ,la_reading_lvl_ms
+                  ,la_GLEQ_ms
+                  ,la_level_number_ms
+                  ,la_wpmrate_ms
+                  ,la_fp_keylever_ms
                   ,achv_high_tri
                   ,dna_low_tri
             FROM LIT$FP_test_events_long#identifiers#static WITH (NOLOCK)
@@ -664,8 +680,13 @@ FROM
                   ,la_reading_lvl
                   ,la_GLEQ
                   ,la_level_number
+                  ,la_reading_lvl_ms
+                  ,la_GLEQ_ms
+                  ,la_level_number_ms
+                  ,NULL AS la_wpmrate_ms
+                  ,NULL AS la_fp_keylever_ms
                   ,achv_high_tri
-                  ,dna_low_tri
+                  ,dna_low_tri                  
             FROM LIT$STEP_test_events_long#identifiers WITH (NOLOCK)
             WHERE year >= 2012
            ) scores
@@ -683,3 +704,4 @@ FROM
        AND map.rn = 1
       WHERE s.enroll_status = 0
      ) sub
+WHERE curr_school != 73253     

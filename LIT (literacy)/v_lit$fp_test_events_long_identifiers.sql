@@ -53,6 +53,8 @@ SELECT sub.*
         WHEN highestms.level_number IS NULL THEN last_step.level_number
         ELSE highestms.level_number
        END AS la_level_number_ms
+      ,highestms.fp_wpmrate AS la_wpmrate_ms
+      ,highestms.fp_keylever AS la_keylever_ms
 FROM
 
 --ALL TEST EVENTS
@@ -628,6 +630,8 @@ LEFT OUTER JOIN
       FROM
            (SELECT rs.studentid                  
                   ,rs.step_ltr_level                  
+                  ,rs.fp_wpmrate
+                  ,rs.fp_keylever
                   ,CASE
                     WHEN step_ltr_level = 'AA' THEN 0.0
                     WHEN step_ltr_level = 'A' THEN 0.3
