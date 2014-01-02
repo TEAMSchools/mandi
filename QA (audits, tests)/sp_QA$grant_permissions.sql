@@ -12,3 +12,6 @@ GRANT SELECT ON REPORTING$progress_tracker#NCA#static TO db_data_tool_reader
 GRANT SELECT ON STUDENTS TO db_data_tool_reader
 GRANT SELECT ON CUSTOM_STUDENTS TO db_data_tool_reader
 GRANT SELECT ON ES_DAILY$daily_tracking_long#static TO db_data_tool_reader
+GRANT SELECT ON MAP$rutgers_ready_student_goals TO db_data_tool_reader 
+GRANT SELECT ON MAP$comprehensive#identifiers TO db_data_tool_reader 
+GRANT SELECT ON MAP$best_baseline#static TO db_data_tool_reader
