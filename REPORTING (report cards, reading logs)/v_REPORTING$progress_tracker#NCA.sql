@@ -100,6 +100,7 @@ SELECT ROW_NUMBER() OVER(
       ,disc_ISS
       ,disc_OSS
       ,detentions
+      ,class_removal
       ,in_grade_denom
       ,CASE
         WHEN gpa_ytd IS NOT NULL THEN
@@ -582,6 +583,7 @@ FROM
            ,dcounts.ISS AS disc_ISS
            ,dcounts.OSS AS disc_OSS
            ,dcounts.detentions
+           ,dcounts.class_removal
            
      FROM roster WITH (NOLOCK)
       
