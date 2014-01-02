@@ -89,7 +89,11 @@ FROM
        --AND assessments.deleted_at IS NULL
       LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
         ON s.id = co.studentid
-       AND co.year = DATEPART(YYYY,assessments.administered_at)  
+       AND co.year = CASE
+                      WHEN DATEPART(MM,assessments.administered_at) >= 07 THEN DATEPART(YYYY,assessments.administered_at)
+                      WHEN DATEPART(MM,assessments.administered_at) < 07 THEN (DATEPART(YYYY,assessments.administered_at) - 1)
+                      ELSE NULL
+                     END 
       JOIN REPORTING$dates dates WITH(NOLOCK)
         ON assessments.administered_at >= dates.start_date
        AND assessments.administered_at <= dates.end_date
