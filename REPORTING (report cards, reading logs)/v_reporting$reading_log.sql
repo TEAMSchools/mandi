@@ -121,7 +121,7 @@ SELECT roster.*
        END AS hex1_pct_goal
       ,ROUND((CONVERT(FLOAT,ar_h1.N_passed) / CONVERT(FLOAT,ar_h1.N_total) * 100),1) AS hex1_pct_passing
       ,ar_h1.mastery_fiction AS hex1_accuracy_fiction
-      ,ar_h2.mastery_nonfiction AS hex1_accuracy_nonfiction
+      ,ar_h1.mastery_nonfiction AS hex1_accuracy_nonfiction
         --Hex 2
       ,replace(convert(varchar,convert(Money, ar_h2.words),1),'.00','') AS hex2_words
       ,replace(convert(varchar,convert(Money, ar_h2.words_goal),1),'.00','') AS hex2_goal
