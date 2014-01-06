@@ -87,7 +87,7 @@ FROM KIPP_NJ..EMAIL$template_jobs WITH (NOLOCK)
 WHERE job_name = @job_name
 
 --build dynamic datepaths
-SELECT @datepath_helper = CAST(DATEPART(MONTH,GETDATE()) AS VARCHAR) + '_' +
+SELECT @datepath_helper = RIGHT('0' + CONVERT(VARCHAR(2), DATEPART(MONTH, GETDATE())), 2)  + '_' +
          RIGHT('0' + DATENAME(DAY, GETDATE()), 2) + '_' + 
          RIGHT(CAST(DATEPART(YY,GETDATE()) AS VARCHAR),2)
 
