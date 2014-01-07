@@ -40,8 +40,14 @@ SELECT schoolid
       ,studentid
       ,student_number
      /*--Y1--*/
+      ,att_days
+      ,hw_days
       ,total_days
+      ,am_days
+      ,mid_days
+      ,pm_days
       ,hw
+      ,CAST(ROUND(hw / hw_days,2,1) * 100 AS FLOAT) AS hw_pct
       ,purple_total
       ,pink_total
       ,green_total
@@ -55,8 +61,14 @@ SELECT schoolid
       ,CAST(ROUND(orange_total / total_days,2,1) * 100 AS FLOAT) AS orange_pct
       ,CAST(ROUND(red_total / total_days,2,1) * 100	AS FLOAT) AS red_pct
      /*--RT1--*/ 
-      ,rt1_total_days
+      ,rt1_att_days
+      ,rt1_hw_days
+      ,rt1_behavior_days
+      ,rt1_am_days
+      ,rt1_mid_days
+      ,rt1_pm_days
       ,rt1_hw
+      ,CAST(ROUND(rt1_hw / rt1_hw_days,2,1) * 100 AS FLOAT) AS rt1_hw_pct
       ,rt1_purple_total
       ,rt1_pink_total
       ,rt1_green_total
@@ -70,8 +82,14 @@ SELECT schoolid
       ,CAST(ROUND(rt1_orange_total / rt1_total_days,2,1) * 100 AS FLOAT) AS rt1_orange_pct
       ,CAST(ROUND(rt1_red_total / rt1_total_days,2,1) * 100	AS FLOAT) AS rt1_red_pct
      /*--rt2--*/ 
-      ,rt2_total_days
+      ,rt2_att_days
+      ,rt2_hw_days
+      ,rt2_behavior_days
+      ,rt2_am_days
+      ,rt2_mid_days
+      ,rt2_pm_days
       ,rt2_hw
+      ,CAST(ROUND(rt2_hw / rt2_hw_days,2,1) * 100 AS FLOAT) AS rt2_hw_pct
       ,rt2_purple_total
       ,rt2_pink_total
       ,rt2_green_total
@@ -85,8 +103,14 @@ SELECT schoolid
       ,CAST(ROUND(rt2_orange_total / rt2_total_days,2,1) * 100 AS FLOAT) AS rt2_orange_pct
       ,CAST(ROUND(rt2_red_total / rt2_total_days,2,1) * 100	AS FLOAT) AS rt2_red_pct      
      /*--rt3--*/ 
-      ,rt3_total_days
+      ,rt3_att_days
+      ,rt3_hw_days
+      ,rt3_behavior_days
+      ,rt3_am_days
+      ,rt3_mid_days
+      ,rt3_pm_days
       ,rt3_hw
+      ,CAST(ROUND(rt3_hw / rt3_hw_days,2,1) * 100 AS FLOAT) AS rt3_hw_pct
       ,rt3_purple_total
       ,rt3_pink_total
       ,rt3_green_total
@@ -100,8 +124,14 @@ SELECT schoolid
       ,CAST(ROUND(rt3_orange_total / rt3_total_days,2,1) * 100 AS FLOAT) AS rt3_orange_pct
       ,CAST(ROUND(rt3_red_total / rt3_total_days,2,1) * 100	AS FLOAT) AS rt3_red_pct    
      /*--rt4--*/ 
-      ,rt4_total_days
+      ,rt4_att_days
+      ,rt4_hw_days
+      ,rt4_behavior_days
+      ,rt4_am_days
+      ,rt4_mid_days
+      ,rt4_pm_days
       ,rt4_hw
+      ,CAST(ROUND(rt4_hw / rt4_hw_days,2,1) * 100 AS FLOAT) AS rt4_hw_pct
       ,rt4_purple_total
       ,rt4_pink_total
       ,rt4_green_total
@@ -115,8 +145,14 @@ SELECT schoolid
       ,CAST(ROUND(rt4_orange_total / rt4_total_days,2,1) * 100 AS FLOAT) AS rt4_orange_pct
       ,CAST(ROUND(rt4_red_total / rt4_total_days,2,1) * 100	AS FLOAT) AS rt4_red_pct     
      /*--rt5--*/ 
-      ,rt5_total_days
+      ,rt5_att_days
+      ,rt5_hw_days
+      ,rt5_behavior_days
+      ,rt5_am_days
+      ,rt5_mid_days
+      ,rt5_pm_days
       ,rt5_hw
+      ,CAST(ROUND(rt5_hw / rt5_hw_days,2,1) * 100 AS FLOAT) AS rt5_hw_pct
       ,rt5_purple_total
       ,rt5_pink_total
       ,rt5_green_total
@@ -130,8 +166,14 @@ SELECT schoolid
       ,CAST(ROUND(rt5_orange_total / rt5_total_days,2,1) * 100 AS FLOAT) AS rt5_orange_pct
       ,CAST(ROUND(rt5_red_total / rt5_total_days,2,1) * 100	AS FLOAT) AS rt5_red_pct         
      /*--rt6--*/ 
-      ,rt6_total_days
+      ,rt6_att_days
+      ,rt6_hw_days
+      ,rt6_behavior_days
+      ,rt6_am_days
+      ,rt6_mid_days
+      ,rt6_pm_days
       ,rt6_hw
+      ,CAST(ROUND(rt6_hw / rt6_hw_days,2,1) * 100 AS FLOAT) AS rt6_hw_pct
       ,rt6_purple_total
       ,rt6_pink_total
       ,rt6_green_total
@@ -145,8 +187,14 @@ SELECT schoolid
       ,CAST(ROUND(rt6_orange_total / rt6_total_days,2,1) * 100 AS FLOAT) AS rt6_orange_pct
       ,CAST(ROUND(rt6_red_total / rt6_total_days,2,1) * 100	AS FLOAT) AS rt6_red_pct      
      /*--cur--*/ 
-      ,cur_total_days
+      ,cur_att_days
+      ,cur_hw_days
+      ,cur_behavior_days
+      ,cur_am_days
+      ,cur_mid_days
+      ,cur_pm_days
       ,cur_hw
+      ,CAST(ROUND(cur_hw / cur_hw_days,2,1) * 100 AS FLOAT) AS cur_hw_pct
       ,cur_purple_total
       ,cur_pink_total
       ,cur_green_total
@@ -165,7 +213,16 @@ FROM
             ,studentid
             ,student_number
            /*--Y1--*/
-            ,total_days
+            ,att_days
+            ,hw_days
+            ,CASE
+              WHEN ISNULL(behavior_days,0) + ISNULL(am_days,0) + ISNULL(mid_days,0) + ISNULL(pm_days,0) = 0 THEN NULL 
+              ELSE ISNULL(behavior_days,0) + ISNULL(am_days,0) + ISNULL(mid_days,0) + ISNULL(pm_days,0) 
+             END AS total_days
+            ,behavior_days
+            ,am_days 
+            ,mid_days
+            ,pm_days
             ,hw
             ,purple + purple_am + purple_mid + purple_pm AS purple_total
             ,pink + pink_am + pink_mid + pink_pm AS pink_total
@@ -174,7 +231,16 @@ FROM
             ,orange + orange_am + orange_mid + orange_pm AS orange_total
             ,red + red_am + red_mid + red_pm AS red_total
            /*--RT1--*/
-            ,rt1_total_days
+            ,rt1_att_days
+            ,rt1_hw_days
+            ,CASE
+              WHEN ISNULL(rt1_behavior_days,0) + ISNULL(rt1_am_days,0) + ISNULL(rt1_mid_days,0) + ISNULL(rt1_pm_days,0) = 0 THEN NULL
+              ELSE ISNULL(rt1_behavior_days,0) + ISNULL(rt1_am_days,0) + ISNULL(rt1_mid_days,0) + ISNULL(rt1_pm_days,0)
+             END AS rt1_total_days
+            ,rt1_behavior_days
+            ,rt1_am_days
+            ,rt1_mid_days
+            ,rt1_pm_days
             ,rt1_hw
             ,rt1_purple + rt1_purple_am + rt1_purple_mid + rt1_purple_pm AS rt1_purple_total
             ,rt1_pink + rt1_pink_am + rt1_pink_mid + rt1_pink_pm AS rt1_pink_total
@@ -183,7 +249,16 @@ FROM
             ,rt1_orange + rt1_orange_am + rt1_orange_mid + rt1_orange_pm AS rt1_orange_total
             ,rt1_red + rt1_red_am + rt1_red_mid + rt1_red_pm AS rt1_red_total
            /*--rt2--*/
-            ,rt2_total_days
+            ,rt2_att_days
+            ,rt2_hw_days
+            ,CASE
+              WHEN ISNULL(rt2_behavior_days,0) + ISNULL(rt2_am_days,0) + ISNULL(rt2_mid_days,0) + ISNULL(rt2_pm_days,0) = 0 THEN NULL
+              ELSE ISNULL(rt2_behavior_days,0) + ISNULL(rt2_am_days,0) + ISNULL(rt2_mid_days,0) + ISNULL(rt2_pm_days,0)
+             END AS rt2_total_days
+            ,rt2_behavior_days
+            ,rt2_am_days
+            ,rt2_mid_days
+            ,rt2_pm_days
             ,rt2_hw
             ,rt2_purple + rt2_purple_am + rt2_purple_mid + rt2_purple_pm AS rt2_purple_total
             ,rt2_pink + rt2_pink_am + rt2_pink_mid + rt2_pink_pm AS rt2_pink_total
@@ -192,7 +267,16 @@ FROM
             ,rt2_orange + rt2_orange_am + rt2_orange_mid + rt2_orange_pm AS rt2_orange_total
             ,rt2_red + rt2_red_am + rt2_red_mid + rt2_red_pm AS rt2_red_total      
            /*--rt3--*/
-            ,rt3_total_days
+            ,rt3_att_days
+            ,rt3_hw_days
+            ,CASE
+              WHEN ISNULL(rt3_behavior_days,0) + ISNULL(rt3_am_days,0) + ISNULL(rt3_mid_days,0) + ISNULL(rt3_pm_days,0) = 0 THEN NULL
+              ELSE ISNULL(rt3_behavior_days,0) + ISNULL(rt3_am_days,0) + ISNULL(rt3_mid_days,0) + ISNULL(rt3_pm_days,0)
+             END AS rt3_total_days
+            ,rt3_behavior_days
+            ,rt3_am_days
+            ,rt3_mid_days
+            ,rt3_pm_days
             ,rt3_hw
             ,rt3_purple + rt3_purple_am + rt3_purple_mid + rt3_purple_pm AS rt3_purple_total
             ,rt3_pink + rt3_pink_am + rt3_pink_mid + rt3_pink_pm AS rt3_pink_total
@@ -201,7 +285,16 @@ FROM
             ,rt3_orange + rt3_orange_am + rt3_orange_mid + rt3_orange_pm AS rt3_orange_total
             ,rt3_red + rt3_red_am + rt3_red_mid + rt3_red_pm AS rt3_red_total          
            /*--rt4--*/
-            ,rt4_total_days
+            ,rt4_att_days
+            ,rt4_hw_days
+            ,CASE
+              WHEN ISNULL(rt4_behavior_days,0) + ISNULL(rt4_am_days,0) + ISNULL(rt4_mid_days,0) + ISNULL(rt4_pm_days,0) = 0 THEN NULL
+              ELSE ISNULL(rt4_behavior_days,0) + ISNULL(rt4_am_days,0) + ISNULL(rt4_mid_days,0) + ISNULL(rt4_pm_days,0)
+             END AS rt4_total_days
+            ,rt4_behavior_days
+            ,rt4_am_days
+            ,rt4_mid_days
+            ,rt4_pm_days
             ,rt4_hw
             ,rt4_purple + rt4_purple_am + rt4_purple_mid + rt4_purple_pm AS rt4_purple_total
             ,rt4_pink + rt4_pink_am + rt4_pink_mid + rt4_pink_pm AS rt4_pink_total
@@ -210,7 +303,16 @@ FROM
             ,rt4_orange + rt4_orange_am + rt4_orange_mid + rt4_orange_pm AS rt4_orange_total
             ,rt4_red + rt4_red_am + rt4_red_mid + rt4_red_pm AS rt4_red_total  
            /*--rt5--*/
-            ,rt5_total_days
+            ,rt5_att_days
+            ,rt5_hw_days
+            ,CASE
+              WHEN ISNULL(rt5_behavior_days,0) + ISNULL(rt5_am_days,0) + ISNULL(rt5_mid_days,0) + ISNULL(rt5_pm_days,0) = 0 THEN NULL
+              ELSE ISNULL(rt5_behavior_days,0) + ISNULL(rt5_am_days,0) + ISNULL(rt5_mid_days,0) + ISNULL(rt5_pm_days,0)
+             END AS rt5_total_days
+            ,rt5_behavior_days
+            ,rt5_am_days
+            ,rt5_mid_days
+            ,rt5_pm_days
             ,rt5_hw
             ,rt5_purple + rt5_purple_am + rt5_purple_mid + rt5_purple_pm AS rt5_purple_total
             ,rt5_pink + rt5_pink_am + rt5_pink_mid + rt5_pink_pm AS rt5_pink_total
@@ -219,7 +321,16 @@ FROM
             ,rt5_orange + rt5_orange_am + rt5_orange_mid + rt5_orange_pm AS rt5_orange_total
             ,rt5_red + rt5_red_am + rt5_red_mid + rt5_red_pm AS rt5_red_total                  
            /*--rt6--*/
-            ,rt6_total_days
+            ,rt6_att_days
+            ,rt6_hw_days
+            ,CASE
+              WHEN ISNULL(rt6_behavior_days,0) + ISNULL(rt6_am_days,0) + ISNULL(rt6_mid_days,0) + ISNULL(rt6_pm_days,0) = 0 THEN NULL
+              ELSE ISNULL(rt6_behavior_days,0) + ISNULL(rt6_am_days,0) + ISNULL(rt6_mid_days,0) + ISNULL(rt6_pm_days,0)
+             END AS rt6_total_days
+            ,rt6_behavior_days
+            ,rt6_am_days
+            ,rt6_mid_days
+            ,rt6_pm_days
             ,rt6_hw
             ,rt6_purple + rt6_purple_am + rt6_purple_mid + rt6_purple_pm AS rt6_purple_total
             ,rt6_pink + rt6_pink_am + rt6_pink_mid + rt6_pink_pm AS rt6_pink_total
@@ -228,7 +339,16 @@ FROM
             ,rt6_orange + rt6_orange_am + rt6_orange_mid + rt6_orange_pm AS rt6_orange_total
             ,rt6_red + rt6_red_am + rt6_red_mid + rt6_red_pm AS rt6_red_total          
            /*--cur--*/
-            ,cur_total_days
+            ,cur_att_days
+            ,cur_hw_days
+            ,CASE
+              WHEN ISNULL(cur_behavior_days,0) + ISNULL(cur_am_days,0) + ISNULL(cur_mid_days,0) + ISNULL(cur_pm_days,0) = 0 THEN NULL
+              ELSE ISNULL(cur_behavior_days,0) + ISNULL(cur_am_days,0) + ISNULL(cur_mid_days,0) + ISNULL(cur_pm_days,0)
+             END AS cur_total_days
+            ,cur_behavior_days
+            ,cur_am_days
+            ,cur_mid_days
+            ,cur_pm_days
             ,cur_hw
             ,cur_purple + cur_purple_am + cur_purple_mid + cur_purple_pm AS cur_purple_total
             ,cur_pink + cur_pink_am + cur_pink_mid + cur_pink_pm AS cur_pink_total
@@ -242,8 +362,14 @@ FROM
                   ,studentid
                   ,student_number      
                  /*--Y1--*/
-                  ,SUM(CASE WHEN att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS total_days
-                  ,SUM(CASE WHEN hw = 'Yes' THEN 1.0 ELSE 0.0 END) AS hw
+                  ,SUM(CASE WHEN att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS att_days
+                  ,SUM(CASE WHEN hw IS NOT NULL THEN 1.0 ELSE NULL END) AS hw_days
+                  ,SUM(CASE WHEN color_day IS NOT NULL THEN 1.0 ELSE NULL END) AS behavior_days
+                  ,SUM(CASE WHEN thrive_am IS NOT NULL THEN 1.0 ELSE NULL END) AS am_days
+                  ,SUM(CASE WHEN thrive_mid IS NOT NULL THEN 1.0 ELSE NULL END) AS mid_days
+                  ,SUM(CASE WHEN thrive_pm IS NOT NULL THEN 1.0 ELSE NULL END) AS pm_days
+                  --HW
+                  ,SUM(CASE WHEN hw = 'Yes' THEN 1.0 ELSE 0.0 END) AS hw                  
                   --Purple
                   ,SUM(CASE WHEN color_day = 'purple' THEN 1.0 ELSE 0.0 END) AS purple
                   ,SUM(CASE WHEN thrive_am = 'purple' THEN 1.0 ELSE 0.0 END) AS purple_am
@@ -276,7 +402,13 @@ FROM
                   ,SUM(CASE WHEN thrive_pm = 'red' THEN 1.0 ELSE 0.0 END) AS red_pm
                   
                 /*--RT1--*/
-                  ,SUM(CASE WHEN rt = 'RT1' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS rt1_total_days
+                  ,SUM(CASE WHEN rt = 'RT1' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS rt1_att_days
+                  ,SUM(CASE WHEN rt = 'RT1' AND hw IS NOT NULL THEN 1.0 ELSE NULL END) AS rt1_hw_days
+                  ,SUM(CASE WHEN rt = 'RT1' AND color_day IS NOT NULL THEN 1.0 ELSE NULL END) AS rt1_behavior_days
+                  ,SUM(CASE WHEN rt = 'RT1' AND thrive_am IS NOT NULL THEN 1.0 ELSE NULL END) AS rt1_am_days
+                  ,SUM(CASE WHEN rt = 'RT1' AND thrive_mid IS NOT NULL THEN 1.0 ELSE NULL END) AS rt1_mid_days
+                  ,SUM(CASE WHEN rt = 'RT1' AND thrive_pm IS NOT NULL THEN 1.0 ELSE NULL END) AS rt1_pm_days
+                  --HW
                   ,SUM(CASE WHEN rt = 'RT1' AND hw = 'Yes' THEN 1.0 ELSE 0.0 END) AS rt1_hw
                   --Purple
                   ,SUM(CASE WHEN rt = 'RT1' AND color_day = 'purple' THEN 1.0 ELSE 0.0 END) AS rt1_purple
@@ -310,7 +442,12 @@ FROM
                   ,SUM(CASE WHEN rt = 'RT1' AND thrive_pm = 'red' THEN 1.0 ELSE 0.0 END) AS rt1_red_pm
 
                 /*--RT2--*/
-                  ,SUM(CASE WHEN rt = 'RT2' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS RT2_total_days
+                  ,SUM(CASE WHEN rt = 'RT2' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS RT2_att_days
+                  ,SUM(CASE WHEN rt = 'RT2' AND hw IS NOT NULL THEN 1.0 ELSE NULL END) AS rt2_hw_days
+                  ,SUM(CASE WHEN rt = 'RT2' AND color_day IS NOT NULL THEN 1.0 ELSE NULL END) AS rt2_behavior_days
+                  ,SUM(CASE WHEN rt = 'RT2' AND thrive_am IS NOT NULL THEN 1.0 ELSE NULL END) AS rt2_am_days
+                  ,SUM(CASE WHEN rt = 'RT2' AND thrive_mid IS NOT NULL THEN 1.0 ELSE NULL END) AS rt2_mid_days
+                  ,SUM(CASE WHEN rt = 'RT2' AND thrive_pm IS NOT NULL THEN 1.0 ELSE NULL END) AS rt2_pm_days
                   ,SUM(CASE WHEN rt = 'RT2' AND hw = 'Yes' THEN 1.0 ELSE 0.0 END) AS RT2_hw
                   --Purple
                   ,SUM(CASE WHEN rt = 'RT2' AND color_day = 'purple' THEN 1.0 ELSE 0.0 END) AS RT2_purple
@@ -344,7 +481,12 @@ FROM
                   ,SUM(CASE WHEN rt = 'RT2' AND thrive_pm = 'red' THEN 1.0 ELSE 0.0 END) AS RT2_red_pm      
                   
                 /*--RT3--*/
-                  ,SUM(CASE WHEN rt = 'RT3' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS RT3_total_days
+                  ,SUM(CASE WHEN rt = 'RT3' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS RT3_att_days
+                  ,SUM(CASE WHEN rt = 'RT3' AND hw IS NOT NULL THEN 1.0 ELSE NULL END) AS rt3_hw_days
+                  ,SUM(CASE WHEN rt = 'RT3' AND color_day IS NOT NULL THEN 1.0 ELSE NULL END) AS rt3_behavior_days
+                  ,SUM(CASE WHEN rt = 'RT3' AND thrive_am IS NOT NULL THEN 1.0 ELSE NULL END) AS rt3_am_days
+                  ,SUM(CASE WHEN rt = 'RT3' AND thrive_mid IS NOT NULL THEN 1.0 ELSE NULL END) AS rt3_mid_days
+                  ,SUM(CASE WHEN rt = 'RT3' AND thrive_pm IS NOT NULL THEN 1.0 ELSE NULL END) AS rt3_pm_days
                   ,SUM(CASE WHEN rt = 'RT3' AND hw = 'Yes' THEN 1.0 ELSE 0.0 END) AS RT3_hw
                   --Purple
                   ,SUM(CASE WHEN rt = 'RT3' AND color_day = 'purple' THEN 1.0 ELSE 0.0 END) AS RT3_purple
@@ -378,7 +520,12 @@ FROM
                   ,SUM(CASE WHEN rt = 'RT3' AND thrive_pm = 'red' THEN 1.0 ELSE 0.0 END) AS RT3_red_pm      
                   
                 /*--RT4--*/
-                  ,SUM(CASE WHEN rt = 'RT4' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS RT4_total_days
+                  ,SUM(CASE WHEN rt = 'RT4' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS RT4_att_days
+                  ,SUM(CASE WHEN rt = 'RT4' AND hw IS NOT NULL THEN 1.0 ELSE NULL END) AS rt4_hw_days
+                  ,SUM(CASE WHEN rt = 'RT4' AND color_day IS NOT NULL THEN 1.0 ELSE NULL END) AS rt4_behavior_days
+                  ,SUM(CASE WHEN rt = 'RT4' AND thrive_am IS NOT NULL THEN 1.0 ELSE NULL END) AS rt4_am_days
+                  ,SUM(CASE WHEN rt = 'RT4' AND thrive_mid IS NOT NULL THEN 1.0 ELSE NULL END) AS rt4_mid_days
+                  ,SUM(CASE WHEN rt = 'RT4' AND thrive_pm IS NOT NULL THEN 1.0 ELSE NULL END) AS rt4_pm_days
                   ,SUM(CASE WHEN rt = 'RT4' AND hw = 'Yes' THEN 1.0 ELSE 0.0 END) AS RT4_hw
                   --Purple
                   ,SUM(CASE WHEN rt = 'RT4' AND color_day = 'purple' THEN 1.0 ELSE 0.0 END) AS RT4_purple
@@ -412,7 +559,12 @@ FROM
                   ,SUM(CASE WHEN rt = 'RT4' AND thrive_pm = 'red' THEN 1.0 ELSE 0.0 END) AS RT4_red_pm
                   
                 /*--RT5--*/
-                  ,SUM(CASE WHEN rt = 'RT5' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS RT5_total_days
+                  ,SUM(CASE WHEN rt = 'RT5' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS RT5_att_days
+                  ,SUM(CASE WHEN rt = 'RT5' AND hw IS NOT NULL THEN 1.0 ELSE NULL END) AS rt5_hw_days
+                  ,SUM(CASE WHEN rt = 'RT5' AND color_day IS NOT NULL THEN 1.0 ELSE NULL END) AS rt5_behavior_days
+                  ,SUM(CASE WHEN rt = 'RT5' AND thrive_am IS NOT NULL THEN 1.0 ELSE NULL END) AS rt5_am_days
+                  ,SUM(CASE WHEN rt = 'RT5' AND thrive_mid IS NOT NULL THEN 1.0 ELSE NULL END) AS rt5_mid_days
+                  ,SUM(CASE WHEN rt = 'RT5' AND thrive_pm IS NOT NULL THEN 1.0 ELSE NULL END) AS rt5_pm_days
                   ,SUM(CASE WHEN rt = 'RT5' AND hw = 'Yes' THEN 1.0 ELSE 0.0 END) AS RT5_hw
                   --Purple
                   ,SUM(CASE WHEN rt = 'RT5' AND color_day = 'purple' THEN 1.0 ELSE 0.0 END) AS RT5_purple
@@ -446,7 +598,12 @@ FROM
                   ,SUM(CASE WHEN rt = 'RT5' AND thrive_pm = 'red' THEN 1.0 ELSE 0.0 END) AS RT5_red_pm    
                   
                 /*--RT6--*/
-                  ,SUM(CASE WHEN rt = 'RT6' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS RT6_total_days
+                  ,SUM(CASE WHEN rt = 'RT6' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS RT6_att_days
+                  ,SUM(CASE WHEN rt = 'RT6' AND hw IS NOT NULL THEN 1.0 ELSE NULL END) AS rt6_hw_days
+                  ,SUM(CASE WHEN rt = 'RT6' AND color_day IS NOT NULL THEN 1.0 ELSE NULL END) AS rt6_behavior_days
+                  ,SUM(CASE WHEN rt = 'RT6' AND thrive_am IS NOT NULL THEN 1.0 ELSE NULL END) AS rt6_am_days
+                  ,SUM(CASE WHEN rt = 'RT6' AND thrive_mid IS NOT NULL THEN 1.0 ELSE NULL END) AS rt6_mid_days
+                  ,SUM(CASE WHEN rt = 'RT6' AND thrive_pm IS NOT NULL THEN 1.0 ELSE NULL END) AS rt6_pm_days
                   ,SUM(CASE WHEN rt = 'RT6' AND hw = 'Yes' THEN 1.0 ELSE 0.0 END) AS RT6_hw
                   --Purple
                   ,SUM(CASE WHEN rt = 'RT6' AND color_day = 'purple' THEN 1.0 ELSE 0.0 END) AS RT6_purple
@@ -480,7 +637,12 @@ FROM
                   ,SUM(CASE WHEN rt = 'RT6' AND thrive_pm = 'red' THEN 1.0 ELSE 0.0 END) AS RT6_red_pm
 
                 /*--CUR--*/
-                  ,SUM(CASE WHEN rt = 'CUR' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS CUR_total_days
+                  ,SUM(CASE WHEN rt = 'CUR' AND att_date IS NOT NULL THEN 1.0 ELSE NULL END) AS CUR_att_days
+                  ,SUM(CASE WHEN rt = 'CUR' AND hw IS NOT NULL THEN 1.0 ELSE NULL END) AS cur_hw_days
+                  ,SUM(CASE WHEN rt = 'CUR' AND color_day IS NOT NULL THEN 1.0 ELSE NULL END) AS cur_behavior_days
+                  ,SUM(CASE WHEN rt = 'CUR' AND thrive_am IS NOT NULL THEN 1.0 ELSE NULL END) AS cur_am_days
+                  ,SUM(CASE WHEN rt = 'CUR' AND thrive_mid IS NOT NULL THEN 1.0 ELSE NULL END) AS cur_mid_days
+                  ,SUM(CASE WHEN rt = 'CUR' AND thrive_pm IS NOT NULL THEN 1.0 ELSE NULL END) AS cur_pm_days
                   ,SUM(CASE WHEN rt = 'CUR' AND hw = 'Yes' THEN 1.0 ELSE 0.0 END) AS CUR_hw
                   --Purple
                   ,SUM(CASE WHEN rt = 'CUR' AND color_day = 'purple' THEN 1.0 ELSE 0.0 END) AS CUR_purple
