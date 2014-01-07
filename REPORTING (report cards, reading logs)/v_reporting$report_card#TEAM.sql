@@ -305,15 +305,15 @@ SELECT roster.*
       ,ROUND(att_pct.RT2_tardy_pct_total,0) AS curterm_tardy_pct_total
 
 --GPA
---GPA$detail#Rise
+--GPA$detail#TEAM
     /*--Year--*/     
       ,team_gpa.gpa_Y1_weighted_all  as gpa_y1_all
       ,team_gpa.gpa_Y1_weighted_core as gpa_y1_core
       
     /*--Current Term--*/
       /*--UPDATE FIELD FOR CURRENT TERM--*/
-      ,team_gpa.gpa_T1_weighted_all  as gpa_curterm_all
-      ,team_gpa.gpa_T1_weighted_core as gpa_curterm_core
+      ,team_gpa.GPA_T2_weighted_core  as gpa_curterm_all
+      ,team_gpa.GPA_T2_weighted_core as gpa_curterm_core
       
 --Promotional Criteria      
 --REPORTING$promo_status#TEAM
