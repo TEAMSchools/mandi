@@ -2,7 +2,8 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$goals_wide AS
-SELECT grade_level
+SELECT schoolid
+      ,grade_level
       ,measurementscale AS subject
       ,iep_status
       ,course
@@ -30,11 +31,12 @@ FROM
             ,norms.mean AS avg_cohort_change
             ,norms.sd AS cohort_sd
             ,ROW_NUMBER() OVER
-               (PARTITION BY sub_2.grade_level, sub_2.measurementscale, sub_2.iep_status, sub_2.course
+               (PARTITION BY sub_2.schoolid, sub_2.grade_level, sub_2.measurementscale, sub_2.iep_status, sub_2.course
                     ORDER BY ABS(avg_baseline_rit - norms.rit) ASC) AS closest_match
       FROM
            (
-            SELECT grade_level
+            SELECT schoolid
+                  ,grade_level              
                   ,measurementscale
                   ,CASE
                     WHEN GROUPING(iep_status) = 0 THEN iep_status
@@ -47,7 +49,8 @@ FROM
                   ,ROUND(AVG(testritscore),1) AS avg_baseline_RIT
             FROM
                  (                  
-                  SELECT s.ID AS studentid                              
+                  SELECT s.ID AS studentid             
+                        ,s.schoolid                 
                         ,baseline.measurementscale
                         ,baseline.grade_level
                         ,CASE
@@ -79,7 +82,7 @@ FROM
                                     AND courses.credittype != 'COCUR'
                                     AND courses.credittype != 'WLANG'                                  
                                  /*--update for each school an term--*/
-                                   WHERE cc.schoolid = 133570965
+                                   WHERE cc.schoolid IN (133570965, 73252)
                                      AND cc.termid >= 2300
                                   ) enrollments
                     ON s.id = enrollments.studentid
@@ -90,13 +93,13 @@ FROM
                         WHEN baseline.measurementscale IN ('Science - Concepts and Processes', 'Science - General Science') THEN 'SCI'
                        END = enrollments.credittype
                 /*--update for each school an term--*/
-                  WHERE s.schoolid = 133570965
+                  WHERE s.schoolid IN (133570965, 73252)
                     AND s.enroll_status = 0
                  ) sub_1
             WHERE testritscore IS NOT NULL
               AND sub_1.match_course IS NOT NULL
               AND sub_1.measurementscale NOT IN ('Science - General Science', 'Science - Concepts and Processes')
-            GROUP BY sub_1.grade_level, sub_1.measurementscale, CUBE(sub_1.iep_status,sub_1.match_course)
+            GROUP BY sub_1.SCHOOLID, sub_1.grade_level, sub_1.measurementscale, CUBE(sub_1.iep_status,sub_1.match_course)
            ) sub_2
       LEFT OUTER JOIN MAP$rit_scale_school_norms norms WITH(NOLOCK)
         ON norms.subject = sub_2.measurementscale
