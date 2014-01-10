@@ -42,6 +42,5 @@ JOIN MEMBERSHIP mem WITH(NOLOCK)
  AND s.schoolid = mem.schoolid
 LEFT OUTER JOIN ATTENDANCE att WITH(NOLOCK)
   ON s.id = att.studentid
- AND mem.CALENDARDATE = att.ATT_DATE
- AND att.ATT_CODE NOT IN ('NM','U')
+ AND mem.CALENDARDATE = att.ATT_DATE 
 WHERE s.enroll_status = 0

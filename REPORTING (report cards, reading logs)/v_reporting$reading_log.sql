@@ -84,6 +84,8 @@ SELECT roster.*
          WHEN map_fall.TestRITScore IS NULL THEN map_spr.RITtoReadingScore
          ELSE map_fall.RITtoReadingScore
        END AS lexile_baseline_MAP
+      ,map_fall.rittoreadingscore AS lexile_fall
+      ,map_winter.rittoreadingscore AS lexile_winter
        --readlive
       ,rl.wpm AS starting_fluency
       ,rl.wpm AS cur_fluency
@@ -213,7 +215,11 @@ LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_fall
  AND map_fall.measurementscale = 'Reading'
  AND map_fall.map_year_academic = 2013
  AND map_fall.TermName = 'Fall 2013-2014'
-
+LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_winter
+  ON roster.studentid = map_winter.ps_studentid
+ AND map_winter.measurementscale = 'Reading'
+ AND map_winter.map_year_academic = 2013
+ AND map_winter.TermName = 'Winter 2013-2014'
 LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_spr
   ON roster.studentid = map_spr.ps_studentid
  AND map_spr.measurementscale = 'Reading'
