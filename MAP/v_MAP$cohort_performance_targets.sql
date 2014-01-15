@@ -93,6 +93,7 @@ SELECT sub.school
       ,sub.iep_status
       ,sub.measurementscale
       ,sub.avg_baseline_rit
+      ,sub.avg_baseline_percentile
       ,sub.N
       ,sub.comparison_start_rit
       ,sub.mean
@@ -103,6 +104,7 @@ SELECT sub.school
       ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.mean), 1) AS float) AS target_rit_change
       ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.avg_baseline_rit + sub.mean), 1) AS float) AS target_spr_rit
       ,loose_agg.avg_cur_endpoint_rit
+      ,loose_agg.avg_cur_endpoint_percentile
 FROM
        --join to norms table, get diff
       (SELECT sub.*
@@ -127,6 +129,7 @@ FROM
                      END AS iep_status
                     ,sub.measurementscale
                     ,CAST(ROUND(AVG(testritscore + 0.0),2) AS FLOAT) AS avg_baseline_rit
+                    ,CAST(ROUND(AVG(testpercentile + 0.0),1) AS FLOAT) AS avg_baseline_percentile
                     ,COUNT(*) AS N
               FROM
                     (SELECT cohort.*
@@ -154,6 +157,7 @@ LEFT OUTER JOIN
          ,map_endpoint.measurementscale
          ,map_endpoint.grade_level
          ,CAST(ROUND(AVG(map_endpoint.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
+         ,ROUND(AVG(CAST(map_endpoint.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
    FROM map_endpoint
    GROUP BY map_endpoint.map_year_academic
            ,map_endpoint.school
@@ -177,6 +181,7 @@ SELECT sub.school
       ,sub.iep_status
       ,sub.measurementscale
       ,sub.avg_baseline_rit
+      ,sub.avg_baseline_percentile
       ,sub.N
       ,sub.comparison_start_rit
       ,sub.mean
@@ -187,6 +192,7 @@ SELECT sub.school
       ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.mean), 1) AS float) AS target_rit_change
       ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.avg_baseline_rit + sub.mean), 1) AS float) AS target_spr_rit
       ,sub.avg_cur_endpoint_rit
+      ,sub.avg_cur_endpoint_percentile
 FROM
        --join to norms table, get diff
       (SELECT sub.*
@@ -211,7 +217,9 @@ FROM
                      END AS iep_status
                     ,sub.measurementscale
                     ,CAST(ROUND(AVG(testritscore + 0.0),2) AS FLOAT) AS avg_baseline_rit
+                    ,CAST(ROUND(AVG(testpercentile + 0.0),1) AS FLOAT) AS avg_baseline_percentile
                     ,CAST(ROUND(AVG(cur_endpoint_rit + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
+                    ,ROUND(AVG(CAST(cur_endpoint_percentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
                     ,COUNT(*) AS N
               FROM
                     (SELECT cohort.*
@@ -220,6 +228,7 @@ FROM
                            ,map_baseline.testritscore
                            ,map_baseline.testpercentile
                            ,map_endpoint.testritscore AS cur_endpoint_rit
+                           ,map_endpoint.testpercentile AS cur_endpoint_percentile
                      FROM cohort
                      JOIN map_baseline
                        ON cohort.studentid = map_baseline.studentid
