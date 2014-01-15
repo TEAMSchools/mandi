@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW MAP$cohort_performance_targets AS
+ALTER VIEW MAP$cohort_performance_targets AS
 WITH zscore AS
     (SELECT *
      FROM OPENQUERY(KIPP_NWK,
@@ -35,6 +35,7 @@ WITH zscore AS
      (SELECT c.studentid
             ,c.lastfirst
             ,c.grade_level
+            ,c.year
             ,CASE 
                WHEN cust.spedlep LIKE 'SPED%' THEN 'IEP'
                ELSE 'Gen Ed'
@@ -60,6 +61,18 @@ WITH zscore AS
      FROM KIPP_NJ..MAP$baseline_composite#static map
      WHERE map.year = 2013)
 
+    --SWITCH THIS AS THE YEAR PROGRESSES eg winter, spring
+    ,map_endpoint AS
+    (SELECT map_end.*
+           ,sch.abbreviation AS school
+     FROM KIPP_NJ..MAP$comprehensive#identifiers map_end
+     JOIN KIPP_NJ..SCHOOLS sch
+       ON map_end.schoolid = sch.school_number
+     WHERE map_end.map_year_academic = 2013
+       AND map_end.rn = 1
+       --SWITCH THIS AS THE YEAR PROGRESSES eg winter, spring
+       AND map_end.fallwinterspring = 'Winter')
+
     ,cc AS
     (SELECT last_tch.*
            ,courses.credittype
@@ -73,10 +86,23 @@ WITH zscore AS
        AND c.dateleft >= CAST(GETDATE() AS date)
      ) 
 
-SELECT sub.*
+--LOOSE method
+SELECT sub.school
+      ,sub.grade_level
+      ,sub.year
+      ,sub.iep_status
+      ,sub.measurementscale
+      ,sub.avg_baseline_rit
+      ,sub.N
+      ,sub.comparison_start_rit
+      ,sub.mean
+      ,sub.sd
+      ,'loose' AS roster_match_method
       ,CAST(zscore.percentile AS FLOAT) AS cohort_growth_percentile
       ,zscore.zscore
+      ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.mean), 1) AS float) AS target_rit_change
       ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.avg_baseline_rit + sub.mean), 1) AS float) AS target_spr_rit
+      ,loose_agg.avg_cur_endpoint_rit
 FROM
        --join to norms table, get diff
       (SELECT sub.*
@@ -86,6 +112,7 @@ FROM
              ,ROW_NUMBER() OVER
                 (PARTITION BY sub.school
                              ,sub.grade_level
+                             ,sub.year
                              ,sub.iep_status
                              ,sub.measurementscale
                  ORDER BY ABS(avg_baseline_rit - cohort_norms.rit)
@@ -93,16 +120,16 @@ FROM
        FROM
              (SELECT sub.school
                     ,sub.grade_level
+                    ,sub.year
                     ,CASE GROUPING(sub.iep_status)
                        WHEN 1 THEN 'All Students'
                        ELSE sub.iep_status
                      END AS iep_status
                     ,sub.measurementscale
-                    ,CAST(ROUND(AVG(testritscore + 0.0),1) AS FLOAT) AS avg_baseline_rit
+                    ,CAST(ROUND(AVG(testritscore + 0.0),2) AS FLOAT) AS avg_baseline_rit
                     ,COUNT(*) AS N
               FROM
-                     (SELECT cohort.*
-                           ,map_baseline.year
+                    (SELECT cohort.*
                            ,map_baseline.measurementscale
                            ,map_baseline.termname
                            ,map_baseline.testritscore
@@ -113,6 +140,98 @@ FROM
                      ) sub
               GROUP BY sub.school
                       ,sub.grade_level
+                      ,sub.year
+                      ,CUBE(sub.iep_status)
+                      ,sub.measurementscale
+              ) sub
+       JOIN cohort_norms
+         ON sub.grade_level = cohort_norms.grade
+        AND sub.measurementscale = cohort_norms.subject
+       ) sub
+LEFT OUTER JOIN 
+  (SELECT map_endpoint.map_year_academic
+         ,map_endpoint.school
+         ,map_endpoint.measurementscale
+         ,map_endpoint.grade_level
+         ,CAST(ROUND(AVG(map_endpoint.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
+   FROM map_endpoint
+   GROUP BY map_endpoint.map_year_academic
+           ,map_endpoint.school
+           ,map_endpoint.measurementscale
+           ,map_endpoint.grade_level
+  ) loose_agg
+  ON sub.year = loose_agg.map_year_academic
+ AND sub.school = loose_agg.school
+ AND sub.measurementscale = loose_agg.measurementscale
+ AND sub.grade_level = loose_agg.grade_level
+JOIN zscore
+  ON 1=1
+WHERE rn = 1
+
+UNION ALL
+
+--STRICT method
+SELECT sub.school
+      ,sub.grade_level
+      ,sub.year
+      ,sub.iep_status
+      ,sub.measurementscale
+      ,sub.avg_baseline_rit
+      ,sub.N
+      ,sub.comparison_start_rit
+      ,sub.mean
+      ,sub.sd
+      ,'strict' AS roster_match_method
+      ,CAST(zscore.percentile AS FLOAT) AS cohort_growth_percentile
+      ,zscore.zscore
+      ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.mean), 1) AS float) AS target_rit_change
+      ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.avg_baseline_rit + sub.mean), 1) AS float) AS target_spr_rit
+      ,sub.avg_cur_endpoint_rit
+FROM
+       --join to norms table, get diff
+      (SELECT sub.*
+             ,cohort_norms.rit AS comparison_start_rit
+             ,cohort_norms.mean
+             ,cohort_norms.sd
+             ,ROW_NUMBER() OVER
+                (PARTITION BY sub.school
+                             ,sub.grade_level
+                             ,sub.year
+                             ,sub.iep_status
+                             ,sub.measurementscale
+                 ORDER BY ABS(avg_baseline_rit - cohort_norms.rit)
+                ) AS rn
+       FROM
+             (SELECT sub.school
+                    ,sub.grade_level
+                    ,sub.year
+                    ,CASE GROUPING(sub.iep_status)
+                       WHEN 1 THEN 'All Students'
+                       ELSE sub.iep_status
+                     END AS iep_status
+                    ,sub.measurementscale
+                    ,CAST(ROUND(AVG(testritscore + 0.0),2) AS FLOAT) AS avg_baseline_rit
+                    ,CAST(ROUND(AVG(cur_endpoint_rit + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
+                    ,COUNT(*) AS N
+              FROM
+                    (SELECT cohort.*
+                           ,map_baseline.measurementscale
+                           ,map_baseline.termname
+                           ,map_baseline.testritscore
+                           ,map_baseline.testpercentile
+                           ,map_endpoint.testritscore AS cur_endpoint_rit
+                     FROM cohort
+                     JOIN map_baseline
+                       ON cohort.studentid = map_baseline.studentid
+                     --STRICT only returns students with test events in both terms
+                     JOIN map_endpoint
+                       ON cohort.STUDENTID = map_endpoint.ps_studentid
+                      AND map_baseline.measurementscale = map_endpoint.measurementscale
+                      AND map_baseline.testritscore IS NOT NULL
+                     ) sub
+              GROUP BY sub.school
+                      ,sub.grade_level
+                      ,sub.year
                       ,CUBE(sub.iep_status)
                       ,sub.measurementscale
               ) sub
