@@ -397,12 +397,13 @@ SELECT ROW_NUMBER() OVER(
 --MAP scores
 --MAP$reading_wide
 --MAP$math_wide
-     
       --MAP reading -- add a new block for each test year, delete oldest
         --13-14
       --,map_read.spring_2014_percentile AS spr_2014_read_pctle
-      ,map_read.fall_2013_percentile AS f_2013_read_pctle
+      ,map_read.winter_2013_percentile AS w_2013_read_pctle
+      ,map_read.fall_2013_percentile AS f_2013_read_pctle      
       --,map_read.spring_2014_rit AS spr_2014_read_rit
+      ,map_read.winter_2013_rit AS w_2013_read_rit                  
       ,map_read.fall_2013_rit AS f_2013_read_rit                  
         --12-13
       ,map_read.spring_2013_percentile AS spr_2013_read_pctle
@@ -423,8 +424,10 @@ SELECT ROW_NUMBER() OVER(
       --MAP math -- add a new block for each test year, delete oldest
         --13-14
       --,map_math.spring_2014_percentile AS spr_2014_math_pctle
-      ,map_math.fall_2013_percentile AS f_2013_math_pctle
+      ,map_math.winter_2013_percentile AS w_2013_math_pctle
+      ,map_math.fall_2013_percentile AS f_2013_math_pctle      
       --,map_math.spring_2014_rit AS spr_2014_math_rit
+      ,map_math.winter_2013_rit AS w_2013_math_rit            
       ,map_math.fall_2013_rit AS f_2013_math_rit            
         --12-13
       ,map_math.spring_2013_percentile AS spr_2013_math_pctle
@@ -445,8 +448,10 @@ SELECT ROW_NUMBER() OVER(
       --MAP langauge -- add a new block for each test year, delete oldest
         --13-14
       --,map_lang.spring_2014_percentile AS spr_2014_lang_pctle
+      ,map_lang.winter_2013_percentile AS w_2013_lang_pctle
       ,map_lang.fall_2013_percentile AS f_2013_lang_pctle
       --,map_lang.spring_2014_rit AS spr_2014_lang_rit
+      ,map_lang.winter_2013_rit AS w_2013_lang_rit
       ,map_lang.fall_2013_rit AS f_2013_lang_rit            
         --12-13
       ,map_lang.spring_2013_percentile AS spr_2013_lang_pctle
@@ -467,8 +472,10 @@ SELECT ROW_NUMBER() OVER(
       --MAP science gen -- add a new block for each test year, delete oldest
         --13-14
       --,map_gen.spring_2014_percentile AS spr_2014_gen_pctle
+      ,map_gen.winter_2013_percentile AS w_2013_gen_pctle
       ,map_gen.fall_2013_percentile AS f_2013_gen_pctle
       --,map_gen.spring_2014_rit AS spr_2014_gen_rit
+      ,map_gen.winter_2013_rit AS w_2013_gen_rit
       ,map_gen.fall_2013_rit AS f_2013_gen_rit            
         --12-13
       ,map_gen.spring_2013_percentile AS spr_2013_gen_pctle
@@ -501,7 +508,7 @@ SELECT ROW_NUMBER() OVER(
       ,map_cp.spring_2011_percentile AS spr_2011_cp_pctle
       ,map_cp.fall_2010_percentile AS f_2010_cp_pctle
       ,map_cp.spring_2011_rit AS spr_2011_cp_rit
-      ,map_cp.fall_2010_rit AS f_2010_cp_rit      
+      ,map_cp.fall_2010_rit AS f_2010_cp_rit        
 
 --NJASK scores
 --NJASK$ela_wide
