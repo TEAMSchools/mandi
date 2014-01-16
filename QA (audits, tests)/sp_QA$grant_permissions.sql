@@ -21,3 +21,4 @@ GRANT SELECT ON REPORTING$dates TO db_data_tool_reader
 GRANT SELECT ON GPA$detail#Rise TO db_data_tool_reader
 GRANT SELECT ON GRADES$elements TO db_data_tool_reader
 GRANT EXECUTE ON fn_Global_Term_Id TO db_data_tool_reader
+GRANT EXECUTE ON GROUP_CONCAT_D TO db_data_tool_reader
