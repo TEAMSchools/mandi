@@ -152,22 +152,42 @@ FROM
         AND sub.measurementscale = cohort_norms.subject
        ) sub
 LEFT OUTER JOIN 
-  (SELECT map_endpoint.map_year_academic
-         ,map_endpoint.school
-         ,map_endpoint.measurementscale
-         ,map_endpoint.grade_level
-         ,CAST(ROUND(AVG(map_endpoint.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
-         ,ROUND(AVG(CAST(map_endpoint.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
-   FROM map_endpoint
-   GROUP BY map_endpoint.map_year_academic
-           ,map_endpoint.school
-           ,map_endpoint.measurementscale
-           ,map_endpoint.grade_level
+  (SELECT sub.year
+         ,sub.school
+         ,sub.measurementscale
+         ,sub.grade_level
+         ,CASE GROUPING(sub.iep_status)
+            WHEN 1 THEN 'All Students'
+            ELSE sub.iep_status
+          END AS iep_status
+         ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
+         ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
+   FROM
+         (SELECT map_endpoint.map_year_academic AS year
+                ,map_endpoint.school
+                ,map_endpoint.measurementscale
+                ,map_endpoint.grade_level
+                ,CASE 
+                   WHEN cust.spedlep LIKE 'SPED%' THEN 'IEP'
+                   ELSE 'Gen Ed'
+                 END AS iep_status
+                ,map_endpoint.testritscore
+                ,map_endpoint.testpercentile
+          FROM map_endpoint
+          JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+            ON map_endpoint.ps_studentid = cust.studentid
+         ) sub
+   GROUP BY sub.year
+           ,sub.school
+           ,sub.measurementscale
+           ,sub.grade_level
+           ,CUBE(sub.iep_status)
   ) loose_agg
-  ON sub.year = loose_agg.map_year_academic
+  ON sub.year = loose_agg.year
  AND sub.school = loose_agg.school
  AND sub.measurementscale = loose_agg.measurementscale
  AND sub.grade_level = loose_agg.grade_level
+ AND sub.iep_status = loose_agg.iep_status
 JOIN zscore
   ON 1=1
 WHERE rn = 1
