@@ -101,7 +101,7 @@ FROM
        AND dates.school_level = 'ES'
       WHERE s.schoolid IN (73254,73255,73256)
         AND s.enroll_status = 0
-        AND assessments.scope NOT IN ('District Benchmark')
+        AND assessments.scope NOT IN ('District Benchmark','Intervention')
         AND results.custom_code NOT IN ('TES.CCSS.LA.K.W.K.3.b','TES.CCSS.LA.K.W.K.3.c','TES.CCSS.LA.K.W.K.3.d','TES.CCSS.LA.K.W.K.3.i','TES.CCSS.LA.K.W.K.3.j'
                                           ,'TES.CCSS.LA.K.W.K.3.g','TES.CCSS.LA.K.W.K.3')
         AND assessments.title NOT LIKE '%TA1%'

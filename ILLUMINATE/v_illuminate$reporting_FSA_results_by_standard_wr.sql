@@ -84,7 +84,7 @@ FROM
         AND s.enroll_status = 0
         AND results.custom_code NOT IN ('CCSS.LA.3.R', 'CCSS.LA.3.RL', 'CCSS.LA.4.L.4.6', 'TES.CCSS.LA.K.W.K.3.b','TES.CCSS.LA.K.W.K.3.c','TES.CCSS.LA.K.W.K.3.d'
                                           ,'TES.CCSS.LA.K.W.K.3.i','TES.CCSS.LA.K.W.K.3.j','TES.CCSS.LA.K.W.K.3.g','TES.CCSS.LA.K.W.K.3')
-        AND assessments.scope NOT IN ('District Benchmark')
+        AND assessments.scope NOT IN ('District Benchmark','Intervention')
         AND assessments.title NOT LIKE '%TA1%'
       ) sub
 --ORDER BY schoolid, grade_level, week_num, team, studentid, subject, standard
