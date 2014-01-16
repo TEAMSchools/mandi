@@ -26,8 +26,20 @@ BEGIN
         SELECT sub.*
               ,rt.alt_name AS term
               ,ROW_NUMBER() OVER
-                  (PARTITION BY fsa_week, sub.schoolid, grade_level
-                       ORDER BY standards_tested) AS fsa_std_rn
+                   (PARTITION BY fsa_week, sub.schoolid, grade_level
+                        ORDER BY CASE
+                                  --ugh...this makes sure that FSAs are labeled first to make the damn tracker work
+                                  WHEN sub.scope = 'Intervention' THEN 5
+                                  WHEN sub.scope = 'Teacher Created' THEN 2
+                                  WHEN sub.scope = 'Quarterly Assessment' THEN 6
+                                  WHEN sub.scope = 'District Benchmark' THEN 7
+                                  WHEN sub.scope = 'NULL' THEN 4
+                                  WHEN sub.scope = 'Measured Progress' THEN 8
+                                  WHEN sub.scope = 'Unit Assessments' THEN 9
+                                  WHEN sub.scope = 'FSA' THEN 1
+                                  WHEN sub.scope = 'Site Assessment' THEN 3
+                                  ELSE 10
+                                 END ASC, standards_tested) AS fsa_std_rn
               ,ROW_NUMBER() OVER
                   (PARTITION BY sub.schoolid, standards_tested                
                        ORDER BY administered_at) AS std_freq_rn                    
