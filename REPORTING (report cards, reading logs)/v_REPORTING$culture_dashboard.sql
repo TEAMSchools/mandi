@@ -241,4 +241,5 @@ FROM
       WHERE s.ENROLL_STATUS = 0
         AND s.SCHOOLID = 73255  
      ) sub
-WHERE att_date IS NOT NULL  
+     
+WHERE att_date IS NOT NULL
