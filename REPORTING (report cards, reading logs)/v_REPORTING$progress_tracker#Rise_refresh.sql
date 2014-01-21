@@ -637,11 +637,11 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.id = ar_curr.studentid 
- AND ar_curr.time_period_name = 'RT2'
+ AND ar_curr.time_period_name = 'RT3'
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
   ON roster.id = ar_curr2.studentid 
- AND ar_curr2.time_period_name = 'RT3'
+ AND ar_curr2.time_period_name = 'RT4'
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
 --MAP
