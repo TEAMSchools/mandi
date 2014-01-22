@@ -14,6 +14,7 @@ WITH roster AS
      ON cohort.SCHOOLID = schools.SCHOOL_NUMBER
    WHERE schoolid != 999999
      AND rn = 1
+     --AND cohort.studentid = 4562
   )
  
  ,subj AS
