@@ -45,12 +45,19 @@ WITH roster AS
 	    AND cc.dateleft >= GETDATE()
   )
 
+--/*
   ,sri_lexile AS
-    (SELECT *
-     FROM OPENQUERY(KIPP_NWK, '
-       SELECT *
-       FROM sri_testing_history')
+    (
+     SELECT *
+     FROM OPENQUERY(KIPP_NWK,'
+           SELECT *
+           FROM sri_testing_history
+           WHERE rn_lifetime = 1
+             AND schoolid = 73252
+             AND sch_year = ''12-13''
+       ')
     )
+--*/    
     
 SELECT roster.*
       ,enr.course_name + '|' + enr.section_number AS enr_hash
@@ -290,7 +297,9 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h6 WITH (NOLOCK)
  AND ar_h6.time_period_name = 'RT6'
  AND ar_h6.yearid = dbo.fn_Global_Term_Id()
 
-
+--/*
+--RIP (...not)
 LEFT OUTER JOIN sri_lexile
   ON CAST(roster.student_number AS NVARCHAR) = sri_lexile.base_student_number
  AND sri_lexile.rn_lifetime = 1
+--*/ 

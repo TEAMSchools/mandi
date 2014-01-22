@@ -67,7 +67,8 @@ FROM
                     ,num_failing
                     ,failing
              FROM
-                    (SELECT studentid
+                    (
+                     SELECT studentid
                            ,student_number
                            ,schoolid
                            ,lastfirst 

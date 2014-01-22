@@ -10,8 +10,8 @@ WITH stu AS
           ,c.schoolid
           ,CONVERT(datetime, CAST('07/05/' + c.year AS DATE), 101) AS custom_entry
           ,c.exitdate
-    FROM KIPP_NJ..COHORT$comprehensive_long#static c
-    JOIN KIPP_NJ..STUDENTS s
+    FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
+    JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
       ON c.studentid = s.id
      --AND s.last_name = 'Williams'
     WHERE c.rn = 1
@@ -21,7 +21,7 @@ WITH stu AS
    )
   ,rd AS
   (SELECT CAST(rd.date AS date) AS date
-   FROM KIPP_NJ..UTIL$reporting_days rd
+   FROM KIPP_NJ..UTIL$reporting_days rd WITH(NOLOCK)
    WHERE rd.date >= '07/05/2011'
      AND rd.date <= CAST(GETDATE() AS date)
   )
@@ -80,7 +80,7 @@ FROM stu
 JOIN rd
   ON stu.custom_entry <= rd.date
  AND stu.exitdate >= rd.date
-LEFT OUTER JOIN AR$test_event_detail#static te
+LEFT OUTER JOIN AR$test_event_detail#static te WITH(NOLOCK)
   ON CAST(stu.student_number AS VARCHAR) = te.student_number
  AND stu.custom_entry <= CAST(te.dtTaken AS date)
  AND rd.date >= CAST(te.dtTaken AS date)
