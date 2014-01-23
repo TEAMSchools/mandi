@@ -25,7 +25,18 @@ WITH roster AS
      AND c.schoolid != 999999
      AND c.schoolid IN (73252, 133570965)
   )
-
+ 
+ ,curterm AS (
+   SELECT schoolid
+         ,REPLACE(time_per_name,'Hexameter ','RT') AS time_per_name
+         ,start_date
+         ,end_date
+   FROM REPORTING$dates WITH(NOLOCK)
+   WHERE GETDATE() >= start_date
+     AND GETDATE() <= end_date
+     AND identifier = 'HEX'
+  )
+ 
   ,enrollments AS
   (SELECT cc.termid AS termid
          ,cc.studentid
@@ -172,6 +183,10 @@ FROM roster
 LEFT OUTER JOIN enrollments enr
   ON roster.studentid = enr.studentid
 
+--CURTERM  
+LEFT OUTER JOIN curterm
+  ON roster.schoolid = curterm.schoolid  
+
 --GRADES
 LEFT OUTER JOIN KIPP_NJ..GRADES$DETAIL#MS gr WITH(NOLOCK)
   ON roster.studentid = gr.studentid
@@ -249,7 +264,7 @@ LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl WITH(NOLOCK)
 --current
 LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_cur WITH(NOLOCK)
   ON roster.studentid = ar_cur.studentid
- AND ar_cur.time_period_name = 'RT4'
+ AND ar_cur.time_period_name = curterm.time_per_name
  AND ar_cur.yearid = dbo.fn_Global_Term_Id() 
 --year
 LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_year WITH(NOLOCK)
