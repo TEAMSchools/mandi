@@ -15,11 +15,11 @@ FROM
             ,s.id AS studentid
             ,s.student_number
             ,s.lastfirst
-            ,co.grade_level
+            ,s.grade_level
             ,s.team
             ,assessments.title
             ,results.assessment_id --probably easier to key off of
-            ,dates.time_per_name AS week_num
+            ,assessments.fsa_week AS week_num
             ,assessments.subject
             ,results.answered
             ,CAST(ROUND(results.percent_correct,2,2) AS FLOAT) AS percent_correct
@@ -40,24 +40,18 @@ FROM
             ,results.description
             ,assessments.administered_at
             --,gr.tag AS grade_tag
-            ,ISNULL(CONVERT(VARCHAR,co.grade_level),'GRADE')
-              + '_' + ISNULL(dates.time_per_name,'WEEK')
+            ,ISNULL(CONVERT(VARCHAR,s.grade_level),'GRADE')
+              + '_' + ISNULL(assessments.fsa_week,'WEEK')
               + '_' + ISNULL(assessments.subject,'SUBJ')
               + '_' + ISNULL(results.custom_code,'STD') --standard tested
               + '_' + ISNULL(team,'TEAM')
               + '_' + ISNULL(CONVERT(VARCHAR,student_number),'00000')
              AS reporting_hash
-            ,ISNULL(dates.time_per_name,'WEEK')
-              + '_' + ISNULL(CONVERT(VARCHAR,co.grade_level),'GRADE')
+            ,ISNULL(assessments.fsa_week,'WEEK')
+              + '_' + ISNULL(CONVERT(VARCHAR,s.grade_level),'GRADE')
               + '_' + ISNULL(results.custom_code,'STD') --standard tested
              AS rollup_hash
-            ,assessments.fsa_std_rn
-            /*
-            --now using row number from assessment feed
-            ,ROW_NUMBER() OVER(
-                PARTITION BY dates.time_per_name, assessments.grade_level, s.id
-                    ORDER BY results.custom_code) AS rn
-            --*/
+            ,assessments.fsa_std_rn            
       FROM STUDENTS s WITH(NOLOCK)
       LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results WITH(NOLOCK)
         ON s.student_number = results.local_student_id
@@ -66,20 +60,7 @@ FROM
        AND results.standard_id = assessments.standard_id
        AND s.grade_level = assessments.grade_level
        AND s.schoolid = assessments.schoolid
-       AND assessments.academic_year = 2013
-       --AND assessments.deleted_at IS NULL
-      LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
-        ON s.id = co.studentid
-       AND co.year = CASE
-                      WHEN DATEPART(MM,assessments.administered_at) >= 07 THEN DATEPART(YYYY,assessments.administered_at)
-                      WHEN DATEPART(MM,assessments.administered_at) < 07 THEN (DATEPART(YYYY,assessments.administered_at) - 1)
-                      ELSE NULL
-                     END
-      JOIN REPORTING$dates dates WITH(NOLOCK)
-        ON assessments.administered_at >= dates.start_date
-       AND assessments.administered_at <= dates.end_date
-       AND dates.identifier = 'FSA'
-       AND dates.school_level = 'ES'
+       AND assessments.academic_year = 2013      
       WHERE s.schoolid IN (73254,73255,73256)
         AND s.enroll_status = 0
         AND results.custom_code NOT IN ('CCSS.LA.3.R', 'CCSS.LA.3.RL', 'CCSS.LA.4.L.4.6', 'TES.CCSS.LA.K.W.K.3.b','TES.CCSS.LA.K.W.K.3.c','TES.CCSS.LA.K.W.K.3.d'
