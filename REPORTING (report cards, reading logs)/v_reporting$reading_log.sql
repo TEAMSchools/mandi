@@ -15,8 +15,7 @@ WITH roster AS
      ON c.schoolid = sch.school_number
    JOIN KIPP_NJ..STUDENTS s
      ON c.studentid = s.id
-    AND s.enroll_status = 0
-    
+    AND s.enroll_status = 0    
    --AND s.ID = 4772
     --AND c.grade_level = 5
     --AND c.schoolid = 133570965
@@ -44,20 +43,6 @@ WITH roster AS
    WHERE cc.dateenrolled <= GETDATE()
 	    AND cc.dateleft >= GETDATE()
   )
-
---/*
-  ,sri_lexile AS
-    (
-     SELECT *
-     FROM OPENQUERY(KIPP_NWK,'
-           SELECT *
-           FROM sri_testing_history
-           WHERE rn_lifetime = 1
-             AND schoolid = 73252
-             AND sch_year = ''12-13''
-       ')
-    )
---*/    
     
 SELECT roster.*
       ,enr.course_name + '|' + enr.section_number AS enr_hash
@@ -264,7 +249,7 @@ LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl
 --current
 LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_cur
   ON roster.studentid = ar_cur.studentid
- AND ar_cur.time_period_name = 'RT3'
+ AND ar_cur.time_period_name = 'RT4'
  AND ar_cur.yearid = dbo.fn_Global_Term_Id() 
 --year
 LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_year
@@ -297,9 +282,7 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h6 WITH (NOLOCK)
  AND ar_h6.time_period_name = 'RT6'
  AND ar_h6.yearid = dbo.fn_Global_Term_Id()
 
---/*
---RIP (...not)
-LEFT OUTER JOIN sri_lexile
+LEFT OUTER JOIN SRI$testing_history sri_lexile WITH(NOLOCK)
   ON CAST(roster.student_number AS NVARCHAR) = sri_lexile.base_student_number
  AND sri_lexile.rn_lifetime = 1
---*/ 
+ AND sri_lexile.schoolid = 73252
