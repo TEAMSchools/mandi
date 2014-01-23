@@ -10,10 +10,10 @@ WITH roster AS
          ,s.lastfirst
          ,s.FIRST_NAME + ' ' + s.LAST_NAME AS name
          ,sch.abbreviation AS school
-   FROM KIPP_NJ..COHORT$comprehensive_long#static c
-   JOIN KIPP_NJ..SCHOOLS sch
+   FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
+   JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
      ON c.schoolid = sch.school_number
-   JOIN KIPP_NJ..STUDENTS s
+   JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
      ON c.studentid = s.id
     AND s.enroll_status = 0    
    --AND s.ID = 4772
@@ -33,11 +33,11 @@ WITH roster AS
          ,sections.section_number
          ,courses.course_number
          ,courses.course_name
-   FROM cc
-   JOIN sections
+   FROM cc WITH(NOLOCK)
+   JOIN sections WITH(NOLOCK)
      ON cc.sectionid = sections.id
     AND cc.termid >= 2300
-   JOIN courses
+   JOIN courses WITH(NOLOCK)
      ON sections.course_number = courses.course_number
     AND courses.credittype LIKE 'ENG'
    WHERE cc.dateenrolled <= GETDATE()
@@ -173,46 +173,46 @@ LEFT OUTER JOIN enrollments enr
   ON roster.studentid = enr.studentid
 
 --GRADES
-LEFT OUTER JOIN KIPP_NJ..GRADES$DETAIL#MS gr
+LEFT OUTER JOIN KIPP_NJ..GRADES$DETAIL#MS gr WITH(NOLOCK)
   ON roster.studentid = gr.studentid
  AND gr.credittype LIKE '%ENG%'
 
 --HW
-LEFT OUTER JOIN KIPP_NJ..GRADES$elements ele
+LEFT OUTER JOIN KIPP_NJ..GRADES$elements ele WITH(NOLOCK)
   ON roster.studentid = ele.studentid
  AND gr.course_number = ele.course_number
  AND ele.pgf_type = 'H'
  AND ele.yearid = 23
 
 --F&P
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_cur
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_cur WITH(NOLOCK)
   ON roster.STUDENTID = fp_cur.studentid
  AND fp_cur.achv_curr_all = 1
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH(NOLOCK)
   ON roster.STUDENTID = fp_base.studentid
  AND fp_base.achv_base = 1
  AND fp_base.year = 2013
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_dna_base
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_dna_base WITH(NOLOCK)
   ON roster.STUDENTID = fp_dna_base.studentid
  AND fp_dna_base.dna_base = 1
  AND fp_dna_base.year = 2013
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_dna_curr
+LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_dna_curr WITH(NOLOCK)
   ON roster.STUDENTID = fp_dna_curr.studentid
  AND fp_dna_curr.dna_curr = 1
  AND fp_dna_curr.year = 2013
 
 --RIT, NWEA LEXILE
-LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_fall
+LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_fall WITH(NOLOCK)
   ON roster.studentid = map_fall.ps_studentid
  AND map_fall.measurementscale = 'Reading'
  AND map_fall.map_year_academic = 2013
  AND map_fall.TermName = 'Fall 2013-2014'
-LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_winter
+LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_winter WITH(NOLOCK)
   ON roster.studentid = map_winter.ps_studentid
  AND map_winter.measurementscale = 'Reading'
  AND map_winter.map_year_academic = 2013
  AND map_winter.TermName = 'Winter 2013-2014'
-LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_spr
+LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_spr WITH(NOLOCK)
   ON roster.studentid = map_spr.ps_studentid
  AND map_spr.measurementscale = 'Reading'
  AND map_spr.map_year_academic = 2012
@@ -234,7 +234,7 @@ LEFT OUTER JOIN
                  ,ROW_NUMBER () 
                     OVER (PARTITION BY ps_studentid 
                           ORDER BY map.teststartdate DESC) AS rn_desc
-             FROM KIPP_NJ..MAP$comprehensive#identifiers map
+             FROM KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
              WHERE MeasurementScale = 'Reading'
                AND map_year_academic = 2013
            ) sub_1
@@ -242,17 +242,17 @@ LEFT OUTER JOIN
      ) cur_rit
   ON roster.studentid = cur_rit.ps_studentid
 
-LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl
+LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl WITH(NOLOCK)
   ON CAST(roster.studentid AS NVARCHAR) = rl.studentid
 
 --AR
 --current
-LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_cur
+LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_cur WITH(NOLOCK)
   ON roster.studentid = ar_cur.studentid
  AND ar_cur.time_period_name = 'RT4'
  AND ar_cur.yearid = dbo.fn_Global_Term_Id() 
 --year
-LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_year
+LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_year WITH(NOLOCK)
   ON roster.studentid = ar_year.studentid
  AND ar_year.time_period_name = 'Year'
  AND ar_year.yearid = dbo.fn_Global_Term_Id()
