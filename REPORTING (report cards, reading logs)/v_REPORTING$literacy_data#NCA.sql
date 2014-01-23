@@ -11,11 +11,10 @@ WITH cur_term AS
               WHEN time_per_name = 'Reporting Term 3' THEN 'RT3'
               WHEN time_per_name = 'Reporting Term 4' THEN 'RT4'
             END AS cur_term_abbrev
-     FROM KIPP_NJ..REPORTING$dates
-     WHERE identifier = 'HEX'
-        OR (school_level = 'HS' AND identifier = 'RT_IR')
-       AND start_date <= GETDATE()
-       AND end_date >= GETDATE()
+     FROM KIPP_NJ..REPORTING$dates rd
+     WHERE CAST(start_date AS date) <= GETDATE()
+       AND CAST(end_date AS date) >= GETDATE()
+       AND (identifier = 'HEX' OR (school_level = 'HS' AND identifier = 'RT_IR'))
      )
   ,ar_stats AS
    (SELECT cohort.lastfirst
