@@ -11,8 +11,8 @@ SELECT lit_base.studentid
       ,lit_base.step_level_numeric AS base_step
       ,lit_end.step_level_numeric AS end_step
       ,CAST(lit_end.step_level_numeric AS int) - CAST(lit_base.step_level_numeric AS int) AS step_change
-FROM LIT$step_headline_long#identifiers lit_base
-LEFT OUTER JOIN LIT$step_headline_long#identifiers lit_end
+FROM LIT$step_headline_long#identifiers lit_base WITH(NOLOCK)
+LEFT OUTER JOIN LIT$step_headline_long#identifiers lit_end WITH(NOLOCK)
   ON lit_base.studentid = lit_end.studentid
   AND lit_base.year = lit_end.year
   AND lit_end.status = 'Achieved'
