@@ -26,7 +26,7 @@ WITH zscore AS
      FROM OPENQUERY(KIPP_NWK,
        'SELECT *
         FROM map_rit_mean_sd norms
-        WHERE term = ''Spring-to-Spring''
+        WHERE (term = ''Spring-to-Spring'') OR (grade = 0 AND term = ''Fall-to-Spring'')
        '
        )
    )
@@ -48,7 +48,8 @@ WITH zscore AS
         ON c.studentid = cust.studentid
       WHERE c.year = 2013
         AND c.rn = 1
-        AND c.schoolid != 999999)
+        AND c.schoolid != 999999
+      )
 
     ,map_baseline AS
     (SELECT map.*
