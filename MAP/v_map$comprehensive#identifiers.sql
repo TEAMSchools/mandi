@@ -177,7 +177,7 @@ SELECT cohort.schoolid
         AND sq_2.testritscore = norms_2008.rit 
         AND sq_2.fallwinterspring = norms_2008.fallwinterspring
       LEFT OUTER JOIN MAP$norm_table#2011 norms_2011  WITH (NOLOCK)
-        ON  cohort.grade_level = norms_2011.grade 
+        ON  CASE WHEN sq_2.measurementscale = 'Reading' AND cohort.grade_level = 12 THEN 11 ELSE cohort.grade_level END = norms_2011.grade 
         AND REPLACE(sq_2.measurementscale, 'Science - General Science', 'General Science')  = norms_2011.measurementscale 
         AND sq_2.testritscore = norms_2011.rit 
         AND sq_2.fallwinterspring = norms_2011.fallwinterspring  
