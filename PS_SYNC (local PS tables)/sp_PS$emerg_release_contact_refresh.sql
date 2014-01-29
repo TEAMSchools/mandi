@@ -23,12 +23,12 @@ BEGIN
   INTO [#PS$emerg_release_contact|refresh]
   FROM OPENQUERY(PS_TEAM,'
         SELECT id AS studentid      
-              ,ps_customfields.getcf(''Students'',id,''Emerg_Contact_1'') AS Emerg_Contact_1
+              ,Emerg_Contact_1
               ,ps_customfields.getcf(''Students'',id,''Emerg_1_Rel'') AS Emerg_1_Rel
-              ,ps_customfields.getcf(''Students'',id,''Emerg_Phone_1'') AS Emerg_Phone_1
-              ,ps_customfields.getcf(''Students'',id,''Emerg_Contact_2'') AS Emerg_Contact_2
+              ,Emerg_Phone_1
+              ,Emerg_Contact_2
               ,ps_customfields.getcf(''Students'',id,''Emerg_2_Rel'') AS Emerg_2_Rel
-              ,ps_customfields.getcf(''Students'',id,''Emerg_Phone_2'') AS Emerg_Phone_2
+              ,Emerg_Phone_2
               ,ps_customfields.getcf(''Students'',id,''Emerg_Contact_3'') AS Emerg_Contact_3
               ,ps_customfields.getcf(''Students'',id,''Emerg_3_Rel'') AS Emerg_3_Rel
               ,ps_customfields.getcf(''Students'',id,''Emerg_3_Phone'') AS Emerg_3_Phone
