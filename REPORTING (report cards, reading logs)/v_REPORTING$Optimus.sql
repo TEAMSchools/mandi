@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW REPORTING$Optimus AS
+ALTER VIEW REPORTING$Optimus AS
 SELECT 'KIPP NJ' AS Network
       ,CASE
         WHEN s.schoolid IN (73252,73253,73254,73255,73256,133570965) THEN 'Newark'
@@ -45,6 +45,9 @@ SELECT 'KIPP NJ' AS Network
       --,CASE WHEN a.parent_standard IS NULL THEN a.standards_tested ELSE a.parent_standard END AS parent_standard
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS percent_correct
       ,CONVERT(FLOAT,res.mastered) AS mastered
+      ,ROW_NUMBER() OVER(
+          PARTITION BY s.id, a.scope, a.standards_tested
+           ORDER BY a.administered_at DESC) AS rn_curr
 FROM ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOCK)
 JOIN STUDENTS s WITH (NOLOCK)
   ON res.local_student_id = s.student_number

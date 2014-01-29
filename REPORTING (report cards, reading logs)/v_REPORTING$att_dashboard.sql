@@ -22,14 +22,15 @@ SELECT 'KIPP NJ' AS Network
       ,att.att_code
       ,CASE WHEN att.att_code IS NULL OR att.att_code IN ('PLE','T','TLE','T10','ET','S','SE','NM') THEN 1 ELSE 0 END AS present
       --tardies
-      ,CASE WHEN att.att_code IN ('T','TLE','T10','ET') THEN 1 ELSE 0 END AS tardy
+      ,CASE WHEN att.att_code IN ('T','TLE','T10','ET') THEN 1 ELSE 0 END AS tardy_all
+      ,CASE WHEN att.att_code IN ('T','TLE','ET') THEN 1 ELSE 0 END AS tardy
       ,CASE WHEN att.att_code IN ('T10') THEN 1 ELSE 0 END AS tardy_10
       --absences
-      ,CASE WHEN att.att_code IN ('AD','A','OS','X','D','AE') THEN 1 ELSE 0 END AS absent
+      ,CASE WHEN att.att_code IN ('AD','A','OS','X','D','AE') THEN 1 ELSE 0 END AS absent_all
       ,CASE WHEN att.att_code IN ('AD','D','AE') THEN 1 ELSE 0 END AS absent_doc
       ,CASE WHEN att.att_code IN ('A','X') THEN 1 ELSE 0 END AS absent_undoc
       --suspensions
-      ,CASE WHEN att.att_code IN ('OS','S') THEN 1 ELSE 0 END AS suspension
+      ,CASE WHEN att.att_code IN ('OS','S') THEN 1 ELSE 0 END AS suspension_all
       ,CASE WHEN att.att_code = 'S' THEN 1 ELSE 0 END AS ISS
       ,CASE WHEN att.att_code = 'OS' THEN 1 ELSE 0 END AS OSS
       --other
