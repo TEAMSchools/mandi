@@ -3,6 +3,8 @@ GO
 
 ALTER VIEW REPORTING$reading_log#NCA AS
 SELECT s.LASTFIRST
+      ,s.FIRST_NAME
+      ,s.LAST_NAME
       ,cs.ADVISOR
       ,s.GRADE_LEVEL
       ,cs.SPEDLEP
@@ -56,13 +58,13 @@ SELECT s.LASTFIRST
       ,eng2.COURSE_NAME AS eng2_course
       ,eng2.SECTION_NUMBER AS eng2_section
       ,eng2.LASTFIRST AS eng2_teacher
-      ,diff.COURSE_NAME AS diff_block_class
-      ,diff.LASTFIRST AS diff_block_teacher
+      ,diff.COURSE_NAME AS fourth_per_class
+      ,diff.LASTFIRST AS fourth_per_teacher
       ,CASE        
-        WHEN diff.expression = '5(A)' THEN '4A'
-        WHEN diff.expression = '6(A)' THEN '4B'
-        WHEN diff.expression = '7(A)' THEN '4C'
-        WHEN diff.expression = '8(A)' THEN '4D'        
+        WHEN diff.expression = '5(A)' THEN '4B'
+        WHEN diff.expression = '6(A)' THEN '4A'
+        WHEN diff.expression = '7(A)' THEN '4D'
+        WHEN diff.expression = '8(A)' THEN '4C'        
         ELSE NULL
        END AS lunch_assignment
       ,intv_block.group_name AS diff_block_assignment
@@ -71,11 +73,11 @@ SELECT s.LASTFIRST
       ,ar_Q3.rank_points_grade_in_school AS AR_graderank_Q3
       ,ar_Q4.rank_points_grade_in_school AS AR_graderank_Q4
       ,ar_yr.rank_points_grade_in_school AS AR_graderank_Yr
-      ,NULL AS AR_schoolrank_Q1
-      ,NULL AS AR_schoolrank_Q2
-      ,NULL AS AR_schoolrank_Q3
-      ,NULL AS AR_schoolrank_Q4
-      ,NULL AS AR_schoolrank_Yr
+      ,ar_q1.rank_points_overall_in_school AS AR_schoolrank_Q1
+      ,ar_q2.rank_points_overall_in_school AS AR_schoolrank_Q2
+      ,ar_q3.rank_points_overall_in_school AS AR_schoolrank_Q3
+      ,ar_q4.rank_points_overall_in_school AS AR_schoolrank_Q4
+      ,ar_yr.rank_points_overall_in_school AS AR_schoolrank_Yr
 FROM STUDENTS s WITH (NOLOCK)
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
   ON s.ID = cs.STUDENTID
