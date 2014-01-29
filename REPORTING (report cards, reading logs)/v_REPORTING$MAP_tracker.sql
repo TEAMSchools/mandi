@@ -32,7 +32,7 @@ SELECT
         WHEN map.testritscore >= goals.rutgers_ready_rit THEN 'Met'
         WHEN (map.testritscore - goals.baseline_rit) >= (goals.rutgers_ready_goal * 0.5) THEN 'On Track'
         WHEN (map.testritscore - goals.baseline_rit) < (goals.rutgers_ready_goal * 0.5) THEN 'Off Track'
-       END AS rr_status
+       END AS rr_status      
 
      /*--test identifiers--*/
       ,map.fallwinterspring
@@ -73,6 +73,7 @@ SELECT
       ,CONVERT(VARCHAR,map.studentid) + '_'
         + CONVERT(VARCHAR,REPLACE(map.fallwinterspring,' ','')) + '_'
         + CONVERT(VARCHAR,base.measurementscale) AS stu_subj_hash
+      ,(map.percentile_2011_norms - base.testpercentile) AS pctl_change
 
 FROM MAP$best_baseline#static base WITH(NOLOCK)
 JOIN STUDENTS s WITH(NOLOCK)
@@ -83,18 +84,18 @@ LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
   ON s.id = cs.studentid
 LEFT OUTER JOIN MAP$rutgers_ready_student_goals goals WITH(NOLOCK)
   ON base.studentid = goals.studentid
-AND base.schoolid = goals.schoolid
-AND base.grade_level = goals.grade_level
-AND REPLACE(base.measurementscale, ' Usage','') = goals.measurementscale
-AND base.year = goals.year
+ AND base.schoolid = goals.schoolid
+ AND base.grade_level = goals.grade_level
+ AND REPLACE(base.measurementscale, ' Usage','') = goals.measurementscale
+ AND base.year = goals.year
 LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
   ON base.studentid = map.ps_studentid
-AND base.schoolid = map.schoolid
-AND base.grade_level = map.grade_level
-AND REPLACE(base.measurementscale, ' Usage','') = REPLACE(map.measurementscale, ' Usage','')
-AND base.year = map.map_year_academic
-AND map.rn = 1
-AND map.fallwinterspring = 'Winter'
+ AND base.schoolid = map.schoolid
+ AND base.grade_level = map.grade_level
+ AND REPLACE(base.measurementscale, ' Usage','') = REPLACE(map.measurementscale, ' Usage','')
+ AND base.year = map.map_year_academic
+ AND map.rn = 1
+ AND map.fallwinterspring = 'Winter'
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID                       
                        ,t.LASTFIRST
