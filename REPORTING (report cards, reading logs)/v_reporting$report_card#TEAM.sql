@@ -307,13 +307,17 @@ SELECT roster.*
 --GPA
 --GPA$detail#TEAM
     /*--Year--*/     
-      ,team_gpa.gpa_Y1_weighted_all  as gpa_y1_all
-      ,team_gpa.gpa_Y1_weighted_core as gpa_y1_core
+      ,team_gpa.gpa_Y1_weighted_all  AS gpa_y1_all
+      ,team_gpa.gpa_Y1_weighted_core AS gpa_y1_core
       
     /*--Current Term--*/
       /*--UPDATE FIELD FOR CURRENT TERM--*/
-      ,team_gpa.GPA_T2_weighted_core  as gpa_curterm_all
-      ,team_gpa.GPA_T2_weighted_core as gpa_curterm_core
+      --,team_gpa.GPA_T1_weighted_all AS gpa_curterm_all
+      --,team_gpa.GPA_T1_weighted_core AS gpa_curterm_core
+      ,team_gpa.GPA_T2_weighted_all AS gpa_curterm_all
+      ,team_gpa.GPA_T2_weighted_core AS gpa_curterm_core
+      --,team_gpa.GPA_T3_weighted_all AS gpa_curterm_all      
+      --,team_gpa.GPA_T3_weighted_core AS gpa_curterm_core
       
 --Promotional Criteria      
 --REPORTING$promo_status#TEAM
