@@ -20,7 +20,7 @@ BEGIN
 		--STEP 2: load into a TEMPORARY staging table.
 		SELECT ar.*
 		INTO [#AR$progress_to_goals_long#static|refresh]
-  FROM AR$progress_to_goals_long ar
+  FROM AR$progress_to_goals_long ar WITH(NOLOCK)
    
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
   --SELECT 1 FROM [AR$progress_to_goals_long#static] WITH (TABLOCKX);
