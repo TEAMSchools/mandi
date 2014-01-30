@@ -41,10 +41,10 @@ WITH zscore AS
                ELSE 'Gen Ed'
              END AS iep_status
             ,sch.abbreviation AS school
-      FROM KIPP_NJ..COHORT$comprehensive_long#static c
+      FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
       JOIN KIPP_NJ..SCHOOLS sch
         ON c.schoolid = sch.school_number
-      JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+      JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH (NOLOCK)
         ON c.studentid = cust.studentid
       WHERE c.year = 2013
         AND c.rn = 1
@@ -62,15 +62,15 @@ WITH zscore AS
                WHEN map.measurementscale = 'Language Usage' THEN 'RHET'
                WHEN map.measurementscale = 'Science - General Science' THEN 'SCI'
             END AS join_credittype
-     FROM KIPP_NJ..MAP$baseline_composite#static map
+     FROM KIPP_NJ..MAP$baseline_composite#static map WITH (NOLOCK)
      WHERE map.year = 2013)
 
     --SWITCH THIS AS THE YEAR PROGRESSES eg winter, spring
     ,map_endpoint AS
     (SELECT map_end.*
            ,sch.abbreviation AS school
-     FROM KIPP_NJ..MAP$comprehensive#identifiers map_end
-     JOIN KIPP_NJ..SCHOOLS sch
+     FROM KIPP_NJ..MAP$comprehensive#identifiers map_end WITH (NOLOCK)
+     JOIN KIPP_NJ..SCHOOLS sch WITH (NOLOCK)
        ON map_end.schoolid = sch.school_number
      WHERE map_end.map_year_academic = 2013
        AND map_end.rn = 1
@@ -80,11 +80,11 @@ WITH zscore AS
     ,cc AS
     (SELECT last_tch.*
            ,courses.credittype
-     FROM KIPP_NJ..CC c
-     JOIN PS$teacher_by_last_enrollment last_tch
+     FROM KIPP_NJ..CC c WITH (NOLOCK)
+     JOIN PS$teacher_by_last_enrollment last_tch WITH (NOLOCK)
        ON c.studentid = last_tch.studentid
       AND c.course_number = last_tch.course_number
-     JOIN KIPP_NJ..COURSES
+     JOIN KIPP_NJ..COURSES WITH (NOLOCK)
        ON c.course_number = courses.course_number
      WHERE c.dateenrolled <= CAST(GETDATE() AS date)
        AND c.dateleft >= CAST(GETDATE() AS date)
@@ -180,7 +180,7 @@ LEFT OUTER JOIN
                 ,map_endpoint.testritscore
                 ,map_endpoint.testpercentile
           FROM map_endpoint
-          JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+          JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH (NOLOCK)
             ON map_endpoint.ps_studentid = cust.studentid
          ) sub
    GROUP BY sub.year
@@ -353,7 +353,7 @@ LEFT OUTER JOIN
                 ,map_endpoint.testritscore
                 ,map_endpoint.testpercentile
           FROM map_endpoint
-          JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+          JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH (NOLOCK)
             ON map_endpoint.ps_studentid = cust.studentid
          ) sub
    GROUP BY sub.year

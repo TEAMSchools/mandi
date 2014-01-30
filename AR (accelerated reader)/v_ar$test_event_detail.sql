@@ -255,10 +255,9 @@ SELECT ar_base.*
 FROM ar_detail ar_base
 --self join, same book, in the future
 JOIN ar_detail ar_future
+ --good lord.  namespace collisions on internal RL ids.
  ON ar_base.student_number = ar_future.student_number
  --ON ar_base.iUserID = ar_future.iUserID
  AND ar_base.iQuizNumber = ar_future.iQuizNumber
- --good lord.  namespace collisions on internal RL ids.
- --AND ar_base.student_number = ar_future.student_number
  --prevents NCA kids from reading the same book
  AND NOT (ar_future.dtTaken > ar_base.dtTaken)
