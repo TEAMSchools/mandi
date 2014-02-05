@@ -188,6 +188,21 @@ SELECT ROW_NUMBER() OVER(
       ,p2
       ,p3
       ,p4
+      ,PSAT_highest_math
+      ,PSAT_highest_verbal
+      ,PSAT_highest_writing
+      ,PSAT_highest_combined
+      ,SAT_highest_math
+      ,SAT_highest_verbal
+      ,SAT_highest_writing
+      ,SAT_highest_math_verbal
+      ,SAT_highest_combined
+      ,ACT_highest_math
+      ,ACT_highest_english
+      ,ACT_highest_reading
+      ,ACT_highest_science
+      ,ACT_highest_composite
+
      
 --PROFICIENCY METRICS      
       ,CASE
@@ -585,6 +600,24 @@ FROM
            ,dcounts.detentions
            ,dcounts.class_removal
            
+     --College test scores
+     --KTC$highest_scores_wide
+           ,ktc.PSAT_highest_math
+           ,ktc.PSAT_highest_verbal
+           ,ktc.PSAT_highest_writing
+           ,ktc.PSAT_highest_combined
+           ,ktc.SAT_highest_math
+           ,ktc.SAT_highest_verbal
+           ,ktc.SAT_highest_writing
+           ,ktc.SAT_highest_math_verbal
+           ,ktc.SAT_highest_combined
+           ,ktc.ACT_highest_math
+           ,ktc.ACT_highest_english
+           ,ktc.ACT_highest_reading
+           ,ktc.ACT_highest_science
+           ,ktc.ACT_highest_composite
+
+     
      FROM roster WITH (NOLOCK)
       
      --ATTENDANCE
@@ -688,4 +721,6 @@ FROM
                       FROM roster WITH (NOLOCK)
                       GROUP BY grade_level) dem
        ON roster.grade_level = dem.grade_level       
+     LEFT OUTER JOIN KTC$highest_scores_wide ktc
+       ON roster.student_number = ktc.student_number
     ) sub_1
