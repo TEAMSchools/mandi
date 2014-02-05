@@ -250,17 +250,17 @@ BEGIN
        ,CONVERT(FLOAT,fp_comp_beyond) AS fp_comp_beyond
        ,CONVERT(FLOAT,fp_comp_about) AS fp_comp_about
        ,fp_keylever
-       ,CONVERT(FLOAT,cc_factual) + CONVERT(FLOAT,cc_other) + CONVERT(FLOAT,cc_infer) AS cc_prof1
-       ,CONVERT(FLOAT,cc_factual) + CONVERT(FLOAT,cc_infer) + CONVERT(FLOAT,cc_ct) AS cc_prof2
-       ,CONVERT(FLOAT,cp_orient) + CONVERT(FLOAT,cp_121match) + CONVERT(FLOAT,cp_slw) AS cp_prof
-       ,CONVERT(FLOAT,devsp_first) + CONVERT(FLOAT,devsp_svs) + CONVERT(FLOAT,devsp_final) AS devsp_prof1
-       ,CONVERT(FLOAT,devsp_svs) + CONVERT(FLOAT,devsp_ifbd) AS devsp_prof2
-       ,CONVERT(FLOAT,ocomp_factual) + CONVERT(FLOAT,ocomp_ct) AS ocomp_prof1
-       ,CONVERT(FLOAT,ocomp_ct) + CONVERT(FLOAT,ocomp_infer) + CONVERT(FLOAT,ocomp_factual) AS ocomp_prof2
-       ,CONVERT(FLOAT,rr_121match) + CONVERT(FLOAT,rr_holdspattern) + CONVERT(FLOAT,rr_understanding) AS rr_prof
-       ,CONVERT(FLOAT,scomp_factual) + CONVERT(FLOAT,scomp_infer) + CONVERT(FLOAT,scomp_ct) AS scomp_prof
-       ,CONVERT(FLOAT,wcomp_fact) + CONVERT(FLOAT,wcomp_infer) + CONVERT(FLOAT,wcomp_ct) AS wcomp_prof
-       ,CONVERT(FLOAT,fp_comp_within) + CONVERT(FLOAT,fp_comp_beyond) + CONVERT(FLOAT,fp_comp_about) AS fp_comp_prof
+       ,CONVERT(FLOAT,ISNULL(cc_factual,0)) + CONVERT(FLOAT,ISNULL(cc_other,0)) + CONVERT(FLOAT,ISNULL(cc_infer,0)) AS cc_prof1
+       ,CONVERT(FLOAT,ISNULL(cc_factual,0)) + CONVERT(FLOAT,ISNULL(cc_infer,0)) + CONVERT(FLOAT,ISNULL(cc_ct,0)) AS cc_prof2
+       ,CONVERT(FLOAT,ISNULL(cp_orient,0)) + CONVERT(FLOAT,ISNULL(cp_121match,0)) + CONVERT(FLOAT,ISNULL(cp_slw,0)) AS cp_prof
+       ,CONVERT(FLOAT,ISNULL(devsp_first,0)) + CONVERT(FLOAT,ISNULL(devsp_svs,0)) + CONVERT(FLOAT,ISNULL(devsp_final,0)) AS devsp_prof1
+       ,CONVERT(FLOAT,ISNULL(devsp_svs,0)) + CONVERT(FLOAT,ISNULL(devsp_ifbd,0)) AS devsp_prof2
+       ,CONVERT(FLOAT,ISNULL(ocomp_factual,0)) + CONVERT(FLOAT,ISNULL(ocomp_ct,0)) AS ocomp_prof1
+       ,CONVERT(FLOAT,ISNULL(ocomp_ct,0)) + CONVERT(FLOAT,ISNULL(ocomp_infer,0)) + CONVERT(FLOAT,ISNULL(ocomp_factual,0)) AS ocomp_prof2
+       ,CONVERT(FLOAT,ISNULL(rr_121match,0)) + CONVERT(FLOAT,ISNULL(rr_holdspattern,0)) + CONVERT(FLOAT,ISNULL(rr_understanding,0)) AS rr_prof
+       ,CONVERT(FLOAT,ISNULL(scomp_factual,0)) + CONVERT(FLOAT,ISNULL(scomp_infer,0)) + CONVERT(FLOAT,ISNULL(scomp_ct,0)) AS scomp_prof
+       ,CONVERT(FLOAT,ISNULL(wcomp_fact,0)) + CONVERT(FLOAT,ISNULL(wcomp_infer,0)) + CONVERT(FLOAT,ISNULL(wcomp_ct,0)) AS wcomp_prof
+       ,CONVERT(FLOAT,ISNULL(fp_comp_within,0)) + CONVERT(FLOAT,ISNULL(fp_comp_beyond,0)) + CONVERT(FLOAT,ISNULL(fp_comp_about,0)) AS fp_comp_prof
  FROM [#LIT$READINGSCORES|refresh];
 
  -- Step 4: rebuld all nonclustered indexes on table

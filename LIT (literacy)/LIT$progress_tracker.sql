@@ -4,7 +4,7 @@ GO
 ALTER VIEW LIT$progress_tracker AS
 SELECT sub.*
       ,CASE
-        WHEN status = 'Did Not Achieve' AND dna_low_tri = 1 THEN
+        WHEN status = 'Did Not Achieve' THEN
          ISNULL(name_ass_prof,'')
            + ISNULL(ltr_nameid_prof,'')
            + ISNULL(ltr_soundid_prof,'')
@@ -267,7 +267,7 @@ FROM
                AND prof.devsp_longvp IS NOT NULL AND scores.devsp_longvp < prof.devsp_longvp THEN 'Developmental Spelling | '
               ELSE NULL
              END AS devsp_prof_8_10
-              --STEPs 11 - 12
+             --STEPs 11 - 12
             ,CASE
               WHEN prof.devsp_eding IS NOT NULL AND scores.devsp_eding >= prof.devsp_eding
                AND prof.devsp_doubsylj IS NOT NULL AND scores.devsp_doubsylj >= prof.devsp_doubsylj
@@ -331,7 +331,7 @@ FROM
             ,CASE 
               WHEN prof.fp_comp_prof IS NOT NULL AND scores.fp_comp_prof >= prof.fp_comp_prof THEN NULL 
               WHEN prof.fp_comp_prof IS NOT NULL AND scores.fp_comp_prof < prof.fp_comp_prof THEN 'Comprehension Conversation | '
-              ELSE NULL 
+              ELSE NULL
              END AS fp_comp_prof
 
       --PROFICIENCY BENCHMARKS
@@ -687,7 +687,7 @@ FROM
                   ,NULL AS la_fp_keylever_ms
                   ,achv_high_tri
                   ,dna_low_tri                  
-            FROM LIT$STEP_test_events_long#identifiers WITH (NOLOCK)
+            FROM LIT$STEP_test_events_long#identifiers#static WITH (NOLOCK)
             WHERE year >= 2012
            ) scores
       JOIN LIT$proficiency prof WITH (NOLOCK)
