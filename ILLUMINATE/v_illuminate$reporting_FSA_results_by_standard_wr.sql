@@ -34,6 +34,10 @@ FROM
               WHEN assessments.schoolid = 73254 AND assessments.subject NOT IN ('Comprehension','Math','Phonics','Grammar','Writing') AND results.percent_correct >= 25 AND results.percent_correct < 50 THEN 2
               WHEN assessments.schoolid = 73254 AND assessments.subject NOT IN ('Comprehension','Math','Phonics','Grammar','Writing') AND results.percent_correct >= 50 AND results.percent_correct < 75 THEN 3
               WHEN assessments.schoolid = 73254 AND assessments.subject NOT IN ('Comprehension','Math','Phonics','Grammar','Writing') AND results.percent_correct >= 75 THEN 4
+              --IEP student proficiency
+              WHEN s.SCHOOLID = 73254 AND s.grade_level IN (3,4) AND cs.SPEDLEP LIKE 'SPED' AND results.percent_correct >= 0  AND results.percent_correct < 30 THEN 1
+              WHEN s.SCHOOLID = 73254 AND s.grade_level IN (3,4) AND cs.SPEDLEP LIKE 'SPED' AND results.percent_correct >= 30 AND results.percent_correct < 60 THEN 2
+              WHEN s.SCHOOLID = 73254 AND s.grade_level IN (3,4) AND cs.SPEDLEP LIKE 'SPED' AND results.percent_correct >= 60 THEN 3
               ELSE CONVERT(FLOAT,results.label_number)
              END AS proficiency
             ,results.custom_code AS standard
@@ -53,6 +57,8 @@ FROM
              AS rollup_hash
             ,assessments.fsa_std_rn            
       FROM STUDENTS s WITH(NOLOCK)
+      LEFT OUTER JOIN CUSTOM_STUDENTS cs
+        ON s.id = cs.STUDENTID
       LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results WITH(NOLOCK)
         ON s.student_number = results.local_student_id
       LEFT OUTER JOIN ILLUMINATE$assessments#static assessments WITH(NOLOCK)
