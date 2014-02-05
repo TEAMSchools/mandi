@@ -78,8 +78,8 @@ SELECT
 FROM MAP$best_baseline#static base WITH(NOLOCK)
 JOIN STUDENTS s WITH(NOLOCK)
   ON base.studentid = s.ID
-AND base.schoolid = s.SCHOOLID
-AND s.ENROLL_STATUS = 0
+ AND base.schoolid = s.SCHOOLID
+ AND s.ENROLL_STATUS = 0
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
   ON s.id = cs.studentid
 LEFT OUTER JOIN MAP$rutgers_ready_student_goals goals WITH(NOLOCK)
