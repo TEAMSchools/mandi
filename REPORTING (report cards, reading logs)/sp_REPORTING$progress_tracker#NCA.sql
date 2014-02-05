@@ -8,8 +8,6 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-
-
 ALTER PROCEDURE [dbo].[sp_REPORTING$progress_tracker#NCA#static|refresh] AS
 BEGIN
 
