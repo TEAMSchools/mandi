@@ -57,6 +57,7 @@ WITH ar_detail AS
            ,arsp.[iTeacherUserID]
            ,arsp.[DeviceUniqueID]
            ,arsp.[iUserActionID]
+           ,2 AS school_progression
      FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_RISE].[dbo].[ar_StudentPractice] arsp
      LEFT OUTER JOIN [RM9-DSCHEDULER\SQLEXPRESS].[RL_RISE].[dbo].[rl_User]  rluser
        ON arsp.iUserID = rluser.iUserID
@@ -119,6 +120,7 @@ WITH ar_detail AS
            ,arsp.[iTeacherUserID]
            ,arsp.[DeviceUniqueID]
            ,arsp.[iUserActionID]
+           ,1 AS school_progression
      FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_SPARK].[dbo].[ar_StudentPractice] arsp
      LEFT OUTER JOIN [RM9-DSCHEDULER\SQLEXPRESS].[RL_SPARK].[dbo].[rl_User]  rluser
        ON arsp.iUserID = rluser.iUserID
@@ -181,6 +183,7 @@ WITH ar_detail AS
            ,arsp.[iTeacherUserID]
            ,arsp.[DeviceUniqueID]
            ,arsp.[iUserActionID]
+           ,2 AS school_progression
      FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_TEAM].[dbo].[ar_StudentPractice] arsp
      LEFT OUTER JOIN [RM9-DSCHEDULER\SQLEXPRESS].[RL_TEAM].[dbo].[rl_User]  rluser
        ON arsp.iUserID = rluser.iUserID
@@ -243,6 +246,7 @@ WITH ar_detail AS
            ,arsp.[iTeacherUserID]
            ,arsp.[DeviceUniqueID]
            ,arsp.[iUserActionID]
+           ,3 AS school_progression
     FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_NCA].[dbo].[ar_StudentPractice] arsp
     LEFT OUTER JOIN [RM9-DSCHEDULER\SQLEXPRESS].[RL_NCA].[dbo].[rl_User]  rluser
       ON arsp.iUserID = rluser.iUserID
@@ -251,13 +255,65 @@ WITH ar_detail AS
       AND arsp.tiRowStatus = 1
     )
 
-SELECT ar_base.*
-FROM ar_detail ar_base
---self join, same book, in the future
-JOIN ar_detail ar_future
- --good lord.  namespace collisions on internal RL ids.
- ON ar_base.student_number = ar_future.student_number
- --ON ar_base.iUserID = ar_future.iUserID
- AND ar_base.iQuizNumber = ar_future.iQuizNumber
- --prevents NCA kids from reading the same book
- AND NOT (ar_future.dtTaken > ar_base.dtTaken)
+SELECT [student_number]
+      ,[iStudentPracticeID]
+      ,[iUserID]
+      ,[iSchoolID]
+      ,[iContentID]
+      ,[iClassID]
+      ,[iContentTypeID]
+      ,[iRLID]
+      ,[iQuizNumber]
+      ,[vchContentLanguage]
+      ,[vchContentTitle]
+      ,[vchSortTitle]
+      ,[vchAuthor]
+      ,[vchSeriesShortName]
+      ,[vchSeriesTitle]
+      ,[chContentVersion]
+      ,[chFictionNonFiction]
+      ,[vchInterestLevel]
+      ,[dBookLevel]
+      ,[iQuestionsPresented]
+      ,[iQuestionsCorrect]
+      ,[dAlternateBookLevel_1]
+      ,[dPointsPossible]
+      ,[iAlternateBookLevel_2]
+      ,[dPointsEarned]
+      ,[dPassingPercentage]
+      ,[tiPassed]
+      ,[chTWI]
+      ,[tiBookRating]
+      ,[tiUsedAudio]
+      ,[dtTaken]
+      ,[dtTakenOriginal]
+      ,[tiTeacherModified]
+      ,[tiPracticeDetail]
+      ,[iWordCount]
+      ,[dPercentCorrect]
+      ,[vchSecondTryTitle]
+      ,[vchSecondTryAuthor]
+      ,[chStatus]
+      ,[iRetakeCount]
+      ,[DeviceType]
+      ,[DeviceAppletID]
+      ,[sDataOrigination]
+      ,[tiCSImportVersion]
+      ,[iInsertByID]
+      ,[dtInsertDate]
+      ,[iEditByID]
+      ,[dtEditDate]
+      ,[tiRowStatus]
+      ,[iTeacherUserID]
+      ,[DeviceUniqueID]
+      ,[iUserActionID]
+FROM
+      (SELECT ar_detail.*
+             ,ROW_NUMBER() OVER
+               (PARTITION BY ar_detail.student_number
+                            ,ar_detail.iQuizNumber
+                ORDER BY ar_detail.school_progression ASC
+               ) AS rn
+        FROM ar_detail
+       ) sub
+WHERE rn = 1
