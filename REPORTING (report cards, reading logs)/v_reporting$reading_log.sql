@@ -54,6 +54,13 @@ WITH roster AS
    WHERE cc.dateenrolled <= GETDATE()
 	    AND cc.dateleft >= GETDATE()
   )
+  
+  ,map_goals AS 
+   (SELECT *
+    FROM KIPP_NJ..MAP$rutgers_ready_student_goals g
+    WHERE g.measurementscale = 'Reading'
+      AND g.year = 2013
+   )
     
 SELECT roster.*
       ,enr.course_name + '|' + enr.section_number AS enr_hash
@@ -177,6 +184,11 @@ SELECT roster.*
       ,ROUND((CONVERT(FLOAT,ar_h6.N_passed) / CONVERT(FLOAT,ar_h6.N_total) * 100),1) AS hex6_pct_passing
       ,ar_h6.mastery_fiction AS hex6_accuracy_fiction
       ,ar_h6.mastery_nonfiction AS hex6_accuracy_nonfiction
+
+      ,map_goals.keep_up_goal
+      ,map_goals.keep_up_rit
+      ,map_goals.rutgers_ready_goal
+      ,map_goals.rutgers_ready_rit
       
 FROM roster
 --ENR
@@ -301,3 +313,6 @@ LEFT OUTER JOIN SRI$testing_history sri_lexile WITH(NOLOCK)
   ON CAST(roster.student_number AS NVARCHAR) = sri_lexile.base_student_number
  AND sri_lexile.rn_lifetime = 1
  AND sri_lexile.schoolid = 73252
+
+LEFT OUTER JOIN map_goals
+  ON roster.studentid = map_goals.studentid
