@@ -90,9 +90,26 @@ WITH zscore AS
        AND c.dateleft >= CAST(GETDATE() AS date)
      ) 
 
+    ,hr AS
+    (SELECT cc.studentid
+           ,schools.abbreviation AS school
+           ,sections.section_number
+     FROM KIPP_NJ..CC
+     JOIN KIPP_NJ..COURSES 
+       ON cc.course_number = courses.course_number
+      AND courses.course_name = 'HR'
+     JOIN KIPP_NJ..SECTIONS
+       ON cc.sectionid = sections.id
+     JOIN KIPP_NJ..SCHOOLS
+       ON cc.schoolid = schools.school_number
+      AND schools.school_number IN (73254, 73255, 73256)
+     WHERE cc.dateenrolled <= CAST(GETDATE() AS date)
+       AND cc.dateleft >= CAST(GETDATE() AS date)
+    ) 
+
 --LOOSE method
 SELECT sub.school
-      ,sub.grade_level
+      ,CAST(sub.grade_level AS VARCHAR) AS grade_level
       ,sub.year
       ,sub.iep_status
       ,sub.measurementscale
@@ -202,7 +219,7 @@ UNION ALL
 
 --STRICT method
 SELECT sub.school
-      ,sub.grade_level
+      ,CAST(sub.grade_level AS VARCHAR) AS grade_level
       ,sub.year
       ,sub.iep_status
       ,sub.measurementscale
@@ -283,7 +300,23 @@ WHERE rn = 1
 
 UNION ALL
 --LOOSE SCIENCE
-SELECT sub.*
+SELECT sub.school
+      ,CAST(sub.grade_level AS VARCHAR) AS grade_level
+      ,sub.year
+      ,sub.iep_status
+      ,sub.measurementscale
+      ,sub.avg_baseline_rit
+      ,sub.avg_baseline_percentile
+      ,sub.N
+      ,sub.comparison_start_rit
+      ,sub.mean
+      ,sub.sd
+      ,sub.roster_match_method
+      ,sub.cohort_growth_percentile
+      ,sub.zscore
+      ,NULL AS target_rit_change
+      ,NULL AS target_spr_rit
+      ,sub.target_npr_change
       ,sub.avg_baseline_percentile + sub.target_npr_change AS target_spr_npr
       ,loose_agg.avg_cur_endpoint_rit
       ,loose_agg.avg_cur_endpoint_percentile      
@@ -334,7 +367,7 @@ LEFT OUTER JOIN
   (SELECT sub.year
          ,sub.school
          ,sub.measurementscale
-         ,sub.grade_level
+         ,CAST(sub.grade_level AS VARCHAR) AS grade_level
          ,CASE GROUPING(sub.iep_status)
             WHEN 1 THEN 'All Students'
             ELSE sub.iep_status
@@ -372,7 +405,7 @@ LEFT OUTER JOIN
 UNION ALL
 
 SELECT sub.school
-      ,sub.grade_level
+      ,CAST(sub.grade_level AS VARCHAR) AS grade_level
       ,sub.year
       ,sub.iep_status
       ,sub.measurementscale
@@ -444,3 +477,191 @@ FROM
        JOIN zscore
          ON 1=1
        ) sub
+
+UNION ALL
+
+--ES BY HR LOOSE
+SELECT sub.school
+      ,sub.homeroom AS grade_level
+      ,sub.year
+      ,'All Students' AS iep_status
+      ,sub.measurementscale
+      ,sub.avg_baseline_rit
+      ,sub.avg_baseline_percentile
+      ,sub.N
+      ,sub.comparison_start_rit
+      ,sub.mean
+      ,sub.sd
+      ,'loose' AS roster_match_method
+      ,CAST(zscore.percentile AS FLOAT) AS cohort_growth_percentile
+      ,zscore.zscore
+      ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.mean), 1) AS float) AS target_rit_change
+      ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.avg_baseline_rit + sub.mean), 1) AS float) AS target_spr_rit
+      ,NULL AS target_npr_change
+      ,NULL AS target_spr_npr
+      ,loose_agg.avg_cur_endpoint_rit
+      ,loose_agg.avg_cur_endpoint_percentile
+FROM
+       --join to norms table, get diff
+      (SELECT sub.*
+             ,cohort_norms.rit AS comparison_start_rit
+             ,cohort_norms.mean
+             ,cohort_norms.sd
+             ,ROW_NUMBER() OVER
+                (PARTITION BY sub.school
+                             ,sub.grade_level
+                             ,sub.homeroom
+                             ,sub.year
+                             ,sub.measurementscale
+                 ORDER BY ABS(avg_baseline_rit - cohort_norms.rit)
+                ) AS rn
+       FROM
+             (SELECT sub.school
+                    ,sub.grade_level
+                    ,sub.homeroom
+                    ,sub.year
+                    ,sub.measurementscale
+                    ,CAST(ROUND(AVG(testritscore + 0.0),2) AS FLOAT) AS avg_baseline_rit
+                    ,CAST(ROUND(AVG(testpercentile + 0.0),1) AS FLOAT) AS avg_baseline_percentile
+                    ,COUNT(*) AS N
+              FROM
+                    (SELECT cohort.school
+                           ,hr.school + ': ' + CAST(hr.section_number AS varchar) AS homeroom
+                           ,cohort.grade_level
+                           ,cohort.year
+                           ,map_baseline.measurementscale
+                           ,map_baseline.termname
+                           ,map_baseline.testritscore
+                           ,map_baseline.testpercentile
+                     FROM cohort
+                     JOIN hr
+                       ON cohort.studentid = hr.studentid
+                     JOIN map_baseline
+                       ON cohort.studentid = map_baseline.studentid
+                     ) sub
+              GROUP BY sub.school
+                      ,sub.grade_level
+                      ,sub.homeroom
+                      ,sub.year
+                      ,sub.measurementscale
+              ) sub
+       JOIN cohort_norms
+         ON sub.grade_level = cohort_norms.grade
+        AND sub.measurementscale = cohort_norms.subject
+       ) sub
+LEFT OUTER JOIN 
+  (SELECT sub.year
+         ,sub.school
+         ,sub.measurementscale
+         ,sub.grade_level
+         ,sub.homeroom
+         ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
+         ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
+   FROM
+         (SELECT map_endpoint.map_year_academic AS year
+                ,map_endpoint.school
+                ,map_endpoint.measurementscale
+                ,map_endpoint.grade_level
+                ,hr.school + ': ' + CAST(hr.section_number AS varchar) AS homeroom
+                ,map_endpoint.testritscore
+                ,map_endpoint.testpercentile
+          FROM map_endpoint
+          JOIN hr
+            ON map_endpoint.ps_studentid = hr.studentid
+         ) sub
+   GROUP BY sub.year
+           ,sub.school
+           ,sub.measurementscale
+           ,sub.grade_level
+           ,sub.homeroom
+  ) loose_agg
+  ON sub.year = loose_agg.year
+ AND sub.school = loose_agg.school
+ AND sub.measurementscale = loose_agg.measurementscale
+ AND sub.grade_level = loose_agg.grade_level
+ AND sub.homeroom = loose_agg.homeroom
+JOIN zscore
+  ON 1=1
+WHERE rn = 1
+
+UNION ALL
+
+--ES BY HR STRICT
+SELECT sub.school
+      ,sub.homeroom AS grade_level
+      ,sub.year
+      ,'All Students' AS iep_status
+      ,sub.measurementscale
+      ,sub.avg_baseline_rit
+      ,sub.avg_baseline_percentile
+      ,sub.N
+      ,sub.comparison_start_rit
+      ,sub.mean
+      ,sub.sd
+      ,'strict' AS roster_match_method
+      ,CAST(zscore.percentile AS FLOAT) AS cohort_growth_percentile
+      ,zscore.zscore
+      ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.mean), 1) AS float) AS target_rit_change
+      ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.avg_baseline_rit + sub.mean), 1) AS float) AS target_spr_rit
+      ,NULL AS target_npr_change
+      ,NULL AS target_spr_npr
+      ,sub.avg_cur_endpoint_rit
+      ,sub.avg_cur_endpoint_percentile
+FROM
+       --join to norms table, get diff
+      (SELECT sub.*
+             ,cohort_norms.rit AS comparison_start_rit
+             ,cohort_norms.mean
+             ,cohort_norms.sd
+             ,ROW_NUMBER() OVER
+                (PARTITION BY sub.school
+                             ,sub.grade_level
+                             ,sub.homeroom
+                             ,sub.year
+                             ,sub.measurementscale
+                 ORDER BY ABS(avg_baseline_rit - cohort_norms.rit)
+                ) AS rn
+       FROM
+             (SELECT sub.school
+                    ,sub.grade_level
+                    ,sub.homeroom
+                    ,sub.year
+                    ,sub.measurementscale
+                    ,CAST(ROUND(AVG(testritscore + 0.0),2) AS FLOAT) AS avg_baseline_rit
+                    ,CAST(ROUND(AVG(testpercentile + 0.0),1) AS FLOAT) AS avg_baseline_percentile
+                    ,CAST(ROUND(AVG(cur_endpoint_rit + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
+                    ,ROUND(AVG(CAST(cur_endpoint_percentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
+                    ,COUNT(*) AS N
+              FROM
+                    (SELECT cohort.*
+                           ,hr.school + ': ' + CAST(hr.section_number AS varchar) AS homeroom
+                           ,map_baseline.measurementscale
+                           ,map_baseline.termname
+                           ,map_baseline.testritscore
+                           ,map_baseline.testpercentile
+                           ,map_endpoint.testritscore AS cur_endpoint_rit
+                           ,map_endpoint.testpercentile AS cur_endpoint_percentile
+                     FROM cohort
+                     JOIN map_baseline
+                       ON cohort.studentid = map_baseline.studentid
+                     JOIN hr
+                       ON cohort.studentid = hr.studentid
+                     --STRICT only returns students with test events in both terms
+                     JOIN map_endpoint
+                       ON cohort.studentid = map_endpoint.ps_studentid
+                      AND map_baseline.measurementscale = map_endpoint.measurementscale
+                      AND map_baseline.testritscore IS NOT NULL
+                     ) sub
+              GROUP BY sub.school
+                      ,sub.grade_level
+                      ,sub.homeroom
+                      ,sub.year
+                      ,sub.measurementscale
+              ) sub
+       JOIN cohort_norms
+         ON sub.grade_level = cohort_norms.grade
+        AND sub.measurementscale = cohort_norms.subject
+       ) sub
+JOIN zscore
+  ON 1=1
+WHERE rn = 1
