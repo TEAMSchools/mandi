@@ -43,15 +43,18 @@ SELECT s.LASTFIRST
         WHEN CONVERT(FLOAT,ROUND((ar_Yr.points / ar_Yr.points_goal * 100),1)) > 100 THEN '100%+'
         ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_Yr.points / ar_Yr.points_goal * 100),1)))
        END AS AR_pct_of_goal_Yr
-      ,lex_base.rittoreadingscore AS lexile_base
-      ,lex_fall.rittoreadingscore AS lexile_fall
+      ,base.lexile_score AS lexile_base
+      ,base.lexile_score AS lexile_fall
       ,lex_winter.rittoreadingscore AS lexile_winter
       ,lex_spring.rittoreadingscore AS lexile_spring
       ,lex_cur.rittoreadingscore AS lexile_current
       ,CONVERT(VARCHAR,lex_cur.rittoreadingmin) + ' - ' + CONVERT(VARCHAR,lex_cur.rittoreadingmax) AS lexile_range_current
-      ,ar_yr.mastery AS mastery_yr
-      ,NULL AS mastery_passed
-      ,NULL AS mastery_failed
+      ,base.testritscore AS RIT_base
+      ,lex_winter.testritscore AS RIT_winter
+      ,lex_spring.testritscore AS RIT_spr
+      ,rr.keep_up_rit
+      ,rr.rutgers_ready_rit
+      ,ar_yr.mastery AS mastery_yr      
       ,eng1.COURSE_NAME AS eng1_course
       ,eng1.SECTION_NUMBER AS eng1_section
       ,eng1.LASTFIRST AS eng1_teacher
@@ -106,17 +109,16 @@ LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
  AND lex_cur.measurementscale  = 'Reading'
  AND lex_cur.map_year_academic = 2013 --update yearly
  AND lex_cur.rn_curr = 1
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
-  ON s.id = lex_base.ps_studentid
- AND lex_base.measurementscale  = 'Reading'
- AND lex_base.map_year_academic = 2013 --update yearly
- AND lex_base.rn_base = 1
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_fall WITH (NOLOCK)
-  ON s.id = lex_fall.ps_studentid
- AND lex_fall.measurementscale  = 'Reading'
- AND lex_fall.map_year_academic = 2013 --update yearly
- AND lex_fall.fallwinterspring = 'Fall' 
- AND lex_fall.rn = 1
+LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
+  ON s.ID = rr.studentid
+ AND s.schoolid = rr.schoolid 
+ AND rr.measurementscale = 'Reading'
+ AND rr.year = 2013
+LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
+  ON s.ID = base.studentid
+ AND s.schoolid = base.schoolid 
+ AND base.measurementscale = 'Reading'
+ AND base.year = 2013
 LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_winter WITH (NOLOCK)
   ON s.id = lex_winter.ps_studentid
  AND lex_winter.measurementscale  = 'Reading'
@@ -178,7 +180,7 @@ LEFT OUTER JOIN (
                        ,CC.EXPRESSION
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
-                               ORDER BY cc.course_number) AS rn
+                               ORDER BY cc.termid DESC) AS rn
                  FROM CC WITH (NOLOCK)   
                  JOIN COURSES c
                    ON cc.COURSE_NUMBER = c.COURSE_NUMBER
@@ -191,6 +193,7 @@ LEFT OUTER JOIN (
                    AND cc.COURSE_NUMBER != 'STUDY25'
                 ) diff
   ON s.id = diff.studentid
+ AND diff.rn = 1
 --intervention block
 LEFT OUTER JOIN KIPP_NJ..[CUSTOM_GROUPINGS$intervention_block#NCA] intv_block
   ON s.id = intv_block.studentid
