@@ -23,6 +23,7 @@ WITH roster AS
             ,cs.guardianemail
             ,cs.advisor
             ,cs.SPEDLEP AS SPED
+            ,cs.SID
             ,ROW_NUMBER() OVER(
                 PARTITION BY s.grade_level
                     ORDER BY s.id) AS peer_count
@@ -202,20 +203,23 @@ SELECT ROW_NUMBER() OVER(
       ,ACT_highest_reading
       ,ACT_highest_science
       ,ACT_highest_composite
-
+      ,HSPA_LAL_scale
+      ,HSPA_LAL_prof
+      ,HSPA_math_scale
+      ,HSPA_math_prof
      
 --PROFICIENCY METRICS      
       ,CASE
-        WHEN att_pct_yr >= 95 THEN 4
-        WHEN att_pct_yr >= 93 AND att_pct_yr < 95 THEN 3
-        WHEN att_pct_yr >= 90 AND att_pct_yr < 93 THEN 2
-        WHEN att_pct_yr < 90 THEN 1
+        WHEN att_pct_yr >= 95.0 THEN 4
+        WHEN att_pct_yr >= 93.0 AND att_pct_yr < 95.0 THEN 3
+        WHEN att_pct_yr >= 90.0 AND att_pct_yr < 93.0 THEN 2
+        WHEN att_pct_yr < 90.0 THEN 1
        END AS att_pct_counts_yr_prof
       ,CASE
-        WHEN inv_tardy_pct_yr >= 98 THEN 4
-        WHEN inv_tardy_pct_yr >= 95 AND inv_tardy_pct_yr < 98 THEN 3
-        WHEN inv_tardy_pct_yr >= 90 AND inv_tardy_pct_yr < 95 THEN 2
-        WHEN inv_tardy_pct_yr <  90 THEN 1
+        WHEN inv_tardy_pct_yr >= 98.0 THEN 4
+        WHEN inv_tardy_pct_yr >= 95.0 AND inv_tardy_pct_yr < 98.0 THEN 3
+        WHEN inv_tardy_pct_yr >= 90.0 AND inv_tardy_pct_yr < 95.0 THEN 2
+        WHEN inv_tardy_pct_yr <  90.0 THEN 1
        END AS on_time_pct_prof      
       ,CASE
         WHEN suspensions =  0 THEN 3
@@ -248,106 +252,106 @@ SELECT ROW_NUMBER() OVER(
         WHEN grade_level = 12 AND earned_credits_cum <  85 THEN 1
        END AS earned_credits_cum_prof
       ,CASE
-        WHEN AY_all >= 87 THEN 4
-        WHEN AY_all <  87 AND AY_all >= 80  THEN 3
-        WHEN AY_all <  80 AND AY_all >= 70  THEN 2
-        WHEN AY_all <  70  THEN 1
+        WHEN CONVERT(FLOAT,AY_all) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,AY_all) <  87.0 AND CONVERT(FLOAT,AY_all) >= 80.0  THEN 3
+        WHEN CONVERT(FLOAT,AY_all) <  80.0 AND CONVERT(FLOAT,AY_all) >= 70.0  THEN 2
+        WHEN CONVERT(FLOAT,AY_all) <  70.0  THEN 1
        END AS AY_all_prof
       ,CASE
-        WHEN HY_all >= 90 THEN 4
-        WHEN HY_all <  90 AND HY_all >= 83  THEN 3
-        WHEN HY_all <  83 AND HY_all >= 75  THEN 2
-        WHEN HY_all <  75  THEN 1
+        WHEN CONVERT(FLOAT,HY_all) >= 90.0 THEN 4
+        WHEN CONVERT(FLOAT,HY_all) <  90.0 AND CONVERT(FLOAT,HY_all) >= 83.0  THEN 3
+        WHEN CONVERT(FLOAT,HY_all) <  83.0 AND CONVERT(FLOAT,HY_all) >= 75.0  THEN 2
+        WHEN CONVERT(FLOAT,HY_all) <  75.0 THEN 1
        END AS HY_all_prof
       ,CASE
-        WHEN PY_all >= 87 THEN 4
-        WHEN PY_all <  87 AND PY_all >= 83  THEN 3
-        WHEN PY_all <  83 AND PY_all >= 75  THEN 2
-        WHEN PY_all <  75  THEN 1
+        WHEN CONVERT(FLOAT,PY_all) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,PY_all) <  87.0 AND CONVERT(FLOAT,PY_all) >= 83.0  THEN 3
+        WHEN CONVERT(FLOAT,PY_all) <  83.0 AND CONVERT(FLOAT,PY_all) >= 75.0  THEN 2
+        WHEN CONVERT(FLOAT,PY_all) <  75.0  THEN 1
        END AS PY_all_prof
       ,CASE
-        WHEN E1_all >= 87 THEN 4
-        WHEN E1_all <  87 AND E1_all >= 80  THEN 3
-        WHEN E1_all <  80 AND E1_all >= 70  THEN 2
-        WHEN E1_all <  70  THEN 1
+        WHEN CONVERT(FLOAT,E1_all) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,E1_all) <  87.0 AND CONVERT(FLOAT,E1_all) >= 80.0  THEN 3
+        WHEN CONVERT(FLOAT,E1_all) <  80.0 AND CONVERT(FLOAT,E1_all) >= 70.0  THEN 2
+        WHEN CONVERT(FLOAT,E1_all) <  70.0  THEN 1
        END AS E1_all_prof            
       ,CASE
-        WHEN E2_all >= 87 THEN 4
-        WHEN E2_all <  87 AND E2_all >= 80  THEN 3
-        WHEN E2_all <  80 AND E2_all >= 70  THEN 2
-        WHEN E2_all <  70  THEN 1
+        WHEN CONVERT(FLOAT,E2_all) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,E2_all) <  87.0 AND CONVERT(FLOAT,E2_all) >= 80.0  THEN 3
+        WHEN CONVERT(FLOAT,E2_all) <  80.0 AND CONVERT(FLOAT,E2_all) >= 70.0  THEN 2
+        WHEN CONVERT(FLOAT,E2_all) <  70.0  THEN 1
        END AS E2_all_prof
       ,CASE
-        WHEN A1 >= 87 THEN 4
-        WHEN A1 < 87 AND A1 >= 80 THEN 3
-        WHEN A1 < 80 AND A1 >= 70 THEN 2
-        WHEN A1 < 70 THEN 1
+        WHEN CONVERT(FLOAT,A1) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,A1) < 87.0 AND CONVERT(FLOAT,A1) >= 80.0 THEN 3
+        WHEN CONVERT(FLOAT,A1) < 80.0 AND CONVERT(FLOAT,A1) >= 70.0 THEN 2
+        WHEN CONVERT(FLOAT,A1) < 70.0 THEN 1
         END AS A1_prof
         ,CASE
-        WHEN H1 >= 90 THEN 4
-        WHEN H1 < 90 AND H1 >= 83 THEN 3
-        WHEN H1 < 83 AND H1 >= 75 THEN 2
-        WHEN H1 < 75 THEN 1
+        WHEN CONVERT(FLOAT,H1) >= 90.0 THEN 4
+        WHEN CONVERT(FLOAT,H1) < 90.0 AND CONVERT(FLOAT,H1) >= 83.0 THEN 3
+        WHEN CONVERT(FLOAT,H1) < 83.0 AND CONVERT(FLOAT,H1) >= 75.0 THEN 2
+        WHEN CONVERT(FLOAT,H1) < 75.0 THEN 1
         END AS H1_prof
         ,CASE
-        WHEN P1 >= 87 THEN 4
-        WHEN P1 < 87 AND P1 >= 83 THEN 3
-        WHEN P1 < 83 AND P1 >= 75 THEN 2
-        WHEN P1 < 75 THEN 1
+        WHEN CONVERT(FLOAT,P1) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,P1) < 87.0 AND CONVERT(FLOAT,P1) >= 83.0 THEN 3
+        WHEN CONVERT(FLOAT,P1) < 83.0 AND CONVERT(FLOAT,P1) >= 75.0 THEN 2
+        WHEN CONVERT(FLOAT,P1) < 75.0 THEN 1
         END AS P1_prof
         ,CASE
-        WHEN A2 >= 87 THEN 4
-        WHEN A2 < 87 AND A2 >= 80 THEN 3
-        WHEN A2 < 80 AND A2 >= 70 THEN 2
-        WHEN A2 < 70 THEN 1
+        WHEN CONVERT(FLOAT,A2) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,A2) < 87.0 AND CONVERT(FLOAT,A2) >= 80.0 THEN 3
+        WHEN CONVERT(FLOAT,A2) < 80.0 AND CONVERT(FLOAT,A2) >= 70.0 THEN 2
+        WHEN CONVERT(FLOAT,A2) < 70.0 THEN 1
         END AS A2_prof
         ,CASE
-        WHEN H2 >= 90 THEN 4
-        WHEN H2 < 90 AND H2 >= 83 THEN 3
-        WHEN H2 < 83 AND H2 >= 75 THEN 2
-        WHEN H2 < 75 THEN 1
+        WHEN CONVERT(FLOAT,H2) >= 90.0 THEN 4
+        WHEN CONVERT(FLOAT,H2) < 90.0 AND CONVERT(FLOAT,H2) >= 83.0 THEN 3
+        WHEN CONVERT(FLOAT,H2) < 83.0 AND CONVERT(FLOAT,H2) >= 75.0 THEN 2
+        WHEN CONVERT(FLOAT,H2) < 75.0 THEN 1
         END AS H2_prof
         ,CASE
-        WHEN P2 >= 87 THEN 4
-        WHEN P2 < 87 AND P2 >= 83 THEN 3
-        WHEN P2 < 83 AND P2 >= 75 THEN 2
-        WHEN P2 < 75 THEN 1
+        WHEN CONVERT(FLOAT,P2) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,P2) < 87.0 AND CONVERT(FLOAT,P2) >= 83.0 THEN 3
+        WHEN CONVERT(FLOAT,P2) < 83.0 AND CONVERT(FLOAT,P2) >= 75.0 THEN 2
+        WHEN CONVERT(FLOAT,P2) < 75.0 THEN 1
         END AS P2_prof
         ,CASE
-        WHEN A3 >= 87 THEN 4
-        WHEN A3 < 87 AND A3 >= 80 THEN 3
-        WHEN A3 < 80 AND A3 >= 70 THEN 2
-        WHEN A3 < 70 THEN 1
+        WHEN CONVERT(FLOAT,A3) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,A3) < 87.0 AND CONVERT(FLOAT,A3) >= 80.0 THEN 3
+        WHEN CONVERT(FLOAT,A3) < 80.0 AND CONVERT(FLOAT,A3) >= 70.0 THEN 2
+        WHEN CONVERT(FLOAT,A3) < 70.0 THEN 1
         END AS A3_prof
         ,CASE
-        WHEN H3 >= 90 THEN 4
-        WHEN H3 < 90 AND H3 >= 83 THEN 3
-        WHEN H3 < 83 AND H3 >= 75 THEN 2
-        WHEN H3 < 75 THEN 1
+        WHEN CONVERT(FLOAT,H3) >= 90.0 THEN 4
+        WHEN CONVERT(FLOAT,H3) < 90.0 AND CONVERT(FLOAT,H3) >= 83.0 THEN 3
+        WHEN CONVERT(FLOAT,H3) < 83.0 AND CONVERT(FLOAT,H3) >= 75.0 THEN 2
+        WHEN CONVERT(FLOAT,H3) < 75.0 THEN 1
         END AS H3_prof
         ,CASE
-        WHEN P3 >= 87 THEN 4
-        WHEN P3 < 87 AND P3 >= 83 THEN 3
-        WHEN P3 < 83 AND P3 >= 75 THEN 2
-        WHEN P3 < 75 THEN 1
+        WHEN CONVERT(FLOAT,P3) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,P3) < 87.0 AND CONVERT(FLOAT,P3) >= 83.0 THEN 3
+        WHEN CONVERT(FLOAT,P3) < 83.0 AND CONVERT(FLOAT,P3) >= 75.0 THEN 2
+        WHEN CONVERT(FLOAT,P3) < 75.0 THEN 1
         END AS P3_prof
         ,CASE
-        WHEN A4 >= 87 THEN 4
-        WHEN A4 < 87 AND A4 >= 80 THEN 3
-        WHEN A4 < 80 AND A4 >= 70 THEN 2
-        WHEN A4 < 70 THEN 1
+        WHEN CONVERT(FLOAT,A4) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,A4) < 87.0 AND CONVERT(FLOAT,A4) >= 80.0 THEN 3
+        WHEN CONVERT(FLOAT,A4) < 80.0 AND CONVERT(FLOAT,A4) >= 70.0 THEN 2
+        WHEN CONVERT(FLOAT,A4) < 70.0 THEN 1
         END AS A4_prof
         ,CASE
-        WHEN H4 >= 90 THEN 4
-        WHEN H4 < 90 AND H4 >= 83 THEN 3
-        WHEN H4 < 83 AND H4 >= 75 THEN 2
-        WHEN H4 < 75 THEN 1
+        WHEN CONVERT(FLOAT,H4) >= 90.0 THEN 4
+        WHEN CONVERT(FLOAT,H4) < 90.0 AND CONVERT(FLOAT,H4) >= 83.0 THEN 3
+        WHEN CONVERT(FLOAT,H4) < 83.0 AND CONVERT(FLOAT,H4) >= 75.0 THEN 2
+        WHEN CONVERT(FLOAT,H4) < 75.0 THEN 1
         END AS H4_prof
         ,CASE
-        WHEN P4 >= 87 THEN 4
-        WHEN P4 < 87 AND P4 >= 83 THEN 3
-        WHEN P4 < 83 AND P4 >= 75 THEN 2
-        WHEN P4 < 75 THEN 1
+        WHEN CONVERT(FLOAT,P4) >= 87.0 THEN 4
+        WHEN CONVERT(FLOAT,P4) < 87.0 AND CONVERT(FLOAT,P4) >= 83.0 THEN 3
+        WHEN CONVERT(FLOAT,P4) < 83.0 AND CONVERT(FLOAT,P4) >= 75.0 THEN 2
+        WHEN CONVERT(FLOAT,P4) < 75.0 THEN 1
         END AS P4_prof
       ,CASE
         WHEN num_failing = 0 THEN 3
@@ -356,22 +360,22 @@ SELECT ROW_NUMBER() OVER(
        END AS num_failing_prof
       --,points_goal_yr,points_yr -- prof is relative to goal
       ,CASE
-        WHEN map_sci_pct >= 75 THEN 4
-        WHEN map_sci_pct <  75 AND map_sci_pct >= 62 THEN 3
-        WHEN map_sci_pct <  62 AND map_sci_pct >= 50 THEN 2
-        WHEN map_sci_pct <  50 THEN 1
+        WHEN map_sci_pct >= 75.0 THEN 4
+        WHEN map_sci_pct <  75.0 AND map_sci_pct >= 62.0 THEN 3
+        WHEN map_sci_pct <  62.0 AND map_sci_pct >= 50.0 THEN 2
+        WHEN map_sci_pct <  50.0 THEN 1
        END AS map_sci_pct_prof
       ,CASE
-        WHEN map_math_pct >= 75 THEN 4
-        WHEN map_math_pct <  75 AND map_math_pct >= 62 THEN 3
-        WHEN map_math_pct <  62 AND map_math_pct >= 50 THEN 2
-        WHEN map_math_pct <  50 THEN 1
+        WHEN map_math_pct >= 75.0 THEN 4
+        WHEN map_math_pct <  75.0 AND map_math_pct >= 62.0 THEN 3
+        WHEN map_math_pct <  62.0 AND map_math_pct >= 50.0 THEN 2
+        WHEN map_math_pct <  50.0 THEN 1
        END AS map_math_pct_prof
       ,CASE
-        WHEN map_read_pct >= 75 THEN 4
-        WHEN map_read_pct <  75 AND map_read_pct >= 62 THEN 3
-        WHEN map_read_pct <  62 AND map_read_pct >= 50 THEN 2
-        WHEN map_read_pct <  50 THEN 1
+        WHEN map_read_pct >= 75.0 THEN 4
+        WHEN map_read_pct <  75.0 AND map_read_pct >= 62.0 THEN 3
+        WHEN map_read_pct <  62.0 AND map_read_pct >= 50.0 THEN 2
+        WHEN map_read_pct <  50.0 THEN 1
        END AS map_read_pct_prof                        
       ,CASE
         WHEN merits_curr >= 25 THEN 4
@@ -410,15 +414,19 @@ SELECT ROW_NUMBER() OVER(
        END AS lexile_cur_prof
       ,CASE
         WHEN status_cur = 'Off Track' AND status_yr = 'Off Track' THEN 1
-        WHEN status_cur = 'Off Track' AND status_yr = 'On Track' THEN 2
+        WHEN status_cur = 'Missed Goal' THEN 1
+        WHEN status_cur = 'Missed Goal' AND status_yr = 'On Track' THEN 2
         WHEN status_cur = 'On Track' THEN 3
         WHEN status_cur = 'On Track' AND points_cur > points_goal_cur THEN 4
+        WHEN status_cur = 'Met Goal' THEN 4
        END AS points_cur_prof
       ,CASE
         WHEN status_yr = 'Off Track' THEN 1
-        WHEN status_yr = 'Off Track' AND status_cur = 'On Track' THEN 2
+        WHEN status_yr = 'Missed Goal' THEN 1
+        WHEN status_yr = 'Missed Goal' AND status_cur = 'On Track' THEN 2
         WHEN status_yr = 'On Track' THEN 3
         WHEN status_yr = 'On Track' AND points_yr > points_goal_yr THEN 4
+        WHEN status_yr = 'Met Goal' THEN 4
        END AS points_yr_prof
 FROM
      (SELECT roster.*                 
@@ -564,11 +572,11 @@ FROM
 
      --MAP & Lexile scores -- update academic year in JOIN
      --MAP$comprehensive#identifiers
-           ,map_sci_cur.testpercentile AS map_sci_pct
+           ,map_sci_cur.percentile_2011_norms AS map_sci_pct
            ,map_sci_cur.testritscore AS map_sci_rit
-           ,map_math_cur.testpercentile AS map_math_pct
+           ,map_math_cur.percentile_2011_norms AS map_math_pct
            ,map_math_cur.testritscore AS map_math_rit
-           ,map_read_cur.testpercentile AS map_read_pct
+           ,map_read_cur.percentile_2011_norms AS map_read_pct
            ,map_read_cur.testritscore AS map_read_rit
            ,map_read_cur.rittoreadingscore AS lexile_cur
            ,map_read_cur.rittoreadingmin AS lexile_min
@@ -616,8 +624,12 @@ FROM
            ,ktc.ACT_highest_reading
            ,ktc.ACT_highest_science
            ,ktc.ACT_highest_composite
+     --HSPA
+           ,hspa.LAL_scale_score AS HSPA_LAL_scale
+           ,hspa.LAL_proficiency AS HSPA_LAL_prof
+           ,hspa.Math_scale_score AS HSPA_math_scale
+           ,hspa.Math_proficiency AS HSPA_math_prof
 
-     
      FROM roster WITH (NOLOCK)
       
      --ATTENDANCE
@@ -679,8 +691,9 @@ FROM
      LEFT OUTER JOIN AR$progress_to_goals_long#static ar_cur WITH (NOLOCK)
        ON roster .studentid = ar_cur.studentid      
       AND ar_cur.yearid = dbo.fn_Global_Term_Id()
-      AND GETDATE() >= ar_cur.start_date
-      AND GETDATE() <= ar_cur.end_date
+      --AND GETDATE() >= ar_cur.start_date
+      --AND GETDATE() <= ar_cur.end_date
+      AND ar_cur.time_period_name = 'RT2'
       AND ar_cur.time_hierarchy = 2
      LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
        ON roster .studentid = ar_yr.studentid      
@@ -714,13 +727,16 @@ FROM
       AND disc.rn = 1
       AND disc.logtypeid = 3023      
      LEFT OUTER JOIN DISC$counts_wide dcounts WITH (NOLOCK)
-       ON roster.studentid = dcounts.base_studentid
-       
+       ON roster.studentid = dcounts.base_studentid       
      LEFT OUTER JOIN (SELECT grade_level
                             ,MAX(peer_count) AS in_grade_denom
                       FROM roster WITH (NOLOCK)
                       GROUP BY grade_level) dem
        ON roster.grade_level = dem.grade_level       
-     LEFT OUTER JOIN KTC$highest_scores_wide ktc
+     
+     --Test scores
+     LEFT OUTER JOIN KTC$highest_scores_wide ktc WITH(NOLOCK)
        ON roster.student_number = ktc.student_number
+     LEFT OUTER JOIN HSPA$scaled_scores_roster hspa WITH(NOLOCK)
+       ON roster.SID = hspa.SID
     ) sub_1
