@@ -44,6 +44,15 @@ GRANT SELECT ON GRADES$elements TO db_data_tool_reader
 GRANT SELECT ON REPORTING$intervention_results_by_standard TO db_data_tool_reader
 GRANT SELECT ON ES_DAILY$daily_tracking_long#static TO db_data_tool_reader
 
+--Testing
+GRANT SELECT ON NAVIANCE$ID_key TO db_data_tool_reader
+GRANT SELECT ON NAVIANCE$act_scores TO db_data_tool_reader
+GRANT SELECT ON NAVIANCE$SAT_scores TO db_data_tool_reader
+GRANT SELECT ON NAVIANCE$PSAT_scores TO db_data_tool_reader
+GRANT SELECT ON HSPA$scaled_scores_roster TO db_data_tool_reader
+GRANT SELECT ON NAVIANCE$EXPLORE_scores TO db_data_tool_reader
+GRANT SELECT ON NAVIANCE$SAT_II_scores TO db_data_tool_reader
+
 --DB functions
 GRANT EXECUTE ON fn_Global_Term_Id TO db_data_tool_reader
 GRANT EXECUTE ON GROUP_CONCAT_D TO db_data_tool_reader
