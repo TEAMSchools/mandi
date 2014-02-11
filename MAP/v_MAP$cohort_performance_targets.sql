@@ -102,7 +102,7 @@ WITH zscore AS
        ON cc.sectionid = sections.id
      JOIN KIPP_NJ..SCHOOLS
        ON cc.schoolid = schools.school_number
-      AND schools.school_number IN (73254, 73255, 73256)
+      AND schools.school_number IN (73252, 73254, 73255, 73256)
      WHERE cc.dateenrolled <= CAST(GETDATE() AS date)
        AND cc.dateleft >= CAST(GETDATE() AS date)
     ) 
