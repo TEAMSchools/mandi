@@ -65,7 +65,7 @@ SELECT roster.*
       ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total      
 
        /*--Current--*/
-       /*--UPDATE FIELD to current term--*/
+      /*--UPDATE FIELD to current term--*/
       ,att_counts.RT2_absences_total        AS curterm_absences_total
       ,att_counts.RT2_absences_undoc        AS curterm_absences_undoc
       ,ROUND(att_pct.RT2_att_pct_total,0)   AS curterm_att_pct_total
@@ -524,7 +524,9 @@ SELECT roster.*
       ,gr_wide.rc8_p2  AS rc8_cur_p_pct
       ,gr_wide.rc9_p2  AS rc9_cur_p_pct
       ,gr_wide.rc10_P2 AS rc10_cur_p_pct
-      /*--E1--*/
+      
+      
+      /*--E1--*/ -- Exams, do not update
       ,gr_wide.rc1_E1  AS rc1_exam
       ,gr_wide.rc2_E1  AS rc2_exam
       ,gr_wide.rc3_E1  AS rc3_exam
@@ -584,7 +586,7 @@ SELECT roster.*
       /*--UPDATE TERM in JOIN--*/
       ,replace(convert(varchar,convert(Money, ar_curr.words),1),'.00','') AS words_read_cur_term
       ,replace(convert(varchar,convert(Money, ar_curr.words_goal),1),'.00','') AS words_goal_cur_term
-       ,ar_curr.points AS points_curterm
+      ,ar_curr.points AS points_curterm
 
 --Literacy tracking
 --MAP$comprehensive#identifiers
@@ -598,7 +600,8 @@ SELECT roster.*
       --,lex_fall.RITtoReadingMax AS lexile_base_max
       ,lex_base.TestPercentile AS lex_base_pct
         
-        --current for year
+      /*--UPDATE TERM in JOIN--*/
+      --current for year
       ,CASE
         WHEN lex_curr.RITtoReadingScore = 'BR' THEN 'Beginning Reader'
         ELSE lex_curr.RITtoReadingScore
@@ -620,7 +623,7 @@ SELECT roster.*
       ,comment_rc9.teacher_comment  AS rc9_comment
       ,comment_rc10.teacher_comment AS rc10_comment
       /*--FOR REPORT CARDS ONLY--*/
-      --,comment_adv.advisor_comment  AS advisor_comment
+      ,comment_adv.advisor_comment  AS advisor_comment
     
 --Discipline
 --DISC$merits_demerits_count#NCA
