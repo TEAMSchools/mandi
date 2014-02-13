@@ -355,6 +355,16 @@ FROM
                      (SUM(CAST(ar_all.iwordcount AS BIGINT)) + 0.0)
                      ) * 100, 0
                    ) AS INT) AS pct_fiction
+            ,SUM(
+              CASE
+               WHEN ar_all.chfictionnonfiction = 'F' THEN 1
+               ELSE NULL
+              END) AS n_fiction
+            ,SUM(
+              CASE
+               WHEN ar_all.chfictionnonfiction = 'NF' THEN 1
+               ELSE NULL
+              END) AS n_nonfic            
             ,ROUND(SUM(CAST(ar_all.ialternatebooklevel_2 * ar_all.iwordcount AS BIGINT))/SUM(CAST(ar_all.iwordcount AS BIGINT)),0) AS avg_lexile
             ,CONVERT(DECIMAL(3,2),ROUND(AVG(ar_all.tibookrating + 0.00),2)) AS avg_rating
             ,MAX(ar_all.dttaken) AS last_quiz
