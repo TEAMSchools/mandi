@@ -122,6 +122,8 @@ SELECT roster.*
       ,ar_year.mastery AS accuracy
       ,ar_year.mastery_fiction AS accuracy_fiction
       ,ar_year.mastery_nonfiction AS accuracy_nonfiction
+      ,ar_year.n_fiction
+      ,ar_year.n_nonfic
       
       --AR by Hex
         --Hex 1
