@@ -23,60 +23,24 @@ FROM
             ,co.grade_level
             ,s.team
             ,assessments.title
-            ,results.assessment_id --probably easier to key off of
-            --,dates.time_per_name AS week_num
+            ,results.assessment_id            
             ,assessments.subject
             ,results.answered
-            ,CAST(ROUND(results.percent_correct,2,2) AS FLOAT) AS percent_correct
-            /*
-            ,CASE
-              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 0  AND results.percent_correct < 60 THEN 1
-              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
-              WHEN assessments.subject != 'Writing' AND results.percent_correct >= 80 THEN 3
-              WHEN assessments.subject = 'Writing' AND results.percent_correct >= 0  AND results.percent_correct < 16.6 THEN 1
-              --WHEN assessments.subject = 'Writing' AND results.percent_correct >= 60 AND results.percent_correct < 80 THEN 2
-              WHEN assessments.subject = 'Writing' AND results.percent_correct >= 16.6 THEN 3
-              WHEN assessments.schoolid = 73254 AND assessments.subject NOT IN ('Comprehension','Math','Phonics','Grammar','Writing') AND results.percent_correct < 25 THEN 1
-              WHEN assessments.schoolid = 73254 AND assessments.subject NOT IN ('Comprehension','Math','Phonics','Grammar','Writing') AND results.percent_correct >= 25 AND results.percent_correct < 50 THEN 2
-              WHEN assessments.schoolid = 73254 AND assessments.subject NOT IN ('Comprehension','Math','Phonics','Grammar','Writing') AND results.percent_correct >= 50 AND results.percent_correct < 75 THEN 3
-              WHEN assessments.schoolid = 73254 AND assessments.subject NOT IN ('Comprehension','Math','Phonics','Grammar','Writing') AND results.percent_correct >= 75 THEN 4
-              ELSE CONVERT(FLOAT,results.label_number)
-             END AS proficiency
-            */
+            ,CAST(ROUND(results.percent_correct,2,2) AS FLOAT) AS percent_correct            
             ,CONVERT(FLOAT,results.label_number) AS proficiency
             ,results.custom_code AS standard
             ,results.description
-            ,assessments.administered_at
-            --,gr.tag AS grade_tag
-            ,ISNULL(CONVERT(VARCHAR,co.grade_level),'GRADE')
-              --+ '_' + ISNULL(dates.time_per_name,'WEEK')
+            ,assessments.administered_at            
+            ,ISNULL(CONVERT(VARCHAR,co.grade_level),'GRADE')              
               + '_' + ISNULL(assessments.subject,'SUBJ')
               + '_' + ISNULL(results.custom_code,'STD') --standard tested
               + '_' + ISNULL(team,'TEAM')
               + '_' + ISNULL(CONVERT(VARCHAR,student_number),'00000')
-             AS reporting_hash
-            --,ISNULL(dates.time_per_name,'WEEK')
-            --  + '_' + 
+             AS reporting_hash            
             ,ISNULL(CONVERT(VARCHAR,co.grade_level),'GRADE')
-              + '_' + ISNULL(results.custom_code,'STD') --standard tested
+              + '_' + ISNULL(results.custom_code,'STD')
              AS rollup_hash
-            ,ROW_NUMBER() OVER
-               (PARTITION BY assessments.schoolid, assessments.grade_level, assessments.subject, s.id
-                    ORDER BY assessments.standards_tested) AS fsa_std_rn
-            /*
-            ,CASE WHEN assessments.subject = 'Writing' THEN
-               ROW_NUMBER() OVER
-                  (PARTITION BY assessments.schoolid, assessments.grade_level, assessments.subject, s.id
-                       ORDER BY assessments.standards_tested)
-              ELSE NULL
-             END AS writing_std_rn
-            */
-            /*
-            --now using row number from assessment feed
-            ,ROW_NUMBER() OVER(
-                PARTITION BY dates.time_per_name, assessments.grade_level, s.id
-                    ORDER BY results.custom_code) AS rn
-            --*/
+            ,assessments.fsa_std_rn            
       FROM STUDENTS s WITH(NOLOCK)
       LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results WITH(NOLOCK)
         ON s.student_number = results.local_student_id
@@ -85,8 +49,7 @@ FROM
        AND results.standard_id = assessments.standard_id
        AND s.grade_level = assessments.grade_level
        AND s.schoolid = assessments.schoolid
-       AND assessments.academic_year = 2013
-       --AND assessments.deleted_at IS NULL
+       AND assessments.academic_year = 2013       
       LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
         ON s.id = co.studentid
        AND co.year = CASE
@@ -111,4 +74,3 @@ FROM
                                                 ,'CCSS.LA.4.L.4.2'
                                                 ,'CCSS.LA.4.L.4.3')
       ) sub
---ORDER BY schoolid, grade_level, week_num, team, studentid, subject, standard
