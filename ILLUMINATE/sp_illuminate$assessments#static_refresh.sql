@@ -26,10 +26,10 @@ BEGIN
         SELECT sub.*
               ,rt.alt_name AS term
               ,ROW_NUMBER() OVER
-                   (PARTITION BY sub.scope, fsa_week, sub.schoolid, grade_level
+                   (PARTITION BY fsa_week, sub.schoolid, grade_level, sub.scope, sub.subject
                         ORDER BY standards_tested) AS fsa_std_rn
               ,ROW_NUMBER() OVER
-                  (PARTITION BY sub.scope, sub.schoolid, standards_tested                
+                  (PARTITION BY sub.scope, sub.schoolid, standards_tested
                        ORDER BY administered_at) AS std_freq_rn                    
         FROM
              (
