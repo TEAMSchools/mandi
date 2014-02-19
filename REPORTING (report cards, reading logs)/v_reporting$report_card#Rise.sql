@@ -344,66 +344,65 @@ SELECT roster.*
       ,promo.promo_status_hw
 
 --MAP scores
---MAP$reading_wide
---MAP$math_wide
+--MAP$wide_all
      
       --MAP reading -- add a new block for each test year, delete oldest
         --13-14
-      --,map_read.spring_2014_percentile AS spr_2014_read_pctle
-      ,map_read.fall_2013_percentile AS f_2013_read_pctle
-      --,map_read.spring_2014_rit AS spr_2014_read_rit
-      ,map_read.fall_2013_rit AS f_2013_read_rit            
-      --,map_read.spring_2014_percentile - map_read.fall_2013_percentile AS f2s_2013_14_read_pctle_chg
-      ,map_read.fall_2013_percentile - map_read.spring_2013_percentile AS sum_2013_read_pctle_chg
+      --,map_all.spr_2014_read_pctle
+      ,map_all.f_2013_read_pctle
+      --,map_all.spr_2014_read_rit
+      ,map_all.f_2013_read_rit            
+      --,map_all.spring_2014_percentile - map_all.fall_2013_percentile AS f2s_2013_14_read_pctle_chg
+      ,map_all.f_2013_read_pctle - map_all.spr_2013_read_pctle AS sum_2013_read_pctle_chg
         --12-13
-      ,map_read.spring_2013_percentile AS spr_2013_read_pctle
-      ,map_read.fall_2012_percentile   AS f_2012_read_pctle
-      ,map_read.spring_2013_rit AS spr_2013_read_rit
-      ,map_read.fall_2012_rit   AS f_2012_read_rit            
-      ,map_read.spring_2013_percentile - map_read.fall_2012_percentile AS f2s_2012_13_read_pctle_chg
-      ,map_read.fall_2012_percentile - map_read.spring_2012_percentile AS sum_2012_read_pctle_chg
+      ,map_all.spr_2013_read_pctle
+      ,map_all.f_2012_read_pctle
+      ,map_all.spr_2013_read_rit
+      ,map_all.f_2012_read_rit            
+      ,map_all.spr_2013_read_pctle - map_all.f_2012_read_pctle AS f2s_2012_13_read_pctle_chg
+      ,map_all.f_2012_read_pctle - map_all.spr_2012_read_pctle AS sum_2012_read_pctle_chg
         --11-12
-      ,map_read.spring_2012_percentile AS spr_2012_read_pctle
-      ,map_read.fall_2011_percentile   AS f_2011_read_pctle
-      ,map_read.spring_2012_rit AS spr_2012_read_rit
-      ,map_read.fall_2011_rit   AS f_2011_read_rit            
-      ,map_read.spring_2012_percentile - map_read.fall_2011_percentile AS f2s_2011_12_read_pctle_chg
-      ,map_read.fall_2011_percentile - map_read.spring_2011_percentile AS sum_2011_read_pctle_chg
+      ,map_all.spr_2012_read_pctle
+      ,map_all.f_2011_read_pctle
+      ,map_all.spr_2012_read_rit
+      ,map_all.f_2011_read_rit            
+      ,map_all.spr_2012_read_pctle - map_all.f_2011_read_pctle AS f2s_2011_12_read_pctle_chg
+      ,map_all.f_2011_read_pctle - map_all.spr_2011_read_pctle AS sum_2011_read_pctle_chg
         --10-11
-      ,map_read.spring_2011_percentile AS spr_2011_read_pctle
-      ,map_read.fall_2010_percentile   AS f_2010_read_pctle
-      ,map_read.spring_2011_rit AS spr_2011_read_rit
-      ,map_read.fall_2010_rit   AS f_2010_read_rit
-      ,map_read.spring_2011_percentile - map_read.fall_2010_percentile AS f2s_2010_11_read_pctle_chg      
+      ,map_all.spr_2011_read_pctle
+      ,map_all.f_2010_read_pctle
+      ,map_all.spr_2011_read_rit
+      ,map_all.f_2010_read_rit
+      ,map_all.spr_2011_read_pctle - map_all.f_2010_read_pctle AS f2s_2010_11_read_pctle_chg      
             
       --MAP math -- add a new block for each test year, delete oldest
         --13-14
-      --,map_math.spring_2014_percentile AS spr_2014_math_pctle
-      ,map_math.fall_2013_percentile AS f_2013_math_pctle
-      --,map_math.spring_2014_rit AS spr_2014_math_rit
-      ,map_math.fall_2013_rit AS f_2013_math_rit      
-      --,map_math.spring_2014_percentile - map_math.fall_2013_percentile AS f2s_2013_14_math_pctle_chg
-      ,map_math.fall_2013_percentile - map_math.spring_2013_percentile AS sum_2013_math_pctle_chg
+      --,map_all.spr_2014_math_pctle
+      ,map_all.f_2013_math_pctle
+      --,map_all.spr_2014_math_rit
+      ,map_all.f_2013_math_rit      
+      --,map_all.spring_2014_percentile - map_all.fall_2013_percentile AS f2s_2013_14_math_pctle_chg
+      ,map_all.f_2013_math_pctle - map_all.spr_2013_math_pctle AS sum_2013_math_pctle_chg
         --12-13
-      ,map_math.spring_2013_percentile AS spr_2013_math_pctle
-      ,map_math.fall_2012_percentile AS f_2012_math_pctle
-      ,map_math.spring_2013_rit AS spr_2013_math_rit
-      ,map_math.fall_2012_rit AS f_2012_math_rit      
-      ,map_math.spring_2013_percentile - map_math.fall_2012_percentile AS f2s_2012_13_math_pctle_chg
-      ,map_math.fall_2012_percentile - map_math.spring_2012_percentile AS sum_2012_math_pctle_chg
+      ,map_all.spr_2013_math_pctle
+      ,map_all.f_2012_math_pctle
+      ,map_all.spr_2013_math_rit
+      ,map_all.f_2012_math_rit      
+      ,map_all.spr_2013_math_pctle - map_all.f_2012_math_pctle AS f2s_2012_13_math_pctle_chg
+      ,map_all.f_2012_math_pctle - map_all.spr_2012_math_pctle AS sum_2012_math_pctle_chg
         --11-12
-      ,map_math.spring_2012_percentile AS spr_2012_math_pctle
-      ,map_math.fall_2011_percentile AS f_2011_math_pctle      
-      ,map_math.spring_2012_rit AS spr_2012_math_rit
-      ,map_math.fall_2011_rit AS f_2011_math_rit      
-      ,map_math.spring_2012_percentile - map_math.fall_2011_percentile AS f2s_2011_12_math_pctle_chg
-      ,map_math.fall_2011_percentile - map_math.spring_2011_percentile AS sum_2011_math_pctle_chg
+      ,map_all.spr_2012_math_pctle
+      ,map_all.f_2011_math_pctle
+      ,map_all.spr_2012_math_rit
+      ,map_all.f_2011_math_rit      
+      ,map_all.spr_2012_math_pctle - map_all.f_2011_math_pctle AS f2s_2011_12_math_pctle_chg
+      ,map_all.f_2011_math_pctle - map_all.spr_2011_math_pctle AS sum_2011_math_pctle_chg
         --10-11
-      ,map_math.spring_2011_percentile AS spr_2011_math_pctle
-      ,map_math.fall_2010_percentile AS f_2010_math_pctle
-      ,map_math.spring_2011_rit AS spr_2011_math_rit
-      ,map_math.fall_2010_rit AS f_2010_math_rit
-      ,map_math.spring_2011_percentile - map_math.fall_2010_percentile AS f2s_2010_11_math_pctle_chg      
+      ,map_all.spr_2011_math_pctle
+      ,map_all.f_2010_math_pctle
+      ,map_all.spr_2011_math_rit
+      ,map_all.f_2010_math_rit
+      ,map_all.spr_2011_math_pctle - map_all.f_2010_math_pctle AS f2s_2010_11_math_pctle_chg      
 
 --Literacy tracking
 --MAP$comprehensive#identifiers
@@ -638,10 +637,8 @@ LEFT OUTER JOIN REPORTING$promo_status#Rise promo WITH (NOLOCK)
   ON roster.base_studentid = promo.studentid
 
 --MAP
-LEFT OUTER JOIN MAP$reading_wide map_read WITH (NOLOCK)
-  ON roster.base_studentid = map_read.studentid
-LEFT OUTER JOIN MAP$math_wide map_math WITH (NOLOCK)
-  ON roster.base_studentid = map_math.studentid
+LEFT OUTER JOIN MAP$wide_all map_all WITH (NOLOCK)
+  ON roster.base_studentid = map_all.studentid
   
 --LITERACY -- upadate parameters for current term
   --F&P

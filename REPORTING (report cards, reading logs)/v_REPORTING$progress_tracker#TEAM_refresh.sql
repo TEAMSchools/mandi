@@ -421,111 +421,118 @@ SELECT ROW_NUMBER() OVER(
 --MAP scores
 --MAP$reading_wide
 --MAP$math_wide
-     
       --MAP reading -- add a new block for each test year, delete oldest
         --13-14
-      --,map_read.spring_2014_percentile AS spr_2014_read_pctle
-      ,map_read.fall_2013_percentile AS f_2013_read_pctle
-      --,map_read.spring_2014_rit AS spr_2014_read_rit
-      ,map_read.fall_2013_rit AS f_2013_read_rit                  
+      ,map_all.spr_2014_read_pctle
+      ,map_all.w_2013_read_pctle
+      ,map_all.f_2013_read_pctle      
+      ,map_all.spr_2014_read_rit
+      ,map_all.w_2013_read_rit                  
+      ,map_all.f_2013_read_rit                  
         --12-13
-      ,map_read.spring_2013_percentile AS spr_2013_read_pctle
-      ,map_read.fall_2012_percentile   AS f_2012_read_pctle
-      ,map_read.spring_2013_rit AS spr_2013_read_rit
-      ,map_read.fall_2012_rit   AS f_2012_read_rit                  
+      ,map_all.spr_2013_read_pctle
+      ,map_all.f_2012_read_pctle
+      ,map_all.spr_2013_read_rit
+      ,map_all.f_2012_read_rit                  
         --11-12
-      ,map_read.spring_2012_percentile AS spr_2012_read_pctle
-      ,map_read.fall_2011_percentile   AS f_2011_read_pctle
-      ,map_read.spring_2012_rit AS spr_2012_read_rit
-      ,map_read.fall_2011_rit   AS f_2011_read_rit            
+      ,map_all.spr_2012_read_pctle
+      ,map_all.f_2011_read_pctle
+      ,map_all.spr_2012_read_rit
+      ,map_all.f_2011_read_rit            
         --10-11
-      ,map_read.spring_2011_percentile AS spr_2011_read_pctle
-      ,map_read.fall_2010_percentile   AS f_2010_read_pctle
-      ,map_read.spring_2011_rit AS spr_2011_read_rit
-      ,map_read.fall_2010_rit   AS f_2010_read_rit      
+      ,map_all.spr_2011_read_pctle
+      ,map_all.f_2010_read_pctle
+      ,map_all.spr_2011_read_rit
+      ,map_all.f_2010_read_rit      
             
       --MAP math -- add a new block for each test year, delete oldest
         --13-14
-      --,map_math.spring_2014_percentile AS spr_2014_math_pctle
-      ,map_math.fall_2013_percentile AS f_2013_math_pctle
-      --,map_math.spring_2014_rit AS spr_2014_math_rit
-      ,map_math.fall_2013_rit AS f_2013_math_rit            
+      ,map_all.spr_2014_math_pctle
+      ,map_all.w_2013_math_pctle
+      ,map_all.f_2013_math_pctle      
+      ,map_all.spr_2014_math_rit
+      ,map_all.w_2013_math_rit            
+      ,map_all.f_2013_math_rit            
         --12-13
-      ,map_math.spring_2013_percentile AS spr_2013_math_pctle
-      ,map_math.fall_2012_percentile AS f_2012_math_pctle
-      ,map_math.spring_2013_rit AS spr_2013_math_rit
-      ,map_math.fall_2012_rit AS f_2012_math_rit      
+      ,map_all.spr_2013_math_pctle
+      ,map_all.f_2012_math_pctle
+      ,map_all.spr_2013_math_rit
+      ,map_all.f_2012_math_rit      
         --11-12
-      ,map_math.spring_2012_percentile AS spr_2012_math_pctle
-      ,map_math.fall_2011_percentile AS f_2011_math_pctle      
-      ,map_math.spring_2012_rit AS spr_2012_math_rit
-      ,map_math.fall_2011_rit AS f_2011_math_rit      
+      ,map_all.spr_2012_math_pctle
+      ,map_all.f_2011_math_pctle      
+      ,map_all.spr_2012_math_rit
+      ,map_all.f_2011_math_rit      
         --10-11
-      ,map_math.spring_2011_percentile AS spr_2011_math_pctle
-      ,map_math.fall_2010_percentile AS f_2010_math_pctle
-      ,map_math.spring_2011_rit AS spr_2011_math_rit
-      ,map_math.fall_2010_rit AS f_2010_math_rit      
+      ,map_all.spr_2011_math_pctle
+      ,map_all.f_2010_math_pctle
+      ,map_all.spr_2011_math_rit
+      ,map_all.f_2010_math_rit      
       
       --MAP langauge -- add a new block for each test year, delete oldest
         --13-14
-      --,map_lang.spring_2014_percentile AS spr_2014_lang_pctle
-      ,map_lang.fall_2013_percentile AS f_2013_lang_pctle
-      --,map_lang.spring_2014_rit AS spr_2014_lang_rit
-      ,map_lang.fall_2013_rit AS f_2013_lang_rit            
+      ,map_all.spr_2014_lang_pctle
+      ,map_all.w_2013_lang_pctle
+      ,map_all.f_2013_lang_pctle
+      ,map_all.spr_2014_lang_rit
+      ,map_all.w_2013_lang_rit
+      ,map_all.f_2013_lang_rit            
         --12-13
-      ,map_lang.spring_2013_percentile AS spr_2013_lang_pctle
-      ,map_lang.fall_2012_percentile AS f_2012_lang_pctle
-      ,map_lang.spring_2013_rit AS spr_2013_lang_rit
-      ,map_lang.fall_2012_rit AS f_2012_lang_rit      
+      ,map_all.spr_2013_lang_pctle
+      ,map_all.f_2012_lang_pctle
+      ,map_all.spr_2013_lang_rit
+      ,map_all.f_2012_lang_rit      
         --11-12
-      ,map_lang.spring_2012_percentile AS spr_2012_lang_pctle
-      ,map_lang.fall_2011_percentile AS f_2011_lang_pctle      
-      ,map_lang.spring_2012_rit AS spr_2012_lang_rit
-      ,map_lang.fall_2011_rit AS f_2011_lang_rit      
+      ,map_all.spr_2012_lang_pctle
+      ,map_all.f_2011_lang_pctle      
+      ,map_all.spr_2012_lang_rit
+      ,map_all.f_2011_lang_rit      
         --10-11
-      ,map_lang.spring_2011_percentile AS spr_2011_lang_pctle
-      ,map_lang.fall_2010_percentile AS f_2010_lang_pctle
-      ,map_lang.spring_2011_rit AS spr_2011_lang_rit
-      ,map_lang.fall_2010_rit AS f_2010_lang_rit      
+      ,map_all.spr_2011_lang_pctle
+      ,map_all.f_2010_lang_pctle
+      ,map_all.spr_2011_lang_rit
+      ,map_all.f_2010_lang_rit      
       
       --MAP science gen -- add a new block for each test year, delete oldest
         --13-14
-      --,map_gen.spring_2014_percentile AS spr_2014_gen_pctle
-      ,map_gen.fall_2013_percentile AS f_2013_gen_pctle
-      --,map_gen.spring_2014_rit AS spr_2014_gen_rit
-      ,map_gen.fall_2013_rit AS f_2013_gen_rit            
+      ,map_all.spr_2014_gen_pctle
+      ,map_all.w_2013_gen_pctle
+      ,map_all.f_2013_gen_pctle
+      ,map_all.spr_2014_gen_rit
+      ,map_all.w_2013_gen_rit
+      ,map_all.f_2013_gen_rit            
         --12-13
-      ,map_gen.spring_2013_percentile AS spr_2013_gen_pctle
-      ,map_gen.fall_2012_percentile AS f_2012_gen_pctle
-      ,map_gen.spring_2013_rit AS spr_2013_gen_rit
-      ,map_gen.fall_2012_rit AS f_2012_gen_rit      
+      ,map_all.spr_2013_gen_pctle
+      ,map_all.f_2012_gen_pctle
+      ,map_all.spr_2013_gen_rit
+      ,map_all.f_2012_gen_rit      
         --11-12
-      ,map_gen.spring_2012_percentile AS spr_2012_gen_pctle
-      ,map_gen.fall_2011_percentile AS f_2011_gen_pctle      
-      ,map_gen.spring_2012_rit AS spr_2012_gen_rit
-      ,map_gen.fall_2011_rit AS f_2011_gen_rit      
+      ,map_all.spr_2012_gen_pctle
+      ,map_all.f_2011_gen_pctle      
+      ,map_all.spr_2012_gen_rit
+      ,map_all.f_2011_gen_rit      
         --10-11
-      ,map_gen.spring_2011_percentile AS spr_2011_gen_pctle
-      ,map_gen.fall_2010_percentile AS f_2010_gen_pctle
-      ,map_gen.spring_2011_rit AS spr_2011_gen_rit
-      ,map_gen.fall_2010_rit AS f_2010_gen_rit      
+      ,map_all.spr_2011_gen_pctle
+      ,map_all.f_2010_gen_pctle
+      ,map_all.spr_2011_gen_rit
+      ,map_all.f_2010_gen_rit      
       
       --MAP cp -- add a new block for each test year, delete oldest      
         --12-13
-      ,map_cp.spring_2013_percentile AS spr_2013_cp_pctle
-      ,map_cp.fall_2012_percentile AS f_2012_cp_pctle
-      ,map_cp.spring_2013_rit AS spr_2013_cp_rit
-      ,map_cp.fall_2012_rit AS f_2012_cp_rit      
+      ,map_all.spr_2013_cp_pctle
+      ,map_all.f_2012_cp_pctle
+      ,map_all.spr_2013_cp_rit
+      ,map_all.f_2012_cp_rit      
         --11-12
-      ,map_cp.spring_2012_percentile AS spr_2012_cp_pctle
-      ,map_cp.fall_2011_percentile AS f_2011_cp_pctle      
-      ,map_cp.spring_2012_rit AS spr_2012_cp_rit
-      ,map_cp.fall_2011_rit AS f_2011_cp_rit      
+      ,map_all.spr_2012_cp_pctle
+      ,map_all.f_2011_cp_pctle      
+      ,map_all.spr_2012_cp_rit
+      ,map_all.f_2011_cp_rit      
         --10-11
-      ,map_cp.spring_2011_percentile AS spr_2011_cp_pctle
-      ,map_cp.fall_2010_percentile AS f_2010_cp_pctle
-      ,map_cp.spring_2011_rit AS spr_2011_cp_rit
-      ,map_cp.fall_2010_rit AS f_2010_cp_rit      
+      ,map_all.spr_2011_cp_pctle
+      ,map_all.f_2010_cp_pctle
+      ,map_all.spr_2011_cp_rit
+      ,map_all.f_2010_cp_rit        
 
 --NJASK scores
 --NJASK$ela_wide
@@ -680,16 +687,8 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 
 --MAP
-LEFT OUTER JOIN MAP$reading_wide map_read WITH (NOLOCK)
-  ON roster.id = map_read.studentid
-LEFT OUTER JOIN MAP$math_wide map_math WITH (NOLOCK)
-  ON roster.id = map_math.studentid
-LEFT OUTER JOIN MAP$language_wide map_lang WITH (NOLOCK)
-  ON roster.id = map_lang.studentid
-LEFT OUTER JOIN MAP$sci_gen_wide map_gen WITH (NOLOCK)
-  ON roster.id = map_gen.studentid
-LEFT OUTER JOIN MAP$sci_cp_wide map_cp WITH (NOLOCK)
-  ON roster.id = map_cp.studentid
+LEFT OUTER JOIN MAP$wide_all map_all WITH (NOLOCK)
+  ON roster.id = map_all.studentid
   
 --NJASK
 LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
