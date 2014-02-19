@@ -7,8 +7,52 @@ ALTER VIEW GRADES$wide_credit_core#MS AS
 
 WITH rost AS
      (
-      SELECT *
-      FROM KIPP_NJ..GRADES$detail_placeholder#MS WITH (NOLOCK)
+      SELECT s.id AS studentid
+            ,s.student_number
+            ,s.schoolid
+            ,s.lastfirst
+            ,s.grade_level      
+            ,gr.course_number
+            ,sub.rn_format
+      FROM 
+          (
+           SELECT 'ENG' AS credittype
+                 ,1 AS rn_format
+           UNION
+           SELECT 'RHET'
+                 ,5
+           UNION
+           SELECT 'MATH'
+                 ,2
+           UNION
+           SELECT 'SCI'
+                 ,3
+           UNION
+           SELECT 'SOC'
+                 ,4
+           UNION
+           SELECT 'WLANG'
+                 ,8
+           UNION
+           SELECT 'COCUR'
+                 ,6
+           UNION
+           SELECT 'LIB'
+                 ,9
+           UNION
+           SELECT 'PHYSED'
+                 ,7
+           UNION
+           SELECT 'CORE'
+                 ,10
+          ) sub
+      JOIN STUDENTS s
+        ON 1 = 1
+       AND s.ENROLL_STATUS = 0
+       AND s.SCHOOLID IN (73252, 133570965)
+      LEFT OUTER JOIN GRADES$DETAIL#MS gr
+        ON s.id = gr.studentid
+       AND sub.credittype = gr.credittype
      )   
   
 SELECT *
