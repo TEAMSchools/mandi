@@ -28,10 +28,10 @@ BEGIN
   v_grade_3              VARCHAR2(2) := 'FOO'   ;
   v_grade_4              VARCHAR2(2) := 'FOO'   ;
   */
-  @v_grade_3              VARCHAR(2) = ' -- REVERT AFTER REPORT CARDS',
-  @v_grade_4              VARCHAR(2) = ' -- REVERT AFTER REPORT CARDS',
+  @v_grade_3              VARCHAR(2) = 'Q3',
+  @v_grade_4              VARCHAR(2) = 'Q4',
   @v_grade_5              VARCHAR(2) = 'E1',
-  @v_grade_6              VARCHAR(2) = ' -- REVERT AFTER REPORT CARDS',
+  @v_grade_6              VARCHAR(2) = 'E2',
   @v_grade_yr             VARCHAR(2) = 'Y1',
   @v_schoolly_d           INT     = 73253,
   
