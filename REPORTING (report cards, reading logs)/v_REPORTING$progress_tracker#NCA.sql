@@ -591,7 +591,7 @@ FROM
              + merits.total_merits_rt3 
              + merits.total_merits_rt4 AS merits_yr      
              --current            
-           ,merits.total_merits_rt2    AS merits_curr   -- update field name for current term
+           ,merits.total_merits_rt3    AS merits_curr   -- update field name for current term
            
            --Demerits
              --year
@@ -600,7 +600,7 @@ FROM
              + merits.total_demerits_rt3
              + merits.total_demerits_rt4 AS demerits_yr
              --current
-           ,merits.total_demerits_rt2    AS demerits_curr -- update field name for current term
+           ,merits.total_demerits_rt3    AS demerits_curr -- update field name for current term
            ,disc.subtype
            ,disc.entry_date
            ,dcounts.ISS AS disc_ISS
@@ -687,13 +687,13 @@ FROM
       AND ele_p.pgf_type = 'P'
        
      --ED TECH
-       --ACCELERATED READER
+       --ACCELERATED READER -- update for current term
      LEFT OUTER JOIN AR$progress_to_goals_long#static ar_cur WITH (NOLOCK)
        ON roster .studentid = ar_cur.studentid      
       AND ar_cur.yearid = dbo.fn_Global_Term_Id()
       --AND GETDATE() >= ar_cur.start_date
       --AND GETDATE() <= ar_cur.end_date
-      AND ar_cur.time_period_name = 'RT2'
+      AND ar_cur.time_period_name = 'RT3'
       AND ar_cur.time_hierarchy = 2
      LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
        ON roster .studentid = ar_yr.studentid      

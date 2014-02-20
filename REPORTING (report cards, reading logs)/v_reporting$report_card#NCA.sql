@@ -66,12 +66,12 @@ SELECT roster.*
 
        /*--Current--*/
       /*--UPDATE FIELD to current term--*/
-      ,att_counts.RT2_absences_total        AS curterm_absences_total
-      ,att_counts.RT2_absences_undoc        AS curterm_absences_undoc
-      ,ROUND(att_pct.RT2_att_pct_total,0)   AS curterm_att_pct_total
-      ,ROUND(att_pct.RT2_att_pct_undoc,0)   AS curterm_att_pct_undoc      
-      ,att_counts.RT2_tardies_total         AS curterm_tardies_total
-      ,ROUND(att_pct.RT2_tardy_pct_total,0) AS curterm_tardy_pct_total
+      ,att_counts.rt3_absences_total        AS curterm_absences_total
+      ,att_counts.rt3_absences_undoc        AS curterm_absences_undoc
+      ,ROUND(att_pct.rt3_att_pct_total,0)   AS curterm_att_pct_total
+      ,ROUND(att_pct.rt3_att_pct_undoc,0)   AS curterm_att_pct_undoc      
+      ,att_counts.rt3_tardies_total         AS curterm_tardies_total
+      ,ROUND(att_pct.rt3_tardy_pct_total,0) AS curterm_tardy_pct_total
       
 --GPA
 --GPA$detail#nca
@@ -79,8 +79,8 @@ SELECT roster.*
     /*--Academic Year/Current Term--*/
        /*--UPDATE FOR CURRENT TERM--*/
       --,nca_gpa.GPA_Q1 AS gpa_curterm
-      ,nca_gpa.GPA_Q2 AS gpa_curterm
-      --,nca_gpa.GPA_Q3 AS gpa_curterm
+      --,nca_gpa.GPA_Q2 AS gpa_curterm
+      ,nca_gpa.GPA_Q3 AS gpa_curterm
       --,nca_gpa.GPA_Q4 AS gpa_curterm
       ,nca_gpa.gpa_Y1
       /*--Cumulative--*/
@@ -95,20 +95,20 @@ SELECT roster.*
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,gr_wide.rc1_q1_ltr AS rc1_cur_term_ltr
-      ,gr_wide.rc1_q2_ltr AS rc1_cur_term_ltr
-      --,gr_wide.rc1_q3_ltr AS rc1_cur_term_ltr
+      --,gr_wide.rc1_q2_ltr AS rc1_cur_term_ltr
+      ,gr_wide.rc1_q3_ltr AS rc1_cur_term_ltr
       --,gr_wide.rc1_q4_ltr AS rc1_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.rc1_q1,0) AS rc1_cur_term_pct
-      ,ROUND(gr_wide.rc1_q2,0) AS rc1_cur_term_pct
-      --,ROUND(gr_wide.rc1_q3,0) AS rc1_cur_term_pct
+      --,ROUND(gr_wide.rc1_q2,0) AS rc1_cur_term_pct
+      ,ROUND(gr_wide.rc1_q3,0) AS rc1_cur_term_pct
       --,ROUND(gr_wide.rc1_q4,0) AS rc1_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.rc1_gpa_points_Q1 AS rc1_cur_term_gpa_points
-      ,gr_wide.rc1_gpa_points_Q2 AS rc1_cur_term_gpa_points
-      --,gr_wide.rc1_gpa_points_Q3 AS rc1_cur_term_gpa_points
+      --,gr_wide.rc1_gpa_points_Q2 AS rc1_cur_term_gpa_points
+      ,gr_wide.rc1_gpa_points_Q3 AS rc1_cur_term_gpa_points
       --,gr_wide.rc1_gpa_points_Q4 AS rc1_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
@@ -134,20 +134,20 @@ SELECT roster.*
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,gr_wide.RC2_q1_ltr AS RC2_cur_term_ltr
-      ,gr_wide.RC2_q2_ltr AS RC2_cur_term_ltr
-      --,gr_wide.RC2_q3_ltr AS RC2_cur_term_ltr
+      --,gr_wide.RC2_q2_ltr AS RC2_cur_term_ltr
+      ,gr_wide.RC2_q3_ltr AS RC2_cur_term_ltr
       --,gr_wide.RC2_q4_ltr AS RC2_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC2_q1,0) AS RC2_cur_term_pct
-      ,ROUND(gr_wide.RC2_q2,0) AS RC2_cur_term_pct
-      --,ROUND(gr_wide.RC2_q3,0) AS RC2_cur_term_pct
+      --,ROUND(gr_wide.RC2_q2,0) AS RC2_cur_term_pct
+      ,ROUND(gr_wide.RC2_q3,0) AS RC2_cur_term_pct
       --,ROUND(gr_wide.RC2_q4,0) AS RC2_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC2_gpa_points_Q1 AS RC2_cur_term_gpa_points
-      ,gr_wide.RC2_gpa_points_Q2 AS RC2_cur_term_gpa_points
-      --,gr_wide.RC2_gpa_points_Q3 AS RC2_cur_term_gpa_points
+      --,gr_wide.RC2_gpa_points_Q2 AS RC2_cur_term_gpa_points
+      ,gr_wide.RC2_gpa_points_Q3 AS RC2_cur_term_gpa_points
       --,gr_wide.RC2_gpa_points_Q4 AS RC2_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
@@ -173,20 +173,20 @@ SELECT roster.*
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,gr_wide.RC3_q1_ltr AS RC3_cur_term_ltr
-      ,gr_wide.RC3_q2_ltr AS RC3_cur_term_ltr
-      --,gr_wide.RC3_q3_ltr AS RC3_cur_term_ltr
+      --,gr_wide.RC3_q2_ltr AS RC3_cur_term_ltr
+      ,gr_wide.RC3_q3_ltr AS RC3_cur_term_ltr
       --,gr_wide.RC3_q4_ltr AS RC3_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC3_q1,0) AS RC3_cur_term_pct
-      ,ROUND(gr_wide.RC3_q2,0) AS RC3_cur_term_pct
-      --,ROUND(gr_wide.RC3_q3,0) AS RC3_cur_term_pct
+      --,ROUND(gr_wide.RC3_q2,0) AS RC3_cur_term_pct
+      ,ROUND(gr_wide.RC3_q3,0) AS RC3_cur_term_pct
       --,ROUND(gr_wide.RC3_q4,0) AS RC3_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC3_gpa_points_Q1 AS RC3_cur_term_gpa_points
-      ,gr_wide.RC3_gpa_points_Q2 AS RC3_cur_term_gpa_points
-      --,gr_wide.RC3_gpa_points_Q3 AS RC3_cur_term_gpa_points
+      --,gr_wide.RC3_gpa_points_Q2 AS RC3_cur_term_gpa_points
+      ,gr_wide.RC3_gpa_points_Q3 AS RC3_cur_term_gpa_points
       --,gr_wide.RC3_gpa_points_Q4 AS RC3_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
@@ -212,20 +212,20 @@ SELECT roster.*
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,gr_wide.RC4_q1_ltr AS RC4_cur_term_ltr
-      ,gr_wide.RC4_q2_ltr AS RC4_cur_term_ltr
-      --,gr_wide.RC4_q3_ltr AS RC4_cur_term_ltr
+      --,gr_wide.RC4_q2_ltr AS RC4_cur_term_ltr
+      ,gr_wide.RC4_q3_ltr AS RC4_cur_term_ltr
       --,gr_wide.RC4_q4_ltr AS RC4_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC4_q1,0) AS RC4_cur_term_pct
-      ,ROUND(gr_wide.RC4_q2,0) AS RC4_cur_term_pct
-      --,ROUND(gr_wide.RC4_q3,0) AS RC4_cur_term_pct
+      --,ROUND(gr_wide.RC4_q2,0) AS RC4_cur_term_pct
+      ,ROUND(gr_wide.RC4_q3,0) AS RC4_cur_term_pct
       --,ROUND(gr_wide.RC4_q4,0) AS RC4_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC4_gpa_points_Q1 AS RC4_cur_term_gpa_points
-      ,gr_wide.RC4_gpa_points_Q2 AS RC4_cur_term_gpa_points
-      --,gr_wide.RC4_gpa_points_Q3 AS RC4_cur_term_gpa_points
+      --,gr_wide.RC4_gpa_points_Q2 AS RC4_cur_term_gpa_points
+      ,gr_wide.RC4_gpa_points_Q3 AS RC4_cur_term_gpa_points
       --,gr_wide.RC4_gpa_points_Q4 AS RC4_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
@@ -251,20 +251,20 @@ SELECT roster.*
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,gr_wide.RC5_q1_ltr AS RC5_cur_term_ltr
-      ,gr_wide.RC5_q2_ltr AS RC5_cur_term_ltr
-      --,gr_wide.RC5_q3_ltr AS RC5_cur_term_ltr
+      --,gr_wide.RC5_q2_ltr AS RC5_cur_term_ltr
+      ,gr_wide.RC5_q3_ltr AS RC5_cur_term_ltr
       --,gr_wide.RC5_q4_ltr AS RC5_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC5_q1,0) AS RC5_cur_term_pct
-      ,ROUND(gr_wide.RC5_q2,0) AS RC5_cur_term_pct
-      --,ROUND(gr_wide.RC5_q3,0) AS RC5_cur_term_pct
+      --,ROUND(gr_wide.RC5_q2,0) AS RC5_cur_term_pct
+      ,ROUND(gr_wide.RC5_q3,0) AS RC5_cur_term_pct
       --,ROUND(gr_wide.RC5_q4,0) AS RC5_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC5_gpa_points_Q1 AS RC5_cur_term_gpa_points
-      ,gr_wide.RC5_gpa_points_Q2 AS RC5_cur_term_gpa_points
-      --,gr_wide.RC5_gpa_points_Q3 AS RC5_cur_term_gpa_points
+      --,gr_wide.RC5_gpa_points_Q2 AS RC5_cur_term_gpa_points
+      ,gr_wide.RC5_gpa_points_Q3 AS RC5_cur_term_gpa_points
       --,gr_wide.RC5_gpa_points_Q4 AS RC5_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
@@ -290,20 +290,20 @@ SELECT roster.*
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,gr_wide.RC6_q1_ltr AS RC6_cur_term_ltr
-      ,gr_wide.RC6_q2_ltr AS RC6_cur_term_ltr
-      --,gr_wide.RC6_q3_ltr AS RC6_cur_term_ltr
+      --,gr_wide.RC6_q2_ltr AS RC6_cur_term_ltr
+      ,gr_wide.RC6_q3_ltr AS RC6_cur_term_ltr
       --,gr_wide.RC6_q4_ltr AS RC6_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC6_q1,0) AS RC6_cur_term_pct
-      ,ROUND(gr_wide.RC6_q2,0) AS RC6_cur_term_pct
-      --,ROUND(gr_wide.RC6_q3,0) AS RC6_cur_term_pct
+      --,ROUND(gr_wide.RC6_q2,0) AS RC6_cur_term_pct
+      ,ROUND(gr_wide.RC6_q3,0) AS RC6_cur_term_pct
       --,ROUND(gr_wide.RC6_q4,0) AS RC6_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC6_gpa_points_Q1 AS RC6_cur_term_gpa_points
-      ,gr_wide.RC6_gpa_points_Q2 AS RC6_cur_term_gpa_points
-      --,gr_wide.RC6_gpa_points_Q3 AS RC6_cur_term_gpa_points
+      --,gr_wide.RC6_gpa_points_Q2 AS RC6_cur_term_gpa_points
+      ,gr_wide.RC6_gpa_points_Q3 AS RC6_cur_term_gpa_points
       --,gr_wide.RC6_gpa_points_Q4 AS RC6_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
@@ -329,20 +329,20 @@ SELECT roster.*
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,gr_wide.RC7_q1_ltr AS RC7_cur_term_ltr
-      ,gr_wide.RC7_q2_ltr AS RC7_cur_term_ltr
-      --,gr_wide.RC7_q3_ltr AS RC7_cur_term_ltr
+      --,gr_wide.RC7_q2_ltr AS RC7_cur_term_ltr
+      ,gr_wide.RC7_q3_ltr AS RC7_cur_term_ltr
       --,gr_wide.RC7_q4_ltr AS RC7_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC7_q1,0) AS RC7_cur_term_pct
-      ,ROUND(gr_wide.RC7_q2,0) AS RC7_cur_term_pct
-      --,ROUND(gr_wide.RC7_q3,0) AS RC7_cur_term_pct
+      --,ROUND(gr_wide.RC7_q2,0) AS RC7_cur_term_pct
+      ,ROUND(gr_wide.RC7_q3,0) AS RC7_cur_term_pct
       --,ROUND(gr_wide.RC7_q4,0) AS RC7_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC7_gpa_points_Q1 AS RC7_cur_term_gpa_points
-      ,gr_wide.RC7_gpa_points_Q2 AS RC7_cur_term_gpa_points
-      --,gr_wide.RC7_gpa_points_Q3 AS RC7_cur_term_gpa_points
+      --,gr_wide.RC7_gpa_points_Q2 AS RC7_cur_term_gpa_points
+      ,gr_wide.RC7_gpa_points_Q3 AS RC7_cur_term_gpa_points
       --,gr_wide.RC7_gpa_points_Q4 AS RC7_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
@@ -368,20 +368,20 @@ SELECT roster.*
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,gr_wide.RC8_q1_ltr AS RC8_cur_term_ltr
-      ,gr_wide.RC8_q2_ltr AS RC8_cur_term_ltr
-      --,gr_wide.RC8_q3_ltr AS RC8_cur_term_ltr
+      --,gr_wide.RC8_q2_ltr AS RC8_cur_term_ltr
+      ,gr_wide.RC8_q3_ltr AS RC8_cur_term_ltr
       --,gr_wide.RC8_q4_ltr AS RC8_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC8_q1,0) AS RC8_cur_term_pct
-      ,ROUND(gr_wide.RC8_q2,0) AS RC8_cur_term_pct
-      --,ROUND(gr_wide.RC8_q3,0) AS RC8_cur_term_pct
+      --,ROUND(gr_wide.RC8_q2,0) AS RC8_cur_term_pct
+      ,ROUND(gr_wide.RC8_q3,0) AS RC8_cur_term_pct
       --,ROUND(gr_wide.RC8_q4,0) AS RC8_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC8_gpa_points_Q1 AS RC8_cur_term_gpa_points
-      ,gr_wide.RC8_gpa_points_Q2 AS RC8_cur_term_gpa_points
-      --,gr_wide.RC8_gpa_points_Q3 AS RC8_cur_term_gpa_points
+      --,gr_wide.RC8_gpa_points_Q2 AS RC8_cur_term_gpa_points
+      ,gr_wide.RC8_gpa_points_Q3 AS RC8_cur_term_gpa_points
       --,gr_wide.RC8_gpa_points_Q4 AS RC8_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
@@ -407,20 +407,20 @@ SELECT roster.*
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,gr_wide.RC9_q1_ltr AS RC9_cur_term_ltr
-      ,gr_wide.RC9_q2_ltr AS RC9_cur_term_ltr
-      --,gr_wide.RC9_q3_ltr AS RC9_cur_term_ltr
+      --,gr_wide.RC9_q2_ltr AS RC9_cur_term_ltr
+      ,gr_wide.RC9_q3_ltr AS RC9_cur_term_ltr
       --,gr_wide.RC9_q4_ltr AS RC9_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC9_q1,0) AS RC9_cur_term_pct
-      ,ROUND(gr_wide.RC9_q2,0) AS RC9_cur_term_pct
-      --,ROUND(gr_wide.RC9_q3,0) AS RC9_cur_term_pct
+      --,ROUND(gr_wide.RC9_q2,0) AS RC9_cur_term_pct
+      ,ROUND(gr_wide.RC9_q3,0) AS RC9_cur_term_pct
       --,ROUND(gr_wide.RC9_q4,0) AS RC9_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC9_gpa_points_Q1 AS RC9_cur_term_gpa_points
-      ,gr_wide.RC9_gpa_points_Q2 AS RC9_cur_term_gpa_points
-      --,gr_wide.RC9_gpa_points_Q3 AS RC9_cur_term_gpa_points
+      --,gr_wide.RC9_gpa_points_Q2 AS RC9_cur_term_gpa_points
+      ,gr_wide.RC9_gpa_points_Q3 AS RC9_cur_term_gpa_points
       --,gr_wide.RC9_gpa_points_Q4 AS RC9_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
@@ -446,20 +446,20 @@ SELECT roster.*
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,gr_wide.RC10_q1_ltr AS RC10_cur_term_ltr
-      ,gr_wide.RC10_q2_ltr AS RC10_cur_term_ltr
-      --,gr_wide.RC10_q3_ltr AS RC10_cur_term_ltr
+      --,gr_wide.RC10_q2_ltr AS RC10_cur_term_ltr
+      ,gr_wide.RC10_q3_ltr AS RC10_cur_term_ltr
       --,gr_wide.RC10_q4_ltr AS RC10_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC10_q1,0) AS RC10_cur_term_pct
-      ,ROUND(gr_wide.RC10_q2,0) AS RC10_cur_term_pct
-      --,ROUND(gr_wide.RC10_q3,0) AS RC10_cur_term_pct
+      --,ROUND(gr_wide.RC10_q2,0) AS RC10_cur_term_pct
+      ,ROUND(gr_wide.RC10_q3,0) AS RC10_cur_term_pct
       --,ROUND(gr_wide.RC10_q4,0) AS RC10_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC10_gpa_points_Q1 AS RC10_cur_term_gpa_points
-      ,gr_wide.RC10_gpa_points_Q2 AS RC10_cur_term_gpa_points
-      --,gr_wide.RC10_gpa_points_Q3 AS RC10_cur_term_gpa_points
+      --,gr_wide.RC10_gpa_points_Q2 AS RC10_cur_term_gpa_points
+      ,gr_wide.RC10_gpa_points_Q3 AS RC10_cur_term_gpa_points
       --,gr_wide.RC10_gpa_points_Q4 AS RC10_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
@@ -481,49 +481,49 @@ SELECT roster.*
 
     /*--Current component averages -- UPDATE TERM NUMBER (e.g. H1/H2/H3/H4) on FIELD to current term--*/
       /*--H--*/
-      ,gr_wide.rc1_H2  AS rc1_cur_hw_pct
-      ,gr_wide.rc2_h2  AS rc2_cur_hw_pct
-      ,gr_wide.rc3_h2  AS rc3_cur_hw_pct
-      ,gr_wide.rc4_h2  AS rc4_cur_hw_pct
-      ,gr_wide.rc5_h2  AS rc5_cur_hw_pct
-      ,gr_wide.rc6_h2  AS rc6_cur_hw_pct
-      ,gr_wide.rc7_h2  AS rc7_cur_hw_pct
-      ,gr_wide.rc8_h2  AS rc8_cur_hw_pct
-      ,gr_wide.rc9_h2  AS rc9_cur_hw_pct
-      ,gr_wide.rc10_H2 AS rc10_cur_hw_pct      
+      ,gr_wide.rc1_h3  AS rc1_cur_hw_pct
+      ,gr_wide.rc2_h3  AS rc2_cur_hw_pct
+      ,gr_wide.rc3_h3  AS rc3_cur_hw_pct
+      ,gr_wide.rc4_h3  AS rc4_cur_hw_pct
+      ,gr_wide.rc5_h3  AS rc5_cur_hw_pct
+      ,gr_wide.rc6_h3  AS rc6_cur_hw_pct
+      ,gr_wide.rc7_h3  AS rc7_cur_hw_pct
+      ,gr_wide.rc8_h3  AS rc8_cur_hw_pct
+      ,gr_wide.rc9_h3  AS rc9_cur_hw_pct
+      ,gr_wide.rc10_h3 AS rc10_cur_hw_pct      
       /*--A--*/
-      ,gr_wide.rc1_A2  AS rc1_cur_a_pct
-      ,gr_wide.rc2_a2  AS rc2_cur_a_pct
-      ,gr_wide.rc3_a2  AS rc3_cur_a_pct
-      ,gr_wide.rc4_a2  AS rc4_cur_a_pct
-      ,gr_wide.rc5_a2  AS rc5_cur_a_pct
-      ,gr_wide.rc6_a2  AS rc6_cur_a_pct
-      ,gr_wide.rc7_a2  AS rc7_cur_a_pct
-      ,gr_wide.rc8_a2  AS rc8_cur_a_pct
-      ,gr_wide.rc9_a2  AS rc9_cur_a_pct
-      ,gr_wide.rc10_A2 AS rc10_cur_a_pct
+      ,gr_wide.rc1_a3  AS rc1_cur_a_pct
+      ,gr_wide.rc2_a3  AS rc2_cur_a_pct
+      ,gr_wide.rc3_a3  AS rc3_cur_a_pct
+      ,gr_wide.rc4_a3  AS rc4_cur_a_pct
+      ,gr_wide.rc5_a3  AS rc5_cur_a_pct
+      ,gr_wide.rc6_a3  AS rc6_cur_a_pct
+      ,gr_wide.rc7_a3  AS rc7_cur_a_pct
+      ,gr_wide.rc8_a3  AS rc8_cur_a_pct
+      ,gr_wide.rc9_a3  AS rc9_cur_a_pct
+      ,gr_wide.rc10_a3 AS rc10_cur_a_pct
       /*--CW--*/
-      ,gr_wide.rc1_C2  AS rc1_cur_cw_pct
-      ,gr_wide.rc2_c2  AS rc2_cur_cw_pct
-      ,gr_wide.rc3_c2  AS rc3_cur_cw_pct
-      ,gr_wide.rc4_c2  AS rc4_cur_cw_pct
-      ,gr_wide.rc5_c2  AS rc5_cur_cw_pct
-      ,gr_wide.rc6_c2  AS rc6_cur_cw_pct
-      ,gr_wide.rc7_c2  AS rc7_cur_cw_pct
-      ,gr_wide.rc8_c2  AS rc8_cur_cw_pct
-      ,gr_wide.rc9_c2  AS rc9_cur_cw_pct
-      ,gr_wide.rc10_C2 AS rc10_cur_cw_pct
+      ,gr_wide.rc1_c3  AS rc1_cur_cw_pct
+      ,gr_wide.rc2_c3  AS rc2_cur_cw_pct
+      ,gr_wide.rc3_c3  AS rc3_cur_cw_pct
+      ,gr_wide.rc4_c3  AS rc4_cur_cw_pct
+      ,gr_wide.rc5_c3  AS rc5_cur_cw_pct
+      ,gr_wide.rc6_c3  AS rc6_cur_cw_pct
+      ,gr_wide.rc7_c3  AS rc7_cur_cw_pct
+      ,gr_wide.rc8_c3  AS rc8_cur_cw_pct
+      ,gr_wide.rc9_c3  AS rc9_cur_cw_pct
+      ,gr_wide.rc10_c3 AS rc10_cur_cw_pct
       /*--P--*/
-      ,gr_wide.rc1_P2  AS rc1_cur_p_pct
-      ,gr_wide.rc2_p2  AS rc2_cur_p_pct
-      ,gr_wide.rc3_p2  AS rc3_cur_p_pct
-      ,gr_wide.rc4_p2  AS rc4_cur_p_pct
-      ,gr_wide.rc5_p2  AS rc5_cur_p_pct
-      ,gr_wide.rc6_p2  AS rc6_cur_p_pct
-      ,gr_wide.rc7_p2  AS rc7_cur_p_pct
-      ,gr_wide.rc8_p2  AS rc8_cur_p_pct
-      ,gr_wide.rc9_p2  AS rc9_cur_p_pct
-      ,gr_wide.rc10_P2 AS rc10_cur_p_pct
+      ,gr_wide.rc1_p3  AS rc1_cur_p_pct
+      ,gr_wide.rc2_p3  AS rc2_cur_p_pct
+      ,gr_wide.rc3_p3  AS rc3_cur_p_pct
+      ,gr_wide.rc4_p3  AS rc4_cur_p_pct
+      ,gr_wide.rc5_p3  AS rc5_cur_p_pct
+      ,gr_wide.rc6_p3  AS rc6_cur_p_pct
+      ,gr_wide.rc7_p3  AS rc7_cur_p_pct
+      ,gr_wide.rc8_p3  AS rc8_cur_p_pct
+      ,gr_wide.rc9_p3  AS rc9_cur_p_pct
+      ,gr_wide.rc10_p3 AS rc10_cur_p_pct
       
       
       /*--E1--*/ -- Exams, do not update
@@ -623,7 +623,9 @@ SELECT roster.*
       ,comment_rc9.teacher_comment  AS rc9_comment
       ,comment_rc10.teacher_comment AS rc10_comment
       /*--FOR REPORT CARDS ONLY--*/
+      /*
       ,comment_adv.advisor_comment  AS advisor_comment
+      --*/
     
 --Discipline
 --DISC$merits_demerits_count#NCA
@@ -643,9 +645,9 @@ SELECT roster.*
         + merits.total_merits_rt4        AS total_merits_yr      
        /*--Current--*/
        /*--UPDATE FIELD for current term--*/
-      ,merits.teacher_merits_RT2         AS teacher_merits_curr
-      ,merits.perfect_week_merits_RT2    AS perfect_week_curr
-      ,merits.total_merits_RT2           AS total_merits_curr
+      ,merits.teacher_merits_RT3         AS teacher_merits_curr
+      ,merits.perfect_week_merits_rt3    AS perfect_week_curr
+      ,merits.total_merits_rt3           AS total_merits_curr
       
     /*--Demerits--*/
        /*--Year--*/
@@ -655,7 +657,7 @@ SELECT roster.*
         + merits.tier1_demerits_rt4      AS tier1_demerits_yr
        /*--Current--*/
        /*--UPDATE FIELD for current term--*/
-      ,merits.tier1_demerits_RT2         AS tier1_demerits_curr
+      ,merits.tier1_demerits_rt3         AS tier1_demerits_curr
 
 FROM roster WITH (NOLOCK)
 LEFT OUTER JOIN info WITH (NOLOCK)
@@ -687,7 +689,7 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.base_studentid = ar_curr.studentid 
- AND ar_curr.time_period_name = 'RT2' --update every quarter
+ AND ar_curr.time_period_name = 'RT3' --update every quarter
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 
   --LEXILE
@@ -705,49 +707,49 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
 --/* 
 --GRADEBOOK COMMMENTS -- upadate FIELD and PARAMETER for current term
 LEFT OUTER JOIN PS$comments#static comment_rc1 WITH (NOLOCK)
-  ON gr_wide.rc1_Q2_enr_sectionid = comment_rc1.sectionid
+  ON gr_wide.rc1_Q3_enr_sectionid = comment_rc1.sectionid
  AND gr_wide.studentid = comment_rc1.id
- AND comment_rc1.finalgradename = 'Q2'
+ AND comment_rc1.finalgradename = 'Q3'
 LEFT OUTER JOIN PS$comments#static comment_rc2 WITH (NOLOCK)
-  ON gr_wide.rc2_Q2_enr_sectionid = comment_rc2.sectionid
+  ON gr_wide.rc2_Q3_enr_sectionid = comment_rc2.sectionid
  AND gr_wide.studentid = comment_rc2.id
- AND comment_rc2.finalgradename = 'Q2'
+ AND comment_rc2.finalgradename = 'Q3'
 LEFT OUTER JOIN PS$comments#static comment_rc3 WITH (NOLOCK)
-  ON gr_wide.rc3_Q2_enr_sectionid = comment_rc3.sectionid
+  ON gr_wide.rc3_Q3_enr_sectionid = comment_rc3.sectionid
  AND gr_wide.studentid = comment_rc3.id
- AND comment_rc3.finalgradename = 'Q2'
+ AND comment_rc3.finalgradename = 'Q3'
 LEFT OUTER JOIN PS$comments#static comment_rc4 WITH (NOLOCK)
-  ON gr_wide.rc4_Q2_enr_sectionid = comment_rc4.sectionid
+  ON gr_wide.rc4_Q3_enr_sectionid = comment_rc4.sectionid
  AND gr_wide.studentid = comment_rc4.id
- AND comment_rc4.finalgradename = 'Q2'
+ AND comment_rc4.finalgradename = 'Q3'
 LEFT OUTER JOIN PS$comments#static comment_rc5 WITH (NOLOCK)
-  ON gr_wide.rc5_Q2_enr_sectionid = comment_rc5.sectionid
+  ON gr_wide.rc5_Q3_enr_sectionid = comment_rc5.sectionid
  AND gr_wide.studentid = comment_rc5.id
- AND comment_rc5.finalgradename = 'Q2'
+ AND comment_rc5.finalgradename = 'Q3'
 LEFT OUTER JOIN PS$comments#static comment_rc6 WITH (NOLOCK)
-  ON gr_wide.rc6_Q2_enr_sectionid = comment_rc6.sectionid
+  ON gr_wide.rc6_Q3_enr_sectionid = comment_rc6.sectionid
  AND gr_wide.studentid = comment_rc6.id
- AND comment_rc6.finalgradename = 'Q2'
+ AND comment_rc6.finalgradename = 'Q3'
 LEFT OUTER JOIN PS$comments#static comment_rc7 WITH (NOLOCK)
-  ON gr_wide.rc7_Q2_enr_sectionid = comment_rc7.sectionid
+  ON gr_wide.rc7_Q3_enr_sectionid = comment_rc7.sectionid
  AND gr_wide.studentid = comment_rc7.id
- AND comment_rc7.finalgradename = 'Q2'
+ AND comment_rc7.finalgradename = 'Q3'
 LEFT OUTER JOIN PS$comments#static comment_rc8 WITH (NOLOCK)
-  ON gr_wide.rc8_Q2_enr_sectionid = comment_rc8.sectionid
+  ON gr_wide.rc8_Q3_enr_sectionid = comment_rc8.sectionid
  AND gr_wide.studentid = comment_rc8.id
- AND comment_rc8.finalgradename = 'Q2'
+ AND comment_rc8.finalgradename = 'Q3'
 LEFT OUTER JOIN PS$comments#static comment_rc9 WITH (NOLOCK)
-  ON gr_wide.rc9_Q2_enr_sectionid = comment_rc9.sectionid
+  ON gr_wide.rc9_Q3_enr_sectionid = comment_rc9.sectionid
  AND gr_wide.studentid = comment_rc9.id
- AND comment_rc9.finalgradename = 'Q2'
+ AND comment_rc9.finalgradename = 'Q3'
 LEFT OUTER JOIN PS$comments#static comment_rc10 WITH (NOLOCK)
-  ON gr_wide.rc10_Q2_enr_sectionid = comment_rc10.sectionid
+  ON gr_wide.rc10_Q3_enr_sectionid = comment_rc10.sectionid
  AND gr_wide.studentid = comment_rc10.id
- AND comment_rc10.finalgradename = 'Q2'
---/* ONLY USED ON RC
+ AND comment_rc10.finalgradename = 'Q3'
+/* ONLY USED ON RC
 LEFT OUTER JOIN PS$comments#static comment_adv WITH (NOLOCK)
   ON roster.base_studentid = comment_adv.id
- AND comment_adv.finalgradename = 'Q2'
+ AND comment_adv.finalgradename = 'Q3'
  AND comment_adv.course_number = 'HR'
 --*/
 
