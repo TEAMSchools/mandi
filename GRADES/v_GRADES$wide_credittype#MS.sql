@@ -20,16 +20,16 @@ WITH rost AS
                  ,1 AS rn_format
            UNION
            SELECT 'RHET'
-                 ,5
-           UNION
-           SELECT 'MATH'
                  ,2
            UNION
-           SELECT 'SCI'
+           SELECT 'MATH'
                  ,3
            UNION
-           SELECT 'SOC'
+           SELECT 'SCI'
                  ,4
+           UNION
+           SELECT 'SOC'
+                 ,5
            UNION
            SELECT 'WLANG'
                  ,8
