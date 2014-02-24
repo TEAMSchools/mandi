@@ -106,13 +106,10 @@ FROM
 		          ,rs.devsp_doubsylj
 		          ,rs.devsp_longv2sw
 		          ,rs.devsp_rcont2sw
-		          ,rs.cc_prof1
-            ,rs.cc_prof2
+		          ,rs.cc_prof            
             ,rs.cp_prof
-            ,rs.devsp_prof1
-            ,rs.devsp_prof2
-            ,rs.ocomp_prof1
-            ,rs.ocomp_prof2
+            ,rs.devsp_prof            
+            ,rs.ocomp_prof            
             ,rs.rr_prof
             ,rs.scomp_prof
             ,rs.wcomp_prof
