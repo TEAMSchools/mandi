@@ -11,24 +11,15 @@ SELECT sub.*
            + ISNULL(cp_prof,'')
            + ISNULL(pa_rhymingwds_prof,'')
            + ISNULL(pa_mfs_prof,'')
-           + ISNULL(pa_segmentation_prof,'')
-           + ISNULL(accuracy_1a_prof,'')
-           + ISNULL(accuracy_2b_prof,'')
+           + ISNULL(pa_segmentation_prof,'')           
            + ISNULL(accuracy_prof,'')
            + ISNULL(fluency_prof,'')
            + ISNULL(retelling_prof,'')
            + ISNULL(reading_rate_prof,'')
            + ISNULL(rr_prof,'')
-           + ISNULL(devsp_prof1_prof,'')
-           + ISNULL(devsp_prof2_prof,'')
-           + ISNULL(devsp_prof_06,'')
-           + ISNULL(devsp_prof_07,'')
-           + ISNULL(devsp_prof_8_10,'')
-           + ISNULL(devsp_prof_11_12,'')
-           + ISNULL(cc_prof1,'')
-           + ISNULL(cc_prof2,'')
-           + ISNULL(ocomp_prof1,'')
-           + ISNULL(ocomp_prof2,'')
+           + ISNULL(devsp_prof,'')                      
+           + ISNULL(cc_prof,'')
+           + ISNULL(ocomp_prof,'')
            + ISNULL(scomp_prof,'')
            + ISNULL(wcomp_prof,'')
            + ISNULL(fp_wpmrate_prof,'')
@@ -124,18 +115,15 @@ FROM
             ,scores.fp_comp_beyond
             ,scores.fp_comp_about      
             ,scores.fp_comp_prof AS fp_comp_prof_agg
-            ,scores.cc_prof1 AS cc_prof1_agg
-            ,scores.cc_prof2 AS cc_prof2_agg
+            ,scores.cc_prof AS cc_prof_agg
             ,scores.cp_prof AS cp_prof_agg
-            ,scores.devsp_prof1 AS devsp_prof1_agg
-            ,scores.devsp_prof2 AS devsp_prof2_agg
-            ,scores.ocomp_prof1 AS ocomp_prof1_agg
-            ,scores.ocomp_prof2 AS ocomp_prof2_agg
+            ,scores.devsp_prof AS devsp_prof_agg            
+            ,scores.ocomp_prof AS ocomp_prof_agg            
             ,scores.rr_prof AS rr_prof_agg
             ,scores.scomp_prof AS scomp_prof_agg
             ,scores.wcomp_prof AS wcomp_prof_agg
 
-      --PROFICIENCY MEASURES (BOOLEAN)
+      --PROFICIENCY MEASURES
         --FUNDAMENTALS
             ,CASE
               WHEN prof.name_ass IS NOT NULL AND scores.name_ass >= prof.name_ass THEN NULL 
@@ -175,32 +163,25 @@ FROM
               ELSE NULL 
              END AS pa_segmentation_prof      
             
-        --ACCURACY | et al
-            --these go against the logical flow | fewer errors = higher proficiency
+        --ACCURACY, FLUENCT, RETELLING, READING RATE, READING RECORD
             ,CASE
-              WHEN prof.accuracy_1a IS NOT NULL AND scores.accuracy_1a < prof.accuracy_1a THEN NULL 
-              WHEN prof.accuracy_1a IS NOT NULL AND scores.accuracy_1a >= prof.accuracy_1a THEN 'Reading Accuracy | '
-              ELSE NULL 
-             END AS accuracy_1a_prof
-            ,CASE 
-              WHEN prof.accuracy_2b IS NOT NULL AND scores.accuracy_2b < prof.accuracy_2b THEN NULL 
-              WHEN prof.accuracy_2b IS NOT NULL AND scores.accuracy_2b >= prof.accuracy_2b THEN 'Reading Accuracy #2 | '
-              ELSE NULL 
-             END AS accuracy_2b_prof
-            ,CASE
-              WHEN scores.accuracy IS NOT NULL AND scores.accuracy IN ('Above','Target') THEN NULL 
-              WHEN scores.accuracy IS NOT NULL AND scores.accuracy = 'Below' THEN 'Accuracy | '
-              ELSE NULL 
+              WHEN scores.testid = 3282 AND prof.accuracy_1a IS NOT NULL AND scores.accuracy_1a <= prof.accuracy_1a 
+               AND scores.testid = 3282 AND prof.accuracy_2b IS NOT NULL AND scores.accuracy_2b <= prof.accuracy_2b THEN NULL
+              WHEN prof.accuracy_1a IS NOT NULL AND scores.accuracy_1a > prof.accuracy_1a THEN 'Accuracy | '
+              WHEN prof.accuracy_2b IS NOT NULL AND scores.accuracy_2b > prof.accuracy_2b THEN 'Accuracy | '
+              WHEN scores.accuracy IN ('Above','Target') THEN NULL
+              WHEN scores.accuracy = 'Below' THEN 'Accuracy | '
+              ELSE NULL
              END AS accuracy_prof
             ,CASE 
-              WHEN prof.fluency IS NOT NULL AND scores.fluency >= prof.fluency THEN NULL 
+              WHEN prof.fluency IS NOT NULL AND scores.fluency >= prof.fluency THEN NULL
               WHEN prof.fluency IS NOT NULL AND scores.fluency < prof.fluency THEN 'Fluency | '
-              ELSE NULL 
+              ELSE NULL
              END AS fluency_prof
-            ,CASE 
-              WHEN prof.retelling IS NOT NULL AND scores.retelling >= prof.retelling THEN NULL 
+            ,CASE
+              WHEN prof.retelling IS NOT NULL AND scores.retelling >= prof.retelling THEN NULL
               WHEN prof.retelling IS NOT NULL AND scores.retelling < prof.retelling THEN 'Retelling | '
-              ELSE NULL 
+              ELSE NULL
              END AS retelling_prof
             ,CASE
               WHEN scores.reading_rate IS NOT NULL AND scores.reading_rate IN ('Above','Target') THEN NULL 
@@ -216,31 +197,30 @@ FROM
         --DEVELOPMENTAL SPELLING
               --STEPs 1 - 3
             ,CASE
-              WHEN prof.devsp_prof1 IS NOT NULL AND scores.devsp_prof1 >= prof.devsp_prof1 THEN NULL 
-              WHEN prof.devsp_prof1 IS NOT NULL AND scores.devsp_prof1 < prof.devsp_prof1 THEN 'Developmental Spelling | '
-              ELSE NULL 
-             END AS devsp_prof1_prof
-              --STEPs 4 -5
-            ,CASE
-              WHEN prof.devsp_prof2 IS NOT NULL AND scores.devsp_prof2 >= prof.devsp_prof2 THEN NULL 
-              WHEN prof.devsp_prof2 IS NOT NULL AND scores.devsp_prof2 < prof.devsp_prof2 THEN 'Developmental Spelling | '
-              ELSE NULL 
-             END AS devsp_prof2_prof
+              WHEN scores.testid IN (3281, 3282, 3380) AND prof.devsp_prof IS NOT NULL AND scores.devsp_prof >= prof.devsp_prof THEN NULL 
+              WHEN scores.testid IN (3281, 3282, 3380) AND prof.devsp_prof IS NOT NULL AND scores.devsp_prof < prof.devsp_prof THEN 'Developmental Spelling | '
+             
+              --STEPs 4-5
+              WHEN scores.testid IN (3397, 3411)
+               AND prof.devsp_svs IS NOT NULL AND scores.devsp_svs >= prof.devsp_svs
+               AND prof.devsp_ifbd IS NOT NULL AND scores.devsp_ifbd >= prof.devsp_ifbd THEN NULL
+              WHEN scores.testid IN (3397, 3411)
+               AND prof.devsp_svs IS NOT NULL AND scores.devsp_svs < prof.devsp_svs THEN 'Developmental Spelling | '
+              WHEN scores.testid IN (3397, 3411)
+               AND prof.devsp_ifbd IS NOT NULL AND scores.devsp_ifbd < prof.devsp_ifbd THEN 'Developmental Spelling | '
+             
             --for STEPs 6-12 | DevSpell proficiencies are compound | meaning a student must be proficient in ALL
             --of the components in order to be proficient for the section
-              --STEP 6
-            ,CASE
+              --STEP 6            
               WHEN scores.testid = 3425
                AND prof.devsp_longvp IS NOT NULL AND scores.devsp_longvp >= prof.devsp_longvp 
                AND prof.devsp_rcontv IS NOT NULL AND scores.devsp_rcontv >= prof.devsp_rcontv THEN NULL
               WHEN scores.testid = 3425
                AND prof.devsp_longvp IS NOT NULL AND scores.devsp_longvp < prof.devsp_longvp THEN 'Developmental Spelling | '
               WHEN scores.testid = 3425
-               AND prof.devsp_rcontv IS NOT NULL AND scores.devsp_rcontv < prof.devsp_rcontv THEN 'Developmental Spelling | '
-              ELSE NULL 
-             END AS devsp_prof_06      
-              --STEP 7
-            ,CASE
+               AND prof.devsp_rcontv IS NOT NULL AND scores.devsp_rcontv < prof.devsp_rcontv THEN 'Developmental Spelling | '              
+              
+              --STEP 7            
               WHEN scores.testid = 3441
                AND prof.devsp_longvp IS NOT NULL AND scores.devsp_longvp >= prof.devsp_longvp
                AND prof.devsp_vcelvp IS NOT NULL AND scores.devsp_vcelvp >= prof.devsp_vcelvp THEN NULL 
@@ -248,10 +228,8 @@ FROM
                AND prof.devsp_vcelvp IS NOT NULL AND scores.devsp_vcelvp < prof.devsp_vcelvp THEN 'Developmental Spelling | '
               WHEN scores.testid = 3441
                AND prof.devsp_longvp IS NOT NULL AND scores.devsp_longvp < prof.devsp_longvp THEN 'Developmental Spelling | '
-              ELSE NULL 
-             END AS devsp_prof_07
-              --STEPs 8 - 10
-            ,CASE 
+             
+              --STEPs 8 - 10            
               WHEN scores.testid IN (3458,3474,3493)
                AND prof.devsp_vowldig IS NOT NULL AND scores.devsp_vowldig >= prof.devsp_vowldig
                AND prof.devsp_longvp IS NOT NULL AND scores.devsp_longvp >= prof.devsp_longvp 
@@ -265,10 +243,8 @@ FROM
                AND prof.devsp_rcontv IS NOT NULL AND scores.devsp_rcontv < prof.devsp_rcontv THEN 'Developmental Spelling | '
               WHEN scores.testid IN (3458,3474,3493)
                AND prof.devsp_longvp IS NOT NULL AND scores.devsp_longvp < prof.devsp_longvp THEN 'Developmental Spelling | '
-              ELSE NULL
-             END AS devsp_prof_8_10
-             --STEPs 11 - 12
-            ,CASE
+              
+             --STEPs 11 - 12            
               WHEN prof.devsp_eding IS NOT NULL AND scores.devsp_eding >= prof.devsp_eding
                AND prof.devsp_doubsylj IS NOT NULL AND scores.devsp_doubsylj >= prof.devsp_doubsylj
                AND prof.devsp_longv2sw IS NOT NULL AND scores.devsp_longv2sw >= prof.devsp_longv2sw
@@ -278,29 +254,19 @@ FROM
               WHEN prof.devsp_doubsylj IS NOT NULL AND scores.devsp_doubsylj < prof.devsp_doubsylj THEN 'Developmental Spelling | '
               WHEN prof.devsp_longv2sw IS NOT NULL AND scores.devsp_longv2sw < prof.devsp_longv2sw THEN 'Developmental Spelling | '
               ELSE NULL 
-             END AS devsp_prof_11_12
+             END AS devsp_prof
              
         --COMPREHENSION      
             ,CASE
-              WHEN prof.cc_prof1 IS NOT NULL AND scores.cc_prof1 >= prof.cc_prof1 THEN NULL 
-              WHEN prof.cc_prof1 IS NOT NULL AND scores.cc_prof1 < prof.cc_prof1 THEN 'Comprehension Conversation | '
+              WHEN prof.cc_prof IS NOT NULL AND scores.cc_prof >= prof.cc_prof THEN NULL 
+              WHEN prof.cc_prof IS NOT NULL AND scores.cc_prof < prof.cc_prof THEN 'Comprehension Conversation | '
               ELSE NULL 
-             END AS cc_prof1
+             END AS cc_prof
             ,CASE
-              WHEN prof.cc_prof2 IS NOT NULL AND scores.cc_prof2 >= prof.cc_prof2 THEN NULL 
-              WHEN prof.cc_prof2 IS NOT NULL AND scores.cc_prof2 < prof.cc_prof2 THEN 'Comprehension Conversation | '
-              ELSE NULL 
-             END AS cc_prof2
-            ,CASE
-              WHEN prof.ocomp_prof1 IS NOT NULL AND scores.ocomp_prof1 >= prof.ocomp_prof1 THEN NULL 
-              WHEN prof.ocomp_prof1 IS NOT NULL AND scores.ocomp_prof1 < prof.ocomp_prof1 THEN 'Oral Comprehension | '
+              WHEN prof.ocomp_prof IS NOT NULL AND scores.ocomp_prof >= prof.ocomp_prof THEN NULL 
+              WHEN prof.ocomp_prof IS NOT NULL AND scores.ocomp_prof < prof.ocomp_prof THEN 'Oral Comprehension | '
               ELSE NULL
-             END AS ocomp_prof1
-            ,CASE
-              WHEN prof.ocomp_prof2 IS NOT NULL AND scores.ocomp_prof2 >= prof.ocomp_prof2 THEN NULL 
-              WHEN prof.ocomp_prof2 IS NOT NULL AND scores.ocomp_prof2 < prof.ocomp_prof2 THEN 'Oral Comprehension | '
-              ELSE NULL 
-             END AS ocomp_prof2
+             END AS ocomp_prof            
             ,CASE
               WHEN prof.scomp_prof IS NOT NULL AND scores.scomp_prof >= prof.scomp_prof THEN NULL 
               WHEN prof.scomp_prof IS NOT NULL AND scores.scomp_prof < prof.scomp_prof THEN 'Silent Comprehension | '
@@ -358,13 +324,10 @@ FROM
             ,prof.fp_fluency AS fp_fluency_bench
             ,prof.fp_accuracy AS fp_accuracy_bench
             ,prof.fp_comp_prof AS fp_comp_prof_bench
-            ,prof.cc_prof1 AS cc_prof1_bench
-            ,prof.cc_prof2 AS cc_prof2_bench
+            ,prof.cc_prof AS cc_prof_bench
             ,prof.cp_prof AS cp_prof_bench
-            ,prof.devsp_prof1 AS devsp_prof1_bench
-            ,prof.devsp_prof2 AS devsp_prof2_bench
-            ,prof.ocomp_prof1 AS ocomp_prof1_bench
-            ,prof.ocomp_prof2 AS ocomp_prof2_bench
+            ,prof.devsp_prof AS devsp_prof1_bench
+            ,prof.ocomp_prof AS ocomp_prof1_bench
             ,prof.rr_prof AS rr_prof_bench
             ,prof.scomp_prof AS scomp_prof_bench
             ,prof.wcomp_prof AS wcomp_prof_bench
@@ -394,13 +357,10 @@ FROM
             ,scores.devsp_doubsylj - prof.devsp_doubsylj AS devsp_doubsylj_margin
             ,scores.devsp_longv2sw - prof.devsp_longv2sw AS devsp_longv2sw_margin
             ,scores.devsp_rcont2sw - prof.devsp_rcont2sw AS devsp_rcont2sw_margin
-            ,scores.devsp_prof1 - prof.devsp_prof1 AS devsp_prof1_margin
-            ,scores.devsp_prof2 - prof.devsp_prof2 AS devsp_prof2_margin
+            ,scores.devsp_prof - prof.devsp_prof AS devsp_prof_margin
             
-            ,scores.cc_prof1 - prof.cc_prof1 AS cc_prof1_margin
-            ,scores.cc_prof2 - prof.cc_prof2 AS cc_prof2_margin      
-            ,scores.ocomp_prof1 - prof.ocomp_prof1 AS ocomp_prof1_margin
-            ,scores.ocomp_prof2 - prof.ocomp_prof2 AS ocomp_prof2_margin
+            ,scores.cc_prof - prof.cc_prof AS cc_prof_margin
+            ,scores.ocomp_prof - prof.ocomp_prof AS ocomp_prof_margin
             ,scores.scomp_prof - prof.scomp_prof AS scomp_prof_margin
             ,scores.wcomp_prof - prof.wcomp_prof AS wcomp_prof_margin
             
@@ -462,11 +422,12 @@ FROM
               WHEN s.schoolid IN (73252,133570965) THEN scores.la_level_number_ms
              END AS la_level_number
             ,la_wpmrate_ms
-            ,la_fp_keylever_ms
+            ,la_keylever_ms
             ,scores.achv_high_tri
             ,scores.dna_low_tri
       FROM
-           (SELECT testid
+           (
+            SELECT testid
                   ,schoolid
                   ,grade_level
                   ,year       
@@ -526,13 +487,10 @@ FROM
                   ,NULL AS devsp_doubsylj
                   ,NULL AS devsp_longv2sw
                   ,NULL AS devsp_rcont2sw
-                  ,NULL AS cc_prof1
-                  ,NULL AS cc_prof2
+                  ,NULL AS cc_prof
                   ,NULL AS cp_prof
-                  ,NULL AS devsp_prof1
-                  ,NULL AS devsp_prof2
-                  ,NULL AS ocomp_prof1
-                  ,NULL AS ocomp_prof2
+                  ,NULL AS devsp_prof
+                  ,NULL AS ocomp_prof
                   ,NULL AS rr_prof
                   ,NULL AS scomp_prof
                   ,NULL AS wcomp_prof
@@ -571,7 +529,7 @@ FROM
                   ,la_GLEQ_ms
                   ,la_level_number_ms
                   ,la_wpmrate_ms
-                  ,la_fp_keylever_ms
+                  ,la_keylever_ms
                   ,achv_high_tri
                   ,dna_low_tri
             FROM LIT$FP_test_events_long#identifiers#static WITH (NOLOCK)
@@ -639,13 +597,10 @@ FROM
                   ,devsp_doubsylj
                   ,devsp_longv2sw
                   ,devsp_rcont2sw
-		                ,cc_prof1
-                  ,cc_prof2
+		                ,cc_prof                  
                   ,cp_prof
-                  ,devsp_prof1
-                  ,devsp_prof2
-                  ,ocomp_prof1
-                  ,ocomp_prof2
+                  ,devsp_prof                  
+                  ,ocomp_prof                  
                   ,rr_prof
                   ,scomp_prof
                   ,wcomp_prof
@@ -684,7 +639,7 @@ FROM
                   ,la_GLEQ_ms
                   ,la_level_number_ms
                   ,NULL AS la_wpmrate_ms
-                  ,NULL AS la_fp_keylever_ms
+                  ,NULL AS la_keylever_ms
                   ,achv_high_tri
                   ,dna_low_tri                  
             FROM LIT$STEP_test_events_long#identifiers#static WITH (NOLOCK)
