@@ -6,7 +6,7 @@ SELECT s.id AS studentid
       ,sub.*
 FROM
       (SELECT s.*
-             ,REPLACE(s.student, '@teamstudents.org', '') + '.student' AS id_key
+             ,REPLACE(s.identity_email, '@teamstudents.org', '') + '.student' AS id_key
        FROM Khan..stu_detail s
        ) sub
 JOIN KIPP_NJ..STUDENTS s
