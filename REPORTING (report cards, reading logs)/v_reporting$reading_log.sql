@@ -97,8 +97,8 @@ SELECT roster.*
       ,map_fall.rittoreadingscore AS lexile_fall
       ,map_winter.rittoreadingscore AS lexile_winter
        --readlive
-      ,rl.wpm AS starting_fluency
-      ,rl.wpm AS cur_fluency
+      ,rl_base.wpm AS starting_fluency
+      ,rl_cur.wpm AS cur_fluency
  
        --AR cur
       ,replace(convert(varchar,convert(Money, ar_cur.words),1),'.00','') AS hex_words
@@ -271,9 +271,15 @@ LEFT OUTER JOIN
      ) cur_rit
   ON roster.studentid = cur_rit.ps_studentid
 
-LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl WITH(NOLOCK)
-  ON CAST(roster.studentid AS NVARCHAR) = rl.studentid
- AND rl.season = 'Winter'
+LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl_base WITH(NOLOCK)
+  ON CAST(roster.studentid AS NVARCHAR) = rl_base.studentid
+ AND rl_base.yearid = 2300
+ AND rl_base.season = 'Fall'
+
+LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl_cur WITH(NOLOCK)
+  ON CAST(roster.studentid AS NVARCHAR) = rl_cur.studentid
+ AND rl_cur.yearid = 2300
+ AND rl_cur.season = 'Winter'
 
 --AR
 --current
