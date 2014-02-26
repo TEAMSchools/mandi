@@ -3,6 +3,7 @@ GO
 
 ALTER VIEW KTC$highest_SAT AS
 SELECT s.student_number
+      ,s.id AS studentid
       ,MAX(sat.verbal) AS highest_verbal
       ,MAX(sat.math) AS highest_math
       ,MAX(sat.writing) AS highest_writing
@@ -20,4 +21,4 @@ JOIN NAVIANCE$ID_key nav
   ON s.id = nav.studentid
 JOIN NAVIANCE$SAT_scores sat
   ON nav.naviance_id = sat.naviance_id
-GROUP BY s.student_number
+GROUP BY s.student_number, s.id
