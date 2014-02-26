@@ -273,6 +273,7 @@ LEFT OUTER JOIN
 
 LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl WITH(NOLOCK)
   ON CAST(roster.studentid AS NVARCHAR) = rl.studentid
+ AND rl.season = 'Winter'
 
 --AR
 --current
