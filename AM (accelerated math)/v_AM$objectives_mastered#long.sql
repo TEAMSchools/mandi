@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW AM$objectives_mastered#long AS 
+--ALTER VIEW AM$objectives_mastered#long AS 
 WITH scaffold AS
     (SELECT c.studentid
            ,s.student_number
@@ -47,6 +47,7 @@ SELECT CASE GROUPING(sub.studentid)
       ,sub.date_no_year
       ,SUM(mastered_dummy) AS objectives
       ,AVG(dgradelevel) AS avg_grade_level
+      ,SUM(dgradelevel) AS weighted_obj_count
       ,COUNT(*) AS n
 FROM
       (SELECT scaffold.*
