@@ -65,15 +65,15 @@ SELECT
       ,map.goal6ritscore
 
      /*--reporting hashes, row numbers--*/
-      ,CONVERT(VARCHAR,map.studentid) + '_'
-        + CONVERT(VARCHAR,REPLACE(map.fallwinterspring,' ','')) + '_'
-        + CONVERT(VARCHAR,map.rn_curr) AS hash
-      ,CONVERT(VARCHAR,map.studentid) + '_'
-        + CONVERT(VARCHAR,map.rn_curr) AS stu_hash
-      ,CONVERT(VARCHAR,map.studentid) + '_'
-        + CONVERT(VARCHAR,REPLACE(map.fallwinterspring,' ','')) + '_'
+      ,ISNULL(CONVERT(VARCHAR,map.studentid), CONVERT(VARCHAR,s.student_number)) + '_'
+        + ISNULL(CONVERT(VARCHAR,REPLACE(map.fallwinterspring,' ','')),SUBSTRING(base.termname, 0, CHARINDEX(' ', base.termname))) + '_'
+        + ISNULL(CONVERT(VARCHAR,map.rn_curr), '1') AS hash
+      ,ISNULL(CONVERT(VARCHAR,map.studentid), CONVERT(VARCHAR,s.student_number)) + '_'
+        + ISNULL(CONVERT(VARCHAR,map.rn_curr), '1') AS stu_hash
+      ,ISNULL(CONVERT(VARCHAR,map.studentid), CONVERT(VARCHAR,s.student_number)) + '_'
+        + ISNULL(CONVERT(VARCHAR,REPLACE(map.fallwinterspring,' ','')),SUBSTRING(base.termname, 0, CHARINDEX(' ', base.termname))) + '_'
         + CONVERT(VARCHAR,base.measurementscale) AS stu_subj_hash
-      ,(map.percentile_2011_norms - base.testpercentile) AS pctl_change
+      ,(map.percentile_2011_norms - base.testpercentile) AS pctl_change      
 
 FROM MAP$best_baseline#static base WITH(NOLOCK)
 JOIN STUDENTS s WITH(NOLOCK)
@@ -96,6 +96,7 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
  AND base.year = map.map_year_academic
  AND map.rn = 1
  AND map.fallwinterspring = 'Winter'
+ AND map.testtype = 'Survey With Goals'
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID                       
                        ,t.LASTFIRST
@@ -114,5 +115,4 @@ LEFT OUTER JOIN (
                 ) eng1
   ON s.ID = eng1.STUDENTID
  AND eng1.rn = 1
-WHERE base.year = 2013
-  AND testtype = 'Survey With Goals'
+WHERE base.year = 2013  
