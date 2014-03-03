@@ -23,35 +23,52 @@ BEGIN
   SELECT *
   INTO [#PS$lunch_status_long|refresh]
   FROM (
-        SELECT studentid
-              ,CASE
-                WHEN field_name LIKE ('%0708%') THEN 2007
-                WHEN field_name LIKE ('%0809%') THEN 2008
-                WHEN field_name LIKE ('%0910%') THEN 2009
-                WHEN field_name LIKE ('%1011%') THEN 2010
-                WHEN field_name LIKE ('%1112%') THEN 2011
-                WHEN field_name LIKE ('%1213%') THEN 2012
-                WHEN field_name LIKE ('%1314%') THEN 2013
-               END AS year        
-              ,CASE
-                WHEN string_value = 'Free' THEN 'F'
-                WHEN string_value = 'Reduced' THEN 'R'
-                WHEN string_value = 'Paid' THEN 'P'        
-                WHEN string_value = 'TANF' THEN 'F'
-                WHEN LOWER(string_value) LIKE '%food%stamp%' THEN 'F'
-                WHEN string_value = 'Income too high' THEN 'P'
-                WHEN string_value = 'Incomplete' THEN 'NoD'
-                ELSE string_value
-               END AS lunch_status
-        FROM OPENQUERY(PS_TEAM,'
-          SELECT field_name
-                ,string_value
-                ,studentid
-          FROM PVSIS_CUSTOM_STUDENTS
-          WHERE LOWER(field_name) LIKE (''%lunch_status%'')
-        ')
+        SELECT sub2.studentid
+              ,sub2.year
+              ,sub2.lunch_status
+        FROM
+            (
+             SELECT sub.*
+                   ,ROW_NUMBER() OVER(
+                       PARTITION BY studentid, year, lunch_status
+                           ORDER BY lunch_status) AS rn
+             FROM
+                 (
+                  SELECT studentid
+                        ,CASE
+                          WHEN field_name LIKE ('%0708%') THEN 2007
+                          WHEN field_name LIKE ('%0809%') THEN 2008
+                          WHEN field_name LIKE ('%0910%') THEN 2009
+                          WHEN field_name LIKE ('%1011%') THEN 2010
+                          WHEN field_name LIKE ('%1112%') THEN 2011
+                          WHEN field_name LIKE ('%1213%') THEN 2012
+                          WHEN field_name LIKE ('%1314%') THEN 2013
+                         END AS year        
+                        ,CASE                  
+                          WHEN string_value = 'Free' THEN 'F'
+                          WHEN string_value = 'TANF' THEN 'F'
+                          WHEN LOWER(string_value) LIKE '%food%stamp%' THEN 'F'
+                          WHEN string_value = 'Reduced' THEN 'R'
+                          WHEN string_value = 'Paid' THEN 'P'        
+                          WHEN string_value = 'Income too high' THEN 'P'
+                          WHEN LOWER(string_value) LIKE '%direct%cert%' THEN 'Direct Certified'                                    
+                          WHEN UPPER(LTRIM(RTRIM(string_value))) IN ('F','R','P') THEN UPPER(LTRIM(RTRIM(string_value)))
+                          WHEN string_value = 'Incomplete' THEN 'NoD'
+                          ELSE 'NoD'
+                         END AS lunch_status
+                  FROM OPENQUERY(PS_TEAM,'
+                    SELECT field_name
+                          ,string_value
+                          ,studentid
+                    FROM PVSIS_CUSTOM_STUDENTS
+                    WHERE LOWER(field_name) LIKE (''%lunch_status%'')
+                      AND LOWER(field_name) NOT LIKE (''%category%'')
+                  ')
+                 ) sub
+            ) sub2
+        WHERE rn = 1
        ) FrankUnderwoodbecomesVP;
-         
+       
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
     --SELECT 1 FROM [] WITH (TABLOCKX);
 
