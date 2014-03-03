@@ -81,16 +81,88 @@ SELECT roster.ID
       ,gpa.GPA_Q2
       ,gpa.GPA_Q3
       ,gpa.GPA_Q4
+      ,CASE
+        WHEN y1 >= 65 AND y1 < 70 THEN 'Approaching (65-69)'
+        WHEN y1 >= 60 AND y1 < 65 THEN 'Close (60-64)'
+        WHEN y1 >= 55 AND y1 < 60 THEN 'Fair (55-59)'
+        WHEN y1 < 55 THEN 'Fail (< 55)'
+       END AS y1_label
+      ,CASE
+        WHEN q1 >= 65 AND q1 < 70 THEN 'Approaching (65-69)'
+        WHEN q1 >= 60 AND q1 < 65 THEN 'Close (60-64)'
+        WHEN q1 >= 55 AND q1 < 60 THEN 'Fair (55-59)'
+        WHEN q1 < 55 THEN 'Fail (< 55)'
+       END AS q1_label
+      ,CASE
+        WHEN q2 >= 65 AND q2 < 70 THEN 'Approaching (65-69)'
+        WHEN q2 >= 60 AND q2 < 65 THEN 'Close (60-64)'
+        WHEN q2 >= 55 AND q2 < 60 THEN 'Fair (55-59)'
+        WHEN q2 < 55 THEN 'Fail (< 55)'
+       END AS q2_label
+      ,CASE
+        WHEN q3 >= 65 AND q3 < 70 THEN 'Approaching (65-69)'
+        WHEN q3 >= 60 AND q3 < 65 THEN 'Close (60-64)'
+        WHEN q3 >= 55 AND q3 < 60 THEN 'Fair (55-59)'
+        WHEN q3 < 55 THEN 'Fail (< 55)'
+       END AS q3_label
+      ,CASE
+        WHEN q4 >= 65 AND q4 < 70 THEN 'Approaching (65-69)'
+        WHEN q4 >= 60 AND q4 < 65 THEN 'Close (60-64)'
+        WHEN q4 >= 55 AND q4 < 60 THEN 'Fair (55-59)'
+        WHEN q4 < 55 THEN 'Fail (< 55)'
+       END AS q4_label
+      ,CASE
+        WHEN e1 >= 65 AND e1 < 70 THEN 'Approaching (65-69)'
+        WHEN e1 >= 60 AND e1 < 65 THEN 'Close (60-64)'
+        WHEN e1 >= 55 AND e1 < 60 THEN 'Fair (55-59)'
+        WHEN e1 < 55 THEN 'Fail (< 55)'
+       END AS e1_label
+      ,CASE
+        WHEN e2 >= 65 AND e2 < 70 THEN 'Approaching (65-69)'
+        WHEN e2 >= 60 AND e2 < 65 THEN 'Close (60-64)'
+        WHEN e2 >= 55 AND e2 < 60 THEN 'Fair (55-59)'
+        WHEN e2 < 55 THEN 'Fail (< 55)'
+       END AS e2_label
+      ,CASE
+        WHEN ele_a.grade_1 >= 65 AND ele_a.grade_1 < 70 THEN 'Approaching (65-69)'
+        WHEN ele_a.grade_1 >= 60 AND ele_a.grade_1 < 65 THEN 'Close (60-64)'
+        WHEN ele_a.grade_1 >= 55 AND ele_a.grade_1 < 60 THEN 'Fair (55-59)'
+        WHEN ele_a.grade_1 < 55 THEN 'Fail (< 55)'
+       END AS a1_label
+      ,CASE
+        WHEN ele_a.grade_2 >= 65 AND ele_a.grade_2 < 70 THEN 'Approaching (65-69)'
+        WHEN ele_a.grade_2 >= 60 AND ele_a.grade_2 < 65 THEN 'Close (60-64)'
+        WHEN ele_a.grade_2 >= 55 AND ele_a.grade_2 < 60 THEN 'Fair (55-59)'
+        WHEN ele_a.grade_2 < 55 THEN 'Fail (< 55)'
+       END AS a2_label
+      ,CASE
+        WHEN ele_a.grade_3 >= 65 AND ele_a.grade_3 < 70 THEN 'Approaching (65-69)'
+        WHEN ele_a.grade_3 >= 60 AND ele_a.grade_3 < 65 THEN 'Close (60-64)'
+        WHEN ele_a.grade_3 >= 55 AND ele_a.grade_3 < 60 THEN 'Fair (55-59)'
+        WHEN ele_a.grade_3 < 55 THEN 'Fail (< 55)'
+       END AS a3_label
+      ,CASE
+        WHEN ele_a.grade_4 >= 65 AND ele_a.grade_4 < 70 THEN 'Approaching (65-69)'
+        WHEN ele_a.grade_4 >= 60 AND ele_a.grade_4 < 65 THEN 'Close (60-64)'
+        WHEN ele_a.grade_4 >= 55 AND ele_a.grade_4 < 60 THEN 'Fair (55-59)'
+        WHEN ele_a.grade_4 < 55 THEN 'Fail (< 55)'
+       END AS a4_label
+      ,CASE
+        WHEN ele_a.simple_avg >= 65 AND ele_a.simple_avg < 70 THEN 'Approaching (65-69)'
+        WHEN ele_a.simple_avg >= 60 AND ele_a.simple_avg < 65 THEN 'Close (60-64)'
+        WHEN ele_a.simple_avg >= 55 AND ele_a.simple_avg < 60 THEN 'Fair (55-59)'
+        WHEN ele_a.simple_avg < 55 THEN 'Fail (< 55)'
+       END AS ay_label
 FROM roster WITH (NOLOCK)
 LEFT OUTER JOIN GRADES$DETAIL#NCA gr WITH (NOLOCK)
   ON roster.joinid = gr.studentid
 LEFT OUTER JOIN SECTIONS sec WITH (NOLOCK)
-  ON gr.q1_enr_sectionid = sec.ID --update every quarter
+  ON gr.q3_enr_sectionid = sec.ID --update every quarter
  AND sec.termid >= dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN TEACHERS t WITH (NOLOCK)
   ON t.id = sec.teacher
 LEFT OUTER JOIN CC cc WITH (NOLOCK)
-  ON gr.q1_enr_sectionid = cc.sectionid --update every quarter
+  ON gr.q3_enr_sectionid = cc.sectionid --update every quarter
  AND roster.joinid = cc.studentid
  AND cc.termid >= dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN GRADES$elements ele_h WITH (NOLOCK)

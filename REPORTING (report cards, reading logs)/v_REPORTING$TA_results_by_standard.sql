@@ -63,6 +63,7 @@ FROM
                        WHEN DATEPART(MM,assessments.administered_at) < 07 THEN (DATEPART(YYYY,assessments.administered_at) - 1)
                        ELSE NULL
                       END
+        AND co.rn = 1
        WHERE s.schoolid IN (73254,73255,73256)
          AND s.enroll_status = 0        
          AND assessments.scope = 'District Benchmark'

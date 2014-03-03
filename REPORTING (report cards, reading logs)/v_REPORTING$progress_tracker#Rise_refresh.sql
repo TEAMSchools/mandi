@@ -602,7 +602,7 @@ SELECT ROW_NUMBER() OVER(
       ,xc.[Winter-Spring_2] AS xc_WinterSpring_2
       ,xc.[Year-Round_1] AS xc_YearRound_1
       ,xc.[Year-Round_2] AS xc_YearRound_2
-      ,xc.activity_hash
+      ,CASE WHEN xc.activity_hash IS NULL THEN 'None' ELSE xc.activity_hash END AS activity_hash
       
 FROM roster WITH (NOLOCK)
 
