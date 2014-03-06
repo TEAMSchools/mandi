@@ -17,7 +17,7 @@ WITH roster AS
        AND s.enroll_status = 0       
       WHERE year = 2013
         AND c.rn = 1        
-        AND c.schoolid = 73252
+        AND c.schoolid = 73252        
      )
 
     ,info AS
@@ -604,7 +604,7 @@ SELECT roster.*
 
 --Comments
 --PS$comments_gradebook
-      /*/*--NOT USED FOR PROGRESS REPORTS--*/
+      --/*/*--NOT USED FOR PROGRESS REPORTS--*/
       ,comment_rc1.teacher_comment AS rc1_comment
       ,comment_rc2.teacher_comment AS rc2_comment
       ,comment_rc3.teacher_comment AS rc3_comment
@@ -612,6 +612,19 @@ SELECT roster.*
       ,comment_rc5.teacher_comment AS rc5_comment
       ,comment_rc6.teacher_comment AS rc6_comment
       --*/
+
+--Extracurriculars
+--from the RutgersReady DB (RutgersReady..XC$activities_wide)      
+      ,xc.Fall_1 
+      ,xc.Fall_2
+      ,xc.Winter_1
+      ,xc.Winter_2
+      ,xc.Spring_1
+      ,xc.Spring_2
+      ,xc.[Winter-Spring_1]
+      ,xc.[Winter-Spring_2]
+      ,xc.[Year-Round_1]
+      ,xc.[Year-Round_2]      
 
 FROM roster WITH (NOLOCK)
 --INFO
@@ -691,7 +704,7 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
  AND ar_curr2.time_period_name = 'RT4'
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
-/*/*--NOT USED FOR PROGRESS REPORTS--*/
+--/*/*--NOT USED FOR PROGRESS REPORTS--*/
 --GRADEBOOK COMMMENTS -- update fieldnames and parameters for current term
 LEFT OUTER JOIN PS$comments#static comment_rc1 WITH (NOLOCK)
   ON gr_wide.rc1_T1_enr_sectionid = comment_rc1.sectionid
@@ -719,3 +732,7 @@ LEFT OUTER JOIN PS$comments#static comment_rc6 WITH (NOLOCK)
  AND comment_rc6.finalgradename IN ('T1','Q1')
 -- update fieldnames and parameters for current term
 --*/
+
+LEFT OUTER JOIN RutgersReady..XC$activities_wide xc WITH(NOLOCK)
+  ON roster.base_student_number = xc.student_number
+ AND xc.yearid = 2300 --update for current year
