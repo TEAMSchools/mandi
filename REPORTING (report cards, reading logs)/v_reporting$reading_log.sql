@@ -124,6 +124,7 @@ SELECT roster.*
       ,ar_year.mastery_nonfiction AS accuracy_nonfiction
       ,ar_year.n_fiction
       ,ar_year.n_nonfic
+      ,ROUND((CONVERT(FLOAT,ar_year.N_passed) / CONVERT(FLOAT,ar_year.N_total) * 100),1) AS pct_passing_yr
       
       --AR by Hex
         --Hex 1

@@ -425,6 +425,11 @@ FROM
             ,la_keylever_ms
             ,scores.achv_high_tri
             ,scores.dna_low_tri
+            
+            --READLIVE
+            ,RL_fall.wpm AS RL_wpm_fall
+            ,RL_winter.wpm AS RL_wpm_winter
+            ,RL_winter.wpm - RL_fall.wpm AS wpm_change_f2w
       FROM
            (
             SELECT testid
@@ -657,6 +662,14 @@ FROM
        AND scores.test_date <= DATEADD(WK,8,map.teststartdate)
        AND map.measurementscale = 'Reading'
        AND map.rn = 1
+      LEFT OUTER JOIN SRSLY_DIE_READLIVE RL_fall WITH(NOLOCK)
+        ON scores.studentid = RL_fall.studentid
+       AND RL_fall.yearid = dbo.fn_Global_Term_Id()
+       AND RL_fall.season = 'Fall'
+      LEFT OUTER JOIN SRSLY_DIE_READLIVE RL_winter WITH(NOLOCK)
+        ON scores.studentid = RL_winter.studentid
+       AND RL_winter.yearid = dbo.fn_Global_Term_Id()
+       AND RL_winter.season = 'Winter' 
       WHERE s.enroll_status = 0
      ) sub
 WHERE curr_school != 73253     
