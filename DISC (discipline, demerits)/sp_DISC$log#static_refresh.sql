@@ -71,6 +71,7 @@ BEGIN
                 WHEN subtype = '09' AND logtypeid = -100000 THEN 'Class Removal'
                 WHEN subtype = '10' AND logtypeid = -100000 THEN 'Bullying'
                 WHEN subtype = '11' AND logtypeid = -100000 THEN 'Silent Lunch (5 Day)'
+                WHEN subtype = '12' AND logtypeid = -100000 THEN 'Paycheck'
                 
                 --NCA merits
                 WHEN subtype = '01' AND logtypeid = 3023 THEN 'No Demerits'
@@ -180,6 +181,8 @@ BEGIN
                 WHEN discipline_incidenttype = 'BIP' THEN 'BUS: Phones/iPods/Games'
                 WHEN discipline_incidenttype = 'BFI' THEN 'BUS: Fighting'
                 WHEN discipline_incidenttype = 'BNR' THEN 'BUS: Not reporting incidents'
+                WHEN discipline_incidenttype = 'PBA' THEN 'Paycheck Below $90'
+                WHEN discipline_incidenttype = 'PBB' THEN 'Paycheck Below $80'
                 ELSE NULL
                END AS incident_decoded                    
               ,CASE
