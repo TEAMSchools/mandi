@@ -7,8 +7,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-ALTER PROCEDURE [dbo].[sp_GRADES$MS|refresh]
-AS
+ALTER PROCEDURE [dbo].[sp_GRADES$MS|refresh] AS
 BEGIN
  -- SET NOCOUNT ON added to prevent extra result sets from
  -- interfering with SELECT statements
@@ -337,7 +336,7 @@ BEGIN
      --otherwise, add up T1, T2 and T3 and average away!
      ELSE ROUND(
        (COALESCE(T1, 0) + COALESCE(T2, 0) + COALESCE(T3, 0)) / term_valid
-      ,1)
+      ,0)
      END AS Y1
     ,t1_letter
     ,t2_letter
