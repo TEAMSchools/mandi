@@ -429,7 +429,10 @@ FROM
             --READLIVE
             ,RL_fall.wpm AS RL_wpm_fall
             ,RL_winter.wpm AS RL_wpm_winter
+            ,NULL AS RL_wpm_spring
             ,RL_winter.wpm - RL_fall.wpm AS wpm_change_f2w
+            ,NULL AS wpm_change_w2s
+            ,NULL AS wpm_change_f2s
       FROM
            (
             SELECT testid
