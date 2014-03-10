@@ -5,6 +5,7 @@ ALTER PROCEDURE sp_QA$grant_permissions AS
 
 --DB objects
 GRANT SELECT ON REPORTING$dates TO db_data_tool_reader
+GRANT SELECT ON UTIL$reporting_weeks_days TO db_data_tool_reader
 
 --Lit
 GRANT SELECT ON LIT$FP_test_events_long#identifiers#static TO db_data_tool_reader
