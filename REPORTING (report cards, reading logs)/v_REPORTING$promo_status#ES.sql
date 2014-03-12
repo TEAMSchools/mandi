@@ -70,7 +70,7 @@ WITH scaffold AS
           ,rd.start_date
           ,rd.end_date
           ,rd.time_per_name
-    FROM KIPP_NJ..REPORTING$dates rd
+    FROM KIPP_NJ..REPORTING$dates rd WITH(NOLOCK)
     WHERE rd.yearid = 23
       AND rd.identifier = 'RT'
       AND rd.time_hierarchy = 2
@@ -89,13 +89,13 @@ WITH scaffold AS
                      ORDER BY CAST(step.test_date AS date) DESC
                              ,step.level_number DESC
                      ) AS rn
-           FROM KIPP_NJ..COHORT$comprehensive_long#static c
+           FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
            JOIN KIPP_NJ..UTIL$reporting_days rd WITH (NOLOCK)
              ON rd.date >= c.entrydate
             AND rd.date <  c.exitdate
             AND rd.date <= CAST(GETDATE() AS date)   
             --AND rd.date = CAST(GETDATE() AS date)
-           JOIN KIPP_NJ..LIT$STEP_test_events_long#identifiers step
+           JOIN KIPP_NJ..LIT$STEP_test_events_long#identifiers step WITH(NOLOCK)
              ON c.studentid = step.studentid
             AND step.status = 'Achieved'
             AND step.test_date >= '08/01/2013'
@@ -119,8 +119,8 @@ WITH scaffold AS
                  ,assess_ov.percent_correct
                  ,assess.title
                  ,rt.time_per_name
-           FROM KIPP_NJ..COHORT$comprehensive_long#static c
-           JOIN KIPP_NJ..STUDENTS s
+           FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
+           JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
              ON c.studentid = s.id
            JOIN KIPP_NJ..UTIL$reporting_days rd WITH (NOLOCK)
              ON rd.date >= c.entrydate
@@ -131,7 +131,7 @@ WITH scaffold AS
             --testing
             --AND c.studentid = 2859
             --AND rd.date <= '10-15-2013'
-           JOIN KIPP_NJ..ILLUMINATE$assessment_results_overall assess_ov
+           JOIN KIPP_NJ..ILLUMINATE$assessment_results_overall#static assess_ov  WITH(NOLOCK)
              ON s.student_number = assess_ov.student_number
             AND assess_ov.date_taken <= rd.date
             AND assess_ov.date_taken >= c.entrydate
@@ -140,7 +140,7 @@ WITH scaffold AS
                       ,schoolid
                       ,subject
                       ,title
-                FROM KIPP_NJ..ILLUMINATE$assessments#static s
+                FROM KIPP_NJ..ILLUMINATE$assessments#static s WITH(NOLOCK)
                 WHERE s.subject = 'Mathematics'
                   AND s.title  LIKE '%UA%') assess
              ON assess_ov.assessment_id = assess.assessment_id
@@ -149,7 +149,7 @@ WITH scaffold AS
                        ,rd.start_date
                        ,rd.end_date
                        ,rd.time_per_name
-                 FROM KIPP_NJ..REPORTING$dates rd
+                 FROM KIPP_NJ..REPORTING$dates rd WITH(NOLOCK)
                  WHERE rd.yearid = 23
                    AND rd.identifier = 'RT'
                    AND rd.time_hierarchy = 2
@@ -199,6 +199,6 @@ JOIN step
 LEFT OUTER JOIN math_ua
   ON scaffold.studentid = math_ua.studentid
  AND scaffold.date = math_ua.date
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$att_percentages#time_series#static att
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$att_percentages#time_series#static att WITH(NOLOCK)
   ON CAST(scaffold.studentid AS int) = CAST(att.studentid AS int)
  AND CAST(scaffold.date AS date) = CAST(att.date_value AS date)
