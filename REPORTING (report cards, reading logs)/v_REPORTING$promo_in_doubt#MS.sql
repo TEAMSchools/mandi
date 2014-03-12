@@ -45,18 +45,23 @@ WITH roster AS (
         ,rc3_T3 AS mathT3
         ,rc4_T3 AS scienceT3
         ,rc5_T3 AS socialT3
-        ,CASE WHEN rc1_Y1 < 70 THEN 1 ELSE 0 END
-          + CASE WHEN rc2_Y1 < 70 THEN 1 ELSE 0 END
-          + CASE WHEN rc3_Y1 < 70 THEN 1 ELSE 0 END
-          + CASE WHEN rc4_Y1 < 70 THEN 1 ELSE 0 END
-          + CASE WHEN rc5_Y1 < 70 THEN 1 ELSE 0 END
+        ,CASE WHEN schoolid = 133570965 AND rc1_Y1 < 70 THEN 1 WHEN schoolid = 73252 AND rc1_Y1 < 65 THEN 1 ELSE 0 END
+          + CASE WHEN schoolid = 133570965 AND rc2_y1 < 70 THEN 1 WHEN schoolid = 73252 AND rc2_y1 < 65 THEN 1 ELSE 0 END
+          + CASE WHEN schoolid = 133570965 AND rc3_y1 < 70 THEN 1 WHEN schoolid = 73252 AND rc3_y1 < 65 THEN 1 ELSE 0 END
+          + CASE WHEN schoolid = 133570965 AND rc4_y1 < 70 THEN 1 WHEN schoolid = 73252 AND rc4_y1 < 65 THEN 1 ELSE 0 END
+          + CASE WHEN schoolid = 133570965 AND rc5_y1 < 70 THEN 1 WHEN schoolid = 73252 AND rc5_y1 < 65 THEN 1 ELSE 0 END
           AS n_failing
         ,CASE 
-          WHEN (CASE WHEN rc1_Y1 < 70 THEN 1 ELSE 0 END
-                 + CASE WHEN rc2_Y1 < 70 THEN 1 ELSE 0 END
-                 + CASE WHEN rc3_Y1 < 70 THEN 1 ELSE 0 END
-                 + CASE WHEN rc4_Y1 < 70 THEN 1 ELSE 0 END
-                 + CASE WHEN rc5_Y1 < 70 THEN 1 ELSE 0 END) > 0 THEN 1 
+          WHEN schoolid = 133570965 AND (CASE WHEN rc1_Y1 < 70 THEN 1 ELSE 0 END
+                                          + CASE WHEN rc2_Y1 < 70 THEN 1 ELSE 0 END
+                                          + CASE WHEN rc3_Y1 < 70 THEN 1 ELSE 0 END
+                                          + CASE WHEN rc4_Y1 < 70 THEN 1 ELSE 0 END
+                                          + CASE WHEN rc5_Y1 < 70 THEN 1 ELSE 0 END) > 0 THEN 1 
+          WHEN schoolid = 73252 AND (CASE WHEN rc1_Y1 < 65 THEN 1 ELSE 0 END
+                                      + CASE WHEN rc2_Y1 < 65 THEN 1 ELSE 0 END
+                                      + CASE WHEN rc3_Y1 < 65 THEN 1 ELSE 0 END
+                                      + CASE WHEN rc4_Y1 < 65 THEN 1 ELSE 0 END
+                                      + CASE WHEN rc5_Y1 < 65 THEN 1 ELSE 0 END) > 0 THEN 1 
           ELSE 0 
          END AS is_failing         
   FROM grades$wide_credit_core#ms WITH(NOLOCK)
@@ -107,10 +112,10 @@ WITH roster AS (
        SELECT student_number
              ,credittype + 'need' AS credittype
              ,CASE
-               WHEN schoolid = 73252 AND ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) < 60 THEN NULL
-               WHEN schoolid = 73252 AND ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) >= 60 THEN ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1)
-               WHEN schoolid = 133570965 AND ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1) < 60 THEN NULL
-               WHEN schoolid = 133570965 AND ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1) >= 60 THEN ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1)
+               WHEN schoolid = 73252 AND ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) < 65 THEN 65
+               WHEN schoolid = 73252 AND ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) >= 65 THEN ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1)
+               WHEN schoolid = 133570965 AND ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1) < 70 THEN 70
+               WHEN schoolid = 133570965 AND ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1) >= 70 THEN ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1)
                ELSE NULL
               END AS need_c
        FROM
