@@ -2,6 +2,29 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ILLUMINATE$reporting_FSA_results_by_standard AS
+
+WITH fsa_rn AS (
+SELECT *
+      ,ROW_NUMBER() OVER(
+          PARTITION BY schoolid, grade_level, scope, DATEPART(WEEK,administered_at)
+              ORDER BY subject, standards_tested) AS fsa_std_rn      
+FROM
+    (
+     SELECT DISTINCT
+            schoolid      
+           ,grade_level
+           ,fsa_week
+           ,administered_at           
+           ,scope
+           ,subject      
+           ,standards_tested
+     FROM ILLUMINATE$assessments#static WITH(NOLOCK)
+     WHERE schoolid IN (73254, 73255, 73256)
+       AND scope = 'FSA'
+       AND subject IS NOT NULL
+    ) sub
+)    
+
 SELECT TOP (100) PERCENT
        schoolid
       ,studentid
@@ -67,7 +90,7 @@ FROM
               + '_' + ISNULL(CONVERT(VARCHAR,s.grade_level),'GRADE')
               + '_' + ISNULL(results.custom_code,'STD') --standard tested
                AS rollup_hash      
-            ,assessments.fsa_std_rn      
+            ,fsa_rn.fsa_std_rn
             ,cs.SPEDLEP      
       FROM STUDENTS s  WITH(NOLOCK)
       LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
@@ -83,6 +106,13 @@ FROM
        AND s.schoolid = assessments.schoolid
        AND assessments.academic_year = 2013
        AND assessments.scope = 'FSA'
+      LEFT OUTER JOIN fsa_rn
+        ON assessments.schoolid = fsa_rn.schoolid
+       AND assessments.grade_level = fsa_rn.grade_level
+       AND assessments.fsa_week = fsa_rn.fsa_week
+       AND assessments.scope = fsa_rn.scope
+       AND assessments.subject = fsa_rn.subject
+       AND assessments.standards_tested = fsa_rn.standards_tested
       WHERE s.enroll_status = 0
         AND s.schoolid IN (73254,73255,73256)        
       ) sub
