@@ -22,29 +22,28 @@ BEGIN
   SELECT *
 		INTO [#PS$MEMBERSHIP|refresh]
   FROM OPENQUERY(PS_TEAM,'
-         SELECT studentid
-               ,student_number
-               ,schoolid
-               ,calendardate
-               ,fteid
-               ,attendance_conversion_id
-               ,attendancevalue
-               ,membershipvalue             
-               ,ontrack
-               ,offtrack
-               ,student_track
-               ,potential_attendancevalue
-         FROM pssis_adaadm_daily_ctod  
-         --this will pull all data for the current academic year, no need to update annually
-         --N.B. all data will be reset August 1st every year
-         WHERE calendardate >= TO_DATE(CASE
-                                        WHEN TO_CHAR(SYSDATE,''MON'') IN (''JAN'',''FEB'',''MAR'',''APR'',''MAY'',''JUN'',''JUL'')
-                                        THEN TO_CHAR(TO_CHAR(SYSDATE,''YYYY'') - 1)
-                                        ELSE TO_CHAR(SYSDATE,''YYYY'')
-                                       END || ''-08-01'',''YYYY-MM-DD'')
-           AND calendardate <= SYSDATE
-         ORDER BY studentid, calendardate
-         ');
+     SELECT ctod.studentid
+           ,ctod.student_number
+           ,ctod.schoolid
+           ,ctod.calendardate
+           ,ctod.fteid
+           ,ctod.attendance_conversion_id
+           ,ctod.attendancevalue
+           ,ctod.membershipvalue             
+           ,ctod.ontrack
+           ,ctod.offtrack
+           ,ctod.student_track
+           ,ctod.potential_attendancevalue
+     FROM pssis_adaadm_daily_ctod ctod
+     JOIN terms
+       ON terms.firstday <= ctod.calendardate
+      AND terms.lastday >= ctod.calendardate
+      AND terms.yearid = 23
+      AND terms.schoolid = ctod.schoolid
+      AND terms.portion = 1     
+     ORDER BY ctod.studentid
+             ,ctod.calendardate
+  ');
    
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
   --SELECT 1 FROM [LIT$FP_test_events_long#identifiers] WITH (TABLOCKX);
