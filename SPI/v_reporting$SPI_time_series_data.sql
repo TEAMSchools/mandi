@@ -158,7 +158,7 @@ FROM
 
       UNION ALL
       
-      --habitually absent                  
+      --habitually tardy              
       SELECT 2 AS strand_number
             ,'Student Culture & Climate' AS strand_name
             ,4 AS indicator_number
