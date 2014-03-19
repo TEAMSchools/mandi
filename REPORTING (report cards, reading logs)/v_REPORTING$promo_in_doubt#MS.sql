@@ -4,7 +4,8 @@ GO
 ALTER VIEW REPORTING$promo_in_doubt#MS AS
 
 WITH roster AS (
-  SELECT s.student_number
+  SELECT s.id AS studentid
+        ,s.student_number
         ,s.lastfirst
         ,s.grade_level
         ,s.team
@@ -71,6 +72,7 @@ WITH roster AS (
   SELECT student_number
         ,Y1_att_pts_pct
         ,promo_status_att
+        ,days_to_perfect
   FROM reporting$promo_status#team WITH(NOLOCK)
 
   UNION ALL
@@ -78,6 +80,7 @@ WITH roster AS (
   SELECT student_number
         ,Y1_att_pts_pct
         ,promo_status_att
+        ,days_to_perfect
   FROM reporting$promo_status#rise WITH(NOLOCK)
  )
 
@@ -98,6 +101,21 @@ WITH roster AS (
            ) sub
        GROUP BY student_number
       ) sub
+ )
+
+,homework AS (  
+  SELECT studentid
+        ,simple_avg AS H_avg        
+        ,CASE
+          WHEN schoolid = 73252 AND ((65 * 3) - (ISNULL(grade_1,65) + ISNULL(grade_2,65))) < 65 THEN 65
+          WHEN schoolid = 73252 AND ((65 * 3) - (ISNULL(grade_1,65) + ISNULL(grade_2,65))) >= 65 THEN ((65 * 3) - (ISNULL(grade_1,65) + ISNULL(grade_2,65)))
+          WHEN schoolid = 133570965 AND ((70 * 3) - (ISNULL(grade_1,70) + ISNULL(grade_2,70))) < 70 THEN 70
+          WHEN schoolid = 133570965 AND ((70 * 3) - (ISNULL(grade_1,70) + ISNULL(grade_2,70))) >= 70 THEN ((70 * 3) - (ISNULL(grade_1,70) + ISNULL(grade_2,70)))
+         END AS hw_need_c
+  FROM GRADES$elements WITH(NOLOCK)
+  WHERE schoolid IN (73252, 133570965)
+    AND pgf_type = 'H'
+    AND course_number = 'all_courses'
  )
  
 ,need_c AS ( 
@@ -148,7 +166,7 @@ WITH roster AS (
                       ,[writingneed])
    ) p
  )
- 
+
 ,fp AS (
   SELECT student_number
         ,letter_level AS fp
@@ -161,6 +179,7 @@ WITH roster AS (
 SELECT roster.*
       ,att_status.Y1_att_pts_pct
       ,att_status.promo_status_att
+      ,att_status.days_to_perfect
       ,fp.fp
       ,fp.fp_gleq
       ,Y1_avg.yaverage
@@ -191,6 +210,8 @@ SELECT roster.*
       ,need_c.writingneed
       ,need_c.scienceneed
       ,need_c.socialneed
+      ,homework.hw_need_c
+      ,homework.H_avg
 FROM roster
 LEFT OUTER JOIN att_status
   ON roster.student_number = att_status.student_number 
@@ -202,3 +223,5 @@ LEFT OUTER JOIN gr_wide
   ON roster.student_number = gr_wide.student_number
 LEFT OUTER JOIN need_c
   ON roster.student_number = need_c.student_number
+LEFT OUTER JOIN homework
+  ON roster.studentid = homework.studentid  

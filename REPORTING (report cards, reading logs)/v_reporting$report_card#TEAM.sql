@@ -327,7 +327,7 @@ SELECT roster.*
       ,promo.attendance_points 
       ,promo.y1_att_pts_pct
       
-/*
+--/*
 --MAP scores
 --MAP$wide_all
      
