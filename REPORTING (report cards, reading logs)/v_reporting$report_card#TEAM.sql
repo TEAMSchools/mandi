@@ -65,7 +65,7 @@ SELECT roster.*
       ,ROUND(gr_wide.rc1_t2,0) AS rc1_cur_term_pct
       --,ROUND(gr_wide.rc1_t3,0) AS rc1_cur_term_pct      
 
-      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      --/*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.rc1_t1_ltr AS rc1_t1_term_ltr      
       ,gr_wide.rc1_t2_ltr AS rc1_t2_term_ltr
       ,gr_wide.rc1_t3_ltr AS rc1_t3_term_ltr
@@ -91,7 +91,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC2_t2,0) AS RC2_cur_term_pct
       --,ROUND(gr_wide.RC2_t3,0) AS RC2_cur_term_pct      
       
-      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      --/*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC2_t1_ltr AS RC2_t1_term_ltr      
       ,gr_wide.RC2_t2_ltr AS RC2_t2_term_ltr
       ,gr_wide.RC2_t3_ltr AS RC2_t3_term_ltr
@@ -117,7 +117,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC3_t2,0) AS RC3_cur_term_pct
       --,ROUND(gr_wide.RC3_t3,0) AS RC3_cur_term_pct      
       
-      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      --/*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC3_t1_ltr AS RC3_t1_term_ltr      
       ,gr_wide.RC3_t2_ltr AS RC3_t2_term_ltr
       ,gr_wide.RC3_t3_ltr AS RC3_t3_term_ltr
@@ -143,7 +143,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC4_t2,0) AS RC4_cur_term_pct
       --,ROUND(gr_wide.RC4_t3,0) AS RC4_cur_term_pct
       
-      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      --/*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC4_t1_ltr AS RC4_t1_term_ltr      
       ,gr_wide.RC4_t2_ltr AS RC4_t2_term_ltr
       ,gr_wide.RC4_t3_ltr AS RC4_t3_term_ltr
@@ -169,7 +169,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC5_t2,0) AS RC5_cur_term_pct
       --,ROUND(gr_wide.RC5_t3,0) AS RC5_cur_term_pct
       
-      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      --/*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC5_t1_ltr AS RC5_t1_term_ltr      
       ,gr_wide.RC5_t2_ltr AS RC5_t2_term_ltr
       ,gr_wide.RC5_t3_ltr AS RC5_t3_term_ltr
@@ -195,7 +195,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC6_t2,0) AS RC6_cur_term_pct
       --,ROUND(gr_wide.RC6_t3,0) AS RC6_cur_term_pct
 
-      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      --/*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC6_t1_ltr AS RC6_t1_term_ltr      
       ,gr_wide.RC6_t2_ltr AS RC6_t2_term_ltr
       ,gr_wide.RC6_t3_ltr AS RC6_t3_term_ltr
@@ -221,7 +221,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC7_t2,0) AS RC7_cur_term_pct
       --,ROUND(gr_wide.RC7_t3,0) AS RC7_cur_term_pct
       
-      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      --/*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC7_t1_ltr AS RC7_t1_term_ltr      
       ,gr_wide.RC7_t2_ltr AS RC7_t2_term_ltr
       ,gr_wide.RC7_t3_ltr AS RC7_t3_term_ltr
@@ -247,7 +247,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC8_t2,0) AS RC8_cur_term_pct
       --,ROUND(gr_wide.RC8_t3,0) AS RC8_cur_term_pct
       
-      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      --/*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC8_t1_ltr AS RC8_t1_term_ltr      
       ,gr_wide.RC8_t2_ltr AS RC8_t2_term_ltr
       ,gr_wide.RC8_t3_ltr AS RC8_t3_term_ltr
