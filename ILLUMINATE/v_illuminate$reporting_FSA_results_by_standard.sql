@@ -106,6 +106,7 @@ FROM
        AND s.schoolid = assessments.schoolid
        AND assessments.academic_year = 2013
        AND assessments.scope = 'FSA'
+       AND assessments.performance_band_set_id != 3970
       LEFT OUTER JOIN fsa_rn
         ON assessments.schoolid = fsa_rn.schoolid
        AND assessments.grade_level = fsa_rn.grade_level
