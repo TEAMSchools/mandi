@@ -182,15 +182,14 @@ LEFT OUTER JOIN (
                           (PARTITION BY cc.studentid
                                ORDER BY cc.termid DESC) AS rn
                  FROM CC WITH (NOLOCK)   
-                 JOIN COURSES c
+                 JOIN COURSES c WITH(NOLOCK)
                    ON cc.COURSE_NUMBER = c.COURSE_NUMBER
                  JOIN TEACHERS t WITH (NOLOCK)
-                   ON cc.TEACHERID = t.ID
-                  AND t.TEACHERNUMBER NOT IN (815, 489)
+                   ON cc.TEACHERID = t.ID                  
                  WHERE cc.TERMID >= 2300
                    AND cc.SCHOOLID = 73253
                    AND cc.EXPRESSION IN ('5(A)','6(A)','7(A)','8(A)')
-                   AND cc.COURSE_NUMBER != 'STUDY25'
+                   AND cc.COURSE_NUMBER NOT IN ('STUDY25','STUDY15','STUDY35')
                 ) diff
   ON s.id = diff.studentid
  AND diff.rn = 1
