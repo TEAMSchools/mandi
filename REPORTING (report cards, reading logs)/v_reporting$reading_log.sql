@@ -66,9 +66,9 @@ SELECT roster.*
       ,enr.course_name + '|' + enr.section_number AS enr_hash
       ,gr.course_number
       ,gr.course_name
-      ,gr.T2 AS cur_term_rdg_gr
+      ,gr.T3 AS cur_term_rdg_gr
       ,gr.Y1 AS y1_rdg_gr
-      ,ele.grade_1 AS cur_term_rdg_hw_avg
+      ,ele.grade_3 AS cur_term_rdg_hw_avg
       ,ele.simple_avg AS y1_rdg_hw_avg
       ,CASE
         WHEN fp_base.letter_level IS NOT NULL THEN fp_base.letter_level
