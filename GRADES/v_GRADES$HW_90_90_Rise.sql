@@ -3,7 +3,8 @@ GO
 
 ALTER VIEW GRADES$HW_90_90#Rise AS
 WITH roster AS
-    (SELECT s.id AS studentid
+    (
+     SELECT s.id AS studentid
            ,s.lastfirst
            ,s.first_name + ' ' + s.last_name AS stu_name
            ,s.grade_level
@@ -28,7 +29,8 @@ SELECT sub.*
          WHEN yr_q >= 70 AND yr_h >= 70 THEN 'Middle'
        END AS yr_ninety_ninety_status
 FROM
-      (SELECT roster.studentid
+      (
+       SELECT roster.studentid
              ,roster.lastfirst
              ,roster.stu_name
              ,roster.grade_level
