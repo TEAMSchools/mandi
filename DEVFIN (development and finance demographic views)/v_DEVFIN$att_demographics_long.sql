@@ -1,24 +1,26 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW DEVFIN$att_demographics_long AS
+--ALTER VIEW DEVFIN$att_demographics_long AS
 
 WITH calendar AS(
   SELECT CONVERT(DATE,date) AS date
   FROM UTIL$reporting_days WITH(NOLOCK)
   WHERE date >= '2013-07-01' 
     AND date <= '2014-06-30'
-)
+ )
 
 ,roster AS(
-  SELECT DISTINCT         
-         co.schoolid
-        ,co.grade_level        
+  SELECT co.schoolid
+        ,co.grade_level
         ,co.studentid
         ,co.lastfirst
         ,s.lunchstatus
         ,CASE WHEN UPPER(cs.spedlep) LIKE '%SPEECH%' THEN 'SPEECH' ELSE cs.SPEDLEP END AS SPEDLEP
         ,s.ethnicity
+        ,co.entrydate
+        ,co.exitdate
+        ,co.rn
   FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
   LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
     ON co.studentid = s.id
@@ -27,7 +29,7 @@ WITH calendar AS(
   WHERE co.year = 2013
     AND co.schoolid != 999999
     AND co.grade_level != 99
-)
+ )
 
 ,attendance AS(
   SELECT mem.studentid
@@ -51,7 +53,8 @@ SELECT calendar.date
       ,roster.ethnicity
 FROM calendar
 JOIN roster
-  ON 1 = 1  
-JOIN attendance
+  ON calendar.date >= roster.ENTRYDATE
+ AND calendar.date <= roster.EXITDATE
+LEFT OUTER JOIN attendance
   ON calendar.date = attendance.date
  AND roster.studentid = attendance.studentid
