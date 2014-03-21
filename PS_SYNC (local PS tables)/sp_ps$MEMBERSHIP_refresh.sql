@@ -23,7 +23,7 @@ BEGIN
 		INTO [#PS$MEMBERSHIP|refresh]
   FROM OPENQUERY(PS_TEAM,'
      SELECT ctod.studentid
-           ,ctod.student_number
+           ,s.student_number
            ,ctod.schoolid
            ,ctod.calendardate
            ,ctod.fteid
@@ -34,13 +34,16 @@ BEGIN
            ,ctod.offtrack
            ,ctod.student_track
            ,ctod.potential_attendancevalue
-     FROM pssis_adaadm_daily_ctod ctod
+     FROM ps_adaadm_daily_ctod ctod
+     JOIN students s
+       ON ctod.studentid = s.id
      JOIN terms
        ON terms.firstday <= ctod.calendardate
       AND terms.lastday >= ctod.calendardate
-      AND terms.yearid = 23
+      AND terms.yearid >= 21
       AND terms.schoolid = ctod.schoolid
       AND terms.portion = 1     
+     WHERE ctod.calendardate <= SYSDATE
      ORDER BY ctod.studentid
              ,ctod.calendardate
   ');

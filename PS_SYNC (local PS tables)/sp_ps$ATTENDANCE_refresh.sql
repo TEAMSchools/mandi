@@ -22,16 +22,15 @@ BEGIN
   SELECT *
 		INTO [#PS$ATTENDANCE|refresh]
   FROM OPENQUERY(PS_TEAM,'
-         SELECT *
-         FROM PS_ATTENDANCE_DAILY
-         --this will pull all data for the current academic year, no need to update annually
-         --N.B. all data will be reset August 1st every year
-         WHERE att_date >= TO_DATE(CASE
-                                    WHEN TO_CHAR(SYSDATE,''MON'') IN (''JAN'',''FEB'',''MAR'',''APR'',''MAY'',''JUN'',''JUL'')
-                                    THEN TO_CHAR(TO_CHAR(SYSDATE,''YYYY'') - 3)
-                                    ELSE TO_CHAR(TO_CHAR(SYSDATE,''YYYY'') - 2)
-                                   END || ''-08-01'',''YYYY-MM-DD'')
-           AND att_date <= SYSDATE
+         SELECT att.*
+         FROM PS_ATTENDANCE_DAILY att
+         JOIN terms
+           ON terms.firstday <= att.att_date
+          AND terms.lastday >= att.att_date
+          AND terms.yearid >= 21
+          AND terms.schoolid = att.schoolid
+          AND terms.portion = 1     
+         WHERE att.att_date <= SYSDATE
          ORDER BY att_date
          ');
    
