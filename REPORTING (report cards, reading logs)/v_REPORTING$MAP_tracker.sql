@@ -43,6 +43,8 @@ SELECT
       ,map.rittoreadingscore AS lexile
       ,map.rittoreadingmin AS lexile_min
       ,map.rittoreadingmax AS lexile_max
+      ,(-2998 + (18 * goals.keep_up_rit)) AS keep_up_as_lexile
+      ,(-2998 + (18 * goals.rutgers_ready_rit)) AS rutgers_ready_as_lexile
 
      /*--subject goals--*/
       ,map.goal1adjective
