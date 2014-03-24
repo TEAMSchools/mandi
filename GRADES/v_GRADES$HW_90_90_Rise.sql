@@ -34,8 +34,9 @@ FROM
              ,roster.lastfirst
              ,roster.stu_name
              ,roster.grade_level
-             ,CAST(ROUND(AVG(q.grade_2), 0) AS FLOAT) AS cur_q
-             ,CAST(ROUND(AVG(h.grade_2), 0) AS FLOAT) AS cur_h
+             --TERM CHANGE TURNOVER FLAG
+             ,CAST(ROUND(AVG(q.grade_3), 0) AS FLOAT) AS cur_q
+             ,CAST(ROUND(AVG(h.grade_3), 0) AS FLOAT) AS cur_h
              ,CAST(ROUND(AVG(q.simple_avg), 0) AS FLOAT) AS yr_q
              ,CAST(ROUND(AVG(h.simple_avg), 0) AS FLOAT) AS yr_h
              ,COUNT(*) AS n
