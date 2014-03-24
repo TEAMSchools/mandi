@@ -8,8 +8,7 @@ Data management, warehousing, and reporting in SQL Server.
 
 ## Naming Conventions
 These are important.
-
-+ Always include the name of the 'product', and then a $. Otherwise things won't sort nicely and maintenance becomes a nighmare.  For example, if the view relates to MS grades, preface the name with `GRADES$`.
++ Always include the name of the 'product', and then a $. Otherwise things won't sort nicely and maintenance becomes a nightmare.  For example, if the view relates to MS grades, preface the name with `GRADES$`.
 
 + Generally speaking the 'product' name should match the subfolder that it lives in.
 
@@ -27,6 +26,10 @@ These are important.
 
 ## Naming your commits
 Jokes are fine but please be descriptive about what changed.
+
+## Best Practices
+
++ Use the flag /*--UPDATE FIELD FOR CURRENT TERM--*/ for code that requires regular turnover (hex, trimester, etc.) to allow for easy Find/Replace action
 
 ## Code Reviews
 tba.
