@@ -400,10 +400,10 @@ SELECT ROW_NUMBER() OVER(
       --MAP reading -- add a new block for each test year, delete oldest
         --13-14
       ,map_all.spr_2014_read_pctle
-      ,map_all.w_2013_read_pctle
+      ,map_all.w_2014_READ_pctle AS w_2013_read_pctle
       ,map_all.f_2013_read_pctle      
       ,map_all.spr_2014_read_rit
-      ,map_all.w_2013_read_rit                  
+      ,map_all.w_2014_READ_RIT AS w_2013_read_rit                  
       ,map_all.f_2013_read_rit                  
         --12-13
       ,map_all.spr_2013_read_pctle
@@ -424,10 +424,10 @@ SELECT ROW_NUMBER() OVER(
       --MAP math -- add a new block for each test year, delete oldest
         --13-14
       ,map_all.spr_2014_math_pctle
-      ,map_all.w_2013_math_pctle
+      ,map_all.w_2014_MATH_pctle AS w_2013_math_pctle
       ,map_all.f_2013_math_pctle      
       ,map_all.spr_2014_math_rit
-      ,map_all.w_2013_math_rit            
+      ,map_all.w_2014_MATH_RIT AS w_2013_math_rit
       ,map_all.f_2013_math_rit            
         --12-13
       ,map_all.spr_2013_math_pctle
@@ -448,10 +448,10 @@ SELECT ROW_NUMBER() OVER(
       --MAP langauge -- add a new block for each test year, delete oldest
         --13-14
       ,map_all.spr_2014_lang_pctle
-      ,map_all.w_2013_lang_pctle
+      ,map_all.w_2014_LANG_pctle AS w_2013_lang_pctle
       ,map_all.f_2013_lang_pctle
       ,map_all.spr_2014_lang_rit
-      ,map_all.w_2013_lang_rit
+      ,map_all.w_2014_lang_rit AS w_2013_lang_rit
       ,map_all.f_2013_lang_rit            
         --12-13
       ,map_all.spr_2013_lang_pctle
@@ -472,10 +472,10 @@ SELECT ROW_NUMBER() OVER(
       --MAP science gen -- add a new block for each test year, delete oldest
         --13-14
       ,map_all.spr_2014_gen_pctle
-      ,map_all.w_2013_gen_pctle
+      ,map_all.w_2014_GEN_pctle AS w_2013_gen_pctle
       ,map_all.f_2013_gen_pctle
       ,map_all.spr_2014_gen_rit
-      ,map_all.w_2013_gen_rit
+      ,map_all.w_2014_GEN_RIT AS w_2013_gen_rit
       ,map_all.f_2013_gen_rit            
         --12-13
       ,map_all.spr_2013_gen_pctle
@@ -652,11 +652,11 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.id = ar_curr.studentid 
- AND ar_curr.time_period_name = 'RT3'
+ AND ar_curr.time_period_name = 'RT5'
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
   ON roster.id = ar_curr2.studentid 
- AND ar_curr2.time_period_name = 'RT4'
+ AND ar_curr2.time_period_name = 'RT6'
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
 --MAP
