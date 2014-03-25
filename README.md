@@ -31,9 +31,7 @@ Jokes are fine but please be descriptive about what changed.
 
 + Use the flag `/*--UPDATE FIELD FOR CURRENT TERM--*/` for code that requires regular turnover (hex, trimester, etc.) to allow for easy Find/Replace action
 
-+ Avoid hard-coding __termid__ parameters.  Instead, use the scalar-valued function `dbo.fn_GlobalTermId()`
-
-+ When creating or adjusting a cached refresh, use the following code to quickly set up the table structure from your view:
++ When creating or adjusting a cached refresh, use the following code to quickly replicate the table structure from your view:
  
 		SELECT *
 		INTO [TABLE]
@@ -45,6 +43,8 @@ Jokes are fine but please be descriptive about what changed.
 		GRANT SELECT ON KIPP_NJ..[TABLE OR VIEW NAME] TO db_data_tool_reader
 
 + Avoid hard-coding dates.  If the date range is part of a regularly occuring reporting term, add an entry to the `REPORTING$dates` table.
+
++ Avoid hard-coding __termid__ parameters.  Instead, use the scalar-valued function `dbo.fn_GlobalTermId()`
 
 ## Code Reviews
 tba.
