@@ -35,12 +35,14 @@ Jokes are fine but please be descriptive about what changed.
 
 + When creating or adjusting a cached refresh, use the following code to quickly set up the table structure from your view:
  
-	SELECT *
-	INTO [TABLE]
-	FROM [VIEW]
-	WHERE 1 = 2
+		SELECT *
+		INTO [TABLE]
+		FROM [VIEW]
+		WHERE 1 = 2
 
-+ All users are granted `READ` permission through the `db_data_tool_reader` server role.  Any public-facing views __must__ be explicity given access through `GRANT SELECT ON KIPP_NJ..[TABLE OR VIEW NAME] TO db_data_tool_reader`
++ All users are granted `READ` permission through the `db_data_tool_reader` server role.  Any public-facing views __must__ be explicity given access through `GRANT SELECT`:
+ 
+		GRANT SELECT ON KIPP_NJ..[TABLE OR VIEW NAME] TO db_data_tool_reader
 
 + Avoid hard-coding dates.  If the date range is part of a regularly occuring reporting term, add an entry to the `REPORTING$dates` table.
 
