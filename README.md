@@ -29,11 +29,12 @@ Jokes are fine but please be descriptive about what changed.
 
 ## Best Practices
 
-+ Use the flag /\*--UPDATE FIELD FOR CURRENT TERM--\*/ for code that requires regular turnover (hex, trimester, etc.) to allow for easy Find/Replace action
++ Use the flag `/*--UPDATE FIELD FOR CURRENT TERM--*/` for code that requires regular turnover (hex, trimester, etc.) to allow for easy Find/Replace action
 
 + Avoid hard-coding __termid__ parameters.  Instead, use the scalar-valued function `dbo.fn_GlobalTermId()`
 
 + When creating or adjusting a cached refresh, use the following code to quickly set up the table structure from your view:
+ 
 	SELECT *
 	INTO [TABLE]
 	FROM [VIEW]
