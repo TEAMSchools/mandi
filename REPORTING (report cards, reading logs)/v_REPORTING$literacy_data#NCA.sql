@@ -25,7 +25,7 @@ WITH cur_term AS
       ON cohort.studentid = ar.studentid
      AND cohort.year = 2013
      AND cohort.rn = 1
-     AND ar.yearid = 2300
+     AND ar.yearid = dbo.fn_Global_Term_Id()
     JOIN KIPP_NJ..STUDENTS s
       ON cohort.studentid = s.id
      AND s.SCHOOLID = 73253
@@ -47,7 +47,7 @@ WITH cur_term AS
        FROM KIPP_NJ..CC
        JOIN KIPP_NJ..SECTIONS
          ON cc.sectionid = sections.id
-        AND cc.termid >= 2300
+        AND cc.termid >= dbo.fn_Global_Term_Id()
        JOIN KIPP_NJ..TEACHERS
          ON sections.teacher = teachers.id
        JOIN KIPP_NJ..COURSES

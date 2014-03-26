@@ -904,4 +904,4 @@ LEFT OUTER JOIN PS$comments#static comment_rc6 WITH (NOLOCK)
 
 LEFT OUTER JOIN RutgersReady..XC$activities_wide xc WITH(NOLOCK)
   ON roster.base_student_number = xc.student_number
- AND xc.yearid = 2300 /*--UPDATE FIELD FOR CURRENT TERM--*/
+ AND xc.yearid = dbo.fn_Global_Term_Id() /*--UPDATE FIELD FOR CURRENT TERM--*/

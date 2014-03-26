@@ -47,7 +47,7 @@ WITH roster AS
    FROM cc WITH(NOLOCK)
    JOIN sections WITH(NOLOCK)
      ON cc.sectionid = sections.id
-    AND cc.termid >= 2300
+    AND cc.termid >= dbo.fn_Global_Term_Id()
    JOIN courses WITH(NOLOCK)
      ON sections.course_number = courses.course_number
     AND courses.credittype LIKE 'ENG'
@@ -274,12 +274,12 @@ LEFT OUTER JOIN
 
 LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl_base WITH(NOLOCK)
   ON CAST(roster.studentid AS NVARCHAR) = rl_base.studentid
- AND rl_base.yearid = 2300
+ AND rl_base.yearid = dbo.fn_Global_Term_Id()
  AND rl_base.season = 'Fall'
 
 LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl_cur WITH(NOLOCK)
   ON CAST(roster.studentid AS NVARCHAR) = rl_cur.studentid
- AND rl_cur.yearid = 2300
+ AND rl_cur.yearid = dbo.fn_Global_Term_Id()
  AND rl_cur.season = 'Winter'
 
 --AR

@@ -83,7 +83,7 @@ FROM
                                     AND courses.credittype != 'WLANG'                                  
                                  /*--update for each school an term--*/
                                    WHERE cc.schoolid IN (133570965, 73252)
-                                     AND cc.termid >= 2300
+                                     AND cc.termid >= dbo.fn_Global_Term_Id()
                                   ) enrollments
                     ON s.id = enrollments.studentid
                    AND CASE

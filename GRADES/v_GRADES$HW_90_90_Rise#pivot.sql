@@ -26,7 +26,7 @@ FROM
        JOIN KIPP_NJ..CC
          ON s.id = cc.STUDENTID
         AND cc.course_number = 'HR'
-        AND cc.termid >= 2300
+        AND cc.termid >= dbo.fn_Global_Term_Id()
         AND cc.dateenrolled <= CAST(GETDATE() AS date)
         AND cc.dateleft >= CAST(GETDATE() AS date)
        JOIN KIPP_NJ..SECTIONS sect
@@ -60,7 +60,7 @@ FROM
        JOIN KIPP_NJ..CC
          ON s.id = cc.STUDENTID
         AND cc.course_number = 'HR'
-        AND cc.termid >= 2300
+        AND cc.termid >= dbo.fn_Global_Term_Id()
         AND cc.dateenrolled <= CAST(GETDATE() AS date)
         AND cc.dateleft >= CAST(GETDATE() AS date)
        JOIN KIPP_NJ..SECTIONS sect

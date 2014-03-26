@@ -13,11 +13,13 @@ WITH calendar AS(
 ,roster AS(
   SELECT co.schoolid
         ,co.grade_level
+        ,co.cohort
         ,co.studentid
         ,co.lastfirst
         ,CASE WHEN co.HIGHEST_ACHIEVED = co.GRADE_LEVEL THEN s.lunchstatus ELSE lunch.lunch_status END AS lunchstatus
         ,CASE WHEN UPPER(cs.spedlep) LIKE '%SPEECH%' THEN 'SPEECH' ELSE cs.SPEDLEP END AS SPEDLEP
         ,s.ethnicity
+        ,s.gender
         ,co.year
         ,co.entrydate
         ,co.exitdate
@@ -48,6 +50,7 @@ SELECT calendar.date
       ,roster.YEAR AS academic_year
       ,roster.SCHOOLID
       ,roster.GRADE_LEVEL
+      ,roster.COHORT
       ,roster.STUDENTID
       ,roster.LASTFIRST
       ,roster.ENTRYDATE
@@ -57,6 +60,7 @@ SELECT calendar.date
       ,roster.SPEDLEP
       ,roster.lunchstatus
       ,roster.ethnicity
+      ,roster.gender
 FROM calendar
 JOIN roster
   ON calendar.date >= roster.ENTRYDATE

@@ -186,7 +186,7 @@ LEFT OUTER JOIN (
                    ON cc.COURSE_NUMBER = c.COURSE_NUMBER
                  JOIN TEACHERS t WITH (NOLOCK)
                    ON cc.TEACHERID = t.ID                  
-                 WHERE cc.TERMID >= 2300
+                 WHERE cc.TERMID >= dbo.fn_Global_Term_Id()
                    AND cc.SCHOOLID = 73253
                    AND cc.EXPRESSION IN ('5(A)','6(A)','7(A)','8(A)')
                    AND cc.COURSE_NUMBER NOT IN ('STUDY25','STUDY15','STUDY35')

@@ -5,7 +5,8 @@ GO
 
 ALTER VIEW REPORTING$progress_detail#NCA AS
 WITH roster AS
-     (SELECT s.id AS JOINID
+     (
+      SELECT s.id AS JOINID
             ,s.student_number AS ID
             ,s.lastfirst AS NAME
             ,c.grade_level AS GR
@@ -21,6 +22,40 @@ WITH roster AS
         AND c.rn = 1        
         AND c.schoolid = 73253
      )
+
+,entry_grade AS (
+  SELECT STUDENTID
+        ,LASTFIRST
+        ,GRADE_LEVEL      
+  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+  WHERE YEAR_IN_NETWORK = 1
+    AND RN = 1
+ )
+
+,prev_school AS (
+  SELECT STUDENTID
+        ,LASTFIRST
+        ,MAX(grade_level) AS grade_level
+        ,CASE 
+          WHEN SCHOOLID IS NULL THEN 'New to TEAM Schools'
+          WHEN SCHOOLID = 73252 THEN 'Rise'
+          WHEN SCHOOLID = 133570965 THEN 'TEAM Academy'
+         END AS prev_school
+  FROM
+  (
+   SELECT s.ID AS studentid
+         ,s.LASTFIRST
+         ,co.GRADE_LEVEL
+         ,co.SCHOOLID
+   FROM STUDENTS s WITH(NOLOCK)
+   LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+     ON s.ID = co.STUDENTID
+    AND co.SCHOOLID != 73253
+   WHERE s.SCHOOLID = 73253
+     AND s.ENROLL_STATUS = 0
+  ) sub
+  GROUP BY STUDENTID, LASTFIRST, SCHOOLID
+ )  
 
 SELECT roster.ID
       ,roster.NAME
@@ -153,6 +188,8 @@ SELECT roster.ID
         WHEN ele_a.simple_avg >= 55 AND ele_a.simple_avg < 60 THEN 'Fair (55-59)'
         WHEN ele_a.simple_avg < 55 THEN 'Fail (< 55)'
        END AS ay_label
+      ,prev_school.prev_school
+      ,entry_grade.GRADE_LEVEL AS entry_grade
 FROM roster WITH (NOLOCK)
 LEFT OUTER JOIN GRADES$DETAIL#NCA gr WITH (NOLOCK)
   ON roster.joinid = gr.studentid
@@ -183,3 +220,7 @@ LEFT OUTER JOIN GRADES$elements ele_p WITH (NOLOCK)
  AND ele_p.pgf_type = 'P'
 LEFT OUTER JOIN GPA$detail#NCA gpa WITH (NOLOCK)
   ON roster.joinid = gpa.studentid
+LEFT OUTER JOIN prev_school
+  ON roster.JOINID = prev_school.studentid
+LEFT OUTER JOIN entry_grade
+  ON roster.JOINID = entry_grade.STUDENTID  

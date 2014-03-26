@@ -55,7 +55,7 @@ FROM
              FROM scaffold
              JOIN KIPP_NJ..AR$progress_to_goals_long#static prog
                ON scaffold.studentid = prog.studentid
-              AND prog.yearid = 2300
+              AND prog.yearid = dbo.fn_Global_Term_Id()
               AND prog.time_hierarchy = 1
              ORDER BY scaffold.school DESC
                      ,scaffold.grade_level

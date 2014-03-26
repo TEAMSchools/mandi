@@ -195,7 +195,7 @@ FROM
 	               (SELECT cc.studentid
 			                    ,cc.course_number
 	                FROM KIPP_NJ..CC
-	                WHERE cc.termid >= 2300
+	                WHERE cc.termid >= dbo.fn_Global_Term_Id()
 	                  AND cc.dateenrolled < GETDATE()
 	                  AND cc.dateleft > GETDATE()
 	                  AND cc.COURSE_NUMBER = 'HR'
@@ -243,7 +243,7 @@ FROM
                        ON s.id = cc.studentid
                       --exclude dropped classes
                       AND cc.sectionid > 0
-                      AND cc.termid >= 2300
+                      AND cc.termid >= dbo.fn_Global_Term_Id()
                       --has already started
                       AND DATEDIFF(day, cc.dateenrolled, CURRENT_TIMESTAMP) >= 0
                       --isn't in future
