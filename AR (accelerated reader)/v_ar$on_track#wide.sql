@@ -60,7 +60,7 @@ WITH cur_term AS
        FROM KIPP_NJ..CC
        JOIN KIPP_NJ..SECTIONS
          ON cc.sectionid = sections.id
-        AND cc.termid >= 2300
+        AND cc.termid >= dbo.fn_Global_Term_Id()
        JOIN KIPP_NJ..TEACHERS
          ON sections.teacher = teachers.id
        JOIN KIPP_NJ..COURSES

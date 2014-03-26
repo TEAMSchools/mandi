@@ -35,7 +35,7 @@ WITH reporting_weeks AS
      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
        ON goals.student_number = CAST(s.STUDENT_NUMBER AS VARCHAR)
       AND s.enroll_status = 0
-     WHERE goals.yearid = 2300
+     WHERE goals.yearid = dbo.fn_Global_Term_Id()
     )
 
    ,ar_activity AS

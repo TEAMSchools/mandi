@@ -139,7 +139,7 @@ LEFT OUTER JOIN (
                                           ,DATEDIFF(day, ar.time_period_start, ar.time_period_end) AS num_days
                                     FROM KIPP_NJ..AR$goals ar WITH (NOLOCK)
                                     WHERE time_period_hierarchy = 2
-                                      AND yearid = 2300
+                                      AND yearid = dbo.fn_Global_Term_Id()
                                       AND student_number IS NOT NULL
                                     ) sub
                              GROUP BY sub.student_number

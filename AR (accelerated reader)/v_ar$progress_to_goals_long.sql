@@ -102,7 +102,7 @@ WITH long_goals AS
       AND cohort.rn = 1
 
       --TESTING
-      --AND goals.yearid = 2300
+      --AND goals.yearid = dbo.fn_Global_Term_Id()
       --AND goals.time_period_name = 'Hexameter 2'
     )
      ,last_book AS
