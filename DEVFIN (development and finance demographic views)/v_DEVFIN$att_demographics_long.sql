@@ -23,6 +23,7 @@ WITH calendar AS(
         ,co.year
         ,co.entrydate
         ,co.exitdate
+        ,s.ENROLL_STATUS
         ,co.rn
   FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
   LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
@@ -55,6 +56,7 @@ SELECT calendar.date
       ,roster.LASTFIRST
       ,roster.ENTRYDATE
       ,roster.EXITDATE
+      ,roster.ENROLL_STATUS
       ,attendance.membershipvalue
       ,attendance.attendancevalue      
       ,roster.SPEDLEP
