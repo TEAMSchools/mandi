@@ -53,7 +53,7 @@ SELECT calendar.date
       ,roster.GRADE_LEVEL
       ,roster.COHORT
       ,roster.STUDENTID
-      ,roster.LASTFIRST
+      --,roster.LASTFIRST
       ,roster.ENTRYDATE
       ,roster.EXITDATE
       ,roster.ENROLL_STATUS
