@@ -44,7 +44,9 @@ Jokes are fine but please be descriptive about what changed.
 
 + Avoid hard-coding dates.  If the date range is part of a regularly occuring reporting term, add an entry to the `REPORTING$dates` table.
 
-+ Avoid hard-coding __termid__ parameters.  Instead, use the scalar-valued function `dbo.fn_GlobalTermId()`
++ Avoid hard-coding __termid__ parameters.  Instead, use the scalar-valued function `dbo.fn_Global_Term_Id()`
+
++ Avoid hard-coding __academic year__ parameters.  Instead, use the scalar-valued function `dbo.fn_Global_Academic_Year()`
 
 ## Code Reviews
 tba.
