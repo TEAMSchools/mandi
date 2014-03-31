@@ -131,8 +131,10 @@ WITH roster AS (
              ,credittype + 'need' AS credittype
              ,CASE
                WHEN schoolid = 73252 AND ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) < 65 THEN 65
+               WHEN schoolid = 73252 AND ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) > 100 THEN 100
                WHEN schoolid = 73252 AND ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) >= 65 THEN ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1)
                WHEN schoolid = 133570965 AND ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1) < 70 THEN 70
+               WHEN schoolid = 133570965 AND ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1) > 100 THEN 100
                WHEN schoolid = 133570965 AND ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1) >= 70 THEN ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1)
                ELSE NULL
               END AS need_c
@@ -147,11 +149,10 @@ WITH roster AS (
                     WHEN credittype = 'soc' THEN 'social'
                     WHEN credittype = 'math' THEN 'math'
                    END AS credittype
-                  ,CASE WHEN T1 is NULL THEN 0 ELSE 1 END 
-                    + CASE WHEN T2 is NULL THEN 0 ELSE 1 END 
-                    + CASE WHEN T3 is NULL THEN 0 ELSE 1 END
+                  ,CASE WHEN T1 is NULL THEN 0 ELSE 1 END
+                    + CASE WHEN T2 is NULL THEN 0 ELSE 1 END
                     AS used_year
-                  ,Y1 AS in_the_books
+                  ,ROUND((T1 + T2) / 2,0) AS in_the_books
             FROM grades$detail#ms WITH(NOLOCK)
             WHERE credittype in ('math','eng','sci','soc','rhet')
            ) sub
