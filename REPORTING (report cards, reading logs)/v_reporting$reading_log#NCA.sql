@@ -81,6 +81,23 @@ SELECT s.LASTFIRST
       ,ar_q3.rank_points_overall_in_school AS AR_schoolrank_Q3
       ,ar_q4.rank_points_overall_in_school AS AR_schoolrank_Q4
       ,ar_yr.rank_points_overall_in_school AS AR_schoolrank_Yr
+      ,CASE
+        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN NULL
+        WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN ROUND(((ar_q3.points / ar_q3.points_goal) * 100),0)        
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 25 THEN 100
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 20 AND ar_q3.points < 25 THEN 90
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 15 AND ar_q3.points < 20 THEN 80
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 10 AND ar_q3.points < 15 THEN 70
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points > 0 AND ar_q3.points < 10 THEN 60
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points = 0 THEN 0
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 30 THEN 100
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 25 AND ar_q3.points < 30 THEN 90
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 20 AND ar_q3.points < 25 THEN 80
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 15 AND ar_q3.points < 20 THEN 70
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 10 AND ar_q3.points < 15 THEN 60
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points > 0 AND ar_q3.points < 10 THEN 50
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points = 0 THEN 0        
+       END AS ar_grade
 FROM STUDENTS s WITH (NOLOCK)
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
   ON s.ID = cs.STUDENTID
@@ -134,6 +151,7 @@ LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_spring WITH (NOLOCK)
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID
                        ,c.COURSE_NAME
+                       ,c.COURSE_NUMBER
                        ,cc.SECTION_NUMBER
                        ,t.LASTFIRST
                        ,ROW_NUMBER() OVER
@@ -153,6 +171,7 @@ LEFT OUTER JOIN (
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID
                        ,c.COURSE_NAME
+                       ,c.COURSE_NUMBER
                        ,cc.SECTION_NUMBER                       
                        ,t.LASTFIRST
                        ,ROW_NUMBER() OVER
@@ -173,7 +192,7 @@ LEFT OUTER JOIN (
                  SELECT cc.STUDENTID     
                        ,cc.TERMID                         
                        ,cc.COURSE_NUMBER
-                       ,c.COURSE_NAME
+                       ,c.COURSE_NAME                       
                        ,cc.SECTION_NUMBER
                        ,t.TEACHERNUMBER
                        ,t.LASTFIRST
