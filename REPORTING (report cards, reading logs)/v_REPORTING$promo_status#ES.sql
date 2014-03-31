@@ -26,7 +26,7 @@ WITH scaffold AS
       AND rd.dw_numeric != 1
       AND rd.date <= CAST(GETDATE() AS date)
      WHERE c.schoolid IN (73254, 73255, 73256)
-       AND c.year = 2013
+       AND c.year = dbo.fn_Global_Academic_Year()
        AND c.rn = 1
        --testing
        --AND c.studentid = 2859
@@ -100,7 +100,7 @@ WITH scaffold AS
             AND step.status = 'Achieved'
             AND step.test_date >= '08/01/2013'
             AND CAST(step.test_date AS date) <= CAST(rd.date AS date) 
-           WHERE c.year = 2013
+           WHERE c.year = dbo.fn_Global_Academic_Year()
              AND c.rn = 1
              AND c.schoolid IN (73254, 73255, 73256)
              --AND c.studentid = 2859
@@ -126,7 +126,7 @@ WITH scaffold AS
              ON rd.date >= c.entrydate
             AND rd.date <= c.exitdate
             AND rd.date <= CAST(GETDATE() AS date)
-            AND c.year = 2013
+            AND c.year = dbo.fn_Global_Academic_Year()
             AND c.rn = 1
             --testing
             --AND c.studentid = 2859

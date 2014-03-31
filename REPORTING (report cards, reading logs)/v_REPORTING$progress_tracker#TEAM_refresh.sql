@@ -652,28 +652,28 @@ LEFT OUTER JOIN REPORTING$promo_status#TEAM promo WITH (NOLOCK)
   --F&P
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
   ON roster.student_number = fp_base.STUDENT_NUMBER
- AND fp_base.year = 2013
+ AND fp_base.year = dbo.fn_Global_Academic_Year()
  AND fp_base.achv_base = 1
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_prebase WITH (NOLOCK)
   ON roster.student_number = fp_prebase.STUDENT_NUMBER
- AND fp_prebase.year = 2012
+ AND fp_prebase.year = (dbo.fn_Global_Academic_Year() - 1)
  AND fp_prebase.time_per_name = 'T1'
  AND fp_prebase.achv_curr = 1
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
   ON roster.student_number = fp_curr.STUDENT_NUMBER
- --AND fp_curr.year = 2013
+ --AND fp_curr.year = dbo.fn_Global_Academic_Year()
  AND fp_curr.achv_curr_all = 1
   --LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.student_number = lex_base.StudentID
  AND lex_base.MeasurementScale = 'Reading'
  AND lex_base.rn_base = 1
- AND lex_base.map_year_academic = 2013
+ AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
   ON roster.student_number = lex_curr.StudentID
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
- AND lex_curr.map_year_academic = 2013
+ AND lex_curr.map_year_academic = dbo.fn_Global_Academic_Year()
   
 --ED TECH
   --ACCELERATED READER

@@ -20,7 +20,7 @@ WITH roster AS
     --AND c.grade_level = 5
     --AND c.schoolid = 133570965
     --AND s.student_number = 12135
-   WHERE year = 2013
+   WHERE year = dbo.fn_Global_Academic_Year()
      AND rn = 1
      AND c.schoolid != 999999
      AND c.schoolid IN (73252, 133570965)
@@ -59,7 +59,7 @@ WITH roster AS
    (SELECT *
     FROM KIPP_NJ..MAP$rutgers_ready_student_goals g
     WHERE g.measurementscale = 'Reading'
-      AND g.year = 2013
+      AND g.year = dbo.fn_Global_Academic_Year()
    )
     
 SELECT roster.*
@@ -221,31 +221,31 @@ LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_cur WITH(NOLOCK)
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH(NOLOCK)
   ON roster.STUDENTID = fp_base.studentid
  AND fp_base.achv_base = 1
- AND fp_base.year = 2013
+ AND fp_base.year = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_dna_base WITH(NOLOCK)
   ON roster.STUDENTID = fp_dna_base.studentid
  AND fp_dna_base.dna_base = 1
- AND fp_dna_base.year = 2013
+ AND fp_dna_base.year = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_dna_curr WITH(NOLOCK)
   ON roster.STUDENTID = fp_dna_curr.studentid
  AND fp_dna_curr.dna_curr = 1
- AND fp_dna_curr.year = 2013
+ AND fp_dna_curr.year = dbo.fn_Global_Academic_Year()
 
 --RIT, NWEA LEXILE
 LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_fall WITH(NOLOCK)
   ON roster.studentid = map_fall.ps_studentid
  AND map_fall.measurementscale = 'Reading'
- AND map_fall.map_year_academic = 2013
+ AND map_fall.map_year_academic = dbo.fn_Global_Academic_Year()
  AND map_fall.TermName = 'Fall 2013-2014'
 LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_winter WITH(NOLOCK)
   ON roster.studentid = map_winter.ps_studentid
  AND map_winter.measurementscale = 'Reading'
- AND map_winter.map_year_academic = 2013
+ AND map_winter.map_year_academic = dbo.fn_Global_Academic_Year()
  AND map_winter.TermName = 'Winter 2013-2014'
 LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_spr WITH(NOLOCK)
   ON roster.studentid = map_spr.ps_studentid
  AND map_spr.measurementscale = 'Reading'
- AND map_spr.map_year_academic = 2012
+ AND map_spr.map_year_academic = (dbo.fn_Global_Academic_Year() - 1)
  AND map_spr.TermName = 'Spring 2012-2013'
 
 --CURRENT NWEA RIT
@@ -266,7 +266,7 @@ LEFT OUTER JOIN
                           ORDER BY map.teststartdate DESC) AS rn_desc
              FROM KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
              WHERE MeasurementScale = 'Reading'
-               AND map_year_academic = 2013
+               AND map_year_academic = dbo.fn_Global_Academic_Year()
            ) sub_1
      WHERE rn_desc = 1
      ) cur_rit

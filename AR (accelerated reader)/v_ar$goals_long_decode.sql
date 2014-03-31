@@ -45,7 +45,7 @@ FROM
        --AND s.STUDENT_NUMBER = 12726
        AND cohort.schoolid != 999999
 
-      AND cohort.year = 2013
+      AND cohort.year = dbo.fn_Global_Academic_Year()
       --AND cohort.GRADE_LEVEL = 8
       --AND cohort.SCHOOLID = 73252
 

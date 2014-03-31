@@ -117,4 +117,4 @@ LEFT OUTER JOIN (
                 ) eng1
   ON s.ID = eng1.STUDENTID
  AND eng1.rn = 1
-WHERE base.year = 2013  
+WHERE base.year = dbo.fn_Global_Academic_Year()  

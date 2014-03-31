@@ -21,7 +21,7 @@ WITH scaffold AS
       AND s.enroll_status = 0
       --TESTING
      WHERE c.schoolid IN (73252, 133570965, 73253)
-       AND c.year = 2013
+       AND c.year = dbo.fn_Global_Academic_Year()
        AND c.rn = 1
     )
 
