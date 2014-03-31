@@ -212,7 +212,7 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$elements ele WITH(NOLOCK)
   ON roster.studentid = ele.studentid
  AND gr.course_number = ele.course_number
  AND ele.pgf_type = 'H'
- AND ele.yearid = 23
+ AND ele.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
 
 --F&P
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_cur WITH(NOLOCK)

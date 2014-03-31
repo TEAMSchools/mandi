@@ -71,7 +71,7 @@ WITH scaffold AS
           ,rd.end_date
           ,rd.time_per_name
     FROM KIPP_NJ..REPORTING$dates rd WITH(NOLOCK)
-    WHERE rd.yearid = 23
+    WHERE rd.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
       AND rd.identifier = 'RT'
       AND rd.time_hierarchy = 2
    )
@@ -150,7 +150,7 @@ WITH scaffold AS
                        ,rd.end_date
                        ,rd.time_per_name
                  FROM KIPP_NJ..REPORTING$dates rd WITH(NOLOCK)
-                 WHERE rd.yearid = 23
+                 WHERE rd.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
                    AND rd.identifier = 'RT'
                    AND rd.time_hierarchy = 2
                 ) rt

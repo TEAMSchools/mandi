@@ -44,13 +44,13 @@ FROM
        JOIN KIPP_NJ..GRADES$elements q
          ON roster.studentid = q.studentid
         AND roster.course_number = q.course_number
-        AND q.yearid = 23
+        AND q.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
         AND q.pgf_type = 'Q'
 
        JOIN KIPP_NJ..GRADES$elements h
          ON roster.studentid = h.studentid
         AND roster.course_number = h.course_number
-        AND h.yearid = 23
+        AND h.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
         AND h.pgf_type = 'H'
 
        GROUP BY roster.studentid

@@ -658,31 +658,31 @@ FROM
      LEFT OUTER JOIN GRADES$elements ele_a WITH (NOLOCK)
        ON roster.studentid = ele_a.studentid
       AND ele_a.schoolid = 73253
-      AND ele_a.yearid = 23
+      AND ele_a.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
       AND ele_a.course_number = 'all_courses'
       AND ele_a.pgf_type = 'A'
      LEFT OUTER JOIN GRADES$elements ele_c WITH (NOLOCK)
        ON roster.studentid = ele_c.studentid
       AND ele_c.schoolid = 73253
-      AND ele_c.yearid = 23
+      AND ele_c.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
       AND ele_c.course_number = 'all_courses'
       AND ele_c.pgf_type = 'C'
      LEFT OUTER JOIN GRADES$elements ele_e WITH (NOLOCK)
        ON roster.studentid = ele_e.studentid
       AND ele_e.schoolid = 73253
-      AND ele_e.yearid = 23
+      AND ele_e.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
       AND ele_e.course_number = 'all_courses'
       AND ele_e.pgf_type = 'E'
      LEFT OUTER JOIN GRADES$elements ele_h WITH (NOLOCK)
        ON roster.studentid = ele_h.studentid
       AND ele_h.schoolid = 73253
-      AND ele_h.yearid = 23
+      AND ele_h.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
       AND ele_h.course_number = 'all_courses'
       AND ele_h.pgf_type = 'H'
      LEFT OUTER JOIN GRADES$elements ele_p WITH (NOLOCK)
        ON roster.studentid = ele_p.studentid
       AND ele_p.schoolid = 73253
-      AND ele_p.yearid = 23
+      AND ele_p.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
       AND ele_p.course_number = 'all_courses'
       AND ele_p.pgf_type = 'P'
        
