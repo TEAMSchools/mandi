@@ -275,12 +275,12 @@ LEFT OUTER JOIN (
 LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
   ON s.id = lex_cur.ps_studentid
  AND lex_cur.measurementscale  = 'Reading'
- AND lex_cur.map_year_academic = 2013 --update yearly
+ AND lex_cur.map_year_academic = dbo.fn_Global_Academic_Year()
  AND lex_cur.rn_curr = 1
 LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON s.id = lex_base.ps_studentid
  AND lex_base.measurementscale  = 'Reading'
- AND lex_base.map_year_academic = 2013 --update yearly
+ AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
  AND lex_base.rn_base = 1
 
 /*

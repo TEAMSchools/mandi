@@ -33,7 +33,7 @@ WITH roster AS
        AND s.enroll_status = 0
       LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
         ON cs.studentid = s.id
-      WHERE year = 2013
+      WHERE year = dbo.fn_Global_Academic_Year()
         AND c.rn = 1        
         AND c.schoolid = 73253
      )
@@ -706,17 +706,17 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_read_cur WITH (NOLOCK)
        ON roster.studentid = map_read_cur.ps_studentid
       AND map_read_cur.measurementscale  = 'Reading'
-      AND map_read_cur.map_year_academic = 2013 --update yearly
+      AND map_read_cur.map_year_academic = dbo.fn_Global_Academic_Year()
       AND map_read_cur.rn_curr = 1
      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_math_cur WITH (NOLOCK)
        ON roster.studentid = map_math_cur.ps_studentid
       AND map_math_cur.measurementscale = 'Mathematics'
-      AND map_math_cur.map_year_academic = 2013 --update yearly
+      AND map_math_cur.map_year_academic = dbo.fn_Global_Academic_Year()
       AND map_math_cur.rn_curr = 1
      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_sci_cur WITH (NOLOCK)
        ON roster.studentid = map_sci_cur.ps_studentid
       AND map_sci_cur.measurementscale = 'Science - General Science'
-      AND map_sci_cur.map_year_academic = 2013 --update yearly
+      AND map_sci_cur.map_year_academic = dbo.fn_Global_Academic_Year()
       AND map_sci_cur.rn_curr = 1
 
      --MERITS & DEMERITS

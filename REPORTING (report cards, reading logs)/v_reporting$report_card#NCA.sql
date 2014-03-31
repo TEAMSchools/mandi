@@ -18,7 +18,7 @@ WITH roster AS
        --AND s.ID = 639
        --AND s.ID IN (3551,3358)
        --AND s.ID BETWEEN 3000 AND 4000
-      WHERE year = 2013
+      WHERE year = dbo.fn_Global_Academic_Year()
         AND c.rn = 1
         AND c.schoolid = 73253
      )
@@ -697,12 +697,12 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.base_student_number = lex_base.StudentID
  AND lex_base.MeasurementScale = 'Reading'
  AND lex_base.rn_base = 1
- AND lex_base.map_year_academic = 2013
+ AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
   ON roster.base_student_number = lex_curr.StudentID
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
- AND lex_curr.map_year_academic = 2013
+ AND lex_curr.map_year_academic = dbo.fn_Global_Academic_Year()
 
 --/* 
 --GRADEBOOK COMMMENTS -- upadate FIELD and PARAMETER for current term

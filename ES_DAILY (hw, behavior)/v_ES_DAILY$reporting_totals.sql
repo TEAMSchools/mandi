@@ -12,7 +12,7 @@ WITH roster AS
       JOIN KIPP_NJ..STUDENTS s
         ON c.studentid = s.id
        AND s.enroll_status = 0       
-      WHERE c.year = 2013
+      WHERE c.year = dbo.fn_Global_Academic_Year()
         AND c.rn = 1        
         AND c.schoolid IN (73254,73255,73256)
      )

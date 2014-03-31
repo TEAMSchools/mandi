@@ -89,7 +89,7 @@ FROM
        AND results.standard_id = assessments.standard_id
        AND s.grade_level = assessments.grade_level
        AND s.schoolid = assessments.schoolid
-       AND assessments.academic_year = 2013
+       AND assessments.academic_year = dbo.fn_Global_Academic_Year()
       LEFT OUTER JOIN fsa_rn
         ON assessments.schoolid = fsa_rn.schoolid
        AND assessments.grade_level = fsa_rn.grade_level

@@ -18,7 +18,7 @@ WITH roster AS
        AND s.enroll_status = 0
       LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
         ON cs.studentid = s.id
-      WHERE year = 2013
+      WHERE year = dbo.fn_Global_Academic_Year()
         AND c.rn = 1        
         AND c.schoolid = 73253
      )

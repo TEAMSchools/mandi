@@ -81,7 +81,7 @@ FROM
        AND results.standard_id = assessments.standard_id
        AND s.grade_level = assessments.grade_level
        AND s.schoolid = assessments.schoolid
-       AND assessments.academic_year = 2013
+       AND assessments.academic_year = dbo.fn_Global_Academic_Year()
        AND assessments.scope = 'Intervention'
       WHERE s.enroll_status = 0
         AND s.schoolid IN (73254,73255,73256)        

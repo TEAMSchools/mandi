@@ -18,7 +18,7 @@ WITH roster AS
       AND s.enroll_status = 0
      JOIN KIPP_NJ..SCHOOLS sch
        ON c.schoolid = sch.school_number
-     WHERE c.year = 2013
+     WHERE c.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
        AND c.rn = 1
      )
 

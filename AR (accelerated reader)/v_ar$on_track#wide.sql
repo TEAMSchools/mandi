@@ -36,7 +36,7 @@ WITH cur_term AS
     FROM KIPP_NJ..AR$time_series_dense#static dense
     JOIN KIPP_NJ..COHORT$comprehensive_long#static cohort
       ON dense.studentid = cohort.studentid
-     AND cohort.year = 2013
+     AND cohort.year = dbo.fn_Global_Academic_Year()
      AND cohort.rn = 1
     JOIN KIPP_NJ..STUDENTS s
       ON dense.studentid = s.id

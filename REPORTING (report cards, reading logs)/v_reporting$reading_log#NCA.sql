@@ -124,28 +124,28 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q4 WITH (NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
   ON s.id = lex_cur.ps_studentid
  AND lex_cur.measurementscale  = 'Reading'
- AND lex_cur.map_year_academic = 2013 --update yearly
+ AND lex_cur.map_year_academic = dbo.fn_Global_Academic_Year()
  AND lex_cur.rn_curr = 1
 LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
   ON s.ID = rr.studentid
  AND s.schoolid = rr.schoolid 
  AND rr.measurementscale = 'Reading'
- AND rr.year = 2013
+ AND rr.year = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
   ON s.ID = base.studentid
  AND s.schoolid = base.schoolid 
  AND base.measurementscale = 'Reading'
- AND base.year = 2013
+ AND base.year = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_winter WITH (NOLOCK)
   ON s.id = lex_winter.ps_studentid
  AND lex_winter.measurementscale  = 'Reading'
- AND lex_winter.map_year_academic = 2013 --update yearly
+ AND lex_winter.map_year_academic = dbo.fn_Global_Academic_Year()
  AND lex_winter.fallwinterspring = 'Winter'
  AND lex_winter.rn = 1
 LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_spring WITH (NOLOCK)
   ON s.id = lex_spring.ps_studentid
  AND lex_spring.measurementscale  = 'Reading'
- AND lex_spring.map_year_academic = 2013 --update yearly
+ AND lex_spring.map_year_academic = dbo.fn_Global_Academic_Year()
  AND lex_spring.fallwinterspring = 'Spring'
  AND lex_spring.rn = 1
 LEFT OUTER JOIN (

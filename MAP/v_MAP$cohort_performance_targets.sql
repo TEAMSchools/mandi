@@ -46,7 +46,7 @@ WITH zscore AS
         ON c.schoolid = sch.school_number
       JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH (NOLOCK)
         ON c.studentid = cust.studentid
-      WHERE c.year = 2013
+      WHERE c.year = dbo.fn_Global_Academic_Year()
         AND c.rn = 1
         AND c.schoolid != 999999
         --testing
@@ -63,7 +63,7 @@ WITH zscore AS
                WHEN map.measurementscale = 'Science - General Science' THEN 'SCI'
             END AS join_credittype
      FROM KIPP_NJ..MAP$baseline_composite#static map WITH (NOLOCK)
-     WHERE map.year = 2013)
+     WHERE map.year = dbo.fn_Global_Academic_Year())
 
     --SWITCH THIS AS THE YEAR PROGRESSES eg winter, spring
     ,map_endpoint AS
@@ -72,7 +72,7 @@ WITH zscore AS
      FROM KIPP_NJ..MAP$comprehensive#identifiers map_end WITH (NOLOCK)
      JOIN KIPP_NJ..SCHOOLS sch WITH (NOLOCK)
        ON map_end.schoolid = sch.school_number
-     WHERE map_end.map_year_academic = 2013
+     WHERE map_end.map_year_academic = dbo.fn_Global_Academic_Year()
        AND map_end.rn = 1
        --SWITCH THIS AS THE YEAR PROGRESSES eg winter, spring
        AND map_end.fallwinterspring = 'Winter')

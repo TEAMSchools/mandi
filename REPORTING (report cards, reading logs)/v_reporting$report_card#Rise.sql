@@ -15,7 +15,7 @@ WITH roster AS
       JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
         ON c.studentid = s.id
        AND s.enroll_status = 0       
-      WHERE year = 2013
+      WHERE year = dbo.fn_Global_Academic_Year()
         AND c.rn = 1        
         AND c.schoolid = 73252        
      )
@@ -825,7 +825,7 @@ LEFT OUTER JOIN MAP$wide_all map_all WITH (NOLOCK)
   --F&P
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
   ON roster.base_student_number = fp_base.student_number
- AND fp_base.year = 2013  /*--UPDATE FIELD FOR CURRENT TERM--*/
+ AND fp_base.year = dbo.fn_Global_Academic_Year()
  AND fp_base.achv_base = 1
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
   ON roster.base_student_number = fp_curr.student_number 
@@ -835,12 +835,12 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.base_student_number = lex_base.studentid
  AND lex_base.MeasurementScale = 'Reading'
  AND lex_base.rn_base = 1
- AND lex_base.map_year_academic = 2013 /*--UPDATE FIELD FOR CURRENT TERM--*/
+ AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
   ON roster.base_student_number = lex_curr.studentid
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
- AND lex_curr.map_year_academic = 2013 /*--UPDATE FIELD FOR CURRENT TERM--*/
+ AND lex_curr.map_year_academic = dbo.fn_Global_Academic_Year()
   
 --NJASK
 LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)

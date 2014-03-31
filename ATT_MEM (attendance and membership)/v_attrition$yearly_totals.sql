@@ -44,7 +44,7 @@ FROM
          ON base_roster.studentid = c_next.studentid
         AND base_roster.year + 1 = c_next.year
         AND c_next.rn = 1
-       WHERE base_roster.year < 2013
+       WHERE base_roster.year < dbo.fn_Global_Academic_Year()
        ) sub
 JOIN KIPP_NJ..SCHOOLS
   ON sub.schoolid = schools.school_number
