@@ -297,27 +297,33 @@ LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_year WITH(NOLOCK)
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h1 WITH (NOLOCK)
   ON roster.studentid = ar_h1.studentid 
  AND ar_h1.time_period_name = 'RT1'
- AND ar_h1.yearid = dbo.fn_Global_Term_Id() 
+ AND ar_h1.yearid = dbo.fn_Global_Term_Id()
+ AND ar_h1.words_goal > 0
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h2 WITH (NOLOCK)
   ON roster.studentid = ar_h2.studentid
  AND ar_h2.time_period_name = 'RT2'
  AND ar_h2.yearid = dbo.fn_Global_Term_Id() 
+ AND ar_h2.words_goal > 0
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h3 WITH (NOLOCK)
   ON roster.studentid = ar_h3.studentid
  AND ar_h3.time_period_name = 'RT3'
  AND ar_h3.yearid = dbo.fn_Global_Term_Id() 
+ AND ar_h3.words_goal > 0
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h4 WITH (NOLOCK)
   ON roster.studentid = ar_h4.studentid
  AND ar_h4.time_period_name = 'RT4'
  AND ar_h4.yearid = dbo.fn_Global_Term_Id()  
+ AND ar_h4.words_goal > 0
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h5 WITH (NOLOCK)
   ON roster.studentid = ar_h5.studentid
  AND ar_h5.time_period_name = 'RT5'
  AND ar_h5.yearid = dbo.fn_Global_Term_Id()  
+ AND ar_h5.words_goal > 0
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h6 WITH (NOLOCK)
   ON roster.studentid = ar_h6.studentid
  AND ar_h6.time_period_name = 'RT6'
  AND ar_h6.yearid = dbo.fn_Global_Term_Id()
+ AND ar_h6.words_goal > 0
 
 LEFT OUTER JOIN SRI$testing_history sri_lexile WITH(NOLOCK)
   ON CAST(roster.student_number AS NVARCHAR) = sri_lexile.base_student_number
