@@ -39,6 +39,7 @@ BEGIN
                ,ps_customfields.getcf(''Students'',id,''Lunch_Balance'') AS lunch_balance
                ,ps_customfields.getcf(''Students'',id,''DIYNickname'') AS diy_nickname
                ,ps_customfields.getcf(''Students'',id,''504_status'') AS status_504
+               ,ps_customfields.getcf(''Students'',id,''SPEDLEP_CODES'') AS SPEDLEP_code
                ,(CAST(transfercomment AS VARCHAR(50))) AS transfercomment
          FROM students
          ');
