@@ -38,7 +38,8 @@ WITH denom AS (
   FROM COHORT$comprehensive_long#static WITH(NOLOCK)
   --graduated students do not have an exitdate
   --these statements allow graduates to match on the denom set
-  WHERE (EXITDATE > CONVERT(VARCHAR,YEAR) + '-10-01' OR EXITDATE IS NULL)       
+  WHERE (ENTRYDATE <= CONVERT(VARCHAR,YEAR) + '-10-01' OR ENTRYDATE IS NULL)       
+    AND (EXITDATE > CONVERT(VARCHAR,YEAR) + '-10-01' OR EXITDATE IS NULL)       
   GROUP BY STUDENTID
           ,GRADE_LEVEL
           ,SCHOOLID
