@@ -9,6 +9,7 @@ GO
 
 
 ALTER PROCEDURE [sp_ILLUMINATE$assessments#static|refresh] AS
+
 BEGIN
 
  DECLARE @sql AS VARCHAR(MAX)='';
@@ -34,26 +35,44 @@ BEGIN
         FROM
              (
               SELECT oq.assessment_id                          
-                    ,sch.schoolid --no hard-coded schoolid, derived from JOIN to distinct test results
+                    ,sch.schoolid -- derived from test results, if a student reports a result on that test, then it was administered at that school
                     ,oq.title
-                    ,oq.description AS test_descr
-                    --/*
-                    --hard-coded grade-level involves multiple joins to an
-                    --indexed grade level (k = 1, 12 = 13) for whatever reason
-                    --it's simpler just to use the tag
+                    ,oq.description AS test_descr                                        
                     ,CASE 
                       WHEN tag = 'k' THEN '0'
                       WHEN tag IN ('1','2','3','4','5','6','7','8','9','10','11','12') THEN tag
                       ELSE NULL
-                     END AS grade_level
-                    --*/
+                     END AS grade_level -- it's simpler just to use the tag
                     ,oq.subject
+                    ,CASE
+                      WHEN oq.subject = 'Arabic' THEN 'WLANG'
+                      WHEN oq.subject = 'Arts: Music' THEN 'ART'
+                      WHEN oq.subject = 'Arts: Theatre' THEN 'ART'
+                      WHEN oq.subject = 'Arts: Visual Arts' THEN 'ART'
+                      WHEN oq.subject = 'Comprehension' THEN 'ENG'
+                      WHEN oq.subject = 'English Language Arts' THEN 'ENG'
+                      WHEN oq.subject = 'French' THEN 'WLANG'
+                      WHEN oq.subject = 'Grammar' THEN 'ENG'
+                      WHEN oq.subject = 'Historical Arts' THEN 'SOC'
+                      WHEN oq.subject = 'History' THEN 'SOC'
+                      WHEN oq.subject = 'Mathematics' THEN 'MATH'
+                      WHEN oq.subject = 'Performing Arts' THEN 'ART'
+                      WHEN oq.subject = 'Phonics' THEN 'ENG'
+                      WHEN oq.subject = 'Physical Education' THEN 'PHYSED'
+                      WHEN oq.subject = 'Reading' THEN 'ENG'
+                      WHEN oq.subject = 'Science' THEN 'SCI'
+                      WHEN oq.subject = 'Spanish' THEN 'WLANG'
+                      WHEN oq.subject = 'Word Work' THEN 'ENG'
+                      WHEN oq.subject = 'Writing' THEN 'RHET'
+                      ELSE NULL
+                     END AS credittype
                     ,oq.scope
-                    ,oq.custom_code AS standards_tested
+                    ,oq.custom_code AS standards_tested -- I regret using the plaural form #cringe
                     ,oq.parent_standard
                     ,oq.label AS standard_type
                     ,oq.std_descr AS standard_descr
                     ,oq.user_id
+                    ,t.teachernumber
                     ,t.lastfirst AS created_by                          
                     ,fsa_dates.time_per_name AS fsa_week --needed to get clean row number for FSA standard by week                  
                     ,CASE
@@ -74,29 +93,7 @@ BEGIN
                     ,oq.itembank_assessment_id
                     ,oq.locked
                     ,oq.raw_score_performance_band_set_id
-                    ,oq.tags                          
-                    --UNUSED STUFF FROM ASSESSMENTS TABLE
-                    --,oq.academic_year
-                    --,oq.deleted_at
-                    --,oq.intel_assess_guid
-                    --,oq.guid
-                    --,oq.edusoft_guid
-                    --,oq.als_guid
-                    --,oq.curriculum_associate_guid
-                    --,oq.allow_duplicates
-                    --,oq.show_in_parent_portal            
-                    /*
-                    --only used for PIVOT
-                    ,CASE
-                      WHEN tag IN ('k','1','2','3','4','5','6','7','8','9','10','11','12') 
-                       THEN 'grade' 
-                              + CONVERT(VARCHAR,ROW_NUMBER() OVER(
-                                                   PARTITION BY assessment_id
-                                                    ORDER BY CASE WHEN tag IN ('k','1','2','3','4','5','6','7','8','9','10','11','12' ) THEN '1' ELSE '2' END))        
-                      --ELSE 'other' + CONVERT(VARCHAR,ROW_NUMBER() OVER(PARTITION BY assessment_id ORDER BY tag))
-                      ELSE NULL
-                     END AS tag_type
-                    --*/
+                    ,oq.tags                    
               FROM OPENQUERY(ILLUMINATE,'
                      SELECT a.*
                            ,subj.code_translation AS subject
@@ -151,8 +148,7 @@ BEGIN
                                JOIN STUDENTS s WITH (NOLOCK)
                                  ON oq.local_student_id = s.student_number
                                JOIN COHORT$comprehensive_long#static co WITH (NOLOCK)
-                                 ON s.id = co.studentid
-                                --this is going to be an issue around January
+                                 ON s.id = co.studentid                                
                                 AND CASE
                                      WHEN DATEPART(MM,oq.administered_at) >= 07 THEN DATEPART(YYYY,oq.administered_at)
                                      WHEN DATEPART(MM,oq.administered_at) < 07 THEN (DATEPART(YYYY,oq.administered_at) - 1)
@@ -160,7 +156,7 @@ BEGIN
                                     END = co.YEAR
                               ) sch         
                 ON oq.assessment_id = sch.assessment_id
-              WHERE oq.deleted_at IS NULL --deleted tests are kept in the database for the record
+              WHERE oq.deleted_at IS NULL --deleted tests are kept in the database FYI
              ) sub
         LEFT OUTER JOIN REPORTING$dates rt WITH (NOLOCK)
           ON sub.administered_at >= rt.start_date
