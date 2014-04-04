@@ -1,0 +1,37 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW TABLEAU$course_enrollments AS
+
+SELECT cc.STUDENTID
+      ,s.STUDENT_NUMBER
+      ,s.SCHOOLID
+      ,s.GRADE_LEVEL
+      ,s.TEAM
+      ,CONVERT(DATE,cc.DATEENROLLED) AS dateenrolled
+      ,CONVERT(DATE,cc.DATELEFT) AS dateleft      
+      ,CASE
+        WHEN cc.TERMID = 2300 THEN 'Y1'
+        WHEN cc.SCHOOLID IN(73252,133570965) AND cc.TERMID = 2301 THEN 'T1'
+        WHEN cc.SCHOOLID IN(73252,133570965) AND cc.TERMID = 2302 THEN 'T2'        
+        WHEN cc.SCHOOLID IN(73252,133570965) AND cc.TERMID = 2303 THEN 'T3'
+        WHEN cc.SCHOOLID = 73253 AND cc.TERMID = 2301 THEN 'S1'
+        WHEN cc.SCHOOLID = 73253 AND cc.TERMID = 2302 THEN 'S2'        
+       END AS term
+      ,cc.SECTION_NUMBER      
+      ,cou.CREDITTYPE
+      ,cc.COURSE_NUMBER
+      ,cou.COURSE_NAME
+      ,sch.ABBREVIATION + ' - ' 
+        + CONVERT(VARCHAR,s.grade_level) + ' - ' 
+        + cou.COURSE_NUMBER + ' - '
+        + CC.SECTION_NUMBER AS synth_course
+FROM cc WITH(NOLOCK)
+JOIN STUDENTS s WITH(NOLOCK)
+  ON cc.STUDENTID = s.ID
+JOIN SCHOOLS sch WITH(NOLOCK)
+  ON s.SCHOOLID = sch.SCHOOL_NUMBER
+JOIN COURSES cou WITH(NOLOCK)
+  ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
+WHERE cc.TERMID >= dbo.fn_Global_Term_Id()
+  AND cc.SCHOOLID IN (73252,73253,133570965)

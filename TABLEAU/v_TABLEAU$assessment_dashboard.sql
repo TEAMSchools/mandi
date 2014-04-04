@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW TABLEAU$assessment_dashboard AS
+
 SELECT s.schoolid
       ,s.grade_level
       ,s.team
@@ -10,7 +11,8 @@ SELECT s.schoolid
       ,cs.spedlep      
       ,a.title
       ,a.scope            
-      ,a.subject
+      ,a.subject      
+      ,a.credittype      
       ,a.term
       ,a.administered_at
       ,CONVERT(VARCHAR,a.standards_tested) AS standards_tested
