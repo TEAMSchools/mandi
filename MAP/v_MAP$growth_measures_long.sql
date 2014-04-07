@@ -1,7 +1,7 @@
 USE KIPP_NJ 
 GO
 
-CREATE VIEW MAP$growth_measures_long AS
+ALTER VIEW MAP$growth_measures_long AS
 WITH cohort AS
      (SELECT cohort.studentid
             ,cohort.grade_level
@@ -22,6 +22,7 @@ WITH cohort AS
             ,'Fall' AS start_term_string
             ,'Spring' AS end_term_string
             ,'Fall to Spring' AS period_string
+            ,1 AS goal_prorater
       UNION ALL
       SELECT 2
             ,2
@@ -30,6 +31,7 @@ WITH cohort AS
             ,'Spring'
             ,'Spring'
             ,'Spring to Spring'
+            ,1
       UNION ALL
       SELECT 4
             ,4
@@ -38,6 +40,7 @@ WITH cohort AS
             ,'Fall'
             ,'Fall'
             ,'Fall to Fall'
+            ,1
       UNION ALL
       SELECT 4
             ,1
@@ -46,6 +49,7 @@ WITH cohort AS
             ,'Fall'
             ,'Winter'
             ,'Fall to Winter'
+            ,1
       UNION ALL
       SELECT 1
             ,2
@@ -54,6 +58,16 @@ WITH cohort AS
             ,'Winter'
             ,'Spring'
             ,'Winter to Spring'
+            ,1
+      UNION ALL
+      SELECT 2
+            ,1
+            ,22
+            ,-1
+            ,'Spring'
+            ,'Winter'
+            ,'Spring to half-of-Spring'
+            ,0.5
       /*
       UNION ALL
       SELECT 2
@@ -123,18 +137,18 @@ FROM
                     ,map_end.termname AS end_term_verif
                     --norm study data
                     ,CASE
-                       WHEN base.period_numeric = 42 THEN norms.r42
-                       WHEN base.period_numeric = 22 THEN norms.r22
-                       WHEN base.period_numeric = 44 THEN norms.r44
-                       WHEN base.period_numeric = 41 THEN norms.r41
-                       WHEN base.period_numeric = 12 THEN norms.r12
+                       WHEN base.period_numeric = 42 THEN norms.r42 * base.goal_prorater
+                       WHEN base.period_numeric = 22 THEN norms.r22 * base.goal_prorater
+                       WHEN base.period_numeric = 44 THEN norms.r44 * base.goal_prorater
+                       WHEN base.period_numeric = 41 THEN norms.r41 * base.goal_prorater
+                       WHEN base.period_numeric = 12 THEN norms.r12 * base.goal_prorater
                      END AS reported_growth_projection
                    ,CASE
-                       WHEN base.period_numeric = 42 THEN norms.t42
-                       WHEN base.period_numeric = 22 THEN norms.t22
-                       WHEN base.period_numeric = 44 THEN norms.t44
-                       WHEN base.period_numeric = 41 THEN norms.t41
-                       WHEN base.period_numeric = 12 THEN norms.t12
+                       WHEN base.period_numeric = 42 THEN norms.t42 * base.goal_prorater
+                       WHEN base.period_numeric = 22 THEN norms.t22 * base.goal_prorater
+                       WHEN base.period_numeric = 44 THEN norms.t44 * base.goal_prorater
+                       WHEN base.period_numeric = 41 THEN norms.t41 * base.goal_prorater
+                       WHEN base.period_numeric = 12 THEN norms.t12 * base.goal_prorater
                      END AS true_growth_projection
                     ,CASE
                        WHEN base.period_numeric = 42 THEN norms.s42
