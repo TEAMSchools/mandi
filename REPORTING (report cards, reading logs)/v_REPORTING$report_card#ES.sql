@@ -50,73 +50,125 @@ WITH roster AS (
   SELECT time_per_name AS week_num        
         ,start_date
         ,end_date
+        ,DATENAME(MONTH,start_date) AS month
         ,REPLACE(time_per_name,'_',' ') + ': ' + LEFT(CONVERT(VARCHAR,start_date,101),5) + ' - ' + LEFT(CONVERT(VARCHAR,end_date,101),5) AS week_title
   FROM REPORTING$dates WITH(NOLOCK)
-  WHERE DATEADD(WEEK,-2,GETDATE()) >= start_date
-    AND DATEADD(WEEK,-2,GETDATE()) <= end_date
+  WHERE DATEADD(WEEK,-1,GETDATE()) >= start_date -- determines the previous week
+    AND DATEADD(WEEK,-1,GETDATE()) <= end_date -- determines the previous week
     AND identifier = 'FSA'
  )
 
 SELECT r.studentid
       ,r.student_number
-      ,lastfirst
-      ,last_name
-      ,first_name
-      ,grade_level
-      ,schoolid
-      ,team
-      ,lunch_balance
-      ,address
-      ,city
-      ,state
-      ,zip
-      ,home_phone
-      ,mother_cell
-      ,mother_day
-      ,father_cell
-      ,father_day
-      ,guardianemail
-      ,week_num
-      ,start_date
-      ,end_date
-      ,week_title
-      ,cur_absences_total
-      ,excused_absences
-      ,cur_tardies_total
-      ,cur_early_dismiss
-      ,trip_absences
-      ,trip_status
-      ,fsa_week
-      ,fsa_prof_1
-      ,fsa_prof_2
-      ,fsa_prof_3
-      ,fsa_prof_4
-      ,fsa_prof_5
-      ,fsa_prof_6
-      ,fsa_prof_7
-      ,fsa_prof_8
-      ,fsa_prof_9
-      ,fsa_prof_10
-      ,fsa_score_1
-      ,fsa_score_2
-      ,fsa_score_3
-      ,fsa_score_4
-      ,fsa_score_5
-      ,fsa_score_6
-      ,fsa_score_7
-      ,fsa_score_8
-      ,fsa_score_9
-      ,fsa_score_10
-      ,fsa_subject_1
-      ,fsa_subject_2
-      ,fsa_subject_3
-      ,fsa_subject_4
-      ,fsa_subject_5
-      ,fsa_subject_6
-      ,fsa_subject_7
-      ,fsa_subject_8
-      ,fsa_subject_9
-      ,fsa_subject_10
+      ,r.LASTFIRST
+      ,r.LAST_NAME
+      ,r.FIRST_NAME
+      ,r.GRADE_LEVEL
+      ,r.SCHOOLID
+      ,r.TEAM
+      ,r.LUNCH_BALANCE
+      ,r.address
+      ,r.CITY
+      ,r.STATE
+      ,r.ZIP
+      ,r.HOME_PHONE
+      ,r.MOTHER_CELL
+      ,r.MOTHER_DAY
+      ,r.FATHER_CELL
+      ,r.FATHER_DAY
+      ,r.GUARDIANEMAIL
+      ,reporting_week.week_num
+      ,reporting_week.start_date
+      ,reporting_week.end_date
+      ,reporting_week.week_title
+      ,att.cur_absences_total
+      ,att.excused_absences
+      ,att.cur_tardies_total
+      ,att.cur_early_dismiss
+      ,att.trip_absences
+      ,att.trip_status
+      ,fsa.fsa_week
+      ,fsa.fsa_prof_1
+      ,fsa.fsa_prof_2
+      ,fsa.fsa_prof_3
+      ,fsa.fsa_prof_4
+      ,fsa.fsa_prof_5
+      ,fsa.fsa_prof_6
+      ,fsa.fsa_prof_7
+      ,fsa.fsa_prof_8
+      ,fsa.fsa_prof_9
+      ,fsa.fsa_prof_10
+      ,fsa.fsa_score_1
+      ,fsa.fsa_score_2
+      ,fsa.fsa_score_3
+      ,fsa.fsa_score_4
+      ,fsa.fsa_score_5
+      ,fsa.fsa_score_6
+      ,fsa.fsa_score_7
+      ,fsa.fsa_score_8
+      ,fsa.fsa_score_9
+      ,fsa.fsa_score_10
+      ,fsa.fsa_subject_1
+      ,fsa.fsa_subject_2
+      ,fsa.fsa_subject_3
+      ,fsa.fsa_subject_4
+      ,fsa.fsa_subject_5
+      ,fsa.fsa_subject_6
+      ,fsa.fsa_subject_7
+      ,fsa.fsa_subject_8
+      ,fsa.fsa_subject_9
+      ,fsa.fsa_subject_10
+      ,daily.day_1
+      ,daily.day_2
+      ,daily.day_3
+      ,daily.day_4
+      ,daily.day_5
+      ,daily.color_am_1
+      ,daily.color_am_2
+      ,daily.color_am_3
+      ,daily.color_am_4
+      ,daily.color_am_5
+      ,daily.color_day_1
+      ,daily.color_day_2
+      ,daily.color_day_3
+      ,daily.color_day_4
+      ,daily.color_day_5
+      ,daily.color_mid_1
+      ,daily.color_mid_2
+      ,daily.color_mid_3
+      ,daily.color_mid_4
+      ,daily.color_mid_5
+      ,daily.color_pm_1
+      ,daily.color_pm_2
+      ,daily.color_pm_3
+      ,daily.color_pm_4
+      ,daily.color_pm_5
+      ,daily.hw_1
+      ,daily.hw_2
+      ,daily.hw_3
+      ,daily.hw_4
+      ,daily.hw_5
+      ,totals.n_hw_wk
+      ,totals.hw_complete_wk
+      ,totals.hw_missing_wk
+      ,totals.hw_pct_wk
+      ,totals.purple_pink_mth
+      ,totals.green_mth
+      ,totals.yellow_mth
+      ,totals.orange_mth
+      ,totals.red_mth
+      ,totals.pct_ontrack_mth
+      ,totals.status_mth
+      ,totals.n_hw_yr
+      ,totals.hw_complete_yr
+      ,totals.hw_missing_yr
+      ,totals.hw_pct_yr
+      ,totals.n_color_yr
+      ,totals.purple_pink_yr
+      ,totals.green_yr
+      ,totals.yellow_yr
+      ,totals.orange_yr
+      ,totals.red_yr
 FROM roster r
 LEFT OUTER JOIN reporting_week
   ON 1 = 1
@@ -125,3 +177,11 @@ JOIN attendance att
 LEFT OUTER JOIN REPORTING$FSA_scores_wide fsa WITH(NOLOCK)
   ON r.STUDENTID = fsa.studentid
  AND reporting_week.week_num = fsa.fsa_week
+LEFT OUTER JOIN REPORTING$daily_tracking_wide daily WITH(NOLOCK) 
+  ON r.STUDENTID = daily.studentid
+ AND reporting_week.week_num = daily.week_num
+LEFT OUTER JOIN REPORTING$daily_tracking_totals totals WITH(NOLOCK)
+  ON r.STUDENTID = totals.studentid
+ AND r.SCHOOLID = totals.schoolid
+ AND reporting_week.week_num = totals.week_num
+ AND reporting_week.month = totals.month
