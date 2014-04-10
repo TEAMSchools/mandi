@@ -194,3 +194,63 @@ FROM
        WHERE s.enroll_status = 0
        ) sub
 GROUP BY sub.school
+
+UNION ALL
+
+SELECT 'Percent IEP'
+      ,'Network ES only'
+      ,CAST(CAST(ROUND(AVG(dummy) * 100, 1) AS NUMERIC(4,1)) AS NVARCHAR) AS value
+      ,CAST(SUM(dummy) AS INT) AS N
+FROM
+      (SELECT s.ID
+             ,CASE
+                WHEN cust.spedlep LIKE '%SPED%' THEN 1.0
+                ELSE 0.0
+              END AS dummy
+       FROM KIPP_NJ..STUDENTS s
+       JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+         ON s.id = cust.studentid
+       WHERE s.enroll_status = 0
+         AND s.grade_level < 5
+       ) sub
+
+
+UNION ALL
+
+SELECT 'Percent IEP'
+      ,'Network MS only'
+      ,CAST(CAST(ROUND(AVG(dummy) * 100, 1) AS NUMERIC(4,1)) AS NVARCHAR) AS value
+      ,CAST(SUM(dummy) AS INT) AS N
+FROM
+      (SELECT s.ID
+             ,CASE
+                WHEN cust.spedlep LIKE '%SPED%' THEN 1.0
+                ELSE 0.0
+              END AS dummy
+       FROM KIPP_NJ..STUDENTS s
+       JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+         ON s.id = cust.studentid
+       WHERE s.enroll_status = 0
+         AND s.grade_level >= 5
+         AND s.grade_level <= 8
+       ) sub
+
+
+UNION ALL
+
+SELECT 'Percent IEP'
+      ,'Network HS only'
+      ,CAST(CAST(ROUND(AVG(dummy) * 100, 1) AS NUMERIC(4,1)) AS NVARCHAR) AS value
+      ,CAST(SUM(dummy) AS INT) AS N
+FROM
+      (SELECT s.ID
+             ,CASE
+                WHEN cust.spedlep LIKE '%SPED%' THEN 1.0
+                ELSE 0.0
+              END AS dummy
+       FROM KIPP_NJ..STUDENTS s
+       JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+         ON s.id = cust.studentid
+       WHERE s.enroll_status = 0
+         AND s.grade_level >= 9
+       ) sub
