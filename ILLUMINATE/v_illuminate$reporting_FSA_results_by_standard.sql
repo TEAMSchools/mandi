@@ -107,6 +107,7 @@ FROM
        AND assessments.academic_year = dbo.fn_Global_Academic_Year()
        AND assessments.scope = 'FSA'
        AND assessments.performance_band_set_id != 3970
+       AND assessments.deleted_at IS NULL
       LEFT OUTER JOIN fsa_rn
         ON assessments.schoolid = fsa_rn.schoolid
        AND assessments.grade_level = fsa_rn.grade_level

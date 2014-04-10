@@ -397,11 +397,11 @@ FROM
                        FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments#static] asmt
                        WHERE asmt.tags LIKE '%FSA%'
                        --exclude deleted FSAs
-                       --AND deleted_at IS NULL
+                       AND deleted_at IS NULL
                        --if it's older than 2 weeks, whatever
                        AND DATEDIFF(day, GETDATE(), CAST(asmt.administered_at AS DATE)) > -14
                        --if it was updated 2 + days after administration, probably stef or someone looked at it and it is OK
-                       AND DATEDIFF(day, administered_at, CAST(asmt.updated_at AS DATE)) < 2
+                       AND DATEDIFF(day, administered_at, CAST(asmt.updated_at AS DATE)) < 2                       
                      ) illu
               LEFT OUTER JOIN 
                   (SELECT oq.user_id AS illu_id
@@ -516,7 +516,7 @@ FROM
                        FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments#static] asmt
                        WHERE asmt.tags LIKE '%FSA%'
                        --exclude deleted FSAs
-                       --AND deleted_at IS NULL
+                       AND deleted_at IS NULL
                        --if it's older than 2 weeks, whatever
                        AND DATEDIFF(day, GETDATE(), CAST(asmt.administered_at AS DATE)) > -14
                        --if it was updated 2 + days after administration, probably stef or someone looked at it and it is OK

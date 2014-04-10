@@ -15,14 +15,14 @@ BEGIN
  DECLARE @sql AS VARCHAR(MAX)='';
 
  --STEP 1: make sure no temp table
-		IF OBJECT_ID(N'tempdb..#ILLUMINATE$assessments#static|refresh') IS NOT NULL
+		IF OBJECT_ID(N'tempdb..#ILLUMINATE$assessments#static|refresh1') IS NOT NULL
 		BEGIN
-						DROP TABLE [#ILLUMINATE$assessments#static|refresh]
+						DROP TABLE [#ILLUMINATE$assessments#static|refresh1]
 		END
 		
 		--STEP 2: load into a TEMPORARY staging table.
   SELECT *
-		INTO [#ILLUMINATE$assessments#static|refresh]
+		INTO [#ILLUMINATE$assessments#static|refresh1]
 		FROM (
         SELECT sub.*
               ,rt.alt_name AS term
@@ -74,15 +74,16 @@ BEGIN
                     ,oq.user_id
                     ,t.teachernumber
                     ,t.lastfirst AS created_by                          
-                    ,fsa_dates.time_per_name AS fsa_week --needed to get clean row number for FSA standard by week                  
+                    ,fsa_dates.time_per_name AS fsa_week -- to get clean row number for FSA standard by week
                     ,CASE
                       WHEN DATEPART(MM,oq.administered_at) >= 07 THEN DATEPART(YYYY,oq.administered_at)
                       WHEN DATEPART(MM,oq.administered_at) < 07 THEN (DATEPART(YYYY,oq.administered_at) - 1)
                       ELSE NULL
                      END AS academic_year
-                    ,oq.administered_at
+                    ,CONVERT(DATE,oq.administered_at) AS administered_at
                     ,CONVERT(DATE,oq.created_at) AS created_at
                     ,CONVERT(DATE,oq.updated_at) AS updated_at             
+                    ,CONVERT(DATE,oq.deleted_at) AS deleted_at
                     ,oq.code_scope_id
                     ,oq.code_subject_area_id
                     ,oq.standard_id
@@ -156,7 +157,7 @@ BEGIN
                                     END = co.YEAR
                               ) sch         
                 ON oq.assessment_id = sch.assessment_id
-              WHERE oq.deleted_at IS NULL --deleted tests are kept in the database FYI
+              --WHERE oq.deleted_at IS NULL --deleted tests are kept in the database FYI
              ) sub
         LEFT OUTER JOIN REPORTING$dates rt WITH (NOLOCK)
           ON sub.administered_at >= rt.start_date
@@ -188,7 +189,7 @@ BEGIN
  -- step 6: insert into final destination
  INSERT INTO [dbo].[ILLUMINATE$assessments#static]
  SELECT *
- FROM [#ILLUMINATE$assessments#static|refresh];
+ FROM [#ILLUMINATE$assessments#static|refresh1];
 
  -- Step 4: rebuld all nonclustered indexes on table
  SELECT @sql = @sql + 

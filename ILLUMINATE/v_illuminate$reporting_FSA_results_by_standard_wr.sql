@@ -80,7 +80,7 @@ FROM
              AS rollup_hash
             ,fsa_rn.fsa_std_rn
       FROM STUDENTS s WITH(NOLOCK)
-      LEFT OUTER JOIN CUSTOM_STUDENTS cs
+      LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
         ON s.id = cs.STUDENTID
       LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static results WITH(NOLOCK)
         ON s.student_number = results.local_student_id
@@ -90,6 +90,8 @@ FROM
        AND s.grade_level = assessments.grade_level
        AND s.schoolid = assessments.schoolid
        AND assessments.academic_year = dbo.fn_Global_Academic_Year()
+       AND assessments.scope = 'FSA'        
+       AND assessments.deleted_at IS NULL
       LEFT OUTER JOIN fsa_rn
         ON assessments.schoolid = fsa_rn.schoolid
        AND assessments.grade_level = fsa_rn.grade_level
@@ -101,6 +103,6 @@ FROM
         AND s.enroll_status = 0
         AND results.custom_code NOT IN ('CCSS.LA.3.R', 'CCSS.LA.3.RL', 'CCSS.LA.4.L.4.6', 'TES.CCSS.LA.K.W.K.3.b','TES.CCSS.LA.K.W.K.3.c','TES.CCSS.LA.K.W.K.3.d'
                                           ,'TES.CCSS.LA.K.W.K.3.i','TES.CCSS.LA.K.W.K.3.j','TES.CCSS.LA.K.W.K.3.g','TES.CCSS.LA.K.W.K.3')
-        AND assessments.scope = 'FSA'        
+        
       ) sub
 --ORDER BY schoolid, grade_level, week_num, team, studentid, subject, standard

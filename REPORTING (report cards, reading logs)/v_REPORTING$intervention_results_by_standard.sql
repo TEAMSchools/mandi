@@ -83,6 +83,7 @@ FROM
        AND s.schoolid = assessments.schoolid
        AND assessments.academic_year = dbo.fn_Global_Academic_Year()
        AND assessments.scope = 'Intervention'
+       AND assessments.deleted_at IS NULL
       WHERE s.enroll_status = 0
         AND s.schoolid IN (73254,73255,73256)        
       ) sub

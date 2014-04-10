@@ -142,7 +142,9 @@ WITH scaffold AS
                       ,title
                 FROM KIPP_NJ..ILLUMINATE$assessments#static s WITH(NOLOCK)
                 WHERE s.subject = 'Mathematics'
-                  AND s.title  LIKE '%UA%') assess
+                  AND s.title  LIKE '%UA%'
+                  AND s.deleted_at IS NULL) assess
+                  
              ON assess_ov.assessment_id = assess.assessment_id
            JOIN
                (SELECT rd.schoolid

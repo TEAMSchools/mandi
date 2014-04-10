@@ -2,8 +2,121 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ATT_MEM$attendance_counts AS
-SELECT TOP (100) PERCENT
-       s.id
+
+WITH raw_attendance AS (
+  --all terms and overall
+  SELECT psad.STUDENTID
+        ,psad.att_date
+        ,psad.att_code                  
+        ,dates.time_per_name AS RT
+  FROM ATTENDANCE psad WITH (NOLOCK)
+  JOIN REPORTING$dates dates WITH (NOLOCK)
+    ON psad.att_date >= dates.start_date
+   AND psad.att_date <= dates.end_date
+   AND psad.schoolid = dates.schoolid
+   AND dates.identifier = 'RT'
+  WHERE psad.att_code IS NOT NULL               
+
+  UNION ALL
+
+  --current term
+  SELECT psad.studentid
+        ,psad.att_date
+        ,psad.att_code                  
+        ,'CUR' AS RT                  
+  FROM ATTENDANCE psad WITH (NOLOCK)
+  JOIN REPORTING$dates curterm WITH (NOLOCK)
+    ON psad.schoolid = curterm.schoolid
+   AND psad.att_date >= curterm.start_date
+   AND psad.att_date <= curterm.end_date 
+   AND curterm.start_date <= GETDATE()
+   AND curterm.end_date >= GETDATE()
+   AND curterm.identifier = CASE 
+                             WHEN psad.SCHOOLID IN (73252, 73253, 133570965) THEN 'RT' --next year make an ATT record for every school
+                             WHEN psad.SCHOOLID IN (73254, 73255, 73256) THEN 'ATT' 
+                            END
+  WHERE psad.att_code IS NOT NULL
+ )
+ 
+,attendance_rollup AS (
+  SELECT studentid
+         --Y1
+         ,SUM(CASE WHEN att_code = 'A'   AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS absences_undoc
+         ,SUM(CASE WHEN att_code IN ('AD','D')  AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS absences_doc
+         ,SUM(CASE WHEN att_code = 'AE'  AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS excused_absences
+         ,SUM(CASE WHEN att_code IN ('T','TLE')   AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS tardies_reg
+         ,SUM(CASE WHEN att_code = 'T10' AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS tardies_T10
+         ,SUM(CASE WHEN att_code = 'S'   AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS ISS
+         ,SUM(CASE WHEN att_code = 'OS'  AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS OSS
+         ,SUM(CASE WHEN att_code IN ('PLE','TLE') AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS early_dismiss                  
+         --RT1
+         ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_absences_undoc
+         ,SUM(CASE WHEN att_code IN ('AD','D')  AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_absences_doc
+         ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_excused_absences
+         ,SUM(CASE WHEN att_code IN ('T','TLE')   AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_tardies_reg
+         ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_tardies_T10
+         ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_ISS
+         ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_OSS
+         ,SUM(CASE WHEN att_code IN ('PLE','TLE') AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_early_dismiss         
+         --RT2
+         ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_absences_undoc
+         ,SUM(CASE WHEN att_code IN ('AD','D')  AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_absences_doc
+         ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_excused_absences
+         ,SUM(CASE WHEN att_code IN ('T','TLE')   AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_tardies_reg
+         ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_tardies_T10
+         ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_ISS
+         ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_OSS
+         ,SUM(CASE WHEN att_code IN ('PLE','TLE') AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_early_dismiss         
+         --RT3
+         ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_absences_undoc
+         ,SUM(CASE WHEN att_code IN ('AD','D')  AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_absences_doc
+         ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_excused_absences
+         ,SUM(CASE WHEN att_code IN ('T','TLE')   AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_tardies_reg
+         ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_tardies_T10
+         ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_ISS
+         ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_OSS
+         ,SUM(CASE WHEN att_code IN ('PLE','TLE') AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_early_dismiss         
+         --RT4
+         ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_absences_undoc
+         ,SUM(CASE WHEN att_code IN ('AD','D')  AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_absences_doc
+         ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_excused_absences
+         ,SUM(CASE WHEN att_code IN ('T','TLE')   AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_tardies_reg
+         ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_tardies_T10
+         ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_ISS
+         ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_OSS
+         ,SUM(CASE WHEN att_code IN ('PLE','TLE') AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_early_dismiss         
+         --RT5
+         ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_absences_undoc
+         ,SUM(CASE WHEN att_code IN ('AD','D')  AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_absences_doc
+         ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_excused_absences
+         ,SUM(CASE WHEN att_code IN ('T','TLE')   AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_tardies_reg
+         ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_tardies_T10
+         ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_ISS
+         ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_OSS
+         ,SUM(CASE WHEN att_code IN ('PLE','TLE') AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_early_dismiss         
+         --RT6
+         ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_absences_undoc
+         ,SUM(CASE WHEN att_code IN ('AD','D')  AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_absences_doc
+         ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_excused_absences
+         ,SUM(CASE WHEN att_code IN ('T','TLE')   AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_tardies_reg
+         ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_tardies_T10
+         ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_ISS
+         ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_OSS
+         ,SUM(CASE WHEN att_code IN ('PLE','TLE') AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_early_dismiss         
+          --cur
+         ,SUM(CASE WHEN att_code = 'A'   AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS CUR_absences_undoc
+         ,SUM(CASE WHEN att_code IN ('AD','D')  AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS CUR_absences_doc
+         ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS CUR_excused_absences
+         ,SUM(CASE WHEN att_code IN ('T','TLE')   AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS CUR_tardies_reg
+         ,SUM(CASE WHEN att_code = 'T10' AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS CUR_tardies_T10
+         ,SUM(CASE WHEN att_code = 'S'   AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS CUR_ISS
+         ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS CUR_OSS
+         ,SUM(CASE WHEN att_code IN ('PLE','TLE') AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS CUR_early_dismiss         
+  FROM raw_attendance
+  GROUP BY studentid
+ )
+
+SELECT s.id
       ,s.lastfirst
       ,s.schoolid
       ,s.grade_level      
@@ -16,7 +129,7 @@ SELECT TOP (100) PERCENT
       ,ISNULL(tardies_T10,0) AS tardies_T10
       ,ISNULL(iss,0) AS iss
       ,ISNULL(oss,0) AS oss
-      ,ISNULL(early_dismiss,0) AS early_dismiss
+      ,ISNULL(early_dismiss,0) AS early_dismiss      
       --RT1
       ,ISNULL(rt1_absences_undoc + rt1_absences_doc,0) AS rt1_absences_total
       ,ISNULL(rt1_absences_undoc,0) AS rt1_absences_undoc
@@ -87,121 +200,17 @@ SELECT TOP (100) PERCENT
       ,ISNULL(cur_iss,0) AS cur_iss
       ,ISNULL(cur_oss,0) AS cur_oss
       ,ISNULL(cur_early_dismiss,0) AS cur_early_dismiss
+      ,ISNULL(CUR_absences_undoc,0) 
+        + ROUND((ISNULL(cur_tardies_reg + cur_tardies_T10,0) / 3), 2) 
+        + ROUND((ISNULL(CUR_early_dismiss,0) / 3), 2) 
+        AS trip_absences
+      ,CASE
+        WHEN ISNULL(CUR_absences_undoc,0) 
+              + ROUND((ISNULL(cur_tardies_reg + cur_tardies_T10,0) / 3), 2) 
+              + ROUND((ISNULL(CUR_early_dismiss,0) / 3), 2) < 5 THEN 'On Track'
+        ELSE 'Off Track'
+       END AS trip_status
 FROM STUDENTS s WITH (NOLOCK)
-LEFT OUTER JOIN 
-     (SELECT studentid
-            --Y1
-            ,SUM(CASE WHEN att_code = 'A'   AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS absences_undoc
-            ,SUM(CASE WHEN att_code = 'AD'  AND RT != 'CUR' THEN 1.0
-                      WHEN att_code = 'D'   AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS absences_doc
-            ,SUM(CASE WHEN att_code = 'AE'  AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS excused_absences
-            ,SUM(CASE WHEN att_code = 'T'   AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS tardies_reg
-            ,SUM(CASE WHEN att_code = 'T10' AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS tardies_T10
-            ,SUM(CASE WHEN att_code = 'S'   AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS ISS
-            ,SUM(CASE WHEN att_code = 'OS'  AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS OSS
-            ,SUM(CASE WHEN att_code = 'PLE' AND RT != 'CUR' THEN 1.0 ELSE 0.0 END) AS early_dismiss
-            --RT1
-            ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_absences_undoc
-            ,SUM(CASE WHEN att_code = 'AD'  AND RT = 'RT1' THEN 1.0
-                      WHEN att_code = 'D'   AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_absences_doc
-            ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_excused_absences
-            ,SUM(CASE WHEN att_code = 'T'   AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_tardies_reg
-            ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_tardies_T10
-            ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_ISS
-            ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_OSS
-            ,SUM(CASE WHEN att_code = 'PLE' AND RT = 'RT1' THEN 1.0 ELSE 0.0 END) AS RT1_early_dismiss
-            --RT2
-            ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_absences_undoc
-            ,SUM(CASE WHEN att_code = 'AD'  AND RT = 'RT2' THEN 1.0
-                      WHEN att_code = 'D'   AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_absences_doc
-            ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_excused_absences
-            ,SUM(CASE WHEN att_code = 'T'   AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_tardies_reg
-            ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_tardies_T10
-            ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_ISS
-            ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_OSS
-            ,SUM(CASE WHEN att_code = 'PLE' AND RT = 'RT2' THEN 1.0 ELSE 0.0 END) AS RT2_early_dismiss
-            --RT3
-            ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_absences_undoc
-            ,SUM(CASE WHEN att_code = 'AD'  AND RT = 'RT3' THEN 1.0
-                      WHEN att_code = 'D'   AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_absences_doc
-            ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_excused_absences
-            ,SUM(CASE WHEN att_code = 'T'   AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_tardies_reg
-            ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_tardies_T10
-            ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_ISS
-            ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_OSS
-            ,SUM(CASE WHEN att_code = 'PLE' AND RT = 'RT3' THEN 1.0 ELSE 0.0 END) AS RT3_early_dismiss
-            --RT4
-            ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_absences_undoc
-            ,SUM(CASE WHEN att_code = 'AD'  AND RT = 'RT4' THEN 1.0
-                      WHEN att_code = 'D'   AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_absences_doc
-            ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_excused_absences
-            ,SUM(CASE WHEN att_code = 'T'   AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_tardies_reg
-            ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_tardies_T10
-            ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_ISS
-            ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_OSS
-            ,SUM(CASE WHEN att_code = 'PLE' AND RT = 'RT4' THEN 1.0 ELSE 0.0 END) AS RT4_early_dismiss
-            --RT5
-            ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_absences_undoc
-            ,SUM(CASE WHEN att_code = 'AD'  AND RT = 'RT5' THEN 1.0
-                      WHEN att_code = 'D'   AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_absences_doc
-            ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_excused_absences
-            ,SUM(CASE WHEN att_code = 'T'   AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_tardies_reg
-            ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_tardies_T10
-            ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_ISS
-            ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_OSS
-            ,SUM(CASE WHEN att_code = 'PLE' AND RT = 'RT5' THEN 1.0 ELSE 0.0 END) AS RT5_early_dismiss
-            --RT6
-            ,SUM(CASE WHEN att_code = 'A'   AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_absences_undoc
-            ,SUM(CASE WHEN att_code = 'AD'  AND RT = 'RT6' THEN 1.0
-                      WHEN att_code = 'D'   AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_absences_doc
-            ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_excused_absences
-            ,SUM(CASE WHEN att_code = 'T'   AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_tardies_reg
-            ,SUM(CASE WHEN att_code = 'T10' AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_tardies_T10
-            ,SUM(CASE WHEN att_code = 'S'   AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_ISS
-            ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_OSS
-            ,SUM(CASE WHEN att_code = 'PLE' AND RT = 'RT6' THEN 1.0 ELSE 0.0 END) AS RT6_early_dismiss
-             --cur
-            ,SUM(CASE WHEN att_code = 'A'   AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_absences_undoc
-            ,SUM(CASE WHEN att_code = 'AD'  AND RT = 'CUR' THEN 1.0
-                      WHEN att_code = 'D'   AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_absences_doc
-            ,SUM(CASE WHEN att_code = 'AE'  AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_excused_absences
-            ,SUM(CASE WHEN att_code = 'T'   AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_tardies_reg
-            ,SUM(CASE WHEN att_code = 'T10' AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_tardies_T10
-            ,SUM(CASE WHEN att_code = 'S'   AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_ISS
-            ,SUM(CASE WHEN att_code = 'OS'  AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_OSS
-            ,SUM(CASE WHEN att_code = 'PLE' AND RT = 'CUR' THEN 1.0 ELSE 0.0 END) AS cur_early_dismiss
-      FROM            
-           (SELECT studentid
-                  ,psad.att_date
-                  ,psad.att_code                  
-                  ,dates.time_per_name AS RT
-            FROM ATTENDANCE psad WITH (NOLOCK)
-            JOIN REPORTING$dates dates WITH (NOLOCK)
-              ON psad.att_date >= dates.start_date
-             AND psad.att_date <= dates.end_date
-             AND psad.schoolid = dates.schoolid
-             AND dates.identifier = 'RT'
-            WHERE psad.att_code IS NOT NULL               
-            
-            UNION ALL
-            
-            SELECT psad.studentid
-                  ,psad.att_date
-                  ,psad.att_code                  
-                  ,'CUR' AS RT            
-            FROM ATTENDANCE psad WITH (NOLOCK)
-            JOIN REPORTING$dates curterm WITH (NOLOCK)
-              ON curterm.identifier = 'RT'
-             AND curterm.start_date <= GETDATE()
-             AND curterm.end_date >= GETDATE()
-             AND psad.schoolid = curterm.schoolid
-            WHERE psad.att_code IS NOT NULL                          
-              AND psad.att_date >= curterm.start_date
-              AND psad.att_date <= curterm.end_date
-           ) sub
-      GROUP BY studentid
-     ) psad
-  ON s.id = psad.studentid
-WHERE s.entrydate >= '2013-08-01'    
---ORDER BY s.schoolid, s.grade_level, s.lastfirst
-ORDER BY absences_total DESC
+LEFT OUTER JOIN attendance_rollup     
+  ON s.id = attendance_rollup.studentid
+WHERE s.entrydate >= CONVERT(DATE,CONVERT(NVARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')

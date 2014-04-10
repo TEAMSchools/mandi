@@ -33,3 +33,4 @@ JOIN ILLUMINATE$assessments#static a WITH (NOLOCK)
  AND res.standard_id = a.standard_id
  AND s.schoolid = a.schoolid
  AND s.grade_level = a.grade_level
+ AND a.deleted_at IS NULL

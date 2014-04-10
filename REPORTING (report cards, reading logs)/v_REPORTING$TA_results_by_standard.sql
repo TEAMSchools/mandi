@@ -55,7 +55,22 @@ FROM
         AND results.standard_id = assessments.standard_id
         AND s.grade_level = assessments.grade_level
         AND s.schoolid = assessments.schoolid
-        AND assessments.academic_year = dbo.fn_Global_Academic_Year()       
+        AND assessments.academic_year = dbo.fn_Global_Academic_Year()   
+        AND assessments.deleted_at IS NULL    
+        AND assessments.scope = 'District Benchmark'
+        AND assessments.standards_tested NOT IN ('CCSS.MA.4.4.NF.3.a'
+                                                ,'CCSS.MA.4.4.NF.3.b'
+                                                ,'CCSS.MA.4.4.NF.3.d'
+                                                ,'CCSS.MA.4.4.NF.4.a'
+                                                ,'CCSS.MA.4.4.NF.4.b'
+                                                ,'CCSS.MA.4.4.NF.4.c'
+                                                ,'CCSS.LA.3.RI'
+                                                ,'CCSS.LA.3.RL'
+                                                ,'CCSS.LA.4.RI'
+                                                ,'CCSS.LA.4.RL'
+                                                ,'CCSS.LA.4.L.4.1'
+                                                ,'CCSS.LA.4.L.4.2'
+                                                ,'CCSS.LA.4.L.4.3')
        LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
          ON s.id = co.studentid
         AND co.year = CASE
@@ -65,20 +80,6 @@ FROM
                       END
         AND co.rn = 1
        WHERE s.schoolid IN (73254,73255,73256)
-         AND s.enroll_status = 0        
-         AND assessments.scope = 'District Benchmark'
-         AND assessments.standards_tested NOT IN ('CCSS.MA.4.4.NF.3.a'
-                                                 ,'CCSS.MA.4.4.NF.3.b'
-                                                 ,'CCSS.MA.4.4.NF.3.d'
-                                                 ,'CCSS.MA.4.4.NF.4.a'
-                                                 ,'CCSS.MA.4.4.NF.4.b'
-                                                 ,'CCSS.MA.4.4.NF.4.c'
-                                                 ,'CCSS.LA.3.RI'
-                                                 ,'CCSS.LA.3.RL'
-                                                 ,'CCSS.LA.4.RI'
-                                                 ,'CCSS.LA.4.RL'
-                                                 ,'CCSS.LA.4.L.4.1'
-                                                 ,'CCSS.LA.4.L.4.2'
-                                                 ,'CCSS.LA.4.L.4.3')
+         AND s.enroll_status = 0                 
        ) sub
 ) sub2
