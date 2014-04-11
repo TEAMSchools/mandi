@@ -2,6 +2,16 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW REPORTING$reading_log#NCA AS
+
+WITH curterm AS (
+  SELECT time_per_name
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE schoolid = 73253
+    AND identifier = 'RT'
+    AND GETDATE() >= start_date
+    AND GETDATE() <= end_date
+ )
+
 SELECT s.LASTFIRST
       ,s.FIRST_NAME
       ,s.LAST_NAME
@@ -71,36 +81,127 @@ SELECT s.LASTFIRST
         ELSE NULL
        END AS lunch_assignment
       ,intv_block.group_name AS diff_block_assignment
-      ,ar_q1.rank_points_grade_in_school AS AR_graderank_Q1
-      ,ar_Q2.rank_points_grade_in_school AS AR_graderank_Q2
-      ,ar_Q3.rank_points_grade_in_school AS AR_graderank_Q3
-      ,ar_Q4.rank_points_grade_in_school AS AR_graderank_Q4
-      ,ar_yr.rank_points_grade_in_school AS AR_graderank_Yr
+      ,CASE
+        WHEN ar_q1.points = 0 THEN 'Tied for last place with 0 points'
+        ELSE CONVERT(VARCHAR,ar_q1.rank_points_grade_in_school)
+       END AS AR_graderank_Q1
+      ,CASE
+        WHEN ar_q2.points = 0 THEN 'Tied for last place with 0 points'
+        ELSE CONVERT(VARCHAR,ar_q2.rank_points_grade_in_school)
+       END AS AR_graderank_q2
+      ,CASE
+        WHEN ar_q3.points = 0 THEN 'Tied for last place with 0 points'
+        ELSE CONVERT(VARCHAR,ar_q3.rank_points_grade_in_school)
+       END AS AR_graderank_q3
+      ,CASE
+        WHEN ar_q4.points = 0 THEN 'Tied for last place with 0 points'
+        ELSE CONVERT(VARCHAR,ar_q4.rank_points_grade_in_school)
+       END AS AR_graderank_q4
+      ,CASE
+        WHEN ar_yr.points = 0 THEN 'Tied for last place with 0 points'
+        ELSE CONVERT(VARCHAR,ar_yr.rank_points_grade_in_school)
+       END AS AR_graderank_yr
       ,ar_q1.rank_points_overall_in_school AS AR_schoolrank_Q1
       ,ar_q2.rank_points_overall_in_school AS AR_schoolrank_Q2
       ,ar_q3.rank_points_overall_in_school AS AR_schoolrank_Q3
       ,ar_q4.rank_points_overall_in_school AS AR_schoolrank_Q4
-      ,ar_yr.rank_points_overall_in_school AS AR_schoolrank_Yr
+      ,ar_yr.rank_points_overall_in_school AS AR_schoolrank_Yr      
+      ,ROUND(((ar_cur.points / ar_cur.points_goal) * 100),0) AS AR_progress_cur
+      ,ROUND(((ar_q1.points / ar_q1.points_goal) * 100),0) AS AR_progress_q1
+      ,ROUND(((ar_q2.points / ar_q2.points_goal) * 100),0) AS AR_progress_q2
+      ,ROUND(((ar_q3.points / ar_q3.points_goal) * 100),0) AS AR_progress_q3
+      ,ROUND(((ar_q4.points / ar_q4.points_goal) * 100),0) AS AR_progress_q4
+      ,ROUND(((ar_yr.points / ar_yr.points_goal) * 100),0) AS AR_progress_yr
       ,CASE
-        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN NULL
-        WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN ROUND(((ar_q3.points / ar_q3.points_goal) * 100),0)        
-        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 25 THEN 100
-        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 20 AND ar_q3.points < 25 THEN 90
-        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 15 AND ar_q3.points < 20 THEN 80
-        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 10 AND ar_q3.points < 15 THEN 70
-        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points > 0 AND ar_q3.points < 10 THEN 60
-        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points = 0 THEN 0
-        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 30 THEN 100
-        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 25 AND ar_q3.points < 30 THEN 90
-        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 20 AND ar_q3.points < 25 THEN 80
-        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 15 AND ar_q3.points < 20 THEN 70
-        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 10 AND ar_q3.points < 15 THEN 60
-        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points > 0 AND ar_q3.points < 10 THEN 50
-        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points = 0 THEN 0        
-       END AS ar_grade
+        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Exempt'
+        WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_cur.points / ar_cur.points_goal) * 100),0))
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points >= 25 THEN '100'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points >= 20 AND ar_cur.points < 25 THEN '90'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points >= 15 AND ar_cur.points < 20 THEN '80'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points >= 10 AND ar_cur.points < 15 THEN '70'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points > 0 AND ar_cur.points < 10 THEN '60'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points = 0 THEN '0'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points >= 30 THEN '100'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points >= 25 AND ar_cur.points < 30 THEN '90'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points >= 20 AND ar_cur.points < 25 THEN '80'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points >= 15 AND ar_cur.points < 20 THEN '70'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points >= 10 AND ar_cur.points < 15 THEN '60'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points > 0 AND ar_cur.points < 10 THEN '50'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points = 0 THEN '0'
+       END AS ar_grade_cur
+      ,CASE
+        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Exempt'
+        WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q1.points / ar_q1.points_goal) * 100),0))
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points >= 25 THEN '100'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points >= 20 AND ar_q1.points < 25 THEN '90'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points >= 15 AND ar_q1.points < 20 THEN '80'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points >= 10 AND ar_q1.points < 15 THEN '70'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points > 0 AND ar_q1.points < 10 THEN '60'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points = 0 THEN '0'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points >= 30 THEN '100'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points >= 25 AND ar_q1.points < 30 THEN '90'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points >= 20 AND ar_q1.points < 25 THEN '80'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points >= 15 AND ar_q1.points < 20 THEN '70'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points >= 10 AND ar_q1.points < 15 THEN '60'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points > 0 AND ar_q1.points < 10 THEN '50'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points = 0 THEN '0'
+       END AS ar_grade_q1
+      ,CASE
+        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Exempt'
+        WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q2.points / ar_q2.points_goal) * 100),0))
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points >= 25 THEN '100'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points >= 20 AND ar_q2.points < 25 THEN '90'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points >= 15 AND ar_q2.points < 20 THEN '80'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points >= 10 AND ar_q2.points < 15 THEN '70'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points > 0 AND ar_q2.points < 10 THEN '60'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points = 0 THEN '0'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points >= 30 THEN '100'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points >= 25 AND ar_q2.points < 30 THEN '90'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points >= 20 AND ar_q2.points < 25 THEN '80'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points >= 15 AND ar_q2.points < 20 THEN '70'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points >= 10 AND ar_q2.points < 15 THEN '60'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points > 0 AND ar_q2.points < 10 THEN '50'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points = 0 THEN '0'
+       END AS ar_grade_q2
+      ,CASE
+        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Exempt'
+        WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q3.points / ar_q3.points_goal) * 100),0))
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 25 THEN '100'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 20 AND ar_q3.points < 25 THEN '90'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 15 AND ar_q3.points < 20 THEN '80'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 10 AND ar_q3.points < 15 THEN '70'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points > 0 AND ar_q3.points < 10 THEN '60'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points = 0 THEN '0'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 30 THEN '100'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 25 AND ar_q3.points < 30 THEN '90'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 20 AND ar_q3.points < 25 THEN '80'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 15 AND ar_q3.points < 20 THEN '70'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 10 AND ar_q3.points < 15 THEN '60'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points > 0 AND ar_q3.points < 10 THEN '50'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points = 0 THEN '0'
+       END AS ar_grade_q3
+      ,CASE
+        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Exempt'
+        WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q4.points / ar_q4.points_goal) * 100),0))
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points >= 25 THEN '100'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points >= 20 AND ar_q4.points < 25 THEN '90'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points >= 15 AND ar_q4.points < 20 THEN '80'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points >= 10 AND ar_q4.points < 15 THEN '70'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points > 0 AND ar_q4.points < 10 THEN '60'
+        WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points = 0 THEN '0'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points >= 30 THEN '100'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points >= 25 AND ar_q4.points < 30 THEN '90'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points >= 20 AND ar_q4.points < 25 THEN '80'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points >= 15 AND ar_q4.points < 20 THEN '70'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points >= 10 AND ar_q4.points < 15 THEN '60'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points > 0 AND ar_q4.points < 10 THEN '50'
+        WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points = 0 THEN '0'
+       END AS ar_grade_q4
 FROM STUDENTS s WITH (NOLOCK)
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
   ON s.ID = cs.STUDENTID
+LEFT OUTER JOIN curterm
+  ON 1 = 1
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
   ON s.id = ar_yr.studentid 
  AND ar_yr.time_period_name = 'Year'
@@ -121,6 +222,10 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q4 WITH (NOLOCK)
   ON s.id = ar_q4.studentid
  AND ar_q4.time_period_name = 'RT4'
  AND ar_q4.yearid = dbo.fn_Global_Term_Id() 
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_cur WITH (NOLOCK)
+  ON s.id = ar_cur.studentid
+ AND ar_cur.time_period_name = curterm.time_per_name
+ AND ar_cur.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
   ON s.id = lex_cur.ps_studentid
  AND lex_cur.measurementscale  = 'Reading'
