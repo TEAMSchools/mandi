@@ -71,7 +71,7 @@ FROM
                          ,[FSA_prof])
       ) unpiv
     ) sub2  
-
+--/*
 PIVOT (
   MAX(value)
   FOR identifier IN ([FSA_prof_1]
@@ -105,3 +105,4 @@ PIVOT (
                     ,[FSA_subject_9]
                     ,[FSA_subject_10])
  ) piv
+ --*/

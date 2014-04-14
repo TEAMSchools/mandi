@@ -42,7 +42,7 @@ WITH roster AS (
         ,cur_early_dismiss
         ,trip_absences
         ,trip_status
-  FROM ATT_MEM$attendance_counts att
+  FROM ATT_MEM$attendance_counts att WITH(NOLOCK)
   WHERE att.grade_level < 5
  )
 
