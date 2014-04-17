@@ -15,6 +15,7 @@ DECLARE @cols NVARCHAR(MAX)
 DECLARE @converted_cols NVARCHAR(MAX)
 
 -- Step 3: declare the cursor FOR the set of records it will loop over --
+-- cursor name MUST be unique within schema
 DECLARE illuminate_cursor CURSOR FOR
   SELECT repository_id        
   FROM OPENQUERY(ILLUMINATE,'
@@ -24,7 +25,7 @@ DECLARE illuminate_cursor CURSOR FOR
   ')
 		    
 -- Step 4: do work, son --
---
+-- boilerplate cursor stuff
 OPEN illuminate_cursor
 WHILE 1 = 1
   BEGIN
