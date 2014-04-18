@@ -30,7 +30,7 @@ BEGIN
           AND terms.yearid >= 21
           AND terms.schoolid = att.schoolid
           AND terms.portion = 1     
-         WHERE att.att_date <= SYSDATE
+         WHERE att.att_date <= TRUNC(SYSDATE)
          ORDER BY att_date
          ');
    
