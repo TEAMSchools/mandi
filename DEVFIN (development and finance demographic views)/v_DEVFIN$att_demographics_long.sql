@@ -57,8 +57,8 @@ SELECT calendar.date
       ,roster.ENTRYDATE
       ,roster.EXITDATE
       ,roster.ENROLL_STATUS
-      ,attendance.membershipvalue
-      ,attendance.attendancevalue      
+      ,CONVERT(INT,attendance.membershipvalue) AS membershipvalue
+      ,CONVERT(INT,attendance.attendancevalue) AS attendancevalue
       ,roster.SPEDLEP
       ,roster.lunchstatus
       ,roster.ethnicity
@@ -67,6 +67,6 @@ FROM calendar
 JOIN roster
   ON calendar.date >= roster.ENTRYDATE
  AND calendar.date <= roster.EXITDATE
-LEFT OUTER JOIN attendance
+JOIN attendance
   ON calendar.date = attendance.date
  AND roster.studentid = attendance.studentid
