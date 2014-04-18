@@ -1,71 +1,68 @@
-USE KIPP_NJ
+USE [KIPP_NJ]
 GO
 
-ALTER VIEW ILLUMINATE$summary_assessments AS
+SET ANSI_NULLS ON
+GO
 
-WITH test_roster AS (
-  SELECT DISTINCT          
-         co.SCHOOLID        
-        ,co.GRADE_LEVEL
-        ,summ.repository_id
-        ,CONVERT(DATE,repo.date_administered) AS date_administered
-  FROM ILLUMINATE$student_id_key id WITH(NOLOCK)
-  JOIN ILLUMINATE$summary_assessment_results_long#static summ WITH(NOLOCK)
-    ON id.ill_stu_id = summ.student_id
-  JOIN (
-        SELECT *
-        FROM OPENQUERY(ILLUMINATE,'
-          SELECT repo.repository_id                
-                ,repo.date_administered                
-          FROM dna_repositories.repositories repo          
-        ')
-        ) repo
-    ON summ.repository_id = repo.repository_id
-  JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
-    ON id.studentid = co.STUDENTID
-   AND repo.date_administered >= co.ENTRYDATE
-   AND repo.date_administered <= co.EXITDATE
-   AND co.RN = 1
- )  
+SET QUOTED_IDENTIFIER ON
+GO
 
-SELECT test_roster.SCHOOLID      
-      ,test_roster.GRADE_LEVEL
-      ,repo.repository_id
-      ,repo.title
-      ,repo.description
-      ,repo.subject
-      ,repo.scope
-      ,t.LASTFIRST AS created_by
-      ,repo.teacher_number
-      ,dt.time_per_name AS fsa_week
-      ,CONVERT(DATE,repo.date_administered) AS date_administered
-      ,CONVERT(DATE,repo.deleted_at) AS deleted_at
-      ,repo.db_virtual_table_id
-FROM OPENQUERY(ILLUMINATE,'
-  SELECT repo.repository_id
-        ,repo.title
-        ,repo.description
-        ,subj.code_translation AS subject
-        ,scope.code_translation AS scope        
-        ,u.state_id AS teacher_number
-        ,repo.date_administered
-        ,repo.deleted_at
-        ,repo.db_virtual_table_id
-  FROM dna_repositories.repositories repo
-  LEFT OUTER JOIN codes.dna_subject_areas subj
-    ON repo.code_subject_area_id = subj.code_id
-  LEFT OUTER JOIN codes.dna_scopes scope
-    ON repo.code_scope_id = scope.code_id
-  LEFT OUTER JOIN public.users u
-    ON repo.user_id = u.user_id
-') repo
-LEFT OUTER JOIN TEACHERS t WITH(NOLOCK)
-  ON repo.teacher_number = t.TEACHERNUMBER
-LEFT OUTER JOIN test_roster WITH(NOLOCK)
-  ON repo.repository_id = test_roster.repository_id
-LEFT OUTER JOIN REPORTING$dates dt WITH(NOLOCK)
-  ON repo.date_administered >= dt.start_date
- AND repo.date_administered <= dt.end_date
- --AND test_roster.SCHOOLID = dt.schoolid
- AND dt.school_level = 'ES'
- AND dt.identifier = 'FSA'
+
+
+ALTER PROCEDURE [sp_ILLUMINATE$summary_assessments#static|refresh] AS
+BEGIN
+
+ DECLARE @sql AS VARCHAR(MAX)='';
+
+ --STEP 1: make sure no temp table
+		IF OBJECT_ID(N'tempdb..#ILLUMINATE$summary_assessments#static|refresh') IS NOT NULL
+		BEGIN
+						DROP TABLE [#ILLUMINATE$summary_assessments#static|refresh]
+		END
+		
+		
+		--STEP 2: load into a TEMPORARY staging table.  
+  SELECT *
+		INTO [#ILLUMINATE$summary_assessments#static|refresh]
+		FROM ILLUMINATE$summary_assessments;   
+  
+
+  --STEP 4: truncate 
+  EXEC('TRUNCATE TABLE KIPP_NJ..ILLUMINATE$summary_assessments#static');
+
+  --STEP 5: disable all nonclustered indexes on table
+  SELECT @sql = @sql + 
+   'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name + ' DISABLE;' +CHAR(13)+CHAR(10)
+  FROM 
+   sys.indexes
+  JOIN 
+   sys.objects 
+   ON sys.indexes.object_id = sys.objects.object_id
+  WHERE sys.indexes.type_desc = 'NONCLUSTERED'
+   AND sys.objects.type_desc = 'USER_TABLE'
+   AND sys.objects.name = 'ILLUMINATE$summary_assessments#static';
+
+ EXEC (@sql);
+
+ -- step 6: insert into final destination
+ INSERT INTO [dbo].[ILLUMINATE$summary_assessments#static]
+ SELECT *
+ FROM [#ILLUMINATE$summary_assessments#static|refresh];
+
+ -- Step 4: rebuld all nonclustered indexes on table
+ SELECT @sql = @sql + 
+  'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name +' REBUILD;' +CHAR(13)+CHAR(10)
+ FROM 
+  sys.indexes
+ JOIN 
+  sys.objects 
+  ON sys.indexes.object_id = sys.objects.object_id
+ WHERE sys.indexes.type_desc = 'NONCLUSTERED'
+  AND sys.objects.type_desc = 'USER_TABLE'
+  AND sys.objects.name = 'ILLUMINATE$summary_assessments#static';
+
+ EXEC (@sql);
+
+END
+
+GO
