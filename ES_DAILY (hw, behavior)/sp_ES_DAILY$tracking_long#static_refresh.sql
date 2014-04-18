@@ -55,25 +55,31 @@ BEGIN
               ,CASE WHEN daily.color_pm = 'yellow' THEN 1.0 ELSE NULL END AS pm_yellow
               ,CASE WHEN daily.color_pm = 'orange' THEN 1.0 ELSE NULL END AS pm_orange
               ,CASE WHEN daily.color_pm = 'red' THEN 1.0 ELSE NULL END AS pm_red  
+              ,dates.time_per_name AS week_num
         FROM OPENQUERY(PS_TEAM,'
-               SELECT user_defined_date AS att_date
-                     ,foreignkey AS studentid
-                     ,schoolid
-                     ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field1'') hw
-                     ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field2'') color
-                     ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field3'') color_mid
-                     ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field4'') color_pm
-                     /*
-                     ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field5'') field5
-                     ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field6
-                     ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field7
-                     ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field8
-                     ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field9
-                     ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field10
-                     */
-               FROM virtualtablesdata2
-               WHERE related_to_table = ''dailytracking''					            
-             ') daily
+          SELECT user_defined_date AS att_date
+                ,foreignkey AS studentid
+                ,schoolid
+                ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field1'') hw
+                ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field2'') color
+                ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field3'') color_mid
+                ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field4'') color_pm
+                /*
+                ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field5'') field5
+                ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field6
+                ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field7
+                ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field8
+                ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field9
+                ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') field10
+                */
+          FROM virtualtablesdata2
+          WHERE related_to_table = ''dailytracking''					            
+         ') daily
+        LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
+          ON dates.school_level = 'ES'
+         AND daily.att_date >= dates.start_date
+         AND daily.att_date <= dates.end_date
+         AND dates.identifier = 'FSA'
        ) brucewillisisdeadthewholetime;
 
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
