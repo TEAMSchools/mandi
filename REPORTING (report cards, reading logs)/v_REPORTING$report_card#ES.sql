@@ -149,27 +149,27 @@ SELECT r.studentid
       ,daily.hw_3
       ,daily.hw_4
       ,daily.hw_5
-      ,totals.n_hw_wk
-      ,totals.hw_complete_wk
-      ,totals.hw_missing_wk
-      ,totals.hw_pct_wk
-      ,totals.purple_pink_mth
-      ,totals.green_mth
-      ,totals.yellow_mth
-      ,totals.orange_mth
-      ,totals.red_mth
-      ,totals.pct_ontrack_mth
-      ,totals.status_mth
-      ,totals.n_hw_yr
-      ,totals.hw_complete_yr
-      ,totals.hw_missing_yr
-      ,totals.hw_pct_yr
-      ,totals.n_color_yr
-      ,totals.purple_pink_yr
-      ,totals.green_yr
-      ,totals.yellow_yr
-      ,totals.orange_yr
-      ,totals.red_yr
+      ,wk_totals.n_hw_wk
+      ,wk_totals.hw_complete_wk
+      ,wk_totals.hw_missing_wk
+      ,wk_totals.hw_pct_wk
+      ,mth_totals.purple_pink_mth
+      ,mth_totals.green_mth
+      ,mth_totals.yellow_mth
+      ,mth_totals.orange_mth
+      ,mth_totals.red_mth
+      ,mth_totals.pct_ontrack_mth
+      ,mth_totals.status_mth
+      ,yr_totals.n_hw_yr
+      ,yr_totals.hw_complete_yr
+      ,yr_totals.hw_missing_yr
+      ,yr_totals.hw_pct_yr
+      ,yr_totals.n_color_yr
+      ,yr_totals.purple_pink_yr
+      ,yr_totals.green_yr
+      ,yr_totals.yellow_yr
+      ,yr_totals.orange_yr
+      ,yr_totals.red_yr
       ,sw.n_total AS sw_total_w
       ,sw.n_correct AS sw_correct_w
       ,sw.n_missed AS sw_missed_w
@@ -191,11 +191,17 @@ LEFT OUTER JOIN REPORTING$FSA_scores_wide fsa WITH(NOLOCK)
 LEFT OUTER JOIN REPORTING$daily_tracking_wide daily WITH(NOLOCK) 
   ON r.STUDENTID = daily.studentid
  AND reporting_week.week_num = daily.week_num
-LEFT OUTER JOIN REPORTING$daily_tracking_totals totals WITH(NOLOCK)
-  ON r.STUDENTID = totals.studentid
- AND r.SCHOOLID = totals.schoolid
- AND reporting_week.week_num = totals.week_num
- AND reporting_week.month = totals.month
+LEFT OUTER JOIN REPORTING$daily_tracking_totals wk_totals WITH(NOLOCK)
+  ON r.STUDENTID = wk_totals.studentid 
+ AND reporting_week.week_num = wk_totals.week_num 
+LEFT OUTER JOIN REPORTING$daily_tracking_totals mth_totals WITH(NOLOCK)
+  ON r.STUDENTID = mth_totals.studentid 
+ AND mth_totals.week_num IS NULL
+ AND reporting_week.month = mth_totals.month 
+LEFT OUTER JOIN REPORTING$daily_tracking_totals yr_totals WITH(NOLOCK)
+  ON r.STUDENTID = yr_totals.studentid 
+ AND yr_totals.week_num IS NULL
+ AND yr_totals.month IS NULL
 LEFT OUTER JOIN REPORTING$sight_word_totals sw WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sw.student_number
  AND reporting_week.week_num = sw.listweek_num

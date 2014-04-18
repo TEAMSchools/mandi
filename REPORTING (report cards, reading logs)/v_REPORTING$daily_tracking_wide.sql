@@ -11,8 +11,7 @@ WITH valid_dates AS (
   FROM
       (
        SELECT DISTINCT daily.schoolid
-                      ,daily.att_date                      
-                      ,DATENAME(WEEKDAY,daily.att_date) AS day
+                      ,daily.att_date                                            
                       ,dates.time_per_name AS week_num
        FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)
        JOIN REPORTING$dates dates WITH(NOLOCK)
@@ -75,9 +74,9 @@ FROM
          (
           SELECT daily.schoolid
            ,daily.studentid
-           ,valid_dates.week_num
+           ,daily.week_num
            ,daily.att_date
-           ,valid_dates.day
+           ,DATENAME(WEEKDAY,daily.att_date) AS day
            ,valid_dates.day_number        
            ,daily.hw
            ,daily.color_day
