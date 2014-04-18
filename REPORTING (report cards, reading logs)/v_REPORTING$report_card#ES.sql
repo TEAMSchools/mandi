@@ -53,8 +53,9 @@ WITH roster AS (
         ,DATENAME(MONTH,start_date) AS month
         ,REPLACE(time_per_name,'_',' ') + ': ' + LEFT(CONVERT(VARCHAR,start_date,101),5) + ' - ' + LEFT(CONVERT(VARCHAR,end_date,101),5) AS week_title
   FROM REPORTING$dates WITH(NOLOCK)
-  WHERE DATEADD(WEEK,-1,GETDATE()) >= start_date -- determines the previous week
-    AND DATEADD(WEEK,-1,GETDATE()) <= end_date -- determines the previous week
+  WHERE time_per_name = 'Week_02'
+  --DATEADD(WEEK,-2,GETDATE()) >= start_date -- determines the previous week
+  --  AND DATEADD(WEEK,-2,GETDATE()) <= end_date -- determines the previous week
     AND identifier = 'FSA'
  )
 
@@ -169,6 +170,16 @@ SELECT r.studentid
       ,totals.yellow_yr
       ,totals.orange_yr
       ,totals.red_yr
+      ,sw.n_total AS sw_total_w
+      ,sw.n_correct AS sw_correct_w
+      ,sw.n_missed AS sw_missed_w
+      ,sw.pct_correct AS sw_average_w
+      ,sw.missed_words AS sw_missedwords_w
+      ,sw.n_total_yr
+      ,sw.n_correct_yr
+      ,sw.n_missed_yr
+      ,sw.pct_correct_yr
+      ,sw.missed_words_yr
 FROM roster r
 LEFT OUTER JOIN reporting_week
   ON 1 = 1
@@ -185,3 +196,6 @@ LEFT OUTER JOIN REPORTING$daily_tracking_totals totals WITH(NOLOCK)
  AND r.SCHOOLID = totals.schoolid
  AND reporting_week.week_num = totals.week_num
  AND reporting_week.month = totals.month
+LEFT OUTER JOIN REPORTING$sight_word_totals sw WITH(NOLOCK)
+  ON r.STUDENT_NUMBER = sw.student_number
+ AND reporting_week.week_num = sw.listweek_num
