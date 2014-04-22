@@ -2,8 +2,8 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW NJASK$Math_wide AS
-SELECT TOP (100) PERCENT 
-       s.id AS studentid
+
+SELECT s.id AS studentid
       ,s.lastfirst
       ,s.grade_level
       ,s.schoolid
@@ -52,4 +52,3 @@ LEFT OUTER JOIN NJASK$detail#static NJASK10 WITH (NOLOCK)
 WHERE s.enroll_status = 0
   AND s.grade_level >= 3
   AND s.grade_level <= 9
-ORDER BY s.grade_level DESC, s.lastfirst

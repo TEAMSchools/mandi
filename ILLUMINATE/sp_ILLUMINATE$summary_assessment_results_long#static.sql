@@ -5,13 +5,13 @@ ALTER PROCEDURE [sp_ILLUMINATE$summary_assessment_results_long#static|refresh] A
 
 BEGIN
 
-  -- Step 1: drop and recreate the temp table --
+  -- 1.) Drop and recreate the temp table --
   IF OBJECT_ID(N'tempdb..#ILLUMINATE$summary_assessment_results_long#static|refresh') IS NOT NULL
     DROP TABLE [#ILLUMINATE$summary_assessment_results_long#static|refresh]
     CREATE TABLE [#ILLUMINATE$summary_assessment_results_long#static|refresh] (repository_id INT, student_id INT, field NVARCHAR(MAX), value NVARCHAR(MAX))
 
 
-  -- Step 2: declare variables --
+  -- 2.) Declare variables --
   DECLARE @query NVARCHAR(MAX)
   DECLARE @repository_id NVARCHAR(MAX)
   DECLARE @cols NVARCHAR(MAX)
@@ -19,18 +19,19 @@ BEGIN
   DECLARE @sql NVARCHAR(MAX)
 
 
-  -- Step 3: declare the cursor FOR the set of records it will loop over --
-  -- cursor name MUST be unique within schema
+  -- 3.) Declare the cursor FOR the set of records it will loop over --
+      -- cursor name MUST be unique within schema
   DECLARE illuminate_cursor CURSOR FOR
     SELECT repository_id        
     FROM OPENQUERY(ILLUMINATE,'
       SELECT repository_id          
       FROM dna_repositories.repositories    
       WHERE deleted_at IS NULL      
+        AND repository_id < 53
     ')
 
   		    
-  -- Step 4: do work, son --
+  -- 4.) Do work, son --
   -- boilerplate cursor stuff
   OPEN illuminate_cursor
   WHILE 1 = 1
@@ -97,12 +98,12 @@ BEGIN
   DEALLOCATE illuminate_cursor;
 
 
-  -- Step 5: clear out the results table
+  -- 5.) Clear out the results table
   EXEC('TRUNCATE TABLE KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static');
 
 
-  -- Step 6: disable all nonclustered indexes on table
-  SELECT @sql = @sql + 'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name + ' DISABLE;' +CHAR(13)+CHAR(10)
+  -- 6.) Disable all nonclustered indexes on table
+  SELECT @sql = @sql + 'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name + ' DISABLE;' + CHAR(13) + CHAR(10)
   FROM sys.indexes
   JOIN sys.objects 
     ON sys.indexes.object_id = sys.objects.object_id
@@ -112,7 +113,7 @@ BEGIN
   EXEC (@sql);
 
 
-  -- Step 7: UPSERT, matching on repo, student, and field
+  -- 7.) UPSERT, matching on repo, student, and field
   MERGE ILLUMINATE$summary_assessment_results_long#static AS TARGET
     USING (
            SELECT *
@@ -141,8 +142,8 @@ BEGIN
                ,source.value);
                
                
-  -- Step 8: rebuld all nonclustered indexes on table
-  SELECT @sql = @sql + 'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name +' REBUILD;' +CHAR(13)+CHAR(10)
+  -- 8.) Rebuld all nonclustered indexes on table
+  SELECT @sql = @sql + 'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name +' REBUILD;' + CHAR(13) + CHAR(10)
   FROM sys.indexes
   JOIN sys.objects 
     ON sys.indexes.object_id = sys.objects.object_id

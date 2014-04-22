@@ -2,10 +2,11 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW NJASK$ELA_wide AS
-SELECT TOP (100) PERCENT 
-       ROW_NUMBER() OVER(
-        PARTITION BY s.id ORDER BY s.lastfirst) AS rn,
-       s.id AS studentid
+
+SELECT ROW_NUMBER() OVER(
+          PARTITION BY s.id 
+              ORDER BY s.lastfirst) AS rn
+      ,s.id AS studentid
       ,s.lastfirst
       ,s.grade_level
       ,s.schoolid
@@ -52,4 +53,3 @@ LEFT OUTER JOIN NJASK$detail#static NJASK10 WITH (NOLOCK)
  AND NJASK10.test_date >= '2010-01-01'                       
  AND NJASK10.test_date <= '2010-06-01'                       
 WHERE s.enroll_status = 0
-ORDER BY s.schoolid, s.grade_level DESC, s.lastfirst

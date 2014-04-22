@@ -2,8 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW REPORTING$intervention_results_by_standard AS
-SELECT TOP (100) PERCENT
-       schoolid
+SELECT schoolid
       ,studentid
       ,student_number
       ,lastfirst
@@ -86,4 +85,4 @@ FROM
        AND assessments.deleted_at IS NULL
       WHERE s.enroll_status = 0
         AND s.schoolid IN (73254,73255,73256)        
-      ) sub
+     ) sub

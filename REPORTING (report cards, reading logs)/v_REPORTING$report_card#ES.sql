@@ -175,11 +175,15 @@ SELECT r.studentid
       ,sw.n_missed AS sw_missed_w
       ,sw.pct_correct AS sw_average_w
       ,sw.missed_words AS sw_missedwords_w
-      ,sw.n_total_yr
-      ,sw.n_correct_yr
-      ,sw.n_missed_yr
-      ,sw.pct_correct_yr
-      ,sw.missed_words_yr
+      ,sw.n_total_yr AS sw_total_yr
+      ,sw.n_correct_yr AS sw_correct_yr
+      ,sw.n_missed_yr AS sw_missed_yr
+      ,sw.pct_correct_yr AS sw_average_yr
+      ,sw.missed_words_yr AS sw_missedwords_yr
+      ,sp.pct_correct_wk AS sp_average_w
+      ,sp.pct_correct_yr AS sp_average_yr
+      ,vocab.pct_correct_wk AS v_average_w
+      ,vocab.pct_correct_yr AS v_average_yr
 FROM roster r
 LEFT OUTER JOIN reporting_week
   ON 1 = 1
@@ -205,3 +209,9 @@ LEFT OUTER JOIN REPORTING$daily_tracking_totals yr_totals WITH(NOLOCK)
 LEFT OUTER JOIN REPORTING$sight_word_totals sw WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sw.student_number
  AND reporting_week.week_num = sw.listweek_num
+LEFT OUTER JOIN REPORTING$spelling_totals sp WITH(NOLOCK)
+  ON r.STUDENT_NUMBER = sp.student_number
+ AND reporting_week.week_num = sp.listweek_num
+LEFT OUTER JOIN REPORTING$vocab_totals vocab WITH(NOLOCK)
+  ON r.STUDENT_NUMBER = vocab.student_number
+ AND reporting_week.week_num = vocab.listweek_num 
