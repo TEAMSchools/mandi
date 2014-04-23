@@ -96,16 +96,55 @@ BEGIN
              ,fp_keylever
              
              --aggregate fields
-             ,CONVERT(FLOAT,ISNULL(cc_factual,0)) + CONVERT(FLOAT,ISNULL(cc_other,0)) + CONVERT(FLOAT,ISNULL(cc_infer,0)) + CONVERT(FLOAT,ISNULL(cc_ct,0)) AS cc_prof      
-             ,CONVERT(FLOAT,ISNULL(ocomp_factual,0)) + CONVERT(FLOAT,ISNULL(ocomp_infer,0)) + CONVERT(FLOAT,ISNULL(ocomp_ct,0)) AS ocomp_prof
-             ,CONVERT(FLOAT,ISNULL(scomp_factual,0)) + CONVERT(FLOAT,ISNULL(scomp_infer,0)) + CONVERT(FLOAT,ISNULL(scomp_ct,0)) AS scomp_prof
-             ,CONVERT(FLOAT,ISNULL(wcomp_fact,0)) + CONVERT(FLOAT,ISNULL(wcomp_infer,0)) + CONVERT(FLOAT,ISNULL(wcomp_ct,0)) AS wcomp_prof
-             ,CONVERT(FLOAT,ISNULL(fp_comp_within,0)) + CONVERT(FLOAT,ISNULL(fp_comp_beyond,0)) + CONVERT(FLOAT,ISNULL(fp_comp_about,0)) AS fp_comp_prof      
-             ,CONVERT(FLOAT,ISNULL(cp_orient,0)) + CONVERT(FLOAT,ISNULL(cp_121match,0)) + CONVERT(FLOAT,ISNULL(cp_slw,0)) AS cp_prof
-             ,CONVERT(FLOAT,ISNULL(rr_121match,0)) + CONVERT(FLOAT,ISNULL(rr_holdspattern,0)) + CONVERT(FLOAT,ISNULL(rr_understanding,0)) AS rr_prof
-             ,CONVERT(FLOAT,ISNULL(devsp_first,0)) 
-               + CONVERT(FLOAT,ISNULL(devsp_svs,0)) 
-               + CONVERT(FLOAT,ISNULL(devsp_final,0)) AS devsp_prof
+             ,CASE WHEN testid != 3273 THEN
+               CONVERT(FLOAT,ISNULL(cc_factual,0)) 
+                + CONVERT(FLOAT,ISNULL(cc_other,0)) 
+                + CONVERT(FLOAT,ISNULL(cc_infer,0)) 
+                + CONVERT(FLOAT,ISNULL(cc_ct,0)) 
+               ELSE NULL
+              END AS cc_prof      
+             ,CASE WHEN testid != 3273 THEN
+               CONVERT(FLOAT,ISNULL(ocomp_factual,0)) 
+                + CONVERT(FLOAT,ISNULL(ocomp_infer,0)) 
+                + CONVERT(FLOAT,ISNULL(ocomp_ct,0)) 
+               ELSE NULL
+              END AS ocomp_prof
+             ,CASE WHEN testid != 3273 THEN
+               CONVERT(FLOAT,ISNULL(scomp_factual,0)) 
+                + CONVERT(FLOAT,ISNULL(scomp_infer,0)) 
+                + CONVERT(FLOAT,ISNULL(scomp_ct,0)) 
+               ELSE NULL
+              END AS scomp_prof
+             ,CASE WHEN testid != 3273 THEN
+               CONVERT(FLOAT,ISNULL(wcomp_fact,0)) 
+                + CONVERT(FLOAT,ISNULL(wcomp_infer,0)) 
+                + CONVERT(FLOAT,ISNULL(wcomp_ct,0)) 
+               ELSE NULL
+              END AS wcomp_prof
+             ,CASE WHEN testid = 3273 THEN
+               CONVERT(FLOAT,ISNULL(fp_comp_within,0)) 
+                + CONVERT(FLOAT,ISNULL(fp_comp_beyond,0)) 
+                + CONVERT(FLOAT,ISNULL(fp_comp_about,0)) 
+               ELSE NULL
+              END AS fp_comp_prof      
+             ,CASE WHEN testid != 3273 THEN
+               CONVERT(FLOAT,ISNULL(cp_orient,0)) 
+                + CONVERT(FLOAT,ISNULL(cp_121match,0)) 
+                + CONVERT(FLOAT,ISNULL(cp_slw,0)) 
+               ELSE NULL
+              END AS cp_prof
+             ,CASE WHEN testid != 3273 THEN
+               CONVERT(FLOAT,ISNULL(rr_121match,0)) 
+                + CONVERT(FLOAT,ISNULL(rr_holdspattern,0)) 
+                + CONVERT(FLOAT,ISNULL(rr_understanding,0)) 
+               ELSE NULL
+              END AS rr_prof
+             ,CASE WHEN testid != 3273 THEN
+               CONVERT(FLOAT,ISNULL(devsp_first,0)) 
+                + CONVERT(FLOAT,ISNULL(devsp_svs,0)) 
+                + CONVERT(FLOAT,ISNULL(devsp_final,0))
+               ELSE NULL
+              END AS devsp_prof
              ,NULL AS devsp_blend_prof
              ,NULL AS devsp_vce_longvwl_prof
 		       FROM OPENQUERY(PS_TEAM,'
