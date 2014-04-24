@@ -189,29 +189,29 @@ LEFT OUTER JOIN reporting_week
   ON 1 = 1
 JOIN attendance att
   ON r.STUDENTID = att.studentid
-LEFT OUTER JOIN REPORTING$FSA_scores_wide fsa WITH(NOLOCK)
+LEFT OUTER JOIN ILLUMINATE$FSA_scores_wide fsa WITH(NOLOCK)
   ON r.STUDENTID = fsa.studentid
  AND reporting_week.week_num = fsa.fsa_week
-LEFT OUTER JOIN REPORTING$daily_tracking_wide daily WITH(NOLOCK) 
+LEFT OUTER JOIN ES_DAILY$tracking_wide daily WITH(NOLOCK) 
   ON r.STUDENTID = daily.studentid
  AND reporting_week.week_num = daily.week_num
-LEFT OUTER JOIN REPORTING$daily_tracking_totals wk_totals WITH(NOLOCK)
+LEFT OUTER JOIN ES_DAILY$tracking_totals wk_totals WITH(NOLOCK)
   ON r.STUDENTID = wk_totals.studentid 
  AND reporting_week.week_num = wk_totals.week_num 
-LEFT OUTER JOIN REPORTING$daily_tracking_totals mth_totals WITH(NOLOCK)
+LEFT OUTER JOIN ES_DAILY$tracking_totals mth_totals WITH(NOLOCK)
   ON r.STUDENTID = mth_totals.studentid 
  AND mth_totals.week_num IS NULL
  AND reporting_week.month = mth_totals.month 
-LEFT OUTER JOIN REPORTING$daily_tracking_totals yr_totals WITH(NOLOCK)
+LEFT OUTER JOIN ES_DAILY$tracking_totals yr_totals WITH(NOLOCK)
   ON r.STUDENTID = yr_totals.studentid 
  AND yr_totals.week_num IS NULL
  AND yr_totals.month IS NULL
-LEFT OUTER JOIN REPORTING$sight_word_totals sw WITH(NOLOCK)
+LEFT OUTER JOIN LIT$sight_word_totals sw WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sw.student_number
  AND reporting_week.week_num = sw.listweek_num
-LEFT OUTER JOIN REPORTING$spelling_totals sp WITH(NOLOCK)
+LEFT OUTER JOIN LIT$spelling_totals sp WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sp.student_number
  AND reporting_week.week_num = sp.listweek_num
-LEFT OUTER JOIN REPORTING$vocab_totals vocab WITH(NOLOCK)
+LEFT OUTER JOIN LIT$vocab_totals vocab WITH(NOLOCK)
   ON r.STUDENT_NUMBER = vocab.student_number
- AND reporting_week.week_num = vocab.listweek_num 
+ AND reporting_week.week_num = vocab.listweek_num

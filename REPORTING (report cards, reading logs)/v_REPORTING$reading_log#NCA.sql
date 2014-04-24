@@ -67,19 +67,63 @@ SELECT s.LASTFIRST
       ,ar_yr.mastery AS mastery_yr      
       ,eng1.COURSE_NAME AS eng1_course
       ,eng1.SECTION_NUMBER AS eng1_section
-      ,eng1.LASTFIRST AS eng1_teacher
+      ,CASE        
+        WHEN eng1.expression = '1(A)' THEN 'HR'
+        WHEN eng1.expression = '2(A)' THEN '1'
+        WHEN eng1.expression = '3(A)' THEN '2'
+        WHEN eng1.expression = '4(A)' THEN '3'
+        WHEN eng1.expression = '5(A)' THEN '4A'
+        WHEN eng1.expression = '6(A)' THEN '4B'
+        WHEN eng1.expression = '7(A)' THEN '4C'
+        WHEN eng1.expression = '8(A)' THEN '4D'
+        WHEN eng1.expression = '9(A)' THEN '5A'
+        WHEN eng1.expression = '10(A)' THEN '5B'
+        WHEN eng1.expression = '11(A)' THEN '5C'
+        WHEN eng1.expression = '12(A)' THEN '5D'
+        WHEN eng1.expression = '13(A)' THEN '6'
+        WHEN eng1.expression = '14(A)' THEN '7'
+        ELSE NULL
+       END AS eng1_period
+      ,CASE WHEN eng1.LASTFIRST LIKE '%Williams, Renae%' THEN 'Triplett, Corey' ELSE eng1.LASTFIRST END AS eng1_teacher
       ,eng2.COURSE_NAME AS eng2_course
       ,eng2.SECTION_NUMBER AS eng2_section
-      ,eng2.LASTFIRST AS eng2_teacher
-      ,diff.COURSE_NAME AS fourth_per_class
-      ,diff.LASTFIRST AS fourth_per_teacher
       ,CASE        
-        WHEN diff.expression = '5(A)' THEN '4B'
-        WHEN diff.expression = '6(A)' THEN '4A'
-        WHEN diff.expression = '7(A)' THEN '4D'
-        WHEN diff.expression = '8(A)' THEN '4C'        
+        WHEN eng2.expression = '1(A)' THEN 'HR'
+        WHEN eng2.expression = '2(A)' THEN '1'
+        WHEN eng2.expression = '3(A)' THEN '2'
+        WHEN eng2.expression = '4(A)' THEN '3'
+        WHEN eng2.expression = '5(A)' THEN '4A'
+        WHEN eng2.expression = '6(A)' THEN '4B'
+        WHEN eng2.expression = '7(A)' THEN '4C'
+        WHEN eng2.expression = '8(A)' THEN '4D'
+        WHEN eng2.expression = '9(A)' THEN '5A'
+        WHEN eng2.expression = '10(A)' THEN '5B'
+        WHEN eng2.expression = '11(A)' THEN '5C'
+        WHEN eng2.expression = '12(A)' THEN '5D'
+        WHEN eng2.expression = '13(A)' THEN '6'
+        WHEN eng2.expression = '14(A)' THEN '7'
         ELSE NULL
-       END AS lunch_assignment
+       END AS eng2_period
+      ,CASE WHEN eng2.LASTFIRST LIKE '%Williams, Renae%' THEN 'Triplett, Corey' ELSE eng2.LASTFIRST END AS eng2_teacher
+      ,diff.COURSE_NAME AS fourth_per_class
+      ,CASE WHEN diff.LASTFIRST LIKE '%Williams, Renae%' THEN 'Triplett, Corey' ELSE diff.LASTFIRST END AS fourth_per_teacher
+      ,CASE        
+        WHEN diff.expression = '1(A)' THEN 'HR'
+        WHEN diff.expression = '2(A)' THEN '1'
+        WHEN diff.expression = '3(A)' THEN '2'
+        WHEN diff.expression = '4(A)' THEN '3'
+        WHEN diff.expression = '5(A)' THEN '4A'
+        WHEN diff.expression = '6(A)' THEN '4B'
+        WHEN diff.expression = '7(A)' THEN '4C'
+        WHEN diff.expression = '8(A)' THEN '4D'
+        WHEN diff.expression = '9(A)' THEN '5A'
+        WHEN diff.expression = '10(A)' THEN '5B'
+        WHEN diff.expression = '11(A)' THEN '5C'
+        WHEN diff.expression = '12(A)' THEN '5D'
+        WHEN diff.expression = '13(A)' THEN '6'
+        WHEN diff.expression = '14(A)' THEN '7'
+        ELSE NULL
+       END AS diff_block
       ,intv_block.group_name AS diff_block_assignment
       ,CASE
         WHEN ar_q1.points = 0 THEN 'Tied for last place with 0 points'
@@ -113,7 +157,7 @@ SELECT s.LASTFIRST
       ,ROUND(((ar_q4.points / ar_q4.points_goal) * 100),0) AS AR_progress_q4
       ,ROUND(((ar_yr.points / ar_yr.points_goal) * 100),0) AS AR_progress_yr
       ,CASE
-        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Exempt'
+        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Attends RTI'
         WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_cur.points / ar_cur.points_goal) * 100),0))
         WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points >= 25 THEN '100'
         WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points >= 20 AND ar_cur.points < 25 THEN '90'
@@ -130,7 +174,7 @@ SELECT s.LASTFIRST
         WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points = 0 THEN '0'
        END AS ar_grade_cur
       ,CASE
-        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Exempt'
+        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Attends RTI'
         WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q1.points / ar_q1.points_goal) * 100),0))
         WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points >= 25 THEN '100'
         WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points >= 20 AND ar_q1.points < 25 THEN '90'
@@ -147,7 +191,7 @@ SELECT s.LASTFIRST
         WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points = 0 THEN '0'
        END AS ar_grade_q1
       ,CASE
-        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Exempt'
+        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Attends RTI'
         WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q2.points / ar_q2.points_goal) * 100),0))
         WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points >= 25 THEN '100'
         WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points >= 20 AND ar_q2.points < 25 THEN '90'
@@ -164,7 +208,7 @@ SELECT s.LASTFIRST
         WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points = 0 THEN '0'
        END AS ar_grade_q2
       ,CASE
-        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Exempt'
+        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Attends RTI'
         WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q3.points / ar_q3.points_goal) * 100),0))
         WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 25 THEN '100'
         WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 20 AND ar_q3.points < 25 THEN '90'
@@ -181,7 +225,7 @@ SELECT s.LASTFIRST
         WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points = 0 THEN '0'
        END AS ar_grade_q3
       ,CASE
-        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Exempt'
+        WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Attends RTI'
         WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q4.points / ar_q4.points_goal) * 100),0))
         WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points >= 25 THEN '100'
         WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points >= 20 AND ar_q4.points < 25 THEN '90'
@@ -258,6 +302,7 @@ LEFT OUTER JOIN (
                        ,c.COURSE_NAME
                        ,c.COURSE_NUMBER
                        ,cc.SECTION_NUMBER
+                       ,cc.EXPRESSION
                        ,t.LASTFIRST
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
@@ -278,6 +323,7 @@ LEFT OUTER JOIN (
                        ,c.COURSE_NAME
                        ,c.COURSE_NUMBER
                        ,cc.SECTION_NUMBER                       
+                       ,cc.EXPRESSION
                        ,t.LASTFIRST
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
