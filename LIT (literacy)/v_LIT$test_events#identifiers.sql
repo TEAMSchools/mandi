@@ -90,13 +90,15 @@ FROM
            ,rs.testid
            
            -- date stuff
-           ,cohort.YEAR AS academic_year
+           ,CASE 
+             WHEN dates.time_per_name IN ('BOY','Diagnostic') AND DATEPART(MONTH,rs.test_date) < 7 THEN cohort.YEAR + 1
+             WHEN dates.time_per_name IN ('T3','EOY') AND DATEPART(MONTH,rs.test_date) > 6 THEN cohort.YEAR - 1
+             ELSE cohort.YEAR
+            END AS academic_year -- replace with rs.academic_year
            ,CASE
              WHEN dates.time_per_name IN ('BOY','Diagnostic') THEN 'DR'
              ELSE dates.time_per_name
-            END AS test_round
-           --,rs.academic_year
-           --,rs.test_round
+            END AS test_round -- replace with rs.test_round           
            ,rs.test_date
            
            -- student identifiers
