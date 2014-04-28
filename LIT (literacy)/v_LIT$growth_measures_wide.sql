@@ -41,7 +41,7 @@ WITH roster AS (
             SELECT academic_year
                   ,test_round + '_base' AS identifier
                   ,studentid
-                  ,CONVERT(VARCHAR,step_ltr_level) AS read_lvl
+                  ,CONVERT(VARCHAR,read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,GLEQ) AS GLEQ
                   ,CONVERT(VARCHAR,lvl_num) AS lvl_num
             FROM LIT$test_events#identifiers WITH(NOLOCK)
@@ -105,7 +105,7 @@ WITH roster AS (
             SELECT academic_year
                   ,test_round + '_cur' AS identifier
                   ,studentid
-                  ,CONVERT(VARCHAR,step_ltr_level) AS read_lvl
+                  ,CONVERT(VARCHAR,read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,GLEQ) AS GLEQ
                   ,CONVERT(VARCHAR,lvl_num) AS lvl_num
             FROM LIT$test_events#identifiers WITH(NOLOCK)
@@ -161,7 +161,7 @@ WITH roster AS (
             SELECT academic_year
                   ,'yr_base' AS identifier
                   ,studentid
-                  ,CONVERT(VARCHAR,step_ltr_level) AS read_lvl
+                  ,CONVERT(VARCHAR,read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,GLEQ) AS GLEQ
                   ,CONVERT(VARCHAR,lvl_num) AS lvl_num
                   ,CONVERT(VARCHAR,color) AS color
@@ -217,7 +217,7 @@ WITH roster AS (
             SELECT academic_year
                   ,'yr_cur' AS identifier
                   ,studentid
-                  ,CONVERT(VARCHAR,step_ltr_level) AS read_lvl
+                  ,CONVERT(VARCHAR,read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,GLEQ) AS GLEQ
                   ,CONVERT(VARCHAR,lvl_num) AS lvl_num
                   ,CONVERT(VARCHAR,color) AS color
@@ -276,7 +276,7 @@ WITH roster AS (
             SELECT academic_year
                   ,test_round + '_dna' AS identifier
                   ,rs.studentid
-                  ,CONVERT(VARCHAR,step_ltr_level) AS read_lvl
+                  ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,dna.dna_reason) AS reason
             FROM LIT$test_events#identifiers rs WITH(NOLOCK)
             JOIN LIT$dna_reasons dna WITH(NOLOCK)
@@ -322,7 +322,7 @@ WITH roster AS (
             SELECT academic_year
                   ,'yr_dna' AS identifier
                   ,rs.studentid
-                  ,CONVERT(VARCHAR,step_ltr_level) AS read_lvl
+                  ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,dna.dna_reason) AS reason
             FROM LIT$test_events#identifiers rs WITH(NOLOCK)
             JOIN LIT$dna_reasons dna WITH(NOLOCK)
