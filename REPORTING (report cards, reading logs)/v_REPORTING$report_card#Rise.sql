@@ -647,16 +647,16 @@ SELECT roster.*
    --AR totals
      --year
      ,replace(convert(varchar,convert(Money, ar_yr.words),1),'.00','') AS words_read_yr
-     ,replace(convert(varchar,convert(Money, ar_curr.words_goal * 6),1),'.00','') AS words_goal_yr      
+     ,replace(convert(varchar,convert(Money, ar_yr.words_goal),1),'.00','') AS words_goal_yr      
      ,ar_yr.rank_words_grade_in_school AS words_rank_yr_in_grade
      ,ar_yr.mastery AS mastery_yr
      
      --current
      --current trimester = current HEX + previous HEX
      ,replace(convert(varchar,convert(Money, ar_curr.words + ar_curr2.words),1),'.00','') AS words_read_cur_term
-     ,replace(convert(varchar,convert(Money, ar_curr.words_goal * 2),1),'.00','') AS words_goal_cur_term
-     ,ar_curr.rank_words_grade_in_school AS words_rank_cur_term_in_grade
-     ,ar_curr.mastery AS mastery_curr
+     ,replace(convert(varchar,convert(Money, ar_curr.words_goal + ar_curr2.words_goal),1),'.00','') AS words_goal_cur_term
+     ,ar_curr2.rank_words_grade_in_school AS words_rank_cur_term_in_grade
+     ,ar_curr2.mastery AS mastery_curr
       
     --AR progress
       --to year goal      
@@ -667,20 +667,23 @@ SELECT roster.*
       END AS stu_status_words_yr   
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CAST(ROUND(
        CASE
-        WHEN ((ar_curr.words_goal * 6) - ar_yr.words) <= 0 THEN NULL 
-        ELSE (ar_curr.words_goal * 6) - ar_yr.words
+        WHEN (ar_yr.words_goal - ar_yr.words) <= 0 THEN NULL 
+        ELSE (ar_yr.words_goal - ar_yr.words)
        END,0) AS INT)),1),'.00','') AS words_needed_yr
       --to term goal
      ,CASE
-       WHEN ar_curr.stu_status_words = 'On Track' THEN 'Yes!'
-       WHEN ar_curr.stu_status_words = 'Off Track' THEN 'No'
-       WHEN ((ar_curr.words_goal * 2) - (ar_curr.words + ar_curr2.words)) > 0 THEN 'Missed Goal'
-       ELSE ar_curr.stu_status_words
+       WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN 'Met Goal'
+       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') AND ar_curr2.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') AND ar_curr2.stu_status_words IN ('Off Track','Missed Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') AND ar_curr2.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') AND ar_curr2.stu_status_words IN ('Off Track','Missed Goal') THEN 'No'       
+       --WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) > 0 THEN 'Missed Goal'
+       ELSE ar_curr2.stu_status_words
       END AS stu_status_words_cur_term
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CAST(ROUND(
        CASE
-        WHEN ((ar_curr.words_goal * 2) - (ar_curr.words + ar_curr2.words)) <= 0 THEN NULL
-        ELSE ((ar_curr.words_goal * 2) - (ar_curr.words + ar_curr2.words))
+        WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN NULL
+        ELSE ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words))
        END,0) AS INT)),1),'.00','') AS words_needed_cur_term
 
 --Discipline
