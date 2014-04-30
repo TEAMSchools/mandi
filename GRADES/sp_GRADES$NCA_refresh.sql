@@ -251,7 +251,7 @@ BEGIN
      FROM TERMBINS
      WHERE SCHOOLID = ' + CONVERT(VARCHAR, @v_schoolly_d) + '
       AND TERMID >= ' + CONVERT(VARCHAR,  @v_termid) + '
-      AND STORECODE IN (''''' + @v_grade_1 + ''''',''''' + @v_grade_2 + ''''',''''' + @v_grade_3 + ''''',''''' + @v_grade_4 + ''''',''''' + @v_grade_5 + ''''',''''' + @v_grade_6 + ''''')
+      AND STORECODE IN (''''Q1'''',''''Q2'''',''''Q3'''',''''Q4'''',''''E1'''',''''E2'''')
    '')
  '
  
