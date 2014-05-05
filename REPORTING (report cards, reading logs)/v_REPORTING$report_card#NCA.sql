@@ -621,11 +621,8 @@ SELECT roster.*
       ,comment_rc7.teacher_comment  AS rc7_comment
       ,comment_rc8.teacher_comment  AS rc8_comment
       ,comment_rc9.teacher_comment  AS rc9_comment
-      ,comment_rc10.teacher_comment AS rc10_comment
-      /*--FOR REPORT CARDS ONLY--*/
-      /*
-      ,comment_adv.advisor_comment  AS advisor_comment
-      --*/
+      ,comment_rc10.teacher_comment AS rc10_comment      
+      ,comment_adv.advisor_comment  AS advisor_comment      
     
 --Discipline
 --DISC$merits_demerits_count#NCA
@@ -704,7 +701,6 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
  AND lex_curr.rn_curr = 1
  AND lex_curr.map_year_academic = dbo.fn_Global_Academic_Year()
 
---/* 
 --GRADEBOOK COMMMENTS -- upadate FIELD and PARAMETER for current term
 LEFT OUTER JOIN PS$comments#static comment_rc1 WITH (NOLOCK)
   ON gr_wide.rc1_Q3_enr_sectionid = comment_rc1.sectionid
@@ -746,12 +742,10 @@ LEFT OUTER JOIN PS$comments#static comment_rc10 WITH (NOLOCK)
   ON gr_wide.rc10_Q3_enr_sectionid = comment_rc10.sectionid
  AND gr_wide.studentid = comment_rc10.id
  AND comment_rc10.finalgradename = 'Q3'
-/* ONLY USED ON RC
 LEFT OUTER JOIN PS$comments#static comment_adv WITH (NOLOCK)
   ON roster.base_studentid = comment_adv.id
  AND comment_adv.finalgradename = 'Q3'
  AND comment_adv.course_number = 'HR'
---*/
 
 --MERITS & DEMERITS
 LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits WITH (NOLOCK)
