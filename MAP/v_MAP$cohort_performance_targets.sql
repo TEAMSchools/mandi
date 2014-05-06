@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW MAP$cohort_performance_targets AS
+--ALTER VIEW MAP$cohort_performance_targets AS
 WITH zscore AS
     (SELECT *
      FROM OPENQUERY(KIPP_NWK,
@@ -20,7 +20,6 @@ WITH zscore AS
         WHERE rn = 1'
        )
    )
-
    ,cohort_norms AS
    (SELECT *
      FROM OPENQUERY(KIPP_NWK,
@@ -30,7 +29,6 @@ WITH zscore AS
        '
        )
    )
-
    ,cohort AS
      (SELECT c.studentid
             ,c.lastfirst
@@ -53,7 +51,6 @@ WITH zscore AS
         --AND c.grade_level = 6
         --AND c.schoolid = 73252
       )
-
     ,map_baseline AS
     (SELECT map.*
            ,CASE
@@ -75,7 +72,7 @@ WITH zscore AS
      WHERE map_end.map_year_academic = dbo.fn_Global_Academic_Year()
        AND map_end.rn = 1
        --SWITCH THIS AS THE YEAR PROGRESSES eg winter, spring
-       AND map_end.fallwinterspring = 'Winter')
+       AND map_end.fallwinterspring = 'Spring')
 
     ,cc AS
     (SELECT last_tch.*
