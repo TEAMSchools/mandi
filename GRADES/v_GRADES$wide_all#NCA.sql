@@ -22,20 +22,21 @@ WITH rost AS
                ,ROW_NUMBER() OVER 
                   (PARTITION BY studentid
                     ORDER BY CASE
-                              WHEN credittype LIKE '%ENG%'     THEN '1'
-                              WHEN credittype LIKE '%RHET%'    THEN '2'
-                              WHEN credittype LIKE '%MATH%'    THEN '3'
-                              WHEN credittype LIKE '%SCI%'     THEN '4'
-                              WHEN credittype LIKE '%SOC%'     THEN '5'
-                              WHEN credittype LIKE '%WLANG%'   THEN '6'
-                              WHEN credittype LIKE '%ART%'     THEN '7'
-                              WHEN credittype LIKE '%PHYSED%'  THEN '8'                              
-                              WHEN credittype LIKE '%STUDY%'   THEN '9' -- != Study Hall
+                              WHEN credittype LIKE '%ENG%'     THEN '01'
+                              WHEN credittype LIKE '%RHET%'    THEN '02'
+                              WHEN credittype LIKE '%MATH%'    THEN '03'
+                              WHEN credittype LIKE '%SCI%'     THEN '04'
+                              WHEN credittype LIKE '%SOC%'     THEN '05'
+                              WHEN credittype LIKE '%WLANG%'   THEN '06'
+                              WHEN credittype LIKE '%ART%'     THEN '07'
+                              WHEN credittype LIKE '%PHYSED%'  THEN '08'                              
+                              WHEN credittype LIKE '%STUDY%'   THEN '09' -- != Study Hall
+                              WHEN credittype LIKE '%ELEC%'   THEN '10'
                               --WHEN credittype LIKE '%LOG%'     THEN '9' -- Study Hall = LOG
                             END
                   ) AS rn
          FROM KIPP_NJ..GRADES$DETAIL#NCA
-         WHERE credittype IN ('MATH','ENG','SCI','SOC','RHET','WLANG','ART','PHYSED','STUDY')
+         WHERE credittype IN ('MATH','ENG','SCI','SOC','RHET','WLANG','ART','PHYSED','STUDY','ELEC')
          )sub
    )
   

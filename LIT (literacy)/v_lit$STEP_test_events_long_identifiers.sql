@@ -223,7 +223,10 @@ FROM
         ON rs.studentid = s.id
       LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
         ON rs.studentid = cohort.studentid
-       AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+       AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,CASE 
+                                                         WHEN DATEPART(MONTH,cohort.entrydate) < 7 THEN DATEPART(YYYY,cohort.entrydate) - 1
+                                                         ELSE DATEPART(YYYY,cohort.entrydate)
+                                                        END) + '-07-01')
        AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
        AND cohort.rn = 1
       LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
@@ -274,7 +277,10 @@ LEFT OUTER JOIN
             FROM READINGSCORES rs WITH(NOLOCK)      
             LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
               ON rs.studentid = cohort.studentid
-             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,CASE 
+                                                               WHEN DATEPART(MONTH,cohort.entrydate) < 7 THEN DATEPART(YYYY,cohort.entrydate) - 1
+                                                               ELSE DATEPART(YYYY,cohort.entrydate)
+                                                              END) + '-07-01')
              AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
              AND cohort.rn = 1
             WHERE testid != 3273
@@ -290,7 +296,8 @@ LEFT OUTER JOIN
      (
       SELECT *
       FROM
-           (SELECT cohort.year            
+           (
+            SELECT cohort.year            
                  ,rs.studentid
                  ,CASE
                    WHEN step_ltr_level = 'Pre' THEN 0.0
@@ -322,7 +329,10 @@ LEFT OUTER JOIN
            FROM READINGSCORES rs WITH(NOLOCK)      
            LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
              ON rs.studentid = cohort.studentid
-            AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+            AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,CASE 
+                                                              WHEN DATEPART(MONTH,cohort.entrydate) < 7 THEN DATEPART(YYYY,cohort.entrydate) - 1
+                                                              ELSE DATEPART(YYYY,cohort.entrydate)
+                                                             END) + '-07-01')
             AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
             AND cohort.rn = 1
            WHERE testid != 3273
@@ -338,7 +348,7 @@ LEFT OUTER JOIN
       SELECT *
       FROM
            (SELECT rs.studentid
-                  ,cohort.year            
+                  ,cohort.year
                   ,CASE
                     WHEN dates.time_per_name = 'Diagnostic' THEN 'T1'
                     WHEN dates.time_per_name = 'T1' THEN 'T2'
@@ -375,7 +385,10 @@ LEFT OUTER JOIN
             FROM READINGSCORES rs WITH(NOLOCK)      
             LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
               ON rs.studentid = cohort.studentid
-             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,CASE 
+                                                               WHEN DATEPART(MONTH,cohort.entrydate) < 7 THEN DATEPART(YYYY,cohort.entrydate) - 1
+                                                               ELSE DATEPART(YYYY,cohort.entrydate)
+                                                              END) + '-07-01')
              AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
              AND cohort.rn = 1
             LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
@@ -440,7 +453,10 @@ LEFT OUTER JOIN
                   FROM READINGSCORES rs WITH(NOLOCK)                   
                   LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
                     ON rs.studentid = cohort.studentid
-                   AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+                   AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,CASE 
+                                                   WHEN DATEPART(MONTH,cohort.entrydate) < 7 THEN DATEPART(YYYY,cohort.entrydate) - 1
+                                                   ELSE DATEPART(YYYY,cohort.entrydate)
+                                                  END) + '-07-01')
                    AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
                    AND cohort.rn = 1
                   LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
@@ -529,7 +545,10 @@ LEFT OUTER JOIN
                   FROM READINGSCORES rs WITH(NOLOCK)                   
                   LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
                     ON rs.studentid = cohort.studentid
-                   AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+                   AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,CASE 
+                                                   WHEN DATEPART(MONTH,cohort.entrydate) < 7 THEN DATEPART(YYYY,cohort.entrydate) - 1
+                                                   ELSE DATEPART(YYYY,cohort.entrydate)
+                                                  END) + '-07-01')
                    AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
                    AND cohort.rn = 1
                   LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
@@ -584,7 +603,10 @@ LEFT OUTER JOIN
             FROM READINGSCORES rs WITH(NOLOCK)                  
             LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
               ON rs.studentid = cohort.studentid
-             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
+             AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,CASE 
+                                                   WHEN DATEPART(MONTH,cohort.entrydate) < 7 THEN DATEPART(YYYY,cohort.entrydate) - 1
+                                                   ELSE DATEPART(YYYY,cohort.entrydate)
+                                                  END) + '-07-01')
              AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
              AND cohort.rn = 1
             LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
