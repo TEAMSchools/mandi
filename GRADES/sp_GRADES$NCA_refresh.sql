@@ -446,7 +446,7 @@ BEGIN
             ELSE ROUND (
                   (((COALESCE(Q1, 0) + COALESCE(Q2, 0) + COALESCE(Q3, 0)) * 0.225) + ((COALESCE(E1, 0)) * 0.05)) 
                    / 
-                  ((qtr_valid * 22.5) + (exam_valid * 5)) * 100                 
+                  ((qtr_in_books * 22.5) + (exam_in_books * 5)) * 100                 
                  ,1)
            END AS in_the_books
           ,(qtr_in_books * .225) + (exam_in_books * .05) AS used_year
