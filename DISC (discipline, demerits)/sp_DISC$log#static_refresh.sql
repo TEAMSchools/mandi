@@ -51,23 +51,14 @@ BEGIN
                 WHEN subtype = '07' AND logtypeid = 3124 THEN '[OTHER]'
                
                 --ES/MS codes
-                WHEN subtype = '1'  AND logtypeid = -100000 THEN 'Detention'
                 WHEN subtype = '01' AND logtypeid = -100000 THEN 'Detention'
-                WHEN subtype = '2'  AND logtypeid = -100000 THEN 'Silent Lunch'
                 WHEN subtype = '02' AND logtypeid = -100000 THEN 'Silent Lunch'
-                WHEN subtype = '3'  AND logtypeid = -100000 THEN 'Choices'
                 WHEN subtype = '03' AND logtypeid = -100000 THEN 'Choices'
-                WHEN subtype = '4'  AND logtypeid = -100000 THEN 'Bench'
                 WHEN subtype = '04' AND logtypeid = -100000 THEN 'Bench'
-                WHEN subtype = '5'  AND logtypeid = -100000 THEN 'ISS'
                 WHEN subtype = '05' AND logtypeid = -100000 THEN 'ISS'
-                WHEN subtype = '6'  AND logtypeid = -100000 THEN 'OSS'
                 WHEN subtype = '06' AND logtypeid = -100000 THEN 'OSS'
-                WHEN subtype = '7'  AND logtypeid = -100000 THEN 'Bus Warning'
                 WHEN subtype = '07' AND logtypeid = -100000 THEN 'Bus Warning'
-                WHEN subtype = '8'  AND logtypeid = -100000 THEN 'Bus Suspension'
                 WHEN subtype = '08' AND logtypeid = -100000 THEN 'Bus Suspension'
-                WHEN subtype = '9'  AND logtypeid = -100000 THEN 'Class Removal'
                 WHEN subtype = '09' AND logtypeid = -100000 THEN 'Class Removal'
                 WHEN subtype = '10' AND logtypeid = -100000 THEN 'Bullying'
                 WHEN subtype = '11' AND logtypeid = -100000 THEN 'Silent Lunch (5 Day)'
@@ -75,22 +66,13 @@ BEGIN
                 
                 --NCA merits
                 WHEN subtype = '01' AND logtypeid = 3023 THEN 'No Demerits'
-                WHEN subtype = '1'  AND logtypeid = 3023 THEN 'No Demerits'
                 WHEN subtype = '02' AND logtypeid = 3023 THEN 'Panther Pride'
-                WHEN subtype = '2'  AND logtypeid = 3023 THEN 'Panther Pride'
-                WHEN subtype = '3'  AND logtypeid = 3023 THEN 'Work Crew'
                 WHEN subtype = '03' AND logtypeid = 3023 THEN 'Work Crew'
-                WHEN subtype = '4'  AND logtypeid = 3023 THEN 'Courage'
                 WHEN subtype = '04' AND logtypeid = 3023 THEN 'Courage'
-                WHEN subtype = '5'  AND logtypeid = 3023 THEN 'Excellence'
                 WHEN subtype = '05' AND logtypeid = 3023 THEN 'Excellence'
-                WHEN subtype = '6'  AND logtypeid = 3023 THEN 'Humanity'
                 WHEN subtype = '06' AND logtypeid = 3023 THEN 'Humanity'
-                WHEN subtype = '7'  AND logtypeid = 3023 THEN 'Leadership'
                 WHEN subtype = '07' AND logtypeid = 3023 THEN 'Leadership'
-                WHEN subtype = '8'  AND logtypeid = 3023 THEN 'Parent'
                 WHEN subtype = '08' AND logtypeid = 3023 THEN 'Parent'
-                WHEN subtype = '9'  AND logtypeid = 3023 THEN 'Other'
                 WHEN subtype = '09' AND logtypeid = 3023 THEN 'Other'
                 
                 --NCA demerits
@@ -110,21 +92,7 @@ BEGIN
                END AS subtype
 
               --Demerit tiers
-              ,CASE
-                WHEN subtype = '01' AND logtypeid = 3223 THEN 'Tier 1'
-                WHEN subtype = '02' AND logtypeid = 3223 THEN 'Tier 1'
-                WHEN subtype = '03' AND logtypeid = 3223 THEN 'Tier 1'
-                WHEN subtype = '04' AND logtypeid = 3223 THEN 'Tier 1'
-                WHEN subtype = '05' AND logtypeid = 3223 THEN 'Tier 1'
-                WHEN subtype = '06' AND logtypeid = 3223 THEN 'Tier 1'
-                WHEN subtype = '07' AND logtypeid = 3223 THEN 'Tier 1'
-                WHEN subtype = '08' AND logtypeid = 3223 THEN 'Tier 1'
-                WHEN subtype = '09' AND logtypeid = 3223 THEN 'Tier 1'
-                WHEN subtype = '10' AND logtypeid = 3223 THEN 'Tier 1'
-                WHEN subtype = '11' AND logtypeid = 3223 THEN 'Tier 1'
-                WHEN subtype = '12' AND logtypeid = 3223 THEN 'Tier 1'
-                ELSE NULL
-               END AS tier
+              ,CASE WHEN logtypeid = 3223 THEN 'Tier 1' ELSE NULL END AS tier
               ,CASE
                 WHEN discipline_incidenttype = 'CE' THEN 'Cell Phone/Electronics'
                 WHEN discipline_incidenttype = 'C' THEN 'Cheating'
