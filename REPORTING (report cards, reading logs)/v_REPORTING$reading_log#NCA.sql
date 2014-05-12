@@ -108,20 +108,10 @@ SELECT s.LASTFIRST
       ,diff.COURSE_NAME AS fourth_per_class
       ,CASE WHEN diff.LASTFIRST LIKE '%Williams, Renae%' THEN 'Triplett, Corey' ELSE diff.LASTFIRST END AS fourth_per_teacher
       ,CASE        
-        WHEN diff.expression = '1(A)' THEN 'HR'
-        WHEN diff.expression = '2(A)' THEN '1'
-        WHEN diff.expression = '3(A)' THEN '2'
-        WHEN diff.expression = '4(A)' THEN '3'
-        WHEN diff.expression = '5(A)' THEN '4A'
-        WHEN diff.expression = '6(A)' THEN '4B'
-        WHEN diff.expression = '7(A)' THEN '4C'
-        WHEN diff.expression = '8(A)' THEN '4D'
-        WHEN diff.expression = '9(A)' THEN '5A'
-        WHEN diff.expression = '10(A)' THEN '5B'
-        WHEN diff.expression = '11(A)' THEN '5C'
-        WHEN diff.expression = '12(A)' THEN '5D'
-        WHEN diff.expression = '13(A)' THEN '6'
-        WHEN diff.expression = '14(A)' THEN '7'
+        WHEN diff.expression = '5(A)' THEN '4B'
+        WHEN diff.expression = '6(A)' THEN '4A'
+        WHEN diff.expression = '7(A)' THEN '4D'
+        WHEN diff.expression = '8(A)' THEN '4C'        
         ELSE NULL
        END AS diff_block
       ,intv_block.group_name AS diff_block_assignment

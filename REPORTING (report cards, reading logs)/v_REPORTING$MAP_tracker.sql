@@ -96,8 +96,7 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
  AND base.grade_level = map.grade_level
  AND REPLACE(base.measurementscale, ' Usage','') = REPLACE(map.measurementscale, ' Usage','')
  AND base.year = map.map_year_academic
- AND map.rn = 1
- AND map.fallwinterspring = 'Winter'
+ AND map.rn = 1 
  AND map.testtype = 'Survey With Goals'
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID                       
