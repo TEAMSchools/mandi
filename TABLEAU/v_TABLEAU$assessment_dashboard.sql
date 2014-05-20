@@ -16,7 +16,7 @@ SELECT s.schoolid
       ,a.term
       ,a.administered_at
       ,CONVERT(VARCHAR,a.standards_tested) AS standards_tested
-      ,a.standard_descr      
+      ,dbo.ASCII_CONVERT(a.standard_descr) AS standard_descr
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS percent_correct
       ,CONVERT(FLOAT,res.mastered) AS mastered
       ,ROW_NUMBER() OVER(
