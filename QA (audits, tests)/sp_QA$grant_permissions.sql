@@ -58,3 +58,4 @@ GRANT SELECT ON NAVIANCE$SAT_II_scores TO db_data_tool_reader
 GRANT EXECUTE ON fn_Global_Term_Id TO db_data_tool_reader
 GRANT EXECUTE ON GROUP_CONCAT_D TO db_data_tool_reader
 GRANT EXECUTE ON GROUP_CONCAT TO db_data_tool_reader
+GRANT EXECUTE ON ASCII_CONVERT TO db_data_tool_reader
