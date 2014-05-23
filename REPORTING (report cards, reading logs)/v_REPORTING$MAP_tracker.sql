@@ -1,7 +1,40 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$MAP_tracker AS
+--ALTER VIEW REPORTING$MAP_tracker AS
+
+WITH winter AS (
+  SELECT schoolid
+        ,grade_level
+        ,percentile_2011_norms
+        ,map_year_academic
+        ,ps_studentid
+        ,fallwinterspring
+        ,measurementscale
+        ,testritscore
+  FROM MAP$comprehensive#identifiers map WITH(NOLOCK)
+  WHERE map.rn = 1 
+    AND map.testtype = 'Survey With Goals'
+    AND fallwinterspring = 'Winter'
+    AND map_year_academic = dbo.fn_Global_Academic_Year()
+ )
+
+,spring AS (
+  SELECT schoolid
+        ,grade_level
+        ,percentile_2011_norms
+        ,map_year_academic
+        ,ps_studentid
+        ,fallwinterspring
+        ,measurementscale
+        ,testritscore
+  FROM MAP$comprehensive#identifiers map WITH(NOLOCK)
+  WHERE map.rn = 1 
+    AND map.testtype = 'Survey With Goals'
+    AND fallwinterspring = 'Spring'
+    AND map_year_academic = dbo.fn_Global_Academic_Year()
+ )
+
 SELECT
       /*--student identifiers--*/
        s.schoolid
@@ -75,8 +108,14 @@ SELECT
       ,ISNULL(CONVERT(VARCHAR,map.studentid), CONVERT(VARCHAR,s.student_number)) + '_'
         + ISNULL(CONVERT(VARCHAR,REPLACE(map.fallwinterspring,' ','')),SUBSTRING(base.termname, 0, CHARINDEX(' ', base.termname))) + '_'
         + CONVERT(VARCHAR,base.measurementscale) AS stu_subj_hash
-      ,(map.percentile_2011_norms - base.testpercentile) AS pctl_change      
-
+      ,CASE
+        WHEN base.testpercentile IS NULL THEN (spring.percentile_2011_norms - winter.percentile_2011_norms) 
+        ELSE (map.percentile_2011_norms - base.testpercentile) 
+       END AS pctl_change
+     ,CASE
+       WHEN base.testritscore IS NULL THEN (spring.testritscore - winter.testritscore) 
+       ELSE (map.testritscore - base.testritscore) 
+      END AS RIT_change
 FROM MAP$best_baseline#static base WITH(NOLOCK)
 JOIN STUDENTS s WITH(NOLOCK)
   ON base.studentid = s.ID
@@ -116,4 +155,16 @@ LEFT OUTER JOIN (
                 ) eng1
   ON s.ID = eng1.STUDENTID
  AND eng1.rn = 1
-WHERE base.year = dbo.fn_Global_Academic_Year()  
+LEFT OUTER JOIN winter
+  ON base.studentid = winter.ps_studentid
+ AND base.schoolid = winter.schoolid
+ AND base.grade_level = winter.grade_level
+ AND REPLACE(base.measurementscale, ' Usage','') = REPLACE(winter.measurementscale, ' Usage','')
+ AND base.year = winter.map_year_academic
+LEFT OUTER JOIN spring
+  ON base.studentid = spring.ps_studentid
+ AND base.schoolid = spring.schoolid
+ AND base.grade_level = spring.grade_level
+ AND REPLACE(base.measurementscale, ' Usage','') = REPLACE(spring.measurementscale, ' Usage','')
+ AND base.year = spring.map_year_academic
+WHERE base.year = dbo.fn_Global_Academic_Year()

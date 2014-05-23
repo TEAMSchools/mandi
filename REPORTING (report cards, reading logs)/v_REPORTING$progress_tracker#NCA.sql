@@ -740,6 +740,6 @@ FROM
       --Test scores
       LEFT OUTER JOIN KTC$highest_scores_wide ktc WITH(NOLOCK)
         ON roster.student_number = ktc.student_number
-      LEFT OUTER JOIN HSPA$scaled_scores_roster hspa WITH(NOLOCK)
-        ON roster.SID = hspa.SID
+      LEFT OUTER JOIN HSPA$best_score hspa WITH(NOLOCK)
+        ON roster.SID = hspa.SID       
      ) sub_1

@@ -7,6 +7,7 @@ SELECT s.student_number AS SN
       ,s.lastfirst AS Name
       ,s.grade_level AS Gr
       ,cs.Advisor
+      ,s.Gender
       ,cs.SPEDLEP AS SPED
 
       --GPA      
