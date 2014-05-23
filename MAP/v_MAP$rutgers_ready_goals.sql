@@ -40,8 +40,8 @@ SELECT stu_roster.*
       
       ,CAST(ROUND(map_base.typical_growth_fallorspring_to_spring,0) AS INT) AS keep_up_goal
       ,CAST(map_base.testritscore AS FLOAT) + CAST(map_base.typical_growth_fallorspring_to_spring AS FLOAT) AS keep_up_rit
-      ,ROUND(rr_goals.RIT_target, 0) - CAST(map_base.testritscore AS FLOAT) AS rutgers_ready_goal
-      ,map_base.testritscore + CAST(ROUND(CAST(rr_goals.RIT_target AS FLOAT) - CAST(map_base.testritscore AS FLOAT),0) AS FLOAT) AS rutgers_ready_rit
+      ,ROUND(MIN(rr_goals.RIT_target), 0) - CAST(map_base.testritscore AS FLOAT) AS rutgers_ready_goal
+      ,map_base.testritscore + CAST(ROUND(CAST(MIN(rr_goals.RIT_target) AS FLOAT) - CAST(map_base.testritscore AS FLOAT),0) AS FLOAT) AS rutgers_ready_rit
 FROM stu_roster
 JOIN math_read
   ON 1=1
@@ -60,7 +60,18 @@ LEFT OUTER JOIN
   ON stu_roster.studentid = rr_goals.studentid 
  AND stu_roster.year = rr_goals.academic_year
  AND rr_goals.measurementscale = map_base.MeasurementScale
- AND rr_goals.RIT_target > map_base.testritscore 
+ AND ROUND(rr_goals.RIT_target, 0) > ROUND(map_base.testritscore, 0)
+ AND ROUND(rr_goals.RIT_target - map_base.testritscore, 0) > map_base.typical_growth_fallorspring_to_spring
+GROUP BY stu_roster.studentid
+        ,stu_roster.schoolid
+        ,stu_roster.lastfirst
+        ,stu_roster.grade_level
+        ,stu_roster.year
+        ,math_read.measurementscale
+        ,map_base.testritscore
+        ,map_base.testpercentile
+        ,map_base.termname
+        ,map_base.typical_growth_fallorspring_to_spring
 
 UNION ALL
 
