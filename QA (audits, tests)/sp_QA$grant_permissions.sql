@@ -54,6 +54,13 @@ GRANT SELECT ON HSPA$scaled_scores_roster TO db_data_tool_reader
 GRANT SELECT ON NAVIANCE$EXPLORE_scores TO db_data_tool_reader
 GRANT SELECT ON NAVIANCE$SAT_II_scores TO db_data_tool_reader
 
+--Tableau
+GRANT SELECT ON TABLEAU$culture_dashboard#ES TO db_data_tool_reader
+GRANT SELECT ON TABLEAU$culture_dashboard#HS TO db_data_tool_reader
+GRANT SELECT ON TABLEAU$course_enrollments TO db_data_tool_reader
+GRANT SELECT ON TABLEAU$attendance_dashboard TO db_data_tool_reader
+GRANT SELECT ON TABLEAU$assessment_dashboard TO db_data_tool_reader
+
 --DB functions
 GRANT EXECUTE ON fn_Global_Term_Id TO db_data_tool_reader
 GRANT EXECUTE ON GROUP_CONCAT_D TO db_data_tool_reader
