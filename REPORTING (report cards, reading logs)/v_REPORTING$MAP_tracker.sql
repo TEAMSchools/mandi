@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW REPORTING$MAP_tracker AS
+ALTER VIEW REPORTING$MAP_tracker AS
 
 WITH winter AS (
   SELECT schoolid
@@ -32,6 +32,22 @@ WITH winter AS (
   WHERE map.rn = 1 
     AND map.testtype = 'Survey With Goals'
     AND fallwinterspring = 'Spring'
+    AND map_year_academic = dbo.fn_Global_Academic_Year()
+ )
+
+,fall AS (
+  SELECT schoolid
+        ,grade_level
+        ,percentile_2011_norms
+        ,map_year_academic
+        ,ps_studentid
+        ,fallwinterspring
+        ,measurementscale
+        ,testritscore
+  FROM MAP$comprehensive#identifiers map WITH(NOLOCK)
+  WHERE map.rn = 1 
+    AND map.testtype = 'Survey With Goals'
+    AND fallwinterspring = 'Fall'
     AND map_year_academic = dbo.fn_Global_Academic_Year()
  )
 
@@ -116,6 +132,12 @@ SELECT
        WHEN base.testritscore IS NULL THEN (spring.testritscore - winter.testritscore) 
        ELSE (map.testritscore - base.testritscore) 
       END AS RIT_change
+     ,fall.testritscore AS fall_RIT
+     ,fall.percentile_2011_norms AS fall_pctle
+     ,winter.testritscore AS winter_RIT
+     ,winter.percentile_2011_norms AS winter_pctle
+     ,spring.testritscore AS spring_RIT
+     ,spring.percentile_2011_norms AS spring_pctle
 FROM MAP$best_baseline#static base WITH(NOLOCK)
 JOIN STUDENTS s WITH(NOLOCK)
   ON base.studentid = s.ID
@@ -167,4 +189,10 @@ LEFT OUTER JOIN spring
  AND base.grade_level = spring.grade_level
  AND REPLACE(base.measurementscale, ' Usage','') = REPLACE(spring.measurementscale, ' Usage','')
  AND base.year = spring.map_year_academic
+LEFT OUTER JOIN fall
+  ON base.studentid = fall.ps_studentid
+ AND base.schoolid = fall.schoolid
+ AND base.grade_level = fall.grade_level
+ AND REPLACE(base.measurementscale, ' Usage','') = REPLACE(fall.measurementscale, ' Usage','')
+ AND base.year = fall.map_year_academic 
 WHERE base.year = dbo.fn_Global_Academic_Year()
