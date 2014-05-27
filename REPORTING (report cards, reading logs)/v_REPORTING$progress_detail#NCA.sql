@@ -66,7 +66,23 @@ SELECT roster.ID
       ,gr.course_number AS COURSE_NUM
       ,gr.course_name AS COURSE_NAME
       ,t.lastfirst AS TEACHER
-      ,sec.section_number AS SECT
+      ,CASE        
+        WHEN cc.expression = '1(A)' THEN 'HR'
+        WHEN cc.expression = '2(A)' THEN '1'
+        WHEN cc.expression = '3(A)' THEN '2'
+        WHEN cc.expression = '4(A)' THEN '3'
+        WHEN cc.expression = '5(A)' THEN '4A'
+        WHEN cc.expression = '6(A)' THEN '4B'
+        WHEN cc.expression = '7(A)' THEN '4C'
+        WHEN cc.expression = '8(A)' THEN '4D'
+        WHEN cc.expression = '9(A)' THEN '5A'
+        WHEN cc.expression = '10(A)' THEN '5B'
+        WHEN cc.expression = '11(A)' THEN '5C'
+        WHEN cc.expression = '12(A)' THEN '5D'
+        WHEN cc.expression = '13(A)' THEN '6'
+        WHEN cc.expression = '14(A)' THEN '7'
+        ELSE NULL
+       END AS SECT
       ,cc.currentabsences AS [ABS]
       ,cc.currenttardies AS TARDY,Y1
       ,Y1_letter AS Y1_LTR
