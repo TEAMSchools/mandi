@@ -70,7 +70,12 @@ FROM
                                                 ,'CCSS.LA.4.RL'
                                                 ,'CCSS.LA.4.L.4.1'
                                                 ,'CCSS.LA.4.L.4.2'
-                                                ,'CCSS.LA.4.L.4.3')
+                                                ,'CCSS.LA.4.L.4.3'
+                                                ,'CCSS.LA.K.RL.CCR.8'
+                                                ,'CCSS.LA.K.RL.K.3'
+                                                ,'CCSS.LA.K.RL.K.4'
+                                                ,'CCSS.LA.K.RL.K.5'
+                                                ,'CCSS.LA.K.RL.K.7')
        LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
          ON s.id = co.studentid
         AND co.year = CASE
