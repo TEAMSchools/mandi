@@ -46,7 +46,7 @@ FROM
              ELSE CAST(ROUND(map_base.typical_growth_fallorspring_to_spring,0) AS INT)
             END AS keep_up_goal
            ,CASE
-             WHEN stu_roster.GRADE_LEVEL >= 11 THEN map_base.testritscore + 2
+             WHEN stu_roster.GRADE_LEVEL >= 11 AND map_base.testritscore IS NOT NULL THEN map_base.testritscore + 2
              ELSE CAST(map_base.testritscore AS FLOAT) + CAST(map_base.typical_growth_fallorspring_to_spring AS FLOAT)
             END AS keep_up_rit
            ,CASE
@@ -63,9 +63,7 @@ FROM
             END AS rutgers_ready_goal                 
      FROM stu_roster
      JOIN math_read
-       ON 1=1
-      AND stu_roster.grade_level <= 11
-      AND stu_roster.grade_level >= 5
+       ON 1=1      
      --baseline (composite of Spring and Fall; pick best)
      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH(NOLOCK)
        ON stu_roster.studentid = map_base.studentid 
@@ -82,6 +80,8 @@ FROM
        ON math_read.measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
       AND stu_roster.grade_level - 1 = norm.startgrade 
+     WHERE stu_roster.grade_level >= 5
+       --AND stu_roster.grade_level <= 11     
      GROUP BY stu_roster.studentid
              ,stu_roster.schoolid
              ,stu_roster.lastfirst
@@ -130,9 +130,7 @@ FROM
             END AS rutgers_ready_goal       
      FROM stu_roster
      JOIN sci_lang
-       ON 1=1
-      AND stu_roster.grade_level <= 11
-      AND stu_roster.grade_level >= 4
+       ON 1=1            
      --baseline (composite of Spring and Fall; pick best)
      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH(NOLOCK)
        ON stu_roster.studentid = map_base.studentid 
@@ -142,6 +140,8 @@ FROM
       ON sci_lang.alt_measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
       AND stu_roster.grade_level - 1 = norm.startgrade
+     WHERE stu_roster.grade_level >= 4
+       --AND stu_roster.grade_level <= 11
     ) sub
 
 
@@ -203,8 +203,7 @@ FROM
             END AS rutgers_ready_goal
      FROM stu_roster
      JOIN sci_lang
-       ON 1=1
-      AND stu_roster.grade_level < 4
+       ON 1=1      
      --baseline (composite of Spring and Fall; pick best)
      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH(NOLOCK)
        ON stu_roster.studentid = map_base.studentid 
@@ -214,6 +213,7 @@ FROM
       ON sci_lang.alt_measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
       AND CASE WHEN stu_roster.grade_level = 0 THEN stu_roster.grade_level ELSE stu_roster.grade_level - 1 END = norm.startgrade
+     WHERE stu_roster.grade_level < 4
     ) sub
 
 
@@ -274,8 +274,7 @@ FROM
             END AS rutgers_ready_goal  
      FROM stu_roster
      JOIN math_read
-       ON 1=1
-      AND stu_roster.grade_level <= 3
+       ON 1=1     
      --baseline (composite of Spring and Fall; pick best)
      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH(NOLOCK)
        ON stu_roster.studentid = map_base.studentid 
@@ -285,6 +284,7 @@ FROM
        ON math_read.measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
       AND CASE WHEN stu_roster.grade_level = 0 THEN stu_roster.grade_level ELSE stu_roster.grade_level - 1 END = norm.startgrade
+     WHERE stu_roster.grade_level <= 3
     ) sub
 
 
@@ -316,8 +316,7 @@ FROM
             END AS rutgers_ready_goal  
      FROM stu_roster
      JOIN math_read
-       ON 1=1
-      AND stu_roster.grade_level = 4
+       ON 1=1      
      --baseline (composite of Spring and Fall; pick best)
      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH(NOLOCK)
        ON stu_roster.studentid = map_base.studentid 
@@ -327,4 +326,5 @@ FROM
        ON math_read.measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
       AND stu_roster.grade_level - 1 = norm.startgrade
+     WHERE stu_roster.grade_level = 4
     ) sub
