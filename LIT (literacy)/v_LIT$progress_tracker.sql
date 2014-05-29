@@ -407,12 +407,12 @@ FROM
               WHEN status = 'Achieved' THEN CONVERT(VARCHAR,scores.student_number) + '_'
                                              + CONVERT(VARCHAR,time_per_name) + '_' 
                                              + CONVERT(VARCHAR,status) + '_' 
-                                             + CASE WHEN year = 2013 AND time_per_name = 'EOY' THEN CONVERT(VARCHAR,(year - 1)) ELSE CONVERT(VARCHAR,year) END + '_' 
+                                             + CASE WHEN DATEPART(YEAR,scores.test_date) = dbo.fn_Global_Academic_Year() AND time_per_name = 'EOY' THEN CONVERT(VARCHAR,(year - 1)) ELSE CONVERT(VARCHAR,year) END + '_' 
                                              + CONVERT(VARCHAR,achv_high_tri)
               WHEN status = 'Did Not Achieve' THEN CONVERT(VARCHAR,scores.student_number) + '_'
                                                     + CONVERT(VARCHAR,time_per_name) + '_' 
                                                     + CONVERT(VARCHAR,status) + '_' 
-                                                    + CASE WHEN year = 2013 AND time_per_name = 'EOY' THEN CONVERT(VARCHAR,(year - 1)) ELSE CONVERT(VARCHAR,year) END + '_' 
+                                                    + CASE WHEN DATEPART(YEAR,scores.test_date) = dbo.fn_Global_Academic_Year() AND time_per_name = 'EOY' THEN CONVERT(VARCHAR,(year - 1)) ELSE CONVERT(VARCHAR,year) END + '_' 
                                                     + CONVERT(VARCHAR,dna_low_tri)
               ELSE NULL
              END AS reporting_hash
