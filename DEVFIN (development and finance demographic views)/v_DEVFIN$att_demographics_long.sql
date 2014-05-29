@@ -67,6 +67,6 @@ FROM calendar
 JOIN roster
   ON calendar.date >= roster.ENTRYDATE
  AND calendar.date <= roster.EXITDATE
-JOIN attendance
+LEFT OUTER JOIN attendance
   ON calendar.date = attendance.date
  AND roster.studentid = attendance.studentid
