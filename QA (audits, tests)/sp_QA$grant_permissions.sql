@@ -63,6 +63,7 @@ GRANT SELECT ON TABLEAU$assessment_dashboard TO db_data_tool_reader
 
 --DB functions
 GRANT EXECUTE ON fn_Global_Term_Id TO db_data_tool_reader
+GRANT EXECUTE ON fn_Global_Academic_Year TO db_data_tool_reader
 GRANT EXECUTE ON GROUP_CONCAT_D TO db_data_tool_reader
 GRANT EXECUTE ON GROUP_CONCAT TO db_data_tool_reader
 GRANT EXECUTE ON ASCII_CONVERT TO db_data_tool_reader
