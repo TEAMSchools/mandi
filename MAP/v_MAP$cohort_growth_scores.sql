@@ -24,6 +24,7 @@ WITH zscore AS
             ,c.lastfirst
             ,c.grade_level
             ,c.year
+            ,c.cohort
             ,CASE 
                WHEN cust.spedlep LIKE 'SPED%' THEN 'IEP'
                ELSE 'Gen Ed'
@@ -69,8 +70,6 @@ SELECT sub.*
          WHEN CAST((rit_change - mean) / sd AS decimal(4,2)) > 6 THEN 99.999
          ELSE zscore.percentile
        END AS cohort_growth_percentile
-      --,CAST(ROUND((zscore.zscore * sub.sd) + (sub.mean), 1) AS float) AS target_rit_change
-      --,CAST(ROUND((zscore.zscore * sub.sd) + (sub.avg_baseline_rit + sub.mean), 1) AS float) AS target_spr_rit
 FROM
       (SELECT sub.*
              ,cohort_norms.rit AS comparison_start_rit
@@ -88,6 +87,7 @@ FROM
              (SELECT TOP 1000000 cohort.school
                     ,cohort.year
                     ,cohort.grade_level
+                    ,cohort.cohort
                     ,CASE GROUPING(cohort.iep_status)
                        WHEN 1 THEN 'All Students'
                        ELSE cohort.iep_status
@@ -111,6 +111,7 @@ FROM
               GROUP BY cohort.school
                       ,cohort.year
                       ,cohort.grade_level
+                      ,cohort.cohort
                       ,CUBE(cohort.iep_status)
                       ,m.measurementscale
               ORDER BY cohort.year DESC
