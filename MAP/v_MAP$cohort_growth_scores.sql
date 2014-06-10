@@ -24,6 +24,7 @@ WITH zscore AS
             ,c.lastfirst
             ,c.grade_level
             ,c.year
+            ,c.abbreviation AS year_abbreviation
             ,c.cohort
             ,CASE 
                WHEN cust.spedlep LIKE 'SPED%' THEN 'IEP'
@@ -86,6 +87,7 @@ FROM
        FROM
              (SELECT TOP 1000000 cohort.school
                     ,cohort.year
+                    ,cohort.year_abbreviation
                     ,cohort.grade_level
                     ,cohort.cohort
                     ,CASE GROUPING(cohort.iep_status)
@@ -110,6 +112,7 @@ FROM
                AND m.rn = 1
               GROUP BY cohort.school
                       ,cohort.year
+                      ,cohort.year_abbreviation
                       ,cohort.grade_level
                       ,cohort.cohort
                       ,CUBE(cohort.iep_status)
