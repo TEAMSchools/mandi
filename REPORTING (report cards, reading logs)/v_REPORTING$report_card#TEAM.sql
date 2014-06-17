@@ -51,7 +51,7 @@ SELECT roster.*
       
 --Course Grades
 --GRADES$wide_all
-  /*--RC1--*/
+    /*--RC1--*/
       ,gr_wide.rc1_course_name
       ,gr_wide.rc1_teacher_last
       ,ROUND(gr_wide.rc1_y1,0) AS rc1_y1_pct
@@ -69,7 +69,7 @@ SELECT roster.*
       ,ROUND(gr_wide.rc1_t2,0) AS rc1_cur_term_pct
       --*/    
     --T3--
-      --/*
+      /*
       ,gr_wide.rc1_t3_ltr AS rc1_cur_term_ltr
       ,ROUND(gr_wide.rc1_t3,0) AS rc1_cur_term_pct      
       --*/
@@ -79,12 +79,14 @@ SELECT roster.*
       ,gr_wide.rc1_t1_ltr AS rc1_t1_term_ltr      
       ,gr_wide.rc1_t2_ltr AS rc1_t2_term_ltr
       ,gr_wide.rc1_t3_ltr AS rc1_t3_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.rc1_t1,0) AS rc1_t1_term_pct
       ,ROUND(gr_wide.rc1_t2,0) AS rc1_t2_term_pct
       ,ROUND(gr_wide.rc1_t3,0) AS rc1_t3_term_pct
       --*/
       
-  /*--RC2--*/
+    /*--RC2--*/
       ,gr_wide.RC2_course_name
       ,gr_wide.RC2_teacher_last
       ,ROUND(gr_wide.RC2_y1,0) AS RC2_y1_pct
@@ -102,7 +104,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC2_t2,0) AS RC2_cur_term_pct
       --*/    
     --T3--
-      --/*
+      /*
       ,gr_wide.RC2_t3_ltr AS RC2_cur_term_ltr
       ,ROUND(gr_wide.RC2_t3,0) AS RC2_cur_term_pct      
       --*/
@@ -112,12 +114,14 @@ SELECT roster.*
       ,gr_wide.RC2_t1_ltr AS RC2_t1_term_ltr      
       ,gr_wide.RC2_t2_ltr AS RC2_t2_term_ltr
       ,gr_wide.RC2_t3_ltr AS RC2_t3_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC2_t1,0) AS RC2_t1_term_pct
       ,ROUND(gr_wide.RC2_t2,0) AS RC2_t2_term_pct
       ,ROUND(gr_wide.RC2_t3,0) AS RC2_t3_term_pct
       --*/
 
-  /*--RC3--*/
+    /*--RC3--*/
       ,gr_wide.RC3_course_name
       ,gr_wide.RC3_teacher_last
       ,ROUND(gr_wide.RC3_y1,0) AS RC3_y1_pct
@@ -135,7 +139,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC3_t2,0) AS RC3_cur_term_pct
       --*/    
     --T3--
-      --/*
+      /*
       ,gr_wide.RC3_t3_ltr AS RC3_cur_term_ltr
       ,ROUND(gr_wide.RC3_t3,0) AS RC3_cur_term_pct      
       --*/
@@ -145,12 +149,14 @@ SELECT roster.*
       ,gr_wide.RC3_t1_ltr AS RC3_t1_term_ltr      
       ,gr_wide.RC3_t2_ltr AS RC3_t2_term_ltr
       ,gr_wide.RC3_t3_ltr AS RC3_t3_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC3_t1,0) AS RC3_t1_term_pct
       ,ROUND(gr_wide.RC3_t2,0) AS RC3_t2_term_pct
       ,ROUND(gr_wide.RC3_t3,0) AS RC3_t3_term_pct
       --*/
 
-  /*--RC4--*/
+    /*--RC4--*/
       ,gr_wide.RC4_course_name
       ,gr_wide.RC4_teacher_last
       ,ROUND(gr_wide.RC4_y1,0) AS RC4_y1_pct
@@ -168,7 +174,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC4_t2,0) AS RC4_cur_term_pct
       --*/    
     --T3--
-      --/*
+      /*
       ,gr_wide.RC4_t3_ltr AS RC4_cur_term_ltr
       ,ROUND(gr_wide.RC4_t3,0) AS RC4_cur_term_pct      
       --*/
@@ -178,12 +184,14 @@ SELECT roster.*
       ,gr_wide.RC4_t1_ltr AS RC4_t1_term_ltr      
       ,gr_wide.RC4_t2_ltr AS RC4_t2_term_ltr
       ,gr_wide.RC4_t3_ltr AS RC4_t3_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC4_t1,0) AS RC4_t1_term_pct
       ,ROUND(gr_wide.RC4_t2,0) AS RC4_t2_term_pct
       ,ROUND(gr_wide.RC4_t3,0) AS RC4_t3_term_pct
       --*/
 
-  /*--RC5--*/
+    /*--RC5--*/
       ,gr_wide.RC5_course_name
       ,gr_wide.RC5_teacher_last
       ,ROUND(gr_wide.RC5_y1,0) AS RC5_y1_pct
@@ -201,7 +209,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC5_t2,0) AS RC5_cur_term_pct
       --*/    
     --T3--
-      --/*
+      /*
       ,gr_wide.RC5_t3_ltr AS RC5_cur_term_ltr
       ,ROUND(gr_wide.RC5_t3,0) AS RC5_cur_term_pct      
       --*/
@@ -211,12 +219,14 @@ SELECT roster.*
       ,gr_wide.RC5_t1_ltr AS RC5_t1_term_ltr      
       ,gr_wide.RC5_t2_ltr AS RC5_t2_term_ltr
       ,gr_wide.RC5_t3_ltr AS RC5_t3_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC5_t1,0) AS RC5_t1_term_pct
       ,ROUND(gr_wide.RC5_t2,0) AS RC5_t2_term_pct
       ,ROUND(gr_wide.RC5_t3,0) AS RC5_t3_term_pct
       --*/
       
-  /*--RC6--*/
+    /*--RC6--*/
       ,gr_wide.RC6_course_name
       ,gr_wide.RC6_teacher_last
       ,ROUND(gr_wide.RC6_y1,0) AS RC6_y1_pct
@@ -234,7 +244,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC6_t2,0) AS RC6_cur_term_pct
       --*/    
     --T3--
-      --/*
+      /*
       ,gr_wide.RC6_t3_ltr AS RC6_cur_term_ltr
       ,ROUND(gr_wide.RC6_t3,0) AS RC6_cur_term_pct      
       --*/
@@ -244,12 +254,14 @@ SELECT roster.*
       ,gr_wide.RC6_t1_ltr AS RC6_t1_term_ltr      
       ,gr_wide.RC6_t2_ltr AS RC6_t2_term_ltr
       ,gr_wide.RC6_t3_ltr AS RC6_t3_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC6_t1,0) AS RC6_t1_term_pct
       ,ROUND(gr_wide.RC6_t2,0) AS RC6_t2_term_pct
       ,ROUND(gr_wide.RC6_t3,0) AS RC6_t3_term_pct
       --*/
 
-  /*--RC7--*/
+    /*--RC7--*/
       ,gr_wide.RC7_course_name
       ,gr_wide.RC7_teacher_last
       ,ROUND(gr_wide.RC7_y1,0) AS RC7_y1_pct
@@ -267,7 +279,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC7_t2,0) AS RC7_cur_term_pct
       --*/    
     --T3--
-      --/*
+      /*
       ,gr_wide.RC7_t3_ltr AS RC7_cur_term_ltr
       ,ROUND(gr_wide.RC7_t3,0) AS RC7_cur_term_pct      
       --*/
@@ -277,12 +289,14 @@ SELECT roster.*
       ,gr_wide.RC7_t1_ltr AS RC7_t1_term_ltr      
       ,gr_wide.RC7_t2_ltr AS RC7_t2_term_ltr
       ,gr_wide.RC7_t3_ltr AS RC7_t3_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC7_t1,0) AS RC7_t1_term_pct
       ,ROUND(gr_wide.RC7_t2,0) AS RC7_t2_term_pct
       ,ROUND(gr_wide.RC7_t3,0) AS RC7_t3_term_pct
       --*/
       
-  /*--RC8--*/
+    /*--RC8--*/
       ,gr_wide.RC8_course_name
       ,gr_wide.RC8_teacher_last
       ,ROUND(gr_wide.RC8_y1,0) AS RC8_y1_pct
@@ -300,7 +314,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC8_t2,0) AS RC8_cur_term_pct
       --*/    
     --T3--
-      --/*
+      /*
       ,gr_wide.RC8_t3_ltr AS RC8_cur_term_ltr
       ,ROUND(gr_wide.RC8_t3,0) AS RC8_cur_term_pct      
       --*/
@@ -310,6 +324,8 @@ SELECT roster.*
       ,gr_wide.RC8_t1_ltr AS RC8_t1_term_ltr      
       ,gr_wide.RC8_t2_ltr AS RC8_t2_term_ltr
       ,gr_wide.RC8_t3_ltr AS RC8_t3_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC8_t1,0) AS RC8_t1_term_pct
       ,ROUND(gr_wide.RC8_t2,0) AS RC8_t2_term_pct
       ,ROUND(gr_wide.RC8_t3,0) AS RC8_t3_term_pct
@@ -470,7 +486,7 @@ SELECT roster.*
 
 /*--TEAM uses these on REPORT CARDS ONLY--*/
 /*--DEACTIVATE for PROGRESS REPORTS--*/
-/*
+--/*
 --MAP scores
 --MAP$wide_all
      
@@ -688,7 +704,7 @@ LEFT OUTER JOIN GPA$detail#TEAM team_gpa WITH (NOLOCK)
 LEFT OUTER JOIN REPORTING$promo_status#TEAM promo WITH (NOLOCK)
   ON roster.base_studentid = promo.studentid
 
-/*
+--/*
 --MAP
 LEFT OUTER JOIN MAP$wide_all map_all WITH (NOLOCK)
   ON roster.base_studentid = map_all.studentid
@@ -723,6 +739,7 @@ LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
   ON roster.base_studentid = njask_math.studentid
  AND njask_math.schoolid = 133570965
 
+/*
 --ED TECH
   --ACCELERATED READER
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)

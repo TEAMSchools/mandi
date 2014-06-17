@@ -16,7 +16,7 @@ WITH winter AS (
   WHERE map.rn = 1 
     AND map.testtype = 'Survey With Goals'
     AND fallwinterspring = 'Winter'
-    AND map_year_academic = dbo.fn_Global_Academic_Year()
+    AND map_year_academic = dbo.fn_Global_Academic_Year()    
  )
 
 ,spring AS (
@@ -32,7 +32,7 @@ WITH winter AS (
   WHERE map.rn = 1 
     AND map.testtype = 'Survey With Goals'
     AND fallwinterspring = 'Spring'
-    AND map_year_academic = dbo.fn_Global_Academic_Year()
+    AND map_year_academic = dbo.fn_Global_Academic_Year()    
  )
 
 ,fall AS (
@@ -48,7 +48,7 @@ WITH winter AS (
   WHERE map.rn = 1 
     AND map.testtype = 'Survey With Goals'
     AND fallwinterspring = 'Fall'
-    AND map_year_academic = dbo.fn_Global_Academic_Year()
+    AND map_year_academic = dbo.fn_Global_Academic_Year()    
  )
 
 
@@ -114,29 +114,39 @@ FROM
            /*--student identifiers--*/
             s.schoolid
            ,s.grade_level
-           ,CASE WHEN s.SCHOOLID = 73253 THEN  eng1.LASTFIRST ELSE s.team END AS team
+           ,CASE 
+             WHEN s.GRADE_LEVEL = 8 AND base.measurementscale = 'Reading' THEN eng1.COURSE_NAME
+             WHEN s.GRADE_LEVEL = 8 AND base.measurementscale = 'Mathematics' THEN math1.COURSE_NAME
+             WHEN s.GRADE_LEVEL = 8 AND base.measurementscale = 'Language Usage' THEN rhet1.COURSE_NAME
+             WHEN s.GRADE_LEVEL = 8 AND base.measurementscale LIKE '%Science%' THEN sci1.COURSE_NAME
+             WHEN s.GRADE_LEVEL > 8 AND base.measurementscale = 'Reading' THEN eng1.LASTFIRST
+             WHEN s.GRADE_LEVEL > 8 AND base.measurementscale = 'Mathematics' THEN math1.LASTFIRST
+             WHEN s.GRADE_LEVEL > 8 AND base.measurementscale = 'Language Usage' THEN rhet1.LASTFIRST
+             WHEN s.GRADE_LEVEL > 8 AND base.measurementscale LIKE '%Science%' THEN sci1.lastfirst
+             ELSE s.team
+            END AS team
            ,s.id AS studentid
            ,s.student_number
            ,s.lastfirst
            ,cs.SPEDLEP
 
-           /*--growth goals--*/
+           /*--growth goals and measures--*/
            ,CASE WHEN map.testname LIKE '%Algebra%' THEN 'Algebra' ELSE base.measurementscale END AS measurementscale
-           ,base.testritscore AS baseline_rit
-           ,base.testpercentile AS baseline_percentile
-           ,base.lexile_score AS baseline_lexile
-           ,goals.keep_up_rit
-           ,goals.keep_up_goal
-           ,goals.rutgers_ready_rit
-           ,goals.rutgers_ready_goal
-
-           /*--growth measures--*/
-           ,CASE
+           ,CASE WHEN map.testname LIKE '%Algebra%' THEN NULL ELSE base.testritscore END AS baseline_rit
+           ,CASE WHEN map.testname LIKE '%Algebra%' THEN NULL ELSE base.testpercentile END AS baseline_percentile
+           ,CASE WHEN map.testname LIKE '%Algebra%' THEN NULL ELSE base.lexile_score END AS baseline_lexile
+           ,CASE WHEN map.testname LIKE '%Algebra%' THEN NULL ELSE goals.keep_up_rit END AS keep_up_rit
+           ,CASE WHEN map.testname LIKE '%Algebra%' THEN NULL ELSE goals.keep_up_goal END keep_up_goal
+           ,CASE WHEN map.testname LIKE '%Algebra%' THEN NULL ELSE goals.rutgers_ready_rit END rutgers_ready_rit
+           ,CASE WHEN map.testname LIKE '%Algebra%' THEN NULL ELSE goals.rutgers_ready_goal END rutgers_ready_goal
+           ,CASE              
+             WHEN map.testname LIKE '%Algebra%' THEN NULL 
              WHEN map.testritscore >= goals.keep_up_rit THEN 'Met'
              WHEN (map.testritscore - goals.baseline_rit) >= (goals.keep_up_goal * 0.5) THEN 'On Track'
              WHEN (map.testritscore - goals.baseline_rit) < (goals.keep_up_goal * 0.5) THEN 'Off Track'
             END AS keep_up_status
-           ,CASE
+           ,CASE             
+             WHEN map.testname LIKE '%Algebra%' THEN NULL 
              WHEN map.testritscore >= goals.rutgers_ready_rit THEN 'Met'
              WHEN (map.testritscore - goals.baseline_rit) >= (goals.rutgers_ready_goal * 0.5) THEN 'On Track'
              WHEN (map.testritscore - goals.baseline_rit) < (goals.rutgers_ready_goal * 0.5) THEN 'Off Track'
@@ -177,9 +187,13 @@ FROM
           /*--reporting hashes, row numbers--*/
            ,ISNULL(CONVERT(VARCHAR,map.studentid), CONVERT(VARCHAR,s.student_number)) + '_'
              + ISNULL(CONVERT(VARCHAR,REPLACE(map.fallwinterspring,' ','')),SUBSTRING(base.termname, 0, CHARINDEX(' ', base.termname))) + '_'
-             + ISNULL(CONVERT(VARCHAR,map.rn_curr), '1') AS hash
+             + ISNULL(CONVERT(VARCHAR,ROW_NUMBER() OVER (
+                                         PARTITION BY map.studentid, map.map_year, map.termname, CASE WHEN map.testname LIKE '%Algebra%' THEN 'Algebra' ELSE goals.measurementscale END
+                                             ORDER BY map.teststartdate DESC)), '1') AS hash
            ,ISNULL(CONVERT(VARCHAR,map.studentid), CONVERT(VARCHAR,s.student_number)) + '_'
-             + ISNULL(CONVERT(VARCHAR,map.rn_curr), '1') AS stu_hash
+             + ISNULL(CONVERT(VARCHAR,ROW_NUMBER() OVER (
+                                         PARTITION BY map.studentid, map.map_year, map.termname, CASE WHEN map.testname LIKE '%Algebra%' THEN 'Algebra' ELSE goals.measurementscale END
+                                             ORDER BY map.teststartdate DESC)), '1') AS stu_hash
            ,ISNULL(CONVERT(VARCHAR,map.studentid), CONVERT(VARCHAR,s.student_number)) + '_'
              + ISNULL(CONVERT(VARCHAR,REPLACE(map.fallwinterspring,' ','')),SUBSTRING(base.termname, 0, CHARINDEX(' ', base.termname))) + '_'
              + CONVERT(VARCHAR,CASE WHEN map.testname LIKE '%Algebra%' THEN 'Algebra' ELSE base.measurementscale END) AS stu_subj_hash
@@ -220,12 +234,63 @@ FROM
       AND base.schoolid = map.schoolid
       AND base.grade_level = map.grade_level
       AND REPLACE(base.measurementscale, ' Usage','') = REPLACE(map.measurementscale, ' Usage','')
-      AND base.year = map.map_year_academic
-      --AND map.rn = 1
+      AND base.year = map.map_year_academic      
       AND map.testtype = 'Survey With Goals'
      LEFT OUTER JOIN (
                       SELECT cc.STUDENTID                       
                             ,t.LASTFIRST
+                            ,c.course_name
+                            ,ROW_NUMBER() OVER
+                               (PARTITION BY cc.studentid
+                                    ORDER BY c.course_name) AS rn
+                      FROM COURSES c WITH (NOLOCK)
+                      JOIN CC WITH (NOLOCK)
+                        ON c.COURSE_NUMBER = cc.COURSE_NUMBER
+                       AND cc.TERMID >= dbo.fn_Global_Term_Id()                       
+                      JOIN TEACHERS t WITH (NOLOCK)
+                        ON cc.TEACHERID = t.ID
+                      WHERE CREDITTYPE = 'ENG'                        
+                     ) eng1
+       ON s.ID = eng1.STUDENTID
+      AND eng1.rn = 1
+     LEFT OUTER JOIN (
+                      SELECT cc.STUDENTID                       
+                            ,t.LASTFIRST
+                            ,c.course_name
+                            ,ROW_NUMBER() OVER
+                               (PARTITION BY cc.studentid
+                                    ORDER BY c.course_name) AS rn
+                      FROM COURSES c WITH (NOLOCK)
+                      JOIN CC WITH (NOLOCK)
+                        ON c.COURSE_NUMBER = cc.COURSE_NUMBER
+                       AND cc.TERMID >= dbo.fn_Global_Term_Id()                       
+                      JOIN TEACHERS t WITH (NOLOCK)
+                        ON cc.TEACHERID = t.ID
+                      WHERE CREDITTYPE = 'MATH'                        
+                     ) math1
+       ON s.ID = math1.STUDENTID
+      AND math1.rn = 1
+     LEFT OUTER JOIN (
+                      SELECT cc.STUDENTID                       
+                            ,t.LASTFIRST
+                            ,c.COURSE_NAME
+                            ,ROW_NUMBER() OVER
+                               (PARTITION BY cc.studentid
+                                    ORDER BY c.course_name) AS rn
+                      FROM COURSES c WITH (NOLOCK)
+                      JOIN CC WITH (NOLOCK)
+                        ON c.COURSE_NUMBER = cc.COURSE_NUMBER
+                       AND cc.TERMID >= dbo.fn_Global_Term_Id()                       
+                      JOIN TEACHERS t WITH (NOLOCK)
+                        ON cc.TEACHERID = t.ID
+                      WHERE CREDITTYPE = 'RHET'
+                     ) rhet1
+       ON s.ID = rhet1.STUDENTID
+      AND rhet1.rn = 1
+     LEFT OUTER JOIN (
+                      SELECT cc.STUDENTID
+                            ,t.LASTFIRST
+                            ,c.COURSE_NAME
                             ,ROW_NUMBER() OVER
                                (PARTITION BY cc.studentid
                                     ORDER BY c.course_name) AS rn
@@ -233,19 +298,17 @@ FROM
                       JOIN CC WITH (NOLOCK)
                         ON c.COURSE_NUMBER = cc.COURSE_NUMBER
                        AND cc.TERMID >= dbo.fn_Global_Term_Id()
-                       AND cc.SCHOOLID = 73253
                       JOIN TEACHERS t WITH (NOLOCK)
                         ON cc.TEACHERID = t.ID
-                      WHERE CREDITTYPE = 'ENG'
-                        AND cc.SCHOOLID = 73253
-                     ) eng1
-       ON s.ID = eng1.STUDENTID
-      AND eng1.rn = 1
+                      WHERE CREDITTYPE = 'SCI'
+                     ) sci1
+       ON s.ID = sci1.STUDENTID
+      AND sci1.rn = 1
      LEFT OUTER JOIN winter
        ON base.studentid = winter.ps_studentid
       AND base.schoolid = winter.schoolid
       AND base.grade_level = winter.grade_level
-      AND REPLACE(base.measurementscale, ' Usage','') = REPLACE(winter.measurementscale, ' Usage','')
+      AND REPLACE(base.measurementscale, ' Usage','') = REPLACE(winter.measurementscale, ' Usage','')      
       AND base.year = winter.map_year_academic
      LEFT OUTER JOIN spring
        ON base.studentid = spring.ps_studentid

@@ -97,25 +97,28 @@ SELECT roster.*
       --,gr_wide.rc1_q1_ltr AS rc1_cur_term_ltr
       --,gr_wide.rc1_q2_ltr AS rc1_cur_term_ltr
       --,gr_wide.rc1_q3_ltr AS rc1_cur_term_ltr
-      ,gr_wide.rc1_q4_ltr AS rc1_cur_term_ltr
+      --,gr_wide.rc1_q4_ltr AS rc1_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.rc1_q1,0) AS rc1_cur_term_pct
       --,ROUND(gr_wide.rc1_q2,0) AS rc1_cur_term_pct
       --,ROUND(gr_wide.rc1_q3,0) AS rc1_cur_term_pct
-      ,ROUND(gr_wide.rc1_q4,0) AS rc1_cur_term_pct
+      --,ROUND(gr_wide.rc1_q4,0) AS rc1_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.rc1_gpa_points_Q1 AS rc1_cur_term_gpa_points
       --,gr_wide.rc1_gpa_points_Q2 AS rc1_cur_term_gpa_points
       --,gr_wide.rc1_gpa_points_Q3 AS rc1_cur_term_gpa_points
-      ,gr_wide.rc1_gpa_points_Q4 AS rc1_cur_term_gpa_points
+      --,gr_wide.rc1_gpa_points_Q4 AS rc1_cur_term_gpa_points      
       
-      /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
+      /*
+      /* -- ONLY FOR SHOWING GRADE BY QUARTER -- */      
       ,gr_wide.rc1_q1_ltr AS rc1_q1_term_ltr      
       ,gr_wide.rc1_q2_ltr AS rc1_q2_term_ltr
       ,gr_wide.rc1_q3_ltr AS rc1_q3_term_ltr
       ,gr_wide.rc1_q4_ltr AS rc1_q4_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.rc1_q1,0) AS rc1_q1_term_pct
       ,ROUND(gr_wide.rc1_q2,0) AS rc1_q2_term_pct
       ,ROUND(gr_wide.rc1_q3,0) AS rc1_q3_term_pct
@@ -125,7 +128,7 @@ SELECT roster.*
       ,ROUND(gr_wide.rc1_y1,0) AS rc1_y1_pct
       ,gr_wide.rc1_y1_ltr
       ,gr_wide.rc1_credit_hours_Y1
-      --,gr_wide.rc1_gpa_points_Y1      
+      ,gr_wide.rc1_gpa_points_Y1      
       --,CASE WHEN gr_wide.rc1_y1 >= 70 THEN gr_wide.rc1_credit_hours_Y1 ELSE NULL END AS rc1_earned_crhrs
 
     /*--RC2--*/
@@ -136,25 +139,27 @@ SELECT roster.*
       --,gr_wide.RC2_q1_ltr AS RC2_cur_term_ltr
       --,gr_wide.RC2_q2_ltr AS RC2_cur_term_ltr
       --,gr_wide.RC2_q3_ltr AS RC2_cur_term_ltr
-      ,gr_wide.RC2_q4_ltr AS RC2_cur_term_ltr
+      --,gr_wide.RC2_q4_ltr AS RC2_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC2_q1,0) AS RC2_cur_term_pct
       --,ROUND(gr_wide.RC2_q2,0) AS RC2_cur_term_pct
       --,ROUND(gr_wide.RC2_q3,0) AS RC2_cur_term_pct
-      ,ROUND(gr_wide.RC2_q4,0) AS RC2_cur_term_pct
+      --,ROUND(gr_wide.RC2_q4,0) AS RC2_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC2_gpa_points_Q1 AS RC2_cur_term_gpa_points
       --,gr_wide.RC2_gpa_points_Q2 AS RC2_cur_term_gpa_points
       --,gr_wide.RC2_gpa_points_Q3 AS RC2_cur_term_gpa_points
-      ,gr_wide.RC2_gpa_points_Q4 AS RC2_cur_term_gpa_points
+      --,gr_wide.RC2_gpa_points_Q4 AS RC2_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC2_q1_ltr AS RC2_q1_term_ltr      
       ,gr_wide.RC2_q2_ltr AS RC2_q2_term_ltr
       ,gr_wide.RC2_q3_ltr AS RC2_q3_term_ltr
       ,gr_wide.RC2_q4_ltr AS RC2_q4_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC2_q1,0) AS RC2_q1_term_pct
       ,ROUND(gr_wide.RC2_q2,0) AS RC2_q2_term_pct
       ,ROUND(gr_wide.RC2_q3,0) AS RC2_q3_term_pct
@@ -164,7 +169,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC2_y1,0) AS RC2_y1_pct
       ,gr_wide.RC2_y1_ltr
       ,gr_wide.RC2_credit_hours_Y1
-      --,gr_wide.RC2_gpa_points_Y1
+      ,gr_wide.RC2_gpa_points_Y1
       --,CASE WHEN gr_wide.RC2_y1 >= 70 THEN gr_wide.RC2_credit_hours_Y1 ELSE NULL END AS RC2_earned_crhrs
 
     /*--RC3--*/
@@ -175,25 +180,27 @@ SELECT roster.*
       --,gr_wide.RC3_q1_ltr AS RC3_cur_term_ltr
       --,gr_wide.RC3_q2_ltr AS RC3_cur_term_ltr
       --,gr_wide.RC3_q3_ltr AS RC3_cur_term_ltr
-      ,gr_wide.RC3_q4_ltr AS RC3_cur_term_ltr
+      --,gr_wide.RC3_q4_ltr AS RC3_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC3_q1,0) AS RC3_cur_term_pct
       --,ROUND(gr_wide.RC3_q2,0) AS RC3_cur_term_pct
       --,ROUND(gr_wide.RC3_q3,0) AS RC3_cur_term_pct
-      ,ROUND(gr_wide.RC3_q4,0) AS RC3_cur_term_pct
+      --,ROUND(gr_wide.RC3_q4,0) AS RC3_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC3_gpa_points_Q1 AS RC3_cur_term_gpa_points
       --,gr_wide.RC3_gpa_points_Q2 AS RC3_cur_term_gpa_points
       --,gr_wide.RC3_gpa_points_Q3 AS RC3_cur_term_gpa_points
-      ,gr_wide.RC3_gpa_points_Q4 AS RC3_cur_term_gpa_points
+      --,gr_wide.RC3_gpa_points_Q4 AS RC3_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC3_q1_ltr AS RC3_q1_term_ltr      
       ,gr_wide.RC3_q2_ltr AS RC3_q2_term_ltr
       ,gr_wide.RC3_q3_ltr AS RC3_q3_term_ltr
       ,gr_wide.RC3_q4_ltr AS RC3_q4_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC3_q1,0) AS RC3_q1_term_pct
       ,ROUND(gr_wide.RC3_q2,0) AS RC3_q2_term_pct
       ,ROUND(gr_wide.RC3_q3,0) AS RC3_q3_term_pct
@@ -203,7 +210,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC3_y1,0) AS RC3_y1_pct
       ,gr_wide.RC3_y1_ltr
       ,gr_wide.RC3_credit_hours_Y1
-      --,gr_wide.RC3_gpa_points_Y1      
+      ,gr_wide.RC3_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC3_y1 >= 70 THEN gr_wide.RC3_credit_hours_Y1 ELSE NULL END AS RC3_earned_crhrs
 
     /*--RC4--*/
@@ -214,25 +221,27 @@ SELECT roster.*
       --,gr_wide.RC4_q1_ltr AS RC4_cur_term_ltr
       --,gr_wide.RC4_q2_ltr AS RC4_cur_term_ltr
       --,gr_wide.RC4_q3_ltr AS RC4_cur_term_ltr
-      ,gr_wide.RC4_q4_ltr AS RC4_cur_term_ltr
+      --,gr_wide.RC4_q4_ltr AS RC4_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC4_q1,0) AS RC4_cur_term_pct
       --,ROUND(gr_wide.RC4_q2,0) AS RC4_cur_term_pct
       --,ROUND(gr_wide.RC4_q3,0) AS RC4_cur_term_pct
-      ,ROUND(gr_wide.RC4_q4,0) AS RC4_cur_term_pct
+      --,ROUND(gr_wide.RC4_q4,0) AS RC4_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC4_gpa_points_Q1 AS RC4_cur_term_gpa_points
       --,gr_wide.RC4_gpa_points_Q2 AS RC4_cur_term_gpa_points
       --,gr_wide.RC4_gpa_points_Q3 AS RC4_cur_term_gpa_points
-      ,gr_wide.RC4_gpa_points_Q4 AS RC4_cur_term_gpa_points
+      --,gr_wide.RC4_gpa_points_Q4 AS RC4_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC4_q1_ltr AS RC4_q1_term_ltr      
       ,gr_wide.RC4_q2_ltr AS RC4_q2_term_ltr
       ,gr_wide.RC4_q3_ltr AS RC4_q3_term_ltr
       ,gr_wide.RC4_q4_ltr AS RC4_q4_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC4_q1,0) AS RC4_q1_term_pct
       ,ROUND(gr_wide.RC4_q2,0) AS RC4_q2_term_pct
       ,ROUND(gr_wide.RC4_q3,0) AS RC4_q3_term_pct
@@ -242,7 +251,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC4_y1,0) AS RC4_y1_pct
       ,gr_wide.RC4_y1_ltr
       ,gr_wide.RC4_credit_hours_Y1
-      --,gr_wide.RC4_gpa_points_Y1      
+      ,gr_wide.RC4_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC4_y1 >= 70 THEN gr_wide.RC4_credit_hours_Y1 ELSE NULL END AS RC4_earned_crhrs
 
     /*--RC5--*/
@@ -253,25 +262,27 @@ SELECT roster.*
       --,gr_wide.RC5_q1_ltr AS RC5_cur_term_ltr
       --,gr_wide.RC5_q2_ltr AS RC5_cur_term_ltr
       --,gr_wide.RC5_q3_ltr AS RC5_cur_term_ltr
-      ,gr_wide.RC5_q4_ltr AS RC5_cur_term_ltr
+      --,gr_wide.RC5_q4_ltr AS RC5_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC5_q1,0) AS RC5_cur_term_pct
       --,ROUND(gr_wide.RC5_q2,0) AS RC5_cur_term_pct
       --,ROUND(gr_wide.RC5_q3,0) AS RC5_cur_term_pct
-      ,ROUND(gr_wide.RC5_q4,0) AS RC5_cur_term_pct
+      --,ROUND(gr_wide.RC5_q4,0) AS RC5_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC5_gpa_points_Q1 AS RC5_cur_term_gpa_points
       --,gr_wide.RC5_gpa_points_Q2 AS RC5_cur_term_gpa_points
       --,gr_wide.RC5_gpa_points_Q3 AS RC5_cur_term_gpa_points
-      ,gr_wide.RC5_gpa_points_Q4 AS RC5_cur_term_gpa_points
+      --,gr_wide.RC5_gpa_points_Q4 AS RC5_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC5_q1_ltr AS RC5_q1_term_ltr      
       ,gr_wide.RC5_q2_ltr AS RC5_q2_term_ltr
       ,gr_wide.RC5_q3_ltr AS RC5_q3_term_ltr
       ,gr_wide.RC5_q4_ltr AS RC5_q4_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC5_q1,0) AS RC5_q1_term_pct
       ,ROUND(gr_wide.RC5_q2,0) AS RC5_q2_term_pct
       ,ROUND(gr_wide.RC5_q3,0) AS RC5_q3_term_pct
@@ -281,7 +292,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC5_y1,0) AS RC5_y1_pct
       ,gr_wide.RC5_y1_ltr
       ,gr_wide.RC5_credit_hours_Y1
-      --,gr_wide.RC5_gpa_points_Y1      
+      ,gr_wide.RC5_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC5_y1 >= 70 THEN gr_wide.RC5_credit_hours_Y1 ELSE NULL END AS RC5_earned_crhrs
       
     /*--RC6--*/
@@ -292,25 +303,27 @@ SELECT roster.*
       --,gr_wide.RC6_q1_ltr AS RC6_cur_term_ltr
       --,gr_wide.RC6_q2_ltr AS RC6_cur_term_ltr
       --,gr_wide.RC6_q3_ltr AS RC6_cur_term_ltr
-      ,gr_wide.RC6_q4_ltr AS RC6_cur_term_ltr
+      --,gr_wide.RC6_q4_ltr AS RC6_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC6_q1,0) AS RC6_cur_term_pct
       --,ROUND(gr_wide.RC6_q2,0) AS RC6_cur_term_pct
       --,ROUND(gr_wide.RC6_q3,0) AS RC6_cur_term_pct
-      ,ROUND(gr_wide.RC6_q4,0) AS RC6_cur_term_pct
+      --,ROUND(gr_wide.RC6_q4,0) AS RC6_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC6_gpa_points_Q1 AS RC6_cur_term_gpa_points
       --,gr_wide.RC6_gpa_points_Q2 AS RC6_cur_term_gpa_points
       --,gr_wide.RC6_gpa_points_Q3 AS RC6_cur_term_gpa_points
-      ,gr_wide.RC6_gpa_points_Q4 AS RC6_cur_term_gpa_points
+      --,gr_wide.RC6_gpa_points_Q4 AS RC6_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC6_q1_ltr AS RC6_q1_term_ltr      
       ,gr_wide.RC6_q2_ltr AS RC6_q2_term_ltr
       ,gr_wide.RC6_q3_ltr AS RC6_q3_term_ltr
       ,gr_wide.RC6_q4_ltr AS RC6_q4_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC6_q1,0) AS RC6_q1_term_pct
       ,ROUND(gr_wide.RC6_q2,0) AS RC6_q2_term_pct
       ,ROUND(gr_wide.RC6_q3,0) AS RC6_q3_term_pct
@@ -320,7 +333,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC6_y1,0) AS RC6_y1_pct
       ,gr_wide.RC6_y1_ltr
       ,gr_wide.RC6_credit_hours_Y1
-      --,gr_wide.RC6_gpa_points_Y1      
+      ,gr_wide.RC6_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC6_y1 >= 70 THEN gr_wide.RC6_credit_hours_Y1 ELSE NULL END AS RC6_earned_crhrs      
 
     /*--RC7--*/
@@ -331,25 +344,27 @@ SELECT roster.*
       --,gr_wide.RC7_q1_ltr AS RC7_cur_term_ltr
       --,gr_wide.RC7_q2_ltr AS RC7_cur_term_ltr
       --,gr_wide.RC7_q3_ltr AS RC7_cur_term_ltr
-      ,gr_wide.RC7_q4_ltr AS RC7_cur_term_ltr
+      --,gr_wide.RC7_q4_ltr AS RC7_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC7_q1,0) AS RC7_cur_term_pct
       --,ROUND(gr_wide.RC7_q2,0) AS RC7_cur_term_pct
       --,ROUND(gr_wide.RC7_q3,0) AS RC7_cur_term_pct
-      ,ROUND(gr_wide.RC7_q4,0) AS RC7_cur_term_pct
+      --,ROUND(gr_wide.RC7_q4,0) AS RC7_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC7_gpa_points_Q1 AS RC7_cur_term_gpa_points
       --,gr_wide.RC7_gpa_points_Q2 AS RC7_cur_term_gpa_points
       --,gr_wide.RC7_gpa_points_Q3 AS RC7_cur_term_gpa_points
-      ,gr_wide.RC7_gpa_points_Q4 AS RC7_cur_term_gpa_points
+      --,gr_wide.RC7_gpa_points_Q4 AS RC7_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC7_q1_ltr AS RC7_q1_term_ltr      
       ,gr_wide.RC7_q2_ltr AS RC7_q2_term_ltr
       ,gr_wide.RC7_q3_ltr AS RC7_q3_term_ltr
       ,gr_wide.RC7_q4_ltr AS RC7_q4_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC7_q1,0) AS RC7_q1_term_pct
       ,ROUND(gr_wide.RC7_q2,0) AS RC7_q2_term_pct
       ,ROUND(gr_wide.RC7_q3,0) AS RC7_q3_term_pct
@@ -359,7 +374,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC7_y1,0) AS RC7_y1_pct
       ,gr_wide.RC7_y1_ltr
       ,gr_wide.RC7_credit_hours_Y1
-      --,gr_wide.RC7_gpa_points_Y1      
+      ,gr_wide.RC7_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC7_y1 >= 70 THEN gr_wide.RC7_credit_hours_Y1 ELSE NULL END AS RC7_earned_crhrs
       
     /*--RC8--*/
@@ -370,25 +385,27 @@ SELECT roster.*
       --,gr_wide.RC8_q1_ltr AS RC8_cur_term_ltr
       --,gr_wide.RC8_q2_ltr AS RC8_cur_term_ltr
       --,gr_wide.RC8_q3_ltr AS RC8_cur_term_ltr
-      ,gr_wide.RC8_q4_ltr AS RC8_cur_term_ltr
+      --,gr_wide.RC8_q4_ltr AS RC8_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC8_q1,0) AS RC8_cur_term_pct
       --,ROUND(gr_wide.RC8_q2,0) AS RC8_cur_term_pct
       --,ROUND(gr_wide.RC8_q3,0) AS RC8_cur_term_pct
-      ,ROUND(gr_wide.RC8_q4,0) AS RC8_cur_term_pct
+      --,ROUND(gr_wide.RC8_q4,0) AS RC8_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC8_gpa_points_Q1 AS RC8_cur_term_gpa_points
       --,gr_wide.RC8_gpa_points_Q2 AS RC8_cur_term_gpa_points
       --,gr_wide.RC8_gpa_points_Q3 AS RC8_cur_term_gpa_points
-      ,gr_wide.RC8_gpa_points_Q4 AS RC8_cur_term_gpa_points
+      --,gr_wide.RC8_gpa_points_Q4 AS RC8_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC8_q1_ltr AS RC8_q1_term_ltr      
       ,gr_wide.RC8_q2_ltr AS RC8_q2_term_ltr
       ,gr_wide.RC8_q3_ltr AS RC8_q3_term_ltr
       ,gr_wide.RC8_q4_ltr AS RC8_q4_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC8_q1,0) AS RC8_q1_term_pct
       ,ROUND(gr_wide.RC8_q2,0) AS RC8_q2_term_pct
       ,ROUND(gr_wide.RC8_q3,0) AS RC8_q3_term_pct
@@ -398,7 +415,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC8_y1,0) AS RC8_y1_pct
       ,gr_wide.RC8_y1_ltr
       ,gr_wide.RC8_credit_hours_Y1
-      --,gr_wide.RC8_gpa_points_Y1      
+      ,gr_wide.RC8_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC8_y1 >= 70 THEN gr_wide.RC8_credit_hours_Y1 ELSE NULL END AS RC8_earned_crhrs      
 
     /*--RC9--*/
@@ -409,25 +426,27 @@ SELECT roster.*
       --,gr_wide.RC9_q1_ltr AS RC9_cur_term_ltr
       --,gr_wide.RC9_q2_ltr AS RC9_cur_term_ltr
       --,gr_wide.RC9_q3_ltr AS RC9_cur_term_ltr
-      ,gr_wide.RC9_q4_ltr AS RC9_cur_term_ltr
+      --,gr_wide.RC9_q4_ltr AS RC9_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC9_q1,0) AS RC9_cur_term_pct
       --,ROUND(gr_wide.RC9_q2,0) AS RC9_cur_term_pct
       --,ROUND(gr_wide.RC9_q3,0) AS RC9_cur_term_pct
-      ,ROUND(gr_wide.RC9_q4,0) AS RC9_cur_term_pct
+      --,ROUND(gr_wide.RC9_q4,0) AS RC9_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC9_gpa_points_Q1 AS RC9_cur_term_gpa_points
       --,gr_wide.RC9_gpa_points_Q2 AS RC9_cur_term_gpa_points
       --,gr_wide.RC9_gpa_points_Q3 AS RC9_cur_term_gpa_points
-      ,gr_wide.RC9_gpa_points_Q4 AS RC9_cur_term_gpa_points
+      --,gr_wide.RC9_gpa_points_Q4 AS RC9_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC9_q1_ltr AS RC9_q1_term_ltr      
       ,gr_wide.RC9_q2_ltr AS RC9_q2_term_ltr
       ,gr_wide.RC9_q3_ltr AS RC9_q3_term_ltr
       ,gr_wide.RC9_q4_ltr AS RC9_q4_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC9_q1,0) AS RC9_q1_term_pct
       ,ROUND(gr_wide.RC9_q2,0) AS RC9_q2_term_pct
       ,ROUND(gr_wide.RC9_q3,0) AS RC9_q3_term_pct
@@ -437,7 +456,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC9_y1,0) AS RC9_y1_pct
       ,gr_wide.RC9_y1_ltr
       ,gr_wide.RC9_credit_hours_Y1
-      --,gr_wide.RC9_gpa_points_Y1      
+      ,gr_wide.RC9_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC9_y1 >= 70 THEN gr_wide.RC9_credit_hours_Y1 ELSE NULL END AS RC9_earned_crhrs
       
     /*--RC10--*/
@@ -448,25 +467,27 @@ SELECT roster.*
       --,gr_wide.RC10_q1_ltr AS RC10_cur_term_ltr
       --,gr_wide.RC10_q2_ltr AS RC10_cur_term_ltr
       --,gr_wide.RC10_q3_ltr AS RC10_cur_term_ltr
-      ,gr_wide.RC10_q4_ltr AS RC10_cur_term_ltr
+      --,gr_wide.RC10_q4_ltr AS RC10_cur_term_ltr
       
          /*--UPDATE FOR CURRENT TERM--*/
       --,ROUND(gr_wide.RC10_q1,0) AS RC10_cur_term_pct
       --,ROUND(gr_wide.RC10_q2,0) AS RC10_cur_term_pct
       --,ROUND(gr_wide.RC10_q3,0) AS RC10_cur_term_pct
-      ,ROUND(gr_wide.RC10_q4,0) AS RC10_cur_term_pct
+      --,ROUND(gr_wide.RC10_q4,0) AS RC10_cur_term_pct
 
          /*--UPDATE FOR CURRENT TERM--*/      
       --,gr_wide.RC10_gpa_points_Q1 AS RC10_cur_term_gpa_points
       --,gr_wide.RC10_gpa_points_Q2 AS RC10_cur_term_gpa_points
       --,gr_wide.RC10_gpa_points_Q3 AS RC10_cur_term_gpa_points
-      ,gr_wide.RC10_gpa_points_Q4 AS RC10_cur_term_gpa_points
+      --,gr_wide.RC10_gpa_points_Q4 AS RC10_cur_term_gpa_points
       
       /*/* -- ONLY FOR SHOWING GRADE BY QUARTER -- */
       ,gr_wide.RC10_q1_ltr AS RC10_q1_term_ltr      
       ,gr_wide.RC10_q2_ltr AS RC10_q2_term_ltr
       ,gr_wide.RC10_q3_ltr AS RC10_q3_term_ltr
       ,gr_wide.RC10_q4_ltr AS RC10_q4_term_ltr
+      --*/
+      --/*
       ,ROUND(gr_wide.RC10_q1,0) AS RC10_q1_term_pct
       ,ROUND(gr_wide.RC10_q2,0) AS RC10_q2_term_pct
       ,ROUND(gr_wide.RC10_q3,0) AS RC10_q3_term_pct
@@ -476,7 +497,7 @@ SELECT roster.*
       ,ROUND(gr_wide.RC10_y1,0) AS RC10_y1_pct
       ,gr_wide.RC10_y1_ltr
       ,gr_wide.RC10_credit_hours_Y1
-      --,gr_wide.RC10_gpa_points_Y1      
+      ,gr_wide.RC10_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC10_y1 >= 70 THEN gr_wide.RC10_credit_hours_Y1 ELSE NULL END AS RC10_earned_crhrs      
 
     /*--Current component averages -- UPDATE TERM NUMBER (e.g. H1/H2/H3/H4) on FIELD to current term--*/
