@@ -64,8 +64,8 @@ FROM
              WHEN ISNULL(cum.earned_credits_cum,0) + proj.proj_credits >= 120 THEN 99
              WHEN ISNULL(cum.earned_credits_cum,0) + proj.proj_credits >= 85 THEN 12
              WHEN ISNULL(cum.earned_credits_cum,0) + proj.proj_credits >= 50 THEN 11
-             WHEN ISNULL(cum.earned_credits_cum,0) + proj.proj_credits >= 15 THEN 10
-             WHEN ISNULL(cum.earned_credits_cum,0) + proj.proj_credits < 15 THEN 9
+             WHEN ISNULL(cum.earned_credits_cum,0) + proj.proj_credits >= 25 THEN 10
+             WHEN ISNULL(cum.earned_credits_cum,0) + proj.proj_credits < 25 THEN 9
             END AS proj_gr
            ,proj.audit_string
      FROM STUDENTS s WITH(NOLOCK)
