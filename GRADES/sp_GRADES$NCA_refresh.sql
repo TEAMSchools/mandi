@@ -187,12 +187,13 @@ BEGIN
 -- this IS over the linked server to PS production server
  
  --pgfinalgrades
+ -- < 50 is bumped up to 50 for Y1 calculations
  DECLARE @v_sql VARCHAR(MAX) = '
    SELECT CONVERT(INT,sectionid) AS sectionid
          ,CONVERT(INT,studentid) AS studentid
          ,finalgradename
-         ,[percent]
-         ,grade
+         ,CASE WHEN [percent] < 50 THEN 50 ELSE [percent] END AS [percent]
+         ,CASE WHEN [percent] < 50 THEN ''F*'' ELSE grade END AS grade
          ,course_number
    FROM OPENQUERY(PS_TEAM,''
      SELECT TO_CHAR(pgf.sectionid) AS sectionid
@@ -435,8 +436,14 @@ BEGIN
           ,CASE 
             WHEN Y1_stored IS NOT NULL THEN Y1_stored
             WHEN qtr_valid + exam_valid = 0 THEN NULL
+            --
             ELSE ROUND (
-                  (((COALESCE(Q1, 0) + COALESCE(Q2, 0) + COALESCE(Q3, 0) + COALESCE(Q4, 0)) * 0.225) + ((COALESCE(E1, 0) + COALESCE(E2, 0)) * 0.05)) 
+                  (((COALESCE(Q1, 0) 
+                       + COALESCE(Q2, 0) 
+                       + COALESCE(Q3, 0) 
+                       + COALESCE(Q4, 0)) * 0.225) 
+                 + ((COALESCE(E1, 0)
+                       + COALESCE(E2, 0)) * 0.05)) 
                    / 
                   ((qtr_valid * 22.5) + (exam_valid * 5)) * 100
                  ,0)
@@ -444,14 +451,17 @@ BEGIN
           ,CASE 
             WHEN qtr_in_books + exam_in_books = 0 THEN NULL 
             ELSE ROUND (
-                  (((COALESCE(Q1, 0) + COALESCE(Q2, 0) + COALESCE(Q3, 0)) * 0.225) + ((COALESCE(E1, 0)) * 0.05)) 
+                  (((COALESCE(Q1, 0) 
+                       + COALESCE(Q2, 0) 
+                       + COALESCE(Q3, 0)) * 0.225) 
+                 + ((COALESCE(E1, 0)) * 0.05)) 
                    / 
                   ((qtr_in_books * 22.5) + (exam_in_books * 5)) * 100                 
                  ,1)
            END AS in_the_books
           ,(qtr_in_books * .225) + (exam_in_books * .05) AS used_year
    FROM level_1
-  )  
+  )
  
  -- number of valid terms for "need to get" calculations
  ,term_denominators AS (

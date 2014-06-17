@@ -190,7 +190,7 @@ BEGIN
         ,scales.letter_grade
   INTO [#GRADES$elements_final]
   FROM [#GRADES$elements_s3] ele
-  JOIN KIPP_NJ..GRADES$grade_scales scales
+  JOIN KIPP_NJ..GRADES$grade_scales#static scales WITH(NOLOCK)
     ON ele.simple_avg >= scales.low_cut 
    AND ele.simple_avg <  scales.high_cut
    AND scales.scale_name = 'NCA 2011'
