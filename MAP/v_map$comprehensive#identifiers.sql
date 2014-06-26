@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW MAP$comprehensive#identifiers AS
+ALTER VIEW [dbo].[MAP$comprehensive#identifiers] AS
 SELECT cohort.schoolid
       ,cohort.grade_level
       ,cohort.cohort
@@ -79,6 +79,7 @@ SELECT cohort.schoolid
                                     ELSE NULL
                                   END ASC
                                  ,growthmeasureyn DESC
+                                 ,teststartdate DESC
                                  ,teststandarderror ASC) AS rn
              FROM
                    (SELECT sq_0.ps_studentid

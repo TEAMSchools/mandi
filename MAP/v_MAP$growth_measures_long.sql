@@ -97,7 +97,7 @@ WITH cohort AS
       UNION ALL
       SELECT 'Concepts and Processes'
       UNION ALL
-      SELECT 'General Science'
+      SELECT 'Science - General Science'
      )
 
 SELECT growth_index.*
