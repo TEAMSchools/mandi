@@ -2,49 +2,49 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW REPORTING$report_card#TEAM AS
-WITH roster AS
-     (SELECT s.student_number AS base_student_number
-            ,s.id AS base_studentid
-            ,s.lastfirst AS stu_lastfirst
-            ,s.first_name AS stu_firstname
-            ,s.last_name AS stu_lastname
-            ,c.grade_level AS stu_grade_level
-            ,s.team AS travel_group            
-      FROM KIPP_NJ..COHORT$comprehensive_long#static c  WITH (NOLOCK)    
-      JOIN KIPP_NJ..STUDENTS s  WITH (NOLOCK)
-        ON c.studentid = s.id
-       AND s.enroll_status = 0
-       --AND s.ID = 2360
-       --AND s.ID BETWEEN 2360 AND 3000    
-      WHERE year = dbo.fn_Global_Academic_Year()
-        AND c.rn = 1        
-        AND c.schoolid = 133570965
-     )
+WITH roster AS (
+  SELECT s.student_number AS base_student_number
+        ,s.id AS base_studentid
+        ,s.lastfirst AS stu_lastfirst
+        ,s.first_name AS stu_firstname
+        ,s.last_name AS stu_lastname
+        ,c.grade_level AS stu_grade_level
+        ,s.team AS travel_group            
+  FROM KIPP_NJ..COHORT$comprehensive_long#static c  WITH (NOLOCK)    
+  JOIN KIPP_NJ..STUDENTS s  WITH (NOLOCK)
+    ON c.studentid = s.id
+   AND s.enroll_status = 0
+   --AND s.ID = 2360
+   --AND s.ID BETWEEN 2360 AND 3000    
+  WHERE year = dbo.fn_Global_Academic_Year()
+    AND c.rn = 1        
+    AND c.schoolid = 133570965
+ )
 
-    ,info AS
-    (SELECT s.id
-           ,s.web_id
-           ,s.web_password
-           ,s.student_web_id
-           ,s.student_web_password
-           ,s.street
-           ,s.city
-           ,s.home_phone
-           ,cs.advisor
-           ,cs.advisor_email
-           ,cs.advisor_cell
-           ,cs.mother_cell
-           ,CASE WHEN cs.mother_home is NULL THEN cs.mother_day ELSE cs.mother_home END AS mother_daytime
-           ,cs.father_cell
-           ,CASE WHEN cs.father_home is NULL THEN cs.father_day ELSE cs.father_home END AS father_daytime
-           ,cs.guardianemail           
-           ,cs.SPEDLEP AS SPED
-           ,cs.lunch_balance AS lunch_balance
-     FROM KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
-     JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
-       ON cs.studentid = s.id
-      AND s.enroll_status = 0     
-    )       
+,info AS (
+  SELECT s.id
+        ,s.web_id
+        ,CASE WHEN s.web_password LIKE '{B64}%' THEN 'Changed By User' ELSE s.web_password END AS web_password
+        ,s.student_web_id
+        ,CASE WHEN s.student_web_password LIKE '{B64}%' THEN 'Changed By User' ELSE s.student_web_password END AS student_web_password
+        ,s.street
+        ,s.city
+        ,s.home_phone
+        ,cs.advisor
+        ,cs.advisor_email
+        ,cs.advisor_cell
+        ,cs.mother_cell
+        ,CASE WHEN cs.mother_home is NULL THEN cs.mother_day ELSE cs.mother_home END AS mother_daytime
+        ,cs.father_cell
+        ,CASE WHEN cs.father_home is NULL THEN cs.father_day ELSE cs.father_home END AS father_daytime
+        ,cs.guardianemail           
+        ,cs.SPEDLEP AS SPED
+        ,cs.lunch_balance AS lunch_balance
+  FROM KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
+  JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
+    ON cs.studentid = s.id
+   AND s.enroll_status = 0     
+ )       
   
 SELECT roster.*
       ,info.*
@@ -492,9 +492,9 @@ SELECT roster.*
      
       --MAP reading -- add a new block for each test year, delete oldest
         --13-14
-      --,map_all.spr_2014_read_pctle
+      ,map_all.spr_2014_read_pctle
       ,map_all.f_2013_read_pctle
-      --,map_all.spr_2014_read_rit
+      ,map_all.spr_2014_read_rit
       ,map_all.f_2013_read_rit            
       --,map_all.spring_2014_percentile - map_all.fall_2013_percentile AS f2s_2013_14_read_pctle_chg
       ,map_all.f_2013_read_pctle - map_all.spr_2013_read_pctle AS sum_2013_read_pctle_chg
@@ -521,9 +521,9 @@ SELECT roster.*
             
       --MAP math -- add a new block for each test year, delete oldest
         --13-14
-      --,map_all.spr_2014_math_pctle
+      ,map_all.spr_2014_math_pctle
       ,map_all.f_2013_math_pctle
-      --,map_all.spr_2014_math_rit
+      ,map_all.spr_2014_math_rit
       ,map_all.f_2013_math_rit      
       --,map_all.spring_2014_percentile - map_all.fall_2013_percentile AS f2s_2013_14_math_pctle_chg
       ,map_all.f_2013_math_pctle - map_all.spr_2013_math_pctle AS sum_2013_math_pctle_chg
@@ -562,13 +562,14 @@ SELECT roster.*
      
      --Lexile (from MAP)
      --update terms in JOIN
+     --BASE
      ,CASE
        WHEN lex_base.RITtoReadingScore = 'BR' THEN 'Pre-K'
        ELSE lex_base.RITtoReadingScore
       END AS lexile_base
      --,lex_base.RITtoReadingMin AS lexile_base_min
      --,lex_base.RITtoReadingMax AS lexile_base_max     
-       --GLQ
+     --GLEQ
      ,CASE
        WHEN lex_base.RITtoReadingScore  = 'BR' THEN 'Pre-K'
        WHEN lex_base.RITtoReadingScore <= 100  THEN 'K'
@@ -586,6 +587,31 @@ SELECT roster.*
        WHEN lex_base.RITtoReadingScore  > 1400 THEN '12th'
        ELSE NULL
       END AS lexile_base_GLQ
+     --CUR
+     ,CASE
+       WHEN lex_cur.RITtoReadingScore = 'BR' THEN 'Pre-K'
+       ELSE lex_cur.RITtoReadingScore
+      END AS lexile_cur
+     --,lex_cur.RITtoReadingMin AS lexile_cur_min
+     --,lex_cur.RITtoReadingMax AS lexile_cur_max     
+     --GLEQ
+     ,CASE
+       WHEN lex_cur.RITtoReadingScore  = 'BR' THEN 'Pre-K'
+       WHEN lex_cur.RITtoReadingScore <= 100  THEN 'K'
+       WHEN lex_cur.RITtoReadingScore <= 300  AND lex_cur.RITtoReadingScore > 100  THEN '1st'
+       WHEN lex_cur.RITtoReadingScore <= 500  AND lex_cur.RITtoReadingScore > 300  THEN '2nd'
+       WHEN lex_cur.RITtoReadingScore <= 600  AND lex_cur.RITtoReadingScore > 500  THEN '3rd'
+       WHEN lex_cur.RITtoReadingScore <= 700  AND lex_cur.RITtoReadingScore > 600  THEN '4th'
+       WHEN lex_cur.RITtoReadingScore <= 800  AND lex_cur.RITtoReadingScore > 700  THEN '5th'
+       WHEN lex_cur.RITtoReadingScore <= 900  AND lex_cur.RITtoReadingScore > 800  THEN '6th'
+       WHEN lex_cur.RITtoReadingScore <= 1000 AND lex_cur.RITtoReadingScore > 900  THEN '7th'
+       WHEN lex_cur.RITtoReadingScore <= 1100 AND lex_cur.RITtoReadingScore > 1000 THEN '8th'
+       WHEN lex_cur.RITtoReadingScore <= 1200 AND lex_cur.RITtoReadingScore > 1100 THEN '9th'
+       WHEN lex_cur.RITtoReadingScore <= 1300 AND lex_cur.RITtoReadingScore > 1200 THEN '10th'
+       WHEN lex_cur.RITtoReadingScore <= 1400 AND lex_cur.RITtoReadingScore > 1300 THEN '11th'
+       WHEN lex_cur.RITtoReadingScore  > 1400 THEN '12th'
+       ELSE NULL
+      END AS lexile_cur_GLQ
       
 
 --NJASK scores
@@ -718,17 +744,17 @@ LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
 LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
   ON roster.base_student_number = fp_curr.student_number 
  AND fp_curr.achv_curr_all = 1
-  --LEXILE
+--LEXILE
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.base_student_number = lex_base.studentid
  AND lex_base.MeasurementScale = 'Reading'
  AND lex_base.rn_base = 1
  AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
-  ON roster.base_student_number = lex_curr.studentid
- AND lex_curr.MeasurementScale = 'Reading'
- AND lex_curr.rn_curr = 1
- AND lex_curr.map_year_academic = dbo.fn_Global_Academic_Year()
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
+  ON roster.base_student_number = lex_cur.studentid
+ AND lex_cur.MeasurementScale = 'Reading'
+ AND lex_cur.rn_curr = 1
+ AND lex_cur.map_year_academic = dbo.fn_Global_Academic_Year()
   
 --NJASK
 LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
