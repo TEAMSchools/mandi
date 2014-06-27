@@ -5,13 +5,13 @@ ALTER PROCEDURE [sp_ILLUMINATE$summary_assessment_results_long#static|refresh] A
 
 BEGIN
 
-  -- 1.) Drop and recreate the temp table --
+-- 1.) Drop and recreate the temp table --
   IF OBJECT_ID(N'tempdb..#ILLUMINATE$summary_assessment_results_long#static|refresh') IS NOT NULL
     DROP TABLE [#ILLUMINATE$summary_assessment_results_long#static|refresh]
     CREATE TABLE [#ILLUMINATE$summary_assessment_results_long#static|refresh] (repository_id INT, repository_row_id INT, student_id INT, field NVARCHAR(MAX), value NVARCHAR(MAX))
 
 
-  -- 2.) Declare variables --
+-- 2.) Declare variables --
   DECLARE @query NVARCHAR(MAX)
   DECLARE @repository_id NVARCHAR(MAX)
   DECLARE @cols NVARCHAR(MAX)
@@ -19,7 +19,7 @@ BEGIN
   DECLARE @sql NVARCHAR(MAX)
 
 
-  -- 3.) Declare the cursor FOR the set of records it will loop over --
+-- 3.) Declare the cursor FOR the set of records it will loop over --
   -- cursor name MUST be unique within schema
   DECLARE illuminate_cursor CURSOR FOR
     SELECT repository_id        
@@ -31,7 +31,7 @@ BEGIN
     ')
 
   		    
-  -- 4.) Do work, son --
+-- 4.) Do work, son --
   -- boilerplate cursor stuff
   OPEN illuminate_cursor
   WHILE 1 = 1
@@ -44,7 +44,8 @@ BEGIN
           BREAK
         END  
     
-      -- grab column headers using GROUP_CONCAT to format them for the UNPIVOT statement
+      -- grab column headers using GROUP_CONCAT
+      -- this allows you to SELECT/INSERT/UNPIVOT arbitrary column names
       SELECT @cols = '[' + dbo.GROUP_CONCAT_D(name, '], [') + ']'
       FROM OPENQUERY(ILLUMINATE,'
         SELECT name
@@ -55,7 +56,7 @@ BEGIN
       WHERE repository_id = @repository_id
 
       -- grab another set of column headers for the SELECT statement, CONVERTing everything to TEXT (NVARCHAR)
-      -- this avoids the data-type collisions that would occur during the UNPIVOT
+      -- this avoids the data-type collisions that would otherwise occur during the UNPIVOT
       SELECT @converted_cols = dbo.GROUP_CONCAT_BIGD(' , CAST(' + name, ' AS TEXT) ')
       FROM OPENQUERY(ILLUMINATE,'
         SELECT name
@@ -65,9 +66,9 @@ BEGIN
       ')
       WHERE repository_id = @repository_id
 
-      -- here's the beef, the query that the cursor is going to iterate over    
-      -- for each repo, SELECT the columns, CONVERT them to TEXT, and UNPIVOT into a long format
-      -- then INSERT INTO the temp table 
+      -- here's the beef, the query that the cursor is going to iterate over
+      -- for each repo, SELECT the columns, CONVERT them to TEXT, and then UNPIVOT into a normalized form
+      -- then INSERT INTO the temp table
       SET @query = N'                  
         INSERT INTO [#ILLUMINATE$summary_assessment_results_long#static|refresh]
         SELECT ' + @repository_id + ' AS repository_id
@@ -88,19 +89,21 @@ BEGIN
          ) unpiv           
       '        
       
-      -- print the query that has just been prepared for debugging
+      -- print the query that has just been prepared (for debugging)
       RAISERROR(@query, 0, 1)
       
       -- execute the query string above
+      -- wash, rinse, repeat
       EXEC(@query)
           
     END
 
+  -- this is important
   CLOSE illuminate_cursor
   DEALLOCATE illuminate_cursor;
 
 
-  -- 5.) UPSERT, matching on repo, row number, studentid, and field name
+-- 5.) UPSERT: matching on repo, row number, studentid, and field name
   MERGE ILLUMINATE$summary_assessment_results_long#static AS TARGET
   USING (SELECT repository_id
                ,repository_row_id
