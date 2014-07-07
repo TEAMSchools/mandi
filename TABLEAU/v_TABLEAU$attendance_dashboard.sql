@@ -42,6 +42,7 @@ LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
 JOIN MEMBERSHIP mem WITH(NOLOCK)
   ON s.id = mem.studentid
  AND s.schoolid = mem.schoolid
+ AND mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
 LEFT OUTER JOIN ATTENDANCE att WITH(NOLOCK)
   ON s.id = att.studentid
  AND mem.CALENDARDATE = att.ATT_DATE 
