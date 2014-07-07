@@ -16,7 +16,7 @@ WITH calendar AS(
         ,co.cohort
         ,co.studentid
         ,co.lastfirst
-        ,CASE WHEN co.HIGHEST_ACHIEVED = co.GRADE_LEVEL THEN s.lunchstatus ELSE lunch.lunch_status END AS lunchstatus
+        ,CASE WHEN dbo.fn_Global_Academic_Year() = co.YEAR THEN s.lunchstatus ELSE lunch.lunch_status END AS lunchstatus
         ,CASE WHEN UPPER(cs.spedlep) LIKE '%SPEECH%' THEN 'SPEECH' ELSE cs.SPEDLEP END AS SPEDLEP
         ,s.ethnicity
         ,s.gender
