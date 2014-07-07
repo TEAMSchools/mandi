@@ -2,53 +2,52 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW REPORTING$report_card#NCA AS
-WITH roster AS
-     (
-      SELECT s.schoolid
-            ,s.student_number AS base_student_number
-            ,s.id AS base_studentid
-            ,s.lastfirst AS stu_lastfirst
-            ,s.first_name AS stu_firstname
-            ,s.last_name AS stu_lastname
-            ,c.grade_level AS stu_grade_level
-      FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
-      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
-        ON c.studentid = s.id
-       AND s.enroll_status = 0
-       --AND s.ID = 639
-       --AND s.ID IN (3551,3358)
-       --AND s.ID BETWEEN 3000 AND 4000
-      WHERE year = dbo.fn_Global_Academic_Year()
-        AND c.rn = 1
-        AND c.schoolid = 73253
-     )
 
-    ,info AS
-    (
-     SELECT s.id AS nomerge_id
-           ,s.web_id
-           ,CASE WHEN s.web_password LIKE '{B64}%' THEN 'Changed By User' ELSE s.web_password END AS web_password
-           ,s.student_web_id
-           ,CASE WHEN s.student_web_password LIKE '{B64}%' THEN 'Changed By User' ELSE s.student_web_password END AS student_web_password
-           ,s.street
-           ,s.city
-           ,s.home_phone
-           ,cs.advisor
-           ,cs.advisor_email
-           ,cs.advisor_cell
-           ,cs.mother_cell
-           ,CASE WHEN cs.mother_home is NULL THEN cs.mother_day ELSE cs.mother_home END AS mother_daytime
-           ,cs.father_cell
-           ,CASE WHEN cs.father_home is NULL THEN cs.father_day ELSE cs.father_home END AS father_daytime
-           ,cs.GUARDIANEMAIL           
-           ,cs.SPEDLEP AS SPED
-           ,cs.lunch_balance AS lunch_balance
-     FROM KIPP_NJ..STUDENTS s WITH (NOLOCK)
-     JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
-       ON s.id = cs.studentid
-      AND s.enroll_status = 0
-      AND s.schoolid = 73253     
-    )       
+WITH roster AS (
+  SELECT s.schoolid
+        ,s.student_number AS base_student_number
+        ,s.id AS base_studentid
+        ,s.lastfirst AS stu_lastfirst
+        ,s.first_name AS stu_firstname
+        ,s.last_name AS stu_lastname
+        ,c.grade_level AS stu_grade_level
+  FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
+  JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
+    ON c.studentid = s.id
+   AND s.enroll_status = 0
+   --AND s.ID = 639
+   --AND s.ID IN (3551,3358)
+   --AND s.ID BETWEEN 3000 AND 4000
+  WHERE year = dbo.fn_Global_Academic_Year()
+    AND c.rn = 1
+    AND c.schoolid = 73253
+ )
+
+,info AS (
+   SELECT s.id AS nomerge_id
+         ,s.web_id
+         ,CASE WHEN s.web_password LIKE '{B64}%' THEN 'Changed By User' ELSE s.web_password END AS web_password
+         ,s.student_web_id
+         ,CASE WHEN s.student_web_password LIKE '{B64}%' THEN 'Changed By User' ELSE s.student_web_password END AS student_web_password
+         ,s.street
+         ,s.city
+         ,s.home_phone
+         ,cs.advisor
+         ,cs.advisor_email
+         ,cs.advisor_cell
+         ,cs.mother_cell
+         ,CASE WHEN cs.mother_home is NULL THEN cs.mother_day ELSE cs.mother_home END AS mother_daytime
+         ,cs.father_cell
+         ,CASE WHEN cs.father_home is NULL THEN cs.father_day ELSE cs.father_home END AS father_daytime
+         ,cs.GUARDIANEMAIL           
+         ,cs.SPEDLEP AS SPED
+         ,cs.lunch_balance AS lunch_balance
+   FROM KIPP_NJ..STUDENTS s WITH (NOLOCK)
+   JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
+     ON s.id = cs.studentid
+    AND s.enroll_status = 0
+    AND s.schoolid = 73253     
+ )       
 
 SELECT roster.*
       ,info.*
