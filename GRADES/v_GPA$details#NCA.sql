@@ -33,7 +33,9 @@ SELECT studentid
       --if you need to override Y1 GPA for a RC window here is an example for theoretical Q2 RC
       --      ,ROUND( (SUM(weighted_points_Q1) + SUM(weighted_points_Q2))
       --        /(SUM(credit_hours_Q1) + SUM(credit_hours_Q2)),2) AS GPA_Y1
-      ,ROUND(SUM(weighted_points_Y1)/SUM(credit_hours_Y1),2) AS GPA_Y1   
+      ,ROUND(SUM(weighted_points_Y1)/SUM(credit_hours_Y1),2) AS GPA_Y1
+      ,ROUND(SUM(weighted_points_Q1 + weighted_points_Q2 + weighted_points_E1)/SUM(credit_hours_Q1 + credit_hours_Q2 + credit_hours_E1),2) AS GPA_S1
+      ,ROUND(SUM(weighted_points_Q3 + weighted_points_Q4 + weighted_points_E2)/SUM(credit_hours_Q3 + credit_hours_Q4 + credit_hours_E2),2) AS GPA_S2
       ,SUM(Promo_Test) AS num_failing
       ,dbo.GROUP_CONCAT(failing_y1) AS failing
 FROM KIPP_NJ..GRADES$detail#NCA WITH (NOLOCK)

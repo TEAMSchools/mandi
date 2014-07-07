@@ -261,24 +261,27 @@ BEGIN
 
 -- 3) insert course enrollments into staging table 1 from temp table
  INSERT INTO #TEMP_GRADES$NCA#STAGE_1
- SELECT s.id AS studentid
+ SELECT co.studentid
        ,s.student_number
-       ,s.schoolid
-       ,s.lastfirst
-       ,s.grade_level
+       ,co.schoolid
+       ,co.lastfirst
+       ,co.grade_level
        ,cc.course_number
        ,c.credittype
        ,c.course_name
        ,c.credit_hours
- FROM students s WITH(NOLOCK)
+ FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+ JOIN STUDENTS s WITH(NOLOCK)
+   ON co.STUDENTID = s.ID
  JOIN cc WITH(NOLOCK)
-   ON s.id = cc.studentid
+   ON co.studentid = cc.studentid
   AND cc.termid >= @v_termid
  JOIN courses c WITH(NOLOCK)
    ON cc.course_number = c.course_number 
   AND c.excludefromgpa != @v_1 --exclude courses that will never count towards GPA
- WHERE s.enroll_status = @v_0
-   AND s.schoolid = @v_schoolly_d;
+ WHERE co.YEAR = dbo.fn_Global_Academic_Year()
+   AND co.schoolid = @v_schoolly_d
+   AND co.rn = 1;
 
 
 -- 4) assemble student enrollments AND course grades into staging table (no calculations yet)
@@ -525,31 +528,31 @@ BEGIN
    JOIN term_denominators
      ON term_denominators.course_number = stage_2.course_number
     AND term_denominators.studentid = stage_2.studentid
-   LEFT OUTER JOIN GRADES$grade_scales gradescale_Q1 WITH(NOLOCK)
+   LEFT OUTER JOIN GRADES$grade_scales#static gradescale_Q1 WITH(NOLOCK)
      ON courses.gradescaleid = gradescale_Q1.scale_id
     AND stage_2.Q1 >= gradescale_Q1.low_cut 
     AND stage_2.Q1 < gradescale_Q1.high_cut   
-   LEFT OUTER JOIN GRADES$grade_scales gradescale_Q2 WITH(NOLOCK)
+   LEFT OUTER JOIN GRADES$grade_scales#static gradescale_Q2 WITH(NOLOCK)
      ON courses.gradescaleid = gradescale_Q2.scale_id
     AND stage_2.Q2 >= gradescale_Q2.low_cut 
     AND stage_2.Q2 < gradescale_Q2.high_cut   
-   LEFT OUTER JOIN GRADES$grade_scales gradescale_Q3 WITH(NOLOCK)
+   LEFT OUTER JOIN GRADES$grade_scales#static gradescale_Q3 WITH(NOLOCK)
      ON courses.gradescaleid = gradescale_Q3.scale_id
     AND stage_2.Q3 >= gradescale_Q3.low_cut 
     AND stage_2.Q3 < gradescale_Q3.high_cut   
-   LEFT OUTER JOIN GRADES$grade_scales gradescale_Q4 WITH(NOLOCK)
+   LEFT OUTER JOIN GRADES$grade_scales#static gradescale_Q4 WITH(NOLOCK)
      ON courses.gradescaleid = gradescale_Q4.scale_id
     AND stage_2.Q4 >= gradescale_Q4.low_cut 
     AND stage_2.Q4 < gradescale_Q4.high_cut    
-   LEFT OUTER JOIN GRADES$grade_scales gradescale_E1 WITH(NOLOCK)
+   LEFT OUTER JOIN GRADES$grade_scales#static gradescale_E1 WITH(NOLOCK)
      ON courses.gradescaleid = gradescale_E1.scale_id
     AND stage_2.E1 >= gradescale_E1.low_cut 
     AND stage_2.E1 < gradescale_E1.high_cut    
-   LEFT OUTER JOIN GRADES$grade_scales gradescale_E2 WITH(NOLOCK)
+   LEFT OUTER JOIN GRADES$grade_scales#static gradescale_E2 WITH(NOLOCK)
      ON courses.gradescaleid = gradescale_E2.scale_id
     AND stage_2.E2 >= gradescale_E2.low_cut 
     AND stage_2.E2 < gradescale_E2.high_cut    
-   LEFT OUTER JOIN GRADES$grade_scales gradescale_Y1 WITH(NOLOCK)
+   LEFT OUTER JOIN GRADES$grade_scales#static gradescale_Y1 WITH(NOLOCK)
      ON courses.gradescaleid = gradescale_Y1.scale_id 
     AND stage_2.Y1 >= gradescale_Y1.low_cut 
     AND stage_2.Y1 < gradescale_Y1.high_cut   
@@ -659,9 +662,11 @@ BEGIN
          + CONVERT(VARCHAR, year_remaining) 
          AS need_c_text
  FROM STAGE_3_1;
- 
+
+
 -- 6) truncate the grades$detail#nca table
  EXEC ('TRUNCATE TABLE GRADES$DETAIL#NCA');
+
 
 -- 7) append to result table
  INSERT INTO dbo.GRADES$DETAIL#NCA 
