@@ -15,9 +15,9 @@ WITH roster AS (
 ,term_base AS (
   SELECT academic_year      
         ,studentid
-        ,[BOY_base_read_lvl]
-        ,[BOY_base_GLEQ]
-        ,[BOY_base_lvl_num]            
+        ,[DR_base_read_lvl]
+        ,[DR_base_GLEQ]
+        ,[DR_base_lvl_num]            
         ,[T1_base_read_lvl]
         ,[T1_base_GLEQ]
         ,[T1_base_lvl_num]
@@ -58,9 +58,9 @@ WITH roster AS (
 
   PIVOT (
     MAX(value)
-    FOR identifier IN ([BOY_base_read_lvl]
-                      ,[BOY_base_GLEQ]
-                      ,[BOY_base_lvl_num]            
+    FOR identifier IN ([DR_base_read_lvl]
+                      ,[DR_base_GLEQ]
+                      ,[DR_base_lvl_num]            
                       ,[T1_base_read_lvl]
                       ,[T1_base_GLEQ]
                       ,[T1_base_lvl_num]
@@ -79,9 +79,9 @@ WITH roster AS (
 ,term_cur AS (
   SELECT academic_year      
         ,studentid
-        ,[BOY_cur_read_lvl]
-        ,[BOY_cur_GLEQ]
-        ,[BOY_cur_lvl_num]            
+        ,[DR_cur_read_lvl]
+        ,[DR_cur_GLEQ]
+        ,[DR_cur_lvl_num]            
         ,[T1_cur_read_lvl]
         ,[T1_cur_GLEQ]
         ,[T1_cur_lvl_num]
@@ -122,9 +122,9 @@ WITH roster AS (
 
   PIVOT (
     MAX(value)
-    FOR identifier IN ([BOY_cur_read_lvl]
-                      ,[BOY_cur_GLEQ]
-                      ,[BOY_cur_lvl_num]            
+    FOR identifier IN ([DR_cur_read_lvl]
+                      ,[DR_cur_GLEQ]
+                      ,[DR_cur_lvl_num]            
                       ,[T1_cur_read_lvl]
                       ,[T1_cur_GLEQ]
                       ,[T1_cur_lvl_num]
@@ -255,8 +255,8 @@ WITH roster AS (
 ,term_dna AS (
   SELECT academic_year      
         ,studentid
-        ,[BOY_dna_read_lvl]
-        ,[BOY_dna_reason]
+        ,[DR_dna_read_lvl]
+        ,[DR_dna_reason]
         ,[T1_dna_read_lvl]
         ,[T1_dna_reason]
         ,[T2_dna_read_lvl]
@@ -299,8 +299,8 @@ WITH roster AS (
                       ,[T2_dna_reason]
                       ,[T3_dna_read_lvl]
                       ,[T3_dna_reason]
-                      ,[BOY_dna_read_lvl]
-                      ,[BOY_dna_reason]
+                      ,[DR_dna_read_lvl]
+                      ,[DR_dna_reason]
                       ,[EOY_dna_read_lvl]
                       ,[EOY_dna_reason])
    ) piv
@@ -365,14 +365,14 @@ SELECT YEAR
       ,yr_cur_wpmrate
       ,yr_dna_read_lvl
       ,yr_dna_reason      
-      ,BOY_base_GLEQ
-      ,BOY_base_lvl_num
-      ,BOY_base_read_lvl
-      ,BOY_cur_GLEQ
-      ,BOY_cur_lvl_num
-      ,BOY_cur_read_lvl
-      ,BOY_dna_read_lvl
-      ,BOY_dna_reason            
+      ,DR_base_GLEQ
+      ,DR_base_lvl_num
+      ,DR_base_read_lvl
+      ,DR_cur_GLEQ
+      ,DR_cur_lvl_num
+      ,DR_cur_read_lvl
+      ,DR_dna_read_lvl
+      ,DR_dna_reason            
       ,T1_base_GLEQ
       ,T1_base_lvl_num
       ,T1_base_read_lvl

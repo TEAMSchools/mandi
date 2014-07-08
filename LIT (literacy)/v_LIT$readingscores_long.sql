@@ -15,7 +15,7 @@ WITH long_scores AS (
       (
        SELECT unique_id      
              ,testid
-             ,studentid
+             ,studentid                          
              ,step_ltr_level
              ,status
              ,CONVERT(VARCHAR,name_ass) AS name_ass
@@ -29,31 +29,17 @@ WITH long_scores AS (
              ,CONVERT(VARCHAR,cp_slw) AS cp_slw
              ,CONVERT(VARCHAR,devsp_first) AS devsp_first
              ,CONVERT(VARCHAR,devsp_svs) AS devsp_svs
-             ,CONVERT(VARCHAR,devsp_final) AS devsp_final
-             ,CONVERT(VARCHAR,devsp_init_bd) AS devsp_init_bd
-             ,CONVERT(VARCHAR,devsp_fin_bd) AS devsp_fin_bd
+             ,CONVERT(VARCHAR,devsp_final) AS devsp_final             
              ,CONVERT(VARCHAR,devsp_ifbd) AS devsp_ifbd
-             ,CONVERT(VARCHAR,devsp_longvp) AS devsp_longvp
-             ,CONVERT(VARCHAR,devsp_rcontv) AS devsp_rcontv
-             ,CONVERT(VARCHAR,devsp_vce) AS devsp_vce
-             ,CONVERT(VARCHAR,devsp_long_vwl) AS devsp_long_vwl
-             ,CONVERT(VARCHAR,devsp_vcelvp) AS devsp_vcelvp
+             ,CONVERT(VARCHAR,devsp_longvowel) AS devsp_longvowel
+             ,CONVERT(VARCHAR,devsp_rcontrol) AS devsp_rcontrol                          
              ,CONVERT(VARCHAR,devsp_vowldig) AS devsp_vowldig
              ,CONVERT(VARCHAR,devsp_cmplxb) AS devsp_cmplxb
              ,CONVERT(VARCHAR,devsp_eding) AS devsp_eding
-             ,CONVERT(VARCHAR,devsp_doubsylj) AS devsp_doubsylj
-             ,CONVERT(VARCHAR,devsp_longv2sw) AS devsp_longv2sw
-             ,CONVERT(VARCHAR,devsp_rcont2sw) AS devsp_rcont2sw
+             ,CONVERT(VARCHAR,devsp_doubsylj) AS devsp_doubsylj             
              ,CONVERT(VARCHAR,rr_121match) AS rr_121match
              ,CONVERT(VARCHAR,rr_holdspattern) AS rr_holdspattern
-             ,CONVERT(VARCHAR,rr_understanding) AS rr_understanding
-             ,CONVERT(VARCHAR,
-               CASE
-                WHEN accuracy = 'Above' THEN 2
-                WHEN accuracy = 'Target' THEN 1
-                WHEN accuracy = 'Below' THEN 0
-                ELSE NULL
-               END) AS accuracy
+             ,CONVERT(VARCHAR,rr_understanding) AS rr_understanding             
              ,CONVERT(VARCHAR,accuracy_1a) AS accuracy_1a
              ,CONVERT(VARCHAR,accuracy_2b) AS accuracy_2b
              ,CONVERT(VARCHAR,ra_errors) AS ra_errors
@@ -70,16 +56,14 @@ WITH long_scores AS (
              ,CONVERT(VARCHAR,wcomp_fact) AS wcomp_fact
              ,CONVERT(VARCHAR,wcomp_infer) AS wcomp_infer
              ,CONVERT(VARCHAR,wcomp_ct) AS wcomp_ct
-             ,CONVERT(VARCHAR,retelling) AS retelling
-             ,CONVERT(VARCHAR,total_vwlattmpt) AS total_vwlattmpt
+             ,CONVERT(VARCHAR,retelling) AS retelling             
              ,CONVERT(VARCHAR,
                 CASE
-                 WHEN accuracy = 'Above' THEN 2
-                 WHEN accuracy = 'Target' THEN 1
-                 WHEN accuracy = 'Below' THEN 0
+                 WHEN reading_rate = 'Above' THEN 2
+                 WHEN reading_rate = 'Target' THEN 1
+                 WHEN reading_rate = 'Below' THEN 0
                  ELSE NULL
-                END) AS reading_rate
-             ,CONVERT(VARCHAR,reading_time) AS reading_time
+                END) AS reading_rate             
              ,CONVERT(VARCHAR,fluency) AS fluency
              ,CONVERT(VARCHAR,ROUND(fp_wpmrate,0)) AS fp_wpmrate
              ,CONVERT(VARCHAR,fp_fluency) AS fp_fluency
@@ -94,9 +78,7 @@ WITH long_scores AS (
              ,CONVERT(VARCHAR,fp_comp_prof) AS fp_comp_prof
              ,CONVERT(VARCHAR,cp_prof) AS cp_prof
              ,CONVERT(VARCHAR,rr_prof) AS rr_prof
-             ,CONVERT(VARCHAR,devsp_prof) AS devsp_prof
-             ,CONVERT(VARCHAR,devsp_blend_prof) AS devsp_blend_prof
-             ,CONVERT(VARCHAR,devsp_vce_longvwl_prof) AS devsp_vce_longvwl_prof
+             ,CONVERT(VARCHAR,devsp_prof) AS devsp_prof             
        FROM READINGSCORES WITH(NOLOCK)
       ) sub
 
@@ -113,25 +95,17 @@ WITH long_scores AS (
                        ,cp_slw
                        ,devsp_first
                        ,devsp_svs
-                       ,devsp_final
-                       ,devsp_init_bd
-                       ,devsp_fin_bd
+                       ,devsp_final                       
                        ,devsp_ifbd
-                       ,devsp_longvp
-                       ,devsp_rcontv
-                       ,devsp_vce
-                       ,devsp_long_vwl
-                       ,devsp_vcelvp
+                       ,devsp_longvowel
+                       ,devsp_rcontrol                       
                        ,devsp_vowldig
                        ,devsp_cmplxb
                        ,devsp_eding
-                       ,devsp_doubsylj
-                       ,devsp_longv2sw
-                       ,devsp_rcont2sw
+                       ,devsp_doubsylj                       
                        ,rr_121match
                        ,rr_holdspattern
-                       ,rr_understanding
-                       ,accuracy
+                       ,rr_understanding                       
                        ,accuracy_1a
                        ,accuracy_2b
                        ,ra_errors
@@ -148,10 +122,8 @@ WITH long_scores AS (
                        ,wcomp_fact
                        ,wcomp_infer
                        ,wcomp_ct
-                       ,retelling
-                       ,total_vwlattmpt
-                       ,reading_rate
-                       ,reading_time
+                       ,retelling                       
+                       ,reading_rate                       
                        ,fluency
                        ,fp_wpmrate
                        ,fp_fluency
@@ -166,11 +138,9 @@ WITH long_scores AS (
                        ,fp_comp_prof
                        ,cp_prof
                        ,rr_prof
-                       ,devsp_prof
-                       ,devsp_blend_prof)
+                       ,devsp_prof)
    ) unpiv
  )
-
 
 SELECT sub.unique_id
       ,sub.testid
@@ -193,14 +163,14 @@ FROM
            ,prof.domain
            ,rs.field
            ,rs.score
-           ,prof.benchmark
+           ,prof.score AS benchmark
            ,CASE 
-             WHEN rs.field NOT IN ('accuracy_1a','accuracy_2b') AND rs.score >= prof.benchmark THEN 1
-             WHEN rs.field IN ('accuracy_1a','accuracy_2b') AND rs.score <= prof.benchmark THEN 1
+             WHEN rs.field NOT IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score >= prof.score THEN 1
+             WHEN rs.field IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score <= prof.score THEN 1
              ELSE 0
             END AS is_prof
      FROM long_scores rs
      JOIN LIT$prof_long prof
        ON rs.testid = prof.testid
-      AND rs.field = prof.field
+      AND rs.field = prof.field_name
     ) sub

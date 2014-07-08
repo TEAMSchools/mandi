@@ -24,13 +24,23 @@ BEGIN
 		INTO [#LIT$READINGSCORES|refresh]
 		FROM 
 		    (
-		     SELECT unique_id
+       SELECT unique_id
              ,studentid
-             ,CONVERT(DATE,test_date) AS test_date
-             ,NULL AS test_round
-             ,NULL AS academic_year
+             ,CONVERT(DATE,test_date) AS test_date      
+             -- prior to SY14, academic_year and test_round were derived
+             -- from the test_date, which caused a lot of problems
+             -- so now they're entered directly with the test 
+             ,CASE
+               WHEN LEN(academic_year) < 4 THEN NULL
+               ELSE CONVERT(INT,academic_year) 
+              END AS academic_year              
+             ,CASE
+               WHEN LEN(test_round) < 2 THEN NULL
+               WHEN test_round = 'Diagnostic' THEN 'DR'
+               ELSE test_round
+              END AS test_round
              ,testid
-             ,step_ltr_level 
+             ,step_ltr_level
              ,status
              ,color
              ,UPPER(instruct_lvl) AS instruct_lvl
@@ -48,24 +58,16 @@ BEGIN
              ,CONVERT(FLOAT,devsp_first) AS devsp_first
              ,CONVERT(FLOAT,devsp_svs) AS devsp_svs
              ,CONVERT(FLOAT,devsp_final) AS devsp_final
-             ,NULL AS devsp_init_bd
-             ,NULL AS devsp_fin_bd
              ,CONVERT(FLOAT,devsp_ifbd) AS devsp_ifbd
-             ,CONVERT(FLOAT,devsp_longvp) AS devsp_longvp
-             ,CONVERT(FLOAT,devsp_rcontv) AS devsp_rcontv
-             ,NULL AS devsp_vce
-             ,NULL AS devsp_long_vwl
-             ,CONVERT(FLOAT,devsp_vcelvp) AS devsp_vcelvp
+             ,CONVERT(FLOAT,devsp_longvowel) AS devsp_longvowel
+             ,CONVERT(FLOAT,devsp_rcontrol) AS devsp_rcontrol      
              ,CONVERT(FLOAT,devsp_vowldig) AS devsp_vowldig
              ,CONVERT(FLOAT,devsp_cmplxb) AS devsp_cmplxb
              ,CONVERT(FLOAT,devsp_eding) AS devsp_eding
-             ,CONVERT(FLOAT,devsp_doubsylj) AS devsp_doubsylj
-             ,CONVERT(FLOAT,devsp_longv2sw) AS devsp_longv2sw
-             ,CONVERT(FLOAT,devsp_rcont2sw) AS devsp_rcont2sw
+             ,CONVERT(FLOAT,devsp_doubsylj) AS devsp_doubsylj      
              ,CONVERT(FLOAT,rr_121match) AS rr_121match
              ,CONVERT(FLOAT,rr_holdspattern) AS rr_holdspattern
-             ,CONVERT(FLOAT,rr_understanding) AS rr_understanding
-             ,accuracy
+             ,CONVERT(FLOAT,rr_understanding) AS rr_understanding      
              ,CONVERT(FLOAT,accuracy_1a) AS accuracy_1a
              ,CONVERT(FLOAT,accuracy_2b) AS accuracy_2b
              ,CONVERT(FLOAT,ra_errors) AS ra_errors
@@ -82,10 +84,8 @@ BEGIN
              ,CONVERT(FLOAT,wcomp_fact) AS wcomp_fact
              ,CONVERT(FLOAT,wcomp_infer) AS wcomp_infer
              ,CONVERT(FLOAT,wcomp_ct) AS wcomp_ct
-             ,CONVERT(FLOAT,retelling) AS retelling
-             ,CONVERT(FLOAT,total_vwlattmpt) AS total_vwlattmpt
-             ,reading_rate
-             ,NULL AS reading_time
+             ,CONVERT(FLOAT,retelling) AS retelling      
+             ,reading_rate      
              ,CONVERT(FLOAT,fluency) AS fluency
              ,CONVERT(FLOAT,fp_wpmrate) AS fp_wpmrate
              ,CONVERT(FLOAT,fp_fluency) AS fp_fluency
@@ -94,7 +94,7 @@ BEGIN
              ,CONVERT(FLOAT,fp_comp_beyond) AS fp_comp_beyond
              ,CONVERT(FLOAT,fp_comp_about) AS fp_comp_about
              ,fp_keylever
-             
+
              --aggregate fields
              ,CASE WHEN testid != 3273 THEN
                CONVERT(FLOAT,ISNULL(cc_factual,0)) 
@@ -143,17 +143,18 @@ BEGIN
                CONVERT(FLOAT,ISNULL(devsp_first,0)) 
                 + CONVERT(FLOAT,ISNULL(devsp_svs,0)) 
                 + CONVERT(FLOAT,ISNULL(devsp_final,0))
+                + CONVERT(FLOAT,ISNULL(devsp_ifbd,0))
                ELSE NULL
-              END AS devsp_prof
-             ,NULL AS devsp_blend_prof
-             ,NULL AS devsp_vce_longvwl_prof
-		       FROM OPENQUERY(PS_TEAM,'
+              END AS devsp_prof      
+       FROM OPENQUERY(PS_TEAM,'
 SELECT unique_id
       ,foreignKey AS studentid
       ,user_defined_date AS test_date
       ,foreignkey_alpha AS testid
       ,user_defined_text AS step_ltr_level            
       ,user_defined_text2 AS status
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field50'') AS academic_year
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field49'') AS test_round
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field1'') AS color
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field2'') AS instruct_lvl
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field3'') AS indep_lvl
@@ -171,19 +172,15 @@ SELECT unique_id
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field13'') AS devsp_svs
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field14'') AS devsp_final
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field31'') AS devsp_ifbd
-      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field37'') AS devsp_longvp
-      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field38'') AS devsp_rcontv
-      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field40'') AS devsp_vcelvp
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field37'') AS devsp_longvowel
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field38'') AS devsp_rcontrol   
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field41'') AS devsp_vowldig
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field42'') AS devsp_cmplxb
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field47'') AS devsp_eding
-      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field48'') AS devsp_doubsylj
-      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field49'') AS devsp_longv2sw
-      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field50'') AS devsp_rcont2sw
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field48'') AS devsp_doubsylj      
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field15'') AS rr_121match
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field16'') AS rr_holdspattern
-      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field17'') AS rr_understanding
-      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field25'') AS accuracy
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field17'') AS rr_understanding      
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field19'') AS accuracy_1a
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field20'') AS accuracy_2b
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field28'') AS ra_errors
@@ -200,8 +197,7 @@ SELECT unique_id
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field43'') AS wcomp_fact
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field44'') AS wcomp_infer
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field46'') AS wcomp_ct
-      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field45'') AS retelling
-      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field27'') AS total_vwlattmpt
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field45'') AS retelling      
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field29'') AS reading_rate
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field30'') AS fluency
       ,NULL AS fp_wpmrate
@@ -213,16 +209,16 @@ SELECT unique_id
       ,NULL AS fp_keylever
 FROM virtualtablesdata3 scores
 WHERE foreignkey_alpha > 3273
-  AND related_to_table = ''readingScores''       
-
+  AND related_to_table = ''readingScores''
 UNION ALL
-
 SELECT unique_id
       ,foreignKey AS studentid
       ,user_defined_date AS test_date
       ,foreignkey_alpha AS testid
-      ,user_defined_text AS step_ltr_level            
+      ,user_defined_text AS step_ltr_level
       ,user_defined_text2 AS status
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field50'') AS academic_year
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field49'') AS test_round
       ,NULL AS color
       ,NULL AS instruct_lvl
       ,NULL AS indep_lvl
@@ -242,17 +238,13 @@ SELECT unique_id
       ,NULL AS devsp_ifbd
       ,NULL AS devsp_longvp
       ,NULL AS devsp_rcontv
-      ,NULL AS devsp_vcelvp
       ,NULL AS devsp_vowldig
       ,NULL AS devsp_cmplxb
       ,NULL AS devsp_eding
-      ,NULL AS devsp_doubsylj
-      ,NULL AS devsp_longv2sw
-      ,NULL AS devsp_rcont2sw
+      ,NULL AS devsp_doubsylj      
       ,NULL AS rr_121match
       ,NULL AS rr_holdspattern
-      ,NULL AS rr_understanding
-      ,NULL AS accuracy
+      ,NULL AS rr_understanding      
       ,NULL AS accuracy_1a
       ,NULL AS accuracy_2b
       ,NULL AS ra_errors
@@ -269,8 +261,7 @@ SELECT unique_id
       ,NULL AS wcomp_fact
       ,NULL AS wcomp_infer
       ,NULL AS wcomp_ct
-      ,NULL AS retelling
-      ,NULL AS total_vwlattmpt
+      ,NULL AS retelling      
       ,NULL AS reading_rate
       ,NULL AS fluency
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field1'') AS fp_wpmrate
@@ -279,12 +270,12 @@ SELECT unique_id
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field4'') AS fp_comp_within
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field5'') AS fp_comp_beyond
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field6'') AS fp_comp_about
-      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field7'') AS fp_keylever           
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field7'') AS fp_keylever
 FROM virtualtablesdata3 scores
 WHERE foreignkey_alpha = 3273
-  AND related_to_table = ''readingScores''       
-')      
-		     ) q;
+  AND related_to_table = ''readingScores''
+')
+      ) q;
    
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
   --SELECT 1 FROM [LIT$FP_test_events_long#identifiers] WITH (TABLOCKX);

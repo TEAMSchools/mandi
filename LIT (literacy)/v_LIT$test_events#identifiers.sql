@@ -90,15 +90,8 @@ FROM
            ,rs.testid
            
            -- date stuff
-           ,CASE 
-             WHEN dates.time_per_name IN ('BOY','Diagnostic') AND DATEPART(MONTH,rs.test_date) < 7 THEN cohort.YEAR + 1
-             WHEN dates.time_per_name IN ('T3','EOY') AND DATEPART(MONTH,rs.test_date) > 6 THEN cohort.YEAR - 1
-             ELSE cohort.YEAR
-            END AS academic_year -- replace with rs.academic_year
-           ,CASE
-             WHEN dates.time_per_name IN ('BOY','Diagnostic') THEN 'DR'
-             ELSE dates.time_per_name
-            END AS test_round -- replace with rs.test_round           
+           ,rs.academic_year
+           ,rs.test_round           
            ,rs.test_date
            
            -- student identifiers
@@ -107,7 +100,7 @@ FROM
            ,cohort.COHORT 
            ,rs.studentid
            ,s.student_number
-           ,s.LASTFIRST
+           ,cohort.LASTFIRST
            
            -- progress to goals
            ,rs.status
@@ -137,17 +130,8 @@ FROM
        ON rs.studentid = cohort.studentid
       AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
       AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
-      AND cohort.rn = 1
-     -- to be replaced by direct input from readingScores
-     LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK) 
-       ON rs.test_date >= dates.start_date
-      AND rs.test_date <= dates.end_date
-      AND cohort.SCHOOLID = dates.schoolid 
-      AND dates.identifier = 'LIT'
+      AND cohort.rn = 1     
      LEFT OUTER JOIN LIT$goals goals
        ON s.GRADE_LEVEL = goals.grade_level
-      AND CASE --fyx dis
-           WHEN dates.time_per_name IN ('BOY','Diagnostic') THEN 'DR'
-           ELSE dates.time_per_name
-          END = goals.test_round
-    ) sub      
+      AND rs.test_round = goals.test_round
+    ) sub
