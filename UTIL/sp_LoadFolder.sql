@@ -1,3 +1,7 @@
+-- pass a folder directory on WINSQL01 as a parameter
+-- use this sp_ to trigger a db load after a web-scraping jobs complete
+-- for example, using PYODBC: conn.execute("EXEC sp_LoadFolder 'C:/data_robot/naviance'")
+
 USE KIPP_NJ
 GO
 
@@ -108,8 +112,9 @@ BEGIN
       -- take the top record and eliminate the file extension  
       SELECT TOP(1) 
              @ID = id
-            ,@filename = subdirectory
-            ,@tablename = 'AUTOLOAD$' + REVERSE(SUBSTRING(REVERSE(subdirectory),CHARINDEX('.', REVERSE(subdirectory)) + 1, 999))        
+            ,@filename = subdirectory            
+            ,@tablename = 'AUTOLOAD$' + REVERSE(SUBSTRING(REVERSE(subdirectory),CHARINDEX('.', REVERSE(subdirectory)) + 1, 999)) 
+            -- the 'AUTOLOAD$' prefix will help keep track of tables created by this procedure
       FROM #TEMP_import_files
       WHERE extension IN ('.csv','.txt')
         AND size > 0;
