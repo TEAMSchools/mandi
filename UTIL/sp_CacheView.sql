@@ -12,9 +12,6 @@ ALTER PROCEDURE sp_CacheView
   @view NVARCHAR(256)
 AS
 
-SET @db = 'KIPP_NJ'
-SET @view = 'PS$terms'
-
 BEGIN  
   
   IF OBJECTPROPERTY(OBJECT_ID(@db + '..' + @view), 'ISVIEW') IS NULL OR OBJECTPROPERTY(OBJECT_ID(@db + '..' + @view), 'ISVIEW') = 0
@@ -101,10 +98,9 @@ BEGIN
                     EXEC (@sql);
   
                   END                  
-                ';
-                --PRINT @sql;
+                ';                
                 PRINT 'Copy and save this code as sp_' + @view + '#static_refresh:' + CHAR(13) + CHAR(10)
-                PRINT 'USE [KIPP_NJ]' + CHAR(13) + CHAR(10)
+                PRINT 'USE [' + @db + ']' + CHAR(13) + CHAR(10)
                         + 'GO'  + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10)
                         + 'SET ANSI_NULLS ON' + CHAR(13) + CHAR(10)
                         + 'GO' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10)
