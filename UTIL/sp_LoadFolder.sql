@@ -1,19 +1,20 @@
--- pass a folder directory on WINSQL01 as a parameter
+-- pass a database and folder directory on WINSQL01 as a parameter
 -- use this sp_ to trigger a db load after a web-scraping jobs complete
--- for example, using PYODBC: conn.execute("EXEC sp_LoadFolder 'C:/data_robot/naviance'")
+-- for example, using DB-API: conn.execute("EXEC sp_LoadFolder 'KIPP_NJ', 'C:\\data_robot\\naviance'")
 
 USE KIPP_NJ
 GO
 
 ALTER PROCEDURE sp_LoadFolder
+  @dbname NVARCHAR(256),
   @dir VARCHAR(8000)
 AS
 
 BEGIN
 
   DECLARE @sql NVARCHAR(MAX),
-          @filename NVARCHAR(1024),
-          @tablename NVARCHAR(1024),
+          @filename NVARCHAR(1024),          
+          @tablename NVARCHAR(1024),          
           @ID INT,
           @CMD VARCHAR(256);
 
@@ -32,18 +33,18 @@ BEGIN
 
   -- we need temp tables to hold the command line response
   -- as well as the names of the files we want to import
-  IF OBJECT_ID('tempdb..#TEMP_cmd_response') IS NOT NULL
-      DROP TABLE #TEMP_cmd_response
+  IF OBJECT_ID('tempdb..#cmd_response') IS NOT NULL
+      DROP TABLE #cmd_response
 
-  IF OBJECT_ID('tempdb..#TEMP_import_files') IS NOT NULL
-      DROP TABLE #TEMP_import_files;
+  IF OBJECT_ID('tempdb..#import_files') IS NOT NULL
+      DROP TABLE #import_files;
 
-  CREATE TABLE #TEMP_cmd_response
+  CREATE TABLE #cmd_response
     (
      returnval NVARCHAR(500)
     )
 
-  CREATE TABLE #TEMP_import_files 
+  CREATE TABLE #import_files 
     (       
      id INT IDENTITY(1,1) -- the ID key is used for the WHILE loop
     ,subdirectory NVARCHAR(512)
@@ -55,9 +56,9 @@ BEGIN
   -- populate temp table with the command line response
   -- and delete rows with no file information
   PRINT 'Getting list of files in folder...'
-  INSERT #TEMP_cmd_response EXEC master..xp_cmdshell @cmd;
+  INSERT #cmd_response EXEC master..xp_cmdshell @cmd;
   PRINT CHAR(13) + 'Cleaning up the file list...'
-  DELETE FROM #TEMP_cmd_response 
+  DELETE FROM #cmd_response 
   WHERE returnval IS NULL
     OR (ISNUMERIC(LEFT(returnval,1))=0 
         AND returnval NOT LIKE '%Directory of%')
@@ -67,7 +68,7 @@ BEGIN
   -- parse the command line response and then
   -- insert the file metadata into the temp table
   PRINT CHAR(13) + 'Loading filenames into temp table...'
-  INSERT INTO #TEMP_import_files
+  INSERT INTO #import_files
     (
      subdirectory
     ,size
@@ -87,7 +88,7 @@ BEGIN
                WHEN SUBSTRING(returnval, 22, 17) LIKE '%<DIR>%' THEN NULL 
                ELSE RIGHT(rtrim([returnval]), CHARINDEX('.', REVERSE(RTRIM([returnval])))) 
               END AS extension
-       FROM #TEMP_cmd_response t
+       FROM #cmd_response t
        WHERE returnval NOT LIKE '%Directory of%'
       ) sub
   ;
@@ -97,7 +98,7 @@ BEGIN
   PRINT CHAR(13) + 'Leg''go!'
   WHILE EXISTS (
                 SELECT id 
-                FROM #TEMP_import_files
+                FROM #import_files
                 WHERE extension IN ('.csv','.txt')
                   AND size > 0
                )
@@ -105,7 +106,7 @@ BEGIN
     
       -- for debugging if this gets stuck in an infinite loop
       --SELECT *
-      --FROM #TEMP_import_files
+      --FROM #import_files
       --WHERE extension IN ('.csv','.txt')
       --  AND size > 0;
 
@@ -115,7 +116,7 @@ BEGIN
             ,@filename = subdirectory            
             ,@tablename = 'AUTOLOAD$' + REVERSE(SUBSTRING(REVERSE(subdirectory),CHARINDEX('.', REVERSE(subdirectory)) + 1, 999)) 
             -- the 'AUTOLOAD$' prefix will help keep track of tables created by this procedure
-      FROM #TEMP_import_files
+      FROM #import_files
       WHERE extension IN ('.csv','.txt')
         AND size > 0;
 
@@ -124,16 +125,16 @@ BEGIN
       -- for new tables, add a primary key for indexing purposes
       -- I called ours BINI_ID because my life is dope and I do dope shit
       SET @sql = '    
-        IF OBJECT_ID(''KIPP_NJ..' + @tablename + ''') IS NOT NULL
+        IF OBJECT_ID(''' + @dbname + '..' + @tablename + ''') IS NOT NULL
             BEGIN
-              EXEC(''TRUNCATE TABLE KIPP_NJ..' + @tablename + ''');
+              EXEC(''TRUNCATE TABLE ' + @dbname + '..' + @tablename + ''');
               PRINT CHAR(13) + ''TRUNCATE ' + @tablename + '''
             END
           ELSE        
             BEGIN
               PRINT CHAR(13) + CHAR(13) + ''CREATE TABLE ' + @tablename + '''
               SELECT *
-              INTO KIPP_NJ..' + @tablename + '
+              INTO ' + @dbname + '..' + @tablename + '
               FROM OPENROWSET(
                 ''MSDASQL''
                ,''Driver={Microsoft Access Text Driver (*.txt, *.csv)};''
@@ -146,7 +147,7 @@ BEGIN
               ADD CONSTRAINT PK_' + @tablename + ' PRIMARY KEY(BINI_ID);
             
               PRINT ''TRUNCATE ' + @tablename + '''
-              EXEC(''TRUNCATE TABLE KIPP_NJ..' + @tablename + ''');
+              EXEC(''TRUNCATE TABLE ' + @dbname + '..' + @tablename + ''');
             END
       '  
       EXEC sp_executesql @sql;
@@ -198,10 +199,13 @@ BEGIN
   
       -- remove it from the list
       PRINT CHAR(13) + 'Removing ' + @filename + ' from import list...'
-      DELETE FROM #TEMP_import_files WHERE id = @ID;
+      DELETE FROM #import_files WHERE id = @ID;
     
       PRINT CHAR(13) + 'Next!'
 
     END
+
+  SELECT 'Flat files in ' + @dir + ' have been loaded into ' + @dbname + ', baby!' AS result
+  RETURN 0
 
 END
