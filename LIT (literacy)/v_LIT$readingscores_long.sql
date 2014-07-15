@@ -15,7 +15,7 @@ WITH long_scores AS (
       (
        SELECT unique_id      
              ,testid
-             ,studentid                          
+             ,studentid       
              ,step_ltr_level
              ,status
              ,CONVERT(VARCHAR,name_ass) AS name_ass
@@ -148,6 +148,7 @@ SELECT sub.unique_id
       ,sub.read_lvl
       ,sub.status
       ,sub.domain
+      ,sub.label
       ,sub.field
       ,sub.score
       ,sub.benchmark
@@ -162,11 +163,12 @@ FROM
            ,rs.status
            ,prof.domain
            ,rs.field
+           ,prof.label
            ,rs.score
            ,prof.score AS benchmark
            ,CASE 
-             WHEN rs.field NOT IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score >= prof.score THEN 1
-             WHEN rs.field IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score <= prof.score THEN 1
+             WHEN prof.field_name NOT IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score >= prof.score THEN 1
+             WHEN prof.field_name IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score <= prof.score THEN 1
              ELSE 0
             END AS is_prof
      FROM long_scores rs

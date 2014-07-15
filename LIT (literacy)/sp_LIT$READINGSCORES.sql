@@ -26,6 +26,7 @@ BEGIN
 		    (
        SELECT unique_id
              ,studentid
+             ,schoolid
              ,CONVERT(DATE,test_date) AS test_date      
              -- prior to SY14, academic_year and test_round were derived
              -- from the test_date, which caused a lot of problems
@@ -149,6 +150,7 @@ BEGIN
        FROM OPENQUERY(PS_TEAM,'
 SELECT unique_id
       ,foreignKey AS studentid
+      ,schoolid
       ,user_defined_date AS test_date
       ,foreignkey_alpha AS testid
       ,user_defined_text AS step_ltr_level            
@@ -213,6 +215,7 @@ WHERE foreignkey_alpha > 3273
 UNION ALL
 SELECT unique_id
       ,foreignKey AS studentid
+      ,schoolid
       ,user_defined_date AS test_date
       ,foreignkey_alpha AS testid
       ,user_defined_text AS step_ltr_level
