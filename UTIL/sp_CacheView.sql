@@ -125,7 +125,7 @@ BEGIN
           ELSE      
 
             BEGIN
-              PRINT 'Static table already exists.  You''re gonna break something.  Aborting process ...sorry, Hobby Lobby'
+              PRINT 'Static table already exists.  You''re gonna break something, ya dingus.  Aborting process...'
             END
       END
 END
