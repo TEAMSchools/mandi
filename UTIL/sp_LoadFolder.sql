@@ -140,10 +140,10 @@ BEGIN
                ,''Driver={Microsoft Access Text Driver (*.txt, *.csv)};''
                ,''SELECT * FROM ' + @dir + @filename  + ''');
         
-              ALTER TABLE ' + @tablename + '
+              ALTER TABLE ' + @dbname + '..' + @tablename + '
               ADD BINI_ID INT IDENTITY(1,1);
         
-              ALTER TABLE ' + @tablename + '
+              ALTER TABLE ' + @dbname + '..' + @tablename + '
               ADD CONSTRAINT PK_' + @tablename + ' PRIMARY KEY(BINI_ID);
             
               PRINT ''TRUNCATE ' + @tablename + '''
