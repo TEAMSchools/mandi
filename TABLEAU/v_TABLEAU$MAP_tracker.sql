@@ -1,11 +1,11 @@
 /*
-
 TODO: Investigate performance goals feed, JOIN to each test event
-
 */
 
 USE KIPP_NJ
 GO
+
+ALTER VIEW TABLEAU$MAP_tracker AS
 
 SELECT
       /*--student identifiers--*/

@@ -22,21 +22,17 @@ BEGIN
   SELECT *
 		INTO [#PS$ATTENDANCE|refresh]
   FROM OPENQUERY(PS_TEAM,'
-         SELECT att.*
-         FROM PS_ATTENDANCE_DAILY att
-         JOIN terms
-           ON terms.firstday <= att.att_date
-          AND terms.lastday >= att.att_date
-          AND terms.yearid >= 21
-          AND terms.schoolid = att.schoolid
-          AND terms.portion = 1     
-         WHERE att.att_date <= TRUNC(SYSDATE)
-         ORDER BY att_date
-         ');
+    SELECT att.*
+    FROM PS_ATTENDANCE_DAILY att
+    JOIN terms
+      ON terms.firstday <= att.att_date
+     AND terms.lastday >= att.att_date
+     AND terms.yearid >= 23
+     AND terms.schoolid = att.schoolid
+     AND terms.portion = 1     
+    WHERE att.att_date <= TRUNC(SYSDATE)    
+  ');
    
-  --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
-  --SELECT 1 FROM [LIT$FP_test_events_long#identifiers] WITH (TABLOCKX);
-
   --STEP 4: truncate 
   EXEC('TRUNCATE TABLE KIPP_NJ..ATTENDANCE');
 
@@ -51,26 +47,24 @@ BEGIN
   WHERE sys.indexes.type_desc = 'NONCLUSTERED'
    AND sys.objects.type_desc = 'USER_TABLE'
    AND sys.objects.name = 'ATTENDANCE';
+  EXEC (@sql);
 
- EXEC (@sql);
+  -- step 6: insert into final destination
+  INSERT INTO [dbo].[ATTENDANCE]
+  SELECT *
+  FROM [#PS$ATTENDANCE|refresh];
 
- -- step 6: insert into final destination
- INSERT INTO [dbo].[ATTENDANCE]
- SELECT *
- FROM [#PS$ATTENDANCE|refresh];
-
- -- Step 4: rebuld all nonclustered indexes on table
- SELECT @sql = @sql + 
-  'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name +' REBUILD;' +CHAR(13)+CHAR(10)
- FROM 
-  sys.indexes
- JOIN 
-  sys.objects 
-  ON sys.indexes.object_id = sys.objects.object_id
- WHERE sys.indexes.type_desc = 'NONCLUSTERED'
-  AND sys.objects.type_desc = 'USER_TABLE'
-  AND sys.objects.name = 'ATTENDANCE';
-
- EXEC (@sql);
+  -- Step 7: rebuld all nonclustered indexes on table
+  SELECT @sql = @sql + 
+   'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name +' REBUILD;' +CHAR(13)+CHAR(10)
+  FROM 
+   sys.indexes
+  JOIN 
+   sys.objects 
+   ON sys.indexes.object_id = sys.objects.object_id
+  WHERE sys.indexes.type_desc = 'NONCLUSTERED'
+   AND sys.objects.type_desc = 'USER_TABLE'
+   AND sys.objects.name = 'ATTENDANCE';
+  EXEC (@sql);
   
 END

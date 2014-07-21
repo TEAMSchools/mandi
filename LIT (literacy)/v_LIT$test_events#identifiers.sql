@@ -95,8 +95,8 @@ FROM
            ,rs.test_date
            
            -- student identifiers
-           ,cohort.schoolid
-           ,cohort.grade_level      
+           ,rs.schoolid
+           ,ISNULL(cohort.grade_level, s.grade_level) AS grade_level
            ,cohort.COHORT 
            ,rs.studentid
            ,s.student_number
@@ -117,13 +117,13 @@ FROM
            ,rs.fp_wpmrate
            ,rs.instruct_lvl
            ,CASE
-             WHEN rs.indep_lvl IS NULL THEN rs.step_ltr_level
-             ELSE rs.step_ltr_level
+             WHEN rs.testid = 3273 AND rs.indep_lvl IS NULL THEN rs.step_ltr_level
+             ELSE rs.indep_lvl
             END AS indep_lvl
      FROM READINGSCORES rs WITH(NOLOCK)
      JOIN LIT$GLEQ gleq WITH(NOLOCK)
        ON rs.testid = gleq.testid
-      AND rs.step_ltr_level = gleq.read_lvl
+      AND rs.step_ltr_level = gleq.read_lvl     
      JOIN STUDENTS s WITH(NOLOCK)
        ON rs.studentid = s.id
      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
@@ -132,6 +132,6 @@ FROM
       AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
       AND cohort.rn = 1     
      LEFT OUTER JOIN LIT$goals goals
-       ON s.GRADE_LEVEL = goals.grade_level
+       ON ISNULL(cohort.grade_level, s.grade_level) = goals.grade_level
       AND rs.test_round = goals.test_round
     ) sub

@@ -5,7 +5,7 @@ ALTER VIEW UTIL$reporting_days AS
 WITH calendar AS
     (
      SELECT DATEADD(DAY, n, '01-AUG-02') AS date
-     FROM UTIL$row_generator
+     FROM UTIL$row_generator WITH(NOLOCK)
      WHERE n < (365 * 40)
     )
 

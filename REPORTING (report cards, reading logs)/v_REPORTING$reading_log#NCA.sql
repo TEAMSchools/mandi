@@ -354,7 +354,7 @@ LEFT OUTER JOIN (
   ON s.id = diff.studentid
  AND diff.rn = 1
 --intervention block
-LEFT OUTER JOIN KIPP_NJ..[CUSTOM_GROUPINGS$intervention_block#NCA] intv_block
+LEFT OUTER JOIN KIPP_NJ..[CUSTOM_GROUPINGS$intervention_block#NCA] intv_block WITH(NOLOCK)
   ON s.id = intv_block.studentid
 WHERE s.SCHOOLID = 73253
   AND s.ENROLL_STATUS = 0
