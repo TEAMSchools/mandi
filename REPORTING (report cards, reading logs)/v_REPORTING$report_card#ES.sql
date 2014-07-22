@@ -35,15 +35,14 @@ WITH roster AS (
 )
 
 ,attendance AS (
-  SELECT att.id AS studentid
-        ,cur_absences_total
-        ,cur_absences_doc AS excused_absences
-        ,cur_tardies_total
-        ,cur_early_dismiss
-        ,trip_absences
-        ,trip_status
-  FROM ATT_MEM$attendance_counts att WITH(NOLOCK)
-  WHERE att.grade_level < 5
+  SELECT att.studentid
+        ,CUR_ABS_ALL AS cur_absences_total
+        ,CUR_AD + CUR_AE AS excused_absences
+        ,cur_t_all AS cur_tardies_total
+        ,cur_le AS cur_early_dismiss
+        ,cur_trip_abs AS trip_absences
+        ,CASE WHEN cur_trip_abs >= 5 THEN 'Off Track' ELSE 'On Track' END AS trip_status
+  FROM ATT_MEM$attendance_counts att WITH(NOLOCK)  
  )
 
 ,reporting_week AS (
