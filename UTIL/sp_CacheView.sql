@@ -164,10 +164,11 @@ END
 
                     SET @sql = '
                       DROP TABLE [' + @view + '#static];                      
+                      DROP PROCEDURE [sp_' + @view + '#static|refresh];                      
                     '                  
                     EXEC(@sql);
                     
-                    PRINT @view + ' static table dropped from ' + @db;
+                    PRINT @view + ' static table and stored procedure dropped from ' + @db;
                   END;
                   
                   -- create the table structure
@@ -194,23 +195,99 @@ END
                     PRINT 'Table ' + @db + '..' + @view + ' created';
                   END
                   
+                  BEGIN                
+                  -- make sure it's operating on the destination DB
+                  -- this needed to be separated out from the rest of the procedure code
+                  -- otherwise it throws a syntax error
+                  SET @sql = '
+                    USE ' + @db + '
+                  ';
+                  EXEC(@sql);
+
+                  -- actual procedure code starts here
+                  SET @sql = '                  
+CREATE PROCEDURE [sp_' + @view + '#static|refresh] AS
+BEGIN
+
+  DECLARE @sql AS VARCHAR(MAX)='''';
+
+  -- STEP 1: make sure no temp table
+		IF OBJECT_ID(N''tempdb..#' + @view + '#static|refresh'') IS NOT NULL
+		BEGIN
+						DROP TABLE [#' + @view + '#static|refresh]
+		END
+
+
+  -- STEP 2: load into a temporary staging table.
+  SELECT *
+		INTO [#' + @view + '#static|refresh]
+  FROM ' + @view + ';
+         
+
+  -- STEP 3: truncate destination table
+  EXEC(''TRUNCATE TABLE ' + @db + '..' + @view + '#static'');
+
+
+  -- STEP 4: disable all nonclustered indexes on table
+  SELECT @sql = @sql + ''ALTER INDEX '' 
+                 + indexes.name + '' ON dbo.'' 
+                 + objects.name + '' DISABLE;'' + CHAR(13) + CHAR(10)
+  FROM sys.indexes
+  JOIN sys.objects 
+    ON sys.indexes.object_id = sys.objects.object_id
+  WHERE sys.indexes.type_desc = ''NONCLUSTERED''
+    AND sys.objects.type_desc = ''USER_TABLE''
+    AND sys.objects.name = ''' + @view + '#static'';
+  EXEC (@sql);
+
+
+  -- STEP 5: insert into final destination
+  INSERT INTO [' + @view + '#static]
+  SELECT *
+  FROM [#' + @view + '#static|refresh];
+ 
+
+  -- STEP 6: rebuld all nonclustered indexes on table
+  SELECT @sql = @sql + ''ALTER INDEX '' 
+                  + indexes.name + '' ON dbo.'' 
+                  + objects.name + '' REBUILD;'' + CHAR(13) + CHAR(10)
+  FROM sys.indexes
+  JOIN sys.objects 
+    ON sys.indexes.object_id = sys.objects.object_id
+  WHERE sys.indexes.type_desc = ''NONCLUSTERED''
+    AND sys.objects.type_desc = ''USER_TABLE''
+    AND sys.objects.name = ''' + @view + '#static'';
+  EXEC (@sql);
+  
+END                  
+                ';                
+
                   BEGIN
-
-                    SET @sql = '
-                      USE ' + @db + '
-                    ';
                     EXEC(@sql);
-
-                    PRINT 'Running the stored procedure...';
+                  
+                    PRINT 'Recreating stored procedure for ' + @view;
                     PRINT CHAR(13) + CHAR(10);
+                    -- prints the generated code to console and then execute the creation
+                    -- SAVE THIS TO mandi!
+                    PRINT 'Running the new procedure.  When done, copy and save this code as sp_' + @view + '#static_refresh:';
+                    PRINT CHAR(13) + CHAR(10);
+                    PRINT 'USE [' + @db + ']' + CHAR(13) + CHAR(10)
+                            + 'GO'  + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10)
+                            + 'SET ANSI_NULLS ON' + CHAR(13) + CHAR(10)
+                            + 'GO' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10)
+                            + 'SET QUOTED_IDENTIFIER ON' + CHAR(13) + CHAR(10)
+                            + 'GO' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10)
+                            + REPLACE(@sql,'CREATE','ALTER'); -- changes it to ALTER for you
 
                     -- finally, execute the newly created procedure
                     SET @sql = '
                       EXEC [sp_' + @view + '#static|refresh]
                     ';
                     EXEC(@sql);
-                  
                   END
+                
+                  END
+
                 END
             END
       END
