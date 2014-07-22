@@ -5,10 +5,10 @@ ALTER VIEW DISC$log AS
 
 WITH disc_log AS (
   SELECT disc.schoolid
-        ,CAST(studentid AS INT) AS studentid
+        ,CAST(studentid AS INT) AS studentid        
         ,entry_author
         ,CONVERT(DATE,entry_date) AS entry_date
-        ,CONVERT(DATE,discipline_incidentdate) AS consequence_date
+        ,CONVERT(DATE,discipline_actiondate) AS consequence_date
         ,disc.logtypeid      
         ,consequence AS n_days
         ,subtype.subtype
@@ -20,7 +20,7 @@ WITH disc_log AS (
           ,schoolid
           ,entry_author
           ,entry_date
-          ,discipline_incidentdate
+          ,discipline_actiondate
           ,logtypeid
           ,subtype
           ,discipline_incidenttype
@@ -33,8 +33,8 @@ WITH disc_log AS (
                                      THEN TO_CHAR(TO_CHAR(SYSDATE,''YYYY'') - 1)
                                      ELSE TO_CHAR(SYSDATE,''YYYY'')
                                     END || ''-08-01'',''YYYY-MM-DD'')
-      AND log.entry_date <= TRUNC(SYSDATE)
-      AND log.logtypeid NOT IN (1423, 2724, 3124, 3953)      
+      AND log.entry_date <= SYSDATE
+      AND log.logtypeid NOT IN (1423, 2724, 3124)      
   ') disc
   LEFT OUTER JOIN DISC$logtypes#static subtype WITH(NOLOCK)
     ON disc.logtypeid = subtype.logtypeid
@@ -104,7 +104,7 @@ WITH disc_log AS (
   FROM tardy_demerits
  )
 
-SELECT all_logs.*
+SELECT all_logs.*      
       ,dates.time_per_name AS RT
       ,ROW_NUMBER() OVER(
           PARTITION BY studentid, logtypeid

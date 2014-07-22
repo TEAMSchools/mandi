@@ -6,7 +6,7 @@ ALTER VIEW DISC$logtypes AS
 WITH subtypes AS (
   SELECT name AS logtypeid
         ,value AS subtypeid
-        ,valuet AS subtype
+        ,CONVERT(VARCHAR,valuet) AS subtype
   FROM OPENQUERY(PS_TEAM,'
     SELECT name
           ,value
