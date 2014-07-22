@@ -5,45 +5,50 @@ ALTER VIEW TABLEAU$attendance_dashboard AS
 
 SELECT 'KIPP NJ' AS Network
       ,CASE
-        WHEN s.schoolid IN (73252,73253,73254,73255,73256,133570965) THEN 'Newark'
-        ELSE NULL 
+        WHEN co.schoolid != 179901 THEN 'Newark'
+        ELSE 'Camden'
        END AS Region
       ,CASE
-        WHEN s.schoolid IN (73254,73255,73256) THEN 'ES'
-        WHEN s.schoolid IN (73252,133570965) THEN 'MS'
-        WHEN s.schoolid IN (73253) THEN 'HS'
+        WHEN co.schoolid IN (73254,73255,73256,73257,179901) THEN 'ES'
+        WHEN co.schoolid IN (73252,133570965) THEN 'MS'
+        WHEN co.schoolid IN (73253) THEN 'HS'
        END AS school_level      
-      ,s.schoolid
-      ,s.lastfirst
-      ,s.grade_level
+      ,co.schoolid
+      ,co.lastfirst
+      ,co.grade_level
       ,s.team
       ,cs.SPEDLEP
       ,CONVERT(DATE,mem.calendardate) AS att_date
       ,mem.membershipvalue
       ,att.att_code
-      ,CASE WHEN att.att_code IS NULL OR att.att_code IN ('PLE','T','TLE','T10','ET','S','SE','NM') THEN 1 ELSE 0 END AS present
+      ,CASE WHEN att.PRESENCE_STATUS_CD = 'Present' THEN 1 ELSE 0 END AS present
       --tardies
-      ,CASE WHEN att.att_code IN ('T','TLE','T10','ET') THEN 1 ELSE 0 END AS tardy_all
-      ,CASE WHEN att.att_code IN ('T','TLE','ET') THEN 1 ELSE 0 END AS tardy
-      ,CASE WHEN att.att_code IN ('T10') THEN 1 ELSE 0 END AS tardy_10
+      ,CASE WHEN att.att_code IN ('T','T10','ET') THEN 1 ELSE 0 END AS tardy_all
+      ,CASE WHEN att.att_code = 'T' THEN 1 ELSE 0 END AS tardy
+      ,CASE WHEN att.att_code = 'T10' THEN 1 ELSE 0 END AS tardy_10
+      ,CASE WHEN att.att_code = 'TE' THEN 1 ELSE 0 END AS tardy_excused
       --absences
-      ,CASE WHEN att.att_code IN ('AD','A','OS','X','D','AE') THEN 1 ELSE 0 END AS absent_all
-      ,CASE WHEN att.att_code IN ('AD','D','AE') THEN 1 ELSE 0 END AS absent_doc
-      ,CASE WHEN att.att_code IN ('A','X') THEN 1 ELSE 0 END AS absent_undoc
+      ,CASE WHEN att.PRESENCE_STATUS_CD = 'Absent' THEN 1 ELSE 0 END AS absent_all
+      ,CASE WHEN att.att_code IN ('AD','AE') THEN 1 ELSE 0 END AS absent_doc
+      ,CASE WHEN att.att_code = 'A' THEN 1 ELSE 0 END AS absent_undoc
+      ,CASE WHEN att.att_code = 'AE' THEN 1 ELSE 0 END AS absent_excused
       --suspensions
-      ,CASE WHEN att.att_code IN ('OS','S') THEN 1 ELSE 0 END AS suspension_all
-      ,CASE WHEN att.att_code = 'S' THEN 1 ELSE 0 END AS ISS
-      ,CASE WHEN att.att_code = 'OS' THEN 1 ELSE 0 END AS OSS
+      ,CASE WHEN att.att_code IN ('OSS','ISS') THEN 1 ELSE 0 END AS suspension_all
+      ,CASE WHEN att.att_code = 'ISS' THEN 1 ELSE 0 END AS ISS
+      ,CASE WHEN att.att_code = 'OSS' THEN 1 ELSE 0 END AS OSS
       --other
       ,CASE WHEN att.att_code IN ('TLE','PLE') THEN 1 ELSE 0 END AS early_dismissal
-FROM STUDENTS s WITH(NOLOCK)
+FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
+  ON co.studentid = s.id
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON s.id = cs.studentid
+  ON co.studentid = cs.studentid
 JOIN MEMBERSHIP mem WITH(NOLOCK)
-  ON s.id = mem.studentid
- AND s.schoolid = mem.schoolid
- AND mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
+  ON co.studentid = mem.studentid
+ AND co.schoolid = mem.schoolid
+ AND mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,co.year) + '-08-01')
 LEFT OUTER JOIN ATTENDANCE att WITH(NOLOCK)
-  ON s.id = att.studentid
+  ON co.studentid = att.studentid
  AND mem.CALENDARDATE = att.ATT_DATE 
-WHERE s.enroll_status = 0
+WHERE co.year = dbo.fn_Global_Academic_Year()
+  AND co.rn = 1
