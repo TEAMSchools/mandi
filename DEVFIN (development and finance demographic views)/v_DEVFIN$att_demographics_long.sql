@@ -6,7 +6,7 @@ ALTER VIEW DEVFIN$att_demographics_long AS
 WITH calendar AS(
   SELECT CONVERT(DATE,date) AS date
   FROM UTIL$reporting_days WITH(NOLOCK)
-  WHERE date >= '2004-07-01'
+  WHERE date >= '2013-07-01'
     AND date <= GETDATE()
  )
 
@@ -43,7 +43,7 @@ WITH calendar AS(
         ,mem.membershipvalue
         ,mem.attendancevalue      
   FROM MEMBERSHIP mem WITH(NOLOCK)
-  WHERE mem.calendardate >= '2004-07-01'
+  WHERE mem.calendardate >= '2013-07-01'
     AND mem.calendardate <= GETDATE()
 )
 
