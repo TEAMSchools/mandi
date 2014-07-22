@@ -2,47 +2,73 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ATT_MEM$membership_counts AS
-SELECT s.id
-      ,s.lastfirst
-      ,s.schoolid
-      ,s.grade_level
-      ,SUM(CONVERT(FLOAT,CASE WHEN RT != 'CUR' THEN membershipvalue END)) AS mem
-      ,SUM(CONVERT(FLOAT,CASE WHEN RT  = 'RT1' THEN membershipvalue END)) AS RT1_mem
-      ,SUM(CONVERT(FLOAT,CASE WHEN RT  = 'RT2' THEN membershipvalue END)) AS RT2_mem
-      ,SUM(CONVERT(FLOAT,CASE WHEN RT  = 'RT3' THEN membershipvalue END)) AS RT3_mem
-      ,SUM(CONVERT(FLOAT,CASE WHEN RT  = 'RT4' THEN membershipvalue END)) AS RT4_mem
-      ,SUM(CONVERT(FLOAT,CASE WHEN RT  = 'RT5' THEN membershipvalue END)) AS RT5_mem
-      ,SUM(CONVERT(FLOAT,CASE WHEN RT  = 'RT6' THEN membershipvalue END)) AS RT6_mem
-      ,SUM(CONVERT(FLOAT,CASE WHEN RT  = 'CUR' THEN membershipvalue END)) AS CUR_mem
-FROM STUDENTS s WITH (NOLOCK)
-LEFT OUTER JOIN
-     (SELECT studentid
-            ,calendardate
-            ,membershipvalue
-            ,dates.time_per_name AS RT     
-      FROM MEMBERSHIP mem WITH (NOLOCK)
-      JOIN REPORTING$dates dates WITH (NOLOCK)
-        ON mem.calendardate >= dates.start_date
-       AND mem.calendardate <= dates.end_date       
-       AND mem.schoolid = dates.schoolid
-       AND dates.identifier = 'RT'
+
+WITH membership_long AS (
+  SELECT studentid
+        ,CONVERT(DATE,calendardate) AS calendardate
+        ,CONVERT(INT,membershipvalue) AS membershipvalue
+        ,dates.time_per_name AS RT     
+  FROM MEMBERSHIP mem WITH (NOLOCK)
+  JOIN REPORTING$dates dates WITH (NOLOCK)
+    ON mem.calendardate >= dates.start_date
+   AND mem.calendardate <= dates.end_date       
+   AND mem.schoolid = dates.schoolid
+   AND dates.identifier = 'RT'
+  WHERE mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
       
-      UNION ALL          
-      SELECT studentid
-            ,calendardate
-            ,membershipvalue
-            ,'CUR' AS RT            
-      FROM MEMBERSHIP mem WITH (NOLOCK)
-      JOIN REPORTING$dates curterm WITH (NOLOCK)
-        ON curterm.identifier = 'RT'
-       AND curterm.start_date <= GETDATE()
-       AND curterm.end_date >= GETDATE()
-       AND mem.schoolid = curterm.schoolid
-       AND curterm.identifier = 'RT'
-      WHERE mem.calendardate >= curterm.start_date
-        AND mem.calendardate <= curterm.end_date        
-     ) ctod
-  ON s.id = ctod.studentid
-WHERE s.entrydate >= '2013-08-01'
-GROUP BY s.id,s.lastfirst,s.schoolid,s.grade_level
---*/
+  UNION ALL
+
+  SELECT studentid
+        ,CONVERT(DATE,calendardate) AS calendardate
+        ,CONVERT(INT,membershipvalue) AS membershipvalue
+        ,'CUR' AS RT            
+  FROM MEMBERSHIP mem WITH (NOLOCK)
+  JOIN REPORTING$dates curterm WITH (NOLOCK)
+    ON mem.schoolid = curterm.schoolid      
+   AND mem.CALENDARDATE >= curterm.start_date
+   AND mem.CALENDARDATE <= curterm.end_date
+   AND curterm.identifier = 'RT'
+  WHERE mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
+    AND curterm.start_date <= GETDATE()
+    AND curterm.end_date >= GETDATE()
+ )
+
+SELECT STUDENTID
+      ,[RT1_MEM]
+      ,[RT2_MEM]
+      ,[RT3_MEM]
+      ,[RT4_MEM]
+      ,[RT5_MEM]
+      ,[RT6_MEM]
+      ,[CUR_MEM]
+      ,[Y1_MEM]
+FROM
+    (
+     SELECT STUDENTID           
+           ,RT + '_MEM' AS rt_hash
+           ,SUM(MEMBERSHIPVALUE) AS N
+     FROM membership_long
+     GROUP BY STUDENTID      
+             ,RT             
+
+     UNION ALL
+
+     SELECT STUDENTID           
+           ,'Y1_MEM' AS rt_hash
+           ,SUM(MEMBERSHIPVALUE) AS N
+     FROM membership_long
+     WHERE rt != 'CUR'
+     GROUP BY STUDENTID
+    ) sub
+
+PIVOT (
+  MAX(N)
+  FOR rt_hash IN ([RT1_MEM]
+                 ,[RT2_MEM]
+                 ,[RT3_MEM]
+                 ,[RT4_MEM]
+                 ,[RT5_MEM]
+                 ,[RT6_MEM]
+                 ,[CUR_MEM]
+                 ,[Y1_MEM])
+ ) p

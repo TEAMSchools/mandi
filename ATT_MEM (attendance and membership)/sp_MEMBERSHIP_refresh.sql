@@ -41,9 +41,9 @@ BEGIN
        ON ctod.schoolid = terms.schoolid
       AND ctod.calendardate >= terms.firstday 
       AND ctod.calendardate <= terms.lastday
-      AND terms.yearid >= 23
-      AND terms.portion = 1     
-     WHERE ctod.calendardate <= TRUNC(SYSDATE)
+      AND ctod.calendardate <= SYSDATE
+      AND terms.yearid >= 22
+      AND terms.portion = 1
   ');
 
   --STEP 3: truncate 
