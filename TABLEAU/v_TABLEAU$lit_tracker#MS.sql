@@ -171,6 +171,7 @@ WITH term_scaffold AS (
         ,goal4adjective
         ,base.testritscore AS base_rit
         ,base.testpercentile AS base_percentile        
+        ,base.lexile_score AS base_lexile
         ,rr.keep_up_goal
         ,rr.keep_up_rit
         ,rr.rutgers_ready_goal
@@ -353,7 +354,7 @@ SELECT -- student identifiers
       -- MAP
       ,CASE WHEN term.map = 'Fall' AND map_scores.rit IS NULL THEN map_scores.base_rit ELSE map_scores.rit END AS rit
       ,CASE WHEN term.map = 'Fall' AND map_scores.percentile IS NULL THEN map_scores.base_percentile ELSE map_scores.percentile END AS percentile
-      ,lexile
+      ,CASE WHEN term.map = 'Fall' AND map_scores.lexile IS NULL THEN map_scores.base_lexile ELSE map_scores.lexile END AS lexile      
       ,goal1name
       ,goal1ritscore
       ,goal1adjective
