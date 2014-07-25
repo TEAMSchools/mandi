@@ -16,7 +16,7 @@ WITH long_scores AS (
        SELECT unique_id      
              ,testid
              ,studentid       
-             ,step_ltr_level
+             ,step_ltr_level             
              ,status
              ,CONVERT(VARCHAR,name_ass) AS name_ass
              ,CONVERT(VARCHAR,ltr_nameid) AS ltr_nameid
@@ -146,6 +146,7 @@ SELECT sub.unique_id
       ,sub.testid
       ,sub.studentid
       ,sub.read_lvl
+      ,sub.lvl_num
       ,sub.status
       ,sub.domain
       ,sub.label
@@ -160,6 +161,7 @@ FROM
            ,rs.testid
            ,rs.studentid
            ,rs.read_lvl
+           ,gleq.lvl_num
            ,rs.status
            ,prof.domain
            ,rs.field
@@ -172,7 +174,11 @@ FROM
              ELSE 0
             END AS is_prof
      FROM long_scores rs
-     JOIN LIT$prof_long prof
+     JOIN LIT$gleq gleq WITH(NOLOCK)
+       ON rs.testid = gleq.testid
+      AND rs.read_lvl = gleq.read_lvl
+     JOIN LIT$prof_long prof WITH(NOLOCK)
        ON rs.testid = prof.testid
       AND rs.field = prof.field_name
+      AND gleq.lvl_num = prof.lvl_num
     ) sub

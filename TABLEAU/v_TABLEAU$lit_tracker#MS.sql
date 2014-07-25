@@ -8,7 +8,7 @@ ALTER VIEW TABLEAU$lit_tracker#MS AS
 -- and make the term name JOIN friendly for the actual data tables
 WITH term_scaffold AS (
   SELECT n
-  FROM UTIL$row_generator
+  FROM UTIL$row_generator WITH(NOLOCK)
   WHERE n >= 1
     AND n <= 8
 )
@@ -18,7 +18,7 @@ WITH term_scaffold AS (
   SELECT 'HEX' AS time_per
         ,n
         ,'RT' + CONVERT(VARCHAR,n) AS hash
-  FROM UTIL$row_generator
+  FROM UTIL$row_generator WITH(NOLOCK)
   WHERE n >= 1
     AND n <= 6
 )
@@ -28,7 +28,7 @@ WITH term_scaffold AS (
   SELECT 'LIT' AS time_per
         ,n
         ,'LIT' + CONVERT(VARCHAR,n) AS hash
-  FROM UTIL$row_generator
+  FROM UTIL$row_generator WITH(NOLOCK)
   WHERE n >= 1
     AND n <= 4
 )
@@ -47,7 +47,7 @@ WITH term_scaffold AS (
        SELECT 'MAP' AS time_per
              ,n
              ,'MAP' + CONVERT(VARCHAR,n) AS hash
-       FROM UTIL$row_generator
+       FROM UTIL$row_generator WITH(NOLOCK)
        WHERE n >= 1
          AND n <= 3
       ) sub  
@@ -89,7 +89,7 @@ WITH term_scaffold AS (
       (
        SELECT DISTINCT identifier
              ,time_per_name
-       FROM REPORTING$dates  
+       FROM REPORTING$dates WITH(NOLOCK)
        WHERE start_date <= '2014-05-15' -- replace with GETDATE
          AND end_date >= '2014-05-15'   -- replace with GETDATE      
          AND identifier IN ('HEX','LIT','MAP')
@@ -110,10 +110,10 @@ WITH term_scaffold AS (
         ,co.grade_level
         ,cs.SPEDLEP
         ,s.team
-  FROM COHORT$comprehensive_long#static co
-  LEFT OUTER JOIN STUDENTS s
+  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+  LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
     ON co.studentid = s.id
-  LEFT OUTER JOIN CUSTOM_STUDENTS cs
+  LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
     ON co.studentid = cs.studentid
   WHERE co.year = dbo.fn_Global_Academic_Year()
     AND co.rn = 1
@@ -146,7 +146,7 @@ WITH term_scaffold AS (
         ,rank_words_overall_in_school
         ,rank_words_grade_in_network
         ,rank_words_overall_in_network        
-  FROM AR$progress_to_goals_long#static
+  FROM AR$progress_to_goals_long#static WITH(NOLOCK)
   WHERE yearid = dbo.fn_Global_Term_Id()
  )
 
@@ -177,18 +177,18 @@ WITH term_scaffold AS (
         ,rr.rutgers_ready_goal
         ,rr.rutgers_ready_rit
         ,map.rn_curr
-  FROM COHORT$comprehensive_long#static co
+  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
   JOIN map map_terms
     ON 1 = 1
-  LEFT OUTER JOIN MAP$best_baseline#static base
+  LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
     ON co.studentid = base.studentid
    AND co.year = base.year
    AND base.measurementscale = 'Reading' 
-  LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr
+  LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
     ON base.studentid = rr.studentid
    AND base.year = rr.year
    AND base.measurementscale = rr.measurementscale
-  LEFT OUTER JOIN MAP$comprehensive#identifiers map
+  LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
     ON base.studentid = map.ps_studentid
    AND base.year = map.map_year_academic
    AND base.measurementscale = map.measurementscale
@@ -201,22 +201,26 @@ WITH term_scaffold AS (
 -- map growth measures, wide
 ,map_growth AS (
   SELECT studentid
-        ,year
-        --,term
+        ,year        
         ,[F2W_rit_change]
         ,[F2W_pct_change]
+        ,[F2W_lexile_change]
         ,[F2W_met]
         ,[W2S_rit_change]
         ,[W2S_pct_change]
+        ,[W2S_lexile_change]
         ,[W2S_met]
         ,[F2S_rit_change]
         ,[F2S_pct_change]
+        ,[F2S_lexile_change]
         ,[F2S_met]
         ,[S2S_rit_change]
         ,[S2S_pct_change]
+        ,[S2S_lexile_change]
         ,[S2S_met]
         ,[S2W_rit_change]
         ,[S2W_pct_change]
+        ,[S2W_lexile_change]
         ,[S2W_met]
   FROM
       (
@@ -237,6 +241,7 @@ WITH term_scaffold AS (
                     WHEN period_string = 'Spring to half-of-Spring' THEN 'S2W'
                    END AS period      
                   ,rit_change
+                  ,lexile_change
                   ,end_npr - start_npr AS pct_change
                   ,met_typical_growth_target AS met
             FROM MAP$best_baseline#static base WITH(NOLOCK)
@@ -257,6 +262,7 @@ WITH term_scaffold AS (
                   --,start_term_string AS term
                   ,CASE WHEN period_string = 'Winter to Spring' THEN 'W2S' END AS period      
                   ,rit_change
+                  ,lexile_change
                   ,end_npr - start_npr AS pct_change
                   ,met_typical_growth_target AS met
             FROM MAP$growth_measures_long#static WITH(NOLOCK)
@@ -268,7 +274,7 @@ WITH term_scaffold AS (
 
        UNPIVOT (
          value
-         FOR field IN (rit_change, pct_change, met)
+         FOR field IN (rit_change, pct_change, lexile_change, met)
         ) u
       ) sub2
 
@@ -276,18 +282,23 @@ WITH term_scaffold AS (
     MAX(value)
     FOR field IN ([F2W_rit_change]
                  ,[F2W_pct_change]
+                 ,[F2W_lexile_change]
                  ,[F2W_met]
                  ,[W2S_rit_change]
                  ,[W2S_pct_change]
+                 ,[W2S_lexile_change]
                  ,[W2S_met]
                  ,[F2S_rit_change]
                  ,[F2S_pct_change]
+                 ,[F2S_lexile_change]
                  ,[F2S_met]
                  ,[S2S_rit_change]
                  ,[S2S_pct_change]
+                 ,[S2S_lexile_change]
                  ,[S2S_met]
                  ,[S2W_rit_change]
                  ,[S2W_pct_change]
+                 ,[S2W_lexile_change]
                  ,[S2W_met])
    ) p
 )
@@ -301,8 +312,8 @@ WITH term_scaffold AS (
         ,read_lvl
         ,GLEQ
         ,fp_wpmrate
-  FROM LIT$test_events#identifiers fp
-  LEFT OUTER JOIN REPORTING$dates d
+  FROM LIT$test_events#identifiers fp WITH(NOLOCK)
+  LEFT OUTER JOIN REPORTING$dates d WITH(NOLOCK)
     ON fp.test_date >= d.start_date
    AND fp.test_date <= d.end_date
    AND fp.schoolid = d.schoolid
@@ -376,24 +387,29 @@ SELECT -- student identifiers
       ,rn_curr AS MAP_curr      
       ,F2W_rit_change
       ,F2W_pct_change
+      ,F2W_lexile_change
       ,F2W_met
       ,W2S_rit_change
       ,W2S_pct_change
+      ,W2S_lexile_change
       ,W2S_met
       ,F2S_rit_change
       ,F2S_pct_change
+      ,F2S_lexile_change
       ,F2S_met
       ,S2S_rit_change
       ,S2S_pct_change
+      ,S2S_lexile_change
       ,S2S_met
       ,map_scores.rit - map_scores.base_rit AS B2C_rit_change
       ,map_scores.percentile - map_scores.base_percentile AS B2C_pct_change
-      ,CASE WHEN F2W_rit_change IS NULL THEN S2W_rit_change ELSE F2W_rit_change END AS B2W_rit_change
-      ,CASE WHEN F2W_pct_change IS NULL THEN S2W_pct_change ELSE F2W_pct_change END AS B2W_pct_change
-      ,CASE WHEN F2W_met IS NULL THEN S2W_met ELSE F2W_met END AS B2W_met
-      ,CASE WHEN F2S_rit_change IS NULL THEN S2S_rit_change ELSE F2S_rit_change END AS B2S_rit_change
-      ,CASE WHEN F2S_pct_change IS NULL THEN S2S_pct_change ELSE F2S_pct_change END AS B2S_pct_change
-      ,CASE WHEN F2S_met IS NULL THEN S2S_met ELSE F2S_met END AS B2S_met
+      ,CASE WHEN map_scores.lexile = 'BR' THEN 0 ELSE CONVERT(INT,map_scores.lexile) END - CASE WHEN map_scores.base_lexile = 'BR' THEN 0 ELSE CONVERT(INT,map_scores.base_lexile) END AS B2C_lexile_change
+      ,CASE WHEN map_growth.F2W_rit_change IS NULL THEN map_growth.S2W_rit_change ELSE map_growth.F2W_rit_change END AS B2W_rit_change
+      ,CASE WHEN map_growth.F2W_pct_change IS NULL THEN map_growth.S2W_pct_change ELSE map_growth.F2W_pct_change END AS B2W_pct_change
+      ,CASE WHEN map_growth.F2W_met IS NULL THEN map_growth.S2W_met ELSE map_growth.F2W_met END AS B2W_met
+      ,CASE WHEN map_growth.F2S_rit_change IS NULL THEN map_growth.S2S_rit_change ELSE map_growth.F2S_rit_change END AS B2S_rit_change
+      ,CASE WHEN map_growth.F2S_pct_change IS NULL THEN map_growth.S2S_pct_change ELSE map_growth.F2S_pct_change END AS B2S_pct_change
+      ,CASE WHEN map_growth.F2S_met IS NULL THEN map_growth.S2S_met ELSE map_growth.F2S_met END AS B2S_met
       
       -- F&P      
       ,read_lvl

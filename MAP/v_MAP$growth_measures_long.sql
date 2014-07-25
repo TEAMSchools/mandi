@@ -143,6 +143,7 @@ FROM
                     ,map_start.percentile_2011_norms AS start_npr
                     ,map_end.percentile_2011_norms AS end_npr
                     ,map_end.testritscore - map_start.testritscore AS rit_change
+                    ,CASE WHEN map_end.rittoreadingscore = 'BR' THEN 0 ELSE CONVERT(INT,map_end.rittoreadingscore) END - CASE WHEN map_start.rittoreadingscore = 'BR' THEN 0 ELSE CONVERT(INT,map_start.rittoreadingscore) END AS lexile_change
                     ,map_start.grade_level AS start_grade_verif
                     ,map_end.grade_level AS end_grade_verif
                     ,map_start.termname AS start_term_verif

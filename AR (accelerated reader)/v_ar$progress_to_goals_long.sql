@@ -2,143 +2,143 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW AR$progress_to_goals_long AS
-WITH long_goals AS 
-    (SELECT cohort.studentid
-          ,s.student_number
-          ,cohort.grade_level
-          ,cohort.schoolid
-          ,goals.yearid
-          ,1 AS time_hierarchy
-          ,goals.time_period_name
-          ,goals.words_goal
-          ,goals.points_goal
 
-           --UPDATE: 09-30-2013.  Rise is killing this. Just use the goal start date
-           --for Rise (and eventually others) summer words are 'bonus'
-           --toward year goal.  this requires differentiating between
-           --goal start date for calculation and for the join
+WITH long_goals AS (
+  SELECT cohort.studentid
+        ,s.student_number
+        ,cohort.grade_level
+        ,cohort.schoolid
+        ,goals.yearid
+        ,1 AS time_hierarchy
+        ,goals.time_period_name
+        ,goals.words_goal
+        ,goals.points_goal
+
+         --UPDATE: 09-30-2013.  Rise is killing this. Just use the goal start date
+         --for Rise (and eventually others) summer words are 'bonus'
+         --toward year goal.  this requires differentiating between
+         --goal start date for calculation and for the join
           
-          --,CONVERT(datetime, CAST('07/01/' + CAST(DATEPART(YYYY,time_period_start) AS NVARCHAR) AS DATE), 101) AS start_date_summer_bonus
-          --NULL AS start_date_summer_bonus
-          --'01-JUN-13' AS start_date_summer_bonus
-          ,goals.time_period_start AS start_date_summer_bonus
-          ,goals.time_period_start AS [start_date]
-          ,goals.time_period_end AS end_date     
-    FROM COHORT$comprehensive_long#static cohort WITH (NOLOCK)
-    JOIN students s WITH (NOLOCK)
-      ON cohort.studentid = s.id
+        --,CONVERT(datetime, CAST('07/01/' + CAST(DATEPART(YYYY,time_period_start) AS NVARCHAR) AS DATE), 101) AS start_date_summer_bonus
+        --NULL AS start_date_summer_bonus
+        --'01-JUN-13' AS start_date_summer_bonus
+        ,goals.time_period_start AS start_date_summer_bonus
+        ,goals.time_period_start AS [start_date]
+        ,goals.time_period_end AS end_date     
+  FROM COHORT$comprehensive_long#static cohort WITH (NOLOCK)
+  JOIN students s WITH (NOLOCK)
+    ON cohort.studentid = s.id
      
-     --TESTING
-     --AND s.grade_level = 5
-     --AND s.schoolid = 73252
-     --AND s.ID = 4772
-     --AND s.student_number >= 12866
+   --TESTING
+   --AND s.grade_level = 5
+   --AND s.schoolid = 73252
+   --AND s.ID = 4772
+   --AND s.student_number >= 12866
 
-    --year
-    JOIN AR$goals_long_decode#static goals WITH (NOLOCK)
-       ON CAST(s.student_number AS VARCHAR) = goals.student_number
-      AND goals.time_period_hierarchy = 1
-      AND cohort.rn = 1
-      AND ((cohort.year - 1990) * 100) = goals.yearid
+  --year
+  JOIN AR$goals_long_decode#static goals WITH (NOLOCK)
+     ON CAST(s.student_number AS VARCHAR) = goals.student_number
+    AND goals.time_period_hierarchy = 1
+    AND cohort.rn = 1
+    AND ((cohort.year - 1990) * 100) = goals.yearid
 
-      --TESTING
-      --AND goals.yearid = 2400
-    --term
-    UNION ALL
+    --TESTING
+    --AND goals.yearid = 2400
+  --term
+  UNION ALL
 
-    SELECT cohort.studentid
-          ,s.student_number
-          ,cohort.grade_level
-          ,cohort.schoolid
-          ,goals.yearid
-          --standardize term names
-          ,2 AS time_hierarchy
-          ,CASE
-             --middle
-             WHEN time_period_name = 'Trimester 1' THEN 'RT1'
-             WHEN time_period_name = 'Trimester 2' THEN 'RT2'
-             WHEN time_period_name = 'Trimester 3' THEN 'RT3'
-             --TEAM
-             WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
-             WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
-             WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
-             WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
-             WHEN time_period_name = 'Reporting Term 5' THEN 'RT5'
-             WHEN time_period_name = 'Reporting Term 6' THEN 'RT6'
-             --high
-             WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
-             WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
-             WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
-             WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
-             --new middle school
-             WHEN time_period_name = 'Hexameter 1' THEN 'RT1'
-             WHEN time_period_name = 'Hexameter 2' THEN 'RT2'
-             WHEN time_period_name = 'Hexameter 3' THEN 'RT3'
-             WHEN time_period_name = 'Hexameter 4' THEN 'RT4'
-             WHEN time_period_name = 'Hexameter 5' THEN 'RT5'
-             WHEN time_period_name = 'Hexameter 6' THEN 'RT6'
-             --elementary? (CAPSTONE?)
-           END AS time_period_name
-          ,goals.words_goal
-          ,goals.points_goal
-          ,goals.time_period_start AS start_date_summer_bonus
-          ,goals.time_period_start AS start_date
-          ,goals.time_period_end AS end_date
-    FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH (NOLOCK)
-    JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
-      ON cohort.studentid = s.id
-
-     --TESTING
-     --AND s.grade_level = 5
-     --AND s.schoolid = 73252
-     --AND s.id = 4772
-     --AND s.student_number >= 12866
-
-    JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
-       ON CAST(s.student_number AS VARCHAR) = goals.student_number
-      AND goals.time_period_hierarchy = 2
-      AND ((year - 1990) * 100) = goals.yearid
-      AND cohort.year >= 2011
-      AND cohort.rn = 1
-
-      --TESTING
-      --AND goals.yearid = dbo.fn_Global_Term_Id()
-      --AND goals.time_period_name = 'Hexameter 2'
-    )
-     ,last_book AS
-     (SELECT sub.*
-      FROM
-            (SELECT goals.student_number
-                   ,goals.yearid
-                   ,goals.time_period_hierarchy
-                   ,goals.time_period_start
-                   ,goals.time_period_end
-                   ,detail.dttaken AS last_book_date
-                   ,CAST(DATEPART(MM, detail.dttaken) AS NVARCHAR) + '/' 
-                     + CAST(DATEPART(DD, detail.dttaken) AS NVARCHAR) + ' '
-                     + detail.vchcontenttitle + ' (' 
-                     + detail.vchauthor + ' | ' 
-                     + LTRIM(detail.chfictionnonfiction) + ', Lexile: ' 
-                     + CAST(ialternatebooklevel_2 AS NVARCHAR) + ') [' 
-                     + CAST(detail.iquestionscorrect AS NVARCHAR) + '/' 
-                     + CAST(detail.iquestionspresented AS NVARCHAR) + ', ' 
-                     + CAST(CAST(detail.dpercentcorrect * 100 AS INT) AS NVARCHAR) + '% ' 
-                     + REPLICATE('+', detail.tibookrating) + ']' AS title_string
-                   ,ROW_NUMBER() OVER
-                     (PARTITION BY goals.student_number
-                                  ,goals.yearid
-                                  ,goals.time_period_hierarchy
-                                  ,goals.time_period_start
-                                  ,goals.time_period_end
-                      ORDER BY detail.dttaken DESC) AS rn_desc
-             FROM AR$goals_long_decode#static goals WITH (NOLOCK)
-             JOIN AR$test_event_detail#static detail WITH (NOLOCK)
-               ON goals.student_number = detail.student_number
-              AND CAST(detail.dtTaken AS DATE) >= CAST(goals.time_period_start AS DATE)
-              AND CAST(detail.dtTaken AS DATE) <= CAST(goals.time_period_end AS DATE)
-             ) sub
-      WHERE rn_desc = 1  
-     )
+  SELECT cohort.studentid
+        ,s.student_number
+        ,cohort.grade_level
+        ,cohort.schoolid
+        ,goals.yearid
+        --standardize term names
+        ,2 AS time_hierarchy
+        ,CASE
+           --middle
+           WHEN time_period_name = 'Trimester 1' THEN 'RT1'
+           WHEN time_period_name = 'Trimester 2' THEN 'RT2'
+           WHEN time_period_name = 'Trimester 3' THEN 'RT3'
+           --TEAM
+           WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
+           WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
+           WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
+           WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
+           WHEN time_period_name = 'Reporting Term 5' THEN 'RT5'
+           WHEN time_period_name = 'Reporting Term 6' THEN 'RT6'
+           --high
+           WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
+           WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
+           WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
+           WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
+           --new middle school
+           WHEN time_period_name = 'Hexameter 1' THEN 'RT1'
+           WHEN time_period_name = 'Hexameter 2' THEN 'RT2'
+           WHEN time_period_name = 'Hexameter 3' THEN 'RT3'
+           WHEN time_period_name = 'Hexameter 4' THEN 'RT4'
+           WHEN time_period_name = 'Hexameter 5' THEN 'RT5'
+           WHEN time_period_name = 'Hexameter 6' THEN 'RT6'
+           --elementary? (CAPSTONE?)
+         END AS time_period_name
+        ,goals.words_goal
+        ,goals.points_goal
+        ,goals.time_period_start AS start_date_summer_bonus
+        ,goals.time_period_start AS start_date
+        ,goals.time_period_end AS end_date
+  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH (NOLOCK)
+  JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
+    ON cohort.studentid = s.id
+   --TESTING
+   --AND s.grade_level = 5
+   --AND s.schoolid = 73252
+   --AND s.id = 4772
+   --AND s.student_number >= 12866
+  JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
+     ON CAST(s.student_number AS VARCHAR) = goals.student_number
+    AND goals.time_period_hierarchy = 2
+    AND ((year - 1990) * 100) = goals.yearid
+    AND cohort.year >= 2011
+    AND cohort.rn = 1
+    --TESTING
+    --AND goals.yearid = dbo.fn_Global_Term_Id()
+    --AND goals.time_period_name = 'Hexameter 2'
+ )
+ 
+,last_book AS (
+  SELECT sub.*
+  FROM
+      (
+       SELECT goals.student_number
+             ,goals.yearid
+             ,goals.time_period_hierarchy
+             ,goals.time_period_start
+             ,goals.time_period_end
+             ,detail.dttaken AS last_book_date
+             ,CAST(DATEPART(MM, detail.dttaken) AS NVARCHAR) + '/' 
+               + CAST(DATEPART(DD, detail.dttaken) AS NVARCHAR) + ' '
+               + detail.vchcontenttitle + ' (' 
+               + detail.vchauthor + ' | ' 
+               + LTRIM(detail.chfictionnonfiction) + ', Lexile: ' 
+               + CAST(ialternatebooklevel_2 AS NVARCHAR) + ') [' 
+               + CAST(detail.iquestionscorrect AS NVARCHAR) + '/' 
+               + CAST(detail.iquestionspresented AS NVARCHAR) + ', ' 
+               + CAST(CAST(detail.dpercentcorrect * 100 AS INT) AS NVARCHAR) + '% ' 
+               + REPLICATE('+', detail.tibookrating) + ']' AS title_string
+             ,ROW_NUMBER() OVER (
+                 PARTITION BY goals.student_number
+                             ,goals.yearid
+                             ,goals.time_period_hierarchy
+                             ,goals.time_period_start
+                             ,goals.time_period_end
+                     ORDER BY detail.dttaken DESC) AS rn_desc
+       FROM AR$goals_long_decode#static goals WITH (NOLOCK)
+       JOIN AR$test_event_detail#static detail WITH (NOLOCK)
+         ON goals.student_number = detail.student_number
+        AND CAST(detail.dtTaken AS DATE) >= CAST(goals.time_period_start AS DATE)
+        AND CAST(detail.dtTaken AS DATE) <= CAST(goals.time_period_end AS DATE)
+      ) sub
+  WHERE rn_desc = 1  
+ )
 
 --query starts here
 SELECT totals.*
@@ -318,7 +318,8 @@ SELECT totals.*
                                  ,totals.time_period_name
                      ORDER BY points DESC) AS rank_points_overall_in_network      
 FROM    
-     (SELECT long_goals.studentid
+     (
+      SELECT long_goals.studentid
             ,long_goals.student_number
             ,long_goals.grade_level
             ,long_goals.schoolid
@@ -389,7 +390,7 @@ FROM
                ,long_goals.points_goal
                ,long_goals.start_date
                ,long_goals.end_date
-      ) totals
+     ) totals
 LEFT OUTER JOIN last_book
   ON totals.student_number = last_book.student_number
  --this join is sort of conviluted because we normalized time period names above...

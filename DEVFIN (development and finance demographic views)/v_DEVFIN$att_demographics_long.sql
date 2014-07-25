@@ -30,7 +30,7 @@ WITH calendar AS(
     ON co.studentid = s.id
   LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
     ON co.studentid = cs.studentid
-  LEFT OUTER JOIN PS$lunch_status_long lunch WITH(NOLOCK)
+  LEFT OUTER JOIN PS$lunch_status_long#static lunch WITH(NOLOCK)
     ON co.studentid = lunch.studentid
    AND co.YEAR = lunch.year
   WHERE co.schoolid != 999999

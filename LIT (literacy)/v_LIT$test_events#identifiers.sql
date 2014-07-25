@@ -131,7 +131,7 @@ FROM
       AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
       AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
       AND cohort.rn = 1     
-     LEFT OUTER JOIN LIT$goals goals
+     LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
        ON ISNULL(cohort.grade_level, s.grade_level) = goals.grade_level
       AND rs.test_round = goals.test_round
     ) sub
