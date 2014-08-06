@@ -87,11 +87,11 @@ FROM
      SELECT 
             -- test identifiers
             rs.unique_id
-           ,rs.testid
+           ,rs.testid           
            
            -- date stuff
-           ,rs.academic_year
-           ,rs.test_round           
+           ,CASE WHEN rs.academic_year IS NULL THEN dates.academic_year ELSE rs.academic_year END AS academic_year
+           ,CASE WHEN rs.test_round IS NULL THEN dates.time_per_name ELSE rs.test_round END AS test_round
            ,rs.test_date
            
            -- student identifiers
@@ -120,7 +120,8 @@ FROM
              WHEN rs.testid = 3273 AND rs.indep_lvl IS NULL THEN rs.step_ltr_level
              ELSE rs.indep_lvl
             END AS indep_lvl
-     FROM READINGSCORES rs WITH(NOLOCK)
+           ,CASE WHEN rs.testid = 3273 THEN 1 ELSE 0 END AS is_fp
+     FROM LIT$readingscores#static rs WITH(NOLOCK)
      JOIN LIT$GLEQ gleq WITH(NOLOCK)
        ON rs.testid = gleq.testid
       AND rs.step_ltr_level = gleq.read_lvl     
@@ -130,8 +131,13 @@ FROM
        ON rs.studentid = cohort.studentid
       AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
       AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
-      AND cohort.rn = 1     
+      AND cohort.rn = 1          
+     LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
+       ON rs.schoolid = dates.schoolid
+      AND rs.test_date >= dates.start_date
+      AND rs.test_date <= dates.end_date
+      AND dates.identifier = 'LIT'
      LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
        ON ISNULL(cohort.grade_level, s.grade_level) = goals.grade_level
-      AND rs.test_round = goals.test_round
+      AND ISNULL(rs.test_round, REPLACE(dates.time_per_name, 'Diagnostic', 'DR')) = goals.test_round
     ) sub

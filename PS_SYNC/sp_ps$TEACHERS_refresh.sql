@@ -21,22 +21,23 @@ BEGIN
 		--STEP 2: load into a TEMPORARY staging table.
   SELECT *
 		INTO [#PS$TEACHERS|refresh]
-  FROM OPENQUERY(PS_TEAM, '
-    SELECT DCID
+  FROM OPENQUERY(PS_TEAM,'
+    SELECT USERS_DCID
+          ,DCID
           ,ID
           ,LASTFIRST
           ,FIRST_NAME
           ,MIDDLE_NAME
           ,LAST_NAME
           ,SCHOOLID
-          ,STATUS        
+          ,STATUS
           ,TITLE
-          ,HOMEROOM
-          ,EMAIL_ADDR                        
-          ,PSACCESS        
-          ,LOGINID        
+          ,EMAIL_ADDR
+          ,PASSWORD
+          ,PSACCESS
+          ,LOGINID
+          ,CLASSPUA
           ,NOOFCURCLASSES
-          ,DEFAULTSTUDSCRN        
           ,GROUPVALUE
           ,CAST(TEACHERNUMBER AS INT) AS TEACHERNUMBER
           ,HOME_PHONE
@@ -44,16 +45,22 @@ BEGIN
           ,STREET
           ,CITY
           ,STATE
-          ,ZIP        
-          ,CANCHANGESCHOOL                
-          ,TEACHERLOGINID                        
-          ,STAFFSTATUS                
-          ,ETHNICITY        
-          ,PREFERREDNAME                
+          ,ZIP
+          ,PERIODSAVAIL
+          ,CANCHANGESCHOOL
+          ,LOG
+          ,TEACHERLOGINPW
+          ,NAMEASIMPORTED
+          ,TEACHERLOGINID
+          ,TEACHERLOGINIP
+          ,STAFFSTATUS
+          ,ETHNICITY
           ,ADMINLDAPENABLED
           ,TEACHERLDAPENABLED
-          ,SIF_STATEPRID        
-          ,GRADEBOOKTYPE        
+          ,SIF_STATEPRID
+          ,GRADEBOOKTYPE
+          ,HOMESCHOOLID
+          ,PTACCESS
     FROM teachers
   ');
 

@@ -5,11 +5,14 @@ ALTER VIEW LIT$growth_measures_wide AS
 
 WITH roster AS (
   SELECT STUDENTID
+        ,lastfirst
         ,SCHOOLID
         ,GRADE_LEVEL
         ,COHORT
         ,YEAR
   FROM COHORT$comprehensive_long#static WITH(NOLOCK)
+  WHERE grade_level < 99
+    AND rn = 1  
  )
 
 ,term_base AS (
@@ -420,21 +423,21 @@ SELECT YEAR
       ,CONVERT(FLOAT,EOY_cur_GLEQ) - CONVERT(FLOAT,T3_cur_GLEQ) AS t3EOY_growth_GLEQ
       ,CONVERT(INT,EOY_cur_lvl_num) - CONVERT(INT,T3_cur_lvl_num) AS t3EOY_growth_lvl
 FROM roster r
-JOIN year_base yb
+LEFT OUTER JOIN year_base yb
   ON r.STUDENTID = yb.studentid
  AND r.YEAR = yb.academic_year
-JOIN year_cur yc
+LEFT OUTER JOIN year_cur yc
   ON r.STUDENTID = yc.studentid
  AND r.YEAR = yc.academic_year
-JOIN term_base tb
+LEFT OUTER JOIN term_base tb
   ON r.STUDENTID = tb.studentid
  AND r.YEAR = tb.academic_year
-JOIN term_cur tc
+LEFT OUTER JOIN term_cur tc
   ON r.STUDENTID = tc.studentid
  AND r.YEAR = tc.academic_year
-JOIN term_dna td
+LEFT OUTER JOIN term_dna td
   ON r.STUDENTID = td.studentid
  AND r.YEAR = td.academic_year
-JOIN yr_dna yd
+LEFT OUTER JOIN yr_dna yd
   ON r.STUDENTID = yd.studentid
  AND r.YEAR = yd.academic_year

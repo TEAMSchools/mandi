@@ -12,10 +12,10 @@ WITH roster AS (
         ,co.grade_level
         ,cs.SPEDLEP
         ,s.team
-  FROM COHORT$comprehensive_long#static co
-  LEFT OUTER JOIN STUDENTS s
+  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+  LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
     ON co.studentid = s.id
-  LEFT OUTER JOIN CUSTOM_STUDENTS cs
+  LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
     ON co.studentid = cs.studentid
   WHERE co.rn = 1
     AND co.schoolid IN (73252,133570965)
@@ -62,29 +62,42 @@ WITH roster AS (
        SELECT co.STUDENT_NUMBER
              ,co.year             
              ,CASE 
+               WHEN map.fallwinterspring IS NULL THEN 'B'
                WHEN map.fallwinterspring = 'Fall' THEN 'B'
                WHEN map.fallwinterspring = 'Winter' THEN 'W'
                WHEN map.fallwinterspring = 'Spring' THEN 'S'
               END AS fallwinterspring
-             ,CONVERT(VARCHAR,CASE WHEN map.fallwinterspring = 'Fall' THEN base.testritscore ELSE map.testritscore END) AS rit
-             ,CONVERT(VARCHAR,CASE WHEN map.fallwinterspring = 'Fall' THEN base.testpercentile ELSE map.testpercentile END) AS pct
-             ,CONVERT(VARCHAR,CASE WHEN map.fallwinterspring = 'Fall' THEN base.lexile_score ELSE map.rittoreadingscore END) AS lexile
-       FROM COHORT$comprehensive_long#static co  
-       JOIN MAP$best_baseline#static base
+             ,CONVERT(VARCHAR,CASE 
+                               WHEN map.fallwinterspring IS NULL THEN base.testritscore
+                               WHEN map.fallwinterspring = 'Fall' THEN base.testritscore 
+                               ELSE map.testritscore 
+                              END) AS rit
+             ,CONVERT(VARCHAR,CASE 
+                               WHEN map.fallwinterspring IS NULL THEN base.testpercentile 
+                               WHEN map.fallwinterspring = 'Fall' THEN base.testpercentile
+                               ELSE map.testpercentile 
+                              END) AS pct
+             ,CONVERT(VARCHAR,CASE
+                               WHEN map.fallwinterspring IS NULL THEN REPLACE(base.lexile_score, 'BR', 0) 
+                               WHEN map.fallwinterspring = 'Fall' THEN REPLACE(base.lexile_score, 'BR', 0) 
+                               ELSE REPLACE(map.rittoreadingscore, 'BR', 0) 
+                              END) AS lexile
+       FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+       JOIN MAP$best_baseline#static base WITH(NOLOCK)
          ON co.studentid = base.studentid
         AND co.year = base.year
         AND base.measurementscale = 'Reading'
-       JOIN MAP$comprehensive#identifiers map
+       LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
          ON co.studentid = map.ps_studentid
         AND co.year = map.map_year_academic
         AND base.measurementscale = map.measurementscale   
         AND map.rn = 1
-       WHERE co.rn = 1
+       WHERE co.rn = 1         
       ) sub
    
   UNPIVOT (
     value
-    FOR field IN (pct)
+    FOR field IN (pct, rit, lexile)
    ) u
  )
 
@@ -142,36 +155,175 @@ WITH roster AS (
   FROM 
       (
        SELECT fp.studentid
-             --,fp.academic_year -- no data, replace when year gets started        
-             --,test_round -- no data, replace when year gets started
-             ,CASE WHEN DATEPART(MONTH,fp.test_date) < 7 THEN DATEPART(YEAR,fp.test_date) - 1 ELSE DATEPART(YEAR,fp.test_date) END AS year
-             ,d.time_per_name AS test_round
+             ,fp.GRADE_LEVEL
+             ,fp.academic_year AS year      
+             ,CASE 
+               WHEN fp.test_round = 'DR' THEN 'BOY'
+               WHEN fp.test_round = 'EOY' THEN 'T3'
+               ELSE fp.test_round
+              END AS test_round
              ,CONVERT(VARCHAR,fp.read_lvl) AS read_lvl
-             ,CONVERT(VARCHAR,fp.GLEQ) AS GLEQ
+             ,CONVERT(VARCHAR,fp.GLEQ) AS GLEQ      
+             ,CONVERT(VARCHAR,ROUND(fp.GLEQ - gleq.GLEQ,1)) AS yrs_behind
              ,CONVERT(VARCHAR,CASE WHEN fp.schoolid = 73252 THEN rl.wpm ELSE fp.fp_wpmrate END) AS wpm
-       FROM LIT$test_events#identifiers fp
-       LEFT OUTER JOIN REPORTING$dates d
-         ON fp.test_date >= d.start_date
-        AND fp.test_date <= d.end_date
-        AND fp.schoolid = d.schoolid
-        AND d.identifier = 'LIT'
+             ,CONVERT(VARCHAR,fp.fp_keylever) AS keylever            
+       FROM LIT$achieved_by_round fp WITH(NOLOCK)       
+       LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
+         ON fp.GRADE_LEVEL = goals.grade_level
+        AND REPLACE(fp.test_round, 'EOY', 'T3') = goals.test_round
+       LEFT OUTER JOIN LIT$GLEQ gleq WITH(NOLOCK)
+         ON goals.read_lvl = gleq.read_lvl        
        LEFT OUTER JOIN SRSLY_DIE_READLIVE rl WITH(NOLOCK)
          ON fp.studentid = rl.studentid
         AND CASE
-             WHEN d.time_per_name = 'BOY' THEN 'Fall'
-             WHEN d.time_per_name = 'T1' THEN 'Fall'
-             WHEN d.time_per_name = 'T2' THEN 'Winter'
-             WHEN d.time_per_name = 'T3' THEN 'Winter'
-             WHEN d.time_per_name = 'EOY' THEN 'Spring'
-            END = rl.season
-       WHERE testid = 3273
-         AND achv_curr_round = 1    
+             WHEN fp.test_round = 'BOY' THEN 'Fall'
+             WHEN fp.test_round = 'T1' THEN 'Fall'
+             WHEN fp.test_round = 'T2' THEN 'Winter'
+             WHEN fp.test_round = 'T3' THEN 'Winter'
+             WHEN fp.test_round = 'EOY' THEN 'Spring'
+            END = rl.season       
       ) sub
   
   UNPIVOT (
     value
-    FOR field IN (read_lvl, gleq, wpm)
+    FOR field IN (read_lvl, gleq, wpm, keylever, yrs_behind)
    ) u
+ )
+
+,lit_growth AS (
+  SELECT year
+        ,studentid
+        ,field AS header
+        ,CONVERT(VARCHAR,value) AS value
+  FROM
+      (
+       SELECT year
+             ,studentid
+             ,yr_growth_GLEQ
+             ,t1_growth_GLEQ
+             ,t2_growth_GLEQ
+             ,t3_growth_GLEQ
+             ,t1t2_growth_GLEQ
+             ,t2t3_growth_GLEQ
+             ,t3EOY_growth_GLEQ
+       FROM LIT$growth_measures_wide#static WITH(NOLOCK)
+      ) sub
+  
+  UNPIVOT (
+    value
+    FOR field IN (yr_growth_GLEQ
+                 ,t1_growth_GLEQ
+                 ,t2_growth_GLEQ
+                 ,t3_growth_GLEQ
+                 ,t1t2_growth_GLEQ
+                 ,t2t3_growth_GLEQ
+                 ,t3EOY_growth_GLEQ)
+   ) u
+ )
+
+,map_goals AS (
+  SELECT year
+        ,studentid
+        ,field AS header
+        ,CONVERT(VARCHAR,value) AS value
+  FROM
+      (
+       SELECT map_year_academic AS year
+             ,ps_studentid AS studentid
+             ,teststartdate
+             ,goal1name
+             ,goal1ritscore
+             ,goal1stderr
+             ,goal1range
+             ,goal1adjective
+             ,goal2name
+             ,goal2ritscore
+             ,goal2stderr
+             ,goal2range
+             ,goal2adjective
+             ,goal3name
+             ,goal3ritscore
+             ,goal3stderr
+             ,goal3range
+             ,goal3adjective
+             ,goal4name
+             ,goal4ritscore
+             ,goal4stderr
+             ,goal4range
+             ,goal4adjective
+             ,goal5name
+             ,goal5ritscore
+             ,goal5stderr
+             ,goal5range
+             ,goal5adjective
+             ,goal6name
+             ,goal6ritscore
+             ,goal6stderr
+             ,goal6range
+             ,goal6adjective
+             ,goal7name
+             ,goal7ritscore
+             ,goal7stderr
+             ,goal7range
+             ,goal7adjective
+             ,goal8name
+             ,goal8ritscore
+             ,goal8stderr
+             ,goal8range
+             ,goal8adjective
+             ,ROW_NUMBER() OVER(
+                PARTITION BY map_year_academic, studentid
+                  ORDER BY teststartdate DESC) AS rn_curr
+       FROM MAP$comprehensive#identifiers WITH(NOLOCK)
+       WHERE rn = 1
+         AND measurementscale = 'Reading'
+      ) sub
+
+  UNPIVOT(
+    value
+    FOR field IN (goal1name
+                 ,goal1ritscore
+                 ,goal1stderr
+                 ,goal1range
+                 ,goal1adjective
+                 ,goal2name
+                 ,goal2ritscore
+                 ,goal2stderr
+                 ,goal2range
+                 ,goal2adjective
+                 ,goal3name
+                 ,goal3ritscore
+                 ,goal3stderr
+                 ,goal3range
+                 ,goal3adjective
+                 ,goal4name
+                 ,goal4ritscore
+                 ,goal4stderr
+                 ,goal4range
+                 ,goal4adjective
+                 ,goal5name
+                 ,goal5ritscore
+                 ,goal5stderr
+                 ,goal5range
+                 ,goal5adjective
+                 ,goal6name
+                 ,goal6ritscore
+                 ,goal6stderr
+                 ,goal6range
+                 ,goal6adjective
+                 ,goal7name
+                 ,goal7ritscore
+                 ,goal7stderr
+                 ,goal7range
+                 ,goal7adjective
+                 ,goal8name
+                 ,goal8ritscore
+                 ,goal8stderr
+                 ,goal8range
+                 ,goal8adjective)
+   ) u
+
+  WHERE rn_curr = 1
  )
 
 SELECT year
@@ -220,21 +372,62 @@ SELECT year
       ,CONVERT(FLOAT,[B_pct]) AS B_pct
       ,CONVERT(FLOAT,[S_pct]) AS S_pct
       ,CONVERT(FLOAT,[W_pct]) AS W_pct
+      ,CONVERT(FLOAT,[B_rit]) AS B_rit
+      ,CONVERT(FLOAT,[S_rit]) AS S_rit
+      ,CONVERT(FLOAT,[W_rit]) AS W_rit
+      ,CONVERT(FLOAT,[B_lexile]) AS B_lexile
+      ,CONVERT(FLOAT,[S_lexile]) AS S_lexile
+      ,CONVERT(FLOAT,[W_lexile]) AS W_lexile
       ,CONVERT(FLOAT,[W2S_pct_change]) AS W2S_pct_change
       ,CONVERT(FLOAT,[B2W_pct_change]) AS B2W_pct_change
       ,CONVERT(FLOAT,[B2S_pct_change]) AS B2S_pct_change                  
-      ,BOY_read_lvl
+      ,CONVERT(VARCHAR,BOY_read_lvl) AS BOY_read_lvl
       ,CONVERT(FLOAT,[BOY_GLEQ]) AS BOY_GLEQ
       ,CONVERT(FLOAT,[BOY_wpm]) AS BOY_wpm
-      ,T1_read_lvl
+      ,CONVERT(VARCHAR,[BOY_keylever]) AS BOY_keylever
+      ,CONVERT(VARCHAR,T1_read_lvl) AS T1_read_lvl
       ,CONVERT(FLOAT,[T1_GLEQ]) AS T1_GLEQ
       ,CONVERT(FLOAT,[T1_wpm]) AS T1_wpm
-      ,T2_read_lvl      
+      ,CONVERT(VARCHAR,[T1_keylever]) AS T1_keylever
+      ,CONVERT(VARCHAR,T2_read_lvl) AS T2_read_lvl
       ,CONVERT(FLOAT,[T2_GLEQ]) AS T2_GLEQ
       ,CONVERT(FLOAT,[T2_wpm]) AS T2_wpm
-      ,T3_read_lvl
+      ,CONVERT(VARCHAR,[T2_keylever]) AS T2_keylever
+      ,CONVERT(VARCHAR,T3_read_lvl) AS T3_read_lvl
       ,CONVERT(FLOAT,[T3_GLEQ]) AS T3_GLEQ
       ,CONVERT(FLOAT,[T3_wpm]) AS T3_wpm
+      ,CONVERT(VARCHAR,[T3_keylever]) AS T3_keylever
+      ,yr_growth_GLEQ
+      ,t1_growth_GLEQ
+      ,t2_growth_GLEQ
+      ,t3_growth_GLEQ
+      ,t1t2_growth_GLEQ
+      ,t2t3_growth_GLEQ
+      ,t3EOY_growth_GLEQ
+      ,CONVERT(FLOAT,[BOY_yrs_behind]) AS [BOY_yrs_behind]
+      ,CONVERT(FLOAT,[T1_yrs_behind]) AS [T1_yrs_behind]
+      ,CONVERT(FLOAT,[T2_yrs_behind]) AS [T2_yrs_behind]
+      ,CONVERT(FLOAT,[T3_yrs_behind]) AS [T3_yrs_behind]
+      ,[goal1name]
+      ,CONVERT(INT,[goal1ritscore]) AS goal1ritscore
+      ,[goal1range]
+      ,[goal1adjective]
+      ,[goal2name]
+      ,CONVERT(INT,[goal2ritscore]) AS goal2ritscore
+      ,[goal2range]
+      ,[goal2adjective]
+      ,[goal3name]
+      ,CONVERT(INT,[goal3ritscore]) AS goal3ritscore
+      ,[goal3range]
+      ,[goal3adjective]
+      ,[goal4name]
+      ,CONVERT(INT,[goal4ritscore]) AS goal4ritscore
+      ,[goal4range]
+      ,[goal4adjective]
+      ,[goal5name]
+      ,CONVERT(INT,[goal5ritscore]) AS goal5ritscore
+      ,[goal5range]
+      ,[goal5adjective]      
 FROM 
     (
      SELECT r.*
@@ -274,6 +467,26 @@ FROM
      JOIN lit_rounds fp
        ON r.studentid = fp.studentid
       AND r.year = fp.year
+    
+     UNION ALL
+
+     SELECT r.*
+           ,lit_growth.header
+           ,CONVERT(VARCHAR,lit_growth.value) AS value
+     FROM roster r
+     JOIN lit_growth
+       ON r.studentid = lit_growth.studentid
+      AND r.year = lit_growth.year
+
+     UNION ALL
+
+     SELECT r.*
+           ,goal.header
+           ,CONVERT(VARCHAR,goal.value) AS value
+     FROM roster r
+     JOIN map_goals goal
+       ON r.studentid = goal.studentid
+      AND r.year = goal.year
     ) sub
 
 PIVOT (
@@ -316,19 +529,72 @@ PIVOT (
                 ,[B_pct]
                 ,[S_pct]
                 ,[W_pct]
+                ,[B_rit]
+                ,[S_rit]
+                ,[W_rit]
+                ,[B_lexile]
+                ,[S_lexile]
+                ,[W_lexile]
                 ,[W2S_pct_change]
                 ,[B2W_pct_change]
                 ,[B2S_pct_change]                
-                ,[T2_read_lvl]
-                ,[T2_GLEQ]
-                ,[T3_read_lvl]
-                ,[T3_GLEQ]
-                ,[T3_wpm]
-                ,[T2_wpm]
+                ,[BOY_read_lvl]
+                ,[BOY_GLEQ]
+                ,[BOY_wpm]
+                ,[BOY_keylever]
                 ,[T1_read_lvl]
                 ,[T1_GLEQ]
                 ,[T1_wpm]
-                ,[BOY_read_lvl]
-                ,[BOY_GLEQ]
-                ,[BOY_wpm])
+                ,[T1_keylever]
+                ,[T2_read_lvl]
+                ,[T2_GLEQ]
+                ,[T2_wpm]
+                ,[T2_keylever]
+                ,[T3_read_lvl]
+                ,[T3_GLEQ]
+                ,[T3_wpm]
+                ,[T3_keylever]
+                ,[yr_growth_GLEQ]
+                ,[t1_growth_GLEQ]
+                ,[t2_growth_GLEQ]
+                ,[t3_growth_GLEQ]
+                ,[t1t2_growth_GLEQ]
+                ,[t2t3_growth_GLEQ]
+                ,[t3EOY_growth_GLEQ]
+                ,[BOY_yrs_behind]
+                ,[T1_yrs_behind]
+                ,[T2_yrs_behind]
+                ,[T3_yrs_behind]
+                ,[goal1name]
+                ,[goal1ritscore]                
+                ,[goal1range]
+                ,[goal1adjective]
+                ,[goal2name]
+                ,[goal2ritscore]                
+                ,[goal2range]
+                ,[goal2adjective]
+                ,[goal3name]
+                ,[goal3ritscore]                
+                ,[goal3range]
+                ,[goal3adjective]
+                ,[goal4name]
+                ,[goal4ritscore]                
+                ,[goal4range]
+                ,[goal4adjective]
+                ,[goal5name]
+                ,[goal5ritscore]                
+                ,[goal5range]
+                ,[goal5adjective]
+                ,[goal6name]
+                ,[goal6ritscore]                
+                ,[goal6range]
+                ,[goal6adjective]
+                ,[goal7name]
+                ,[goal7ritscore]                
+                ,[goal7range]
+                ,[goal7adjective]
+                ,[goal8name]
+                ,[goal8ritscore]                
+                ,[goal8range]
+                ,[goal8adjective])
  ) p

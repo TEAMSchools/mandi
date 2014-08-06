@@ -6,8 +6,13 @@ ALTER VIEW DAILY$tracking_long#Rise AS
 SELECT studentid
       ,schoolid
       ,att_date
-      ,field
-      ,value
+      ,field AS class
+      ,value AS ccr
+      ,CASE WHEN value = 'E' THEN 1 ELSE 0 END AS E
+      ,CASE WHEN value = 'G' THEN 1 ELSE 0 END AS G
+      ,CASE WHEN value = 'S' THEN 1 ELSE 0 END AS S
+      ,CASE WHEN value = 'N' THEN 1 ELSE 0 END AS N
+      ,CASE WHEN value = 'U' THEN 1 ELSE 0 END AS U      
 FROM
     (
      SELECT daily.studentid

@@ -5,13 +5,15 @@ ALTER VIEW DISC$log AS
 
 WITH disc_log AS (
   SELECT disc.schoolid
-        ,CAST(studentid AS INT) AS studentid        
-        ,entry_author
-        ,CONVERT(DATE,entry_date) AS entry_date
-        ,CONVERT(DATE,discipline_actiondate) AS consequence_date
+        ,CAST(disc.studentid AS INT) AS studentid        
+        ,disc.entry_author
+        ,CONVERT(DATE,disc.entry_date) AS entry_date
+        ,CONVERT(DATE,disc.discipline_actiondate) AS consequence_date
         ,disc.logtypeid      
         ,consequence AS n_days
         ,subtype.subtype
+        ,disc.subject
+        ,disc.entry
         ,details.detail AS discipline_details
         ,action.detail AS actiontaken
         ,follow.detail AS followup        
@@ -23,6 +25,8 @@ WITH disc_log AS (
           ,discipline_actiondate
           ,logtypeid
           ,subtype
+          ,subject
+          ,entry
           ,discipline_incidenttype
           ,Discipline_ActionTaken
           ,Discipline_ActionTakendetail
@@ -59,6 +63,8 @@ WITH disc_log AS (
         ,3223 AS logtypeid
         ,NULL AS n_days
         ,'Tardy' AS subtype
+        ,NULL AS subject
+        ,NULL AS entry
         ,'Late to Class' AS discipline_details
         ,NULL AS actiontaken
         ,NULL AS followup      
@@ -69,6 +75,7 @@ WITH disc_log AS (
     ON sec.TEACHER = t.ID
   WHERE att.att_code IN ('T','T10')
     AND att.schoolid = 73253
+    AND att.ATT_DATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
 
   UNION ALL
 
@@ -80,6 +87,8 @@ WITH disc_log AS (
         ,3223 AS logtypeid
         ,NULL AS n_days
         ,'Tardy' AS subtype
+        ,NULL AS subject
+        ,NULL AS entry
         ,'Late to School' AS discipline_details
         ,NULL AS actiontaken
         ,NULL AS followup      
@@ -93,6 +102,7 @@ WITH disc_log AS (
     ON cc.TEACHERID = t.ID
   WHERE att.att_code IN ('T','T10')
     AND att.schoolid = 73253
+    AND att.ATT_DATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
  )
 
 ,all_logs AS (

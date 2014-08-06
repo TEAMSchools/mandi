@@ -32,7 +32,7 @@ WITH reenrollments AS (
          FROM reenrollments re
          WHERE (re.exitdate - re.entrydate) > 0
        ') re_base
-       LEFT OUTER JOIN TERMS WITH(NOLOCK)
+       LEFT OUTER JOIN PS$terms#static terms WITH(NOLOCK)
          ON re_base.schoolid = terms.schoolid       
         AND re_base.entrydate >= terms.firstday
         AND re_base.exitdate <= DATEADD(DAY, 1, terms.lastday)
@@ -70,7 +70,7 @@ WITH reenrollments AS (
          AND s.schoolid != 999999
          AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1
       ) s_1
-  LEFT OUTER JOIN terms WITH(NOLOCK)
+  LEFT OUTER JOIN PS$terms#static terms WITH(NOLOCK)
     ON s_1.schoolid = terms.schoolid 
    AND s_1.entrydate >= terms.firstday
    AND s_1.exitdate <= DATEADD(DAY, 1, terms.lastday)
@@ -104,7 +104,7 @@ WITH reenrollments AS (
          AND s.schoolid != 999999
          AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1
       ) s_2
-  LEFT OUTER JOIN terms WITH(NOLOCK)
+  LEFT OUTER JOIN PS$terms#static terms WITH(NOLOCK)
     ON s_2.schoolid = terms.schoolid      
    AND s_2.entrydate >= terms.firstday
    AND s_2.exitdate <= DATEADD(DAY, 1, terms.lastday)
@@ -136,7 +136,7 @@ WITH reenrollments AS (
        FROM students s WITH(NOLOCK)
        WHERE s.enroll_status = 3
       ) s_3
-  LEFT OUTER JOIN terms WITH(NOLOCK)
+  LEFT OUTER JOIN PS$terms#static terms WITH(NOLOCK)
     ON s_3.schoolid = terms.schoolid
    AND s_3.entrydate < terms.firstday
    AND terms.portion = 1

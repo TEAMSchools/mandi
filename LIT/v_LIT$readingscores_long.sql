@@ -79,7 +79,7 @@ WITH long_scores AS (
              ,CONVERT(VARCHAR,cp_prof) AS cp_prof
              ,CONVERT(VARCHAR,rr_prof) AS rr_prof
              ,CONVERT(VARCHAR,devsp_prof) AS devsp_prof             
-       FROM READINGSCORES WITH(NOLOCK)
+       FROM LIT$readingscores#static WITH(NOLOCK)
       ) sub
 
   UNPIVOT (

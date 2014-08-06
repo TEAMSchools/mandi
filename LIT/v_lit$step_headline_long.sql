@@ -13,7 +13,7 @@ SELECT s.id AS studentid
          WHEN scores.step_ltr_level IN ('Pre', 'Pre DNA', 'PreDNA') THEN 0
          ELSE scores.step_ltr_level
        END AS step_level_numeric
-FROM readingscores scores
+FROM LIT$readingscores#static scores
 JOIN students s
   ON s.id = scores.studentid
 WHERE step_ltr_level IS NOT NULL
