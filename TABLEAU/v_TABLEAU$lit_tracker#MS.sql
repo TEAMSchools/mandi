@@ -125,8 +125,8 @@ WITH term_scaffold AS (
   SELECT student_number
         ,(yearid + CONVERT(FLOAT, '1.990000e+05')) / 100 AS year
         ,time_period_name
-        ,words_goal
-        ,points_goal
+        ,CASE WHEN words_goal < 0 THEN NULL ELSE words_goal END AS words_goal
+        ,CASE WHEN points_goal < 0 THEN NULL ELSE points_goal END AS points_goal
         ,words
         ,points
         ,mastery
@@ -357,9 +357,7 @@ SELECT co.studentid
         ,GLEQ
         ,fp_wpmrate
         ,fp_keylever
-  FROM LIT$test_events#identifiers fp WITH(NOLOCK)  
-  WHERE testid = 3273
-    AND achv_curr_round = 1    
+  FROM LIT$achieved_by_round fp WITH(NOLOCK)      
  )
 
 ,lit_growth AS (
@@ -567,7 +565,7 @@ LEFT OUTER JOIN map_scores
 LEFT OUTER JOIN lit_rounds
   ON r.studentid = lit_rounds.studentid
  AND r.year = lit_rounds.academic_year
- AND term.lit = lit_rounds.test_round
+ AND REPLACE(term.lit, 'BOY', 'DR') = REPLACE(lit_rounds.test_round, 'BOY', 'DR')
 LEFT OUTER JOIN map_growth
   ON r.studentid = map_growth.studentid
  AND r.year = map_growth.year

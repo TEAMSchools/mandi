@@ -3,6 +3,7 @@ GO
 
 ALTER VIEW PS$lunch_status_long AS
 
+-- archived in custom fields
 SELECT sub2.studentid
       ,sub2.year
       ,sub2.lunch_status
@@ -49,6 +50,7 @@ WHERE rn = 1
 
 UNION ALL
 
+-- archived in EXT table
 SELECT studentid
       ,CONVERT(INT,'20' + SUBSTRING(REVERSE(year), 2, 2)) AS year
       ,lunch_status
@@ -65,3 +67,16 @@ UNPIVOT (
   lunch_status
   FOR year IN (lunchstatus_1314)
  ) u
+
+UNION ALL
+
+-- current year
+SELECT studentid
+      ,year
+      ,s.LUNCHSTATUS AS lunch_status
+FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+JOIN STUDENTS s WITH(NOLOCK)
+  ON co.studentid = s.id
+WHERE co.year = 2014
+  AND co.grade_level < 99
+  AND co.rn = 1

@@ -52,8 +52,7 @@ SELECT calendar.date
       ,roster.SCHOOLID
       ,roster.GRADE_LEVEL
       ,roster.COHORT
-      ,roster.STUDENTID
-      --,roster.LASTFIRST
+      ,roster.STUDENTID      
       ,roster.ENTRYDATE
       ,roster.EXITDATE
       ,roster.ENROLL_STATUS

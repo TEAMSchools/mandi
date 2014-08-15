@@ -9,6 +9,7 @@ FROM OPENQUERY(PS_TEAM,'
         ,ps_customfields.getcf(''Students'',id,''Bus_Info_AM'') AS Bus_Info_AM
         ,ps_customfields.getcf(''Students'',id,''Bus_Info_PM'') AS Bus_Info_PM        
         ,ps_customfields.getcf(''Students'',id,''Bus_Info_Fridays'') AS Bus_Info_Fridays
+        ,ps_customfields.getcf(''Students'',id,''Bus_Info_BGC_Closed'') AS Bus_Info_BGC_Closed
         ,ps_customfields.getcf(''Students'',id,''Bus_Notes'') AS Bus_Notes        
         ,ps_customfields.getcf(''Students'',id,''geocode'') AS geocode        
   FROM students

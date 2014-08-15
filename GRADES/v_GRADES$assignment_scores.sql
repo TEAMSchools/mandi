@@ -18,14 +18,14 @@ FROM OPENQUERY(PS_TEAM,'
   JOIN sections
     ON sync_sectionmap.sectionsdcid = sections.dcid      
    AND sections.termid >= 2300
-  LEFT OUTER JOIN psm_sectionenrollment
+  JOIN psm_sectionenrollment
     ON psm_section.id = psm_sectionenrollment.sectionid
-  LEFT OUTER JOIN psm_assignmentscore
+  JOIN psm_assignmentscore
     ON psm_sectionenrollment.id = psm_assignmentscore.sectionenrollmentid
-  LEFT OUTER JOIN psm_student
+  JOIN psm_student
     ON psm_sectionenrollment.studentid = psm_student.id
-  LEFT OUTER JOIN psm_sectionassignment
+  JOIN psm_sectionassignment
     ON psm_assignmentscore.sectionassignmentid = psm_sectionassignment.id
-  LEFT OUTER JOIN psm_assignment
+  JOIN psm_assignment
     ON psm_sectionassignment.assignmentid = psm_assignment.id
 ')

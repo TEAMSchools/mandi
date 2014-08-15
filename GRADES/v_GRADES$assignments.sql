@@ -24,5 +24,5 @@ FROM OPENQUERY(PS_TEAM,'
     ON map.sectionsDCID = sec.dcid
   JOIN psm_assignmentcategory cat
     ON asmt.assignmentcategoryid = cat.id  
-  WHERE sectassign.dateassignmentdue >= TO_DATE(''2013-08-01'',''YYYY-MM-DD'')
+  WHERE sectassign.dateassignmentdue >= TO_DATE(''2014-08-01'',''YYYY-MM-DD'')
 ')
