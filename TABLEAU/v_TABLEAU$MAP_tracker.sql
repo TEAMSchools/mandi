@@ -12,8 +12,8 @@ WITH roster AS (
         ,co.grade_level
         ,co.cohort
         ,s.team        
-        ,cs.SPEDLEP
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+        ,cs.SPEDLEP        
+  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)  
   LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
     ON co.studentid = s.id
   LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
@@ -60,9 +60,10 @@ WITH roster AS (
   WHERE rn = 1
  )
 
-,map_rounds AS (
+,map_long AS (
   SELECT base.studentid
         ,base.year
+        ,terms.fallwinterspring
         ,base.measurementscale
         ,base.testritscore AS base_rit
         ,base.testpercentile AS base_pct
@@ -70,12 +71,31 @@ WITH roster AS (
         ,rr.keep_up_goal
         ,rr.keep_up_rit
         ,rr.rutgers_ready_goal
-        ,rr.rutgers_ready_rit
-        ,map.fallwinterspring
-        ,map.percentile_2011_norms AS pct
-        ,map.testritscore AS rit
-        ,CASE WHEN map.rittoreadingscore = 'BR' THEN 0 ELSE map.rittoreadingscore END AS lex      
+        ,rr.rutgers_ready_rit      
+        ,CASE  
+          WHEN terms.fallwinterspring = 'Fall' THEN base.testpercentile       
+          WHEN terms.fallwinterspring = 'Fall' AND base.testpercentile IS NULL THEN map.percentile_2011_norms
+          ELSE map.percentile_2011_norms 
+         END AS pct
+        ,CASE  
+          WHEN terms.fallwinterspring = 'Fall' THEN base.testritscore
+          WHEN terms.fallwinterspring = 'Fall' AND base.testritscore IS NULL THEN map.testritscore
+          ELSE map.testritscore
+         END AS rit      
+        ,CASE  
+          WHEN terms.fallwinterspring = 'Fall' THEN REPLACE(base.lexile_score, 'BR', 0)
+          WHEN terms.fallwinterspring = 'Fall' AND REPLACE(base.lexile_score, 'BR', 0) IS NULL THEN REPLACE(map.rittoreadingscore, 'BR', 0)
+          ELSE REPLACE(map.rittoreadingscore, 'BR', 0)
+         END AS lex      
   FROM MAP$best_baseline#static base WITH(NOLOCK)
+  JOIN (
+        SELECT 'Fall' AS fallwinterspring
+        UNION
+        SELECT 'Winter'
+        UNION
+        SELECT 'Spring'
+       ) terms
+    ON 1 = 1
   LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
     ON base.year = rr.year
    AND base.measurementscale = rr.measurementscale
@@ -84,6 +104,7 @@ WITH roster AS (
     ON base.studentid = map.ps_studentid
    AND base.year = map.map_year_academic
    AND base.measurementscale = map.measurementscale
+   AND terms.fallwinterspring = map.fallwinterspring
    AND map.rn = 1
  )
 
@@ -99,59 +120,65 @@ WITH roster AS (
   WHERE rn_curr = 1
  )
 
-SELECT r.*      
-      ,map_rounds.measurementscale
-      ,map_rounds.base_rit
-      ,map_rounds.base_pct
-      ,map_rounds.base_lex
-      ,map_rounds.keep_up_goal
-      ,map_rounds.keep_up_rit
-      ,map_rounds.rutgers_ready_goal
-      ,map_rounds.rutgers_ready_rit
-      ,CASE WHEN ((map_rounds.fallwinterspring = 'Fall' OR map_rounds.fallwinterspring IS NULL) AND map_rounds.base_rit IS NOT NULL) THEN 'Base' ELSE map_rounds.fallwinterspring END AS fallwinterspring
-      ,CASE
-        WHEN (map_rounds.fallwinterspring = 'Fall' OR map_rounds.fallwinterspring IS NULL) AND map_rounds.base_rit IS NULL THEN map_rounds.rit
-        WHEN (map_rounds.fallwinterspring = 'Fall' OR map_rounds.fallwinterspring IS NULL) THEN map_rounds.base_rit
-        ELSE map_rounds.rit
-       END AS rit
-      ,CASE
-        WHEN (map_rounds.fallwinterspring = 'Fall' OR map_rounds.fallwinterspring IS NULL) AND map_rounds.base_pct IS NULL THEN map_rounds.pct
-        WHEN (map_rounds.fallwinterspring = 'Fall' OR map_rounds.fallwinterspring IS NULL) THEN map_rounds.base_pct
-        ELSE map_rounds.pct
-       END AS pct
-      ,CASE
-        WHEN (map_rounds.fallwinterspring = 'Fall' OR map_rounds.fallwinterspring IS NULL) AND map_rounds.base_lex IS NULL THEN map_rounds.lex
-        WHEN (map_rounds.fallwinterspring = 'Fall' OR map_rounds.fallwinterspring IS NULL) THEN map_rounds.base_lex
-        ELSE map_rounds.lex
-       END AS lex            
-      ,map_curr.rit - map_rounds.base_rit AS ytd_rit_growth
-      ,map_curr.pct - map_rounds.base_pct AS ytd_pct_growth
-      ,map_curr.lexile - map_rounds.base_lex AS ytd_lex_growth
+,read_lvl AS (
+  SELECT academic_year
+        ,studentid
+        ,test_round
+        ,read_lvl      
+        ,CASE
+          WHEN test_round IN ('BOY','DR') THEN 'Fall'
+          WHEN test_round = 'T2' THEN 'Winter'
+          WHEN test_round = 'T3' THEN 'Spring'
+          ELSE NULL
+         END AS fallwinterspring
+  FROM LIT$achieved_by_round WITH(NOLOCK)
+ )
+
+SELECT r.year
+      ,r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team        
+      ,r.SPEDLEP
+      ,map_long.measurementscale
+      ,map_long.base_rit
+      ,map_long.base_pct
+      ,map_long.base_lex
+      ,map_long.keep_up_goal
+      ,map_long.keep_up_rit
+      ,map_long.rutgers_ready_goal
+      ,map_long.rutgers_ready_rit
+      ,map_long.fallwinterspring      
+      ,map_long.rit       
+      ,map_long.pct       
+      ,map_long.lex       
+      ,map_curr.rit - map_long.base_rit AS ytd_rit_growth
+      ,map_curr.pct - map_long.base_pct AS ytd_pct_growth
+      ,map_curr.lexile - map_long.base_lex AS ytd_lex_growth
       ,map_curr.pct - 75 AS dist_from_75
-      ,CASE WHEN map_rounds.fallwinterspring = map_curr.fallwinterspring THEN 1 ELSE 0 END AS is_current
+      ,CASE WHEN map_long.fallwinterspring = map_curr.fallwinterspring THEN 1 ELSE 0 END AS is_current
       ,enr.CREDITTYPE
       ,enr.COURSE_NUMBER
       ,enr.COURSE_NAME
       ,enr.teacher
-      ,enr.period
-      --,domain.domain
-      --,domain.ritscore
-      --,domain.range
-      --,domain.adjective
+      ,enr.period      
+      ,rs.read_lvl
 FROM roster r
-LEFT OUTER JOIN map_rounds
-  ON r.studentid = map_rounds.studentid
- AND r.year = map_rounds.year
+LEFT OUTER JOIN map_long
+  ON r.studentid = map_long.studentid
+ AND r.year = map_long.year 
 LEFT OUTER JOIN enrollments enr
   ON r.studentid = enr.STUDENTID
  AND r.year = enr.year 
- AND map_rounds.measurementscale = enr.measurementscale
+ AND map_long.measurementscale = enr.measurementscale
 LEFT OUTER JOIN map_curr
   ON r.studentid = map_curr.studentid
  AND r.year = map_curr.year
- AND map_rounds.measurementscale = map_curr.measurementscale
---LEFT OUTER JOIN MAP$domain_goals_long domain WITH(NOLOCK)
---  ON r.studentid = domain.studentid
--- AND r.year = domain.year
--- AND map_rounds.measurementscale = domain.measurementscale
--- AND map_rounds.fallwinterspring = domain.fallwinterspring
+ AND map_long.measurementscale = map_curr.measurementscale
+LEFT OUTER JOIN read_lvl rs
+  ON r.studentid = rs.studentid
+ AND r.year = rs.academic_year
+ AND map_long.fallwinterspring = rs.fallwinterspring

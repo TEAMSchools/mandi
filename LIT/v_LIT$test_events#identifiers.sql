@@ -91,7 +91,18 @@ FROM
            
            -- date stuff
            ,CASE WHEN rs.academic_year IS NULL THEN dates.academic_year ELSE rs.academic_year END AS academic_year
-           ,CASE WHEN rs.test_round IS NULL THEN dates.time_per_name ELSE rs.test_round END AS test_round
+           ,CASE 
+             WHEN rs.test_round IS NULL THEN (CASE
+                                               WHEN rs.schoolid NOT IN (73252, 133570965) AND dates.time_per_name = 'Diagnostic' THEN 'DR' 
+                                               WHEN rs.schoolid IN (73252, 133570965) AND dates.time_per_name IN ('Diagnostic', 'DR') THEN 'BOY' 
+                                               ELSE dates.time_per_name 
+                                              END)
+             ELSE (CASE
+                    WHEN rs.schoolid NOT IN (73252, 133570965) AND rs.test_round = 'Diagnostic' THEN 'DR' 
+                    WHEN rs.schoolid IN (73252, 133570965) AND rs.test_round IN ('Diagnostic', 'DR') THEN 'BOY' 
+                    ELSE rs.test_round
+                   END) 
+            END AS test_round
            ,rs.test_date
            
            -- student identifiers

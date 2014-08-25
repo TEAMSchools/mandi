@@ -7,16 +7,19 @@ WITH disc_log AS (
   SELECT disc.schoolid
         ,CAST(disc.studentid AS INT) AS studentid        
         ,disc.entry_author
+        ,CASE WHEN DATEPART(MONTH,disc.entry_date) < 7 THEN (DATEPART(YEAR,disc.entry_date) - 1) ELSE DATEPART(YEAR,disc.entry_date) END AS academic_year
         ,CONVERT(DATE,disc.entry_date) AS entry_date
         ,CONVERT(DATE,disc.discipline_actiondate) AS consequence_date
         ,disc.logtypeid      
+        ,disc.subtype AS subtypeid
         ,consequence AS n_days
+        ,subtype.logtype
         ,subtype.subtype
         ,disc.subject
         ,disc.entry
         ,details.detail AS discipline_details
         ,action.detail AS actiontaken
-        ,follow.detail AS followup        
+        ,follow.detail AS followup
   FROM OPENQUERY(PS_TEAM,'
     SELECT studentid
           ,schoolid
@@ -32,14 +35,10 @@ WITH disc_log AS (
           ,Discipline_ActionTakendetail
           ,consequence
     FROM log
-    WHERE log.entry_date >= TO_DATE(CASE
-                                     WHEN TO_CHAR(SYSDATE,''MON'') IN (''JAN'',''FEB'',''MAR'',''APR'',''MAY'',''JUN'',''JUL'')
-                                     THEN TO_CHAR(TO_CHAR(SYSDATE,''YYYY'') - 1)
-                                     ELSE TO_CHAR(SYSDATE,''YYYY'')
-                                    END || ''-08-01'',''YYYY-MM-DD'')
-      AND log.entry_date <= SYSDATE
-      AND log.logtypeid NOT IN (1423, 2724, 3124)      
-  ') disc
+    WHERE log.entry_date >= ''2014-08-01''
+      AND log.entry_date <= TRUNC(SYSDATE)
+      AND log.logtypeid NOT IN (1423, 2724, 3124, 3953, 3964)
+  ') disc /*-- UPDATE QUERY FOR CURRENT SCHOOL YEAR --*/
   LEFT OUTER JOIN DISC$logtypes#static subtype WITH(NOLOCK)
     ON disc.logtypeid = subtype.logtypeid
    AND disc.subtype = subtype.subtypeid
@@ -58,10 +57,13 @@ WITH disc_log AS (
   SELECT att.schoolid
         ,att.studentid
         ,t.LASTFIRST AS entry_author
+        ,CASE WHEN DATEPART(MONTH,att_date) < 7 THEN (DATEPART(YEAR,att_date) - 1) ELSE DATEPART(YEAR,att_date) END AS academic_year
         ,CONVERT(DATE,att_date) AS entry_date
         ,NULL AS consequence_date
         ,3223 AS logtypeid
+        ,NULL AS subtypeid
         ,NULL AS n_days
+        ,NULL AS logtype
         ,'Tardy' AS subtype
         ,NULL AS subject
         ,NULL AS entry
@@ -82,10 +84,13 @@ WITH disc_log AS (
   SELECT att.schoolid
         ,att.studentid
         ,t.LASTFIRST AS entry_author
+        ,CASE WHEN DATEPART(MONTH,att_date) < 7 THEN (DATEPART(YEAR,att_date) - 1) ELSE DATEPART(YEAR,att_date) END AS academic_year
         ,CONVERT(DATE,att_date) AS entry_date
         ,NULL AS consequence_date
         ,3223 AS logtypeid
+        ,NULL AS subtypeid
         ,NULL AS n_days
+        ,NULL AS logtype
         ,'Tardy' AS subtype
         ,NULL AS subject
         ,NULL AS entry

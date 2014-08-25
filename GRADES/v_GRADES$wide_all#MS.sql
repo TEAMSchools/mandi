@@ -123,6 +123,7 @@ FROM
        LEFT OUTER JOIN KIPP_NJ..PS$teacher_by_last_enrollment tch WITH (NOLOCK)
          ON rost.studentid = tch.studentid
         AND rost.course_number = tch.course_number
+        AND tch.rn = 1
         
        UNION ALL
        
@@ -134,6 +135,7 @@ FROM
        LEFT OUTER JOIN KIPP_NJ..PS$teacher_by_last_enrollment tch WITH (NOLOCK)
          ON rost.studentid = tch.studentid
         AND rost.course_number = tch.course_number
+        AND tch.rn = 1
         
        UNION ALL
        

@@ -17,132 +17,158 @@ ORIGIN DATE: Fall 2011
 USE KIPP_NJ
 GO
 
-ALTER VIEW DISC$merits_demerits_count#NCA AS
-SELECT s.id AS studentid
-      ,s.student_number
-      
-      --MERITS
-      --teacher merits
-      ,ISNULL(teacher_merits,0) AS teacher_merits
-      ,ISNULL(teacher_merits_rt1,0) AS teacher_merits_rt1
-      ,ISNULL(teacher_merits_rt2,0) AS teacher_merits_rt2
-      ,ISNULL(teacher_merits_rt3,0) AS teacher_merits_rt3
-      ,ISNULL(teacher_merits_rt4,0) AS teacher_merits_rt4
-      --perfect weeks
-      ,ISNULL(perfect_week_merits,0) AS perfect_week_merits
-      ,ISNULL(perfect_week_merits_rt1,0) AS perfect_week_merits_rt1
-      ,ISNULL(perfect_week_merits_rt2,0) AS perfect_week_merits_rt2
-      ,ISNULL(perfect_week_merits_rt3,0) AS perfect_week_merits_rt3
-      ,ISNULL(perfect_week_merits_rt4,0)    AS perfect_week_merits_rt4
-      --total merits
-      ,ISNULL(teacher_merits + perfect_week_merits,0) AS total_merits
-      ,ISNULL(teacher_merits_rt1 + perfect_week_merits_rt1,0) AS total_merits_rt1
-      ,ISNULL(teacher_merits_rt2 + perfect_week_merits_rt2,0) AS total_merits_rt2
-      ,ISNULL(teacher_merits_rt3 + perfect_week_merits_rt3,0) AS total_merits_rt3
-      ,ISNULL(teacher_merits_rt4 + perfect_week_merits_rt4,0) AS total_merits_rt4
+ALTER VIEW DISC$culture_counts#NCA AS
 
-      --DEMERITS
-      ,ISNULL(total_demerits,0) AS total_demerits
-      --by reporting term
-      ,ISNULL(total_demerits_rt1,0) AS total_demerits_rt1
-      ,ISNULL(total_demerits_rt2,0) AS total_demerits_rt2
-      ,ISNULL(total_demerits_rt3,0) AS total_demerits_rt3
-      ,ISNULL(total_demerits_rt4,0) AS total_demerits_rt4
-      --by tier
-      ,ISNULL(total_tier1_demerits,0) AS total_tier1_demerits
-      ,ISNULL(total_tier2_demerits,0) AS total_tier2_demerits
-      ,ISNULL(total_tier3_demerits,0) AS total_tier3_demerits
-      --tier by reporting term
-      ,ISNULL(tier1_demerits_rt1,0) AS tier1_demerits_rt1
-      ,ISNULL(tier1_demerits_rt2,0) AS tier1_demerits_rt2
-      ,ISNULL(tier1_demerits_rt3,0) AS tier1_demerits_rt3
-      ,ISNULL(tier1_demerits_rt4,0) AS tier1_demerits_rt4
-      ,ISNULL(tier2_demerits_rt1,0) AS tier2_demerits_rt1
-      ,ISNULL(tier2_demerits_rt2,0) AS tier2_demerits_rt2
-      ,ISNULL(tier2_demerits_rt3,0) AS tier2_demerits_rt3
-      ,ISNULL(tier2_demerits_rt4,0) AS tier2_demerits_rt4
-      ,ISNULL(tier3_demerits_rt1,0) AS tier3_demerits_rt1
-      ,ISNULL(tier3_demerits_rt2,0) AS tier3_demerits_rt2
-      ,ISNULL(tier3_demerits_rt3,0) AS tier3_demerits_rt3
-      ,ISNULL(tier3_demerits_rt4,0) AS tier3_demerits_rt4
-      
-      --DETENTION
-      ,ISNULL(total_detention,0) AS total_detention
-      --by reporting term
-      ,ISNULL(total_detention_rt1,0) AS total_detention_rt1
-      ,ISNULL(total_detention_rt2,0) AS total_detention_rt2
-      ,ISNULL(total_detention_rt3,0) AS total_detention_rt3
-      ,ISNULL(total_detention_rt4,0) AS total_detention_rt4
+WITH teacher_merits AS (
+  SELECT merits.studentid             
+        --teacher merits
+        ,COUNT(merits.rn) AS teacher_merits_y1
+        ,SUM(CASE WHEN merits.rt = 'RT1' THEN 1 ELSE 0 END) AS teacher_merits_rt1
+        ,SUM(CASE WHEN merits.rt = 'RT2' THEN 1 ELSE 0 END) AS teacher_merits_rt2
+        ,SUM(CASE WHEN merits.rt = 'RT3' THEN 1 ELSE 0 END) AS teacher_merits_rt3
+        ,SUM(CASE WHEN merits.rt = 'RT4' THEN 1 ELSE 0 END) AS teacher_merits_rt4        
+  FROM DISC$log#static merits WITH(NOLOCK)
+  WHERE logtypeid = 3023
+  GROUP BY merits.studentid
+ )
 
-FROM STUDENTS s
---Merits
-LEFT OUTER JOIN (SELECT studentid             
-                       --teacher merits
-                       ,COUNT(merits.rn) AS teacher_merits
-                       ,SUM(CASE WHEN merits.rt = 'RT1' THEN 1 ELSE 0 END) AS teacher_merits_rt1
-                       ,SUM(CASE WHEN merits.rt = 'RT2' THEN 1 ELSE 0 END) AS teacher_merits_rt2
-                       ,SUM(CASE WHEN merits.rt = 'RT3' THEN 1 ELSE 0 END) AS teacher_merits_rt3
-                       ,SUM(CASE WHEN merits.rt = 'RT4' THEN 1 ELSE 0 END) AS teacher_merits_rt4
-                       --perfect weeks
-                       ,(perfect.perfect_weeks * 3) AS perfect_week_merits
-                       ,(perfect.perfect_weeks_rt1 * 3) AS perfect_week_merits_rt1
-                       ,(perfect.perfect_weeks_rt2 * 3) AS perfect_week_merits_rt2
-                       ,(perfect.perfect_weeks_rt3 * 3) AS perfect_week_merits_rt3
-                       ,(perfect.perfect_weeks_rt4 * 3) AS perfect_week_merits_rt4
-                 FROM DISC$log#static merits
-                 LEFT OUTER JOIN disc$perfect_weeks#NCA perfect
-                   ON studentid = perfect_studentid
-                 WHERE logtypeid = 3023
-                 GROUP BY studentid, perfect.perfect_weeks, perfect.perfect_weeks_rt1, perfect.perfect_weeks_rt2,perfect.perfect_weeks_rt3, perfect.perfect_weeks_rt4
-                ) merits
-  ON s.id = merits.studentid
+,perfect_wks AS (
+  SELECT studentid
+        ,student_number
+        ,(perfect.perfect_wks_y1 * 3) AS perfect_week_merits_y1
+        ,(perfect.perfect_wks_rt1 * 3) AS perfect_week_merits_rt1
+        ,(perfect.perfect_wks_rt2 * 3) AS perfect_week_merits_rt2
+        ,(perfect.perfect_wks_rt3 * 3) AS perfect_week_merits_rt3
+        ,(perfect.perfect_wks_rt4 * 3) AS perfect_week_merits_rt4
+  FROM DISC$perfect_weeks#NCA perfect WITH(NOLOCK)
+ )
 
---Demerits
-LEFT OUTER JOIN (SELECT studentid                       
-                       ,COUNT(demerits.rn) AS total_demerits                       
-                       --by reporting term
-                       ,SUM(CASE when demerits.rt = 'RT1' THEN 1 ELSE 0 END) AS total_demerits_rt1
-                       ,SUM(CASE when demerits.rt = 'RT2' THEN 1 ELSE 0 END) AS total_demerits_rt2
-                       ,SUM(CASE when demerits.rt = 'RT3' THEN 1 ELSE 0 END) AS total_demerits_rt3
-                       ,SUM(CASE when demerits.rt = 'RT4' THEN 1 ELSE 0 END) AS total_demerits_rt4                       
-                       --by tier
-                       ,SUM(CASE when demerits.tier = 'Tier 1' THEN 1 ELSE 0 END) AS total_tier1_demerits
-                       ,SUM(CASE when demerits.tier = 'Tier 2' THEN 1 ELSE 0 END) AS total_tier2_demerits
-                       ,SUM(CASE when demerits.tier = 'Tier 3' THEN 1 ELSE 0 END) AS total_tier3_demerits                       
-                       --tier by reporting term
-                       ,SUM(CASE when demerits.rt = 'RT1' and demerits.tier = 'Tier 1' THEN 1 ELSE 0 END) AS tier1_demerits_rt1
-                       ,SUM(CASE when demerits.rt = 'RT2' and demerits.tier = 'Tier 1' THEN 1 ELSE 0 END) AS tier1_demerits_rt2
-                       ,SUM(CASE when demerits.rt = 'RT3' and demerits.tier = 'Tier 1' THEN 1 ELSE 0 END) AS tier1_demerits_rt3
-                       ,SUM(CASE when demerits.rt = 'RT4' and demerits.tier = 'Tier 1' THEN 1 ELSE 0 END) AS tier1_demerits_rt4                       
-                       ,SUM(CASE when demerits.rt = 'RT1' and demerits.tier = 'Tier 2' THEN 1 ELSE 0 END) AS tier2_demerits_rt1
-                       ,SUM(CASE when demerits.rt = 'RT2' and demerits.tier = 'Tier 2' THEN 1 ELSE 0 END) AS tier2_demerits_rt2
-                       ,SUM(CASE when demerits.rt = 'RT3' and demerits.tier = 'Tier 2' THEN 1 ELSE 0 END) AS tier2_demerits_rt3
-                       ,SUM(CASE when demerits.rt = 'RT4' and demerits.tier = 'Tier 2' THEN 1 ELSE 0 END) AS tier2_demerits_rt4                       
-                       ,SUM(CASE when demerits.rt = 'RT1' and demerits.tier = 'Tier 3' THEN 1 ELSE 0 END) AS tier3_demerits_rt1
-                       ,SUM(CASE when demerits.rt = 'RT2' and demerits.tier = 'Tier 3' THEN 1 ELSE 0 END) AS tier3_demerits_rt2
-                       ,SUM(CASE when demerits.rt = 'RT3' and demerits.tier = 'Tier 3' THEN 1 ELSE 0 END) AS tier3_demerits_rt3
-                       ,SUM(CASE when demerits.rt = 'RT4' and demerits.tier = 'Tier 3' THEN 1 ELSE 0 END) AS tier3_demerits_rt4                             
-                 FROM DISC$log#static demerits                   
-                 WHERE logtypeid = 3223                 
-                 GROUP BY studentid
-                ) demerits
-  ON s.id = demerits.studentid
+,demerits AS (
+  SELECT studentid                       
+        ,COUNT(demerits.rn) AS total_demerits_y1
+        ,SUM(CASE when demerits.rt = 'RT1' THEN 1 ELSE 0 END) AS total_demerits_rt1
+        ,SUM(CASE when demerits.rt = 'RT2' THEN 1 ELSE 0 END) AS total_demerits_rt2
+        ,SUM(CASE when demerits.rt = 'RT3' THEN 1 ELSE 0 END) AS total_demerits_rt3
+        ,SUM(CASE when demerits.rt = 'RT4' THEN 1 ELSE 0 END) AS total_demerits_rt4                                              
+  FROM DISC$log#static demerits WITH(NOLOCK)
+  WHERE logtypeid = 3223
+  GROUP BY studentid
+ )
 
---Detention
-LEFT OUTER JOIN (SELECT studentid                       
-                       ,COUNT(detention.rn) AS total_detention                       
-                       --by reporting term
-                       ,SUM(CASE when detention.rt = 'RT1' THEN 1 ELSE 0 END) AS total_detention_rt1
-                       ,SUM(CASE when detention.rt = 'RT2' THEN 1 ELSE 0 END) AS total_detention_rt2
-                       ,SUM(CASE when detention.rt = 'RT3' THEN 1 ELSE 0 END) AS total_detention_rt3
-                       ,SUM(CASE when detention.rt = 'RT4' THEN 1 ELSE 0 END) AS total_detention_rt4                       
-                 FROM DISC$log#static detention                   
-                 WHERE logtypeid = -100000                 
-                 GROUP BY studentid
-                ) detention
-  ON s.id = detention.studentid
+,discipline AS (
+  SELECT studentid 
+        ,ISNULL([Detention_rt1],0) AS Detention_rt1
+        ,ISNULL([Detention_rt2],0) AS Detention_rt2
+        ,ISNULL([Detention_rt3],0) AS Detention_rt3
+        ,ISNULL([Detention_rt4],0) AS Detention_rt4
+        ,ISNULL([Detention_y1],0) AS Detention_y1
+        ,ISNULL([ISS_rt1],0) AS ISS_rt1
+        ,ISNULL([ISS_rt2],0) AS ISS_rt2
+        ,ISNULL([ISS_rt3],0) AS ISS_rt3
+        ,ISNULL([ISS_rt4],0) AS ISS_rt4
+        ,ISNULL([ISS_y1],0) AS ISS_y1
+        ,ISNULL([OSS_rt1],0) AS OSS_rt1
+        ,ISNULL([OSS_rt2],0) AS OSS_rt2
+        ,ISNULL([OSS_rt3],0) AS OSS_rt3
+        ,ISNULL([OSS_rt4],0) AS OSS_rt4
+        ,ISNULL([OSS_y1],0) AS OSS_y1
+        ,ISNULL([ISS_rt1],0) + ISNULL([OSS_rt1],0) AS suspensions_rt1
+        ,ISNULL([ISS_rt2],0) + ISNULL([OSS_rt2],0) AS suspensions_rt2
+        ,ISNULL([ISS_rt3],0) + ISNULL([OSS_rt3],0) AS suspensions_rt3
+        ,ISNULL([ISS_rt4],0) + ISNULL([OSS_rt4],0) AS suspensions_rt4
+        ,ISNULL([ISS_y1],0) + ISNULL([OSS_y1],0) AS suspensions_y1        
+  FROM
+      (
+       SELECT studentid             
+             ,subtype + '_' + RT AS hash
+             ,COUNT(subtype) AS n
+       FROM DISC$log#static disc WITH(NOLOCK)
+       WHERE logtypeid = -100000
+         AND subtype IN ('Detention', 'ISS', 'OSS')
+       GROUP BY studentid, subtype, rt
 
+       UNION ALL
 
-WHERE s.schoolid = 73253
-  AND s.enroll_status = 0
-  --AND s.id = 3551
+       SELECT studentid             
+             ,subtype + '_y1' AS hash
+             ,COUNT(subtype) AS n
+       FROM DISC$log#static disc WITH(NOLOCK)
+       WHERE logtypeid = -100000
+         AND subtype IN ('Detention', 'ISS', 'OSS')
+       GROUP BY studentid, subtype
+      ) sub
+  
+  PIVOT (
+    MAX(n)
+    FOR hash IN ([Detention_rt1]
+                ,[Detention_rt2]
+                ,[Detention_rt3]
+                ,[Detention_rt4]
+                ,[Detention_y1]
+                ,[ISS_rt1]
+                ,[ISS_rt2]
+                ,[ISS_rt3]
+                ,[ISS_rt4]
+                ,[ISS_y1]
+                ,[OSS_rt1]
+                ,[OSS_rt2]
+                ,[OSS_rt3]
+                ,[OSS_rt4]
+                ,[OSS_y1])
+   ) p
+ )
+
+SELECT co.studentid
+      ,co.student_number      
+      ,ISNULL(tm.teacher_merits_y1,0) AS teacher_merits_y1
+      ,ISNULL(tm.teacher_merits_rt1,0) AS teacher_merits_rt1
+      ,ISNULL(tm.teacher_merits_rt2,0) AS teacher_merits_rt2
+      ,ISNULL(tm.teacher_merits_rt3,0) AS teacher_merits_rt3
+      ,ISNULL(tm.teacher_merits_rt4,0) AS teacher_merits_rt4
+      ,ISNULL(pw.perfect_week_merits_y1,0) AS perfect_week_merits_y1
+      ,ISNULL(pw.perfect_week_merits_rt1,0) AS perfect_week_merits_rt1
+      ,ISNULL(pw.perfect_week_merits_rt2,0) AS perfect_week_merits_rt2
+      ,ISNULL(pw.perfect_week_merits_rt3,0) AS perfect_week_merits_rt3
+      ,ISNULL(pw.perfect_week_merits_rt4,0) AS perfect_week_merits_rt4
+      ,ISNULL(tm.teacher_merits_y1,0) + ISNULL(pw.perfect_week_merits_y1,0) AS total_merits_y1
+      ,ISNULL(tm.teacher_merits_rt1,0) + ISNULL(pw.perfect_week_merits_rt1,0) AS total_merits_rt1
+      ,ISNULL(tm.teacher_merits_rt2,0) + ISNULL(pw.perfect_week_merits_rt2,0) AS total_merits_rt2
+      ,ISNULL(tm.teacher_merits_rt3,0) + ISNULL(pw.perfect_week_merits_rt3,0) AS total_merits_rt3
+      ,ISNULL(tm.teacher_merits_rt4,0) + ISNULL(pw.perfect_week_merits_rt4,0) AS total_merits_rt4
+      ,ISNULL(d.total_demerits_y1,0) AS total_demerits_y1
+      ,ISNULL(d.total_demerits_rt1,0) AS total_demerits_rt1
+      ,ISNULL(d.total_demerits_rt2,0) AS total_demerits_rt2
+      ,ISNULL(d.total_demerits_rt3,0) AS total_demerits_rt3
+      ,ISNULL(d.total_demerits_rt4,0) AS total_demerits_rt4
+      ,ISNULL(disc.Detention_rt1,0) AS Detention_rt1
+      ,ISNULL(disc.Detention_rt2,0) AS Detention_rt2
+      ,ISNULL(disc.Detention_rt3,0) AS Detention_rt3
+      ,ISNULL(disc.Detention_rt4,0) AS Detention_rt4
+      ,ISNULL(disc.Detention_y1,0) AS Detention_y1
+      ,ISNULL(disc.ISS_rt1,0) AS ISS_rt1
+      ,ISNULL(disc.ISS_rt2,0) AS ISS_rt2
+      ,ISNULL(disc.ISS_rt3,0) AS ISS_rt3
+      ,ISNULL(disc.ISS_rt4,0) AS ISS_rt4
+      ,ISNULL(disc.ISS_y1,0) AS ISS_y1
+      ,ISNULL(disc.OSS_rt1,0) AS OSS_rt1
+      ,ISNULL(disc.OSS_rt2,0) AS OSS_rt2
+      ,ISNULL(disc.OSS_rt3,0) AS OSS_rt3
+      ,ISNULL(disc.OSS_rt4,0) AS OSS_rt4
+      ,ISNULL(disc.OSS_y1,0) AS OSS_y1
+      ,ISNULL(disc.suspensions_rt1,0) AS suspensions_rt1
+      ,ISNULL(disc.suspensions_rt2,0) AS suspensions_rt2
+      ,ISNULL(disc.suspensions_rt3,0) AS suspensions_rt3
+      ,ISNULL(disc.suspensions_rt4,0) AS suspensions_rt4
+      ,ISNULL(disc.suspensions_y1,0) AS suspensions_y1
+FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+LEFT OUTER JOIN teacher_merits tm
+  ON co.studentid = tm.studentid
+LEFT OUTER JOIN perfect_wks pw
+  ON co.studentid = pw.studentid
+LEFT OUTER JOIN demerits d 
+  ON co.studentid = d.studentid
+LEFT OUTER JOIN discipline disc
+  ON co.studentid = disc.studentid
+WHERE co.year = dbo.fn_Global_Academic_Year()
+  AND co.schoolid = 73253
+  AND co.rn = 1

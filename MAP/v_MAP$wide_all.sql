@@ -2,8 +2,17 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$wide_all AS
+--/*
 SELECT studentid      
       /*--WINTER--*/
+      ,[w_2015_READ_RIT]
+      ,[w_2015_READ_pctle]
+      ,[w_2015_MATH_RIT]
+      ,[w_2015_MATH_pctle]
+      ,[w_2015_LANG_RIT]
+      ,[w_2015_LANG_pctle]
+      ,[w_2015_GEN_RIT]
+      ,[w_2015_GEN_pctle]
       ,[w_2014_READ_RIT]
       ,[w_2014_READ_pctle]
       ,[w_2014_MATH_RIT]
@@ -37,6 +46,14 @@ SELECT studentid
       ,[w_2009_CP_RIT]
       ,[w_2009_CP_pctle]
       /*--SPRING--*/
+      ,[spr_2015_READ_RIT]
+      ,[spr_2015_READ_pctle]
+      ,[spr_2015_MATH_RIT]
+      ,[spr_2015_MATH_pctle]
+      ,[spr_2015_LANG_RIT]
+      ,[spr_2015_LANG_pctle]
+      ,[spr_2015_GEN_RIT]
+      ,[spr_2015_GEN_pctle]
       ,[spr_2014_READ_RIT]
       ,[spr_2014_READ_pctle]
       ,[spr_2014_MATH_RIT]
@@ -96,6 +113,14 @@ SELECT studentid
       ,[spr_2009_CP_RIT]      
       ,[spr_2009_CP_pctle]
       /*--FALL--*/
+      ,[f_2014_READ_RIT]
+      ,[f_2014_READ_pctle]
+      ,[f_2014_MATH_RIT]
+      ,[f_2014_MATH_pctle]
+      ,[f_2014_LANG_RIT]
+      ,[f_2014_LANG_pctle]
+      ,[f_2014_GEN_RIT]
+      ,[f_2014_GEN_pctle]
       ,[f_2013_READ_RIT]
       ,[f_2013_READ_pctle]
       ,[f_2013_MATH_RIT]
@@ -154,6 +179,7 @@ SELECT studentid
       ,[f_2008_GEN_pctle]
       ,[f_2008_CP_RIT]
       ,[f_2008_CP_pctle]     
+--*/
 FROM      
     (
      SELECT *
@@ -186,8 +212,7 @@ FROM
           JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
             ON s.ID = map.ps_studentid
            AND map.testname NOT LIKE '%Algebra%'
-          WHERE s.ENROLL_STATUS = 0
-            --AND map.rn = 1
+          WHERE s.ENROLL_STATUS = 0            
      
           UNION ALL
      
@@ -218,15 +243,25 @@ FROM
           JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
             ON s.ID = map.ps_studentid
            AND map.testname NOT LIKE '%Algebra%'
-          WHERE s.ENROLL_STATUS = 0       
-            --AND map.rn = 1
+          WHERE s.ENROLL_STATUS = 0                   
          ) sub0
      WHERE rn_curr = 1
     ) sub
-    
+
+--/*    
 PIVOT (
   MAX(value)
-  FOR pivot_on IN ([w_2014_READ_RIT]
+  FOR pivot_on IN (      
+                   /*--WINTER--*/
+                   [w_2015_READ_RIT]
+                  ,[w_2015_READ_pctle]
+                  ,[w_2015_MATH_RIT]
+                  ,[w_2015_MATH_pctle]
+                  ,[w_2015_LANG_RIT]
+                  ,[w_2015_LANG_pctle]
+                  ,[w_2015_GEN_RIT]
+                  ,[w_2015_GEN_pctle]
+                  ,[w_2014_READ_RIT]
                   ,[w_2014_READ_pctle]
                   ,[w_2014_MATH_RIT]
                   ,[w_2014_MATH_pctle]
@@ -258,6 +293,15 @@ PIVOT (
                   ,[w_2009_GEN_pctle]
                   ,[w_2009_CP_RIT]
                   ,[w_2009_CP_pctle]
+                  /*--SPRING--*/
+                  ,[spr_2015_READ_RIT]
+                  ,[spr_2015_READ_pctle]
+                  ,[spr_2015_MATH_RIT]
+                  ,[spr_2015_MATH_pctle]
+                  ,[spr_2015_LANG_RIT]
+                  ,[spr_2015_LANG_pctle]
+                  ,[spr_2015_GEN_RIT]
+                  ,[spr_2015_GEN_pctle]
                   ,[spr_2014_READ_RIT]
                   ,[spr_2014_READ_pctle]
                   ,[spr_2014_MATH_RIT]
@@ -314,8 +358,17 @@ PIVOT (
                   ,[spr_2009_LANG_pctle]
                   ,[spr_2009_GEN_RIT]
                   ,[spr_2009_GEN_pctle]
-                  ,[spr_2009_CP_RIT]
+                  ,[spr_2009_CP_RIT]      
                   ,[spr_2009_CP_pctle]
+                  /*--FALL--*/
+                  ,[f_2014_READ_RIT]
+                  ,[f_2014_READ_pctle]
+                  ,[f_2014_MATH_RIT]
+                  ,[f_2014_MATH_pctle]
+                  ,[f_2014_LANG_RIT]
+                  ,[f_2014_LANG_pctle]
+                  ,[f_2014_GEN_RIT]
+                  ,[f_2014_GEN_pctle]
                   ,[f_2013_READ_RIT]
                   ,[f_2013_READ_pctle]
                   ,[f_2013_MATH_RIT]
@@ -376,3 +429,4 @@ PIVOT (
                   ,[f_2008_CP_pctle]
                  )
 ) piv
+--*/

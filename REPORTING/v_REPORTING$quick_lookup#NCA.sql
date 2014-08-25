@@ -15,6 +15,8 @@ SELECT s.student_number AS SN
       ,nca_GPA.GPA_q2 AS GPA_Q2
       ,nca_GPA.GPA_q3 AS GPA_Q3
       ,nca_GPA.GPA_q4 AS GPA_Q4
+      ,nca_GPA.GPA_S1
+      ,nca_GPA.GPA_S2
       ,nca_GPA.GPA_y1 AS GPA_Y1      
       --cumulative GPA
       ,GPA_cum.cumulative_Y1_GPA AS GPA_cum
@@ -22,23 +24,23 @@ SELECT s.student_number AS SN
 
 --Attendance      
       --absences
-      ,att.absences_total AS Abs_Y1
+      ,att.Y1_ABS_ALL AS Abs_Y1
       ,ROUND(att_Pct.y1_att_Pct_total,0) AS Abs_Y1_Pct      
-      ,att.RT1_absences_total AS Abs_Q1
-      ,att.RT2_absences_total AS Abs_Q2
-      ,att.RT3_absences_total AS Abs_Q3
-      ,att.RT4_absences_total AS Abs_Q4
+      ,att.RT1_abs_all AS Abs_Q1
+      ,att.RT2_abs_all AS Abs_Q2
+      ,att.RT3_abs_all AS Abs_Q3
+      ,att.RT4_abs_all AS Abs_Q4
       ,ROUND(att_Pct.rt1_att_Pct_total,0) AS Abs_Q1_Pct
       ,ROUND(att_Pct.rt2_att_Pct_total,0) AS Abs_Q2_Pct
       ,ROUND(att_Pct.rt3_att_Pct_total,0) AS Abs_Q3_Pct
       ,ROUND(att_Pct.rt4_att_Pct_total,0) AS Abs_Q4_Pct      
       --tardies
-      ,att.tardies_total AS T_Y1
+      ,att.Y1_T_ALL AS T_Y1
       ,ROUND(att_Pct.y1_tardy_Pct_total,0) AS T_Y1_Pct
-      ,att.RT1_tardies_total AS T_Q1
-      ,att.RT2_tardies_total AS T_Q2
-      ,att.RT3_tardies_total AS T_Q3
-      ,att.RT4_tardies_total AS T_Q4
+      ,att.RT1_t_all AS T_Q1
+      ,att.RT2_t_all AS T_Q2
+      ,att.RT3_t_all AS T_Q3
+      ,att.RT4_t_all AS T_Q4
       ,ROUND(att_Pct.rt1_tardy_Pct_total,0) AS T_Q1_Pct
       ,ROUND(att_Pct.rt2_tardy_Pct_total,0) AS T_Q2_Pct
       ,ROUND(att_Pct.rt3_tardy_Pct_total,0) AS T_Q3_Pct
@@ -46,9 +48,9 @@ SELECT s.student_number AS SN
 
 --Behavior      
       --merits
-      ,merits.total_merits AS M_Y1_total
-      ,merits.teacher_merits AS M_Y1_teacher
-      ,merits.perfect_week_merits AS M_Y1_perfect
+      ,merits.total_merits_y1 AS M_Y1_total
+      ,merits.teacher_merits_y1 AS M_Y1_teacher
+      ,merits.perfect_week_merits_y1 AS M_Y1_perfect
       ,merits.total_merits_rt1 AS M_Q1_total
       ,merits.total_merits_rt2 AS M_Q2_total
       ,merits.total_merits_rt3 AS M_Q3_total
@@ -63,11 +65,11 @@ SELECT s.student_number AS SN
       ,merits.teacher_merits_rt4 AS M_Q4_teacher
       ,merits.perfect_week_merits_rt4 AS M_Q4_perfect
       --demerits      
-      ,merits.total_tier1_demerits AS Demerits_Y1
-      ,merits.tier1_demerits_rt1 AS Demerits_Q1
-      ,merits.tier1_demerits_rt2 AS Demerits_Q2
-      ,merits.tier1_demerits_rt3 AS Demerits_Q3
-      ,merits.tier1_demerits_rt4 AS Demerits_Q4
+      ,merits.total_demerits_y1 AS Demerits_Y1
+      ,merits.total_demerits_rt1 AS Demerits_Q1
+      ,merits.total_demerits_rt2 AS Demerits_Q2
+      ,merits.total_demerits_rt3 AS Demerits_Q3
+      ,merits.total_demerits_rt4 AS Demerits_Q4
       ,dcounts.detentions AS Detentions_Y1
       ,dcounts.rt1_detentions AS Detentions_Q1
       ,dcounts.rt2_detentions AS Detentions_Q2
@@ -91,140 +93,17 @@ SELECT s.student_number AS SN
       --,lex_base.testpercentile AS map_pctl_base
       --,lex_cur.testpercentile AS map_pctl_curterm
 
-/*      
-      ,null AS Grades
-      ,gr_wide.rc1_course_name
-      ,gr_wide.rc1_teacher_last
-      ,gr_wide.rc1_y1 AS rc1_y1_pct
-      ,gr_wide.rc1_y1_ltr
-      ,gr_wide.rc2_course_name
-      ,gr_wide.rc2_teacher_last
-      ,gr_wide.rc2_y1 AS rc2_y1_pct
-      ,gr_wide.rc2_y1_ltr      
-      ,gr_wide.rc3_course_name
-      ,gr_wide.rc3_teacher_last
-      ,gr_wide.rc3_y1 AS rc3_y1_pct
-      ,gr_wide.rc3_y1_ltr      
-      ,gr_wide.rc4_course_name
-      ,gr_wide.rc4_teacher_last
-      ,gr_wide.rc4_y1 AS rc4_y1_pct
-      ,gr_wide.rc4_y1_ltr      
-      ,gr_wide.rc5_course_name
-      ,gr_wide.rc5_teacher_last
-      ,gr_wide.rc5_y1 AS rc5_y1_pct
-      ,gr_wide.rc5_y1_ltr      
-      ,gr_wide.rc6_course_name
-      ,gr_wide.rc6_teacher_last
-      ,gr_wide.rc6_y1 AS rc6_y1_pct
-      ,gr_wide.rc6_y1_ltr      
-      ,gr_wide.rc7_course_name
-      ,gr_wide.rc7_teacher_last
-      ,gr_wide.rc7_y1 AS rc7_y1_pct
-      ,gr_wide.rc7_y1_ltr      
-      ,gr_wide.rc8_course_name
-      ,gr_wide.rc8_teacher_last
-      ,gr_wide.rc8_y1 AS rc8_y1_pct
-      ,gr_wide.rc8_y1_ltr      
-      ,gr_wide.rc9_course_name
-      ,gr_wide.rc9_teacher_last
-      ,gr_wide.rc9_y1 AS rc9_y1_pct
-      ,gr_wide.rc9_y1_ltr      
-      ,gr_wide.rc10_course_name
-      ,gr_wide.rc10_teacher_last
-      ,gr_wide.rc10_y1 AS rc10_y1_pct
-      ,gr_wide.rc10_y1_ltr
-      ,gr_wide.rc1_h1  AS rc1_cur_hw_pct
-      ,gr_wide.rc2_h1  AS rc2_cur_hw_pct
-      ,gr_wide.rc3_h1  AS rc3_cur_hw_pct
-      ,gr_wide.rc4_h1  AS rc4_cur_hw_pct
-      ,gr_wide.rc5_h1  AS rc5_cur_hw_pct
-      ,gr_wide.rc6_h1  AS rc6_cur_hw_pct
-      ,gr_wide.rc7_h1  AS rc7_cur_hw_pct
-      ,gr_wide.rc8_h1  AS rc8_cur_hw_pct
-      ,gr_wide.rc9_h1  AS rc9_cur_hw_pct
-      ,gr_wide.rc10_h1 AS rc10_cur_hw_pct      
-      ,gr_wide.rc1_a1   AS rc1_cur_a_pct
-      ,gr_wide.rc2_a1   AS rc2_cur_a_pct
-      ,gr_wide.rc3_a1   AS rc3_cur_a_pct
-      ,gr_wide.rc4_a1   AS rc4_cur_a_pct
-      ,gr_wide.rc5_a1   AS rc5_cur_a_pct
-      ,gr_wide.rc6_a1   AS rc6_cur_a_pct
-      ,gr_wide.rc7_a1   AS rc7_cur_a_pct
-      ,gr_wide.rc8_a1   AS rc8_cur_a_pct
-      ,gr_wide.rc9_a1   AS rc9_cur_a_pct
-      ,gr_wide.rc10_a1  AS rc10_cur_a_pct
-      ,gr_wide.rc1_c1  AS rc1_cur_cw_pct
-      ,gr_wide.rc2_c1  AS rc2_cur_cw_pct
-      ,gr_wide.rc3_c1  AS rc3_cur_cw_pct
-      ,gr_wide.rc4_c1  AS rc4_cur_cw_pct
-      ,gr_wide.rc5_c1  AS rc5_cur_cw_pct
-      ,gr_wide.rc6_c1  AS rc6_cur_cw_pct
-      ,gr_wide.rc7_c1  AS rc7_cur_cw_pct
-      ,gr_wide.rc8_c1  AS rc8_cur_cw_pct
-      ,gr_wide.rc9_c1  AS rc9_cur_cw_pct
-      ,gr_wide.rc10_c1 AS rc10_cur_cw_pct      
-      ,gr_wide.rc1_p1  AS rc1_cur_p_pct
-      ,gr_wide.rc2_p1  AS rc2_cur_p_pct
-      ,gr_wide.rc3_p1  AS rc3_cur_p_pct
-      ,gr_wide.rc4_p1  AS rc4_cur_p_pct
-      ,gr_wide.rc5_p1  AS rc5_cur_p_pct
-      ,gr_wide.rc6_p1  AS rc6_cur_p_pct
-      ,gr_wide.rc7_p1  AS rc7_cur_p_pct
-      ,gr_wide.rc8_p1  AS rc8_cur_p_pct
-      ,gr_wide.rc9_p1  AS rc9_cur_p_pct
-      ,gr_wide.rc10_p1 AS rc10_cur_p_pct
-      ,gr_wide.rc1_current_absences
-      ,gr_wide.rc2_current_absences
-      ,gr_wide.rc3_current_absences
-      ,gr_wide.rc4_current_absences
-      ,gr_wide.rc5_current_absences
-      ,gr_wide.rc6_current_absences
-      ,gr_wide.rc7_current_absences
-      ,gr_wide.rc8_current_absences
-      ,gr_wide.rc9_current_absences
-      ,gr_wide.rc10_current_absences      
-      ,gr_wide.rc1_current_tardies
-      ,gr_wide.rc2_current_tardies
-      ,gr_wide.rc3_current_tardies
-      ,gr_wide.rc4_current_tardies
-      ,gr_wide.rc5_current_tardies
-      ,gr_wide.rc6_current_tardies
-      ,gr_wide.rc7_current_tardies
-      ,gr_wide.rc8_current_tardies
-      ,gr_wide.rc9_current_tardies
-      ,gr_wide.rc10_current_tardies
-      ,gr_wide.rc1_E1 AS rc1_exam
-      ,gr_wide.rc2_E1 AS rc2_exam
-      ,gr_wide.rc3_E1 AS rc3_exam
-      ,gr_wide.rc4_E1 AS rc4_exam
-      ,gr_wide.rc5_E1 AS rc5_exam
-      ,gr_wide.rc6_E1 AS rc6_exam
-      ,gr_wide.rc7_E1 AS rc7_exam
-      ,gr_wide.rc8_E1 AS rc8_exam
-      ,gr_wide.rc9_E1 AS rc9_exam
-      ,gr_wide.rc10_E1 AS rc10_exam
-      ,gr_wide.rc1_E2 AS rc1_exam2
-      ,gr_wide.rc2_E2 AS rc2_exam2
-      ,gr_wide.rc3_E2 AS rc3_exam2
-      ,gr_wide.rc4_E2 AS rc4_exam2
-      ,gr_wide.rc5_E2 AS rc5_exam2
-      ,gr_wide.rc6_E2 AS rc6_exam2
-      ,gr_wide.rc7_E2 AS rc7_exam2
-      ,gr_wide.rc8_E2 AS rc8_exam2
-      ,gr_wide.rc9_E2 AS rc9_exam2
-      ,gr_wide.rc10_E2 AS rc10_exam2
---*/      
 FROM STUDENTS s WITH (NOLOCK)
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
   ON s.id = cs.studentid
-LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits WITH (NOLOCK)
+LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
   ON s.id = merits.studentid
 LEFT OUTER JOIN DISC$counts_wide dcounts WITH (NOLOCK)
   ON s.ID = dcounts.base_studentid
 LEFT OUTER JOIN ATT_MEM$attendance_counts att WITH (NOLOCK)
-  ON s.id = att.id
+  ON s.id = att.studentid
 LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
-  ON s.id = att_pct.id
+  ON s.id = att_pct.studentid
 LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide WITH (NOLOCK)
   ON s.id = gr_wide.studentid
 LEFT OUTER JOIN GPA$detail#NCA nca_GPA WITH (NOLOCK)
@@ -283,16 +162,5 @@ LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
  AND lex_base.measurementscale  = 'Reading'
  AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
  AND lex_base.rn_base = 1
-
-/*
-LEFT OUTER JOIN sri_testing_history sri_base_11
-  ON to_char(s.student_number) = sri_base_11.base_student_number
- AND sri_base_11.full_cycle_name = 'Baseline 12-13' and sri_base_11.rn_cycle = 1 
- AND s.schoolid = sri_base_11.schoolid
-LEFT OUTER JOIN sri_testing_history sri_current
-  ON to_char(s.student_number) = sri_current.base_student_number 
- AND sri_current.rn_lifetime = 1
- AND s.schoolid = sri_current.schoolid
---*/
 WHERE s.schoolid = 73253
   AND s.enroll_status = 0

@@ -17,7 +17,7 @@ WITH roster AS (
 ,terms AS (      
   SELECT academic_year
         ,schoolid
-        ,time_per_name AS test_round
+        ,REPLACE(time_per_name, 'DR', 'BOY') AS test_round
         ,ROW_NUMBER() OVER (
            PARTITION BY schoolid
            ORDER BY start_date ASC) AS round_num

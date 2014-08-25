@@ -18,7 +18,7 @@ SELECT unique_id
         WHEN LEN(test_round) < 2 THEN NULL
         WHEN test_round = 'Diagnostic' THEN 'DR'
         WHEN test_round = 'BOY' THEN 'DR'
-        ELSE CONVERT(VARCHAR(8),test_round)
+        ELSE CONVERT(VARCHAR(8),LTRIM(RTRIM(test_round)))
        END AS test_round
       ,CONVERT(INT,testid) AS testid
       ,CONVERT(VARCHAR(8),step_ltr_level) AS step_ltr_level

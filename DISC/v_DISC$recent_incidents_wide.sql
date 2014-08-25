@@ -15,35 +15,35 @@ SELECT s.id AS studentid
       ,CONVERT(DATE,dlog01.entry_date) AS DISC_01_date_reported
       ,dlog01.subject AS DISC_01_subject
       ,dlog01.subtype AS DISC_01_subtype
-      ,dlog01.incident_decoded AS DISC_01_incident
+      ,dlog01.discipline_details AS DISC_01_incident
       
       --DISC_02
       ,SUBSTRING(dlog02.entry_author,1,CHARINDEX(',',dlog02.entry_author+',')-1) AS DISC_02_given_by      
       ,CONVERT(DATE,dlog02.entry_date) AS DISC_02_date_reported
       ,dlog02.subject AS DISC_02_subject
       ,dlog02.subtype AS DISC_02_subtype
-      ,dlog02.incident_decoded AS DISC_02_incident
+      ,dlog02.discipline_details AS DISC_02_incident
       
       --DISC_03
       ,SUBSTRING(dlog03.entry_author,1,CHARINDEX(',',dlog03.entry_author+',')-1) AS DISC_03_given_by      
       ,CONVERT(DATE,dlog03.entry_date) AS DISC_03_date_reported
       ,dlog03.subject AS DISC_03_subject
       ,dlog03.subtype AS DISC_03_subtype
-      ,dlog03.incident_decoded AS DISC_03_incident
+      ,dlog03.discipline_details AS DISC_03_incident
       
       --DISC_04
       ,SUBSTRING(dlog04.entry_author,1,CHARINDEX(',',dlog04.entry_author+',')-1) AS DISC_04_given_by      
       ,CONVERT(DATE,dlog04.entry_date) AS DISC_04_date_reported
       ,dlog04.subject AS DISC_04_subject
       ,dlog04.subtype AS DISC_04_subtype
-      ,dlog04.incident_decoded AS DISC_04_incident
+      ,dlog04.discipline_details AS DISC_04_incident
       
       --DISC_05
       ,SUBSTRING(dlog05.entry_author,1,CHARINDEX(',',dlog05.entry_author+',')-1) AS DISC_05_given_by      
       ,CONVERT(DATE,dlog05.entry_date) AS DISC_05_date_reported
       ,dlog05.subject AS DISC_05_subject
       ,dlog05.subtype AS DISC_05_subtype
-      ,dlog05.incident_decoded AS DISC_05_incident
+      ,dlog05.discipline_details AS DISC_05_incident
       
 FROM STUDENTS s WITH (NOLOCK)
 LEFT OUTER JOIN DISC$log#static dlog01 WITH (NOLOCK)

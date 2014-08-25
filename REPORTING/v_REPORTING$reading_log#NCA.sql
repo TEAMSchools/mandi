@@ -84,7 +84,7 @@ SELECT s.LASTFIRST
         WHEN eng1.expression = '14(A)' THEN '7'
         ELSE NULL
        END AS eng1_period
-      ,CASE WHEN eng1.LASTFIRST LIKE '%Williams, Renae%' THEN 'Triplett, Corey' ELSE eng1.LASTFIRST END AS eng1_teacher
+      ,eng1.LASTFIRST AS eng1_teacher
       ,eng2.COURSE_NAME AS eng2_course
       ,eng2.SECTION_NUMBER AS eng2_section
       ,CASE        
@@ -104,9 +104,9 @@ SELECT s.LASTFIRST
         WHEN eng2.expression = '14(A)' THEN '7'
         ELSE NULL
        END AS eng2_period
-      ,CASE WHEN eng2.LASTFIRST LIKE '%Williams, Renae%' THEN 'Triplett, Corey' ELSE eng2.LASTFIRST END AS eng2_teacher
+      ,eng2.LASTFIRST AS eng2_teacher
       ,diff.COURSE_NAME AS fourth_per_class
-      ,CASE WHEN diff.LASTFIRST LIKE '%Williams, Renae%' THEN 'Triplett, Corey' ELSE diff.LASTFIRST END AS fourth_per_teacher
+      ,diff.LASTFIRST AS fourth_per_teacher
       ,CASE        
         WHEN diff.expression = '5(A)' THEN '4B'
         WHEN diff.expression = '6(A)' THEN '4A'

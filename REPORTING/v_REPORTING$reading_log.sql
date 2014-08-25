@@ -2,65 +2,66 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW reporting$reading_log AS
-WITH roster AS
-  (SELECT studentid
-         ,s.student_number
-         ,c.grade_level
-         ,c.schoolid
-         ,s.lastfirst
-         ,s.FIRST_NAME + ' ' + s.LAST_NAME AS name
-         ,sch.abbreviation AS school
-   FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
-   JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
-     ON c.schoolid = sch.school_number
-   JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
-     ON c.studentid = s.id
-    AND s.enroll_status = 0    
+
+WITH roster AS (
+  SELECT studentid
+        ,s.student_number
+        ,c.grade_level
+        ,c.schoolid
+        ,s.lastfirst
+        ,s.FIRST_NAME + ' ' + s.LAST_NAME AS name
+        ,sch.abbreviation AS school
+  FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
+  JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
+    ON c.schoolid = sch.school_number
+  JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
+    ON c.studentid = s.id
+   AND s.enroll_status = 0    
    --AND s.ID = 4772
-    --AND c.grade_level = 5
-    --AND c.schoolid = 133570965
-    --AND s.student_number = 12135
-   WHERE year = dbo.fn_Global_Academic_Year()
-     AND rn = 1
-     AND c.schoolid != 999999
-     AND c.schoolid IN (73252, 133570965)
-  )
+   --AND c.grade_level = 5
+   --AND c.schoolid = 133570965
+   --AND s.student_number = 12135
+  WHERE year = dbo.fn_Global_Academic_Year()
+    AND rn = 1
+    AND c.schoolid != 999999
+    AND c.schoolid IN (73252, 133570965)
+ )
  
- ,curterm AS (
-   SELECT schoolid
-         ,REPLACE(time_per_name,'Hexameter ','RT') AS time_per_name
-         ,start_date
-         ,end_date
-   FROM REPORTING$dates WITH(NOLOCK)
-   WHERE GETDATE() >= start_date
-     AND GETDATE() <= end_date
-     AND identifier = 'HEX'
-  )
+,curterm AS (
+  SELECT schoolid
+        ,REPLACE(time_per_name,'Hexameter ','RT') AS time_per_name
+        ,start_date
+        ,end_date
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE GETDATE() >= start_date
+    AND GETDATE() <= end_date
+    AND identifier = 'HEX'
+ )
  
-  ,enrollments AS
-  (SELECT cc.termid AS termid
-         ,cc.studentid
-         ,sections.id AS sectionid
-         ,sections.section_number
-         ,courses.course_number
-         ,courses.course_name
-   FROM cc WITH(NOLOCK)
-   JOIN sections WITH(NOLOCK)
-     ON cc.sectionid = sections.id
-    AND cc.termid >= dbo.fn_Global_Term_Id()
-   JOIN courses WITH(NOLOCK)
-     ON sections.course_number = courses.course_number
-    AND courses.credittype LIKE 'ENG'
-   WHERE cc.dateenrolled <= GETDATE()
-	    AND cc.dateleft >= GETDATE()
-  )
+,enrollments AS (
+  SELECT cc.termid AS termid
+        ,cc.studentid
+        ,sections.id AS sectionid
+        ,sections.section_number
+        ,courses.course_number
+        ,courses.course_name
+  FROM cc WITH(NOLOCK)
+  JOIN sections WITH(NOLOCK)
+    ON cc.sectionid = sections.id
+   AND cc.termid >= dbo.fn_Global_Term_Id()
+  JOIN courses WITH(NOLOCK)
+    ON sections.course_number = courses.course_number
+   AND courses.credittype LIKE 'ENG'
+  WHERE cc.dateenrolled <= GETDATE()
+	   AND cc.dateleft >= GETDATE()
+ )
   
-  ,map_goals AS 
-   (SELECT *
-    FROM KIPP_NJ..MAP$rutgers_ready_student_goals g
-    WHERE g.measurementscale = 'Reading'
-      AND g.year = dbo.fn_Global_Academic_Year()
-   )
+,map_goals AS (
+  SELECT *
+  FROM KIPP_NJ..MAP$rutgers_ready_student_goals g
+  WHERE g.measurementscale = 'Reading'
+    AND g.year = dbo.fn_Global_Academic_Year()
+ )
     
 SELECT roster.*
       ,enr.course_name + '|' + enr.section_number AS enr_hash
@@ -71,13 +72,12 @@ SELECT roster.*
       ,ele.grade_3 AS cur_term_rdg_hw_avg /*--UPDATE FIELD FOR CURRENT TERM--*/
       ,ele.simple_avg AS y1_rdg_hw_avg
       ,CASE
-        WHEN fp_base.letter_level IS NOT NULL THEN fp_base.letter_level
-        WHEN fp_base.letter_level IS NULL AND fp_cur.letter_level IS NOT NULL THEN fp_cur.letter_level
-        ELSE fp_dna_base.letter_level
+        WHEN fp_base.read_lvl IS NOT NULL THEN fp_base.read_lvl
+        WHEN fp_base.read_lvl IS NULL AND fp_cur.read_lvl IS NOT NULL THEN fp_cur.read_lvl        
        END AS fp_base_letter
       ,CASE
-        WHEN fp_cur.letter_level IS NULL THEN fp_dna_curr.letter_level
-        ELSE fp_cur.letter_level
+        WHEN fp_cur.read_lvl IS NULL THEN fp_dna_curr.read_lvl
+        ELSE fp_cur.read_lvl
        END AS fp_cur_letter
       ,CASE 
          WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.TestRITScore
@@ -212,41 +212,40 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$elements ele WITH(NOLOCK)
   ON roster.studentid = ele.studentid
  AND gr.course_number = ele.course_number
  AND ele.pgf_type = 'H'
- AND ele.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
+ AND ele.yearid = LEFT(dbo.fn_Global_Term_Id(), 2)
 
 --F&P
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_cur WITH(NOLOCK)
+LEFT OUTER JOIN LIT$test_events#identifiers fp_cur WITH(NOLOCK)
   ON roster.STUDENTID = fp_cur.studentid
  AND fp_cur.achv_curr_all = 1
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH(NOLOCK)
+LEFT OUTER JOIN LIT$test_events#identifiers fp_base WITH(NOLOCK)
   ON roster.STUDENTID = fp_base.studentid
- AND fp_base.achv_base = 1
- AND fp_base.year = dbo.fn_Global_Academic_Year()
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_dna_base WITH(NOLOCK)
-  ON roster.STUDENTID = fp_dna_base.studentid
- AND fp_dna_base.dna_base = 1
- AND fp_dna_base.year = dbo.fn_Global_Academic_Year()
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_dna_curr WITH(NOLOCK)
+ AND fp_base.achv_base_yr = 1
+ AND fp_base.academic_year = dbo.fn_Global_Academic_Year()
+LEFT OUTER JOIN LIT$test_events#identifiers fp_dna_curr WITH(NOLOCK)
   ON roster.STUDENTID = fp_dna_curr.studentid
- AND fp_dna_curr.dna_curr = 1
- AND fp_dna_curr.year = dbo.fn_Global_Academic_Year()
+ AND fp_dna_curr.dna_all = 1
+ AND fp_dna_curr.academic_year = dbo.fn_Global_Academic_Year()
 
 --RIT, NWEA LEXILE
 LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_fall WITH(NOLOCK)
   ON roster.studentid = map_fall.ps_studentid
  AND map_fall.measurementscale = 'Reading'
  AND map_fall.map_year_academic = dbo.fn_Global_Academic_Year()
- AND map_fall.TermName = 'Fall 2013-2014'
+ AND map_fall.fallwinterspring = 'Fall'
+ AND map_fall.rn = 1
 LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_winter WITH(NOLOCK)
   ON roster.studentid = map_winter.ps_studentid
  AND map_winter.measurementscale = 'Reading'
  AND map_winter.map_year_academic = dbo.fn_Global_Academic_Year()
- AND map_winter.TermName = 'Winter 2013-2014'
+ AND map_winter.fallwinterspring = 'Winter'
+ AND map_winter.rn = 1
 LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_spr WITH(NOLOCK)
   ON roster.studentid = map_spr.ps_studentid
  AND map_spr.measurementscale = 'Reading'
  AND map_spr.map_year_academic = (dbo.fn_Global_Academic_Year() - 1)
- AND map_spr.TermName = 'Spring 2012-2013'
+ AND map_spr.fallwinterspring = 'Spring'
+ AND map_spr.rn = 1
 
 --CURRENT NWEA RIT
 LEFT OUTER JOIN       

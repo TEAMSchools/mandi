@@ -37,7 +37,7 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN att.att_code = 'ISS' THEN 1 ELSE 0 END AS ISS
       ,CASE WHEN att.att_code = 'OSS' THEN 1 ELSE 0 END AS OSS
       --other
-      ,CASE WHEN att.att_code IN ('TLE','PLE') THEN 1 ELSE 0 END AS early_dismissal
+      ,CASE WHEN ed.subtype = '01' THEN 1 ELSE 0 END AS early_dismissal
 FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
   ON co.studentid = s.id
@@ -50,5 +50,9 @@ JOIN MEMBERSHIP mem WITH(NOLOCK)
 LEFT OUTER JOIN ATTENDANCE att WITH(NOLOCK)
   ON co.studentid = att.studentid
  AND mem.CALENDARDATE = att.ATT_DATE 
+LEFT OUTER JOIN DISC$log#static ed WITH(NOLOCK)
+  ON co.studentid = ed.studentid
+ AND mem.CALENDARDATE = ed.entry_date
+ AND ed.logtypeid = 3953
 WHERE co.year = dbo.fn_Global_Academic_Year()
   AND co.rn = 1

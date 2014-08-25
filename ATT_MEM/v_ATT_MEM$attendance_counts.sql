@@ -106,207 +106,241 @@ WITH attendance_long AS (
   WHERE has_uniform = 0
  )
 
-SELECT studentid      
-      ,ISNULL([CUR_A],0)
-        + ISNULL([CUR_AD],0)
-        + ISNULL([CUR_AE],0) AS CUR_ABS_ALL
-      ,ISNULL([CUR_T],0)
-        + ISNULL([CUR_T10],0)
-        + ISNULL([CUR_TE],0) AS CUR_T_ALL      
-      ,ISNULL([RT1_A],0)
-        + ISNULL([RT1_AD],0)
-        + ISNULL([RT1_AE],0) AS RT1_ABS_ALL
-      ,ISNULL([RT1_T],0)
-        + ISNULL([RT1_T10],0)
-        + ISNULL([RT1_TE],0) AS RT1_T_ALL      
-      ,ISNULL([RT2_A],0)
-        + ISNULL([RT2_AD],0)
-        + ISNULL([RT2_AE],0) AS RT2_ABS_ALL
-      ,ISNULL([RT2_T],0)
-        + ISNULL([RT2_T10],0)
-        + ISNULL([RT2_TE],0) AS RT2_T_ALL      
-      ,ISNULL([RT3_A],0)
-        + ISNULL([RT3_AD],0)
-        + ISNULL([RT3_AE],0) AS RT3_ABS_ALL
-      ,ISNULL([RT3_T],0)
-        + ISNULL([RT3_T10],0)
-        + ISNULL([RT3_TE],0) AS RT3_T_ALL      
-      ,ISNULL([RT4_A],0)
-        + ISNULL([RT4_AD],0)
-        + ISNULL([RT4_AE],0) AS RT4_ABS_ALL
-      ,ISNULL([RT4_T],0)
-        + ISNULL([RT4_T10],0)
-        + ISNULL([RT4_TE],0) AS RT4_T_ALL      
-      ,ISNULL([RT5_A],0)
-        + ISNULL([RT5_AD],0)
-        + ISNULL([RT5_AE],0) AS RT5_ABS_ALL
-      ,ISNULL([RT5_T],0)
-        + ISNULL([RT5_T10],0)
-        + ISNULL([RT5_TE],0) AS RT5_T_ALL      
-      ,ISNULL([RT6_A],0)
-        + ISNULL([RT6_AD],0)
-        + ISNULL([RT6_AE],0) AS RT6_ABS_ALL
-      ,ISNULL([RT6_T],0)
-        + ISNULL([RT6_T10],0)
-        + ISNULL([RT6_TE],0) AS RT6_T_ALL      
+SELECT studentid
+
+      -- y1 codes
+      ,ISNULL([Y1_A],0) AS Y1_A
+      ,ISNULL([Y1_AD],0) AS Y1_AD
+      ,ISNULL([Y1_AE],0) AS Y1_AE
+      ,ISNULL([Y1_CR],0) AS Y1_CR
+      ,ISNULL([Y1_CS],0) AS Y1_CS
+      ,ISNULL([Y1_EV],0) AS Y1_EV
+      ,ISNULL([Y1_ISS],0) AS Y1_ISS
+      ,ISNULL([Y1_OSS],0) AS Y1_OSS
+      ,ISNULL([Y1_T],0) AS Y1_T
+      ,ISNULL([Y1_T10],0) AS Y1_T10
+      ,ISNULL([Y1_TE],0) AS Y1_TE
+      -- from logs/tracking
+      ,ISNULL([Y1_LE],0) AS Y1_LE
+      ,ISNULL([Y1_LEX],0) AS Y1_LEX
+      ,ISNULL([Y1_UNI],0) AS Y1_UNI
+      -- totals
       ,ISNULL([Y1_A],0)
-        + ISNULL([Y1_AD],0)
-        + ISNULL([Y1_AE],0) AS Y1_ABS_ALL
+         + ISNULL([Y1_AD],0)
+         + ISNULL([Y1_AE],0) AS Y1_ABS_ALL
       ,ISNULL([Y1_T],0)
-        + ISNULL([Y1_T10],0)
-        + ISNULL([Y1_TE],0) AS Y1_T_ALL
-     ,ISNULL([CUR_A],0) AS CUR_A
-     ,ISNULL([CUR_AD],0) AS CUR_AD
-     ,ISNULL([CUR_AE],0) AS CUR_AE
-     ,ISNULL([CUR_CR],0) AS CUR_CR
-     ,ISNULL([CUR_CS],0) AS CUR_CS
-     ,ISNULL([CUR_EV],0) AS CUR_EV
-     ,ISNULL([CUR_ISS],0) AS CUR_ISS
-     ,ISNULL([CUR_OSS],0) AS CUR_OSS
-     ,ISNULL([CUR_T],0) AS CUR_T
-     ,ISNULL([CUR_T10],0) AS CUR_T10
-     ,ISNULL([CUR_TE],0) AS CUR_TE
-     ,ISNULL([RT1_A],0) AS RT1_A
-     ,ISNULL([RT1_AD],0) AS RT1_AD
-     ,ISNULL([RT1_AE],0) AS RT1_AE
-     ,ISNULL([RT1_CR],0) AS RT1_CR
-     ,ISNULL([RT1_CS],0) AS RT1_CS
-     ,ISNULL([RT1_EV],0) AS RT1_EV
-     ,ISNULL([RT1_ISS],0) AS RT1_ISS
-     ,ISNULL([RT1_OSS],0) AS RT1_OSS
-     ,ISNULL([RT1_T],0) AS RT1_T
-     ,ISNULL([RT1_T10],0) AS RT1_T10
-     ,ISNULL([RT1_TE],0) AS RT1_TE
-     ,ISNULL([RT2_A],0) AS RT2_A
-     ,ISNULL([RT2_AD],0) AS RT2_AD
-     ,ISNULL([RT2_AE],0) AS RT2_AE
-     ,ISNULL([RT2_CR],0) AS RT2_CR
-     ,ISNULL([RT2_CS],0) AS RT2_CS
-     ,ISNULL([RT2_EV],0) AS RT2_EV
-     ,ISNULL([RT2_ISS],0) AS RT2_ISS
-     ,ISNULL([RT2_OSS],0) AS RT2_OSS
-     ,ISNULL([RT2_T],0) AS RT2_T
-     ,ISNULL([RT2_T10],0) AS RT2_T10
-     ,ISNULL([RT2_TE],0) AS RT2_TE
-     ,ISNULL([RT3_A],0) AS RT3_A
-     ,ISNULL([RT3_AD],0) AS RT3_AD
-     ,ISNULL([RT3_AE],0) AS RT3_AE
-     ,ISNULL([RT3_CR],0) AS RT3_CR
-     ,ISNULL([RT3_CS],0) AS RT3_CS
-     ,ISNULL([RT3_EV],0) AS RT3_EV
-     ,ISNULL([RT3_ISS],0) AS RT3_ISS
-     ,ISNULL([RT3_OSS],0) AS RT3_OSS
-     ,ISNULL([RT3_T],0) AS RT3_T
-     ,ISNULL([RT3_T10],0) AS RT3_T10
-     ,ISNULL([RT3_TE],0) AS RT3_TE
-     ,ISNULL([RT4_A],0) AS RT4_A
-     ,ISNULL([RT4_AD],0) AS RT4_AD
-     ,ISNULL([RT4_AE],0) AS RT4_AE
-     ,ISNULL([RT4_CR],0) AS RT4_CR
-     ,ISNULL([RT4_CS],0) AS RT4_CS
-     ,ISNULL([RT4_EV],0) AS RT4_EV
-     ,ISNULL([RT4_ISS],0) AS RT4_ISS
-     ,ISNULL([RT4_OSS],0) AS RT4_OSS
-     ,ISNULL([RT4_T],0) AS RT4_T
-     ,ISNULL([RT4_T10],0) AS RT4_T10
-     ,ISNULL([RT4_TE],0) AS RT4_TE
-     ,ISNULL([RT5_A],0) AS RT5_A
-     ,ISNULL([RT5_AD],0) AS RT5_AD
-     ,ISNULL([RT5_AE],0) AS RT5_AE
-     ,ISNULL([RT5_CR],0) AS RT5_CR
-     ,ISNULL([RT5_CS],0) AS RT5_CS
-     ,ISNULL([RT5_EV],0) AS RT5_EV
-     ,ISNULL([RT5_ISS],0) AS RT5_ISS
-     ,ISNULL([RT5_OSS],0) AS RT5_OSS
-     ,ISNULL([RT5_T],0) AS RT5_T
-     ,ISNULL([RT5_T10],0) AS RT5_T10
-     ,ISNULL([RT5_TE],0) AS RT5_TE
-     ,ISNULL([RT6_A],0) AS RT6_A
-     ,ISNULL([RT6_AD],0) AS RT6_AD
-     ,ISNULL([RT6_AE],0) AS RT6_AE
-     ,ISNULL([RT6_CR],0) AS RT6_CR
-     ,ISNULL([RT6_CS],0) AS RT6_CS
-     ,ISNULL([RT6_EV],0) AS RT6_EV
-     ,ISNULL([RT6_ISS],0) AS RT6_ISS
-     ,ISNULL([RT6_OSS],0) AS RT6_OSS
-     ,ISNULL([RT6_T],0) AS RT6_T
-     ,ISNULL([RT6_T10],0) AS RT6_T10
-     ,ISNULL([RT6_TE],0) AS RT6_TE
-     ,ISNULL([Y1_A],0) AS Y1_A
-     ,ISNULL([Y1_AD],0) AS Y1_AD
-     ,ISNULL([Y1_AE],0) AS Y1_AE
-     ,ISNULL([Y1_CR],0) AS Y1_CR
-     ,ISNULL([Y1_CS],0) AS Y1_CS
-     ,ISNULL([Y1_EV],0) AS Y1_EV
-     ,ISNULL([Y1_ISS],0) AS Y1_ISS
-     ,ISNULL([Y1_OSS],0) AS Y1_OSS
-     ,ISNULL([Y1_T],0) AS Y1_T
-     ,ISNULL([Y1_T10],0) AS Y1_T10
-     ,ISNULL([Y1_TE],0) AS Y1_TE
-     ,ISNULL([CUR_LE],0) AS CUR_LE
-     ,ISNULL([CUR_LEX],0) AS CUR_LEX
-     ,ISNULL([CUR_UNI],0) AS CUR_UNI
-     ,ISNULL([RT1_LE],0) AS RT1_LE
-     ,ISNULL([RT1_LEX],0) AS RT1_LEX
-     ,ISNULL([RT1_UNI],0) AS RT1_UNI
-     ,ISNULL([RT2_LE],0) AS RT2_LE
-     ,ISNULL([RT2_LEX],0) AS RT2_LEX
-     ,ISNULL([RT2_UNI],0) AS RT2_UNI
-     ,ISNULL([RT3_LE],0) AS RT3_LE
-     ,ISNULL([RT3_LEX],0) AS RT3_LEX
-     ,ISNULL([RT3_UNI],0) AS RT3_UNI
-     ,ISNULL([RT4_LE],0) AS RT4_LE
-     ,ISNULL([RT4_LEX],0) AS RT4_LEX
-     ,ISNULL([RT4_UNI],0) AS RT4_UNI
-     ,ISNULL([RT5_LE],0) AS RT5_LE
-     ,ISNULL([RT5_LEX],0) AS RT5_LEX
-     ,ISNULL([RT5_UNI],0) AS RT5_UNI
-     ,ISNULL([RT6_LE],0) AS RT6_LE
-     ,ISNULL([RT6_LEX],0) AS RT6_LEX
-     ,ISNULL([RT6_UNI],0) AS RT6_UNI
-     ,ISNULL([Y1_LE],0) AS Y1_LE
-     ,ISNULL([Y1_LEX],0) AS Y1_LEX
-     ,ISNULL([Y1_UNI],0) AS Y1_UNI
-     ,ROUND(ISNULL([CUR_A],0)
-             + ((ISNULL([CUR_T],0) + ISNULL([CUR_T10],0)) / 3)
-             + (ISNULL([CUR_LE],0) / 3)
-             + (ISNULL([CUR_UNI],0) / 6)
-            ,1) AS CUR_TRIP_ABS
-     ,ROUND(ISNULL([RT1_A],0)
-             + ((ISNULL([RT1_T],0) + ISNULL([RT1_T10],0)) / 3)
-             + (ISNULL([RT1_LE],0) / 3)
-             + (ISNULL([RT1_UNI],0) / 6)
-            ,1) AS RT1_TRIP_ABS
-     ,ROUND(ISNULL([RT2_A],0)
-             + ((ISNULL([RT2_T],0) + ISNULL([RT2_T10],0)) / 3)
-             + (ISNULL([RT2_LE],0) / 3)
-             + (ISNULL([RT2_UNI],0) / 6)
-            ,1) AS RT2_TRIP_ABS
-     ,ROUND(ISNULL([RT3_A],0)
-             + ((ISNULL([RT3_T],0) + ISNULL([RT3_T10],0)) / 3)
-             + (ISNULL([RT3_LE],0) / 3)
-             + (ISNULL([RT3_UNI],0) / 6)
-            ,1) AS RT3_TRIP_ABS
-     ,ROUND(ISNULL([RT4_A],0)
-             + ((ISNULL([RT4_T],0) + ISNULL([RT4_T10],0)) / 3)
-             + (ISNULL([RT4_LE],0) / 3)
-             + (ISNULL([RT4_UNI],0) / 6)
-            ,1) AS RT4_TRIP_ABS
-     ,ROUND(ISNULL([RT5_A],0)
-             + ((ISNULL([RT5_T],0) + ISNULL([RT5_T10],0)) / 3)
-             + (ISNULL([RT5_LE],0) / 3)
-             + (ISNULL([RT5_UNI],0) / 6)
-            ,1) AS RT5_TRIP_ABS
-     ,ROUND(ISNULL([RT6_A],0)
-             + ((ISNULL([RT6_T],0) + ISNULL([RT6_T10],0)) / 3)
-             + (ISNULL([RT6_LE],0) / 3)
-             + (ISNULL([RT6_UNI],0) / 6)
-            ,1) AS RT6_TRIP_ABS
-     ,ROUND(ISNULL([Y1_A],0)
-             + ((ISNULL([Y1_T],0) + ISNULL([Y1_T10],0)) / 3)
-             + (ISNULL([Y1_LE],0) / 3)
-             + (ISNULL([Y1_UNI],0) / 6)
-            ,1) AS Y1_TRIP_ABS
+         + ISNULL([Y1_T10],0)
+         + ISNULL([Y1_TE],0) AS Y1_T_ALL
+      
+      -- current term codes
+      ,ISNULL([CUR_A],0) AS CUR_A
+      ,ISNULL([CUR_AD],0) AS CUR_AD
+      ,ISNULL([CUR_AE],0) AS CUR_AE
+      ,ISNULL([CUR_CR],0) AS CUR_CR
+      ,ISNULL([CUR_CS],0) AS CUR_CS
+      ,ISNULL([CUR_EV],0) AS CUR_EV
+      ,ISNULL([CUR_ISS],0) AS CUR_ISS
+      ,ISNULL([CUR_OSS],0) AS CUR_OSS
+      ,ISNULL([CUR_T],0) AS CUR_T
+      ,ISNULL([CUR_T10],0) AS CUR_T10
+      ,ISNULL([CUR_TE],0) AS CUR_TE
+      -- from logs/tracking
+      ,ISNULL([CUR_LE],0) AS CUR_LE
+      ,ISNULL([CUR_LEX],0) AS CUR_LEX
+      ,ISNULL([CUR_UNI],0) AS CUR_UNI
+      -- totals
+      ,ISNULL([CUR_A],0)
+         + ISNULL([CUR_AD],0)
+         + ISNULL([CUR_AE],0) AS CUR_ABS_ALL
+      ,ISNULL([CUR_T],0)
+         + ISNULL([CUR_T10],0)
+         + ISNULL([CUR_TE],0) AS CUR_T_ALL
+
+      -- rt1 codes
+      ,ISNULL([RT1_A],0) AS RT1_A
+      ,ISNULL([RT1_AD],0) AS RT1_AD
+      ,ISNULL([RT1_AE],0) AS RT1_AE
+      ,ISNULL([RT1_CR],0) AS RT1_CR
+      ,ISNULL([RT1_CS],0) AS RT1_CS
+      ,ISNULL([RT1_EV],0) AS RT1_EV
+      ,ISNULL([RT1_ISS],0) AS RT1_ISS
+      ,ISNULL([RT1_OSS],0) AS RT1_OSS
+      ,ISNULL([RT1_T],0) AS RT1_T
+      ,ISNULL([RT1_T10],0) AS RT1_T10
+      ,ISNULL([RT1_TE],0) AS RT1_TE
+      -- from logs/tracking
+      ,ISNULL([RT1_LE],0) AS RT1_LE
+      ,ISNULL([RT1_LEX],0) AS RT1_LEX
+      ,ISNULL([RT1_UNI],0) AS RT1_UNI
+      -- totals
+      ,ISNULL([RT1_A],0)
+         + ISNULL([RT1_AD],0)
+         + ISNULL([RT1_AE],0) AS RT1_ABS_ALL
+      ,ISNULL([RT1_T],0)
+         + ISNULL([RT1_T10],0)
+         + ISNULL([RT1_TE],0) AS RT1_T_ALL            
+     
+      -- rt2 codes
+      ,ISNULL([RT2_A],0) AS RT2_A
+      ,ISNULL([RT2_AD],0) AS RT2_AD
+      ,ISNULL([RT2_AE],0) AS RT2_AE
+      ,ISNULL([RT2_CR],0) AS RT2_CR
+      ,ISNULL([RT2_CS],0) AS RT2_CS
+      ,ISNULL([RT2_EV],0) AS RT2_EV
+      ,ISNULL([RT2_ISS],0) AS RT2_ISS
+      ,ISNULL([RT2_OSS],0) AS RT2_OSS
+      ,ISNULL([RT2_T],0) AS RT2_T
+      ,ISNULL([RT2_T10],0) AS RT2_T10
+      ,ISNULL([RT2_TE],0) AS RT2_TE
+      -- from logs/tracking
+      ,ISNULL([RT2_LE],0) AS RT2_LE
+      ,ISNULL([RT2_LEX],0) AS RT2_LEX
+      ,ISNULL([RT2_UNI],0) AS RT2_UNI
+      -- totals
+      ,ISNULL([RT2_A],0)
+         + ISNULL([RT2_AD],0)
+         + ISNULL([RT2_AE],0) AS RT2_ABS_ALL
+      ,ISNULL([RT2_T],0)
+         + ISNULL([RT2_T10],0)
+         + ISNULL([RT2_TE],0) AS RT2_T_ALL      
+
+      -- rt3 codes
+      ,ISNULL([RT3_A],0) AS RT3_A
+      ,ISNULL([RT3_AD],0) AS RT3_AD
+      ,ISNULL([RT3_AE],0) AS RT3_AE
+      ,ISNULL([RT3_CR],0) AS RT3_CR
+      ,ISNULL([RT3_CS],0) AS RT3_CS
+      ,ISNULL([RT3_EV],0) AS RT3_EV
+      ,ISNULL([RT3_ISS],0) AS RT3_ISS
+      ,ISNULL([RT3_OSS],0) AS RT3_OSS
+      ,ISNULL([RT3_T],0) AS RT3_T
+      ,ISNULL([RT3_T10],0) AS RT3_T10
+      ,ISNULL([RT3_TE],0) AS RT3_TE
+      -- from logs/tracking
+      ,ISNULL([RT3_LE],0) AS RT3_LE
+      ,ISNULL([RT3_LEX],0) AS RT3_LEX
+      ,ISNULL([RT3_UNI],0) AS RT3_UNI
+      -- totals
+      ,ISNULL([RT3_A],0)
+         + ISNULL([RT3_AD],0)
+         + ISNULL([RT3_AE],0) AS RT3_ABS_ALL
+      ,ISNULL([RT3_T],0)
+         + ISNULL([RT3_T10],0)
+         + ISNULL([RT3_TE],0) AS RT3_T_ALL      
+     
+      -- rt4 codes
+      ,ISNULL([RT4_A],0) AS RT4_A
+      ,ISNULL([RT4_AD],0) AS RT4_AD
+      ,ISNULL([RT4_AE],0) AS RT4_AE
+      ,ISNULL([RT4_CR],0) AS RT4_CR
+      ,ISNULL([RT4_CS],0) AS RT4_CS
+      ,ISNULL([RT4_EV],0) AS RT4_EV
+      ,ISNULL([RT4_ISS],0) AS RT4_ISS
+      ,ISNULL([RT4_OSS],0) AS RT4_OSS
+      ,ISNULL([RT4_T],0) AS RT4_T
+      ,ISNULL([RT4_T10],0) AS RT4_T10
+      ,ISNULL([RT4_TE],0) AS RT4_TE
+      -- from logs/tracking
+      ,ISNULL([RT4_LE],0) AS RT4_LE
+      ,ISNULL([RT4_LEX],0) AS RT4_LEX
+      ,ISNULL([RT4_UNI],0) AS RT4_UNI
+      -- totals
+      ,ISNULL([RT4_A],0)
+         + ISNULL([RT4_AD],0)
+         + ISNULL([RT4_AE],0) AS RT4_ABS_ALL
+      ,ISNULL([RT4_T],0)
+         + ISNULL([RT4_T10],0)
+         + ISNULL([RT4_TE],0) AS RT4_T_ALL      
+
+      -- rt5 codes
+      ,ISNULL([RT5_A],0) AS RT5_A
+      ,ISNULL([RT5_AD],0) AS RT5_AD
+      ,ISNULL([RT5_AE],0) AS RT5_AE
+      ,ISNULL([RT5_CR],0) AS RT5_CR
+      ,ISNULL([RT5_CS],0) AS RT5_CS
+      ,ISNULL([RT5_EV],0) AS RT5_EV
+      ,ISNULL([RT5_ISS],0) AS RT5_ISS
+      ,ISNULL([RT5_OSS],0) AS RT5_OSS
+      ,ISNULL([RT5_T],0) AS RT5_T
+      ,ISNULL([RT5_T10],0) AS RT5_T10
+      ,ISNULL([RT5_TE],0) AS RT5_TE
+      -- from logs/tracking
+      ,ISNULL([RT5_LE],0) AS RT5_LE
+      ,ISNULL([RT5_LEX],0) AS RT5_LEX
+      ,ISNULL([RT5_UNI],0) AS RT5_UNI
+      -- totals
+      ,ISNULL([RT5_A],0)
+         + ISNULL([RT5_AD],0)
+         + ISNULL([RT5_AE],0) AS RT5_ABS_ALL
+      ,ISNULL([RT5_T],0)
+         + ISNULL([RT5_T10],0)
+         + ISNULL([RT5_TE],0) AS RT5_T_ALL      
+     
+      -- rt6 codes
+      ,ISNULL([RT6_A],0) AS RT6_A
+      ,ISNULL([RT6_AD],0) AS RT6_AD
+      ,ISNULL([RT6_AE],0) AS RT6_AE
+      ,ISNULL([RT6_CR],0) AS RT6_CR
+      ,ISNULL([RT6_CS],0) AS RT6_CS
+      ,ISNULL([RT6_EV],0) AS RT6_EV
+      ,ISNULL([RT6_ISS],0) AS RT6_ISS
+      ,ISNULL([RT6_OSS],0) AS RT6_OSS
+      ,ISNULL([RT6_T],0) AS RT6_T
+      ,ISNULL([RT6_T10],0) AS RT6_T10
+      ,ISNULL([RT6_TE],0) AS RT6_TE
+      -- from logs/tracking
+      ,ISNULL([RT6_LE],0) AS RT6_LE
+      ,ISNULL([RT6_LEX],0) AS RT6_LEX
+      ,ISNULL([RT6_UNI],0) AS RT6_UNI
+      -- totals
+      ,ISNULL([RT6_A],0)
+         + ISNULL([RT6_AD],0)
+         + ISNULL([RT6_AE],0) AS RT6_ABS_ALL
+      ,ISNULL([RT6_T],0)
+         + ISNULL([RT6_T10],0)
+         + ISNULL([RT6_TE],0) AS RT6_T_ALL
+     
+      -- trip abs calculations
+      ,ROUND(ISNULL([CUR_A],0)
+              + ((ISNULL([CUR_T],0) + ISNULL([CUR_T10],0)) / 3)
+              + (ISNULL([CUR_LE],0) / 3)
+              + (ISNULL([CUR_UNI],0) / 6)
+             ,1) AS CUR_TRIP_ABS
+      ,ROUND(ISNULL([RT1_A],0)
+              + ((ISNULL([RT1_T],0) + ISNULL([RT1_T10],0)) / 3)
+              + (ISNULL([RT1_LE],0) / 3)
+              + (ISNULL([RT1_UNI],0) / 6)
+             ,1) AS RT1_TRIP_ABS
+      ,ROUND(ISNULL([RT2_A],0)
+              + ((ISNULL([RT2_T],0) + ISNULL([RT2_T10],0)) / 3)
+              + (ISNULL([RT2_LE],0) / 3)
+              + (ISNULL([RT2_UNI],0) / 6)
+             ,1) AS RT2_TRIP_ABS
+      ,ROUND(ISNULL([RT3_A],0)
+              + ((ISNULL([RT3_T],0) + ISNULL([RT3_T10],0)) / 3)
+              + (ISNULL([RT3_LE],0) / 3)
+              + (ISNULL([RT3_UNI],0) / 6)
+             ,1) AS RT3_TRIP_ABS
+      ,ROUND(ISNULL([RT4_A],0)
+              + ((ISNULL([RT4_T],0) + ISNULL([RT4_T10],0)) / 3)
+              + (ISNULL([RT4_LE],0) / 3)
+              + (ISNULL([RT4_UNI],0) / 6)
+             ,1) AS RT4_TRIP_ABS
+      ,ROUND(ISNULL([RT5_A],0)
+              + ((ISNULL([RT5_T],0) + ISNULL([RT5_T10],0)) / 3)
+              + (ISNULL([RT5_LE],0) / 3)
+              + (ISNULL([RT5_UNI],0) / 6)
+             ,1) AS RT5_TRIP_ABS
+      ,ROUND(ISNULL([RT6_A],0)
+              + ((ISNULL([RT6_T],0) + ISNULL([RT6_T10],0)) / 3)
+              + (ISNULL([RT6_LE],0) / 3)
+              + (ISNULL([RT6_UNI],0) / 6)
+             ,1) AS RT6_TRIP_ABS
+      ,ROUND(ISNULL([Y1_A],0)
+              + ((ISNULL([Y1_T],0) + ISNULL([Y1_T10],0)) / 3)
+              + (ISNULL([Y1_LE],0) / 3)
+              + (ISNULL([Y1_UNI],0) / 6)
+             ,1) AS Y1_TRIP_ABS
 FROM
     (
      -- union attendance, early dismissals, and uniform violations by RT

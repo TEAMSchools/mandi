@@ -4,39 +4,37 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW REPORTING$progress_tracker#NCA AS
-WITH roster AS
-     (
-      SELECT s.student_number
-            ,s.id AS studentid
-            ,s.lastfirst
-            ,s.first_name
-            ,s.last_name                        
-            ,s.gender
-            ,CONVERT(DATE,s.dob) AS dob
-            ,s.student_web_id
-            ,s.student_web_password
-            ,s.home_phone
-            ,cs.mother_cell
-            ,cs.father_cell
-            ,c.grade_level AS grade_level
-            ,s.classof
-            ,cs.guardianemail
-            ,cs.advisor
-            ,cs.SPEDLEP AS SPED
-            ,cs.SID
-            ,ROW_NUMBER() OVER(
-                PARTITION BY s.grade_level
-                    ORDER BY s.id) AS peer_count
-      FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
-      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
-        ON c.studentid = s.id
-       AND s.enroll_status = 0
-      LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
-        ON cs.studentid = s.id
-      WHERE year = dbo.fn_Global_Academic_Year()
-        AND c.rn = 1        
-        AND c.schoolid = 73253
-     )
+
+WITH roster AS (
+  SELECT s.student_number
+        ,s.id AS studentid
+        ,s.lastfirst
+        ,s.first_name
+        ,s.last_name                        
+        ,s.gender
+        ,CONVERT(DATE,s.dob) AS dob
+        ,s.student_web_id
+        ,s.student_web_password
+        ,s.home_phone
+        ,cs.mother_cell
+        ,cs.father_cell
+        ,c.grade_level AS grade_level
+        ,s.classof
+        ,cs.guardianemail
+        ,cs.advisor
+        ,cs.SPEDLEP AS SPED
+        ,cs.SID
+        ,COUNT(*) OVER(PARTITION BY s.grade_level) AS in_grade_denom
+  FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
+  JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
+    ON c.studentid = s.id
+   AND s.enroll_status = 0
+  LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
+    ON cs.studentid = s.id
+  WHERE year = dbo.fn_Global_Academic_Year()
+    AND c.rn = 1        
+    AND c.schoolid = 73253
+ )
 
 SELECT ROW_NUMBER() OVER(          
            ORDER BY lastfirst) AS rn
@@ -189,20 +187,20 @@ SELECT ROW_NUMBER() OVER(
       ,p2
       ,p3
       ,p4
-      ,PSAT_highest_math
-      ,PSAT_highest_verbal
-      ,PSAT_highest_writing
-      ,PSAT_highest_combined
-      ,SAT_highest_math
-      ,SAT_highest_verbal
-      ,SAT_highest_writing
-      ,SAT_highest_math_verbal
-      ,SAT_highest_combined
-      ,ACT_highest_math
-      ,ACT_highest_english
-      ,ACT_highest_reading
-      ,ACT_highest_science
-      ,ACT_highest_composite
+      --,PSAT_highest_math
+      --,PSAT_highest_verbal
+      --,PSAT_highest_writing
+      --,PSAT_highest_combined
+      --,SAT_highest_math
+      --,SAT_highest_verbal
+      --,SAT_highest_writing
+      --,SAT_highest_math_verbal
+      --,SAT_highest_combined
+      --,ACT_highest_math
+      --,ACT_highest_english
+      --,ACT_highest_reading
+      --,ACT_highest_science
+      --,ACT_highest_composite
       ,HSPA_LAL_scale
       ,HSPA_LAL_prof
       ,HSPA_math_scale
@@ -430,30 +428,29 @@ SELECT ROW_NUMBER() OVER(
        END AS points_yr_prof
 FROM
      (
-      SELECT roster.*                 
-            ,dem.in_grade_denom
+      SELECT roster.*            
       
       --Attendance
       --ATT_MEM$attendance_percentages
       --ATT_MEM$attendance_counts
             --year
             ,ROUND(att_pct.Y1_att_pct_total,0) AS att_pct_yr
-            ,ROUND(att_counts.absences_total,0) AS att_counts_yr
+            ,ROUND(att_counts.Y1_ABS_ALL,0) AS att_counts_yr
             ,CONVERT(VARCHAR,ROUND(att_pct.Y1_att_pct_total,0))
               + '% ('
-              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.absences_total))
+              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.Y1_ABS_ALL))
               + ')'                                     
                AS att_pct_counts_yr
             ,CONVERT(VARCHAR,(100 - ROUND(att_pct.Y1_tardy_pct_total,0)))
               + '% ('
-              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.tardies_total))
+              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.Y1_T_ALL))
               + ')'                                     
                AS on_time_pct
             ,(100 - ROUND(att_pct.Y1_tardy_pct_total,0)) AS inv_tardy_pct_yr
-            ,ROUND(att_counts.tardies_total,0)           AS tardy_count_yr
-            ,ROUND(att_counts.OSS,0) AS suspensions
-            ,ROUND(att_counts.iss,0) AS ISS
-            ,ROUND(att_counts.oss,0) AS OSS
+            ,att_counts.Y1_T_ALL AS tardy_count_yr
+            ,att_counts.Y1_OSS + Y1_ISS AS suspensions
+            ,att_counts.Y1_ISS AS ISS
+            ,att_counts.Y1_OSS AS OSS
            
       --GPA
       --GPA$detail#nca
@@ -612,20 +609,20 @@ FROM
             
       --College test scores
       --KTC$highest_scores_wide
-            ,ktc.PSAT_highest_math
-            ,ktc.PSAT_highest_verbal
-            ,ktc.PSAT_highest_writing
-            ,ktc.PSAT_highest_combined
-            ,ktc.SAT_highest_math
-            ,ktc.SAT_highest_verbal
-            ,ktc.SAT_highest_writing
-            ,ktc.SAT_highest_math_verbal
-            ,ktc.SAT_highest_combined
-            ,ktc.ACT_highest_math
-            ,ktc.ACT_highest_english
-            ,ktc.ACT_highest_reading
-            ,ktc.ACT_highest_science
-            ,ktc.ACT_highest_composite
+            --,ktc.PSAT_highest_math
+            --,ktc.PSAT_highest_verbal
+            --,ktc.PSAT_highest_writing
+            --,ktc.PSAT_highest_combined
+            --,ktc.SAT_highest_math
+            --,ktc.SAT_highest_verbal
+            --,ktc.SAT_highest_writing
+            --,ktc.SAT_highest_math_verbal
+            --,ktc.SAT_highest_combined
+            --,ktc.ACT_highest_math
+            --,ktc.ACT_highest_english
+            --,ktc.ACT_highest_reading
+            --,ktc.ACT_highest_science
+            --,ktc.ACT_highest_composite
       --HSPA
             ,hspa.LAL_scale_score AS HSPA_LAL_scale
             ,hspa.LAL_proficiency AS HSPA_LAL_prof
@@ -636,9 +633,9 @@ FROM
        
       --ATTENDANCE
       LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
-        ON roster.studentid = att_counts.id
+        ON roster.studentid = att_counts.studentid
       LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
-        ON roster.studentid = att_pct.id
+        ON roster.studentid = att_pct.studentid
         
       --GPA
       LEFT OUTER JOIN GPA$detail#NCA nca_gpa WITH (NOLOCK)
@@ -705,7 +702,7 @@ FROM
        AND GETDATE() <= ar_yr.end_date
        AND ar_yr.time_hierarchy = 1 
        
-      --MAP (LEXILE)
+      --MAP
       LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_read_cur WITH (NOLOCK)
         ON roster.studentid = map_read_cur.ps_studentid
        AND map_read_cur.measurementscale  = 'Reading'
@@ -730,16 +727,11 @@ FROM
        AND disc.rn = 1
        AND disc.logtypeid = 3023      
       LEFT OUTER JOIN DISC$counts_wide dcounts WITH (NOLOCK)
-        ON roster.studentid = dcounts.base_studentid       
-      LEFT OUTER JOIN (SELECT grade_level
-                             ,MAX(peer_count) AS in_grade_denom
-                       FROM roster WITH (NOLOCK)
-                       GROUP BY grade_level) dem
-        ON roster.grade_level = dem.grade_level       
+        ON roster.studentid = dcounts.base_studentid             
       
       --Test scores
-      LEFT OUTER JOIN KTC$highest_scores_wide ktc WITH(NOLOCK)
-        ON roster.student_number = ktc.student_number
+      --LEFT OUTER JOIN KTC$highest_scores_wide ktc WITH(NOLOCK)
+      --  ON roster.student_number = ktc.student_number
       LEFT OUTER JOIN HSPA$best_score hspa WITH(NOLOCK)
         ON roster.SID = hspa.SID       
      ) sub_1

@@ -1,27 +1,32 @@
---Y1 Tracker
-
 USE KIPP_NJ
 GO
 
 ALTER VIEW REPORTING$progress_detail#NCA AS
-WITH roster AS
-     (
-      SELECT s.id AS JOINID
-            ,s.student_number AS ID
-            ,s.lastfirst AS NAME
-            ,c.grade_level AS GR
-            ,cs.advisor AS ADVISOR
-            ,cs.SPEDLEP AS IEP
-      FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
-      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
-        ON c.studentid = s.id
-       AND s.enroll_status = 0
-      LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
-        ON cs.studentid = s.id
-      WHERE year = dbo.fn_Global_Academic_Year()
-        AND c.rn = 1        
-        AND c.schoolid = 73253
-     )
+
+WITH roster AS (
+  SELECT s.id AS JOINID
+        ,s.student_number AS ID
+        ,s.lastfirst AS NAME
+        ,c.grade_level AS GR
+        ,cs.advisor AS ADVISOR
+        ,cs.SPEDLEP AS IEP
+        ,CASE 
+          WHEN ms.schoolid IS NULL THEN 'New to TEAM Schools'
+          WHEN ms.schoolid = 73252 THEN 'Rise'
+          WHEN ms.schoolid = 133570965 THEN 'TEAM Academy'
+         END AS prev_school
+  FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..COHORT$middle_school_attended ms WITH(NOLOCK)
+    ON c.studentid = ms.studentid
+  JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
+    ON c.studentid = s.id
+   AND s.enroll_status = 0
+  LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
+    ON cs.studentid = s.id
+  WHERE c.year = dbo.fn_Global_Academic_Year()
+    AND c.rn = 1        
+    AND c.schoolid = 73253
+ )
 
 ,entry_grade AS (
   SELECT STUDENTID
@@ -32,36 +37,12 @@ WITH roster AS
     AND RN = 1
  )
 
-,prev_school AS (
-  SELECT STUDENTID
-        ,LASTFIRST
-        ,MAX(grade_level) AS grade_level
-        ,CASE 
-          WHEN SCHOOLID IS NULL THEN 'New to TEAM Schools'
-          WHEN SCHOOLID = 73252 THEN 'Rise'
-          WHEN SCHOOLID = 133570965 THEN 'TEAM Academy'
-         END AS prev_school
-  FROM
-  (
-   SELECT s.ID AS studentid
-         ,s.LASTFIRST
-         ,co.GRADE_LEVEL
-         ,co.SCHOOLID
-   FROM STUDENTS s WITH(NOLOCK)
-   LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
-     ON s.ID = co.STUDENTID
-    AND co.SCHOOLID != 73253
-   WHERE s.SCHOOLID = 73253
-     AND s.ENROLL_STATUS = 0
-  ) sub
-  GROUP BY STUDENTID, LASTFIRST, SCHOOLID
- )  
-
 SELECT roster.ID
       ,roster.NAME
       ,roster.GR
       ,roster.ADVISOR
       ,roster.IEP
+      ,roster.prev_school
       ,gr.credittype AS SUBJECT
       ,gr.course_number AS COURSE_NUM
       ,gr.course_name AS COURSE_NAME
@@ -203,8 +184,7 @@ SELECT roster.ID
         WHEN ele_a.simple_avg >= 60 AND ele_a.simple_avg < 65 THEN 'Close (60-64)'
         WHEN ele_a.simple_avg >= 55 AND ele_a.simple_avg < 60 THEN 'Fair (55-59)'
         WHEN ele_a.simple_avg < 55 THEN 'Fail (< 55)'
-       END AS ay_label
-      ,prev_school.prev_school
+       END AS ay_label      
       ,entry_grade.GRADE_LEVEL AS entry_grade
 FROM roster WITH (NOLOCK)
 LEFT OUTER JOIN GRADES$DETAIL#NCA gr WITH (NOLOCK)
@@ -236,7 +216,5 @@ LEFT OUTER JOIN GRADES$elements ele_p WITH (NOLOCK)
  AND ele_p.pgf_type = 'P'
 LEFT OUTER JOIN GPA$detail#NCA gpa WITH (NOLOCK)
   ON roster.joinid = gpa.studentid
-LEFT OUTER JOIN prev_school
-  ON roster.JOINID = prev_school.studentid
 LEFT OUTER JOIN entry_grade
   ON roster.JOINID = entry_grade.STUDENTID  

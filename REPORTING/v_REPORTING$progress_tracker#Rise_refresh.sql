@@ -1,81 +1,97 @@
---only shows 5 core credit types
---dependent on grades$wide_credittype#MS > grades$detail_placeholder#MS
-
 USE KIPP_NJ
 GO
 
 ALTER VIEW REPORTING$progress_tracker#Rise_refresh AS
-WITH roster AS
-     (
-      SELECT s.id
-            ,s.student_number
-            ,s.schoolid
-            ,s.lastfirst
-            ,s.grade_level
-            ,s.team
-            ,cs.advisor       
-            ,cs.SPEDLEP
-            ,s.gender
-            ,s.mother
-            ,s.father       
-            ,s.home_phone
-            ,cs.mother_cell
-            ,cs.mother_home
-            ,cs.father_cell
-            ,cs.father_home
-            ,cs.guardianemail AS contactemail
-      FROM STUDENTS s WITH (NOLOCK)
-      LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
-        ON s.id = cs.studentid
-      WHERE s.schoolid = 73252
-        AND s.enroll_status = 0
-        --AND s.id = 4686
-     )
+
+WITH roster AS (
+  SELECT s.id
+        ,s.student_number
+        ,s.schoolid
+        ,s.lastfirst
+        ,s.grade_level
+        ,s.team
+        ,cs.advisor       
+        ,cs.SPEDLEP
+        ,s.gender
+        ,s.mother
+        ,s.father       
+        ,s.home_phone
+        ,cs.mother_cell
+        ,cs.mother_home
+        ,cs.father_cell
+        ,cs.father_home
+        ,cs.guardianemail AS contactemail
+  FROM STUDENTS s WITH (NOLOCK)
+  LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
+    ON s.id = cs.studentid
+  WHERE s.schoolid = 73252
+    AND s.enroll_status = 0
+    --AND s.id = 4686
+ )
+
+,cur_hex AS (
+  SELECT CASE 
+          WHEN RIGHT(time_per_name, 1) IN (1, 3, 5) THEN 'RT' + RIGHT(time_per_name, 1)
+          ELSE 'RT' + CONVERT(VARCHAR,RIGHT(time_per_name, 1) - 1)
+         END AS hex_a
+        ,CASE 
+          WHEN RIGHT(time_per_name, 1) IN (1, 3, 5) THEN 'RT' + CONVERT(VARCHAR,RIGHT(time_per_name, 1) + 1)
+          ELSE 'RT' + RIGHT(time_per_name, 1)
+         END AS hex_b
+  FROM REPORTING$dates
+  WHERE academic_year = 2014
+    AND schoolid = 73252
+    AND identifier = 'HEX'
+    AND start_date <= GETDATE()
+    AND end_date >= GETDATE()
+ )
        
 SELECT ROW_NUMBER() OVER(
-           ORDER BY roster.grade_level, roster.lastfirst)  AS Count
+           ORDER BY roster.grade_level
+                   ,roster.lastfirst) AS Count
       ,roster.*
        
 --ATTENDANCE
       --yr
-      ,att_counts.absences_total           AS Y1_absences_total
-      ,att_counts.absences_undoc           AS Y1_absences_undoc
-      ,ROUND(att_pct.Y1_att_pct_total,0)   AS Y1_att_pct_total
-      ,ROUND(att_pct.Y1_att_pct_undoc,0)   AS Y1_att_pct_undoc      
-      ,att_counts.tardies_total            AS Y1_tardies_total
-      ,att_counts.tardies_T10              AS Y1_tardies_t10
+      ,att_counts.Y1_ABS_ALL AS Y1_absences_total
+      ,att_counts.Y1_A AS Y1_absences_undoc
+      ,ROUND(att_pct.Y1_att_pct_total,0) AS Y1_att_pct_total
+      ,ROUND(att_pct.Y1_att_pct_undoc,0) AS Y1_att_pct_undoc      
+      ,att_counts.Y1_T_ALL AS Y1_tardies_total
+      ,att_counts.Y1_T10 AS Y1_tardies_t10
       ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total
       --cur   
-      ,att_counts.cur_absences_total           AS curterm_absences_total
-      ,att_counts.cur_absences_undoc           AS curterm_absences_undoc
+      ,att_counts.CUR_ABS_ALL AS curterm_absences_total
+      ,att_counts.CUR_A AS curterm_absences_undoc
       ,ROUND(att_pct.cur_att_pct_total,0)      AS curterm_att_pct_total
       ,ROUND(att_pct.cur_att_pct_undoc,0)      AS curterm_att_pct_undoc      
-      ,att_counts.cur_tardies_total            AS curterm_tardies_total
-      ,att_counts.cur_tardies_T10              AS curterm_tardies_t10
+      ,att_counts.CUR_T_ALL AS curterm_tardies_total
+      ,att_counts.CUR_T10 AS curterm_tardies_t10
       ,ROUND(att_pct.cur_tardy_pct_total,0)    AS curterm_tardy_pct_total
 
 --PROMOTIONAL STATUS
       ,promo.attendance_points
-      ,ROUND(promo.y1_att_pts_pct,1) AS ATT_POINTS_PCT
-      ,promo.att_string
-      ,promo.promo_status_overall      
-      ,promo.GPA_Promo_Status_Grades
-      ,promo.promo_status_att
-      ,promo.promo_status_hw
-      ,promo.days_to_perfect
+      ,ROUND(promo.y1_att_pts_pct,1) AS ATT_POINTS_PCT      
+      ,promo.promo_overall_rise
+      ,promo.promo_grades_rise
+      ,promo.promo_att_rise
+      ,promo.promo_hw_rise
+      ,promo.days_to_90
 
 --GPA
-      ,CONVERT(FLOAT,gpa.gpa_t1) AS gpa_t1
-      ,gpa.GPA_T1_Rank_G AS GPA_T1_RANK
-      ,CONVERT(FLOAT,gpa.gpa_t2) AS gpa_t2
-      ,gpa.GPA_T2_Rank_G AS GPA_T2_RANK
-      ,CONVERT(FLOAT,gpa.GPA_t3) AS gpa_t3
-      ,gpa.GPA_T3_Rank_G AS GPA_T3_RANK
-      ,CONVERT(FLOAT,gpa.gpa_y1) AS gpa_y1       
-      ,gpa.GPA_Y1_Rank_G AS GPA_Y1_RANK
-      ,gpa.elements
-      ,gpa.num_failing
-      ,gpa.failing
+      
+      ,CONVERT(FLOAT,gpa.GPA_t1_all) AS gpa_t1
+      ,gpa.rank_gr_t1_all AS GPA_T1_RANK
+      ,CONVERT(FLOAT,gpa.GPA_t2_all) AS gpa_t2
+      ,gpa.rank_gr_t2_all AS GPA_T2_RANK
+      ,CONVERT(FLOAT,gpa.GPA_t3_all) AS gpa_t3
+      ,gpa.rank_gr_t3_all AS GPA_T3_RANK
+      ,CONVERT(FLOAT,gpa.GPA_y1_all) AS gpa_y1       
+      ,gpa.rank_gr_y1_all AS GPA_Y1_RANK      
+      ,gpa.elements_all
+      ,gpa.failing_all
+      ,gpa.n_failing_all      
+      ,gpa.n_gr AS IN_GRADE_DENOM
 
 --COURSE GRADES
       ,grades.rc1_course_number AS ENGLISH_course_number
@@ -330,13 +346,12 @@ SELECT ROW_NUMBER() OVER(
        ELSE NULL
       END AS BASE_LEX_GLQ_CURRENT
 
-     --F&P
-     --update terms in JOIN
+     --F&P     
      ,CASE
-       WHEN fp_base.letter_level IS NOT NULL THEN fp_base.letter_level
-       ELSE fp_curr.letter_level
+       WHEN fp_base.read_lvl IS NOT NULL THEN fp_base.read_lvl
+       ELSE fp_curr.read_lvl
       END AS start_letter
-     ,fp_curr.letter_level AS end_letter
+     ,fp_curr.read_lvl AS end_letter
        --GLQ
      ,CASE
        WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ
@@ -346,11 +361,11 @@ SELECT ROW_NUMBER() OVER(
      ,(fp_curr.GLEQ - CASE WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ ELSE fp_curr.GLEQ END) AS GLEQ_Growth
        --Level #
      ,CASE
-       WHEN fp_base.level_number IS NOT NULL THEN fp_base.level_number
-       ELSE fp_curr.level_number
+       WHEN fp_base.lvl_num IS NOT NULL THEN fp_base.lvl_num
+       ELSE fp_curr.lvl_num
       END AS [Start_#]
-     ,fp_curr.level_number AS [End_#]
-     ,(fp_curr.level_number - CASE WHEN fp_base.level_number IS NOT NULL THEN fp_base.level_number ELSE fp_curr.level_number END) AS [Levels_grown]
+     ,fp_curr.lvl_num AS [End_#]
+     ,(fp_curr.lvl_num - CASE WHEN fp_base.lvl_num IS NOT NULL THEN fp_base.lvl_num ELSE fp_curr.lvl_num END) AS [Levels_grown]
       
 --Accelerated Reader
 --update terms in JOIN
@@ -391,157 +406,175 @@ SELECT ROW_NUMBER() OVER(
        CASE
         WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN NULL 
         ELSE ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words))
-       END,0) AS INT)),1),'.00','') AS words_needed_cur_term
-     ,gpa.Y1_Dem AS IN_GRADE_DENOM
+       END,0) AS INT)),1),'.00','') AS words_needed_cur_term     
       
 --MAP scores
---MAP$reading_wide
---MAP$math_wide
-      --MAP reading -- add a new block for each test year, delete oldest
-        --13-14
+/*--UPDATE FIELDS FOR CURRENT YEAR--*/
+--14-15
+      --reading
+      ,map_all.spr_2015_read_pctle
+      ,map_all.w_2015_read_pctle
+      ,map_all.f_2014_read_pctle      
+      ,map_all.spr_2015_read_rit
+      ,map_all.w_2015_read_rit
+      ,map_all.f_2014_read_rit                  
+      --math
+      ,map_all.spr_2015_math_pctle
+      ,map_all.w_2015_math_pctle
+      ,map_all.f_2014_math_pctle      
+      ,map_all.spr_2015_math_rit
+      ,map_all.w_2015_math_rit
+      ,map_all.f_2014_math_rit
+      --lang
+      ,map_all.spr_2015_lang_pctle
+      ,map_all.w_2015_lang_pctle
+      ,map_all.f_2014_lang_pctle
+      ,map_all.spr_2015_lang_rit
+      ,map_all.w_2015_lang_rit
+      ,map_all.f_2014_lang_rit            
+      --sci
+      ,map_all.spr_2015_gen_pctle
+      ,map_all.w_2015_GEN_pctle
+      ,map_all.f_2014_gen_pctle
+      ,map_all.spr_2015_gen_rit
+      ,map_all.w_2015_GEN_RIT
+      ,map_all.f_2014_gen_rit
+     
+ --13-14
+      --reading
       ,map_all.spr_2014_read_pctle
-      ,map_all.w_2014_READ_pctle AS w_2013_read_pctle
+      ,map_all.w_2014_read_pctle
       ,map_all.f_2013_read_pctle      
       ,map_all.spr_2014_read_rit
-      ,map_all.w_2014_READ_RIT AS w_2013_read_rit                  
+      ,map_all.w_2014_read_rit
       ,map_all.f_2013_read_rit                  
-        --12-13
-      ,map_all.spr_2013_read_pctle
-      ,map_all.f_2012_read_pctle
-      ,map_all.spr_2013_read_rit
-      ,map_all.f_2012_read_rit                  
-        --11-12
-      ,map_all.spr_2012_read_pctle
-      ,map_all.f_2011_read_pctle
-      ,map_all.spr_2012_read_rit
-      ,map_all.f_2011_read_rit            
-        --10-11
-      ,map_all.spr_2011_read_pctle
-      ,map_all.f_2010_read_pctle
-      ,map_all.spr_2011_read_rit
-      ,map_all.f_2010_read_rit      
-            
-      --MAP math -- add a new block for each test year, delete oldest
-        --13-14
+      --math
       ,map_all.spr_2014_math_pctle
-      ,map_all.w_2014_MATH_pctle AS w_2013_math_pctle
+      ,map_all.w_2014_math_pctle
       ,map_all.f_2013_math_pctle      
       ,map_all.spr_2014_math_rit
-      ,map_all.w_2014_MATH_RIT AS w_2013_math_rit
-      ,map_all.f_2013_math_rit            
-        --12-13
-      ,map_all.spr_2013_math_pctle
-      ,map_all.f_2012_math_pctle
-      ,map_all.spr_2013_math_rit
-      ,map_all.f_2012_math_rit      
-        --11-12
-      ,map_all.spr_2012_math_pctle
-      ,map_all.f_2011_math_pctle      
-      ,map_all.spr_2012_math_rit
-      ,map_all.f_2011_math_rit      
-        --10-11
-      ,map_all.spr_2011_math_pctle
-      ,map_all.f_2010_math_pctle
-      ,map_all.spr_2011_math_rit
-      ,map_all.f_2010_math_rit      
-      
-      --MAP langauge -- add a new block for each test year, delete oldest
-        --13-14
+      ,map_all.w_2014_math_rit
+      ,map_all.f_2013_math_rit
+      --lang
       ,map_all.spr_2014_lang_pctle
-      ,map_all.w_2014_LANG_pctle AS w_2013_lang_pctle
+      ,map_all.w_2014_lang_pctle
       ,map_all.f_2013_lang_pctle
       ,map_all.spr_2014_lang_rit
-      ,map_all.w_2014_lang_rit AS w_2013_lang_rit
+      ,map_all.w_2014_lang_rit
       ,map_all.f_2013_lang_rit            
-        --12-13
-      ,map_all.spr_2013_lang_pctle
-      ,map_all.f_2012_lang_pctle
-      ,map_all.spr_2013_lang_rit
-      ,map_all.f_2012_lang_rit      
-        --11-12
-      ,map_all.spr_2012_lang_pctle
-      ,map_all.f_2011_lang_pctle      
-      ,map_all.spr_2012_lang_rit
-      ,map_all.f_2011_lang_rit      
-        --10-11
-      ,map_all.spr_2011_lang_pctle
-      ,map_all.f_2010_lang_pctle
-      ,map_all.spr_2011_lang_rit
-      ,map_all.f_2010_lang_rit      
-      
-      --MAP science gen -- add a new block for each test year, delete oldest
-        --13-14
+      --sci
       ,map_all.spr_2014_gen_pctle
-      ,map_all.w_2014_GEN_pctle AS w_2013_gen_pctle
+      ,map_all.w_2014_GEN_pctle
       ,map_all.f_2013_gen_pctle
       ,map_all.spr_2014_gen_rit
-      ,map_all.w_2014_GEN_RIT AS w_2013_gen_rit
-      ,map_all.f_2013_gen_rit            
-        --12-13
+      ,map_all.w_2014_GEN_RIT
+      ,map_all.f_2013_gen_rit
+
+ --12-13
+      --reading
+      ,map_all.spr_2013_read_pctle
+      ,map_all.w_2013_read_pctle
+      ,map_all.f_2012_read_pctle      
+      ,map_all.spr_2013_read_rit
+      ,map_all.w_2013_read_rit
+      ,map_all.f_2012_read_rit                  
+      --math
+      ,map_all.spr_2013_math_pctle
+      ,map_all.w_2013_math_pctle
+      ,map_all.f_2012_math_pctle      
+      ,map_all.spr_2013_math_rit
+      ,map_all.w_2013_math_rit
+      ,map_all.f_2012_math_rit
+      --lang
+      ,map_all.spr_2013_lang_pctle
+      ,map_all.w_2013_lang_pctle
+      ,map_all.f_2012_lang_pctle
+      ,map_all.spr_2013_lang_rit
+      ,map_all.w_2013_lang_rit
+      ,map_all.f_2012_lang_rit            
+      --sci
       ,map_all.spr_2013_gen_pctle
+      ,map_all.w_2013_GEN_pctle
       ,map_all.f_2012_gen_pctle
       ,map_all.spr_2013_gen_rit
-      ,map_all.f_2012_gen_rit      
-        --11-12
+      ,map_all.w_2013_GEN_RIT
+      ,map_all.f_2012_gen_rit
+     
+ --11-12
+      --reading
+      ,map_all.spr_2012_read_pctle
+      --,map_all.w_2012_read_pctle
+      ,map_all.f_2011_read_pctle      
+      ,map_all.spr_2012_read_rit
+      --,map_all.w_2012_read_rit
+      ,map_all.f_2011_read_rit                  
+      --math
+      ,map_all.spr_2012_math_pctle
+      --,map_all.w_2012_math_pctle
+      ,map_all.f_2011_math_pctle      
+      ,map_all.spr_2012_math_rit
+      --,map_all.w_2012_math_rit
+      ,map_all.f_2011_math_rit
+      --lang
+      ,map_all.spr_2012_lang_pctle
+      --,map_all.w_2012_lang_pctle
+      ,map_all.f_2011_lang_pctle
+      ,map_all.spr_2012_lang_rit
+      --,map_all.w_2012_lang_rit
+      ,map_all.f_2011_lang_rit            
+      --sci
       ,map_all.spr_2012_gen_pctle
-      ,map_all.f_2011_gen_pctle      
+      --,map_all.w_2012_GEN_pctle
+      ,map_all.f_2011_gen_pctle
       ,map_all.spr_2012_gen_rit
-      ,map_all.f_2011_gen_rit      
-        --10-11
-      ,map_all.spr_2011_gen_pctle
-      ,map_all.f_2010_gen_pctle
-      ,map_all.spr_2011_gen_rit
-      ,map_all.f_2010_gen_rit      
-      
-      --MAP cp -- add a new block for each test year, delete oldest      
-        --12-13
-      ,map_all.spr_2013_cp_pctle
-      ,map_all.f_2012_cp_pctle
-      ,map_all.spr_2013_cp_rit
-      ,map_all.f_2012_cp_rit      
-        --11-12
-      ,map_all.spr_2012_cp_pctle
-      ,map_all.f_2011_cp_pctle      
-      ,map_all.spr_2012_cp_rit
-      ,map_all.f_2011_cp_rit      
-        --10-11
-      ,map_all.spr_2011_cp_pctle
-      ,map_all.f_2010_cp_pctle
-      ,map_all.spr_2011_cp_rit
-      ,map_all.f_2010_cp_rit 
-
+      --,map_all.w_2012_GEN_RIT
+      ,map_all.f_2011_gen_rit
+     
 --NJASK scores
 --NJASK$ela_wide
---NJASK$math_wide
-      
-      --ELA scores -- add a new line for each test year, delete oldest
-      ,njask_ela.score_2013 AS ela_score_2013
-      ,njask_ela.score_2012 AS ela_score_2012
-      ,njask_ela.score_2011 AS ela_score_2011      
-      ,njask_ela.Score_2010 AS ela_score_2010      
-      --ELA proficiency -- add a new line for each test year, delete oldest
-      ,njask_ela.prof_2013 AS ela_prof_2013
-      ,njask_ela.prof_2012 AS ela_prof_2012
-      ,njask_ela.prof_2011 AS ela_prof_2011      
-      ,njask_ela.Prof_2010 AS ela_prof_2010
-      
-      --Math scores -- add a new line for each test year, delete oldest
-      ,njask_math.score_2013 AS math_score_2013
-      ,njask_math.score_2012 AS math_score_2012
-      ,njask_math.score_2011 AS math_score_2011
-      ,njask_math.Score_2010 AS math_score_2010
-      --Math proficiency -- add a new line for each test year, delete oldest
-      ,njask_math.prof_2013 AS math_prof_2013
-      ,njask_math.prof_2012 AS math_prof_2012
-      ,njask_math.prof_2011 AS math_prof_2011      
-      ,njask_math.Prof_2010 AS math_prof_2010
-      
-      --Math grade level -- add a new line for each test year, delete oldest
+--NJASK$math_wide      
+/*--UPDATE FIELDS FOR CURRENT YEAR--*/
+
+--13-14      
+      --Grade
+      ,njask_math.gr_lev_2014 AS njask_gr_lev_2014
+      --ELA
+      ,njask_ela.score_2014 AS ela_score_2014
+      ,njask_ela.prof_2014 AS ela_prof_2014      
+      --Math
+      ,njask_math.score_2014 AS math_score_2014
+      ,njask_math.prof_2014 AS math_prof_2014
+
+--12-13
+      --Grade
       ,njask_math.gr_lev_2013 AS njask_gr_lev_2013
+      --ELA
+      ,njask_ela.score_2013 AS ela_score_2013
+      ,njask_ela.prof_2013 AS ela_prof_2013      
+      --Math
+      ,njask_math.score_2013 AS math_score_2013
+      ,njask_math.prof_2013 AS math_prof_2013
+
+--11-12      
+      --Grade
       ,njask_math.gr_lev_2012 AS njask_gr_lev_2012
-      ,njask_math.gr_lev_2011 AS njask_gr_lev_2011      
-      ,njask_math.gr_lev_2010 AS njask_gr_lev_2010
-      
+      --ELA
+      ,njask_ela.score_2012 AS ela_score_2012
+      ,njask_ela.prof_2012 AS ela_prof_2012      
+      --Math
+      ,njask_math.score_2012 AS math_score_2012
+      ,njask_math.prof_2012 AS math_prof_2012      
+
+--10-11
+      --Grade
+      ,njask_math.gr_lev_2011 AS njask_gr_lev_2011
+      --ELA
+      ,njask_ela.score_2011 AS ela_score_2011
+      ,njask_ela.prof_2011 AS ela_prof_2011      
+      --Math
+      ,njask_math.score_2011 AS math_score_2011
+      ,njask_math.prof_2011 AS math_prof_2011
+
 --DISCIPLINE
 --DISC$log#static
       ,disc_recent.disc_01_date_reported
@@ -608,27 +641,27 @@ FROM roster WITH (NOLOCK)
 
 --Attendance
 LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
-  ON roster.id = att_counts.id
+  ON roster.id = att_counts.studentid
 LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
-  ON roster.id = att_pct.id
+  ON roster.id = att_pct.studentid
 LEFT OUTER JOIN ATT_MEM$membership_counts membership_counts WITH (NOLOCK)
-  ON roster.id = membership_counts.id
+  ON roster.id = membership_counts.studentid
 
 --Grades & GPA
 LEFT OUTER JOIN GRADES$wide_credit_core#MS grades WITH (NOLOCK)
   ON roster.ID = grades.studentid
-LEFT OUTER JOIN GPA$detail#Rise gpa WITH (NOLOCK)
+LEFT OUTER JOIN GPA$detail#MS gpa WITH (NOLOCK)
   ON roster.id = gpa.studentid
-LEFT OUTER JOIN REPORTING$promo_status#Rise promo WITH (NOLOCK)
+LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH (NOLOCK)
   ON roster.id = promo.studentid
   
---LITERACY -- upadate parameters for current term
+--LITERACY
   --F&P
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_base WITH (NOLOCK)
+LEFT OUTER JOIN LIT$test_events#identifiers fp_base WITH (NOLOCK)
   ON roster.student_number = fp_base.STUDENT_NUMBER
- AND fp_base.year = dbo.fn_Global_Academic_Year()
- AND fp_base.achv_base = 1
-LEFT OUTER JOIN LIT$FP_test_events_long#identifiers#static fp_curr WITH (NOLOCK)
+ AND fp_base.academic_year = dbo.fn_Global_Academic_Year()
+ AND fp_base.achv_base_yr = 1
+LEFT OUTER JOIN LIT$test_events#identifiers fp_curr WITH (NOLOCK)
   ON roster.student_number = fp_curr.STUDENT_NUMBER
  --AND fp_curr.year = dbo.fn_Global_Academic_Year()
  AND fp_curr.achv_curr_all = 1
@@ -652,11 +685,11 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.id = ar_curr.studentid 
- AND ar_curr.time_period_name = 'RT5'
+ AND ar_curr.time_period_name = (SELECT hex_a FROM cur_hex)
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
   ON roster.id = ar_curr2.studentid 
- AND ar_curr2.time_period_name = 'RT6'
+ AND ar_curr2.time_period_name = (SELECT hex_b FROM cur_hex)
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
 --MAP

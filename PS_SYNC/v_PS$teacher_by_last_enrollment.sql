@@ -3,37 +3,19 @@ GO
 
 ALTER VIEW PS$teacher_by_last_enrollment AS
 
-SELECT schoolid
-      ,studentid
-      ,teacherid
-      ,CAST(course_number AS VARCHAR(11)) course_number
-      ,CAST(termid AS NUMERIC) termid
-      ,last_name
-      ,first_name
-      ,lastfirst
-      ,rn
-FROM
-     (
-      SELECT cc.schoolid
-            ,cc.studentid
-            ,cc.teacherid
-            ,cc.course_number
-            ,cc.termid
-            ,tch_sub.last_name
-            ,tch_sub.first_name
-            ,tch_sub.lastfirst
-            ,ROW_NUMBER() OVER(
-                PARTITION BY cc.studentid, cc.course_number
-                    ORDER BY cc.termid DESC) AS rn
-      FROM CC WITH(NOLOCK)
-      JOIN (
-            SELECT id AS teacherid
-                  ,lastfirst
-                  ,last_name
-                  ,first_name
-            FROM TEACHERS WITH(NOLOCK)
-           ) tch_sub
-        ON cc.teacherid = tch_sub.teacherid
-      WHERE cc.termid >= dbo.fn_Global_Term_Id()
-     ) sub1
-WHERE rn = 1
+SELECT cc.schoolid
+      ,cc.studentid
+      ,cc.teacherid
+      ,cc.course_number
+      ,cc.termid
+      ,cc.sectionid
+      ,t.last_name
+      ,t.first_name
+      ,t.lastfirst
+      ,ROW_NUMBER() OVER(
+          PARTITION BY cc.studentid, cc.course_number
+              ORDER BY cc.termid DESC) AS rn
+FROM CC WITH(NOLOCK)
+JOIN teachers t WITH(NOLOCK)
+  ON cc.teacherid = t.id
+WHERE cc.termid >= dbo.fn_Global_Term_Id()
