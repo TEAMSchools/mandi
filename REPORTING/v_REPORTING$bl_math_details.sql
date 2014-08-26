@@ -20,7 +20,8 @@ WITH
        AND s.enroll_status = 0       
       WHERE year = 2014 -- dbo.fn_Global_Academic_Year()
         AND c.rn = 1        
-        AND c.schoolid = 73252        
+        AND c.schoolid = 73252 
+	--	AND c.studentid = 4742       
 	)
 
 --ST Math data
@@ -37,16 +38,18 @@ WITH
 				,stmath.objective_name
 				,stmath.cur_hurdle_num_tries
 				,stmath.teacher_name
-				,CASE WHEN stmath.gcd = 'Kindergarten' THEN 0
-					  WHEN stmath.gcd = 'First Grade' THEN 1
-					  WHEN stmath.gcd = 'Second Grade' THEN 2
-					  WHEN stmath.gcd = 'Third Grade' THEN 3
-					  WHEN stmath.gcd = 'Fourth Grade' THEN 4
-					  WHEN stmath.gcd = 'Fifth Grade' THEN 5
-					  WHEN stmath.gcd = 'Sixth Grade' THEN 6
+				,stmath.gcd
+				,CASE WHEN stmath.gcd = 'Kindergarten'	THEN 0
+					  WHEN stmath.gcd = 'First Grade'	THEN 1
+					  WHEN stmath.gcd = 'Second Grade'	THEN 2
+					  WHEN stmath.gcd = 'Third Grade'	THEN 3
+					  WHEN stmath.gcd = 'Fourth Grade'	THEN 4
+					  WHEN stmath.gcd = 'Fifth Grade'	THEN 5
+					  WHEN stmath.gcd = 'Sixth Grade'	THEN 6
 					  WHEN stmath.gcd = 'Seventh Grade' THEN 7
-					  WHEN stmath.gcd = 'Eigth Grade' THEN 8
-					  WHEN stmath.gcd = 'Ninth Grade' THEN 9
+					  WHEN stmath.gcd = 'Eigth Grade'	THEN 8
+					  WHEN stmath.gcd = 'Ninth Grade'	THEN 9
+					  WHEN stmath.gcd = 'Secondary Intervention' THEN 6
 				 ELSE stmath.gcd END AS stmath_level
 				,stmath.num_lab_logins
 				,stmath.fluency_time_spent
@@ -106,16 +109,40 @@ WITH
 	  AND am.date = '2014-06-20'
 	)
 
+--map data
+
+	,map AS
+	(
+	SELECT map.*
+
+	FROM MAP$comprehensive#identifiers map
+
+	WHERE map.rn_curr = 1
+	  AND map.map_year = dbo.fn_Global_Academic_Year()
+	  AND map.discipline = 'Mathematics'
+	)
+
 --select fields for view
 
 SELECT roster.stu_lastfirst
 	  ,roster.stu_grade_level
 	  ,roster.base_student_number
+	  ,roster.base_studentid
       ,stmath.K_5_Progress AS stmath_progress
-	  ,CASE WHEN stmath.K_5_Progress = 100 THEN 1 ELSE NULL END AS st_math_achieved
+--	  ,stmath.stmath_level
+	  ,CASE WHEN stmath.K_5_Progress = 100 THEN 1 
+			ELSE NULL 
+			END AS stmath_achieved
 	  ,khan.mastered AS khan_obj
+	  ,CASE WHEN roster.stu_grade_level = 6 AND khan.mastered >= 100 THEN 1 
+			WHEN roster.stu_grade_level = 7 AND khan.mastered >= 200 THEN 1 
+			WHEN roster.stu_grade_level = 8 AND khan.mastered >= 200 THEN 1  
+			ELSE NULL 
+			END AS khan_achieved
 	  ,am.objectives AS am_obj
-
+	  ,map.testritscore AS map_rit
+	  ,map.testpercentile AS map_pctl
+	
 
 FROM roster 
 
@@ -127,3 +154,6 @@ LEFT OUTER JOIN khan
 
 LEFT OUTER JOIN am
   ON roster.base_studentid = am.studentid
+
+LEFT OUTER JOIN map
+  ON roster.base_student_number = map.studentid
