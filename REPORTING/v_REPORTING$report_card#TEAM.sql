@@ -5,7 +5,7 @@ ALTER VIEW REPORTING$report_card#TEAM AS
 
 WITH curterm AS (
   SELECT time_per_name
-        ,alt_name
+        ,alt_name AS term
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND academic_year = 2014
@@ -39,7 +39,7 @@ WITH curterm AS (
         ,cs.guardianemail           
         ,cs.SPEDLEP AS SPED
         ,cs.lunch_balance AS lunch_balance
-        ,curterm.alt_name AS curterm
+        ,curterm.term AS curterm
   FROM KIPP_NJ..COHORT$comprehensive_long#static co  WITH (NOLOCK)    
   JOIN curterm
     ON 1 = 1
@@ -52,6 +52,24 @@ WITH curterm AS (
     AND co.rn = 1        
     AND co.schoolid = 133570965
  )
+
+,comments AS (
+  SELECT sec.schoolid
+        ,sec.studentid
+        ,sec.student_number
+        ,sec.course_number
+        ,sec.sectionid
+        ,sec.term
+        ,comm.teacher_comment
+        ,comm.advisor_comment
+  FROM GRADES$sections_by_term sec WITH(NOLOCK)
+  JOIN PS$comments#static comm WITH(NOLOCK)
+    ON sec.studentid = comm.studentid
+   AND sec.course_number = comm.course_number
+   AND sec.sectionid = comm.sectionid
+   AND sec.term = comm.term
+  WHERE sec.term IN (SELECT term FROM curterm)
+ )  
   
 SELECT roster.*      
       
@@ -575,49 +593,48 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 --*/ 
  
---/* 
- --GRADEBOOK COMMMENTS -- upadate fieldname and parameter for current term
-LEFT OUTER JOIN PS$comments#static comment_rc1 WITH (NOLOCK)
-  ON gr_wide.rc1_T1_enr_sectionid = comment_rc1.sectionid
- AND gr_wide.studentid = comment_rc1.id
- AND comment_rc1.finalgradename = roster.curterm
-LEFT OUTER JOIN PS$comments#static comment_rc2 WITH (NOLOCK)
-  ON gr_wide.rc2_T1_enr_sectionid = comment_rc2.sectionid
- AND gr_wide.studentid = comment_rc2.id
- AND comment_rc2.finalgradename = roster.curterm
-LEFT OUTER JOIN PS$comments#static comment_rc3 WITH (NOLOCK)
-  ON gr_wide.rc3_T1_enr_sectionid = comment_rc3.sectionid
- AND gr_wide.studentid = comment_rc3.id
- AND comment_rc3.finalgradename = roster.curterm
-LEFT OUTER JOIN PS$comments#static comment_rc4 WITH (NOLOCK)
-  ON gr_wide.rc4_T1_enr_sectionid = comment_rc4.sectionid
- AND gr_wide.studentid = comment_rc4.id
- AND comment_rc4.finalgradename = roster.curterm
-LEFT OUTER JOIN PS$comments#static comment_rc5 WITH (NOLOCK)
-  ON gr_wide.rc5_T1_enr_sectionid = comment_rc5.sectionid
- AND gr_wide.studentid = comment_rc5.id
- AND comment_rc5.finalgradename = roster.curterm
-LEFT OUTER JOIN PS$comments#static comment_rc6 WITH (NOLOCK)
-  ON gr_wide.rc6_T1_enr_sectionid = comment_rc6.sectionid
- AND gr_wide.studentid = comment_rc6.id
- AND comment_rc6.finalgradename = roster.curterm
-LEFT OUTER JOIN PS$comments#static comment_rc7 WITH (NOLOCK)
-  ON gr_wide.rc7_T1_enr_sectionid = comment_rc7.sectionid
- AND gr_wide.studentid = comment_rc7.id
- AND comment_rc7.finalgradename = roster.curterm
-LEFT OUTER JOIN PS$comments#static comment_rc8 WITH (NOLOCK)
-  ON gr_wide.rc8_T1_enr_sectionid = comment_rc8.sectionid
- AND gr_wide.studentid = comment_rc8.id
- AND comment_rc8.finalgradename = roster.curterm
-LEFT OUTER JOIN PS$comments#static comment_rc9 WITH (NOLOCK)
-  ON gr_wide.rc9_T1_enr_sectionid = comment_rc9.sectionid
- AND gr_wide.studentid = comment_rc9.id
- AND comment_rc9.finalgradename = roster.curterm
-LEFT OUTER JOIN PS$comments#static comment_rc10 WITH (NOLOCK)
-  ON gr_wide.rc10_T1_enr_sectionid = comment_rc10.sectionid
- AND gr_wide.studentid = comment_rc10.id
- AND comment_rc10.finalgradename = roster.curterm
-LEFT OUTER JOIN PS$comments#static comment_adv WITH (NOLOCK)
-  ON roster.base_studentid = comment_adv.id
- AND comment_adv.finalgradename = roster.curterm 
---*/
+--GRADEBOOK COMMMENTS
+LEFT OUTER JOIN comments comment_rc1 WITH (NOLOCK)
+  ON gr_wide.studentid = comment_rc1.studentid
+ AND gr_wide.rc1_course_number = comment_rc1.course_number
+ AND comment_rc1.term = roster.curterm
+LEFT OUTER JOIN comments comment_rc2 WITH (NOLOCK)
+  ON gr_wide.studentid = comment_rc2.studentid
+ AND gr_wide.rc2_course_number = comment_rc2.course_number
+ AND comment_rc2.term = roster.curterm
+LEFT OUTER JOIN comments comment_rc3 WITH (NOLOCK)
+  ON gr_wide.studentid = comment_rc3.studentid
+ AND gr_wide.rc3_course_number = comment_rc3.course_number
+ AND comment_rc3.term = roster.curterm
+LEFT OUTER JOIN comments comment_rc4 WITH (NOLOCK)
+  ON gr_wide.studentid = comment_rc4.studentid
+ AND gr_wide.rc4_course_number = comment_rc4.course_number
+ AND comment_rc4.term = roster.curterm
+LEFT OUTER JOIN comments comment_rc5 WITH (NOLOCK)
+  ON gr_wide.studentid = comment_rc5.studentid
+ AND gr_wide.rc5_course_number = comment_rc5.course_number
+ AND comment_rc5.term = roster.curterm
+LEFT OUTER JOIN comments comment_rc6 WITH (NOLOCK)
+  ON gr_wide.studentid = comment_rc6.studentid
+ AND gr_wide.rc6_course_number = comment_rc6.course_number
+ AND comment_rc6.term = roster.curterm
+LEFT OUTER JOIN comments comment_rc7 WITH (NOLOCK)
+  ON gr_wide.studentid = comment_rc7.studentid
+ AND gr_wide.rc7_course_number = comment_rc7.course_number
+ AND comment_rc7.term = roster.curterm
+LEFT OUTER JOIN comments comment_rc8 WITH (NOLOCK)
+  ON gr_wide.studentid = comment_rc8.studentid
+ AND gr_wide.rc8_course_number = comment_rc8.course_number
+ AND comment_rc8.term = roster.curterm
+LEFT OUTER JOIN comments comment_rc9 WITH (NOLOCK)
+  ON gr_wide.studentid = comment_rc9.studentid
+ AND gr_wide.rc9_course_number = comment_rc9.course_number
+ AND comment_rc9.term = roster.curterm
+LEFT OUTER JOIN comments comment_rc10 WITH (NOLOCK)
+  ON gr_wide.studentid = comment_rc10.studentid
+ AND gr_wide.rc10_course_number = comment_rc10.course_number
+ AND comment_rc10.term = roster.curterm
+LEFT OUTER JOIN comments comment_adv WITH (NOLOCK)
+  ON roster.base_studentid = comment_adv.studentid
+ AND comment_adv.course_number = 'HR'
+ AND comment_adv.term = roster.curterm 

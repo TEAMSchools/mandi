@@ -38,8 +38,8 @@ WITH roster AS (
           WHEN RIGHT(time_per_name, 1) IN (1, 3, 5) THEN 'RT' + CONVERT(VARCHAR,RIGHT(time_per_name, 1) + 1)
           ELSE 'RT' + RIGHT(time_per_name, 1)
          END AS hex_b
-  FROM REPORTING$dates
-  WHERE academic_year = 2014
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE academic_year = dbo.fn_Global_Academic_Year()
     AND schoolid = 73252
     AND identifier = 'HEX'
     AND start_date <= GETDATE()

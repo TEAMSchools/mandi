@@ -3,7 +3,18 @@ GO
 
 ALTER VIEW REPORTING$progress_detail#NCA AS
 
-WITH roster AS (
+WITH curterm AS (
+  SELECT time_per_name
+        ,alt_name AS term
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE identifier = 'RT'
+    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND schoolid = 73253
+    AND start_date <= GETDATE()
+    AND end_date >= GETDATE()
+ )
+
+,roster AS (
   SELECT s.id AS JOINID
         ,s.student_number AS ID
         ,s.lastfirst AS NAME
@@ -37,6 +48,17 @@ WITH roster AS (
     AND RN = 1
  )
 
+,cur_section AS (
+  SELECT studentid
+        ,student_number
+        ,course_number
+        ,term
+        ,sectionid
+        ,teacher
+  FROM GRADES$sections_by_term WITH(NOLOCK)
+  WHERE term IN (SELECT term FROM curterm)
+ )
+
 SELECT roster.ID
       ,roster.NAME
       ,roster.GR
@@ -46,7 +68,7 @@ SELECT roster.ID
       ,gr.credittype AS SUBJECT
       ,gr.course_number AS COURSE_NUM
       ,gr.course_name AS COURSE_NAME
-      ,t.lastfirst AS TEACHER
+      ,sec.teacher
       ,CASE        
         WHEN cc.expression = '1(A)' THEN 'HR'
         WHEN cc.expression = '2(A)' THEN '1'
@@ -189,15 +211,12 @@ SELECT roster.ID
 FROM roster WITH (NOLOCK)
 LEFT OUTER JOIN GRADES$DETAIL#NCA gr WITH (NOLOCK)
   ON roster.joinid = gr.studentid
-LEFT OUTER JOIN SECTIONS sec WITH (NOLOCK)
-  ON gr.q3_enr_sectionid = sec.ID --update every quarter
- AND sec.termid >= dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN TEACHERS t WITH (NOLOCK)
-  ON t.id = sec.teacher
+LEFT OUTER JOIN cur_section sec
+  ON roster.joinid = sec.studentid
+ AND gr.course_number = sec.course_number
 LEFT OUTER JOIN CC cc WITH (NOLOCK)
-  ON gr.q3_enr_sectionid = cc.sectionid --update every quarter
- AND roster.joinid = cc.studentid
- AND cc.termid >= dbo.fn_Global_Term_Id()
+  ON roster.joinid = cc.studentid
+ AND sec.sectionid = cc.sectionid
 LEFT OUTER JOIN GRADES$elements ele_h WITH (NOLOCK)
   ON gr.studentid = ele_h.studentid
  AND gr.course_number = ele_h.course_number
