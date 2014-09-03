@@ -2,103 +2,115 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$growth_measures_long AS
-WITH cohort AS
-     (SELECT cohort.studentid
-            ,cohort.grade_level
-            ,cohort.schoolid
-            ,cohort.year
-            ,cohort.cohort
-            ,cohort.year_in_network
-      FROM KIPP_NJ..COHORT$comprehensive_long#static cohort
-      WHERE cohort.grade_level <= 12
-        AND cohort.rn = 1
-      )
+WITH cohort AS (
+  SELECT cohort.studentid
+        ,cohort.grade_level
+        ,cohort.schoolid
+        ,cohort.year
+        ,cohort.cohort
+        ,cohort.year_in_network
+  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)
+  WHERE cohort.grade_level <= 12
+    AND cohort.rn = 1
+ )
 
-    ,periods AS
-     (SELECT 4 AS start_term_numeric
-            ,2 AS end_term_numeric
-            ,42 AS period_numeric
-            ,0 AS lookback_modifier
-            ,'Fall' AS start_term_string
-            ,'Spring' AS end_term_string
-            ,'Fall to Spring' AS period_string
-            ,1 AS goal_prorater
-      UNION ALL
-      SELECT 2
-            ,2
-            ,22
-            ,-1
-            ,'Spring'
-            ,'Spring'
-            ,'Spring to Spring'
-            ,1
-      UNION ALL
-      SELECT 4
-            ,4
-            ,44
-            ,-1
-            ,'Fall'
-            ,'Fall'
-            ,'Fall to Fall'
-            ,1
-      UNION ALL
-      SELECT 4
-            ,1
-            ,41
-            ,0
-            ,'Fall'
-            ,'Winter'
-            ,'Fall to Winter'
-            ,1
-      UNION ALL
-      SELECT 1
-            ,2
-            ,12
-            ,0
-            ,'Winter'
-            ,'Spring'
-            ,'Winter to Spring'
-            ,1
-      UNION ALL
-      SELECT 2
-            ,1
-            ,22
-            ,-1
-            ,'Spring'
-            ,'Winter'
-            ,'Spring to half-of-Spring'
-            ,0.5
-      /*
-      UNION ALL
-      SELECT 2
-            ,1
-            ,22
-            ,-1
-            ,'Spring'
-            ,'Winter'
-            ,'Spring to psuedo-Spring (Spring goal, Winter actual)'
-      UNION ALL
-      SELECT 4
-            ,1
-            ,42
-            ,0
-            ,'Fall'
-            ,'Winter'
-            ,'Fall to psuedo-Spring (Spring goal, Winter actual)'
-      */
-      )
+,periods AS (
+  SELECT 4 AS start_term_numeric
+        ,2 AS end_term_numeric
+        ,42 AS period_numeric
+        ,0 AS lookback_modifier
+        ,'Fall' AS start_term_string
+        ,'Spring' AS end_term_string
+        ,'Fall to Spring' AS period_string
+        ,1 AS goal_prorater
+  UNION ALL
+  SELECT 2
+        ,2
+        ,22
+        ,-1
+        ,'Spring'
+        ,'Spring'
+        ,'Spring to Spring'
+        ,1
+  UNION ALL
+  SELECT 4
+        ,4
+        ,44
+        ,-1
+        ,'Fall'
+        ,'Fall'
+        ,'Fall to Fall'
+        ,1
+  UNION ALL
+  SELECT 4
+        ,1
+        ,41
+        ,0
+        ,'Fall'
+        ,'Winter'
+        ,'Fall to Winter'
+        ,1
+  UNION ALL
+  SELECT 1
+        ,2
+        ,12
+        ,0
+        ,'Winter'
+        ,'Spring'
+        ,'Winter to Spring'
+        ,1
+  UNION ALL
+  SELECT 2
+        ,1
+        ,22
+        ,-1
+        ,'Spring'
+        ,'Winter'
+        ,'Spring to half-of-Spring'
+        ,0.5
+  /*
+  UNION ALL
+  SELECT 2
+        ,1
+        ,22
+        ,-1
+        ,'Spring'
+        ,'Winter'
+        ,'Spring to psuedo-Spring (Spring goal, Winter actual)'
+  UNION ALL
+  SELECT 4
+        ,1
+        ,42
+        ,0
+        ,'Fall'
+        ,'Winter'
+        ,'Fall to psuedo-Spring (Spring goal, Winter actual)'
+  */
+ )
 
-    ,scales AS
-     (SELECT 'Mathematics' AS measurementscale
-      UNION ALL
-      SELECT 'Reading'
-      UNION ALL
-      SELECT 'Language Usage'
-      UNION ALL
-      SELECT 'Concepts and Processes'
-      UNION ALL
-      SELECT 'Science - General Science'
-     )
+,scales AS (
+  SELECT 'Mathematics' AS measurementscale
+  UNION ALL
+  SELECT 'Reading'
+  UNION ALL
+  SELECT 'Language Usage'
+  UNION ALL
+  SELECT 'Concepts and Processes'
+  UNION ALL
+  SELECT 'Science - General Science'
+ )
+
+-- assembles scaffold
+,base AS (
+  SELECT cohort.*
+        ,periods.*
+        ,scales.*
+  FROM cohort
+  JOIN periods
+    ON 1=1
+  JOIN scales
+    ON 1=1
+ )
 
 SELECT growth_index.*
       ,CASE
@@ -130,7 +142,10 @@ FROM
                     ,map_end.testritscore AS end_rit
                     ,map_start.percentile_2011_norms AS start_npr
                     ,map_end.percentile_2011_norms AS end_npr
+                    ,map_start.rittoreadingscore AS start_lex
+                    ,map_end.rittoreadingscore AS end_lex
                     ,map_end.testritscore - map_start.testritscore AS rit_change
+                    ,CASE WHEN map_end.rittoreadingscore = 'BR' THEN 0 ELSE CONVERT(INT,map_end.rittoreadingscore) END - CASE WHEN map_start.rittoreadingscore = 'BR' THEN 0 ELSE CONVERT(INT,map_start.rittoreadingscore) END AS lexile_change
                     ,map_start.grade_level AS start_grade_verif
                     ,map_end.grade_level AS end_grade_verif
                     ,map_start.termname AS start_term_verif
@@ -157,37 +172,27 @@ FROM
                        WHEN base.period_numeric = 41 THEN norms.s41
                        WHEN base.period_numeric = 12 THEN norms.s12
                      END AS std_dev_of_growth_projection
-              FROM
-                     --assembles scaffold of enrollments, goal periods, subjects
-                    (SELECT cohort.*
-                           ,periods.*
-                           ,scales.*
-                     FROM cohort
-                     JOIN periods
-                       ON 1=1
-                     JOIN scales
-                       ON 1=1
-                     ) base
+              FROM base
               --data for START of target period
-              LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_start
+              LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_start WITH(NOLOCK)
                 ON base.studentid = map_start.ps_studentid
                AND base.measurementscale = map_start.measurementscale
                AND (base.year + base.lookback_modifier) = map_start.map_year_academic
                AND base.start_term_string = map_start.fallwinterspring
                AND map_start.rn = 1
               --data for END of target period
-              LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_end
+              LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_end WITH(NOLOCK)
                 ON base.studentid = map_end.ps_studentid
                AND base.measurementscale = map_end.measurementscale
                AND base.year = map_end.map_year_academic
                AND base.end_term_string = map_end.fallwinterspring
                AND map_end.rn = 1
               --norms data
-              LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norms
+              LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norms WITH(NOLOCK)
                 ON base.measurementscale = norms.subject
                AND map_start.testritscore = norms.startrit
-               AND map_start.grade_level = norms.startgrade
+               AND map_start.grade_level = norms.startgrade              
               ) with_map
        ) growth_index
-LEFT OUTER JOIN KIPP_NJ..UTIL$zscores zscores
+LEFT OUTER JOIN KIPP_NJ..UTIL$zscores zscores WITH(NOLOCK)
   ON growth_index.cgi = zscores.zscore

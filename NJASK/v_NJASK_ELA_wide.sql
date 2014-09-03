@@ -10,6 +10,11 @@ SELECT ROW_NUMBER() OVER(
       ,s.lastfirst
       ,s.grade_level
       ,s.schoolid
+      -- 13-14
+      ,NJASK14.subject            AS Subject_2014
+      ,NJASK14.NJASK_Scale_Score  AS Score_2014
+      ,NJASK14.NJASK_Proficiency  AS Prof_2014
+      ,NJASK14.test_grade_level   AS Gr_Lev_2014
       -- 12-13
       ,NJASK13.subject            AS Subject_2013
       ,NJASK13.NJASK_Scale_Score  AS Score_2013
@@ -32,6 +37,11 @@ SELECT ROW_NUMBER() OVER(
       ,NJASK10.test_grade_level   AS Gr_Lev_2010   
 
 FROM STUDENTS s WITH (NOLOCK)
+LEFT OUTER JOIN NJASK$detail#static NJASK14 WITH (NOLOCK)
+  ON s.id = NJASK14.studentid
+ AND NJASK14.subject    = 'ELA'                            
+ AND NJASK14.test_date >= '2014-01-01'                      
+ AND NJASK14.test_date <= '2014-06-01'                      
 LEFT OUTER JOIN NJASK$detail#static NJASK13 WITH (NOLOCK)
   ON s.id = NJASK13.studentid
  AND NJASK13.subject    = 'ELA'                            
@@ -51,5 +61,4 @@ LEFT OUTER JOIN NJASK$detail#static NJASK10 WITH (NOLOCK)
   ON s.id = NJASK10.studentid           
  AND NJASK10.subject    = 'ELA'                            
  AND NJASK10.test_date >= '2010-01-01'                       
- AND NJASK10.test_date <= '2010-06-01'                       
-WHERE s.enroll_status = 0
+ AND NJASK10.test_date <= '2010-06-01'

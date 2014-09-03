@@ -82,6 +82,7 @@ WITH zscore AS
      JOIN PS$teacher_by_last_enrollment last_tch WITH (NOLOCK)
        ON c.studentid = last_tch.studentid
       AND c.course_number = last_tch.course_number
+      AND last_tch.rn = 1
      JOIN KIPP_NJ..COURSES WITH (NOLOCK)
        ON c.course_number = courses.course_number
      WHERE c.dateenrolled <= CAST(GETDATE() AS date)

@@ -31,7 +31,7 @@ FROM
            ,CASE WHEN sub1.test_date <= GETDATE() THEN sub1.test_date ELSE NULL END AS test_date
            ,co.year
            ,ROW_NUMBER() OVER(
-              PARTITION BY student_number, test_date
+              PARTITION BY sub1.student_number, test_date
                   ORDER BY test_date) AS dupe_audit
      FROM
          (

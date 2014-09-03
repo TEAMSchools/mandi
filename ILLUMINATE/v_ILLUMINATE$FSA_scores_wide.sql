@@ -6,35 +6,54 @@ ALTER VIEW ILLUMINATE$FSA_scores_wide AS
 WITH fsa_rn AS (
   SELECT *
         ,ROW_NUMBER() OVER(
-            PARTITION BY schoolid, grade_level, scope, DATEPART(WEEK,administered_at)
-                ORDER BY subject, standards_tested) AS fsa_std_rn      
+           PARTITION BY schoolid, grade_level, scope, fsa_week
+             ORDER BY subject, standards_tested) AS fsa_std_rn      
   FROM
       (
        SELECT DISTINCT
               schoolid      
              ,grade_level
+             ,academic_year
+             ,assessment_id
              ,fsa_week
              ,administered_at           
              ,scope
              ,subject      
              ,standards_tested
        FROM ILLUMINATE$assessments#static WITH(NOLOCK)
-       WHERE schoolid IN (73254, 73255, 73256)
+       WHERE schoolid IN (73254, 73255, 73256, 73257, 179901)
          AND scope = 'FSA'
          AND subject IS NOT NULL
-      ) sub
+         AND fsa_week IS NOT NULL
+         AND academic_year = dbo.fn_Global_Academic_Year()
+      ) sub  
  )    
 
-,next_steps AS (
-  SELECT grade_level
-        ,REPLACE(LEFT(week_num,7),' ','_') AS week_num
-        ,subject
-        ,ccss_standard
-        ,alt_standard
-        ,parent_obj
-        ,nxtstps_mastered
-        ,nxtstps_notmastered      
-  FROM GDOCS$FSA_long_term WITH(NOLOCK)
+,fsa_scaffold AS (
+  SELECT co.studentid
+        ,co.STUDENT_NUMBER
+        ,a.assessment_id
+        ,a.fsa_week
+        ,a.schoolid
+        ,a.grade_level
+        ,a.standards_tested
+        ,CONVERT(VARCHAR,a.subject) AS FSA_subject
+        ,CONVERT(VARCHAR,a.standards_tested) AS FSA_standard
+        ,CONVERT(VARCHAR,nxt.next_steps_mastered) AS FSA_nxtstp_y
+        ,CONVERT(VARCHAR,nxt.next_steps_notmastered) AS FSA_nxtstp_n
+        ,CONVERT(VARCHAR,nxt.objective) AS FSA_obj
+        ,a.FSA_std_rn
+  FROM fsa_rn a
+  JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+    ON a.schoolid = co.SCHOOLID
+   AND a.grade_level = co.GRADE_LEVEL   
+   AND a.academic_year = co.year   
+   AND co.rn = 1
+  LEFT OUTER JOIN GDOCS$FSA_longterm_clean nxt
+    ON a.SCHOOLID = nxt.schoolid
+   AND a.GRADE_LEVEL = nxt.grade_level
+   AND a.fsa_week = nxt.week_num
+   AND a.standards_tested = nxt.ccss_standard  
  )
 
 SELECT *
@@ -47,41 +66,22 @@ FROM
            ,value
      FROM
          (
-          SELECT s.id AS studentid
-                ,s.student_number           
-                ,a.fsa_week
-                ,CONVERT(VARCHAR,a.subject) AS FSA_subject
+          SELECT a.studentid
+                ,a.student_number           
+                ,a.FSA_week
+                ,a.FSA_subject
+                ,a.FSA_standard
+                ,a.FSA_obj
+                ,a.FSA_nxtstp_y
+                ,a.FSA_nxtstp_n
+                ,a.FSA_std_rn
                 ,CONVERT(VARCHAR,res.performance_band_level) AS FSA_score
                 ,CONVERT(VARCHAR,res.perf_band_label) AS FSA_prof
-                ,CONVERT(VARCHAR,res.custom_code) AS FSA_standard
-                ,CONVERT(VARCHAR,nxt.nxtstps_mastered) AS FSA_nxtstp_y
-                ,CONVERT(VARCHAR,nxt.nxtstps_notmastered) AS FSA_nxtstp_n
-                ,CONVERT(VARCHAR,nxt.parent_obj) AS FSA_obj
-                ,fsa_rn.fsa_std_rn
-          FROM ILLUMINATE$assessments#static a WITH(NOLOCK)
-          JOIN ILLUMINATE$assessment_results_by_standard#static res WITH(NOLOCK)  
-            ON a.assessment_id = res.assessment_id
-           AND a.standard_id = res.standard_id          
-          JOIN STUDENTS s WITH(NOLOCK)
-            ON res.local_student_id = s.student_number
-           AND a.schoolid = s.schoolid
-           AND a.grade_level = s.grade_level 
-           AND s.enroll_status = 0 
-          LEFT OUTER JOIN next_steps nxt
-            ON res.custom_code = nxt.ccss_standard
-           AND a.fsa_week = nxt.week_num
-           AND s.GRADE_LEVEL = nxt.grade_level
-          JOIN fsa_rn
-            ON a.schoolid = fsa_rn.schoolid
-           AND a.grade_level = fsa_rn.grade_level
-           AND a.fsa_week = fsa_rn.fsa_week
-           AND a.scope = fsa_rn.scope
-           AND a.subject = fsa_rn.subject
-           AND a.standards_tested = fsa_rn.standards_tested
-          WHERE a.schoolid IN (73254,73255,73256)  
-            AND a.scope = 'FSA'
-            AND a.academic_year = dbo.fn_Global_Academic_Year()
-            AND a.deleted_at IS NULL
+          FROM fsa_scaffold a            
+          LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static res WITH(NOLOCK)  
+            ON a.student_number = res.local_student_id           
+           AND a.assessment_id = res.assessment_id
+           AND res.custom_code = a.standards_tested
          ) sub
          
      UNPIVOT (
@@ -95,6 +95,7 @@ FROM
                          ,[FSA_obj])
       ) unpiv
     ) sub2  
+
 --/*
 PIVOT (
   MAX(value)

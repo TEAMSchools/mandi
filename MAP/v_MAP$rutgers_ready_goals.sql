@@ -43,10 +43,12 @@ FROM
            ,map_base.termname AS derived_from      
            ,CASE
              WHEN stu_roster.grade_level >= 11 AND map_base.testritscore IS NOT NULL THEN 2
+             WHEN stu_roster.grade_level = 10 AND map_base.typical_growth_fallorspring_to_spring IS NULL THEN norm.R22
              ELSE CAST(ROUND(map_base.typical_growth_fallorspring_to_spring,0) AS INT)
             END AS keep_up_goal
            ,CASE
              WHEN stu_roster.GRADE_LEVEL >= 11 AND map_base.testritscore IS NOT NULL THEN map_base.testritscore + 2
+             WHEN stu_roster.grade_level = 10 AND map_base.typical_growth_fallorspring_to_spring IS NULL THEN map_base.testritscore + norm.R22
              ELSE CAST(map_base.testritscore AS FLOAT) + CAST(map_base.typical_growth_fallorspring_to_spring AS FLOAT)
             END AS keep_up_rit
            ,CASE

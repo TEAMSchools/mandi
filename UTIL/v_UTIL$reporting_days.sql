@@ -22,7 +22,7 @@ FROM
            ,DATEPART(DD, calendar.date) AS day_part
            ,DATEPART(MM, calendar.date) AS month_part
            ,DATEPART(YYYY, calendar.date) AS year_part
-           ,RIGHT('00' + CAST(DATEPART(iso_week, calendar.date) AS VARCHAR(2)), 2) AS week_part
+           ,RIGHT('00' + CAST(DATEPART(WEEK, calendar.date) AS VARCHAR(2)), 2) AS week_part
      FROM calendar
     ) sub
 ORDER BY date ASC

@@ -60,7 +60,7 @@ FROM OPENQUERY(ILLUMINATE,'
     ON repo.user_id = u.user_id
 ') repo
 LEFT OUTER JOIN TEACHERS t WITH(NOLOCK)
-  ON repo.teacher_number = t.TEACHERNUMBER
+  ON CONVERT(INT,repo.teacher_number) = CONVERT(INT,t.TEACHERNUMBER)
 LEFT OUTER JOIN test_roster WITH(NOLOCK)
   ON repo.repository_id = test_roster.repository_id
 LEFT OUTER JOIN REPORTING$dates dt WITH(NOLOCK)
@@ -68,4 +68,4 @@ LEFT OUTER JOIN REPORTING$dates dt WITH(NOLOCK)
  AND repo.date_administered <= dt.end_date
  --AND test_roster.SCHOOLID = dt.schoolid
  AND dt.school_level = 'ES'
- AND dt.identifier = 'FSA'
+ AND dt.identifier = 'REP'
