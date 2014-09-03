@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$sight_word_totals AS
+ALTER VIEW LIT$sight_word_totals AS
 
 WITH stu_test_roster AS (
   SELECT DISTINCT
@@ -16,6 +16,7 @@ WITH stu_test_roster AS (
   JOIN COHORT$comprehensive_long#static co
     ON id.studentid = co.STUDENTID
    AND co.RN = 1
+  WHERE res.repository_id IN (SELECT repository_id FROM ILLUMINATE$summary_assessments#static a WITH(NOLOCK) WHERE a.scope = 'Reporting' AND a.subject = 'Word Work')
  )
 
 ,week_totals AS (
@@ -33,8 +34,8 @@ WITH stu_test_roster AS (
        SELECT r.SCHOOLID
              ,r.GRADE_LEVEL
              ,r.student_number
-             --,a.scope
-             --,a.subject
+             ,a.scope
+             ,a.subject
              ,'Week_' + SUBSTRING(label, CHARINDEX('_',label) + 1, 2) AS listweek_num
              ,SUBSTRING(label, CHARINDEX('_',label,CHARINDEX('_',label) + 1) + 1, LEN(label) - CHARINDEX('_',label,CHARINDEX('_',label) + 1)) AS word
              ,res.value
@@ -54,9 +55,8 @@ WITH stu_test_roster AS (
          ON a.repository_id = f.repository_id
         AND res.field = f.name
         AND f.rn = 1
-       -- just like this for testing
-       -- use filter on scope and subject when we have those set up
-       WHERE a.repository_id = 43
+      WHERE a.scope = 'Reporting'
+        AND a.subject = 'Word Work'
       ) sub 
   GROUP BY SCHOOLID
           ,GRADE_LEVEL
@@ -78,8 +78,8 @@ WITH stu_test_roster AS (
        SELECT r.SCHOOLID
              ,r.GRADE_LEVEL
              ,r.student_number
-             --,a.scope
-             --,a.subject             
+             ,a.scope
+             ,a.subject             
              ,SUBSTRING(label, CHARINDEX('_',label,CHARINDEX('_',label) + 1) + 1, LEN(label) - CHARINDEX('_',label,CHARINDEX('_',label) + 1)) AS word
              ,res.value
              ,CASE 
@@ -98,9 +98,8 @@ WITH stu_test_roster AS (
          ON a.repository_id = f.repository_id
         AND res.field = f.name
         AND f.rn = 1
-       -- just like this for testing
-       -- use filter on scope and subject when we have those set up
-       WHERE a.repository_id = 43
+      WHERE a.scope = 'Reporting'
+        AND a.subject = 'Word Work'
       ) sub 
   GROUP BY SCHOOLID
           ,GRADE_LEVEL

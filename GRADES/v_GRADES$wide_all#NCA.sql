@@ -594,6 +594,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'H'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
         
@@ -606,6 +607,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'H'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
         
@@ -618,6 +620,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'H'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
         
@@ -630,6 +633,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'H'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
         
@@ -642,6 +646,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND pivot_ele.course_number = 'all_courses'        
          AND pivot_ele.pgf_type = 'H'                     
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
                
@@ -654,6 +659,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'C'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
          
@@ -666,6 +672,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'C'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
          
@@ -678,6 +685,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'C'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
          
@@ -690,6 +698,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'C'              
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
          
         UNION ALL
         
@@ -702,6 +711,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND pivot_ele.course_number = 'all_courses'
          AND pivot_ele.pgf_type = 'C'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
         
@@ -714,6 +724,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'A'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
          
@@ -726,6 +737,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'A'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
          
@@ -738,6 +750,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'A'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
          
@@ -750,6 +763,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'A'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
          
         UNION ALL
         
@@ -762,6 +776,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND pivot_ele.course_number = 'all_courses'
          AND pivot_ele.pgf_type = 'A'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
         
@@ -774,6 +789,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'P'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
          
@@ -786,6 +802,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'P'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
          
@@ -798,6 +815,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'P'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
          
@@ -810,6 +828,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
          AND pivot_ele.pgf_type = 'P'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
          
         UNION ALL
         
@@ -822,6 +841,7 @@ FROM
           ON rost.studentid = pivot_ele.studentid
          AND pivot_ele.course_number = 'all_courses'
          AND pivot_ele.pgf_type = 'P'
+         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
         UNION ALL
         
@@ -833,6 +853,7 @@ FROM
         JOIN KIPP_NJ..GRADES$DETAIL#NCA pivot_ele
           ON rost.studentid = pivot_ele.studentid
          AND rost.course_number = pivot_ele.course_number
+
          
         UNION ALL
         

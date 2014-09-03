@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$daily_tracking_wide AS
+ALTER VIEW ES_Daily$tracking_wide AS
 
 WITH valid_dates AS (
   SELECT *
@@ -18,7 +18,7 @@ WITH valid_dates AS (
          ON dates.school_level = 'ES'
         AND daily.att_date >= dates.start_date
         AND daily.att_date <= dates.end_date
-        AND dates.identifier = 'FSA'
+        AND dates.identifier = 'REP'
        ) sub
  )      
 

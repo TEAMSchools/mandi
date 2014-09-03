@@ -45,7 +45,23 @@ WITH roster AS (
                   ,cc.COURSE_NUMBER
                   ,c.course_name                
                   ,t.LASTFIRST AS teacher
-                  ,cc.EXPRESSION AS period
+                  ,CASE        
+                    WHEN cc.expression = '1(A)' THEN 'HR'
+                    WHEN cc.expression = '2(A)' THEN '1'
+                    WHEN cc.expression = '3(A)' THEN '2'
+                    WHEN cc.expression = '4(A)' THEN '3'
+                    WHEN cc.expression = '5(A)' THEN '4A'
+                    WHEN cc.expression = '6(A)' THEN '4B'
+                    WHEN cc.expression = '7(A)' THEN '4C'
+                    WHEN cc.expression = '8(A)' THEN '4D'
+                    WHEN cc.expression = '9(A)' THEN '5A'
+                    WHEN cc.expression = '10(A)' THEN '5B'
+                    WHEN cc.expression = '11(A)' THEN '5C'
+                    WHEN cc.expression = '12(A)' THEN '5D'
+                    WHEN cc.expression = '13(A)' THEN '6'
+                    WHEN cc.expression = '14(A)' THEN '7'
+                    ELSE cc.SECTION_NUMBER
+                   END AS period
             FROM cc WITH(NOLOCK)
             JOIN COURSES c WITH(NOLOCK)
               ON cc.course_number = c.course_number

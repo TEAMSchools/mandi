@@ -66,5 +66,5 @@ FROM OPENQUERY(PS_TEAM,'
 LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
   ON daily.att_date >= dates.start_date
  AND daily.att_date <= dates.end_date
- AND dates.school_level = 'ES'
+ AND daily.schoolid = dates.schoolid
  AND dates.identifier = 'REP'

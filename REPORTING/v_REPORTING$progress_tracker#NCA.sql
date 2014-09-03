@@ -720,7 +720,7 @@ FROM
        AND map_sci_cur.rn_curr = 1
 
       --MERITS & DEMERITS
-      LEFT OUTER JOIN DISC$merits_demerits_count#NCA merits WITH (NOLOCK)
+      LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
         ON roster.studentid = merits.studentid
       LEFT OUTER JOIN DISC$log#static disc WITH (NOLOCK)
         ON roster.studentid = disc.studentid

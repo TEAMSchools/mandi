@@ -66,7 +66,7 @@ WITH reenrollments AS (
              ,s.entrycode
              ,s.exitcode
        FROM students s WITH(NOLOCK)
-       WHERE s.enroll_status > 0
+       WHERE s.enroll_status = 2
          AND s.schoolid != 999999
          AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1
       ) s_1

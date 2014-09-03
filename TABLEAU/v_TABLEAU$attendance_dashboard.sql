@@ -54,5 +54,5 @@ LEFT OUTER JOIN DISC$log#static ed WITH(NOLOCK)
   ON co.studentid = ed.studentid
  AND mem.CALENDARDATE = ed.entry_date
  AND ed.logtypeid = 3953
-WHERE co.year = dbo.fn_Global_Academic_Year()
+WHERE co.year = 2014 --dbo.fn_Global_Academic_Year()
   AND co.rn = 1

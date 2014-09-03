@@ -15,8 +15,9 @@ WITH attendance_long AS (
     ON att.att_date >= dates.start_date
    AND att.att_date <= dates.end_date
    AND att.schoolid = dates.schoolid
-   AND dates.identifier = 'RT' -- replace with ATT
-  WHERE att.att_code IS NOT NULL               
+   AND dates.identifier = 'RT'
+   AND dates.academic_year = dbo.fn_Global_Academic_Year()
+  WHERE att.att_code IS NOT NULL 
 
   UNION ALL
 
@@ -30,10 +31,11 @@ WITH attendance_long AS (
     ON att.schoolid = curterm.schoolid         
    AND att.ATT_DATE >= curterm.start_date
    AND att.ATT_DATE <= curterm.end_date
-   AND curterm.identifier = 'RT' -- replace with ATT
-   WHERE att.att_code IS NOT NULL
-     AND curterm.start_date <= GETDATE()
-     AND curterm.end_date >= GETDATE()  
+   AND curterm.identifier = 'RT'
+   AND curterm.academic_year = dbo.fn_Global_Academic_Year()
+  WHERE att.att_code IS NOT NULL
+    AND curterm.start_date <= GETDATE()
+    AND curterm.end_date >= GETDATE()  
  )
 
 -- early dismissals by date, both excused and unexcused
@@ -67,7 +69,7 @@ WITH attendance_long AS (
     ON disc.schoolid = curterm.schoolid
    AND disc.entry_date >= curterm.start_date
    AND disc.entry_date <= curterm.end_date
-   AND curterm.identifier = 'RT' -- replace with ATT
+   AND curterm.identifier = 'RT'
   WHERE disc.logtypeid = 3953
     AND disc.subtype IS NOT NULL
     AND curterm.start_date <= GETDATE()
@@ -87,7 +89,7 @@ WITH attendance_long AS (
          ON dt.schoolid = dates.schoolid
         AND dt.att_date >= dates.start_date
         AND dt.att_date <= dates.end_date
-        AND dates.identifier = 'RT' -- replace with ATT
+        AND dates.identifier = 'RT'
      
        UNION ALL
 
@@ -99,7 +101,7 @@ WITH attendance_long AS (
          ON dt.schoolid = curterm.schoolid
         AND dt.att_date >= curterm.start_date
         AND dt.att_date <= curterm.end_date
-        AND curterm.identifier = 'RT' -- replace with ATT
+        AND curterm.identifier = 'RT'
        WHERE curterm.start_date <= GETDATE()
          AND curterm.end_date >= GETDATE()       
       ) sub
@@ -345,59 +347,89 @@ FROM
     (
      -- union attendance, early dismissals, and uniform violations by RT
      -- also union w/o RT grouping for year totals
-     SELECT STUDENTID           
+     SELECT co.studentid           
            ,RT + '_' + ATT_CODE AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
-     FROM attendance_long
-     GROUP BY STUDENTID      
+     FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+     LEFT OUTER JOIN attendance_long att
+       ON co.studentid = att.STUDENTID      
+     WHERE co.year = dbo.fn_Global_Academic_Year()
+       AND co.rn = 1
+       AND co.schoolid != 999999
+     GROUP BY co.STUDENTID      
              ,RT
              ,ATT_CODE
 
      UNION ALL
 
-     SELECT STUDENTID           
+     SELECT co.studentid           
            ,'Y1_' + ATT_CODE AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
-     FROM attendance_long
-     WHERE rt != 'CUR'
-     GROUP BY STUDENTID                   
+     FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+     LEFT OUTER JOIN attendance_long att
+       ON co.studentid = att.STUDENTID
+      AND rt != 'CUR' 
+     WHERE co.year = dbo.fn_Global_Academic_Year()
+       AND co.rn = 1     
+       AND co.schoolid != 999999
+     GROUP BY co.studentid                   
              ,ATT_CODE
 
      UNION ALL
 
-     SELECT studentid
+     SELECT co.studentid
            ,rt + '_' + att_code AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
-     FROM early_dis
-     GROUP BY studentid        
+     FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+     LEFT OUTER JOIN early_dis ed
+       ON co.studentid = ed.studentid
+     WHERE co.year = dbo.fn_Global_Academic_Year()
+       AND co.rn = 1
+       AND co.schoolid != 999999
+     GROUP BY co.studentid        
              ,rt
              ,att_code
 
      UNION ALL
 
-     SELECT studentid
+     SELECT co.studentid
            ,'Y1_' + att_code AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
-     FROM early_dis
-     GROUP BY studentid        
+     FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+     LEFT OUTER JOIN early_dis ed
+       ON co.studentid = ed.studentid
+     WHERE co.year = dbo.fn_Global_Academic_Year()
+       AND co.rn = 1
+       AND co.schoolid != 999999
+     GROUP BY co.studentid        
              ,att_code
 
      UNION ALL
 
-     SELECT studentid
+     SELECT co.studentid
            ,rt + '_UNI' AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
-     FROM uniform
-     GROUP BY studentid        
+     FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+     LEFT OUTER JOIN uniform uni
+       ON co.studentid = uni.studentid
+     WHERE co.year = dbo.fn_Global_Academic_Year()
+       AND co.rn = 1
+       AND co.schoolid != 999999
+     GROUP BY co.studentid        
              ,rt             
 
      UNION ALL
 
-     SELECT studentid
+     SELECT co.studentid
            ,'Y1_UNI' AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
-     FROM uniform
-     GROUP BY studentid  
+     FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+     LEFT OUTER JOIN uniform uni
+       ON co.studentid = uni.studentid
+     WHERE co.year = dbo.fn_Global_Academic_Year()
+       AND co.rn = 1
+       AND co.schoolid != 999999
+     GROUP BY co.studentid  
     ) sub
 
 PIVOT (

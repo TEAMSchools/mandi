@@ -370,7 +370,7 @@ SELECT co.studentid
         ,t1t2_growth_GLEQ
         ,t2t3_growth_GLEQ
         ,t3EOY_growth_GLEQ
-  FROM LIT$growth_measures_wide#static WITH(NOLOCK)  
+  FROM LIT$growth_measures_wide WITH(NOLOCK)  
  )
 
 SELECT -- student identifiers

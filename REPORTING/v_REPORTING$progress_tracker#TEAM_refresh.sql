@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$progress_tracker#TEAM_refresh AS
+ALTER VIEW REPORTING$progress_tracker#TEAM AS
 WITH roster AS (
   SELECT s.id
         ,s.student_number

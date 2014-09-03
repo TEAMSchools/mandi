@@ -17,13 +17,15 @@ WITH roster AS (
 ,terms AS (      
   SELECT academic_year
         ,schoolid
-        ,REPLACE(time_per_name, 'DR', 'BOY') AS test_round
+        ,CASE 
+          WHEN school_level = 'MS' AND time_per_name = 'DR' THEN 'BOY' 
+          ELSE REPLACE(time_per_name, 'Diagnostic', 'DR')
+         END AS test_round
         ,ROW_NUMBER() OVER (
-           PARTITION BY schoolid
+           PARTITION BY academic_year, schoolid
            ORDER BY start_date ASC) AS round_num
   FROM REPORTING$dates WITH(NOLOCK)
-  WHERE identifier = 'LIT'  
-    AND school_level = 'MS'    
+  WHERE identifier = 'LIT'      
     AND start_date <= GETDATE()
  )
  
@@ -62,7 +64,7 @@ WITH roster AS (
                 ORDER BY r.academic_year, r.round_num) AS meta_achv_round
   FROM roster_scaffold r  
   LEFT OUTER JOIN LIT$test_events#identifiers achv WITH(NOLOCK)
-    ON r.STUDENTID = achv.studentid   
+    ON r.STUDENTID = achv.studentid      
    AND r.academic_year = achv.academic_year
    AND r.test_round = achv.test_round
    AND achv.achv_curr_round = 1

@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$progress_tracker#Rise_refresh AS
+ALTER VIEW REPORTING$progress_tracker#Rise AS
 
 WITH roster AS (
   SELECT s.id

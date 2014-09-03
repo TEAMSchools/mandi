@@ -8,15 +8,15 @@ GRANT SELECT ON REPORTING$dates TO db_data_tool_reader
 GRANT SELECT ON UTIL$reporting_weeks_days TO db_data_tool_reader
 
 --Lit
-GRANT SELECT ON LIT$FP_test_events_long#identifiers#static TO db_data_tool_reader
+GRANT SELECT ON LIT$test_events#identifiers TO db_data_tool_reader
 GRANT SELECT ON reporting$reading_log TO db_data_tool_reader
 GRANT SELECT ON reporting$reading_log#NCA TO db_data_tool_reader
 
 --Progress trackers
 GRANT SELECT ON REPORTING$progress_tracker#NCA#static TO db_data_tool_reader
 GRANT SELECT ON REPORTING$progress_detail#NCA#static TO db_data_tool_reader
-GRANT SELECT ON REPORTING$progress_tracker#Rise_static TO db_data_tool_reader
-GRANT SELECT ON REPORTING$progress_tracker#TEAM_static TO db_data_tool_reader
+GRANT SELECT ON REPORTING$progress_tracker#Rise#static TO db_data_tool_reader
+GRANT SELECT ON REPORTING$progress_tracker#TEAM#static TO db_data_tool_reader
 GRANT SELECT ON REPORTING$progress_tracker#NCA#static TO db_data_tool_reader
 GRANT SELECT ON REPORTING$quick_lookup#NCA#static TO db_data_tool_reader
 
@@ -38,12 +38,12 @@ GRANT SELECT ON REPORTING$MAP_tracker#static TO db_data_tool_reader
 
 --Gradebook
 GRANT SELECT ON GRADES$DETAIL#MS TO db_data_tool_reader
-GRANT SELECT ON GPA$detail#Rise TO db_data_tool_reader
+GRANT SELECT ON GPA$detail#MS TO db_data_tool_reader
 GRANT SELECT ON GRADES$elements TO db_data_tool_reader
 
 --ES Reporting
 GRANT SELECT ON REPORTING$intervention_results_by_standard TO db_data_tool_reader
-GRANT SELECT ON ES_DAILY$daily_tracking_long#static TO db_data_tool_reader
+GRANT SELECT ON ES_DAILY$tracking_long#static TO db_data_tool_reader
 
 --Testing
 GRANT SELECT ON NAVIANCE$ID_key TO db_data_tool_reader

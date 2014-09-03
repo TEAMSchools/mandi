@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$daily_tracking_totals AS
+ALTER VIEW ES_DAILY$tracking_totals AS
 
 WITH valid_dates AS (
   SELECT *
@@ -18,6 +18,7 @@ WITH valid_dates AS (
  )
 
 ,longs_totals AS (
+  -- week totals
   SELECT 'wk' AS identifier 
         ,schoolid
         ,studentid
@@ -85,6 +86,7 @@ WITH valid_dates AS (
  
 UNION ALL 
  
+  -- month totals
   SELECT 'mth' AS identifier
         ,schoolid
         ,studentid        
@@ -150,6 +152,7 @@ UNION ALL
  
 UNION ALL 
  
+  -- year totals
   SELECT 'yr' AS identifier 
         ,schoolid
         ,studentid
@@ -210,8 +213,80 @@ UNION ALL
        GROUP BY daily.schoolid
                ,daily.studentid                                    
       ) sub  
+
+UNION ALL
+
+  -- current trimester
+  SELECT 'tri' AS identifier
+        ,schoolid
+        ,studentid        
+        ,NULL AS week_num
+        ,NULL AS month
+        ,CONVERT(VARCHAR,n_hw) AS n_hw
+        ,CONVERT(VARCHAR,hw_complete) AS hw_complete
+        ,CONVERT(VARCHAR,hw_missing) AS hw_missing
+        ,CONVERT(VARCHAR,hw_pct) AS hw_pct
+        ,CONVERT(VARCHAR,n_color) AS n_color
+        ,CONVERT(VARCHAR,purple_pink) AS purple_pink
+        ,CONVERT(VARCHAR,green) AS green
+        ,CONVERT(VARCHAR,yellow) AS yellow
+        ,CONVERT(VARCHAR,orange) AS orange
+        ,CONVERT(VARCHAR,red) AS red
+        ,CONVERT(FLOAT,ROUND((purple_pink + green) / CASE WHEN n_color = 0 THEN NULL ELSE n_color END * 100,0)) AS pct_ontrack
+        ,CASE
+          WHEN CONVERT(FLOAT,ROUND((purple_pink + green) / CASE WHEN n_color = 0 THEN NULL ELSE n_color END * 100,0)) >= 80 THEN 'On Track' 
+          ELSE 'Off Track'
+         END AS status
+  FROM
+      (
+       SELECT daily.schoolid
+             ,daily.studentid                                
+             ,COUNT(hw) AS n_hw
+             ,SUM(has_hw) AS hw_complete
+             ,COUNT(hw) - SUM(has_hw) AS hw_missing
+             ,CONVERT(FLOAT,ROUND(SUM(has_hw) / COUNT(hw) * 100,0)) AS hw_pct
+             ,ISNULL(COUNT(color_day),0)
+               + ISNULL(COUNT(color_am),0)
+               + ISNULL(COUNT(color_mid),0)
+               + ISNULL(COUNT(color_pm),0)
+               AS n_color
+             ,ISNULL(SUM(purple_pink),0)
+               + ISNULL(SUM(am_purple_pink),0)
+               + ISNULL(SUM(mid_purple_pink),0)
+               + ISNULL(SUM(pm_purple_pink),0) AS purple_pink
+             ,ISNULL(SUM(green),0)
+               + ISNULL(SUM(am_green),0)
+               + ISNULL(SUM(mid_green),0)
+               + ISNULL(SUM(pm_green),0) AS green
+             ,ISNULL(SUM(yellow),0)
+               + ISNULL(SUM(am_yellow),0)
+               + ISNULL(SUM(mid_yellow),0)
+               + ISNULL(SUM(pm_yellow),0) AS yellow
+             ,ISNULL(SUM(orange),0)
+               + ISNULL(SUM(am_orange),0)
+               + ISNULL(SUM(mid_orange),0)
+               + ISNULL(SUM(pm_orange),0) AS orange
+             ,ISNULL(SUM(red),0)
+               + ISNULL(SUM(am_red),0)
+               + ISNULL(SUM(mid_red),0)
+               + ISNULL(SUM(pm_red),0) AS red        
+       FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)
+       JOIN valid_dates
+         ON daily.schoolid = valid_dates.schoolid
+        AND daily.att_date = valid_dates.att_date
+       JOIN REPORTING$dates dt WITH(NOLOCK)
+         ON daily.att_date >= dt.start_date        
+        AND daily.att_date <= dt.end_date
+        AND daily.schoolid = dt.schoolid
+        AND dt.start_date <= GETDATE()
+        AND dt.end_date >= GETDATE()
+        AND dt.identifier = 'RT'
+       GROUP BY daily.schoolid
+               ,daily.studentid                                      
+      ) sub  
  )
 
+-- rollup
 SELECT schoolid
       ,studentid      
       ,week_num
@@ -252,6 +327,18 @@ SELECT schoolid
       ,[red_yr]
       ,[pct_ontrack_yr]
       ,[status_yr]
+      ,[n_hw_tri]
+      ,[hw_complete_tri]
+      ,[hw_missing_tri]
+      ,[hw_pct_tri]
+      ,[n_color_tri]
+      ,[purple_pink_tri]
+      ,[green_tri]
+      ,[yellow_tri]
+      ,[orange_tri]
+      ,[red_tri]
+      ,[pct_ontrack_tri]
+      ,[status_tri]
 FROM
     (
      SELECT schoolid
@@ -337,5 +424,17 @@ PIVOT (
                ,[orange_yr]
                ,[red_yr]
                ,[pct_ontrack_yr]
-               ,[status_yr])
+               ,[status_yr]
+               ,[n_hw_tri]
+               ,[hw_complete_tri]
+               ,[hw_missing_tri]
+               ,[hw_pct_tri]
+               ,[n_color_tri]
+               ,[purple_pink_tri]
+               ,[green_tri]
+               ,[yellow_tri]
+               ,[orange_tri]
+               ,[red_tri]
+               ,[pct_ontrack_tri]
+               ,[status_tri])
  ) piv               

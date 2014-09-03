@@ -32,7 +32,7 @@ WITH roster AS (
  WHERE co.YEAR = dbo.fn_Global_Academic_Year()
    AND co.GRADE_LEVEL < 5
    AND co.RN = 1
-)
+ )
 
 ,attendance AS (
   SELECT att.studentid
@@ -46,16 +46,30 @@ WITH roster AS (
  )
 
 ,reporting_week AS (
-  SELECT time_per_name AS week_num        
+  SELECT schoolid
+        ,REPLACE(time_per_name, '_', ' ') AS week_num        
         ,start_date
         ,end_date
         ,DATENAME(MONTH,start_date) AS month
         ,REPLACE(time_per_name,'_',' ') + ': ' + LEFT(CONVERT(VARCHAR,start_date,101),5) + ' - ' + LEFT(CONVERT(VARCHAR,end_date,101),5) AS week_title
+  FROM REPORTING$dates WITH(NOLOCK)    
+  WHERE DATEPART(WEEK,GETDATE()) + 1 >= DATEPART(WEEK,start_date)
+    AND DATEPART(WEEK,GETDATE()) + 1 <= DATEPART(WEEK,end_date)
+    AND identifier = 'REP'    
+    AND school_level = 'ES'
+  --WHERE time_per_name = 'Week_10' -- !!!testing/training, delete after!!!
+  --  AND identifier = 'FSA' -- !!!testing/training, delete after!!!
+ )
+
+,curterm AS (
+  SELECT DISTINCT alt_name
+                 ,DATENAME(MONTH,end_date) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,end_date)) AS end_date
+                 ,DATENAME(MONTH,next_report) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,next_report)) AS next_report
   FROM REPORTING$dates WITH(NOLOCK)
-  WHERE time_per_name = 'Week_02'
-  --DATEADD(WEEK,-2,GETDATE()) >= start_date -- determines the previous week
-  --  AND DATEADD(WEEK,-2,GETDATE()) <= end_date -- determines the previous week
-    AND identifier = 'FSA'
+  WHERE identifier = 'RT'
+    AND school_level = 'ES'
+    AND start_date <= GETDATE()
+    AND end_date >= GETDATE()
  )
 
 SELECT r.studentid
@@ -77,10 +91,11 @@ SELECT r.studentid
       ,r.FATHER_CELL
       ,r.FATHER_DAY
       ,r.GUARDIANEMAIL
-      ,reporting_week.week_num
-      ,reporting_week.start_date
-      ,reporting_week.end_date
-      ,reporting_week.week_title
+      ,rw.week_num      
+      ,rw.week_title
+      ,curterm.alt_name AS term_name
+      ,curterm.end_date AS term_end
+      ,curterm.next_report
       ,att.cur_absences_total
       ,att.excused_absences
       ,att.cur_tardies_total
@@ -234,16 +249,26 @@ SELECT r.studentid
       ,mth_totals.red_mth
       ,mth_totals.pct_ontrack_mth
       ,mth_totals.status_mth
-      ,yr_totals.n_hw_yr
-      ,yr_totals.hw_complete_yr
-      ,yr_totals.hw_missing_yr
-      ,yr_totals.hw_pct_yr
-      ,yr_totals.n_color_yr
-      ,yr_totals.purple_pink_yr
-      ,yr_totals.green_yr
-      ,yr_totals.yellow_yr
-      ,yr_totals.orange_yr
-      ,yr_totals.red_yr
+      ,cur_totals.n_hw_yr
+      ,cur_totals.hw_complete_yr
+      ,cur_totals.hw_missing_yr
+      ,cur_totals.hw_pct_yr
+      ,cur_totals.n_color_yr
+      ,cur_totals.purple_pink_yr
+      ,cur_totals.green_yr
+      ,cur_totals.yellow_yr
+      ,cur_totals.orange_yr
+      ,cur_totals.red_yr
+      ,cur_totals.n_hw_tri
+      ,cur_totals.hw_complete_tri
+      ,cur_totals.hw_missing_tri
+      ,cur_totals.hw_pct_tri
+      ,cur_totals.n_color_tri
+      ,cur_totals.purple_pink_tri
+      ,cur_totals.green_tri
+      ,cur_totals.yellow_tri
+      ,cur_totals.orange_tri
+      ,cur_totals.red_tri
       ,sw.n_total AS sw_total_w
       ,sw.n_correct AS sw_correct_w
       ,sw.n_missed AS sw_missed_w
@@ -259,33 +284,35 @@ SELECT r.studentid
       ,vocab.pct_correct_wk AS v_average_w
       ,vocab.pct_correct_yr AS v_average_yr
 FROM roster r
-LEFT OUTER JOIN reporting_week
+JOIN curterm
   ON 1 = 1
-JOIN attendance att
+LEFT OUTER JOIN reporting_week rw
+  ON r.schoolid = rw.schoolid
+LEFT OUTER JOIN attendance att
   ON r.STUDENTID = att.studentid
 LEFT OUTER JOIN ILLUMINATE$FSA_scores_wide fsa WITH(NOLOCK)
   ON r.STUDENTID = fsa.studentid
- AND reporting_week.week_num = fsa.fsa_week
+ AND rw.week_num = fsa.fsa_week
 LEFT OUTER JOIN ES_DAILY$tracking_wide daily WITH(NOLOCK) 
   ON r.STUDENTID = daily.studentid
- AND reporting_week.week_num = daily.week_num
+ AND rw.week_num = daily.week_num
 LEFT OUTER JOIN ES_DAILY$tracking_totals wk_totals WITH(NOLOCK)
   ON r.STUDENTID = wk_totals.studentid 
- AND reporting_week.week_num = wk_totals.week_num 
+ AND rw.week_num = wk_totals.week_num 
 LEFT OUTER JOIN ES_DAILY$tracking_totals mth_totals WITH(NOLOCK)
   ON r.STUDENTID = mth_totals.studentid 
  AND mth_totals.week_num IS NULL
- AND reporting_week.month = mth_totals.month 
-LEFT OUTER JOIN ES_DAILY$tracking_totals yr_totals WITH(NOLOCK)
-  ON r.STUDENTID = yr_totals.studentid 
- AND yr_totals.week_num IS NULL
- AND yr_totals.month IS NULL
+ AND rw.month = mth_totals.month 
+LEFT OUTER JOIN ES_DAILY$tracking_totals cur_totals WITH(NOLOCK)
+  ON r.STUDENTID = cur_totals.studentid 
+ AND cur_totals.week_num IS NULL
+ AND cur_totals.month IS NULL
 LEFT OUTER JOIN LIT$sight_word_totals sw WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sw.student_number
- AND reporting_week.week_num = sw.listweek_num
+ AND rw.week_num = sw.listweek_num
 LEFT OUTER JOIN LIT$spelling_totals sp WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sp.student_number
- AND reporting_week.week_num = sp.listweek_num
+ AND rw.week_num = sp.listweek_num
 LEFT OUTER JOIN LIT$vocab_totals vocab WITH(NOLOCK)
   ON r.STUDENT_NUMBER = vocab.student_number
- AND reporting_week.week_num = vocab.listweek_num
+ AND rw.week_num = vocab.listweek_num

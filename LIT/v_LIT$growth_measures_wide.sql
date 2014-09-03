@@ -15,70 +15,6 @@ WITH roster AS (
     AND rn = 1  
  )
 
-,term_base AS (
-  SELECT academic_year      
-        ,studentid
-        ,[DR_base_read_lvl]
-        ,[DR_base_GLEQ]
-        ,[DR_base_lvl_num]            
-        ,[T1_base_read_lvl]
-        ,[T1_base_GLEQ]
-        ,[T1_base_lvl_num]
-        ,[T2_base_read_lvl]
-        ,[T2_base_GLEQ]
-        ,[T2_base_lvl_num]
-        ,[T3_base_read_lvl]
-        ,[T3_base_GLEQ]
-        ,[T3_base_lvl_num]
-        ,[EOY_base_read_lvl]
-        ,[EOY_base_GLEQ]
-        ,[EOY_base_lvl_num]
-  FROM
-      (
-       SELECT academic_year           
-             ,studentid
-             ,identifier + '_' + field AS identifier
-             ,value
-       FROM
-           ( 
-            SELECT academic_year
-                  ,test_round + '_base' AS identifier
-                  ,studentid
-                  ,CONVERT(VARCHAR,read_lvl) AS read_lvl
-                  ,CONVERT(VARCHAR,GLEQ) AS GLEQ
-                  ,CONVERT(VARCHAR,lvl_num) AS lvl_num
-            FROM LIT$test_events#identifiers WITH(NOLOCK)
-            WHERE achv_base_round = 1
-           ) sub
-
-       UNPIVOT (
-         value
-         FOR field IN (read_lvl
-                      ,GLEQ
-                      ,lvl_num)
-        ) unpiv
-      ) sub2
-
-  PIVOT (
-    MAX(value)
-    FOR identifier IN ([DR_base_read_lvl]
-                      ,[DR_base_GLEQ]
-                      ,[DR_base_lvl_num]            
-                      ,[T1_base_read_lvl]
-                      ,[T1_base_GLEQ]
-                      ,[T1_base_lvl_num]
-                      ,[T2_base_read_lvl]
-                      ,[T2_base_GLEQ]
-                      ,[T2_base_lvl_num]
-                      ,[T3_base_read_lvl]
-                      ,[T3_base_GLEQ]
-                      ,[T3_base_lvl_num]
-                      ,[EOY_base_read_lvl]
-                      ,[EOY_base_GLEQ]
-                      ,[EOY_base_lvl_num])
-   ) piv
- )   
-
 ,term_cur AS (
   SELECT academic_year      
         ,studentid
@@ -143,62 +79,6 @@ WITH roster AS (
    ) piv
  ) 
 
-,year_base AS (
-  SELECT academic_year      
-        ,studentid
-        ,[yr_base_read_lvl]
-        ,[yr_base_GLEQ]
-        ,[yr_base_lvl_num]        
-        ,[yr_base_color]
-        ,[yr_base_genre]
-        ,[yr_base_keylever]
-        ,[yr_base_wpmrate]
-  FROM
-      (
-       SELECT academic_year           
-             ,studentid
-             ,identifier + '_' + field AS identifier
-             ,value
-       FROM
-           ( 
-            SELECT academic_year
-                  ,'yr_base' AS identifier
-                  ,studentid
-                  ,CONVERT(VARCHAR,read_lvl) AS read_lvl
-                  ,CONVERT(VARCHAR,GLEQ) AS GLEQ
-                  ,CONVERT(VARCHAR,lvl_num) AS lvl_num
-                  ,CONVERT(VARCHAR,color) AS color
-                  ,CONVERT(VARCHAR,genre) AS genre
-                  ,CONVERT(VARCHAR,fp_keylever) AS keylever
-                  ,CONVERT(VARCHAR,fp_wpmrate) AS wpmrate                  
-            FROM LIT$test_events#identifiers WITH(NOLOCK)
-            WHERE achv_base_yr = 1
-           ) sub
-
-       UNPIVOT (
-         value
-         FOR field IN (read_lvl
-                      ,GLEQ
-                      ,lvl_num
-                      ,color
-                      ,genre
-                      ,keylever
-                      ,wpmrate)
-        ) unpiv
-      ) sub2
-
-  PIVOT (
-    MAX(value)
-    FOR identifier IN ([yr_base_read_lvl]
-                      ,[yr_base_GLEQ]
-                      ,[yr_base_lvl_num]
-                      ,[yr_base_color]
-                      ,[yr_base_genre]
-                      ,[yr_base_keylever]
-                      ,[yr_base_wpmrate])
-   ) piv
- )
- 
 ,year_cur AS (
   SELECT academic_year      
         ,studentid
@@ -352,13 +232,6 @@ SELECT YEAR
       ,GRADE_LEVEL
       ,SCHOOLID
       ,r.STUDENTID
-      ,yr_base_GLEQ
-      ,yr_base_lvl_num
-      ,yr_base_read_lvl
-      ,yr_base_color
-      ,yr_base_genre
-      ,yr_base_keylever
-      ,yr_base_wpmrate
       ,yr_cur_GLEQ
       ,yr_cur_lvl_num
       ,yr_cur_read_lvl
@@ -368,54 +241,39 @@ SELECT YEAR
       ,yr_cur_wpmrate
       ,yr_dna_read_lvl
       ,yr_dna_reason      
-      ,DR_base_GLEQ
-      ,DR_base_lvl_num
-      ,DR_base_read_lvl
       ,DR_cur_GLEQ
       ,DR_cur_lvl_num
       ,DR_cur_read_lvl
       ,DR_dna_read_lvl
       ,DR_dna_reason            
-      ,T1_base_GLEQ
-      ,T1_base_lvl_num
-      ,T1_base_read_lvl
       ,T1_cur_GLEQ
       ,T1_cur_lvl_num
       ,T1_cur_read_lvl
       ,T1_dna_read_lvl
       ,T1_dna_reason      
-      ,T2_base_GLEQ
-      ,T2_base_lvl_num
-      ,T2_base_read_lvl
       ,T2_cur_GLEQ
       ,T2_cur_lvl_num
       ,T2_cur_read_lvl
       ,T2_dna_read_lvl
       ,T2_dna_reason      
-      ,T3_base_GLEQ
-      ,T3_base_lvl_num
-      ,T3_base_read_lvl
       ,T3_cur_GLEQ
       ,T3_cur_lvl_num
       ,T3_cur_read_lvl
       ,T3_dna_read_lvl
       ,T3_dna_reason     
-      ,EOY_base_GLEQ
-      ,EOY_base_lvl_num
-      ,EOY_base_read_lvl
       ,EOY_cur_GLEQ
       ,EOY_cur_lvl_num
       ,EOY_cur_read_lvl
       ,EOY_dna_read_lvl
       ,EOY_dna_reason    
-      ,CONVERT(FLOAT,yr_cur_GLEQ) - CONVERT(FLOAT,yr_base_GLEQ) AS yr_growth_GLEQ
-      ,CONVERT(INT,yr_cur_lvl_num) - CONVERT(INT,yr_base_lvl_num) AS yr_growth_lvl
-      ,CONVERT(FLOAT,T1_cur_GLEQ) - CONVERT(FLOAT,yr_base_GLEQ) AS t1_growth_GLEQ
-      ,CONVERT(INT,T1_cur_lvl_num) - CONVERT(INT,yr_base_lvl_num) AS t1_growth_lvl
-      ,CONVERT(FLOAT,T2_cur_GLEQ) - CONVERT(FLOAT,yr_base_GLEQ) AS t2_growth_GLEQ
-      ,CONVERT(INT,T2_cur_lvl_num) - CONVERT(INT,yr_base_lvl_num) AS t2_growth_lvl
-      ,CONVERT(FLOAT,t3_cur_GLEQ) - CONVERT(FLOAT,yr_base_GLEQ) AS t3_growth_GLEQ
-      ,CONVERT(INT,t3_cur_lvl_num) - CONVERT(INT,yr_base_lvl_num) AS t3_growth_lvl
+      ,CONVERT(FLOAT,yr_cur_GLEQ) - CONVERT(FLOAT,DR_cur_GLEQ) AS yr_growth_GLEQ
+      ,CONVERT(INT,yr_cur_lvl_num) - CONVERT(INT,DR_cur_lvl_num) AS yr_growth_lvl
+      ,CONVERT(FLOAT,T1_cur_GLEQ) - CONVERT(FLOAT,DR_cur_GLEQ) AS t1_growth_GLEQ
+      ,CONVERT(INT,T1_cur_lvl_num) - CONVERT(INT,DR_cur_lvl_num) AS t1_growth_lvl
+      ,CONVERT(FLOAT,T2_cur_GLEQ) - CONVERT(FLOAT,DR_cur_GLEQ) AS t2_growth_GLEQ
+      ,CONVERT(INT,T2_cur_lvl_num) - CONVERT(INT,DR_cur_lvl_num) AS t2_growth_lvl
+      ,CONVERT(FLOAT,t3_cur_GLEQ) - CONVERT(FLOAT,DR_cur_GLEQ) AS t3_growth_GLEQ
+      ,CONVERT(INT,t3_cur_lvl_num) - CONVERT(INT,DR_cur_lvl_num) AS t3_growth_lvl
       ,CONVERT(FLOAT,T2_cur_GLEQ) - CONVERT(FLOAT,T1_cur_GLEQ) AS t1t2_growth_GLEQ
       ,CONVERT(INT,T2_cur_lvl_num) - CONVERT(INT,T1_cur_lvl_num) AS t1t2_growth_lvl      
       ,CONVERT(FLOAT,t3_cur_GLEQ) - CONVERT(FLOAT,T2_cur_GLEQ) AS t2t3_growth_GLEQ
@@ -423,15 +281,9 @@ SELECT YEAR
       ,CONVERT(FLOAT,EOY_cur_GLEQ) - CONVERT(FLOAT,T3_cur_GLEQ) AS t3EOY_growth_GLEQ
       ,CONVERT(INT,EOY_cur_lvl_num) - CONVERT(INT,T3_cur_lvl_num) AS t3EOY_growth_lvl
 FROM roster r
-LEFT OUTER JOIN year_base yb
-  ON r.STUDENTID = yb.studentid
- AND r.YEAR = yb.academic_year
 LEFT OUTER JOIN year_cur yc
   ON r.STUDENTID = yc.studentid
  AND r.YEAR = yc.academic_year
-LEFT OUTER JOIN term_base tb
-  ON r.STUDENTID = tb.studentid
- AND r.YEAR = tb.academic_year
 LEFT OUTER JOIN term_cur tc
   ON r.STUDENTID = tc.studentid
  AND r.YEAR = tc.academic_year

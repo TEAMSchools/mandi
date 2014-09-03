@@ -221,18 +221,22 @@ LEFT OUTER JOIN GRADES$elements ele_h WITH (NOLOCK)
   ON gr.studentid = ele_h.studentid
  AND gr.course_number = ele_h.course_number
  AND ele_h.pgf_type = 'H'
+ AND ele_h.yearid >= LEFT(dbo.fn_Global_Term_ID(), 2)
 LEFT OUTER JOIN GRADES$elements ele_a WITH (NOLOCK)
   ON gr.studentid = ele_a.studentid
  AND gr.course_number = ele_a.course_number
  AND ele_a.pgf_type = 'A'
+ AND ele_a.yearid >= LEFT(dbo.fn_Global_Term_ID(), 2)
 LEFT OUTER JOIN GRADES$elements ele_c WITH (NOLOCK)
   ON gr.studentid = ele_c.studentid
  AND gr.course_number = ele_c.course_number
  AND ele_c.pgf_type = 'C'
+ AND ele_c.yearid >= LEFT(dbo.fn_Global_Term_ID(), 2)
 LEFT OUTER JOIN GRADES$elements ele_p WITH (NOLOCK)
   ON gr.studentid = ele_p.studentid
  AND gr.course_number = ele_p.course_number
  AND ele_p.pgf_type = 'P'
+ AND ele_p.yearid >= LEFT(dbo.fn_Global_Term_ID(), 2)
 LEFT OUTER JOIN GPA$detail#NCA gpa WITH (NOLOCK)
   ON roster.joinid = gpa.studentid
 LEFT OUTER JOIN entry_grade
