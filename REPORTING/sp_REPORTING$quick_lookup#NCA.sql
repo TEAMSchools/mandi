@@ -23,7 +23,7 @@ BEGIN
   -- STEP 2: load into a temporary staging table.
   SELECT *
 		INTO [#REPORTING$quick_lookup#NCA#static|refresh]
-  FROM REPORTING$quick_lookup#NCA;
+  FROM REPORTING$quick_lookup#NCA WITH(NOLOCK);
          
 
   -- STEP 3: truncate destination table

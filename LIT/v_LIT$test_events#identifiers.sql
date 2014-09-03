@@ -117,10 +117,10 @@ FROM
            ,rs.status
            ,rs.step_ltr_level AS read_lvl           
            ,gleq.lvl_num
-           ,goals.read_lvl AS goal_lvl
-           ,goals.lvl_num AS goal_num
+           ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
+           ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num
            ,gleq.GLEQ
-           ,gleq.lvl_num - goals.lvl_num AS levels_behind           
+           ,gleq.lvl_num - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind           
 
            -- test metadata      
            ,rs.color
@@ -152,6 +152,9 @@ FROM
      LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
        ON ISNULL(cohort.grade_level, s.grade_level) = goals.grade_level
       AND ISNULL(REPLACE(rs.test_round, 'EOY', 'T3'), REPLACE(REPLACE(dates.time_per_name, 'Diagnostic', 'DR'), 'EOY', 'T3')) = goals.test_round
+     LEFT OUTER JOIN LIT$individual_goals indiv WITH(NOLOCK)
+       ON cohort.STUDENT_NUMBER = indiv.student_number
+      AND rs.test_round = indiv.test_round
 
      UNION ALL
 
@@ -189,10 +192,10 @@ FROM
            ,'Achieved' AS status
            ,'Pre_DNA' AS read_lvl           
            ,gleq.lvl_num
-           ,goals.read_lvl AS goal_lvl
-           ,goals.lvl_num AS goal_num
+           ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
+           ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num
            ,gleq.GLEQ
-           ,gleq.lvl_num - goals.lvl_num AS levels_behind
+           ,gleq.lvl_num - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind         
            
            -- test metadata      
            ,rs.color
@@ -224,6 +227,9 @@ FROM
      LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
        ON ISNULL(cohort.grade_level, s.grade_level) = goals.grade_level
       AND ISNULL(REPLACE(rs.test_round, 'EOY', 'T3'), REPLACE(REPLACE(dates.time_per_name, 'Diagnostic', 'DR'), 'EOY', 'T3')) = goals.test_round
+     LEFT OUTER JOIN LIT$individual_goals indiv WITH(NOLOCK)
+       ON cohort.STUDENT_NUMBER = indiv.student_number
+      AND rs.test_round = indiv.test_round
      WHERE rs.status = 'Did Not Achieve'
        AND rs.step_ltr_level = 'Pre'
     ) sub
