@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW MAP$growth_norms_data_extended#2011 AS
+ALTER VIEW MAP$growth_norms_data_extended#2011 AS
 WITH master_growth_norms AS
     (SELECT *
      FROM KIPP_NJ..MAP$growth_norms_data#2011
@@ -9,93 +9,51 @@ WITH master_growth_norms AS
 --stuff in the table
 SELECT *
 FROM master_growth_norms
---missing stuff
+WHERE startgrade < 10
 
---reading 11
+--slightly massage the 10th grade existing data
+--(because they report NULL for spring to spring)
 UNION ALL
-SELECT subject
-      ,11
-      ,startrit
-      ,t41, t42, t44, t22, t12
-      ,r41, r42, r44, r22, r12
-      ,s41, s42, s44, s22, s12
-FROM master_growth_norms
-WHERE subject = 'Reading'
-  AND startgrade = 10
---reading 12
+SELECT m.subject
+      ,m.startgrade
+      ,m.startrit
+      ,m.t41, m.t42, m.t44, back_1.t22, m.t12
+      ,m.r41, m.r42, m.r44, back_1.r22, m.r12
+      ,m.s41, m.s42, m.s44, back_1.s22, m.s12
+FROM master_growth_norms m
+JOIN master_growth_norms back_1 
+  ON m.subject = back_1.subject
+ AND m.startrit = back_1.startrit
+ AND m.startgrade - 1 = back_1.startgrade
+WHERE m.startgrade = 10
+
+--now do the missing stuff (grade 11 and 12)
+
+--grade 11
 UNION ALL
-SELECT subject
-      ,12
-      ,startrit
-      ,t41, t42, t44, t22, t12
-      ,r41, r42, r44, r22, r12
-      ,s41, s42, s44, s22, s12
-FROM master_growth_norms
-WHERE subject = 'Reading'
-  AND startgrade = 10
---mathematics 11
+SELECT m.subject
+      ,11 AS startgrade
+      ,m.startrit
+      ,m.t41, m.t42, m.t44, back_1.t22, m.t12
+      ,m.r41, m.r42, m.r44, back_1.r22, m.r12
+      ,m.s41, m.s42, m.s44, back_1.s22, m.s12
+FROM master_growth_norms m
+JOIN master_growth_norms back_1 
+  ON m.subject = back_1.subject
+ AND m.startrit = back_1.startrit
+ AND m.startgrade - 1 = back_1.startgrade
+WHERE m.startgrade = 10
+--grade 12
 UNION ALL
-SELECT subject
-      ,11
-      ,startrit
-      ,t41, t42, t44, t22, t12
-      ,r41, r42, r44, r22, r12
-      ,s41, s42, s44, s22, s12
-FROM master_growth_norms
-WHERE subject = 'Mathematics'
-  AND startgrade = 10
---mathematics 12
-UNION ALL
-SELECT subject
-      ,12
-      ,startrit
-      ,t41, t42, t44, t22, t12
-      ,r41, r42, r44, r22, r12
-      ,s41, s42, s44, s22, s12
-FROM master_growth_norms
-WHERE subject = 'Mathematics'
-  AND startgrade = 10
---language usage 11
-UNION ALL
-SELECT subject
-      ,11
-      ,startrit
-      ,t41, t42, t44, t22, t12
-      ,r41, r42, r44, r22, r12
-      ,s41, s42, s44, s22, s12
-FROM master_growth_norms
-WHERE subject = 'Language Usage'
-  AND startgrade = 10
---language usage 12
-UNION ALL
-SELECT subject
-      ,12
-      ,startrit
-      ,t41, t42, t44, t22, t12
-      ,r41, r42, r44, r22, r12
-      ,s41, s42, s44, s22, s12
-FROM master_growth_norms
-WHERE subject = 'Language Usage'
-  AND startgrade = 10
---general science 11
-UNION ALL
-SELECT subject
-      ,11
-      ,startrit
-      ,t41, t42, t44, t22, t12
-      ,r41, r42, r44, r22, r12
-      ,s41, s42, s44, s22, s12
-FROM master_growth_norms
-WHERE subject = 'General Science'
-  AND startgrade = 10
---general science 12
-UNION ALL
-SELECT subject
-      ,12
-      ,startrit
-      ,t41, t42, t44, t22, t12
-      ,r41, r42, r44, r22, r12
-      ,s41, s42, s44, s22, s12
-FROM master_growth_norms
-WHERE subject = 'General Science'
-  AND startgrade = 10
+SELECT m.subject
+      ,12 AS startgrade
+      ,m.startrit
+      ,m.t41, m.t42, m.t44, back_1.t22, m.t12
+      ,m.r41, m.r42, m.r44, back_1.r22, m.r12
+      ,m.s41, m.s42, m.s44, back_1.s22, m.s12
+FROM master_growth_norms m
+JOIN master_growth_norms back_1 
+  ON m.subject = back_1.subject
+ AND m.startrit = back_1.startrit
+ AND m.startgrade - 1 = back_1.startgrade
+WHERE m.startgrade = 10
