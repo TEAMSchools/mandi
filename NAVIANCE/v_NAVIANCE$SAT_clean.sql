@@ -21,8 +21,8 @@ FROM
            ,CASE WHEN sub1.test_date <= GETDATE() THEN sub1.test_date ELSE NULL END AS test_date
            ,co.year AS academic_year
            ,ROW_NUMBER() OVER(
-              PARTITION BY student_number, test_date
-                  ORDER BY test_date) AS dupe_audit
+              PARTITION BY sub1.student_number, test_date
+                  ORDER BY sub1.test_date) AS dupe_audit
      FROM
          (
           SELECT studentid AS nav_studentid

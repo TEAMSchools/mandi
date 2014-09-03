@@ -17,7 +17,7 @@ WITH zscore AS
         FROM map_rit_mean_sd norms
         WHERE (term = ''Spring-to-Spring'') OR (grade = 0 AND term = ''Fall-to-Spring'')
        '
-       )
+       ) sub
    )
    ,cohort AS
      (SELECT c.studentid

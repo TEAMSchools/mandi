@@ -85,7 +85,7 @@ WITH zscore AS
      JOIN KIPP_NJ..COURSES WITH (NOLOCK)
        ON c.course_number = courses.course_number
      WHERE c.dateenrolled <= CAST(GETDATE() AS date)
-       AND c.dateleft >= '2014-06-10'
+       AND c.dateleft >= '2014-06-01'
        --AND c.dateleft >= CAST(GETDATE() AS date)
      ) 
 
@@ -103,7 +103,7 @@ WITH zscore AS
        ON cc.schoolid = schools.school_number
       AND schools.school_number IN (73252, 73254, 73255, 73256)
      WHERE cc.dateenrolled <= CAST(GETDATE() AS date)
-       AND cc.dateleft >= '2014-06-10'
+       AND cc.dateleft >= '2014-06-01'
        --AND cc.dateleft >= CAST(GETDATE() AS date)
     ) 
 

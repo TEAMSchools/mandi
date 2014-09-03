@@ -15,11 +15,15 @@ WITH base_roster AS
       AND c.rn = 1
      )
 
-SELECT TOP 1000000 CASE GROUPING(schools.abbreviation)
+SELECT TOP 10000000 CASE GROUPING(schools.abbreviation)
 			      WHEN 1 THEN 'network'
 			      ELSE schools.abbreviation
 			    END AS school
-			   ,year
+			   ,CASE GROUPING(year)
+				     WHEN 1 THEN 'all'
+				     ELSE 
+				       CAST(year AS NVARCHAR)
+			    END AS year
       ,CASE GROUPING(grade_level)
 				     WHEN 1 THEN 'campus'
 				     ELSE 
@@ -44,12 +48,12 @@ FROM
          ON base_roster.studentid = c_next.studentid
         AND base_roster.year + 1 = c_next.year
         AND c_next.rn = 1
-       WHERE base_roster.year < dbo.fn_Global_Academic_Year()
+       WHERE base_roster.year < 2014
        ) sub
 JOIN KIPP_NJ..SCHOOLS
   ON sub.schoolid = schools.school_number
 GROUP BY ROLLUP(schools.abbreviation)
-        ,year
+        ,ROLLUP(year)
         ,ROLLUP(grade_level)
 ORDER BY year
         ,schools.ABBREVIATION
