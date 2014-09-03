@@ -40,17 +40,9 @@ FROM
            ,math_read.measurementscale
            ,map_base.testritscore AS baseline_rit
            ,map_base.testpercentile AS baseline_percentile
-           ,map_base.termname AS derived_from      
-           ,CASE
-             WHEN stu_roster.grade_level >= 11 AND map_base.testritscore IS NOT NULL THEN 2
-             WHEN stu_roster.grade_level = 10 AND map_base.typical_growth_fallorspring_to_spring IS NULL THEN norm.R22
-             ELSE CAST(ROUND(map_base.typical_growth_fallorspring_to_spring,0) AS INT)
-            END AS keep_up_goal
-           ,CASE
-             WHEN stu_roster.GRADE_LEVEL >= 11 AND map_base.testritscore IS NOT NULL THEN map_base.testritscore + 2
-             WHEN stu_roster.grade_level = 10 AND map_base.typical_growth_fallorspring_to_spring IS NULL THEN map_base.testritscore + norm.R22
-             ELSE CAST(map_base.testritscore AS FLOAT) + CAST(map_base.typical_growth_fallorspring_to_spring AS FLOAT)
-            END AS keep_up_rit
+           ,map_base.termname AS derived_from                 
+           ,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
+           ,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
            ,CASE
              WHEN rr_goals.RIT_target IS NOT NULL THEN ROUND(MIN(rr_goals.RIT_target), 0) - CAST(map_base.testritscore AS FLOAT)
              --bottom quartile
@@ -78,12 +70,11 @@ FROM
       AND rr_goals.measurementscale = map_base.MeasurementScale
       AND ROUND(rr_goals.RIT_target, 0) > ROUND(map_base.testritscore, 0)
       AND ROUND(rr_goals.RIT_target - map_base.testritscore, 0) > map_base.typical_growth_fallorspring_to_spring
-     LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norm WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
        ON math_read.measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND stu_roster.grade_level - 1 = norm.startgrade 
-     WHERE stu_roster.grade_level >= 5
-       --AND stu_roster.grade_level <= 11     
+      AND stu_roster.grade_level = norm.startgrade 
+     WHERE stu_roster.grade_level >= 5      
      GROUP BY stu_roster.studentid
              ,stu_roster.schoolid
              ,stu_roster.lastfirst
@@ -102,7 +93,7 @@ FROM
 UNION ALL
 
 
---SCIENCE AND LANGUAGE FOR 4-11
+--SCIENCE AND LANGUAGE FOR 4-12
 SELECT sub.*
       ,sub.baseline_rit + sub.rutgers_ready_goal AS rutgers_ready_rit
 FROM
@@ -112,14 +103,8 @@ FROM
            ,map_base.testritscore AS baseline_rit
            ,map_base.testpercentile AS baseline_percentile
            ,map_base.termname AS derived_from                      
-           ,CASE
-             WHEN stu_roster.grade_level >= 11 AND map_base.testritscore IS NOT NULL THEN 2
-             ELSE norm.r22
-            END AS keep_up_goal
-           ,CASE
-             WHEN stu_roster.GRADE_LEVEL >= 11 THEN map_base.testritscore + 2
-             ELSE map_base.testritscore + norm.r22
-            END AS keep_up_rit           
+           ,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
+           ,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
            ,CASE 
              --bottom quartile
              WHEN CAST(map_base.testpercentile AS INT) > 0   AND CAST(map_base.testpercentile AS INT) < 25 THEN ROUND(CAST(norm.r22 AS FLOAT) * 2.0, 0)
@@ -138,12 +123,11 @@ FROM
        ON stu_roster.studentid = map_base.studentid 
       AND stu_roster.year = map_base.year
       AND sci_lang.measurementscale = REPLACE(map_base.measurementscale, ' Usage', '')
-     LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norm WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
       ON sci_lang.alt_measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND stu_roster.grade_level - 1 = norm.startgrade
-     WHERE stu_roster.grade_level >= 4
-       --AND stu_roster.grade_level <= 11
+      AND stu_roster.grade_level = norm.startgrade
+     WHERE stu_roster.grade_level >= 4       
     ) sub
 
 
@@ -160,14 +144,8 @@ FROM
            ,map_base.testritscore AS baseline_rit
            ,map_base.testpercentile AS baseline_percentile
            ,map_base.termname AS derived_from           
-           ,CASE 
-             WHEN stu_roster.grade_level = 0 THEN norm.r42
-             ELSE norm.r22 
-            END AS keep_up_goal
-           ,CASE
-             WHEN stu_roster.grade_level = 0 THEN map_base.testritscore + norm.r42
-             ELSE map_base.testritscore + norm.r22 
-            END AS keep_up_rit
+           ,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
+           ,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
            ,CASE 
              --bottom quartile
              WHEN CAST(map_base.testpercentile AS INT) > 0   AND CAST(map_base.testpercentile AS INT) < 25 
@@ -211,10 +189,10 @@ FROM
        ON stu_roster.studentid = map_base.studentid 
       AND stu_roster.year = map_base.year
       AND sci_lang.measurementscale = REPLACE(map_base.measurementscale, ' Usage', '')
-     LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norm WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
       ON sci_lang.alt_measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND CASE WHEN stu_roster.grade_level = 0 THEN stu_roster.grade_level ELSE stu_roster.grade_level - 1 END = norm.startgrade
+      AND stu_roster.grade_level = norm.startgrade
      WHERE stu_roster.grade_level < 4
     ) sub
 
@@ -232,14 +210,8 @@ FROM
            ,map_base.testritscore AS baseline_rit
            ,map_base.testpercentile AS baseline_percentile
            ,map_base.termname AS derived_from           
-           ,CASE
-             WHEN stu_roster.grade_level = 0 THEN norm.r42
-             ELSE norm.r22 
-            END AS keep_up_goal
-           ,CASE
-             WHEN stu_roster.grade_level = 0 THEN map_base.testritscore + norm.r42
-             ELSE map_base.testritscore + norm.r22 
-            END AS keep_up_rit
+           ,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
+           ,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
            ,CASE 
              --bottom quartile
              WHEN CAST(map_base.testpercentile AS INT) > 0   AND CAST(map_base.testpercentile AS INT) < 25 
@@ -282,10 +254,10 @@ FROM
        ON stu_roster.studentid = map_base.studentid 
       AND stu_roster.year = map_base.year
       AND math_read.measurementscale = map_base.measurementscale
-     LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norm WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
        ON math_read.measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND CASE WHEN stu_roster.grade_level = 0 THEN stu_roster.grade_level ELSE stu_roster.grade_level - 1 END = norm.startgrade
+      AND stu_roster.grade_level = norm.startgrade
      WHERE stu_roster.grade_level <= 3
     ) sub
 
@@ -303,9 +275,8 @@ FROM
            ,map_base.testritscore AS baseline_rit
            ,map_base.testpercentile AS baseline_percentile
            ,map_base.termname AS derived_from           
-           
-           ,norm.r22 AS keep_up_goal
-           ,map_base.testritscore + norm.r22 AS keep_up_rit
+           ,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
+           ,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
            ,CASE 
              --bottom quartile
              WHEN CAST(map_base.testpercentile AS INT) > 0   AND CAST(map_base.testpercentile AS INT) < 25 THEN ROUND(CAST(norm.r22 AS FLOAT) * 2, 0)
@@ -324,9 +295,9 @@ FROM
        ON stu_roster.studentid = map_base.studentid 
       AND stu_roster.year = map_base.year
       AND math_read.measurementscale = map_base.measurementscale
-     LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norm WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
        ON math_read.measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND stu_roster.grade_level - 1 = norm.startgrade
+      AND stu_roster.grade_level = norm.startgrade
      WHERE stu_roster.grade_level = 4
     ) sub

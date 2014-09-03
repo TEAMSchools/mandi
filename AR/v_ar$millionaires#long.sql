@@ -8,7 +8,7 @@ WITH scaffold AS
            ,c.grade_level
            ,sch.abbreviation AS school
            ,c.year
-           ,CONVERT(datetime, CAST('07/01/' + c.year AS DATE), 101) AS start_date_ar
+           ,CONVERT(datetime, CAST('07/01/' + CONVERT(VARCHAR,c.year) AS DATE), 101) AS start_date_ar
            ,c.entrydate
            ,c.exitdate
            ,CAST(rd.date AS DATE) AS date

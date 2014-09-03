@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW AM$objectives_mastered#long AS 
+ALTER VIEW AM$objectives_mastered#long AS 
 WITH scaffold AS
     (SELECT c.studentid
            ,s.student_number
@@ -9,7 +9,7 @@ WITH scaffold AS
            ,c.schoolid
            ,sch.abbreviation AS school
            ,c.year
-           ,CONVERT(datetime, CAST('07/01/' + c.year AS DATE), 101) AS custom_start
+           ,CONVERT(datetime, CAST('07/01/' + CONVERT(VARCHAR,c.year) AS DATE), 101) AS custom_start
            ,CAST(c.entrydate AS date) AS entrydate
            ,CAST(c.exitdate AS date) AS exitdate
            ,CAST(rd.date AS DATE) AS date
