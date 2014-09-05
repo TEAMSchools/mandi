@@ -8,8 +8,8 @@ WITH disc_log AS (
         ,CAST(disc.studentid AS INT) AS studentid        
         ,disc.entry_author
         ,CASE WHEN DATEPART(MONTH,disc.entry_date) < 7 THEN (DATEPART(YEAR,disc.entry_date) - 1) ELSE DATEPART(YEAR,disc.entry_date) END AS academic_year
-        ,CONVERT(DATE,disc.entry_date) AS entry_date
-        ,CONVERT(DATE,disc.discipline_actiondate) AS consequence_date
+        ,CASE WHEN disc.logtypeid IN (3023, 3223) OR schoolid != 73253 THEN CONVERT(DATE,disc.entry_date) ELSE CONVERT(DATE,disc.discipline_incidentdate) END AS entry_date
+        ,CONVERT(DATE,disc.entry_date) AS consequence_date
         ,disc.logtypeid      
         ,disc.subtype AS subtypeid
         ,consequence AS n_days
@@ -25,7 +25,7 @@ WITH disc_log AS (
           ,schoolid
           ,entry_author
           ,entry_date
-          ,discipline_actiondate
+          ,discipline_incidentdate
           ,logtypeid
           ,subtype
           ,subject
@@ -61,11 +61,11 @@ WITH disc_log AS (
         ,CONVERT(DATE,att_date) AS entry_date
         ,NULL AS consequence_date
         ,3223 AS logtypeid
-        ,NULL AS subtypeid
+        ,06 AS subtypeid
         ,NULL AS n_days
-        ,NULL AS logtype
+        ,'Demerits' AS logtype
         ,'Tardy' AS subtype
-        ,NULL AS subject
+        ,'Late to Class' AS subject
         ,NULL AS entry
         ,'Late to Class' AS discipline_details
         ,NULL AS actiontaken
@@ -88,11 +88,11 @@ WITH disc_log AS (
         ,CONVERT(DATE,att_date) AS entry_date
         ,NULL AS consequence_date
         ,3223 AS logtypeid
-        ,NULL AS subtypeid
+        ,06 AS subtypeid
         ,NULL AS n_days
-        ,NULL AS logtype
+        ,'Demerits' AS logtype
         ,'Tardy' AS subtype
-        ,NULL AS subject
+        ,'Late to School' AS subject
         ,NULL AS entry
         ,'Late to School' AS discipline_details
         ,NULL AS actiontaken
@@ -112,11 +112,11 @@ WITH disc_log AS (
 
 ,all_logs AS (
   SELECT *
-  FROM disc_log
+  FROM disc_log WITH(NOLOCK)
   WHERE subtype IS NOT NULL
   UNION ALL
   SELECT *
-  FROM tardy_demerits
+  FROM tardy_demerits WITH(NOLOCK)
  )
 
 SELECT all_logs.*      
@@ -124,7 +124,7 @@ SELECT all_logs.*
       ,ROW_NUMBER() OVER(
           PARTITION BY studentid, logtypeid
               ORDER BY entry_date DESC) AS rn
-FROM all_logs
+FROM all_logs WITH(NOLOCK)
 LEFT OUTER JOIN REPORTING$dates dates WITH (NOLOCK)
   ON all_logs.entry_date >= dates.start_date
  AND all_logs.entry_date <= dates.end_date
