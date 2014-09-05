@@ -132,7 +132,7 @@ LEFT OUTER JOIN (
                                    ,SUM(words_goal) AS total_words_goal
                                    ,SUM(points_goal) AS total_points_goal
                                    ,SUM(num_days) AS total_days
-                                   ,DATEDIFF(day, '2014-08-01',	'2015-06-30') AS year_days
+                                   ,DATEDIFF(DAY, CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01'),	CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year() + 1) + '-06-30')) AS year_days
                                    ,COUNT(*) AS total_periods
                              FROM
                                    (SELECT ar.*
