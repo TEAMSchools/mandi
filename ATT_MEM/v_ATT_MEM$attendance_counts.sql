@@ -84,8 +84,8 @@ WITH attendance_long AS (
        SELECT studentid
              ,dates.time_per_name AS rt
              ,CAST(RAND(CHECKSUM(NEWID())) * 2 as INT) AS has_uniform -- generates a 1 or 0 for testing
-       FROM ES_DAILY$tracking_long#static dt
-       JOIN REPORTING$dates dates
+       FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+       JOIN REPORTING$dates dates WITH(NOLOCK)
          ON dt.schoolid = dates.schoolid
         AND dt.att_date >= dates.start_date
         AND dt.att_date <= dates.end_date
@@ -96,7 +96,7 @@ WITH attendance_long AS (
        SELECT studentid
              ,curterm.time_per_name AS rt
              ,CAST(RAND(CHECKSUM(NEWID())) * 2 as INT) AS has_uniform -- generates a 1 or 0 for testing
-       FROM ES_DAILY$tracking_long#static dt
+       FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
        JOIN REPORTING$dates curterm WITH (NOLOCK)
          ON dt.schoolid = curterm.schoolid
         AND dt.att_date >= curterm.start_date
@@ -351,7 +351,7 @@ FROM
            ,RT + '_' + ATT_CODE AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
      FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-     LEFT OUTER JOIN attendance_long att
+     LEFT OUTER JOIN attendance_long att WITH(NOLOCK)
        ON co.studentid = att.STUDENTID      
      WHERE co.year = dbo.fn_Global_Academic_Year()
        AND co.rn = 1
@@ -366,7 +366,7 @@ FROM
            ,'Y1_' + ATT_CODE AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
      FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-     LEFT OUTER JOIN attendance_long att
+     LEFT OUTER JOIN attendance_long att WITH(NOLOCK)
        ON co.studentid = att.STUDENTID
       AND rt != 'CUR' 
      WHERE co.year = dbo.fn_Global_Academic_Year()
@@ -381,7 +381,7 @@ FROM
            ,rt + '_' + att_code AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
      FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-     LEFT OUTER JOIN early_dis ed
+     LEFT OUTER JOIN early_dis ed WITH(NOLOCK)
        ON co.studentid = ed.studentid
      WHERE co.year = dbo.fn_Global_Academic_Year()
        AND co.rn = 1
@@ -396,7 +396,7 @@ FROM
            ,'Y1_' + att_code AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
      FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-     LEFT OUTER JOIN early_dis ed
+     LEFT OUTER JOIN early_dis ed WITH(NOLOCK)
        ON co.studentid = ed.studentid
      WHERE co.year = dbo.fn_Global_Academic_Year()
        AND co.rn = 1
@@ -410,7 +410,7 @@ FROM
            ,rt + '_UNI' AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
      FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-     LEFT OUTER JOIN uniform uni
+     LEFT OUTER JOIN uniform uni WITH(NOLOCK)
        ON co.studentid = uni.studentid
      WHERE co.year = dbo.fn_Global_Academic_Year()
        AND co.rn = 1
@@ -424,7 +424,7 @@ FROM
            ,'Y1_UNI' AS rt_hash
            ,CONVERT(FLOAT,COUNT(*)) AS N
      FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-     LEFT OUTER JOIN uniform uni
+     LEFT OUTER JOIN uniform uni WITH(NOLOCK)
        ON co.studentid = uni.studentid
      WHERE co.year = dbo.fn_Global_Academic_Year()
        AND co.rn = 1

@@ -4,7 +4,6 @@ import os
 import csv
 import json
 import gspread
-import re
 import pymssql
 import codecs
 import cStringIO
@@ -98,18 +97,17 @@ for record in wkbk_list:
 
     # iterate over sequential worksheets
     for i in range(start_sheet, end_sheet):
-        sheet_name = str(sheet_names[i])
-        # extract name between ' ' and removes spaces
-        clean_name = re.search("'(.*)'", sheet_name).group(1).replace(' ', '_')
-
-        print 'Opening worksheet ' + str(i + 1) + ': "' + str(clean_name) + '"'
         worksheet = workbook.get_worksheet(i)
+        sheet_name = worksheet._title        
+        clean_name = sheet_name.replace(' ', '_')  # removes spaces
+
+        print 'Opening worksheet ' + str(i + 1) + ': "' + str(clean_name) + '"'        
         print 'Getting and cleaning data...'
         data = worksheet.get_all_values()
         # list comprehension quickly removes unwanted header rows
         data = [line for x, line in enumerate(data) if x >= start_row]
 
-        filename = save_path + 'GDOCS_' + tag + '_' + clean_name + '.csv'
+        filename = save_path + 'GDOCS_' + tag + '_' + clean_name + '.csv'        
         print 'Downloading file ' + filename + ' to server, starting at line ' + str(start_row + 1)
         if not os.path.exists(save_path):
             os.makedirs(save_path)

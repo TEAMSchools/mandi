@@ -84,7 +84,7 @@ FROM
            ,daily.color_mid
            ,daily.color_pm
           FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)
-          JOIN valid_dates
+          JOIN valid_dates WITH(NOLOCK)
             ON daily.schoolid = valid_dates.schoolid
            AND daily.att_date = valid_dates.att_date
          ) sub

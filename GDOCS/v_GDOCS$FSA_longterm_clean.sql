@@ -68,7 +68,15 @@ WITH dirty_data AS (
   FROM AUTOLOAD$GDOCS_FSA_Revolution WITH(NOLOCK)
  )
 
-SELECT dirty_data.*
+SELECT dirty_data.schoolid
+      ,dirty_data.grade_level
+      ,dirty_data.subject
+      ,dirty_data.week_num
+      ,dirty_data.ccss_standard
+      ,dirty_data.other_standard
+      ,REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.objective), 'ʺ', '"'), '’', ''''), '�', '') AS objective
+      ,REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_mastered), 'ʺ', '"'), '’', ''''), '�', '') AS next_steps_mastered
+      ,REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_notmastered), 'ʺ', '"'), '’', ''''), '�', '') AS next_steps_notmastered
       ,ROW_NUMBER() OVER (
          PARTITION BY dirty_data.schoolid
                      ,dirty_data.grade_level

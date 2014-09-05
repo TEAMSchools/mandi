@@ -267,12 +267,12 @@ SELECT r.studentid
       ,sp.pct_correct_yr AS sp_average_yr
       ,vocab.pct_correct_wk AS v_average_w
       ,vocab.pct_correct_yr AS v_average_yr
-FROM roster r
-JOIN curterm
+FROM roster r WITH(NOLOCK)
+JOIN curterm WITH(NOLOCK)
   ON 1 = 1
-LEFT OUTER JOIN reporting_week rw
+LEFT OUTER JOIN reporting_week rw WITH(NOLOCK)
   ON r.schoolid = rw.schoolid
-LEFT OUTER JOIN attendance att
+LEFT OUTER JOIN attendance att WITH(NOLOCK)
   ON r.STUDENTID = att.studentid
 LEFT OUTER JOIN ILLUMINATE$FSA_scores_wide fsa WITH(NOLOCK)
   ON r.STUDENTID = fsa.studentid

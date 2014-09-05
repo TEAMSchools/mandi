@@ -43,13 +43,13 @@ WITH fsa_rn AS (
         ,CONVERT(VARCHAR,nxt.next_steps_notmastered) AS FSA_nxtstp_n
         ,CONVERT(VARCHAR,nxt.objective) AS FSA_obj
         ,a.FSA_std_rn
-  FROM fsa_rn a
+  FROM fsa_rn a WITH(NOLOCK)
   JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
     ON a.schoolid = co.SCHOOLID
    AND a.grade_level = co.GRADE_LEVEL   
    AND a.academic_year = co.year   
    AND co.rn = 1
-  LEFT OUTER JOIN GDOCS$FSA_longterm_clean nxt
+  LEFT OUTER JOIN GDOCS$FSA_longterm_clean nxt WITH(NOLOCK)
     ON a.SCHOOLID = nxt.schoolid
    AND a.GRADE_LEVEL = nxt.grade_level
    AND a.fsa_week = nxt.week_num
@@ -85,7 +85,7 @@ FROM
                                     WHEN res.percent_correct < 80 THEN 0
                                    END) OVER(PARTITION BY a.studentid, a.fsa_week)) AS n_mastered
                 ,CONVERT(FLOAT,COUNT(a.FSA_standard) OVER(PARTITION BY a.studentid, a.fsa_week)) AS n_total
-          FROM fsa_scaffold a            
+          FROM fsa_scaffold a WITH(NOLOCK)
           LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static res WITH(NOLOCK)  
             ON a.student_number = res.local_student_id           
            AND a.assessment_id = res.assessment_id

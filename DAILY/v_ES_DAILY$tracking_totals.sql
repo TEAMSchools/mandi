@@ -83,7 +83,7 @@ WITH valid_dates AS (
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red        
        FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)
-       JOIN valid_dates
+       JOIN valid_dates WITH(NOLOCK)
          ON daily.schoolid = valid_dates.schoolid
         AND daily.att_date = valid_dates.att_date
        GROUP BY daily.schoolid
@@ -158,7 +158,7 @@ UNION ALL
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red        
        FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)
-       JOIN valid_dates
+       JOIN valid_dates WITH(NOLOCK)
          ON daily.schoolid = valid_dates.schoolid
         AND daily.att_date = valid_dates.att_date
        GROUP BY daily.schoolid
@@ -231,7 +231,7 @@ UNION ALL
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red        
        FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)
-       JOIN valid_dates
+       JOIN valid_dates WITH(NOLOCK)
          ON daily.schoolid = valid_dates.schoolid
         AND daily.att_date = valid_dates.att_date
        GROUP BY daily.schoolid
@@ -303,7 +303,7 @@ UNION ALL
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red        
        FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)
-       JOIN valid_dates
+       JOIN valid_dates WITH(NOLOCK)
          ON daily.schoolid = valid_dates.schoolid
         AND daily.att_date = valid_dates.att_date
        JOIN REPORTING$dates dt WITH(NOLOCK)
@@ -410,7 +410,7 @@ FROM
                 ,red
                 ,CONVERT(VARCHAR,pct_ontrack) AS pct_ontrack
                 ,CONVERT(VARCHAR,status) AS status
-          FROM longs_totals
+          FROM longs_totals WITH(NOLOCK)
          ) sub 
 
      
