@@ -5,6 +5,7 @@ ALTER VIEW TABLEAU$culture_dashboard#HS AS
 
 SELECT s.LASTFIRST AS Name
       ,s.GRADE_LEVEL AS Gr
+      ,s.gender
       ,cs.Advisor      
       ,dates.alt_name AS Term
       ,CONVERT(VARCHAR,disc.entry_date,101) AS [Log Date]
