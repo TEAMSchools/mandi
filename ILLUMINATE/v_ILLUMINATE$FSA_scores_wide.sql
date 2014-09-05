@@ -25,7 +25,7 @@ WITH fsa_rn AS (
          AND scope = 'FSA'
          AND subject IS NOT NULL
          AND fsa_week IS NOT NULL
-         AND academic_year = dbo.fn_Global_Academic_Year()
+         --AND academic_year = dbo.fn_Global_Academic_Year()
       ) sub  
  )    
 
@@ -62,6 +62,7 @@ FROM
      SELECT studentid
            ,STUDENT_NUMBER
            ,fsa_week
+           ,ROUND(CONVERT(FLOAT,n_mastered) / CONVERT(FLOAT,n_total) * 100,0) AS pct_mastered_wk
            ,identifier + '_' + CONVERT(VARCHAR,fsa_std_rn) AS identifier
            ,value
      FROM
@@ -71,12 +72,19 @@ FROM
                 ,a.FSA_week
                 ,a.FSA_subject
                 ,a.FSA_standard
-                ,a.FSA_obj
-                ,a.FSA_nxtstp_y
-                ,a.FSA_nxtstp_n
+                ,a.FSA_obj                
+                ,CASE
+                  WHEN res.percent_correct >= 80 THEN a.FSA_nxtstp_y
+                  WHEN res.percent_correct < 80 THEN a.FSA_nxtstp_n
+                 END AS FSA_nxtstp
                 ,a.FSA_std_rn
                 ,CONVERT(VARCHAR,res.performance_band_level) AS FSA_score
-                ,CONVERT(VARCHAR,res.perf_band_label) AS FSA_prof
+                ,CONVERT(VARCHAR,res.perf_band_label) AS FSA_prof                
+                ,CONVERT(FLOAT,SUM(CASE
+                                    WHEN res.percent_correct >= 80 THEN 1
+                                    WHEN res.percent_correct < 80 THEN 0
+                                   END) OVER(PARTITION BY a.studentid, a.fsa_week)) AS n_mastered
+                ,CONVERT(FLOAT,COUNT(a.FSA_standard) OVER(PARTITION BY a.studentid, a.fsa_week)) AS n_total
           FROM fsa_scaffold a            
           LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static res WITH(NOLOCK)  
             ON a.student_number = res.local_student_id           
@@ -90,8 +98,7 @@ FROM
                          ,[FSA_score]
                          ,[FSA_prof]
                          ,[FSA_standard]
-                         ,[FSA_nxtstp_y]
-                         ,[FSA_nxtstp_n]
+                         ,[FSA_nxtstp]                         
                          ,[FSA_obj])
       ) unpiv
     ) sub2  
@@ -174,35 +181,20 @@ PIVOT (
                     ,[FSA_prof_13]
                     ,[FSA_prof_14]
                     ,[FSA_prof_15]
-                    ,[FSA_nxtstp_y_1]
-                    ,[FSA_nxtstp_y_2]
-                    ,[FSA_nxtstp_y_3]
-                    ,[FSA_nxtstp_y_4]
-                    ,[FSA_nxtstp_y_5]
-                    ,[FSA_nxtstp_y_6]
-                    ,[FSA_nxtstp_y_7]
-                    ,[FSA_nxtstp_y_8]
-                    ,[FSA_nxtstp_y_9]
-                    ,[FSA_nxtstp_y_10]
-                    ,[FSA_nxtstp_y_11]
-                    ,[FSA_nxtstp_y_12]
-                    ,[FSA_nxtstp_y_13]
-                    ,[FSA_nxtstp_y_14]
-                    ,[FSA_nxtstp_y_15]
-                    ,[FSA_nxtstp_n_1]
-                    ,[FSA_nxtstp_n_2]
-                    ,[FSA_nxtstp_n_3]
-                    ,[FSA_nxtstp_n_4]
-                    ,[FSA_nxtstp_n_5]
-                    ,[FSA_nxtstp_n_6]
-                    ,[FSA_nxtstp_n_7]
-                    ,[FSA_nxtstp_n_8]
-                    ,[FSA_nxtstp_n_9]
-                    ,[FSA_nxtstp_n_10]
-                    ,[FSA_nxtstp_n_11]
-                    ,[FSA_nxtstp_n_12]
-                    ,[FSA_nxtstp_n_13]
-                    ,[FSA_nxtstp_n_14]
-                    ,[FSA_nxtstp_n_15])
+                    ,[FSA_nxtstp_1]
+                    ,[FSA_nxtstp_2]
+                    ,[FSA_nxtstp_3]
+                    ,[FSA_nxtstp_4]
+                    ,[FSA_nxtstp_5]
+                    ,[FSA_nxtstp_6]
+                    ,[FSA_nxtstp_7]
+                    ,[FSA_nxtstp_8]
+                    ,[FSA_nxtstp_9]
+                    ,[FSA_nxtstp_10]
+                    ,[FSA_nxtstp_11]
+                    ,[FSA_nxtstp_12]
+                    ,[FSA_nxtstp_13]
+                    ,[FSA_nxtstp_14]
+                    ,[FSA_nxtstp_15])
  ) piv
  --*/

@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW reporting$reading_log AS
+--ALTER VIEW reporting$reading_log AS
 
 WITH roster AS (
   SELECT studentid
@@ -67,9 +67,9 @@ SELECT roster.*
       ,enr.course_name + '|' + enr.section_number AS enr_hash
       ,gr.course_number
       ,gr.course_name
-      ,gr.T3 AS cur_term_rdg_gr /*--UPDATE FIELD FOR CURRENT TERM--*/
+      ,gr.T1 AS cur_term_rdg_gr /*--UPDATE FIELD FOR CURRENT TERM--*/
       ,gr.Y1 AS y1_rdg_gr
-      ,ele.grade_3 AS cur_term_rdg_hw_avg /*--UPDATE FIELD FOR CURRENT TERM--*/
+      ,ele.grade_1 AS cur_term_rdg_hw_avg /*--UPDATE FIELD FOR CURRENT TERM--*/
       ,ele.simple_avg AS y1_rdg_hw_avg
       ,CASE
         WHEN fp_base.read_lvl IS NOT NULL THEN fp_base.read_lvl

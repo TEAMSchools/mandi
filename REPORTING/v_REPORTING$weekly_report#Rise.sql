@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW REPORTING$weekly_report#Rise AS
+ALTER VIEW REPORTING$weekly_report#Rise AS
 
 WITH roster AS (
   SELECT s.STUDENT_NUMBER
@@ -20,10 +20,10 @@ WITH roster AS (
   SELECT date
         ,day_of_week
   FROM UTIL$reporting_days days WITH(NOLOCK)
-  WHERE CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) >= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1) + '5')
-    AND CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) <= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())) + '4')
-  --WHERE date >= '2014-08-14'
-  --  AND date <= '2014-09-03'
+  --WHERE CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) >= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1) + '5')
+    --AND CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) <= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())) + '4')
+  WHERE date >= '2014-08-14'
+    AND date <= '2014-09-03'
  )
 
 -- start and end days
@@ -42,7 +42,7 @@ WITH roster AS (
         ,dt.class
         ,CASE WHEN dt.class = 'other' AND dt.ccr NOT IN ('N', 'U') THEN NULL ELSE dt.ccr END AS ccr
         ,CASE WHEN dt.class = 'other' AND dt.ccr NOT IN ('N', 'U') THEN NULL ELSE dt.ccr_score END AS ccr_score
-  FROM DAILY$tracking_long#Rise dt WITH(NOLOCK)
+  FROM DAILY$tracking_long#Rise#static dt WITH(NOLOCK)
 )
 
 -- ccr data wide by class and day of week

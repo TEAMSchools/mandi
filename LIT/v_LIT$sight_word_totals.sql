@@ -111,7 +111,10 @@ SELECT wk.*
       ,yr.n_correct_yr
       ,yr.n_missed_yr
       ,yr.pct_correct_yr
-      ,yr.missed_words_yr    
+      ,yr.missed_words_yr
+      ,AVG(yr.n_total_yr) OVER(PARTITION BY yr.grade_level) AS avg_total_yr
+      ,AVG(yr.n_correct_yr) OVER(PARTITION BY yr.grade_level) AS avg_correct_yr
+      ,AVG(yr.pct_correct_yr) OVER(PARTITION BY yr.grade_level) AS avg_pct_correct_yr
 FROM week_totals wk
 JOIN year_totals yr
   ON wk.student_number = yr.student_number

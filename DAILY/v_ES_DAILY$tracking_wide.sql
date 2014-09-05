@@ -40,7 +40,7 @@ SELECT schoolid
         + CASE WHEN MAX(hw_3) = 'No' THEN LEFT(MAX([3]),3) + ' ' ELSE '' END 
         + CASE WHEN MAX(hw_4) = 'No' THEN LEFT(MAX([4]),3) + ' ' ELSE '' END
         + CASE WHEN MAX(hw_5) = 'No' THEN LEFT(MAX([5]),3) + ' ' ELSE '' END
-        AS hw_missing
+        AS hw_missing_days
       ,MAX([color_day_1]) AS [color_day_1]
       ,MAX([color_day_2]) AS [color_day_2]
       ,MAX([color_day_3]) AS [color_day_3]
