@@ -202,7 +202,7 @@ FROM
            ,rs.genre
            ,rs.fp_keylever           
            ,rs.fp_wpmrate
-           ,rs.instruct_lvl
+           ,CASE WHEN rs.testid = 3273 THEN gleq.instruct_lvl ELSE rs.instruct_lvl END AS instruct_lvl
            ,CASE
              WHEN rs.testid = 3273 AND rs.indep_lvl IS NULL THEN rs.step_ltr_level
              ELSE rs.indep_lvl

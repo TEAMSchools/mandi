@@ -217,16 +217,16 @@ SELECT
       ,goals_wide.goal_eoy
       
 -- GROWTH MEASURES      
-      ,NULL AS DRT1_GLEQ
-      ,NULL AS DRT1_lvl
-      ,NULL AS T1T2_GLEQ
-      ,NULL AS T1T2_lvl
-      ,NULL AS T2T3_GLEQ
-      ,NULL AS T2T3_lvl
-      ,NULL AS T3EOY_GLEQ
-      ,NULL AS T3EOY_lvl
-      ,NULL AS YTD_GLEQ
-      ,NULL AS YTD_lvl
+      ,growth.t1_growth_GLEQ AS DRT1_GLEQ
+      ,growth.t1_growth_lvl AS DRT1_lvl
+      ,growth.t1t2_growth_GLEQ AS T1T2_GLEQ
+      ,growth.t1t2_growth_lvl AS T1T2_lvl
+      ,growth.t2t3_growth_GLEQ AS T2T3_GLEQ
+      ,growth.t2t3_growth_lvl AS T2T3_lvl
+      ,growth.t3EOY_growth_GLEQ AS T3EOY_GLEQ
+      ,growth.t3EOY_growth_lvl AS T3EOY_lvl
+      ,growth.yr_growth_GLEQ AS YTD_GLEQ
+      ,growth.yr_growth_lvl AS YTD_lvl
 
 --MAP Reading
 -- most recent test, if none, then baseline
@@ -253,9 +253,9 @@ SELECT
 FROM LIT$test_events#identifiers scores WITH(NOLOCK)      
 LEFT OUTER JOIN LIT$dna_reasons dna WITH(NOLOCK)
   ON scores.unique_id = dna.unique_id
---LEFT OUTER JOIN LIT$growth_measures_wide growth WITH(NOLOCK)
---  ON scores.studentid = growth.STUDENTID
--- AND scores.academic_year = growth.year
+LEFT OUTER JOIN LIT$growth_measures_wide#static growth WITH(NOLOCK)
+  ON scores.studentid = growth.STUDENTID
+ AND scores.academic_year = growth.year
 JOIN STUDENTS s WITH(NOLOCK)
   ON scores.studentid = s.id
  AND s.GRADE_LEVEL < 5
