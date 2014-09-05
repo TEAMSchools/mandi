@@ -12,17 +12,17 @@ These are important.
 
 + Generally speaking the 'product' name should match the subfolder that it lives in.
 
-+ When picking a name, think about the class of __data__ in question, broadly.  There are a few notable exceptions to this rule, namely EMAIL$ (all things notifications) and PROG_TRACKER$ (views for the progress tracker).
++ When picking a name, think about the class of __data__ in question, broadly.  There are a few notable exceptions to this rule, namely `EMAIL$` (all things notifications) and `PROG_TRACKER$` (views for the progress tracker).
 
 + Views don't get a 'v_' prefix database side, but use the prefix on the file name [views should be functionally interchangeable with tables, so no prefix].
 
-+ If there is a school-specific aspect, use #SCHOOL ABBREVIATION to indicate.
++ If there is a school-specific aspect, use `#SCHOOL` ABBREVIATION to indicate.
 
-+ Put '|refresh' after the file name if this is a script that refreshes a local table.
++ Put `|refresh` after the file name if this is a script that refreshes a local table.
 
-+ If it is a Powerschool table name, put it in ALL CAPS.  Otherwise generally use lower case for the name of your file. ('EMAIL$failure_monitoring#NCA').
++ If it is a Powerschool table name, put it in ALL CAPS.  Otherwise generally use lower case for the name of your file. (`EMAIL$failure_monitoring#NCA`)
 
-+ Stored procedures should have 'sp_' in front of their name.
++ Stored procedures should have `sp_` in front of their name.
 
 ## Naming your commits
 Jokes are fine but please be descriptive about what changed.
