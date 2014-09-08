@@ -10,6 +10,36 @@ GO
 
 ALTER VIEW [dbo].[LIT$progress_tracker] AS
 
+WITH goals_wide AS (
+  SELECT studentid
+        ,DR AS goal_dr
+        ,T1 AS goal_t1
+        ,T2 AS goal_t2
+        ,T3 AS goal_t3
+        ,EOY AS goal_eoy
+  FROM
+      (
+       SELECT co.STUDENT_NUMBER
+             ,co.studentid      
+             ,goals.test_round
+             ,COALESCE(indiv.goal, goals.read_lvl) AS goal      
+       FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+       JOIN LIT$goals goals WITH(NOLOCK)
+         ON co.grade_level = goals.grade_level
+       LEFT OUTER JOIN LIT$individual_goals indiv WITH(NOLOCK)
+         ON co.STUDENT_NUMBER = indiv.student_number
+        AND goals.test_round = indiv.test_round
+       WHERE co.year = dbo.fn_Global_Academic_Year()
+         AND co.grade_level < 5
+         AND co.rn = 1
+      ) sub
+
+  PIVOT (
+    MAX(goal)
+    FOR test_round IN ([DR],[T1],[T2],[T3],[EOY])
+   ) piv
+ )
+
 SELECT
  --REPORTING HASHES
        CONVERT(VARCHAR,details.student_number) + '_'
@@ -33,7 +63,9 @@ SELECT
       ,s.team
       ,cs.advisor
       ,cs.SPEDLEP
-      ,NULL AS read_teacher      
+      ,grteacher.t1_teach AS read_teacher_t1
+      ,grteacher.t2_teach AS read_teacher_t2
+      ,grteacher.t3_teach AS read_teacher_t3
             
 --TEST IDENTIFIERS      
       ,details.testid
@@ -55,6 +87,11 @@ SELECT
         ELSE NULL
        END AS met_goal
       ,details.levels_behind
+      ,goals_wide.goal_dr
+      ,goals_wide.goal_t1
+      ,goals_wide.goal_t2
+      ,goals_wide.goal_t3
+      ,goals_wide.goal_eoy
       
 -- GROWTH MEASURES      
       ,growth.t1_growth_GLEQ AS DRT1_GLEQ
@@ -112,11 +149,16 @@ LEFT OUTER JOIN MAP$best_baseline#static base
  AND scores.academic_year = base.year
  AND base.measurementscale = 'Reading'
 LEFT OUTER JOIN MAP$comprehensive#identifiers base_detail WITH(NOLOCK)
-  ON base.studentid = base_detail.studentid
- AND base.year = base_detail.map_year_academic
+  ON base.studentid = base_detail.ps_studentid 
  AND base.measurementscale = base_detail.measurementscale
  AND base.termname = base_detail.termname
  AND base_detail.rn = 1
+LEFT OUTER JOIN [AUTOLOAD$GDOCS_LIT_GR_Group] grteacher WITH(NOLOCK)
+  ON s.STUDENT_NUMBER = grteacher.student_number
+LEFT OUTER JOIN goals_wide
+  ON scores.STUDENTID = goals_wide.studentid
+
+
 WHERE scores.academic_year >= dbo.fn_Global_Academic_Year()
 
 UNION ALL
@@ -144,7 +186,9 @@ SELECT
       ,s.team
       ,cs.advisor
       ,cs.SPEDLEP
-      ,NULL AS read_teacher      
+      ,grteacher.t1_teach AS read_teacher_t1
+      ,grteacher.t2_teach AS read_teacher_t2
+      ,grteacher.t3_teach AS read_teacher_t3
             
 --TEST IDENTIFIERS      
       ,scores.testid
@@ -166,18 +210,23 @@ SELECT
         ELSE NULL
        END AS met_goal
       ,scores.levels_behind
+      ,goals_wide.goal_dr
+      ,goals_wide.goal_t1
+      ,goals_wide.goal_t2
+      ,goals_wide.goal_t3
+      ,goals_wide.goal_eoy
       
 -- GROWTH MEASURES      
-      ,NULL AS DRT1_GLEQ
-      ,NULL AS DRT1_lvl
-      ,NULL AS T1T2_GLEQ
-      ,NULL AS T1T2_lvl
-      ,NULL AS T2T3_GLEQ
-      ,NULL AS T2T3_lvl
-      ,NULL AS T3EOY_GLEQ
-      ,NULL AS T3EOY_lvl
-      ,NULL AS YTD_GLEQ
-      ,NULL AS YTD_lvl
+      ,growth.t1_growth_GLEQ AS DRT1_GLEQ
+      ,growth.t1_growth_lvl AS DRT1_lvl
+      ,growth.t1t2_growth_GLEQ AS T1T2_GLEQ
+      ,growth.t1t2_growth_lvl AS T1T2_lvl
+      ,growth.t2t3_growth_GLEQ AS T2T3_GLEQ
+      ,growth.t2t3_growth_lvl AS T2T3_lvl
+      ,growth.t3EOY_growth_GLEQ AS T3EOY_GLEQ
+      ,growth.t3EOY_growth_lvl AS T3EOY_lvl
+      ,growth.yr_growth_GLEQ AS YTD_GLEQ
+      ,growth.yr_growth_lvl AS YTD_lvl
 
 --MAP Reading
 -- most recent test, if none, then baseline
@@ -204,9 +253,9 @@ SELECT
 FROM LIT$test_events#identifiers scores WITH(NOLOCK)      
 LEFT OUTER JOIN LIT$dna_reasons dna WITH(NOLOCK)
   ON scores.unique_id = dna.unique_id
---LEFT OUTER JOIN LIT$growth_measures_wide growth WITH(NOLOCK)
---  ON scores.studentid = growth.STUDENTID
--- AND scores.academic_year = growth.year
+LEFT OUTER JOIN LIT$growth_measures_wide#static growth WITH(NOLOCK)
+  ON scores.studentid = growth.STUDENTID
+ AND scores.academic_year = growth.year
 JOIN STUDENTS s WITH(NOLOCK)
   ON scores.studentid = s.id
  AND s.GRADE_LEVEL < 5
@@ -222,10 +271,13 @@ LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
  AND scores.academic_year = base.year
  AND base.measurementscale = 'Reading'
 LEFT OUTER JOIN MAP$comprehensive#identifiers base_detail WITH(NOLOCK)
-  ON base.studentid = base_detail.studentid
- AND base.year = base_detail.map_year_academic
+  ON base.studentid = base_detail.ps_studentid 
  AND base.measurementscale = base_detail.measurementscale
  AND base.termname = base_detail.termname
  AND base_detail.rn = 1
+LEFT OUTER JOIN [AUTOLOAD$GDOCS_LIT_GR_Group] grteacher WITH(NOLOCK)
+  ON s.STUDENT_NUMBER = grteacher.student_number
+LEFT OUTER JOIN goals_wide
+  ON scores.STUDENTID = goals_wide.studentid
 WHERE scores.academic_year >= dbo.fn_Global_Academic_Year()
   AND scores.status = 'Did Not Achieve'

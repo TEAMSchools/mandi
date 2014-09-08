@@ -14,7 +14,7 @@ SELECT s.id
        END AS valid_account_flag
       ,replace(convert(varchar,convert(Money, d.points),1),'.00','') AS points
       ,CAST(ROUND((d.total_seconds_watched + 0.0) / 60, 1) AS float) AS min_watched
-FROM KIPP_NJ..STUDENTS s
-LEFT OUTER JOIN Khan..stu_detail#identifiers d
+FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+LEFT OUTER JOIN Khan..stu_detail#identifiers d WITH(NOLOCK)
   ON s.id = d.studentid
 WHERE s.enroll_status = 0

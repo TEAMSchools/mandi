@@ -9,7 +9,7 @@ WITH roster AS (
        ,s.LASTFIRST
        ,s.LAST_NAME
        ,s.FIRST_NAME
-       ,co.GRADE_LEVEL
+       ,REPLACE(co.GRADE_LEVEL, 0 ,'K') AS grade_level
        ,co.SCHOOLID
        ,s.TEAM
        ,cs.LUNCH_BALANCE
@@ -39,7 +39,9 @@ WITH roster AS (
         ,CUR_ABS_ALL AS cur_absences_total
         ,CUR_AD + CUR_AE AS excused_absences
         ,cur_t_all AS cur_tardies_total
+        ,CUR_TE AS cur_tardies_exc
         ,cur_le AS cur_early_dismiss
+        ,cur_lex AS cur_early_dismiss_exc
         ,cur_trip_abs AS trip_absences
         ,CASE WHEN cur_trip_abs >= 5 THEN 'Off Track' ELSE 'On Track' END AS trip_status
   FROM ATT_MEM$attendance_counts att WITH(NOLOCK)  
@@ -53,12 +55,10 @@ WITH roster AS (
         ,DATENAME(MONTH,start_date) AS month
         ,REPLACE(time_per_name,'_',' ') + ': ' + LEFT(CONVERT(VARCHAR,start_date,101),5) + ' - ' + LEFT(CONVERT(VARCHAR,end_date,101),5) AS week_title
   FROM REPORTING$dates WITH(NOLOCK)    
-  WHERE DATEPART(WEEK,GETDATE()) + 1 >= DATEPART(WEEK,start_date)
-    AND DATEPART(WEEK,GETDATE()) + 1 <= DATEPART(WEEK,end_date)
+  WHERE DATEPART(WEEK,GETDATE()) >= DATEPART(WEEK,start_date)
+    AND DATEPART(WEEK,GETDATE()) <= DATEPART(WEEK,end_date)
     AND identifier = 'REP'    
     AND school_level = 'ES'
-  --WHERE time_per_name = 'Week_10' -- !!!testing/training, delete after!!!
-  --  AND identifier = 'FSA' -- !!!testing/training, delete after!!!
  )
 
 ,curterm AS (
@@ -99,10 +99,13 @@ SELECT r.studentid
       ,att.cur_absences_total
       ,att.excused_absences
       ,att.cur_tardies_total
+      ,att.cur_tardies_exc
       ,att.cur_early_dismiss
+      ,att.cur_early_dismiss_exc
       ,att.trip_absences
       ,att.trip_status
       ,fsa.fsa_week
+      ,fsa.pct_mastered_wk
       ,fsa.FSA_subject_1
       ,fsa.FSA_subject_2
       ,fsa.FSA_subject_3
@@ -178,70 +181,52 @@ SELECT r.studentid
       ,fsa.FSA_prof_13
       ,fsa.FSA_prof_14
       ,fsa.FSA_prof_15
-      ,fsa.FSA_nxtstp_y_1
-      ,fsa.FSA_nxtstp_y_2
-      ,fsa.FSA_nxtstp_y_3
-      ,fsa.FSA_nxtstp_y_4
-      ,fsa.FSA_nxtstp_y_5
-      ,fsa.FSA_nxtstp_y_6
-      ,fsa.FSA_nxtstp_y_7
-      ,fsa.FSA_nxtstp_y_8
-      ,fsa.FSA_nxtstp_y_9
-      ,fsa.FSA_nxtstp_y_10
-      ,fsa.FSA_nxtstp_y_11
-      ,fsa.FSA_nxtstp_y_12
-      ,fsa.FSA_nxtstp_y_13
-      ,fsa.FSA_nxtstp_y_14
-      ,fsa.FSA_nxtstp_y_15
-      ,fsa.FSA_nxtstp_n_1
-      ,fsa.FSA_nxtstp_n_2
-      ,fsa.FSA_nxtstp_n_3
-      ,fsa.FSA_nxtstp_n_4
-      ,fsa.FSA_nxtstp_n_5
-      ,fsa.FSA_nxtstp_n_6
-      ,fsa.FSA_nxtstp_n_7
-      ,fsa.FSA_nxtstp_n_8
-      ,fsa.FSA_nxtstp_n_9
-      ,fsa.FSA_nxtstp_n_10
-      ,fsa.FSA_nxtstp_n_11
-      ,fsa.FSA_nxtstp_n_12
-      ,fsa.FSA_nxtstp_n_13
-      ,fsa.FSA_nxtstp_n_14
-      ,fsa.FSA_nxtstp_n_15      
+      ,fsa.FSA_nxtstp_1
+      ,fsa.FSA_nxtstp_2
+      ,fsa.FSA_nxtstp_3
+      ,fsa.FSA_nxtstp_4
+      ,fsa.FSA_nxtstp_5
+      ,fsa.FSA_nxtstp_6
+      ,fsa.FSA_nxtstp_7
+      ,fsa.FSA_nxtstp_8
+      ,fsa.FSA_nxtstp_9
+      ,fsa.FSA_nxtstp_10
+      ,fsa.FSA_nxtstp_11
+      ,fsa.FSA_nxtstp_12
+      ,fsa.FSA_nxtstp_13
+      ,fsa.FSA_nxtstp_14
+      ,fsa.FSA_nxtstp_15      
       ,daily.day_1
       ,daily.day_2
       ,daily.day_3
       ,daily.day_4
       ,daily.day_5
-      ,daily.color_am_1
-      ,daily.color_am_2
-      ,daily.color_am_3
-      ,daily.color_am_4
-      ,daily.color_am_5
       ,daily.color_day_1
       ,daily.color_day_2
       ,daily.color_day_3
       ,daily.color_day_4
       ,daily.color_day_5
-      ,daily.color_mid_1
-      ,daily.color_mid_2
-      ,daily.color_mid_3
-      ,daily.color_mid_4
-      ,daily.color_mid_5
-      ,daily.color_pm_1
-      ,daily.color_pm_2
-      ,daily.color_pm_3
-      ,daily.color_pm_4
-      ,daily.color_pm_5
-      ,daily.hw_1
-      ,daily.hw_2
-      ,daily.hw_3
-      ,daily.hw_4
-      ,daily.hw_5
+      --,daily.color_am_1
+      --,daily.color_am_2
+      --,daily.color_am_3
+      --,daily.color_am_4
+      --,daily.color_am_5      
+      --,daily.color_mid_1
+      --,daily.color_mid_2
+      --,daily.color_mid_3
+      --,daily.color_mid_4
+      --,daily.color_mid_5
+      --,daily.color_pm_1
+      --,daily.color_pm_2
+      --,daily.color_pm_3
+      --,daily.color_pm_4
+      --,daily.color_pm_5
+      ,daily.hw_missing_days      
       ,wk_totals.n_hw_wk
       ,wk_totals.hw_complete_wk
       ,wk_totals.hw_missing_wk
       ,wk_totals.hw_pct_wk
+      ,mth_totals.uni_pct_mth
       ,mth_totals.purple_pink_mth
       ,mth_totals.green_mth
       ,mth_totals.yellow_mth
@@ -252,7 +237,8 @@ SELECT r.studentid
       ,cur_totals.n_hw_yr
       ,cur_totals.hw_complete_yr
       ,cur_totals.hw_missing_yr
-      ,cur_totals.hw_pct_yr
+      ,cur_totals.hw_pct_yr      
+      ,cur_totals.uni_pct_yr
       ,cur_totals.n_color_yr
       ,cur_totals.purple_pink_yr
       ,cur_totals.green_yr
@@ -268,27 +254,25 @@ SELECT r.studentid
       ,cur_totals.green_tri
       ,cur_totals.yellow_tri
       ,cur_totals.orange_tri
-      ,cur_totals.red_tri
-      ,sw.n_total AS sw_total_w
-      ,sw.n_correct AS sw_correct_w
-      ,sw.n_missed AS sw_missed_w
-      ,sw.pct_correct AS sw_average_w
-      ,sw.missed_words AS sw_missedwords_w
+      ,cur_totals.red_tri      
       ,sw.n_total_yr AS sw_total_yr
       ,sw.n_correct_yr AS sw_correct_yr
       ,sw.n_missed_yr AS sw_missed_yr
-      ,sw.pct_correct_yr AS sw_average_yr
+      ,sw.pct_correct_yr AS sw_pct_yr
       ,sw.missed_words_yr AS sw_missedwords_yr
+      ,sw.avg_total_yr AS sw_avg_total_yr
+      ,sw.avg_correct_yr AS sw_avg_correct_yr
+      ,sw.avg_pct_correct_yr AS sw_avg_pct_yr
       ,sp.pct_correct_wk AS sp_average_w
       ,sp.pct_correct_yr AS sp_average_yr
       ,vocab.pct_correct_wk AS v_average_w
       ,vocab.pct_correct_yr AS v_average_yr
-FROM roster r
-JOIN curterm
+FROM roster r WITH(NOLOCK)
+JOIN curterm WITH(NOLOCK)
   ON 1 = 1
-LEFT OUTER JOIN reporting_week rw
+LEFT OUTER JOIN reporting_week rw WITH(NOLOCK)
   ON r.schoolid = rw.schoolid
-LEFT OUTER JOIN attendance att
+LEFT OUTER JOIN attendance att WITH(NOLOCK)
   ON r.STUDENTID = att.studentid
 LEFT OUTER JOIN ILLUMINATE$FSA_scores_wide fsa WITH(NOLOCK)
   ON r.STUDENTID = fsa.studentid
@@ -297,7 +281,7 @@ LEFT OUTER JOIN ES_DAILY$tracking_wide daily WITH(NOLOCK)
   ON r.STUDENTID = daily.studentid
  AND rw.week_num = daily.week_num
 LEFT OUTER JOIN ES_DAILY$tracking_totals wk_totals WITH(NOLOCK)
-  ON r.STUDENTID = wk_totals.studentid 
+  ON r.STUDENTID = wk_totals.studentid
  AND rw.week_num = wk_totals.week_num 
 LEFT OUTER JOIN ES_DAILY$tracking_totals mth_totals WITH(NOLOCK)
   ON r.STUDENTID = mth_totals.studentid 

@@ -23,7 +23,7 @@ BEGIN
   -- STEP 2: load into a temporary staging table.
   SELECT *
 		INTO [#REPORTING$progress_tracker#Rise#static|refresh]
-  FROM REPORTING$progress_tracker#Rise;
+  FROM REPORTING$progress_tracker#Rise WITH(NOLOCK);
          
 
   -- STEP 3: truncate destination table

@@ -187,13 +187,12 @@ BEGIN
 -- this IS over the linked server to PS production server
  
  --pgfinalgrades
- -- < 50 is bumped up to 50 for Y1 calculations
  DECLARE @v_sql VARCHAR(MAX) = '
    SELECT CONVERT(INT,sectionid) AS sectionid
          ,CONVERT(INT,studentid) AS studentid
          ,finalgradename
-         ,CASE WHEN [percent] < 50 THEN 50 ELSE [percent] END AS [percent]
-         ,CASE WHEN [percent] < 50 THEN ''F*'' ELSE grade END AS grade
+         ,[percent]
+         ,grade
          ,course_number
    FROM OPENQUERY(PS_TEAM,''
      SELECT TO_CHAR(pgf.sectionid) AS sectionid
@@ -441,6 +440,33 @@ BEGIN
             WHEN qtr_valid + exam_valid = 0 THEN NULL
             --
             ELSE ROUND (
+                  (((CASE WHEN Q1 IS NULL THEN 0 WHEN Q1 < 50 THEN 50 ELSE COALESCE(Q1, 0) END -- quarterly grades
+                       + CASE WHEN Q2 IS NULL THEN 0 WHEN Q2 < 50 THEN 50 ELSE COALESCE(Q2, 0) END
+                       + CASE WHEN Q3 IS NULL THEN 0 WHEN Q3 < 50 THEN 50 ELSE COALESCE(Q3, 0) END
+                       + CASE WHEN Q4 IS NULL THEN 0 WHEN Q4 < 50 THEN 50 ELSE COALESCE(Q4, 0) END) * 0.225) 
+                 + ((CASE WHEN E1 IS NULL THEN 0 WHEN E1 < 50 THEN 50 ELSE COALESCE(E1, 0) END -- exams
+                       + CASE WHEN E2 IS NULL THEN 0 WHEN E2 < 50 THEN 50 ELSE COALESCE(E2, 0) END) * 0.05)) 
+                   / 
+                  ((qtr_valid * 22.5) + (exam_valid * 5)) * 100 -- number of valid terms
+                 ,0)
+           END AS Y1
+          ,CASE 
+            WHEN qtr_in_books + exam_in_books = 0 THEN NULL 
+            ELSE ROUND (
+                  (((CASE WHEN Q1 IS NULL THEN 0 WHEN Q1 < 50 THEN 50 ELSE COALESCE(Q1, 0) END -- quarterly grades
+                       + CASE WHEN Q2 IS NULL THEN 0 WHEN Q2 < 50 THEN 50 ELSE COALESCE(Q2, 0) END
+                       + CASE WHEN Q3 IS NULL THEN 0 WHEN Q3 < 50 THEN 50 ELSE COALESCE(Q3, 0) END) * 0.225) 
+                 + ((CASE WHEN E1 IS NULL THEN 0 WHEN E1 < 50 THEN 50 ELSE COALESCE(E1, 0) END) * 0.05)) 
+                   / 
+                  ((qtr_in_books * 22.5) + (exam_in_books * 5)) * 100                 
+                 ,1)
+           END AS in_the_books
+          ,(qtr_in_books * .225) + (exam_in_books * .05) AS used_year
+          ,CASE 
+            WHEN Y1_stored IS NOT NULL THEN Y1_stored
+            WHEN qtr_valid + exam_valid = 0 THEN NULL
+            --
+            WHEN ROUND (
                   (((COALESCE(Q1, 0) 
                        + COALESCE(Q2, 0) 
                        + COALESCE(Q3, 0) 
@@ -449,20 +475,9 @@ BEGIN
                        + COALESCE(E2, 0)) * 0.05)) 
                    / 
                   ((qtr_valid * 22.5) + (exam_valid * 5)) * 100
-                 ,0)
-           END AS Y1
-          ,CASE 
-            WHEN qtr_in_books + exam_in_books = 0 THEN NULL 
-            ELSE ROUND (
-                  (((COALESCE(Q1, 0) 
-                       + COALESCE(Q2, 0) 
-                       + COALESCE(Q3, 0)) * 0.225) 
-                 + ((COALESCE(E1, 0)) * 0.05)) 
-                   / 
-                  ((qtr_in_books * 22.5) + (exam_in_books * 5)) * 100                 
-                 ,1)
-           END AS in_the_books
-          ,(qtr_in_books * .225) + (exam_in_books * .05) AS used_year
+                 ,0) < 50 THEN 1 
+            ELSE NULL
+           END AS f_star_flag
    FROM level_1
   )
  
@@ -496,6 +511,7 @@ BEGIN
    SELECT stage_2.*                   
          ,CASE 
            WHEN y1_letter_stored IS NOT NULL THEN y1_letter_stored
+           WHEN stage_2.f_star_flag = 1 THEN 'F*'
            ELSE CONVERT(VARCHAR, gradescale_y1.letter_grade)
           END AS y1_letter
          ,gradescale_Y1.grade_points AS GPA_Points_Y1

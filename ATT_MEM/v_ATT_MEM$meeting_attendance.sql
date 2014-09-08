@@ -20,7 +20,7 @@ FROM OPENQUERY(PS_TEAM,'
   JOIN terms
     ON terms.firstday <= att.att_date
    AND terms.lastday >= att.att_date
-   AND terms.yearid >= 23
+   AND terms.yearid >= 24
    AND terms.schoolid = att.schoolid
    AND terms.portion = 1
   WHERE att.att_date <= TRUNC(SYSDATE)

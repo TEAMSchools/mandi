@@ -46,8 +46,8 @@ SELECT sub.*
 FROM
       (SELECT scaffold.*
              ,khan_obj.*
-       FROM scaffold
-       JOIN khan_obj
+       FROM scaffold WITH(NOLOCK)
+       JOIN khan_obj WITH(NOLOCK)
          ON 1=1
        ) sub
 LEFT OUTER JOIN

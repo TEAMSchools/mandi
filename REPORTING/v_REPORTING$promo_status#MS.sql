@@ -125,6 +125,7 @@ FROM
             ON co.studentid = hw.studentid
            AND hw.pgf_type = 'H'
            AND hw.course_number = 'all_courses'
+           AND hw.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
           WHERE co.year = dbo.fn_Global_Academic_Year()
             AND co.schoolid IN (73252, 133570965)
             AND co.rn = 1

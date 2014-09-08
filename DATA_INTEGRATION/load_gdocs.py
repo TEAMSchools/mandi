@@ -1,9 +1,9 @@
 __author__ = 'CBini'
 
+import os
 import csv
 import json
 import gspread
-import re
 import pymssql
 import codecs
 import cStringIO
@@ -16,9 +16,9 @@ CONFIG
 server_name = "WINSQL01\NARDO"
 
 # key files
-gdocs_secret = "W:\\data_robot\\logistical\\gdocs_secret.json"
-db_secret = "W:\\data_robot\\logistical\\nardo_secret.json"
-config_path = "C:\\Users\\CBini\\Desktop\\gdocs.csv"
+gdocs_secret = "C:\\data_robot\\logistical\\gdocs_secret.json"
+db_secret = "C:\\data_robot\\logistical\\nardo_secret.json"
+config_path = "C:\\data_robot\\gdocs\\gdocs.csv"
 
 # keys
 keys = json.load(file(gdocs_secret))
@@ -84,8 +84,8 @@ for record in wkbk_list:
     start_row = int(record[6])
 
     # file paths
-    save_path = "W:\\data_robot\\" + folder + "\\"
-    save_path_server = "C:\\data_robot\\" + folder + "\\"
+    save_path = "C:\\data_robot\\gdocs\\" + folder + "\\"
+    
 
     print 'Navigating to ' + url
     workbook = client.open_by_url(url)
@@ -97,19 +97,20 @@ for record in wkbk_list:
 
     # iterate over sequential worksheets
     for i in range(start_sheet, end_sheet):
-        sheet_name = str(sheet_names[i])
-        # extract name between ' ' and removes spaces
-        clean_name = re.search("'(.*)'", sheet_name).group(1).replace(' ', '_')
-
-        print 'Opening worksheet ' + str(i + 1) + ': "' + str(clean_name) + '"'
         worksheet = workbook.get_worksheet(i)
+        sheet_name = worksheet._title        
+        clean_name = sheet_name.replace(' ', '_')  # removes spaces
+
+        print 'Opening worksheet ' + str(i + 1) + ': "' + str(clean_name) + '"'        
         print 'Getting and cleaning data...'
         data = worksheet.get_all_values()
         # list comprehension quickly removes unwanted header rows
         data = [line for x, line in enumerate(data) if x >= start_row]
 
-        filename = save_path + 'GDOCS_' + tag + '_' + clean_name + '.csv'
+        filename = save_path + 'GDOCS_' + tag + '_' + clean_name + '.csv'        
         print 'Downloading file ' + filename + ' to server, starting at line ' + str(start_row + 1)
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
         with open(filename, 'wb') as f:
             writer = UnicodeWriter(f)
             writer.writerows(data)
@@ -126,7 +127,7 @@ for record in wkbk_list:
     conn = pymssql.connect(server_name, db_user, db_pass, db_name)
     cursor = conn.cursor()
 
-    query = "sp_LoadFolder '" + db_name + "', '" + save_path_server + "'"
+    query = "sp_LoadFolder '" + db_name + "', '" + save_path + "'"
     print 'Running "EXEC ' + query + '"'
     cursor.execute(query)
 

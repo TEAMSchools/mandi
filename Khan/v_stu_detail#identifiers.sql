@@ -7,7 +7,7 @@ SELECT s.id AS studentid
 FROM
       (SELECT s.*
              ,REPLACE(s.identity_email, '@teamstudents.org', '') + '.student' AS id_key
-       FROM Khan..stu_detail s
+       FROM Khan..stu_detail s WITH(NOLOCK)
        ) sub
-JOIN KIPP_NJ..STUDENTS s
+JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
   ON sub.id_key = s.student_web_id

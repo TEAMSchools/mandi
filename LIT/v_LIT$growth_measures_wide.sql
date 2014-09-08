@@ -11,7 +11,7 @@ WITH roster AS (
         ,COHORT
         ,YEAR
   FROM COHORT$comprehensive_long#static WITH(NOLOCK)
-  WHERE grade_level < 99
+  WHERE grade_level < 9
     AND rn = 1  
  )
 
@@ -42,7 +42,7 @@ WITH roster AS (
        FROM
            ( 
             SELECT academic_year
-                  ,test_round + '_cur' AS identifier
+                  ,REPLACE(test_round, 'BOY', 'DR') + '_cur' AS identifier
                   ,studentid
                   ,CONVERT(VARCHAR,read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,GLEQ) AS GLEQ
@@ -157,7 +157,7 @@ WITH roster AS (
        FROM
            ( 
             SELECT academic_year
-                  ,test_round + '_dna' AS identifier
+                  ,REPLACE(test_round, 'BOY', 'DR') + '_dna' AS identifier
                   ,rs.studentid
                   ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,dna.dna_reason) AS reason

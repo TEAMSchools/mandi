@@ -7,6 +7,7 @@ SELECT daily.studentid
       ,daily.schoolid
       ,CONVERT(DATE,daily.att_date) AS att_date
       ,daily.hw
+      ,daily.uniform
       ,CASE WHEN daily.schoolid IN (73255, 179901) THEN NULL ELSE daily.color END AS color_day
       ,CASE WHEN daily.schoolid IN (73255, 179901) THEN daily.color ELSE NULL END AS color_am
       ,CASE WHEN daily.schoolid IN (73255, 179901) THEN daily.color_mid ELSE NULL END AS color_mid
