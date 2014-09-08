@@ -8,13 +8,13 @@ WITH scaffold AS
            ,c.lastfirst
            ,s.first_name + ' ' + s.last_name AS stu_name
            ,sch.abbreviation
-     FROM KIPP_NJ..COHORT$comprehensive_long#static c
-     JOIN KIPP_NJ..STUDENTS s
+     FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
+     JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
        ON c.studentid = s.id
       AND s.enroll_status = 0
       AND c.year = 2013
       AND c.RN = 1
-     JOIN KIPP_NJ..SCHOOLS sch
+     JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
        ON c.schoolid = sch.school_number
     )
    ,mastery_status AS
@@ -40,7 +40,7 @@ WITH scaffold AS
     )
    ,khan_obj AS
    (SELECT distinct e.exercise
-    FROM Khan..composite_exercises e
+    FROM Khan..composite_exercises e WITH(NOLOCK)
    )
 SELECT sub.*
 FROM
@@ -60,10 +60,10 @@ LEFT OUTER JOIN
                          ,c.exercise
              ORDER BY m.ex_level DESC
             ) AS rn
-   FROM Khan..composite_exercises#identifiers c
-   JOIN Khan..exercise_states s
+   FROM Khan..composite_exercises#identifiers c WITH(NOLOCK)
+   JOIN Khan..exercise_states s WITH(NOLOCK)
      ON c.exercise = s.exercise
-   JOIN mastery_status m
+   JOIN mastery_status m WITH(NOLOCK)
      ON s.exercise_status = m.ex_status
   ) exer_status
 ON sub.studentid = exer_status.studentid

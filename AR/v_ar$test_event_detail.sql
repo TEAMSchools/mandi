@@ -5,70 +5,7 @@ ALTER VIEW AR$test_event_detail AS
 --CTE to enable manipulation of this guy w/o ugly self join
 WITH ar_detail AS
     --Rise
-    (SELECT rluser.[vchPreviousIDNum] AS student_number
-           ,arsp.[iStudentPracticeID]
-           ,arsp.[iUserID]
-           ,arsp.[iSchoolID]
-           ,arsp.[iContentID]
-           ,arsp.[iClassID]
-           ,arsp.[iContentTypeID]
-           ,arsp.[iRLID]
-           ,arsp.[iQuizNumber]
-           ,arsp.[vchContentLanguage]
-           ,arsp.[vchContentTitle]
-           ,arsp.[vchSortTitle]
-           ,arsp.[vchAuthor]
-           ,arsp.[vchSeriesShortName]
-           ,arsp.[vchSeriesTitle]
-           ,arsp.[chContentVersion]
-           ,arsp.[chFictionNonFiction]
-           ,arsp.[vchInterestLevel]
-           ,arsp.[dBookLevel]
-           ,arsp.[iQuestionsPresented]
-           ,arsp.[iQuestionsCorrect]
-           ,arsp.[dAlternateBookLevel_1]
-           ,arsp.[dPointsPossible]
-           ,arsp.[iAlternateBookLevel_2]
-           ,arsp.[dPointsEarned]
-           ,arsp.[dPassingPercentage]
-           ,arsp.[tiPassed]
-           ,arsp.[chTWI]
-           ,arsp.[tiBookRating]
-           ,arsp.[tiUsedAudio]
-           ,arsp.[dtTaken]
-           ,arsp.[dtTakenOriginal]
-           ,arsp.[tiTeacherModified]
-           ,arsp.[tiPracticeDetail]
-           ,arsp.[iWordCount]
-           ,arsp.[dPercentCorrect]
-           ,arsp.[vchSecondTryTitle]
-           ,arsp.[vchSecondTryAuthor]
-           ,arsp.[chStatus]
-           ,arsp.[iRetakeCount]
-           ,arsp.[DeviceType]
-           ,arsp.[DeviceAppletID]
-           ,arsp.[sDataOrigination]
-           ,arsp.[tiCSImportVersion]
-           ,arsp.[iInsertByID]
-           ,arsp.[dtInsertDate]
-           ,arsp.[iEditByID]
-           ,arsp.[dtEditDate]
-           ,arsp.[tiRowStatus]
-           ,arsp.[iTeacherUserID]
-           ,arsp.[DeviceUniqueID]
-           ,arsp.[iUserActionID]
-           ,2 AS school_progression
-     FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_RISE].[dbo].[ar_StudentPractice] arsp
-     LEFT OUTER JOIN [RM9-DSCHEDULER\SQLEXPRESS].[RL_RISE].[dbo].[rl_User]  rluser
-       ON arsp.iUserID = rluser.iUserID
-     WHERE arsp.[iContentTypeID] = 31
-       AND arsp.chStatus != 'U'
-       AND arsp.tiRowStatus = 1
-
-     UNION ALL
-
-    --SPARK
-     SELECT rluser.[vchPreviousIDNum] AS student_number
+    (SELECT REPLACE(LEFT(rluser.[vchPreviousIDNum], 5), '-','') AS student_number
            ,arsp.[iStudentPracticeID]
            ,arsp.[iUserID]
            ,arsp.[iSchoolID]
@@ -121,141 +58,14 @@ WITH ar_detail AS
            ,arsp.[DeviceUniqueID]
            ,arsp.[iUserActionID]
            ,1 AS school_progression
-     FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_SPARK].[dbo].[ar_StudentPractice] arsp
-     LEFT OUTER JOIN [RM9-DSCHEDULER\SQLEXPRESS].[RL_SPARK].[dbo].[rl_User]  rluser
+     FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_DISTRICT].[dbo].[ar_StudentPractice] arsp
+     LEFT OUTER JOIN [RM9-DSCHEDULER\SQLEXPRESS].[RL_DISTRICT].[dbo].[rl_User]  rluser
        ON arsp.iUserID = rluser.iUserID
      WHERE arsp.[iContentTypeID] = 31
        AND arsp.chStatus != 'U'
        AND arsp.tiRowStatus = 1
-
-     UNION ALL
-
-     --TEAM
-     SELECT rluser.[vchPreviousIDNum] AS student_number
-           ,arsp.[iStudentPracticeID]
-           ,arsp.[iUserID]
-           ,arsp.[iSchoolID]
-           ,arsp.[iContentID]
-           ,arsp.[iClassID]
-           ,arsp.[iContentTypeID]
-           ,arsp.[iRLID]
-           ,arsp.[iQuizNumber]
-           ,arsp.[vchContentLanguage]
-           ,arsp.[vchContentTitle]
-           ,arsp.[vchSortTitle]
-           ,arsp.[vchAuthor]
-           ,arsp.[vchSeriesShortName]
-           ,arsp.[vchSeriesTitle]
-           ,arsp.[chContentVersion]
-           ,arsp.[chFictionNonFiction]
-           ,arsp.[vchInterestLevel]
-           ,arsp.[dBookLevel]
-           ,arsp.[iQuestionsPresented]
-           ,arsp.[iQuestionsCorrect]
-           ,arsp.[dAlternateBookLevel_1]
-           ,arsp.[dPointsPossible]
-           ,arsp.[iAlternateBookLevel_2]
-           ,arsp.[dPointsEarned]
-           ,arsp.[dPassingPercentage]
-           ,arsp.[tiPassed]
-           ,arsp.[chTWI]
-           ,arsp.[tiBookRating]
-           ,arsp.[tiUsedAudio]
-           ,arsp.[dtTaken]
-           ,arsp.[dtTakenOriginal]
-           ,arsp.[tiTeacherModified]
-           ,arsp.[tiPracticeDetail]
-           ,arsp.[iWordCount]
-           ,arsp.[dPercentCorrect]
-           ,arsp.[vchSecondTryTitle]
-           ,arsp.[vchSecondTryAuthor]
-           ,arsp.[chStatus]
-           ,arsp.[iRetakeCount]
-           ,arsp.[DeviceType]
-           ,arsp.[DeviceAppletID]
-           ,arsp.[sDataOrigination]
-           ,arsp.[tiCSImportVersion]
-           ,arsp.[iInsertByID]
-           ,arsp.[dtInsertDate]
-           ,arsp.[iEditByID]
-           ,arsp.[dtEditDate]
-           ,arsp.[tiRowStatus]
-           ,arsp.[iTeacherUserID]
-           ,arsp.[DeviceUniqueID]
-           ,arsp.[iUserActionID]
-           ,2 AS school_progression
-     FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_TEAM].[dbo].[ar_StudentPractice] arsp
-     LEFT OUTER JOIN [RM9-DSCHEDULER\SQLEXPRESS].[RL_TEAM].[dbo].[rl_User]  rluser
-       ON arsp.iUserID = rluser.iUserID
-     WHERE arsp.[iContentTypeID] = 31
-       AND arsp.chStatus != 'U'
-       AND arsp.tiRowStatus = 1
-
-     UNION ALL
-
-     --NCA
-     SELECT rluser.[vchPreviousIDNum] AS student_number
-           ,arsp.[iStudentPracticeID]
-           ,arsp.[iUserID]
-           ,arsp.[iSchoolID]
-           ,arsp.[iContentID]
-           ,arsp.[iClassID]
-           ,arsp.[iContentTypeID]
-           ,arsp.[iRLID]
-           ,arsp.[iQuizNumber]
-           ,arsp.[vchContentLanguage]
-           ,arsp.[vchContentTitle]
-           ,arsp.[vchSortTitle]
-           ,arsp.[vchAuthor]
-           ,arsp.[vchSeriesShortName]
-           ,arsp.[vchSeriesTitle]
-           ,arsp.[chContentVersion]
-           ,arsp.[chFictionNonFiction]
-           ,arsp.[vchInterestLevel]
-           ,arsp.[dBookLevel]
-           ,arsp.[iQuestionsPresented]
-           ,arsp.[iQuestionsCorrect]
-           ,arsp.[dAlternateBookLevel_1]
-           ,arsp.[dPointsPossible]
-           ,arsp.[iAlternateBookLevel_2]
-           ,arsp.[dPointsEarned]
-           ,arsp.[dPassingPercentage]
-           ,arsp.[tiPassed]
-           ,arsp.[chTWI]
-           ,arsp.[tiBookRating]
-           ,arsp.[tiUsedAudio]
-           ,arsp.[dtTaken]
-           ,arsp.[dtTakenOriginal]
-           ,arsp.[tiTeacherModified]
-           ,arsp.[tiPracticeDetail]
-           ,arsp.[iWordCount]
-           ,arsp.[dPercentCorrect]
-           ,arsp.[vchSecondTryTitle]
-           ,arsp.[vchSecondTryAuthor]
-           ,arsp.[chStatus]
-           ,arsp.[iRetakeCount]
-           ,arsp.[DeviceType]
-           ,arsp.[DeviceAppletID]
-           ,arsp.[sDataOrigination]
-           ,arsp.[tiCSImportVersion]
-           ,arsp.[iInsertByID]
-           ,arsp.[dtInsertDate]
-           ,arsp.[iEditByID]
-           ,arsp.[dtEditDate]
-           ,arsp.[tiRowStatus]
-           ,arsp.[iTeacherUserID]
-           ,arsp.[DeviceUniqueID]
-           ,arsp.[iUserActionID]
-           ,3 AS school_progression
-    FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_NCA].[dbo].[ar_StudentPractice] arsp
-    LEFT OUTER JOIN [RM9-DSCHEDULER\SQLEXPRESS].[RL_NCA].[dbo].[rl_User]  rluser
-      ON arsp.iUserID = rluser.iUserID
-    WHERE arsp.[iContentTypeID] = 31
-      AND arsp.chStatus != 'U'
-      AND arsp.tiRowStatus = 1
     )
-
-SELECT [student_number]
+SELECT sub.[student_number]
       ,[iStudentPracticeID]
       ,[iUserID]
       ,[iSchoolID]
@@ -316,4 +126,6 @@ FROM
                ) AS rn
         FROM ar_detail
        ) sub
+JOIN KIPP_NJ..STUDENTS s
+  ON sub.student_number = CAST(s.student_number AS varchar)
 WHERE rn = 1
