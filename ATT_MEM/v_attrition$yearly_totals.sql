@@ -32,12 +32,13 @@ SELECT TOP 10000000 CASE GROUPING(schools.abbreviation)
 				         ELSE CAST(grade_level AS NVARCHAR)
 				       END
 			   END AS grade_level 
-      ,100 - CAST(ROUND(AVG(attr_test + 0.0) * 100, 0) AS INT) AS attr_pct
+      ,100 - CAST(ROUND(AVG(attr_test + 0.0) * 100, 1) AS NUMERIC(4,1)) AS attr_pct
 FROM 
       (SELECT base_roster.*
              ,CASE
                 --don't count grads
-                WHEN base_roster.grade_level IN (4, 8, 11) AND base_roster.exitcode = 'G1' THEN 1
+                WHEN base_roster.grade_level IN (4, 8) AND base_roster.exitcode = 'G1' THEN 1
+                WHEN base_roster.grade_level >= 9 AND base_roster.exitcode = 'G1' THEN 1
                 --kids who didn't make it to 10-15 this year get charged against last year
                 WHEN c_next.exitdate < CAST(CAST(c_next.year AS varchar) + '-' + CAST(10 AS varchar) + '-' + CAST(15 AS varchar) AS DATETIME) THEN 0
                 WHEN c_next.grade_level IS NOT NULL THEN 1
