@@ -86,8 +86,8 @@ WITH zscore AS
      JOIN KIPP_NJ..COURSES WITH (NOLOCK)
        ON c.course_number = courses.course_number
      WHERE c.dateenrolled <= CAST(GETDATE() AS date)
-       AND c.dateleft >= '2014-06-01'
-       --AND c.dateleft >= CAST(GETDATE() AS date)
+       --AND c.dateleft >= '2014-06-01'
+       AND c.dateleft >= CAST(GETDATE() AS date)
      ) 
 
     ,hr AS
@@ -104,8 +104,8 @@ WITH zscore AS
        ON cc.schoolid = schools.school_number
       AND schools.school_number IN (73252, 73254, 73255, 73256)
      WHERE cc.dateenrolled <= CAST(GETDATE() AS date)
-       AND cc.dateleft >= '2014-06-01'
-       --AND cc.dateleft >= CAST(GETDATE() AS date)
+       --AND cc.dateleft >= '2014-06-01'
+       AND cc.dateleft >= CAST(GETDATE() AS date)
     ) 
 
 --LOOSE method
@@ -669,7 +669,7 @@ WHERE rn = 1
 
 UNION ALL
 
---MS MATH BY COURSE NAME FOR 7th/8th Algebra Split
+--MS MATH BY COURSE NAME FOR 7th/8th Algebra Split WITH teacher name
 SELECT sub.school
       ,sub.course_enrollment AS grade_level
       ,sub.year
@@ -706,7 +706,114 @@ FROM
                 ) AS rn
        FROM
              (SELECT sub.school
-                    ,sub.grade_level
+                    ,CAST(ROUND(AVG(sub.grade_level),0) AS int) AS grade_level
+                    ,sub.course_enrollment
+                    ,sub.year
+                    ,sub.measurementscale
+                    ,CAST(ROUND(AVG(testritscore + 0.0),2) AS FLOAT) AS avg_baseline_rit
+                    ,CAST(ROUND(AVG(testpercentile + 0.0),1) AS FLOAT) AS avg_baseline_percentile
+                    ,COUNT(*) AS N
+              FROM
+                    (SELECT cohort.school
+                           ,cc.last_name + ' ' + cc.course_name AS course_enrollment
+                           ,cohort.grade_level
+                           ,cohort.year
+                           ,map_baseline.measurementscale
+                           ,map_baseline.termname
+                           ,map_baseline.testritscore
+                           ,map_baseline.testpercentile
+                     FROM cohort
+                     JOIN cc
+                       ON cohort.studentid = cc.studentid
+                     JOIN map_baseline
+                       ON cohort.studentid = map_baseline.studentid
+                      AND map_baseline.join_credittype = cc.credittype
+                      AND map_baseline.measurementscale = 'Mathematics'
+                     WHERE cohort.grade_level >= 5 AND cohort.grade_level <= 8
+                     ) sub
+              GROUP BY sub.school
+                      ,sub.course_enrollment
+                      ,sub.year
+                      ,sub.measurementscale
+              ) sub
+       JOIN cohort_norms
+         ON sub.grade_level = cohort_norms.grade
+        AND sub.measurementscale = cohort_norms.subject
+       ) sub
+LEFT OUTER JOIN 
+  (SELECT sub.year
+         ,sub.school
+         ,sub.measurementscale
+         ,CAST(ROUND(AVG(sub.grade_level),0) AS int) AS grade_level
+         ,sub.course_enrollment
+         ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
+         ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
+   FROM
+         (SELECT map_endpoint.map_year_academic AS year
+                ,map_endpoint.school
+                ,map_endpoint.measurementscale
+                ,map_endpoint.grade_level
+                ,cc.last_name + ' ' + cc.course_name  AS course_enrollment
+                ,map_endpoint.testritscore
+                ,map_endpoint.testpercentile
+          FROM map_endpoint
+         JOIN cc
+           ON map_endpoint.studentid = cc.studentid
+         ) sub
+   GROUP BY sub.year
+           ,sub.school
+           ,sub.measurementscale
+           ,sub.course_enrollment
+  ) loose_agg
+  ON sub.year = loose_agg.year
+ AND sub.school = loose_agg.school
+ AND sub.measurementscale = loose_agg.measurementscale
+ AND sub.grade_level = loose_agg.grade_level
+ AND sub.course_enrollment = loose_agg.course_enrollment
+JOIN zscore
+  ON 1=1
+WHERE rn = 1
+
+UNION ALL
+
+--MS MATH BY COURSE NAME FOR 7th/8th Algebra Split WITHOUT teacher name
+SELECT sub.school
+      ,sub.course_enrollment AS grade_level
+      ,sub.year
+      ,'All Students' AS iep_status
+      ,sub.measurementscale
+      ,sub.avg_baseline_rit
+      ,sub.avg_baseline_percentile
+      ,sub.N
+      ,sub.comparison_start_rit
+      ,sub.mean
+      ,sub.sd
+      ,'loose' AS roster_match_method
+      ,CAST(zscore.percentile AS FLOAT) AS cohort_growth_percentile
+      ,zscore.zscore
+      ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.mean), 1) AS float) AS target_rit_change
+      ,CAST(ROUND((zscore.zscore * sub.sd) + (sub.avg_baseline_rit + sub.mean), 1) AS float) AS target_spr_rit
+      ,NULL AS target_npr_change
+      ,NULL AS target_spr_npr
+      ,loose_agg.avg_cur_endpoint_rit
+      ,loose_agg.avg_cur_endpoint_percentile
+FROM
+       --join to norms table, get diff
+      (SELECT sub.*
+             ,cohort_norms.rit AS comparison_start_rit
+             ,cohort_norms.mean
+             ,cohort_norms.sd
+             ,ROW_NUMBER() OVER
+                (PARTITION BY sub.school
+                             ,sub.grade_level
+                             ,sub.course_enrollment
+                             ,sub.year
+                             ,sub.measurementscale
+                 ORDER BY ABS(avg_baseline_rit - cohort_norms.rit)
+                ) AS rn
+       FROM
+             (SELECT sub.school
+                    ,CAST(ROUND(AVG(sub.grade_level),0) AS int) AS grade_level
                     ,sub.course_enrollment
                     ,sub.year
                     ,sub.measurementscale
@@ -732,7 +839,6 @@ FROM
                      WHERE cohort.grade_level >= 5 AND cohort.grade_level <= 8
                      ) sub
               GROUP BY sub.school
-                      ,sub.grade_level
                       ,sub.course_enrollment
                       ,sub.year
                       ,sub.measurementscale
@@ -745,7 +851,7 @@ LEFT OUTER JOIN
   (SELECT sub.year
          ,sub.school
          ,sub.measurementscale
-         ,sub.grade_level
+         ,CAST(ROUND(AVG(sub.grade_level),0) AS int) AS grade_level
          ,sub.course_enrollment
          ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
          ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
@@ -764,7 +870,6 @@ LEFT OUTER JOIN
    GROUP BY sub.year
            ,sub.school
            ,sub.measurementscale
-           ,sub.grade_level
            ,sub.course_enrollment
   ) loose_agg
   ON sub.year = loose_agg.year
@@ -775,3 +880,110 @@ LEFT OUTER JOIN
 JOIN zscore
   ON 1=1
 WHERE rn = 1
+
+UNION ALL
+--**NPR MEASURED** MS MATH BY COURSE NAME FOR 7th/8th Algebra Split 
+SELECT sub.school
+      ,sub.course_enrollment + '_NPR' AS grade_level
+      ,sub.year
+      ,'All Students' AS iep_status
+      ,sub.measurementscale
+      ,sub.avg_baseline_rit
+      ,sub.avg_baseline_percentile
+      ,sub.N
+      ,sub.comparison_start_rit
+      ,sub.mean
+      ,sub.sd
+      ,sub.roster_match_method
+      ,sub.cohort_growth_percentile
+      ,sub.zscore
+      ,NULL AS target_rit_change
+      ,NULL AS target_spr_rit
+      ,sub.target_npr_change
+      ,sub.avg_baseline_percentile + sub.target_npr_change AS target_spr_npr
+      ,loose_agg.avg_cur_endpoint_rit
+      ,loose_agg.avg_cur_endpoint_percentile      
+FROM
+       (SELECT sub.*
+             ,NULL AS comparison_start_rit
+             ,NULL AS mean
+             ,NULL AS sd
+             ,'loose' AS roster_match_method
+             ,zscore.percentile AS cohort_growth_percentile
+             ,zscore.zscore
+             ,NULL AS target_rit_change
+             ,NULL AS target_spr_rit
+            ,ROUND(((0.134056 * sub.grade_level) + (-0.0574764 * sub.avg_baseline_percentile) + log(-1*((12.583 * (zscore.percentile / 100))/((zscore.percentile / 100) - 1))))/0.292364, 2) AS target_npr_change
+       FROM
+             (SELECT sub.school
+                    ,CAST(ROUND(AVG(sub.grade_level),0) AS int) AS grade_level
+                    ,sub.course_enrollment
+                    ,sub.year
+                    ,sub.measurementscale
+                    ,CAST(ROUND(AVG(testritscore + 0.0),2) AS FLOAT) AS avg_baseline_rit
+                    ,CAST(ROUND(AVG(testpercentile + 0.0),1) AS FLOAT) AS avg_baseline_percentile
+                    ,COUNT(*) AS N
+              FROM
+                    (SELECT cohort.school
+                           ,cc.course_name AS course_enrollment
+                           ,cohort.grade_level
+                           ,cohort.year
+                           ,map_baseline.measurementscale
+                           ,map_baseline.termname
+                           ,map_baseline.testritscore
+                           ,map_baseline.testpercentile
+                     FROM cohort
+                     JOIN cc
+                       ON cohort.studentid = cc.studentid
+                     JOIN map_baseline
+                       ON cohort.studentid = map_baseline.studentid
+                      AND map_baseline.join_credittype = cc.credittype
+                      AND map_baseline.measurementscale = 'Mathematics'
+                      AND (
+                         cohort.school = 'Rise' AND
+                         cc.course_name IN ('Math 8 Algebra I', 'Math 8 Algebra I Honors', 'Math IV Foundations')
+                       )
+                     WHERE cohort.grade_level >= 5 AND cohort.grade_level <= 8
+                     ) sub
+              GROUP BY sub.school
+                      ,sub.course_enrollment
+                      ,sub.year
+                      ,sub.measurementscale
+              ) sub
+       JOIN zscore
+         ON 1=1
+       ) sub
+LEFT OUTER JOIN 
+  (SELECT sub.year
+         ,sub.school
+         ,sub.measurementscale
+         ,CAST(ROUND(AVG(sub.grade_level),0) AS int) AS grade_level
+         ,sub.course_enrollment
+         ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
+         ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
+   FROM
+         (SELECT map_endpoint.map_year_academic AS year
+                ,map_endpoint.school
+                ,map_endpoint.measurementscale
+                ,map_endpoint.grade_level
+                ,cc.course_name AS course_enrollment
+                ,map_endpoint.testritscore
+                ,map_endpoint.testpercentile
+          FROM map_endpoint
+         JOIN cc
+           ON map_endpoint.studentid = cc.studentid
+         ) sub
+   GROUP BY sub.year
+           ,sub.school
+           ,sub.measurementscale
+           ,sub.course_enrollment
+  ) loose_agg
+  ON sub.year = loose_agg.year
+ AND sub.school = loose_agg.school
+ AND sub.measurementscale = loose_agg.measurementscale
+ AND sub.grade_level = loose_agg.grade_level
+ AND sub.course_enrollment = loose_agg.course_enrollment
+ AND (
+   sub.school = 'Rise' AND
+   sub.course_enrollment IN ('Math 8 Algebra I', 'Math 8 Algebra I Honors', 'Math IV Foundations')
+ )
