@@ -3,6 +3,22 @@ GO
 
 ALTER VIEW DEVFIN$student_flags AS
 
+WITH co_base AS (
+  SELECT *
+  FROM COHORT$comprehensive_long#static
+  WHERE year = 2013
+    AND entrydate <= '2013-10-01'
+    AND rn = 1
+ )
+
+,co_cur AS (
+  SELECT *
+  FROM COHORT$comprehensive_long#static
+  WHERE year = 2014
+    AND rn = 1
+    AND (entrydate != exitdate OR schoolid = 999999)
+ )
+
 SELECT SCHOOLID
       ,GRADE_LEVEL
       ,LASTFIRST
@@ -39,20 +55,10 @@ WHERE YEAR = 2014 --dbo.fn_Global_Academic_Year()
 
 UNION ALL
 
-SELECT CASE 
-        WHEN co_base.SCHOOLID = 73254 AND co_base.GRADE_LEVEL = 4 THEN 133570965
-        WHEN co_base.SCHOOLID IN (73252,133570965) AND co_base.GRADE_LEVEL = 8 THEN 73253
-        ELSE co_base.SCHOOLID
-       END AS schoolid
-      ,co_base.GRADE_LEVEL + 1 AS grade_level
+SELECT co_base.schoolid
+      ,co_base.GRADE_LEVEL
       ,co_base.lastfirst
       ,'TRANSF_SUM' AS flag
-FROM COHORT$comprehensive_long#static co_base WITH(NOLOCK)
-LEFT OUTER JOIN COHORT$comprehensive_long#static co_cur WITH(NOLOCK)
-  ON co_base.STUDENTID = co_cur.STUDENTID
- AND co_base.YEAR = co_cur.YEAR - 1
- AND co_cur.RN = 1
-WHERE co_base.YEAR = 2013 --dbo.fn_fn_Global_Academic_Year() - 1
-  AND co_base.SCHOOLID != 999999
-  AND co_base.RN = 1
-  AND co_cur.STUDENTID IS NULL
+FROM co_base
+WHERE studentid NOT IN (SELECT studentid FROM co_cur)
+AND exitdate >= '2014-06-27'

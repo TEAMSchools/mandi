@@ -47,7 +47,7 @@ WITH curterm AS (
   WHERE YEAR_IN_NETWORK = 1
     AND RN = 1
  )
-
+ 
 ,cur_section AS (
   SELECT studentid
         ,student_number
@@ -69,7 +69,7 @@ SELECT roster.ID
       ,gr.course_number AS COURSE_NUM
       ,gr.course_name AS COURSE_NAME
       ,sec.teacher
-      ,CASE        
+      ,CASE 
         WHEN cc.expression = '1(A)' THEN 'HR'
         WHEN cc.expression = '2(A)' THEN '1'
         WHEN cc.expression = '3(A)' THEN '2'

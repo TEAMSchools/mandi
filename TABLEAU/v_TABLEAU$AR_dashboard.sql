@@ -4,6 +4,9 @@ GO
 ALTER VIEW TABLEAU$AR_dashboard AS
 
 SELECT ar.*
+      ,s.first_name
+      ,s.last_name
+      ,s.first_name + ' ' + s.last_name AS student_name
       ,cs.ADVISOR
       ,eng1.COURSE_NAME AS eng1_course
       ,eng1.SECTION_NUMBER AS eng1_section
@@ -44,18 +47,19 @@ SELECT ar.*
         WHEN eng2.expression = '14(A)' THEN '7'
         ELSE NULL
        END AS eng2_period
-      ,eng2.LASTFIRST AS eng2_teacher
-      ,diff.COURSE_NAME AS fourth_per_class
-      ,diff.LASTFIRST AS fourth_per_teacher
+      ,eng2.LASTFIRST AS eng2_teacher      
+      ,diff.COURSE_NAME AS diff_block_assignment
+      ,diff.LASTFIRST AS diff_block_teacher
       ,CASE        
         WHEN diff.expression = '5(A)' THEN '4B'
         WHEN diff.expression = '6(A)' THEN '4A'
         WHEN diff.expression = '7(A)' THEN '4D'
         WHEN diff.expression = '8(A)' THEN '4C'        
         ELSE NULL
-       END AS diff_block
-      ,intv_block.group_name AS diff_block_assignment
+       END AS diff_block_period      
 FROM AR$progress_to_goals_long#static ar WITH(NOLOCK)
+LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
+  ON ar.studentid = s.id
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
   ON ar.studentid = cs.STUDENTID
 LEFT OUTER JOIN (
@@ -77,11 +81,12 @@ LEFT OUTER JOIN (
                   --AND cc.SCHOOLID = 73253
                  JOIN TEACHERS t WITH (NOLOCK)
                    ON cc.TEACHERID = t.ID
-                 WHERE CREDITTYPE = 'ENG'
+                 WHERE c.CREDITTYPE = 'ENG'
+                   AND c.COURSE_NUMBER NOT LIKE 'ENG0%'
                 ) eng1
   ON ar.studentid = eng1.STUDENTID
- AND ar.start_date >= eng1.DATEENROLLED
- AND ar.end_date <= eng1.DATELEFT
+ --AND ar.start_date >= eng1.DATEENROLLED
+ --AND ar.end_date <= eng1.DATELEFT
  AND eng1.rn = 1
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID
@@ -102,11 +107,12 @@ LEFT OUTER JOIN (
                   --AND cc.SCHOOLID = 73253
                  JOIN TEACHERS t WITH (NOLOCK)
                    ON cc.TEACHERID = t.ID
-                 WHERE CREDITTYPE = 'ENG'
+                 WHERE c.CREDITTYPE = 'ENG'
+                   AND c.COURSE_NUMBER NOT LIKE 'ENG0%'
                 ) eng2
   ON ar.studentid = eng2.STUDENTID
- AND ar.start_date >= eng2.DATEENROLLED
- AND ar.end_date <= eng2.DATELEFT
+ --AND ar.start_date >= eng2.DATEENROLLED
+ --AND ar.end_date <= eng2.DATELEFT
  AND eng2.rn = 2
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID     
@@ -130,12 +136,10 @@ LEFT OUTER JOIN (
                  WHERE cc.TERMID >= dbo.fn_Global_Term_Id()
                    --AND cc.SCHOOLID = 73253
                    AND cc.EXPRESSION IN ('5(A)','6(A)','7(A)','8(A)')
-                   AND cc.COURSE_NUMBER NOT IN ('STUDY25','STUDY15','STUDY35')
+                   AND (cc.COURSE_NUMBER LIKE 'ENG0%' OR cc.COURSE_NUMBER LIKE 'MATH0%')
                 ) diff
   ON ar.studentid = diff.studentid
- AND ar.start_date >= diff.DATEENROLLED
- AND ar.end_date <= diff.DATELEFT
+ --AND ar.start_date >= diff.DATEENROLLED
+ --AND ar.end_date <= diff.DATELEFT
  AND diff.rn = 1
---intervention block
-LEFT OUTER JOIN KIPP_NJ..[CUSTOM_GROUPINGS$intervention_block#NCA] intv_block WITH(NOLOCK)
-  ON ar.studentid = intv_block.studentid
+WHERE ar.yearid >= dbo.fn_Global_Term_Id()

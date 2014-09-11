@@ -45,7 +45,7 @@ SELECT
        CONVERT(VARCHAR,details.student_number) + '_'
         + CONVERT(VARCHAR,scores.test_round) + '_' 
         + 'Achieved_' 
-        + CONVERT(VARCHAR,details.academic_year) + '_'
+        + CONVERT(VARCHAR,scores.academic_year) + '_'
         + '1'
        AS reporting_hash
       ,NULL AS reasons_for_DNA
@@ -157,8 +157,6 @@ LEFT OUTER JOIN [AUTOLOAD$GDOCS_LIT_GR_Group] grteacher WITH(NOLOCK)
   ON s.STUDENT_NUMBER = grteacher.student_number
 LEFT OUTER JOIN goals_wide
   ON scores.STUDENTID = goals_wide.studentid
-
-
 WHERE scores.academic_year >= dbo.fn_Global_Academic_Year()
 
 UNION ALL

@@ -27,7 +27,8 @@ BEGIN
       SELECT repository_id          
       FROM dna_repositories.repositories    
       WHERE deleted_at IS NULL      
-        --AND repository_id < 53
+        AND repository_id < 59
+        --AND repository_id NOT IN (43)
     ')
 
   		    
@@ -46,7 +47,7 @@ BEGIN
     
       -- grab column headers using GROUP_CONCAT
       -- this allows you to SELECT/INSERT/UNPIVOT arbitrary column names
-      SELECT @cols = '[' + dbo.GROUP_CONCAT_D(name, '], [') + ']'
+      SELECT @cols = '[' + dbo.GROUP_CONCAT_D(name, '],[') + ']'
       FROM OPENQUERY(ILLUMINATE,'
         SELECT name
               ,repository_id
@@ -57,7 +58,7 @@ BEGIN
 
       -- grab another set of column headers for the SELECT statement, CONVERTing everything to TEXT (NVARCHAR)
       -- this avoids the data-type collisions that would otherwise occur during the UNPIVOT
-      SELECT @converted_cols = dbo.GROUP_CONCAT_BIGD(' , CAST(' + name, ' AS TEXT) ')
+      SELECT @converted_cols = dbo.GROUP_CONCAT_BIGD(',CAST(' + name, ' AS TEXT)')
       FROM OPENQUERY(ILLUMINATE,'
         SELECT name
               ,repository_id

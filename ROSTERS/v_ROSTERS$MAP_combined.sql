@@ -43,8 +43,7 @@ WITH roster AS (
     ON CC.SECTIONID = sec.ID
   JOIN TEACHERS t
     ON sec.TEACHER = t.ID  
-  --WHERE cc.TERMID >= dbo.fn_Global_Term_Id()
-  WHERE cc.TERMID >= 2400
+  WHERE cc.TERMID >= dbo.fn_Global_Term_Id()  
     AND cc.SECTIONID >= 0    
  )
 
@@ -67,12 +66,11 @@ SELECT DISTINCT
       ,r.LAST_NAME AS [Student Last Name]
       ,r.FIRST_NAME AS [Student First Name]
       ,r.middle_initial AS [Student Middle Initial]
-      ,r.DOB AS [Student Date of Birth]
-      --required for reporting--
+      ,r.DOB AS [Student Date of Birth]      
       ,r.GENDER AS [Student Gender]
       ,r.GRADE_LEVEL AS [Student Grade]
       ,r.ETHNICITY AS [Student Ethnic Group Name]
-      ,CONVERT(VARCHAR,r.ID) + '_' + ISNULL(tc.CREDITTYPE,'HR') AS audit_hash
+      ,CONVERT(VARCHAR,r.ID) + '_' + ISNULL(tc.course_number,'HR') AS audit_hash
 FROM roster r
 JOIN teacher_courses tc
   ON r.ID = tc.STUDENTID

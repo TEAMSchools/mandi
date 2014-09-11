@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$weekly_report#Rise AS
+--ALTER VIEW REPORTING$weekly_report#Rise AS
 
 WITH roster AS (
   SELECT s.STUDENT_NUMBER
@@ -20,10 +20,11 @@ WITH roster AS (
   SELECT date
         ,day_of_week
   FROM UTIL$reporting_days days WITH(NOLOCK)
-  --WHERE CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) >= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1) + '5')
-    --AND CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) <= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())) + '4')
-  WHERE date >= '2014-08-14'
-    AND date <= '2014-09-03'
+  WHERE CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) >= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1) + '5')
+    AND CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) <= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())) + '4')
+    AND DATEPART(DAY,date) NOT IN (6,7)
+  --WHERE date >= '2014-08-14' -- in case of vacations
+    --AND date <= '2014-09-03' -- in case of vacations
  )
 
 -- start and end days
@@ -32,7 +33,7 @@ WITH roster AS (
         ,LEFT(CONVERT(VARCHAR,MAX(date), 1), 5) AS end_date
         ,DATENAME(WEEKDAY,MIN(date)) AS start_date_str
         ,DATENAME(WEEKDAY,MAX(date)) AS end_date_str
-  FROM reporting_week
+  FROM reporting_week WITH(NOLOCK)
  )
 
 -- long data from daily tracking
@@ -43,14 +44,15 @@ WITH roster AS (
         ,CASE WHEN dt.class = 'other' AND dt.ccr NOT IN ('N', 'U') THEN NULL ELSE dt.ccr END AS ccr
         ,CASE WHEN dt.class = 'other' AND dt.ccr NOT IN ('N', 'U') THEN NULL ELSE dt.ccr_score END AS ccr_score
   FROM DAILY$tracking_long#Rise#static dt WITH(NOLOCK)
+  WHERE att_date IN (SELECT date FROM reporting_week WITH(NOLOCK))
 )
 
 -- ccr data wide by class and day of week
 ,ccr_wide AS (
   SELECT studentid
         ,[mon_adv_behavior]
-        ,NULL AS [mon_adv_logistic]
-        ,NULL AS [mon_elec]
+        ,[mon_adv_logistic]
+        ,[mon_elec]
         ,[mon_history]
         ,[mon_math]
         ,[mon_other]
@@ -58,8 +60,8 @@ WITH roster AS (
         ,[mon_science]
         ,[mon_writing]      
         ,[tue_adv_behavior]
-        ,NULL AS [tue_adv_logistic]
-        ,NULL AS [tue_elec]
+        ,[tue_adv_logistic]
+        ,[tue_elec]
         ,[tue_history]
         ,[tue_math]
         ,[tue_other]
@@ -67,8 +69,8 @@ WITH roster AS (
         ,[tue_science]
         ,[tue_writing]
         ,[wed_adv_behavior]
-        ,NULL AS [wed_adv_logistic]
-        ,NULL AS [wed_elec]
+        ,[wed_adv_logistic]
+        ,[wed_elec]
         ,[wed_history]
         ,[wed_math]
         ,[wed_other]
@@ -76,8 +78,8 @@ WITH roster AS (
         ,[wed_science]
         ,[wed_writing]
         ,[thu_adv_behavior]
-        ,NULL AS [thu_adv_logistic]
-        ,NULL AS [thu_elec]
+        ,[thu_adv_logistic]
+        ,[thu_elec]
         ,[thu_history]
         ,[thu_math]
         ,[thu_other]
@@ -85,8 +87,8 @@ WITH roster AS (
         ,[thu_science]
         ,[thu_writing]
         ,[fri_adv_behavior]
-        ,NULL AS [fri_adv_logistic]
-        ,NULL AS [fri_elec]
+        ,[fri_adv_logistic]
+        ,[fri_elec]
         ,[fri_history]
         ,[fri_math]
         ,[fri_other]
@@ -98,8 +100,8 @@ WITH roster AS (
        SELECT ccr_long.studentid           
              ,LEFT(LOWER(wk.day_of_week), 3) + '_' + ccr_long.class AS hash
              ,ccr_long.ccr      
-       FROM ccr_long
-       JOIN reporting_week wk  
+       FROM ccr_long WITH(NOLOCK)
+       JOIN reporting_week wk WITH(NOLOCK)
          ON wk.date = ccr_long.att_date
       ) sub
 
@@ -160,8 +162,134 @@ WITH roster AS (
         ,SUM(ccr_score) AS ccr_total
         ,COUNT(ccr_score) AS ccr_poss
         ,ROUND(SUM(CONVERT(FLOAT,ccr_score)) / COUNT(CONVERT(FLOAT,ccr_score)) * 100, 0) AS ccr_pct
-  FROM ccr_long
+  FROM ccr_long WITH(NOLOCK)
   GROUP BY studentid
+ )
+
+,weekly_assignments AS (
+  SELECT asmt.sectionid
+        ,sec.course_number
+        ,cou.credittype
+        ,asmt.ASSIGNMENTID
+        ,asmt.ASSIGN_NAME
+        ,asmt.POINTSPOSSIBLE
+        ,asmt.CATEGORY        
+  FROM GRADES$assignments#static asmt WITH(NOLOCK)
+  JOIN sections sec WITH(NOLOCK)
+    ON asmt.sectionid = sec.id
+   AND sec.SCHOOLID = 73252
+   AND sec.termid = dbo.fn_Global_Term_Id()
+   AND sec.GRADE_LEVEL = 8
+  JOIN COURSES cou WITH(NOLOCK)
+    ON sec.COURSE_NUMBER = cou.COURSE_NUMBER
+  WHERE asmt.ASSIGN_DATE IN (SELECT date FROM reporting_week WITH(NOLOCK))
+    AND asmt.CATEGORY IN ('HQ','HWQ','HWA')
+ )
+
+,assignment_scores AS (
+  SELECT s.ASSIGNMENTID
+        ,STUDENT_NUMBER
+        ,CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0)) AS score_numeric        
+        ,CASE WHEN EXEMPT = 1 THEN 'Ex' ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0))) END AS score_text
+  FROM GRADES$assignment_scores#static s WITH(NOLOCK)
+  JOIN weekly_assignments a WITH(NOLOCK)
+    ON s.ASSIGNMENTID = a.ASSIGNMENTID
+  WHERE s.ASSIGNMENTID IN (SELECT ASSIGNMENTID FROM weekly_assignments WITH(NOLOCK))
+ )
+
+,names_wide AS (
+  SELECT *
+  FROM
+      (
+       SELECT LOWER(asmt.credittype) + '_assign_'
+                + CONVERT(VARCHAR,ROW_NUMBER() OVER(
+                    PARTITION BY asmt.credittype, scores.student_number
+                      ORDER BY asmt.assign_name)) AS name_hash           
+             ,asmt.assign_name
+             ,scores.student_number           
+       FROM weekly_assignments asmt WITH(NOLOCK)
+       JOIN assignment_scores scores WITH(NOLOCK)
+         On asmt.assignmentid = scores.assignmentid
+      ) sub
+  PIVOT (
+    MAX(assign_name)
+    FOR name_hash IN ([eng_assign_1]
+                     ,[eng_assign_2]
+                     ,[eng_assign_3]
+                     ,[eng_assign_4]
+                     ,[eng_assign_5]
+                     ,[math_assign_1]
+                     ,[math_assign_2]
+                     ,[math_assign_3]
+                     ,[math_assign_4]
+                     ,[math_assign_5]
+                     ,[sci_assign_1]
+                     ,[sci_assign_2]
+                     ,[sci_assign_3]
+                     ,[sci_assign_4]
+                     ,[sci_assign_5]
+                     ,[rhet_assign_1]
+                     ,[rhet_assign_2]
+                     ,[rhet_assign_3]
+                     ,[rhet_assign_4]
+                     ,[rhet_assign_5]
+                     ,[soc_assign_1]
+                     ,[soc_assign_2]
+                     ,[soc_assign_3]
+                     ,[soc_assign_4]
+                     ,[soc_assign_5])
+   ) p
+)
+
+,scores_wide AS (
+  SELECT *
+  FROM
+      (
+       SELECT LOWER(asmt.credittype) + '_score_'
+                + CONVERT(VARCHAR,ROW_NUMBER() OVER(
+                    PARTITION BY asmt.credittype, scores.student_number
+                      ORDER BY asmt.assign_name)) AS score_hash           
+             ,scores.student_number
+             ,scores.score_text
+       FROM weekly_assignments asmt WITH(NOLOCK)
+       JOIN assignment_scores scores WITH(NOLOCK)
+         ON asmt.assignmentid = scores.assignmentid
+      ) sub
+  PIVOT (
+    MAX(score_text)
+    FOR score_hash IN ([eng_score_1]
+                      ,[eng_score_2]
+                      ,[eng_score_3]
+                      ,[eng_score_4]
+                      ,[eng_score_5]
+                      ,[math_score_1]
+                      ,[math_score_2]
+                      ,[math_score_3]
+                      ,[math_score_4]
+                      ,[math_score_5]
+                      ,[sci_score_1]
+                      ,[sci_score_2]
+                      ,[sci_score_3]
+                      ,[sci_score_4]
+                      ,[sci_score_5]
+                      ,[rhet_score_1]
+                      ,[rhet_score_2]
+                      ,[rhet_score_3]
+                      ,[rhet_score_4]
+                      ,[rhet_score_5]
+                      ,[soc_score_1]
+                      ,[soc_score_2]
+                      ,[soc_score_3]
+                      ,[soc_score_4]
+                      ,[soc_score_5])
+   ) p2
+ )
+
+,scores_totals AS (
+  SELECT student_number
+        ,AVG(score_numeric) AS hwq_avg
+  FROM assignment_scores WITH(NOLOCK)
+  GROUP BY student_number
  )
 
 SELECT r.STUDENT_NUMBER
@@ -181,10 +309,20 @@ SELECT r.STUDENT_NUMBER
       ,ccr_totals.ccr_total
       ,ccr_totals.ccr_pct
       
-      -- hw totals
-      ,NULL AS hwc_avg
-      ,NULL AS hwq_avg
-      ,NULL AS fun_friday_avg
+      -- hw totals      
+      ,ROUND(CONVERT(FLOAT,scores_totals.hwq_avg),0) AS hwq_avg
+      ,ROUND((scores_totals.hwq_avg + ccr_totals.ccr_pct) / 2, 0) AS fun_friday_avg
+      ,CASE         
+        WHEN ROUND((scores_totals.hwq_avg + ccr_totals.ccr_pct) / 2, 0) >= 80 THEN 'Yes' 
+        WHEN ROUND((scores_totals.hwq_avg + ccr_totals.ccr_pct) / 2, 0) < 80 THEN 'No' 
+        ELSE NULL
+       END AS fun_friday_status
+      ,ROUND(CONVERT(FLOAT,scores_totals.hwq_avg),0) AS dress_down_avg
+      ,CASE 
+        WHEN ROUND(CONVERT(FLOAT,scores_totals.hwq_avg),0) >= 85 THEN 'Yes' 
+        WHEN ROUND(CONVERT(FLOAT,scores_totals.hwq_avg),0) < 85 THEN 'No' 
+        ELSE NULL
+       END AS dress_down_status
       
       -- ccr wide
       ,ccr_wide.mon_adv_behavior
@@ -234,34 +372,66 @@ SELECT r.STUDENT_NUMBER
       ,ccr_wide.fri_writing
       
       -- hw wide
-      ,NULL AS hist_asmt_1
-      ,NULL AS hist_asmt_2
-      ,NULL AS hist_score_1
-      ,NULL AS hist_score_2
-      ,NULL AS math_asmt_1
-      ,NULL AS math_asmt_2
-      ,NULL AS math_score_1
-      ,NULL AS math_score_2
-      ,NULL AS read_asmt_1
-      ,NULL AS read_asmt_2
-      ,NULL AS read_score_1
-      ,NULL AS read_score_2
-      ,NULL AS rhet_asmt_1
-      ,NULL AS rhet_asmt_2
-      ,NULL AS rhet_score_1
-      ,NULL AS rhet_score_2
-      ,NULL AS sci_asmt_1
-      ,NULL AS sci_asmt_2
-      ,NULL AS sci_score_1
-      ,NULL AS sci_score_2
-      ,NULL AS soc_asmt_1
-      ,NULL AS soc_asmt_2
-      ,NULL AS soc_score_1
-      ,NULL AS soc_score_2
-FROM roster r
-JOIN date_strings ds
+      ,[eng_assign_1]
+      ,[eng_assign_2]
+      ,[eng_assign_3]
+      ,[eng_assign_4]
+      ,[eng_assign_5]
+      ,[math_assign_1]
+      ,[math_assign_2]
+      ,[math_assign_3]
+      ,[math_assign_4]
+      ,[math_assign_5]
+      ,[sci_assign_1]
+      ,[sci_assign_2]
+      ,[sci_assign_3]
+      ,[sci_assign_4]
+      ,[sci_assign_5]
+      ,[rhet_assign_1]
+      ,[rhet_assign_2]
+      ,[rhet_assign_3]
+      ,[rhet_assign_4]
+      ,[rhet_assign_5]
+      ,[soc_assign_1]
+      ,[soc_assign_2]
+      ,[soc_assign_3]
+      ,[soc_assign_4]
+      ,[soc_assign_5]
+      ,[eng_score_1]
+      ,[eng_score_2]
+      ,[eng_score_3]
+      ,[eng_score_4]
+      ,[eng_score_5]
+      ,[math_score_1]
+      ,[math_score_2]
+      ,[math_score_3]
+      ,[math_score_4]
+      ,[math_score_5]
+      ,[sci_score_1]
+      ,[sci_score_2]
+      ,[sci_score_3]
+      ,[sci_score_4]
+      ,[sci_score_5]
+      ,[rhet_score_1]
+      ,[rhet_score_2]
+      ,[rhet_score_3]
+      ,[rhet_score_4]
+      ,[rhet_score_5]
+      ,[soc_score_1]
+      ,[soc_score_2]
+      ,[soc_score_3]
+      ,[soc_score_4]
+      ,[soc_score_5]
+FROM roster r WITH(NOLOCK)
+JOIN date_strings ds WITH(NOLOCK)
   ON 1 = 1
-JOIN ccr_totals
+LEFT OUTER JOIN ccr_totals WITH(NOLOCK)
   ON r.studentid = ccr_totals.studentid
-JOIN ccr_wide
+LEFT OUTER JOIN ccr_wide WITH(NOLOCK)
   ON r.studentid = ccr_wide.studentid
+LEFT OUTER JOIN names_wide WITH(NOLOCK)
+  ON r.STUDENT_NUMBER = names_wide.STUDENT_NUMBER
+LEFT OUTER JOIN scores_wide WITH(NOLOCK)
+  ON r.STUDENT_NUMBER = scores_wide.STUDENT_NUMBER
+LEFT OUTER JOIN scores_totals WITH(NOLOCK)
+  ON r.STUDENT_NUMBER = scores_totals.STUDENT_NUMBER

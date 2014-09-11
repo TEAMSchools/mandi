@@ -73,20 +73,20 @@ FROM
      FROM
          (
           SELECT daily.schoolid
-           ,daily.studentid
-           ,daily.week_num
-           ,daily.att_date
-           ,DATENAME(WEEKDAY,daily.att_date) AS day
-           ,valid_dates.day_number        
-           ,daily.hw
-           ,daily.color_day
-           ,daily.color_am
-           ,daily.color_mid
-           ,daily.color_pm
-          FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)
-          JOIN valid_dates WITH(NOLOCK)
-            ON daily.schoolid = valid_dates.schoolid
-           AND daily.att_date = valid_dates.att_date
+                ,daily.studentid
+                ,daily.week_num
+                ,daily.att_date
+                ,DATENAME(WEEKDAY,daily.att_date) AS day
+                ,valid_dates.day_number        
+                ,daily.hw
+                ,CASE WHEN daily.schoolid IN (73255, 179901) THEN COALESCE(daily.color_pm, daily.color_mid, daily.color_am) ELSE daily.color_day END AS color_day
+                ,daily.color_am
+                ,daily.color_mid
+                ,daily.color_pm
+               FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)
+               JOIN valid_dates WITH(NOLOCK)
+                 ON daily.schoolid = valid_dates.schoolid
+                AND daily.att_date = valid_dates.att_date
          ) sub
 
      UNPIVOT (

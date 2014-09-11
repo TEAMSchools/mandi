@@ -13,7 +13,8 @@ WITH valid_dates AS (
        SELECT DISTINCT daily.schoolid
                       ,daily.att_date                      
                       ,daily.week_num
-       FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)       
+       FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)     
+       WHERE daily.att_date >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-09-01')
        ) sub
  )
 

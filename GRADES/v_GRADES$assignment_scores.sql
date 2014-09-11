@@ -17,7 +17,7 @@ FROM OPENQUERY(PS_TEAM,'
     ON sync_sectionmap.sectionid = psm_section.id
   JOIN sections
     ON sync_sectionmap.sectionsdcid = sections.dcid      
-   AND sections.termid >= 2300
+   AND sections.termid >= 2400
   JOIN psm_sectionenrollment
     ON psm_section.id = psm_sectionenrollment.sectionid
   JOIN psm_assignmentscore

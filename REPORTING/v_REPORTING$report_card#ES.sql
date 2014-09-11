@@ -49,22 +49,21 @@ WITH roster AS (
 
 ,reporting_week AS (
   SELECT schoolid
-        ,REPLACE(time_per_name, '_', ' ') AS week_num        
+        ,time_per_name AS week_num        
         ,start_date
         ,end_date
         ,DATENAME(MONTH,start_date) AS month
         ,REPLACE(time_per_name,'_',' ') + ': ' + LEFT(CONVERT(VARCHAR,start_date,101),5) + ' - ' + LEFT(CONVERT(VARCHAR,end_date,101),5) AS week_title
   FROM REPORTING$dates WITH(NOLOCK)    
-  WHERE DATEPART(WEEK,GETDATE()) >= DATEPART(WEEK,start_date)
-    AND DATEPART(WEEK,GETDATE()) <= DATEPART(WEEK,end_date)
+  WHERE DATEPART(WEEK,GETDATE()) - 1 >= DATEPART(WEEK,start_date)
+    AND DATEPART(WEEK,GETDATE()) - 1 <= DATEPART(WEEK,end_date)
     AND identifier = 'REP'    
     AND school_level = 'ES'
  )
 
 ,curterm AS (
   SELECT DISTINCT alt_name
-                 ,DATENAME(MONTH,end_date) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,end_date)) AS end_date
-                 ,DATENAME(MONTH,next_report) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,next_report)) AS next_report
+                 ,DATENAME(MONTH,end_date) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,end_date)) AS end_date                 
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND school_level = 'ES'
@@ -94,8 +93,7 @@ SELECT r.studentid
       ,rw.week_num      
       ,rw.week_title
       ,curterm.alt_name AS term_name
-      ,curterm.end_date AS term_end
-      ,curterm.next_report
+      ,curterm.end_date AS term_end      
       ,att.cur_absences_total
       ,att.excused_absences
       ,att.cur_tardies_total
@@ -206,55 +204,40 @@ SELECT r.studentid
       ,daily.color_day_3
       ,daily.color_day_4
       ,daily.color_day_5
-      --,daily.color_am_1
-      --,daily.color_am_2
-      --,daily.color_am_3
-      --,daily.color_am_4
-      --,daily.color_am_5      
-      --,daily.color_mid_1
-      --,daily.color_mid_2
-      --,daily.color_mid_3
-      --,daily.color_mid_4
-      --,daily.color_mid_5
-      --,daily.color_pm_1
-      --,daily.color_pm_2
-      --,daily.color_pm_3
-      --,daily.color_pm_4
-      --,daily.color_pm_5
       ,daily.hw_missing_days      
-      ,wk_totals.n_hw_wk
-      ,wk_totals.hw_complete_wk
-      ,wk_totals.hw_missing_wk
-      ,wk_totals.hw_pct_wk
-      ,mth_totals.uni_pct_mth
-      ,mth_totals.purple_pink_mth
-      ,mth_totals.green_mth
-      ,mth_totals.yellow_mth
-      ,mth_totals.orange_mth
-      ,mth_totals.red_mth
-      ,mth_totals.pct_ontrack_mth
-      ,mth_totals.status_mth
-      ,cur_totals.n_hw_yr
-      ,cur_totals.hw_complete_yr
-      ,cur_totals.hw_missing_yr
-      ,cur_totals.hw_pct_yr      
-      ,cur_totals.uni_pct_yr
-      ,cur_totals.n_color_yr
-      ,cur_totals.purple_pink_yr
-      ,cur_totals.green_yr
-      ,cur_totals.yellow_yr
-      ,cur_totals.orange_yr
-      ,cur_totals.red_yr
-      ,cur_totals.n_hw_tri
-      ,cur_totals.hw_complete_tri
-      ,cur_totals.hw_missing_tri
-      ,cur_totals.hw_pct_tri
-      ,cur_totals.n_color_tri
-      ,cur_totals.purple_pink_tri
-      ,cur_totals.green_tri
-      ,cur_totals.yellow_tri
-      ,cur_totals.orange_tri
-      ,cur_totals.red_tri      
+      ,ROUND(wk_totals.n_hw_wk,0) AS n_hw_wk
+      ,ROUND(wk_totals.hw_complete_wk,0) AS hw_complete_wk
+      ,ROUND(wk_totals.hw_missing_wk,0) AS hw_missing_wk
+      ,ROUND(wk_totals.hw_pct_wk,0) AS hw_pct_wk
+      ,ROUND(mth_totals.uni_pct_mth,0) AS uni_pct_mth
+      ,ROUND(CONVERT(FLOAT,mth_totals.purple_pink_mth) / CASE WHEN mth_totals.n_color_mth = 0 THEN NULL ELSE CONVERT(FLOAT,mth_totals.n_color_mth) END * 100, 0) AS purple_pink_mth
+      ,ROUND(CONVERT(FLOAT,mth_totals.green_mth) / CASE WHEN mth_totals.n_color_mth = 0 THEN NULL ELSE CONVERT(FLOAT,mth_totals.n_color_mth) END * 100, 0) AS green_mth
+      ,ROUND(CONVERT(FLOAT,mth_totals.yellow_mth) / CASE WHEN mth_totals.n_color_mth = 0 THEN NULL ELSE CONVERT(FLOAT,mth_totals.n_color_mth) END * 100, 0) AS yellow_mth
+      ,ROUND(CONVERT(FLOAT,mth_totals.orange_mth) / CASE WHEN mth_totals.n_color_mth = 0 THEN NULL ELSE CONVERT(FLOAT,mth_totals.n_color_mth) END * 100, 0) AS orange_mth
+      ,ROUND(CONVERT(FLOAT,mth_totals.red_mth) / CASE WHEN mth_totals.n_color_mth = 0 THEN NULL ELSE CONVERT(FLOAT,mth_totals.n_color_mth) END * 100, 0) AS red_mth      
+      ,ROUND(mth_totals.pct_ontrack_mth,0) AS pct_ontrack_mth
+      ,mth_totals.status_mth AS status_mth
+      ,ROUND(cur_totals.n_hw_yr,0) AS n_hw_yr
+      ,ROUND(cur_totals.hw_complete_yr,0) AS hw_complete_yr
+      ,ROUND(cur_totals.hw_missing_yr,0) AS hw_missing_yr
+      ,ROUND(cur_totals.hw_pct_yr      ,0) AS hw_pct_yr      
+      ,ROUND(cur_totals.uni_pct_yr,0) AS uni_pct_yr
+      ,ROUND(cur_totals.n_color_yr,0) AS n_color_yr
+      ,ROUND(CONVERT(FLOAT,cur_totals.purple_pink_yr) / CASE WHEN cur_totals.n_color_yr = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_yr) END * 100, 0) AS purple_pink_yr
+      ,ROUND(CONVERT(FLOAT,cur_totals.green_yr) / CASE WHEN cur_totals.n_color_yr = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_yr) END * 100, 0) AS green_yr
+      ,ROUND(CONVERT(FLOAT,cur_totals.yellow_yr) / CASE WHEN cur_totals.n_color_yr = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_yr) END * 100, 0) AS yellow_yr
+      ,ROUND(CONVERT(FLOAT,cur_totals.orange_yr) / CASE WHEN cur_totals.n_color_yr = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_yr) END * 100, 0) AS orange_yr
+      ,ROUND(CONVERT(FLOAT,cur_totals.red_yr) / CASE WHEN cur_totals.n_color_yr = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_yr) END * 100, 0) AS red_yr                  
+      ,ROUND(cur_totals.n_hw_tri,0) AS n_hw_tri
+      ,ROUND(cur_totals.hw_complete_tri,0) AS hw_complete_tri
+      ,ROUND(cur_totals.hw_missing_tri,0) AS hw_missing_tri
+      ,ROUND(cur_totals.hw_pct_tri,0) AS hw_pct_tri
+      ,ROUND(cur_totals.n_color_tri,0) AS n_color_tri
+      ,ROUND(CONVERT(FLOAT,cur_totals.purple_pink_tri) / CASE WHEN cur_totals.n_color_tri = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_tri) END * 100, 0) AS purple_pink_tri
+      ,ROUND(CONVERT(FLOAT,cur_totals.green_tri) / CASE WHEN cur_totals.n_color_tri = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_tri) END * 100, 0) AS green_tri
+      ,ROUND(CONVERT(FLOAT,cur_totals.yellow_tri) / CASE WHEN cur_totals.n_color_tri = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_tri) END * 100, 0) AS yellow_tri
+      ,ROUND(CONVERT(FLOAT,cur_totals.orange_tri) / CASE WHEN cur_totals.n_color_tri = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_tri) END * 100, 0) AS orange_tri
+      ,ROUND(CONVERT(FLOAT,cur_totals.red_tri) / CASE WHEN cur_totals.n_color_tri = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_tri) END * 100, 0) AS red_tri      
       ,sw.n_total_yr AS sw_total_yr
       ,sw.n_correct_yr AS sw_correct_yr
       ,sw.n_missed_yr AS sw_missed_yr
@@ -274,7 +257,7 @@ LEFT OUTER JOIN reporting_week rw WITH(NOLOCK)
   ON r.schoolid = rw.schoolid
 LEFT OUTER JOIN attendance att WITH(NOLOCK)
   ON r.STUDENTID = att.studentid
-LEFT OUTER JOIN ILLUMINATE$FSA_scores_wide fsa WITH(NOLOCK)
+LEFT OUTER JOIN ILLUMINATE$FSA_scores_wide#static fsa WITH(NOLOCK)
   ON r.STUDENTID = fsa.studentid
  AND rw.week_num = fsa.fsa_week
 LEFT OUTER JOIN ES_DAILY$tracking_wide daily WITH(NOLOCK) 
