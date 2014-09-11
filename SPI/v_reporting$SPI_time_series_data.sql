@@ -16,7 +16,7 @@ FROM
              ,reporting_hash
              ,pct_off_track_1 AS value
              ,'GOLF' AS direction
-       FROM [SPI].[dbo].[TIME_SERIES_GRADES$weekly_off_track_totals#static]
+       FROM [SPI].[dbo].[TIME_SERIES_GRADES$weekly_off_track_totals#static] WITH(NOLOCK)
        WHERE grade_level = 'campus'
        
        UNION ALL 
@@ -39,12 +39,12 @@ FROM
                        ELSE CAST(cohort.grade_level AS NVARCHAR)
                      END AS grade_level
                     ,CAST(ROUND(AVG(ar.stu_status_words_numeric + 0.0) * 100,0) AS NUMERIC(4,1)) AS pct_met_goal
-              FROM KIPP_NJ..[AR$progress_to_goals_long#static] ar
-              JOIN KIPP_NJ..COHORT$comprehensive_long cohort
+              FROM KIPP_NJ..[AR$progress_to_goals_long#static] ar WITH(NOLOCK)
+              JOIN KIPP_NJ..COHORT$comprehensive_long cohort WITH(NOLOCK)
                 ON cohort.studentid = ar.studentid
                AND ((cohort.year - 1990) * 100) = ar.yearid
                AND ar.time_hierarchy = 1
-               AND cohort.year = 2013
+               AND cohort.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
                AND cohort.rn = 1
                GROUP BY cohort.schoolid
                        ,ROLLUP(cohort.grade_level)
@@ -68,9 +68,9 @@ FROM
       ,attr.reporting_hash
       ,attr.pct_attr AS value
       ,'GOLF' AS direction
-      FROM SPI..[ATTRITION$weekly_counts#static] attr
+      FROM SPI..[ATTRITION$weekly_counts#static] attr WITH(NOLOCK)
       WHERE attr.grade_level = 'campus'
-        AND attr.academic_year = 2013
+        AND attr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
           
       UNION ALL
       
@@ -112,9 +112,9 @@ FROM
             ,reporting_hash
             ,CAST(ROUND((SUM(att + 0.0) / SUM(mem + 0.0)) * 100, 1) AS NUMERIC(4,1)) AS value
             ,'FOOTBALL' AS direction
-      FROM SPI..ATT_MEM$attendance_by_week_unbounded#static
+      FROM SPI..ATT_MEM$attendance_by_week_unbounded#static WITH(NOLOCK)
       WHERE studentid = 'campus'
-        AND yearid = 2300
+        AND yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
       GROUP BY school
               ,reporting_hash
 
@@ -131,9 +131,9 @@ FROM
             ,reporting_hash
             ,CAST(ROUND((SUM(off_track + 0.0) / SUM(N + 0.0)) * 100, 1) AS NUMERIC(4,1)) AS value
             ,'GOLF' AS direction
-      FROM SPI..ATT_MEM$attendance_by_week_unbounded#static
+      FROM SPI..ATT_MEM$attendance_by_week_unbounded#static WITH(NOLOCK)
       WHERE studentid = 'campus'
-        AND yearid = 2300
+        AND yearid = KIPP_NJ.dbo.fn_Global_Term_ID()
       GROUP BY school
               ,reporting_hash      
       
@@ -150,9 +150,9 @@ FROM
             ,reporting_hash
             ,CAST(ROUND((SUM(tardy + 0.0) / SUM(mem + 0.0)) * 100, 1) AS NUMERIC(4,1)) AS value
             ,'GOLF' AS direction
-      FROM SPI..ATT_MEM$tardiness_by_week_unbounded#static
+      FROM SPI..ATT_MEM$tardiness_by_week_unbounded#static WITH(NOLOCK)
       WHERE studentid = 'campus'
-        AND yearid = 2300
+        AND yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
       GROUP BY school
               ,reporting_hash
 
@@ -169,9 +169,9 @@ FROM
             ,reporting_hash
             ,CAST(ROUND((SUM(off_track + 0.0) / SUM(N + 0.0)) * 100, 1) AS NUMERIC(4,1)) AS value
             ,'GOLF' AS direction
-      FROM SPI..ATT_MEM$tardiness_by_week_unbounded#static
+      FROM SPI..ATT_MEM$tardiness_by_week_unbounded#static WITH(NOLOCK)
       WHERE studentid = 'campus'
-        AND yearid = 2300
+        AND yearid = KIPP_NJ.dbo.fn_Global_Term_ID()
       GROUP BY school
               ,reporting_hash      
 
@@ -200,20 +200,20 @@ FROM
                      ,rd.reporting_hash
                      ,sch.abbreviation AS school
                      ,sch.school_number AS schoolid
-               FROM KIPP_NJ..UTIL$reporting_days rd
-               JOIN KIPP_NJ..SCHOOLS sch
+               FROM KIPP_NJ..UTIL$reporting_days rd WITH(NOLOCK)
+               JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                  ON sch.school_number != 999999
                 AND 1=1
-               WHERE rd.date >= '2013-08-05'
-                 AND rd.date <  '2014-06-22'
-                 AND rd.reporting_hash != 201301
+               WHERE rd.date >= CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year()) + '-08-01' --'2013-08-05'
+                 AND rd.date <  CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year() + 1) + '-06-30' --'2014-06-22'
+                 --AND rd.reporting_hash != 201301
                  AND rd.day_of_week = 'Monday'
                ) scaffold
-             JOIN KIPP_NJ..STUDENTS s
+             JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
                ON s.ENTRYDATE <= scaffold.date
               AND s.schoolid = scaffold.schoolid
               AND s.exitdate > scaffold.date
-             JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+             JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH(NOLOCK)
                ON s.id = cust.studentid
              ORDER BY scaffold.date
                      ,schoolid
@@ -247,20 +247,20 @@ FROM
                      ,rd.reporting_hash
                      ,sch.abbreviation AS school
                      ,sch.school_number AS schoolid
-               FROM KIPP_NJ..UTIL$reporting_days rd
-               JOIN KIPP_NJ..SCHOOLS sch
+               FROM KIPP_NJ..UTIL$reporting_days rd WITH(NOLOCK)
+               JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                  ON sch.school_number != 999999
                 AND 1=1
-               WHERE rd.date >= '2013-08-05'
-                 AND rd.date <  '2014-06-22'
-                 AND rd.reporting_hash != 201301
+               WHERE rd.date >= CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year()) + '-08-01' --'2013-08-05'
+                 AND rd.date <  CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year() + 1) + '-06-30' --'2014-06-22'
+                 --AND rd.reporting_hash != 201301
                  AND rd.day_of_week = 'Monday'
                ) scaffold
-             JOIN KIPP_NJ..STUDENTS s
+             JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
                ON s.ENTRYDATE <= scaffold.date
               AND s.schoolid = scaffold.schoolid
               AND s.exitdate > scaffold.date
-             JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+             JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH(NOLOCK)
                ON s.id = cust.studentid
              ORDER BY scaffold.date
                      ,schoolid
@@ -294,20 +294,20 @@ FROM
                      ,rd.reporting_hash
                      ,sch.abbreviation AS school
                      ,sch.school_number AS schoolid
-               FROM KIPP_NJ..UTIL$reporting_days rd
-               JOIN KIPP_NJ..SCHOOLS sch
+               FROM KIPP_NJ..UTIL$reporting_days rd WITH(NOLOCK)
+               JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                  ON sch.school_number != 999999
                 AND 1=1
-               WHERE rd.date >= '2013-08-05'
-                 AND rd.date <  '2014-06-22'
-                 AND rd.reporting_hash != 201301
+               WHERE rd.date >= CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year()) + '-08-01' --'2013-08-05'
+                 AND rd.date <  CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year() + 1) + '-06-30' --'2014-06-22'
+                 --AND rd.reporting_hash != 201301
                  AND rd.day_of_week = 'Monday'
                ) scaffold
-             JOIN KIPP_NJ..STUDENTS s
+             JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
                ON s.ENTRYDATE <= scaffold.date
               AND s.schoolid = scaffold.schoolid
               AND s.exitdate > scaffold.date
-             JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+             JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH(NOLOCK)
                ON s.id = cust.studentid
              ORDER BY scaffold.date
                      ,schoolid
