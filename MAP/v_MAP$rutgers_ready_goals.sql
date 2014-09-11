@@ -73,7 +73,7 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
        ON math_read.measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND stu_roster.grade_level = norm.startgrade 
+      AND stu_roster.grade_level-1 = norm.startgrade
      WHERE stu_roster.grade_level >= 5      
      GROUP BY stu_roster.studentid
              ,stu_roster.schoolid
@@ -126,7 +126,7 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
       ON sci_lang.alt_measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND stu_roster.grade_level = norm.startgrade
+      AND stu_roster.grade_level - 1 = norm.startgrade
      WHERE stu_roster.grade_level >= 4       
     ) sub
 
@@ -192,7 +192,10 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
       ON sci_lang.alt_measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND stu_roster.grade_level = norm.startgrade
+      AND (
+        (stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = norm.startgrade) OR
+        (stu_roster.grade_level = 0 AND stu_roster.grade_level = norm.startgrade)
+      )
      WHERE stu_roster.grade_level < 4
     ) sub
 
@@ -257,7 +260,10 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
        ON math_read.measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND stu_roster.grade_level = norm.startgrade
+      AND (
+        (stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = norm.startgrade ) OR
+        (stu_roster.grade_level = 0 AND stu_roster.grade_level = norm.startgrade)
+      )
      WHERE stu_roster.grade_level <= 3
     ) sub
 
@@ -298,6 +304,6 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
        ON math_read.measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND stu_roster.grade_level = norm.startgrade
+      AND stu_roster.grade_level-1 = norm.startgrade
      WHERE stu_roster.grade_level = 4
     ) sub
