@@ -9,10 +9,11 @@ SELECT studentid
       ,field AS class
       ,value AS ccr
       ,CASE 
-        WHEN value IN ('E','G') THEN 2
+        WHEN value = 'E' THEN 3
+        WHEN value = 'G' THEN 2
         WHEN value = 'S' THEN 1
-        WHEN value = 'N' THEN -1
-        WHEN value = 'U' THEN -4
+        WHEN value = 'N' THEN 0
+        WHEN value = 'U' THEN -3
         ELSE NULL
        END AS ccr_score
       ,CASE WHEN value = 'E' THEN 1 ELSE 0 END AS E
