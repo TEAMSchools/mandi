@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW REPORTING$weekly_report#Rise AS
+ALTER VIEW REPORTING$weekly_report#Rise AS
 
 WITH roster AS (
   SELECT s.STUDENT_NUMBER
@@ -183,7 +183,7 @@ WITH roster AS (
   JOIN COURSES cou WITH(NOLOCK)
     ON sec.COURSE_NUMBER = cou.COURSE_NUMBER
   WHERE asmt.ASSIGN_DATE IN (SELECT date FROM reporting_week WITH(NOLOCK))
-    AND asmt.CATEGORY IN ('HQ','HWQ','HWA')
+    AND asmt.CATEGORY IN ('HQ','HWQ','HWA','Q')
  )
 
 ,assignment_scores AS (
