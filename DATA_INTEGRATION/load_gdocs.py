@@ -129,11 +129,15 @@ for record in wkbk_list:
 
     query = "sp_LoadFolder '" + db_name + "', '" + save_path + "'"
     print 'Running "EXEC ' + query + '"'
-    cursor.execute(query)
-
-    print 'NARDO say: ' + cursor.fetchall()[0][0]
-    conn.commit()
-    conn.close()
+    try:
+        cursor.execute(query)
+        print 'NARDO say: ' + cursor.fetchall()[0][0]
+        conn.commit()
+        conn.close()
+    except:
+        print "!!! ERROR LOADING FOLDER !!!"
+        print 'NARDO say: ' + cursor.fetchall()[0][0]
+        continue
 
     print
     print 'Next workbook!'

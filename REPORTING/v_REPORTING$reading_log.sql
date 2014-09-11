@@ -62,7 +62,31 @@ WITH roster AS (
   WHERE g.measurementscale = 'Reading'
     AND g.year = dbo.fn_Global_Academic_Year()
  )
-    
+
+,cur_rit AS (
+  SELECT ps_studentid
+        ,[map_year_academic]
+        ,[fallwinterspring]
+        ,[map_year]
+        ,[TermName]
+        ,[MeasurementScale]
+        ,[TestRITScore]
+        ,TestPercentile
+        ,[RITtoReadingScore]        
+    FROM KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
+    WHERE map.MeasurementScale = 'Reading'
+      AND map.map_year_academic = dbo.fn_Global_Academic_Year()
+      AND map.rn_curr = 1
+ )
+
+,readlive AS (
+  SELECT *
+        ,ROW_NUMBER() OVER(
+           PARTITION BY studentid
+             ORDER BY yearid DESC, CASE WHEN season = 'Fall' THEN 1 WHEN season = 'Winter' THEN 2 WHEN season = 'Spring' THEN 3 ELSE NULL END DESC) AS rn
+  FROM SRSLY_DIE_READLIVE WITH(NOLOCK)
+ )
+     
 SELECT roster.*
       ,enr.course_name + '|' + enr.section_number AS enr_hash
       ,gr.course_number
@@ -71,34 +95,18 @@ SELECT roster.*
       ,gr.Y1 AS y1_rdg_gr
       ,ele.grade_1 AS cur_term_rdg_hw_avg /*--UPDATE FIELD FOR CURRENT TERM--*/
       ,ele.simple_avg AS y1_rdg_hw_avg
-      ,CASE
-        WHEN fp_base.read_lvl IS NOT NULL THEN fp_base.read_lvl
-        WHEN fp_base.read_lvl IS NULL AND fp_cur.read_lvl IS NOT NULL THEN fp_cur.read_lvl        
-       END AS fp_base_letter
-      ,CASE
-        WHEN fp_cur.read_lvl IS NULL THEN fp_dna_curr.read_lvl
-        ELSE fp_cur.read_lvl
-       END AS fp_cur_letter
-      ,CASE 
-         WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.TestRITScore
-         WHEN map_fall.TestRITScore IS NULL THEN map_spr.TestRITScore
-         ELSE map_fall.TestRITScore
-       END AS map_baseline
-      ,cur_rit.TestRITScore AS cur_RIT
-      ,cur_rit.TestPercentile AS cur_RIT_percentile
+      ,COALESCE(fp_base.read_lvl, fp_cur.read_lvl) AS fp_base_letter
+      ,COALESCE(fp_cur.read_lvl, fp_dna_curr.read_lvl) AS fp_cur_letter
+      ,base.testritscore AS map_baseline
+      ,COALESCE(cur_rit.TestRITScore, base.testritscore) AS cur_RIT
+      ,COALESCE(cur_rit.TestPercentile, base.testpercentile) AS cur_RIT_percentile
        --use MAP for lexile      
-      ,CASE
-         WHEN roster.grade_level = 7 AND roster.school = 'Rise' THEN CAST(sri_lexile.lexile AS NVARCHAR)
-         WHEN roster.grade_level = 6 AND roster.school = 'Rise' THEN CAST(sri_lexile.lexile AS NVARCHAR)
-         WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.RITtoReadingScore
-         WHEN map_fall.TestRITScore IS NULL THEN map_spr.RITtoReadingScore
-         ELSE map_fall.RITtoReadingScore
-       END AS lexile_baseline_MAP
+      ,base.lexile_score AS lexile_baseline_MAP
       ,map_fall.rittoreadingscore AS lexile_fall
       ,map_winter.rittoreadingscore AS lexile_winter
        --readlive
       ,rl_base.wpm AS starting_fluency
-      ,rl_cur.wpm AS cur_fluency
+      ,COALESCE(rl_cur.wpm, rl_base.wpm) AS cur_fluency      
  
        --AR cur
       ,replace(convert(varchar,convert(Money, ar_cur.words),1),'.00','') AS hex_words
@@ -228,6 +236,10 @@ LEFT OUTER JOIN LIT$test_events#identifiers fp_dna_curr WITH(NOLOCK)
  AND fp_dna_curr.academic_year = dbo.fn_Global_Academic_Year()
 
 --RIT, NWEA LEXILE
+LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
+  ON roster.studentid = base.studentid
+ AND base.year = dbo.fn_Global_Academic_Year()
+ AND base.measurementscale = 'Reading'
 LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_fall WITH(NOLOCK)
   ON roster.studentid = map_fall.ps_studentid
  AND map_fall.measurementscale = 'Reading'
@@ -246,36 +258,12 @@ LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_spr WITH(NOLOCK)
  AND map_spr.map_year_academic = (dbo.fn_Global_Academic_Year() - 1)
  AND map_spr.fallwinterspring = 'Spring'
  AND map_spr.rn = 1
+LEFT OUTER JOIN cur_rit
+  ON roster.studentid = cur_rit.ps_studentid 
 
---CURRENT NWEA RIT
-LEFT OUTER JOIN       
-    (SELECT sub_1.*
-     FROM
-          (SELECT ps_studentid
-                 ,[map_year_academic]
-                 ,[fallwinterspring]
-                 ,[map_year]
-                 ,[TermName]
-                 ,[MeasurementScale]
-                 ,[TestRITScore]
-                 ,TestPercentile
-                 ,[RITtoReadingScore]
-                 ,ROW_NUMBER () 
-                    OVER (PARTITION BY ps_studentid 
-                          ORDER BY map.teststartdate DESC) AS rn_desc
-             FROM KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
-             WHERE MeasurementScale = 'Reading'
-               AND map_year_academic = dbo.fn_Global_Academic_Year()
-           ) sub_1
-     WHERE rn_desc = 1
-     ) cur_rit
-  ON roster.studentid = cur_rit.ps_studentid
-
-LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl_base WITH(NOLOCK)
-  ON CAST(roster.studentid AS NVARCHAR) = rl_base.studentid
- AND rl_base.yearid = dbo.fn_Global_Term_Id()
- AND rl_base.season = 'Fall'
-
+LEFT OUTER JOIN readlive rl_base WITH(NOLOCK)
+  ON CAST(roster.studentid AS NVARCHAR) = rl_base.studentid 
+ AND rl_base.rn = 1
 LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl_cur WITH(NOLOCK)
   ON CAST(roster.studentid AS NVARCHAR) = rl_cur.studentid
  AND rl_cur.yearid = dbo.fn_Global_Term_Id()
@@ -323,11 +311,6 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h6 WITH (NOLOCK)
  AND ar_h6.time_period_name = 'RT6'
  AND ar_h6.yearid = dbo.fn_Global_Term_Id()
  AND ar_h6.words_goal > 0
-
-LEFT OUTER JOIN SRI$testing_history sri_lexile WITH(NOLOCK)
-  ON CAST(roster.student_number AS NVARCHAR) = sri_lexile.base_student_number
- AND sri_lexile.rn_lifetime = 1
- AND sri_lexile.schoolid = 73252
 
 LEFT OUTER JOIN map_goals
   ON roster.studentid = map_goals.studentid
