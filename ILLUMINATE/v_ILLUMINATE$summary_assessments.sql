@@ -7,11 +7,9 @@ WITH test_roster AS (
   SELECT DISTINCT          
          co.SCHOOLID        
         ,co.GRADE_LEVEL
-        ,summ.repository_id
+        ,res.repository_id
         ,CONVERT(DATE,repo.date_administered) AS date_administered
-  FROM ILLUMINATE$student_id_key id WITH(NOLOCK)
-  JOIN ILLUMINATE$summary_assessment_results_long#static summ WITH(NOLOCK)
-    ON id.ill_stu_id = summ.student_id
+  FROM ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)    
   JOIN (
         SELECT *
         FROM OPENQUERY(ILLUMINATE,'
@@ -20,9 +18,9 @@ WITH test_roster AS (
           FROM dna_repositories.repositories repo          
         ')
         ) repo
-    ON summ.repository_id = repo.repository_id
+    ON res.repository_id = repo.repository_id
   JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
-    ON id.studentid = co.STUDENTID
+    ON res.student_id = co.STUDENT_NUMBER
    AND repo.date_administered >= co.ENTRYDATE
    AND repo.date_administered <= co.EXITDATE
    AND co.RN = 1
@@ -66,6 +64,6 @@ LEFT OUTER JOIN test_roster WITH(NOLOCK)
 LEFT OUTER JOIN REPORTING$dates dt WITH(NOLOCK)
   ON repo.date_administered >= dt.start_date
  AND repo.date_administered <= dt.end_date
- --AND test_roster.SCHOOLID = dt.schoolid
+ AND test_roster.SCHOOLID = dt.schoolid
  AND dt.school_level = 'ES'
  AND dt.identifier = 'REP'

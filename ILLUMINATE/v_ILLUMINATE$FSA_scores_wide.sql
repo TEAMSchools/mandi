@@ -11,21 +11,29 @@ WITH fsa_rn AS (
   FROM
       (
        SELECT DISTINCT
-              schoolid      
-             ,grade_level
-             ,academic_year
-             ,assessment_id
-             ,fsa_week
-             ,administered_at           
-             ,scope
-             ,subject      
-             ,standards_tested
-       FROM ILLUMINATE$assessments#static WITH(NOLOCK)
-       WHERE schoolid IN (73254, 73255, 73256, 73257, 179901)
-         AND scope = 'FSA'
-         AND subject IS NOT NULL
-         AND fsa_week IS NOT NULL
-         --AND academic_year = dbo.fn_Global_Academic_Year()
+              a.schoolid      
+             ,a.grade_level
+             ,a.academic_year
+             ,a.assessment_id
+             ,a.fsa_week
+             ,a.administered_at           
+             ,a.scope
+             ,a.subject      
+             ,a.standards_tested            
+             ,CONVERT(VARCHAR(250),nxt.next_steps_mastered) AS FSA_nxtstp_y
+             ,CONVERT(VARCHAR(250),nxt.next_steps_notmastered) AS FSA_nxtstp_n
+             ,CONVERT(VARCHAR(250),nxt.objective) AS FSA_obj
+       FROM ILLUMINATE$assessments#static a WITH(NOLOCK)
+       JOIN GDOCS$FSA_longterm_clean nxt WITH(NOLOCK)
+         ON a.SCHOOLID = nxt.schoolid
+        AND a.GRADE_LEVEL = nxt.grade_level
+        AND a.fsa_week = nxt.week_num
+        AND a.standards_tested = nxt.ccss_standard  
+       WHERE a.schoolid IN (73254, 73255, 73256, 73257, 179901)
+         AND a.scope = 'FSA'
+         AND a.subject IS NOT NULL
+         AND a.fsa_week IS NOT NULL
+         AND a.academic_year = dbo.fn_Global_Academic_Year()
       ) sub  
  )    
 
@@ -37,23 +45,18 @@ WITH fsa_rn AS (
         ,a.schoolid
         ,a.grade_level
         ,a.standards_tested
-        ,CONVERT(VARCHAR,a.subject) AS FSA_subject
-        ,CONVERT(VARCHAR,a.standards_tested) AS FSA_standard
-        ,CONVERT(VARCHAR,nxt.next_steps_mastered) AS FSA_nxtstp_y
-        ,CONVERT(VARCHAR,nxt.next_steps_notmastered) AS FSA_nxtstp_n
-        ,CONVERT(VARCHAR,nxt.objective) AS FSA_obj
+        ,CONVERT(VARCHAR(250),a.subject) AS FSA_subject
+        ,CONVERT(VARCHAR(250),a.standards_tested) AS FSA_standard
+        ,a.FSA_nxtstp_y
+        ,a.FSA_nxtstp_n
+        ,a.FSA_obj
         ,a.FSA_std_rn
   FROM fsa_rn a WITH(NOLOCK)
   JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
     ON a.schoolid = co.SCHOOLID
    AND a.grade_level = co.GRADE_LEVEL   
    AND a.academic_year = co.year   
-   AND co.rn = 1
-  LEFT OUTER JOIN GDOCS$FSA_longterm_clean nxt WITH(NOLOCK)
-    ON a.SCHOOLID = nxt.schoolid
-   AND a.GRADE_LEVEL = nxt.grade_level
-   AND a.fsa_week = nxt.week_num
-   AND a.standards_tested = nxt.ccss_standard  
+   AND co.rn = 1  
  )
 
 SELECT *
@@ -78,8 +81,18 @@ FROM
                   WHEN res.percent_correct < 80 THEN a.FSA_nxtstp_n
                  END AS FSA_nxtstp
                 ,a.FSA_std_rn
-                ,CONVERT(VARCHAR,res.performance_band_level) AS FSA_score
-                ,CONVERT(VARCHAR,res.perf_band_label) AS FSA_prof                
+                ,CONVERT(VARCHAR(250),
+                  CASE 
+                   WHEN res.percent_correct >= 80 THEN 3
+                   WHEN res.percent_correct >= 60 AND res.percent_correct < 80 THEN 1
+                   WHEN res.percent_correct < 60 THEN 1
+                  END) AS FSA_score
+                ,CONVERT(VARCHAR(250),
+                  CASE
+                   WHEN res.percent_correct >= 80 THEN 'Proficient' 
+                   WHEN res.percent_correct >= 60 AND res.percent_correct < 80 THEN 'Approaching'
+                   WHEN res.percent_correct < 60 THEN 'Not Yet'
+                  END) AS FSA_prof                
                 ,CONVERT(FLOAT,SUM(CASE
                                     WHEN res.percent_correct >= 80 THEN 1
                                     WHEN res.percent_correct < 80 THEN 0

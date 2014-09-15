@@ -128,8 +128,7 @@ SELECT studentid
       ,ISNULL([Y1_UNI],0) AS Y1_UNI
       -- totals
       ,ISNULL([Y1_A],0)
-         + ISNULL([Y1_AD],0)
-         + ISNULL([Y1_AE],0) AS Y1_ABS_ALL
+         + ISNULL([Y1_AD],0) AS Y1_ABS_ALL
       ,ISNULL([Y1_T],0)
          + ISNULL([Y1_T10],0)
          + ISNULL([Y1_TE],0) AS Y1_T_ALL
@@ -152,8 +151,7 @@ SELECT studentid
       ,ISNULL([CUR_UNI],0) AS CUR_UNI
       -- totals
       ,ISNULL([CUR_A],0)
-         + ISNULL([CUR_AD],0)
-         + ISNULL([CUR_AE],0) AS CUR_ABS_ALL
+         + ISNULL([CUR_AD],0) AS CUR_ABS_ALL
       ,ISNULL([CUR_T],0)
          + ISNULL([CUR_T10],0)
          + ISNULL([CUR_TE],0) AS CUR_T_ALL
@@ -176,8 +174,7 @@ SELECT studentid
       ,ISNULL([RT1_UNI],0) AS RT1_UNI
       -- totals
       ,ISNULL([RT1_A],0)
-         + ISNULL([RT1_AD],0)
-         + ISNULL([RT1_AE],0) AS RT1_ABS_ALL
+         + ISNULL([RT1_AD],0) AS RT1_ABS_ALL
       ,ISNULL([RT1_T],0)
          + ISNULL([RT1_T10],0)
          + ISNULL([RT1_TE],0) AS RT1_T_ALL            
@@ -200,8 +197,7 @@ SELECT studentid
       ,ISNULL([RT2_UNI],0) AS RT2_UNI
       -- totals
       ,ISNULL([RT2_A],0)
-         + ISNULL([RT2_AD],0)
-         + ISNULL([RT2_AE],0) AS RT2_ABS_ALL
+         + ISNULL([RT2_AD],0) AS RT2_ABS_ALL
       ,ISNULL([RT2_T],0)
          + ISNULL([RT2_T10],0)
          + ISNULL([RT2_TE],0) AS RT2_T_ALL      
@@ -224,8 +220,7 @@ SELECT studentid
       ,ISNULL([RT3_UNI],0) AS RT3_UNI
       -- totals
       ,ISNULL([RT3_A],0)
-         + ISNULL([RT3_AD],0)
-         + ISNULL([RT3_AE],0) AS RT3_ABS_ALL
+         + ISNULL([RT3_AD],0) AS RT3_ABS_ALL
       ,ISNULL([RT3_T],0)
          + ISNULL([RT3_T10],0)
          + ISNULL([RT3_TE],0) AS RT3_T_ALL      
@@ -248,8 +243,7 @@ SELECT studentid
       ,ISNULL([RT4_UNI],0) AS RT4_UNI
       -- totals
       ,ISNULL([RT4_A],0)
-         + ISNULL([RT4_AD],0)
-         + ISNULL([RT4_AE],0) AS RT4_ABS_ALL
+         + ISNULL([RT4_AD],0) AS RT4_ABS_ALL
       ,ISNULL([RT4_T],0)
          + ISNULL([RT4_T10],0)
          + ISNULL([RT4_TE],0) AS RT4_T_ALL      
@@ -272,8 +266,7 @@ SELECT studentid
       ,ISNULL([RT5_UNI],0) AS RT5_UNI
       -- totals
       ,ISNULL([RT5_A],0)
-         + ISNULL([RT5_AD],0)
-         + ISNULL([RT5_AE],0) AS RT5_ABS_ALL
+         + ISNULL([RT5_AD],0) AS RT5_ABS_ALL
       ,ISNULL([RT5_T],0)
          + ISNULL([RT5_T10],0)
          + ISNULL([RT5_TE],0) AS RT5_T_ALL      
@@ -296,8 +289,7 @@ SELECT studentid
       ,ISNULL([RT6_UNI],0) AS RT6_UNI
       -- totals
       ,ISNULL([RT6_A],0)
-         + ISNULL([RT6_AD],0)
-         + ISNULL([RT6_AE],0) AS RT6_ABS_ALL
+         + ISNULL([RT6_AD],0) AS RT6_ABS_ALL
       ,ISNULL([RT6_T],0)
          + ISNULL([RT6_T10],0)
          + ISNULL([RT6_TE],0) AS RT6_T_ALL

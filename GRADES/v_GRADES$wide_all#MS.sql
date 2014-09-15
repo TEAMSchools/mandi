@@ -514,6 +514,58 @@ FROM
         AND pivot_ele.course_number = 'all_courses'        
         AND pivot_ele.pgf_type = 'Q'                     
         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
+
+       UNION ALL
+       
+        --S1
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_S1' AS pivot_on
+	         ,CAST(pivot_ele.grade_1 AS VARCHAR) AS value
+       FROM rost
+       JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
+         ON rost.studentid = pivot_ele.studentid
+        AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'S'
+        AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
+       
+       UNION ALL
+        
+        --S2
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_S2' AS pivot_on
+	         ,CAST(pivot_ele.grade_2 AS VARCHAR) AS value
+       FROM rost
+       JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
+         ON rost.studentid = pivot_ele.studentid
+        AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'S'
+        AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
+       
+       UNION ALL
+        
+        --S3
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_S3' AS pivot_on
+	         ,CAST(pivot_ele.grade_3 AS VARCHAR) AS value
+       FROM rost
+       JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
+         ON rost.studentid = pivot_ele.studentid
+        AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'S'              
+        AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
+        
+       UNION ALL 
+       
+         --SY all courses
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'SY_all' AS pivot_on
+	         ,CAST(pivot_ele.simple_avg AS VARCHAR) AS value
+       FROM rost
+       JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
+         ON rost.studentid = pivot_ele.studentid
+        AND pivot_ele.course_number = 'all_courses'        
+        AND pivot_ele.pgf_type = 'S'                     
+        AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
        )sub
 --/*
 PIVOT (
@@ -551,6 +603,10 @@ PIVOT (
      ,rc1_H2
      ,rc1_H3
      ,rc1_HY1
+     ,rc1_S1
+     ,rc1_S2
+     ,rc1_S3
+     ,rc1_SY1
      ,rc1_A1
      ,rc1_A2
      ,rc1_A3
@@ -589,6 +645,10 @@ PIVOT (
      ,rc2_H2
      ,rc2_H3
      ,rc2_HY1
+     ,rc2_S1
+     ,rc2_S2
+     ,rc2_S3
+     ,rc2_SY1
      ,rc2_A1
      ,rc2_A2
      ,rc2_A3
@@ -627,6 +687,10 @@ PIVOT (
      ,rc3_H2
      ,rc3_H3
      ,rc3_HY1
+     ,rc3_S1
+     ,rc3_S2
+     ,rc3_S3
+     ,rc3_SY1
      ,rc3_A1
      ,rc3_A2
      ,rc3_A3
@@ -665,6 +729,10 @@ PIVOT (
      ,rc4_H2
      ,rc4_H3
      ,rc4_HY1
+     ,rc4_S1
+     ,rc4_S2
+     ,rc4_S3
+     ,rc4_SY1
      ,rc4_A1
      ,rc4_A2
      ,rc4_A3
@@ -703,6 +771,10 @@ PIVOT (
      ,rc5_H2
      ,rc5_H3
      ,rc5_HY1
+     ,rc5_S1
+     ,rc5_S2
+     ,rc5_S3
+     ,rc5_SY1
      ,rc5_A1
      ,rc5_A2
      ,rc5_A3
@@ -741,6 +813,10 @@ PIVOT (
      ,rc6_H2
      ,rc6_H3
      ,rc6_HY1
+     ,rc6_S1
+     ,rc6_S2
+     ,rc6_S3
+     ,rc6_SY1
      ,rc6_A1
      ,rc6_A2
      ,rc6_A3
@@ -779,6 +855,10 @@ PIVOT (
      ,rc7_H2
      ,rc7_H3
      ,rc7_HY1
+     ,rc7_S1
+     ,rc7_S2
+     ,rc7_S3
+     ,rc7_SY1
      ,rc7_A1
      ,rc7_A2
      ,rc7_A3
@@ -817,6 +897,10 @@ PIVOT (
      ,rc8_H2
      ,rc8_H3
      ,rc8_HY1
+     ,rc8_S1
+     ,rc8_S2
+     ,rc8_S3
+     ,rc8_SY1
      ,rc8_A1
      ,rc8_A2
      ,rc8_A3
@@ -855,6 +939,10 @@ PIVOT (
      ,rc9_H2
      ,rc9_H3
      ,rc9_HY1
+     ,rc9_S1
+     ,rc9_S2
+     ,rc9_S3
+     ,rc9_SY1
      ,rc9_A1
      ,rc9_A2
      ,rc9_A3
@@ -893,6 +981,10 @@ PIVOT (
      ,rc10_H2
      ,rc10_H3
      ,rc10_HY1
+     ,rc10_S1
+     ,rc10_S2
+     ,rc10_S3
+     ,rc10_SY1
      ,rc10_A1
      ,rc10_A2
      ,rc10_A3
@@ -902,6 +994,7 @@ PIVOT (
      ,HY_all
      ,AY_all
      ,QY_all
+     ,SY_all
      )
 ) AS pwn3d
 --*/

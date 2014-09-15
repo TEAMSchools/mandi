@@ -90,7 +90,7 @@ SELECT r.studentid
       ,r.FATHER_CELL
       ,r.FATHER_DAY
       ,r.GUARDIANEMAIL
-      ,rw.week_num      
+      ,REPLACE(rw.week_num, '_', ' ') AS week_num
       ,rw.week_title
       ,curterm.alt_name AS term_name
       ,curterm.end_date AS term_end      
@@ -101,8 +101,7 @@ SELECT r.studentid
       ,att.cur_early_dismiss
       ,att.cur_early_dismiss_exc
       ,att.trip_absences
-      ,att.trip_status
-      ,fsa.fsa_week
+      ,att.trip_status      
       ,fsa.pct_mastered_wk
       ,fsa.FSA_subject_1
       ,fsa.FSA_subject_2

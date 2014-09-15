@@ -78,7 +78,8 @@ SELECT roster.*
 --Attendance & Tardies
 --ATT_MEM$attendance_percentages
 --ATT_MEM$attendance_counts      
-       /*--Year--*/
+    
+    /*--Year--*/
       ,att_counts.y1_abs_all AS Y1_absences_total
       ,att_counts.y1_a AS Y1_absences_undoc
       ,ROUND(att_pct.Y1_att_pct_total,0) AS Y1_att_pct_total
@@ -86,24 +87,21 @@ SELECT roster.*
       ,att_counts.y1_t_all AS Y1_tardies_total
       ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total      
 
-       /*--Current--*/
-      /*--UPDATE FIELD to current term--*/
-      ,att_counts.rt4_abs_all AS curterm_absences_total
-      ,att_counts.rt4_a AS curterm_absences_undoc
-      ,ROUND(att_pct.rt4_att_pct_total,0) AS curterm_att_pct_total
-      ,ROUND(att_pct.rt4_att_pct_undoc,0) AS curterm_att_pct_undoc      
-      ,att_counts.rt4_t_all AS curterm_tardies_total
-      ,ROUND(att_pct.rt4_tardy_pct_total,0) AS curterm_tardy_pct_total
+    /*--Current--*/            
+      --CUR--
+      ,att_counts.CUR_ABS_ALL AS curterm_absences_total
+      ,att_counts.CUR_A AS curterm_absences_undoc
+      ,ROUND(att_pct.cur_att_pct_total,0) AS curterm_att_pct_total
+      ,ROUND(att_pct.cur_att_pct_undoc,0) AS curterm_att_pct_undoc      
+      ,att_counts.CUR_T_ALL AS curterm_tardies_total
+      ,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total
+      
       
 --GPA
 --GPA$detail#nca
 --GPA$cumulative#NCA
-    /*--Academic Year/Current Term--*/
-       /*--UPDATE FOR CURRENT TERM--*/
-      --,nca_gpa.GPA_Q1 AS gpa_curterm
-      --,nca_gpa.GPA_Q2 AS gpa_curterm
-      --,nca_gpa.GPA_Q3 AS gpa_curterm
-      ,nca_gpa.GPA_Q4 AS gpa_curterm
+    /*--Academic Year/Current Term--*/      
+      ,gpa_long.GPA_all AS gpa_curterm
       ,nca_gpa.gpa_Y1
       /*--Cumulative--*/
       ,gpa_cumulative.cumulative_Y1_gpa
@@ -263,71 +261,71 @@ SELECT roster.*
 
     /*--Current component averages -- UPDATE TERM NUMBER (e.g. H1/H2/H3/H4) on FIELD to current term--*/
       /*--H--*/
-      ,gr_wide.rc1_h4  AS rc1_cur_hw_pct
-      ,gr_wide.rc2_h4  AS rc2_cur_hw_pct
-      ,gr_wide.rc3_H4  AS rc3_cur_hw_pct
-      ,gr_wide.rc4_h4  AS rc4_cur_hw_pct
-      ,gr_wide.rc5_h4  AS rc5_cur_hw_pct
-      ,gr_wide.rc6_h4  AS rc6_cur_hw_pct
-      ,gr_wide.rc7_h4  AS rc7_cur_hw_pct
-      ,gr_wide.rc8_h4  AS rc8_cur_hw_pct
-      ,gr_wide.rc9_h4  AS rc9_cur_hw_pct
-      ,gr_wide.rc10_h4 AS rc10_cur_hw_pct      
+      ,gr_wide.rc1_h1 AS rc1_cur_hw_pct
+      ,gr_wide.rc2_h1 AS rc2_cur_hw_pct
+      ,gr_wide.rc3_H1 AS rc3_cur_hw_pct
+      ,gr_wide.rc4_h1 AS rc4_cur_hw_pct
+      ,gr_wide.rc5_h1 AS rc5_cur_hw_pct
+      ,gr_wide.rc6_h1 AS rc6_cur_hw_pct
+      ,gr_wide.rc7_h1 AS rc7_cur_hw_pct
+      ,gr_wide.rc8_h1 AS rc8_cur_hw_pct
+      ,gr_wide.rc9_h1 AS rc9_cur_hw_pct
+      ,gr_wide.rc10_h1 AS rc10_cur_hw_pct      
       /*--A--*/
-      ,gr_wide.rc1_a4  AS rc1_cur_a_pct
-      ,gr_wide.rc2_a4  AS rc2_cur_a_pct
-      ,gr_wide.rc3_A4  AS rc3_cur_a_pct
-      ,gr_wide.rc4_a4  AS rc4_cur_a_pct
-      ,gr_wide.rc5_a4  AS rc5_cur_a_pct
-      ,gr_wide.rc6_a4  AS rc6_cur_a_pct
-      ,gr_wide.rc7_a4  AS rc7_cur_a_pct
-      ,gr_wide.rc8_a4  AS rc8_cur_a_pct
-      ,gr_wide.rc9_a4  AS rc9_cur_a_pct
-      ,gr_wide.rc10_a4 AS rc10_cur_a_pct
+      ,gr_wide.rc1_a1 AS rc1_cur_a_pct
+      ,gr_wide.rc2_a1 AS rc2_cur_a_pct
+      ,gr_wide.rc3_A1 AS rc3_cur_a_pct
+      ,gr_wide.rc4_a1 AS rc4_cur_a_pct
+      ,gr_wide.rc5_a1 AS rc5_cur_a_pct
+      ,gr_wide.rc6_a1 AS rc6_cur_a_pct
+      ,gr_wide.rc7_a1 AS rc7_cur_a_pct
+      ,gr_wide.rc8_a1 AS rc8_cur_a_pct
+      ,gr_wide.rc9_a1 AS rc9_cur_a_pct
+      ,gr_wide.rc10_a1 AS rc10_cur_a_pct
       /*--CW--*/
-      ,gr_wide.rc1_c4  AS rc1_cur_cw_pct
-      ,gr_wide.rc2_c4  AS rc2_cur_cw_pct
-      ,gr_wide.rc3_C4  AS rc3_cur_cw_pct
-      ,gr_wide.rc4_c4  AS rc4_cur_cw_pct
-      ,gr_wide.rc5_c4  AS rc5_cur_cw_pct
-      ,gr_wide.rc6_c4  AS rc6_cur_cw_pct
-      ,gr_wide.rc7_c4  AS rc7_cur_cw_pct
-      ,gr_wide.rc8_c4  AS rc8_cur_cw_pct
-      ,gr_wide.rc9_c4  AS rc9_cur_cw_pct
-      ,gr_wide.rc10_c4 AS rc10_cur_cw_pct
+      ,gr_wide.rc1_c1 AS rc1_cur_cw_pct
+      ,gr_wide.rc2_c1 AS rc2_cur_cw_pct
+      ,gr_wide.rc3_C1 AS rc3_cur_cw_pct
+      ,gr_wide.rc4_c1 AS rc4_cur_cw_pct
+      ,gr_wide.rc5_c1 AS rc5_cur_cw_pct
+      ,gr_wide.rc6_c1 AS rc6_cur_cw_pct
+      ,gr_wide.rc7_c1 AS rc7_cur_cw_pct
+      ,gr_wide.rc8_c1 AS rc8_cur_cw_pct
+      ,gr_wide.rc9_c1 AS rc9_cur_cw_pct
+      ,gr_wide.rc10_c1 AS rc10_cur_cw_pct
       /*--P--*/
-      ,gr_wide.rc1_p4  AS rc1_cur_p_pct
-      ,gr_wide.rc2_p4  AS rc2_cur_p_pct
-      ,gr_wide.rc3_P4  AS rc3_cur_p_pct
-      ,gr_wide.rc4_p4  AS rc4_cur_p_pct
-      ,gr_wide.rc5_p4  AS rc5_cur_p_pct
-      ,gr_wide.rc6_p4  AS rc6_cur_p_pct
-      ,gr_wide.rc7_p4  AS rc7_cur_p_pct
-      ,gr_wide.rc8_p4  AS rc8_cur_p_pct
-      ,gr_wide.rc9_p4  AS rc9_cur_p_pct
-      ,gr_wide.rc10_p4 AS rc10_cur_p_pct      
+      ,gr_wide.rc1_p1 AS rc1_cur_p_pct
+      ,gr_wide.rc2_p1 AS rc2_cur_p_pct
+      ,gr_wide.rc3_P1 AS rc3_cur_p_pct
+      ,gr_wide.rc4_p1 AS rc4_cur_p_pct
+      ,gr_wide.rc5_p1 AS rc5_cur_p_pct
+      ,gr_wide.rc6_p1 AS rc6_cur_p_pct
+      ,gr_wide.rc7_p1 AS rc7_cur_p_pct
+      ,gr_wide.rc8_p1 AS rc8_cur_p_pct
+      ,gr_wide.rc9_p1 AS rc9_cur_p_pct
+      ,gr_wide.rc10_p1 AS rc10_cur_p_pct      
       
       /*--E1--*/ -- Exams
-      ,gr_wide.rc1_E1  AS rc1_exam
-      ,gr_wide.rc2_E1  AS rc2_exam
-      ,gr_wide.rc3_E1  AS rc3_exam
-      ,gr_wide.rc4_E1  AS rc4_exam
-      ,gr_wide.rc5_E1  AS rc5_exam
-      ,gr_wide.rc6_E1  AS rc6_exam
-      ,gr_wide.rc7_E1  AS rc7_exam
-      ,gr_wide.rc8_E1  AS rc8_exam
-      ,gr_wide.rc9_E1  AS rc9_exam
+      ,gr_wide.rc1_E1 AS rc1_exam
+      ,gr_wide.rc2_E1 AS rc2_exam
+      ,gr_wide.rc3_E1 AS rc3_exam
+      ,gr_wide.rc4_E1 AS rc4_exam
+      ,gr_wide.rc5_E1 AS rc5_exam
+      ,gr_wide.rc6_E1 AS rc6_exam
+      ,gr_wide.rc7_E1 AS rc7_exam
+      ,gr_wide.rc8_E1 AS rc8_exam
+      ,gr_wide.rc9_E1 AS rc9_exam
       ,gr_wide.rc10_E1 AS rc10_exam
       /*--E2--*/
-      ,gr_wide.rc1_E2  AS rc1_exam2
-      ,gr_wide.rc2_E2  AS rc2_exam2
-      ,gr_wide.rc3_E2  AS rc3_exam2
-      ,gr_wide.rc4_E2  AS rc4_exam2
-      ,gr_wide.rc5_E2  AS rc5_exam2
-      ,gr_wide.rc6_E2  AS rc6_exam2
-      ,gr_wide.rc7_E2  AS rc7_exam2
-      ,gr_wide.rc8_E2  AS rc8_exam2
-      ,gr_wide.rc9_E2  AS rc9_exam2
+      ,gr_wide.rc1_E2 AS rc1_exam2
+      ,gr_wide.rc2_E2 AS rc2_exam2
+      ,gr_wide.rc3_E2 AS rc3_exam2
+      ,gr_wide.rc4_E2 AS rc4_exam2
+      ,gr_wide.rc5_E2 AS rc5_exam2
+      ,gr_wide.rc6_E2 AS rc6_exam2
+      ,gr_wide.rc7_E2 AS rc7_exam2
+      ,gr_wide.rc8_E2 AS rc8_exam2
+      ,gr_wide.rc9_E2 AS rc9_exam2
       ,gr_wide.rc10_E2 AS rc10_exam2
 
     /*--YTD absents and tardies by class--*/
@@ -433,16 +431,17 @@ LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
 LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON roster.base_studentid = att_pct.studentid
   
---GPA
+--GRADES & GPA
+LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide WITH (NOLOCK)
+  ON roster.base_studentid = gr_wide.studentid
 LEFT OUTER JOIN GPA$detail#NCA nca_gpa WITH (NOLOCK)
   ON roster.base_studentid = nca_gpa.studentid
 LEFT OUTER JOIN GPA$cumulative gpa_cumulative WITH (NOLOCK)
   ON roster.base_studentid = gpa_cumulative.studentid
  AND roster.schoolid = gpa_cumulative.schoolid
-  
---GRADES
-LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide WITH (NOLOCK)
-  ON roster.base_studentid = gr_wide.studentid
+LEFT OUTER JOIN GPA$detail_long gpa_long WITH(NOLOCK)
+  ON roster.base_studentid = gpa_long.studentid
+ AND roster.curterm = gpa_long.term
 
 --ED TECH
 --ACCELERATED READER

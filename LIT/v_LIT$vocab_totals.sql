@@ -3,81 +3,66 @@ GO
 
 ALTER VIEW LIT$vocab_totals AS
 
-WITH stu_test_roster AS (
-  SELECT DISTINCT
-         res.repository_id
-        ,res.student_id AS ill_stu_id        
-        ,id.student_number
-        ,co.SCHOOLID
-        ,co.GRADE_LEVEL
+WITH valid_tests AS (
+  SELECT DISTINCT a.repository_id        
+  FROM ILLUMINATE$summary_assessments#static a WITH(NOLOCK)    
+  WHERE a.scope = 'Reporting' 
+    AND a.subject = 'Vocabulary'
+ )
+
+,scores_long AS (
+  SELECT res.student_id AS student_number             
+        ,'Week_' + SUBSTRING(label, CHARINDEX('_',label) + 1, 2) AS listweek_num        
+        ,CONVERT(FLOAT,value) AS value                
   FROM ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
-  JOIN ILLUMINATE$student_id_key id WITH(NOLOCK)
-    ON res.student_id = id.ill_stu_id
-  JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
-    ON id.studentid = co.STUDENTID
-   AND co.RN = 1
-  WHERE res.repository_id IN (SELECT repository_id FROM ILLUMINATE$summary_assessments#static a WITH(NOLOCK) WHERE a.scope = 'Reporting' AND a.subject = 'Vocabulary')
+  JOIN ILLUMINATE$repository_fields f WITH(NOLOCK)
+    ON res.repository_id = f.repository_id
+   AND res.field = f.name
+   AND f.rn = 1
+  WHERE res.repository_id IN (SELECT repository_id FROM valid_tests WITH(NOLOCK))
+ )
+
+,roster AS (
+  SELECT schoolid
+        ,grade_level
+        ,STUDENT_NUMBER
+  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+  WHERE co.rn = 1
+    AND co.year = dbo.fn_Global_Academic_Year()
+    AND co.grade_level < 5
  )
 
 ,week_totals AS (
-  SELECT r.SCHOOLID
-        ,r.GRADE_LEVEL
-        ,r.student_number
-        ,a.scope
-        ,a.subject
-        ,LEFT(f.label,7) AS listweek_num
-        ,res.value AS pct_correct_wk
-  FROM ILLUMINATE$summary_assessments#static a WITH(NOLOCK)
-  JOIN stu_test_roster r WITH(NOLOCK)
-    ON a.repository_id = r.repository_id      
-   AND a.SCHOOLID = r.SCHOOLID
-   AND a.GRADE_LEVEL = r.GRADE_LEVEL
-  JOIN ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
-    ON a.repository_id = res.repository_id
-   AND r.ill_stu_id = res.student_id
-  JOIN ILLUMINATE$repository_fields f WITH(NOLOCK)
-    ON a.repository_id = f.repository_id
-   AND res.field = f.name
-   AND f.rn = 1  
-  WHERE a.scope = 'Reporting'
-    AND a.subject = 'Vocabulary'
+  SELECT r.schoolid
+        ,r.grade_level      
+        ,r.STUDENT_NUMBER
+        ,listweek_num        
+        ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct_wk
+  FROM roster r WITH(NOLOCK)
+  LEFT OUTER JOIN scores_long res WITH(NOLOCK)
+    ON r.STUDENT_NUMBER = res.student_number
+  GROUP BY r.schoolid
+          ,r.grade_level
+          ,r.STUDENT_NUMBER
+          ,res.listweek_num
  )
  
 ,year_totals AS (
-  SELECT SCHOOLID
-        ,GRADE_LEVEL      
-        ,student_number        
-        ,ROUND(AVG(pct_correct_wk),0) AS pct_correct_yr        
-  FROM
-      (
-       SELECT r.SCHOOLID
-             ,r.GRADE_LEVEL
-             ,r.student_number
-             ,a.scope
-             ,a.subject             
-             ,CONVERT(FLOAT,res.value) AS pct_correct_wk
-       FROM ILLUMINATE$summary_assessments#static a WITH(NOLOCK)
-       JOIN stu_test_roster r WITH(NOLOCK)
-         ON a.repository_id = r.repository_id     
-        AND a.SCHOOLID = r.SCHOOLID
-        AND a.GRADE_LEVEL = r.GRADE_LEVEL   
-       JOIN ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
-         ON a.repository_id = res.repository_id
-        AND r.ill_stu_id = res.student_id
-       JOIN ILLUMINATE$repository_fields f WITH(NOLOCK)
-         ON a.repository_id = f.repository_id
-        AND res.field = f.name
-        AND f.rn = 1
-       WHERE a.scope = 'Reporting'
-         AND a.subject = 'Vocabulary'
-      ) sub 
-  GROUP BY SCHOOLID
-          ,GRADE_LEVEL
-          ,student_number          
+  SELECT r.schoolid
+        ,r.grade_level      
+        ,r.STUDENT_NUMBER                
+        ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct_yr        
+  FROM roster r WITH(NOLOCK)
+  LEFT OUTER JOIN scores_long res WITH(NOLOCK)
+    ON r.STUDENT_NUMBER = res.student_number
+  GROUP BY r.SCHOOLID
+          ,r.GRADE_LEVEL
+          ,r.STUDENT_NUMBER          
  )
  
 SELECT wk.*      
       ,yr.pct_correct_yr      
+      ,ROUND(AVG(yr.pct_correct_yr) OVER(PARTITION BY yr.grade_level),0) AS avg_pct_correct_yr
 FROM week_totals wk WITH(NOLOCK)
 JOIN year_totals yr WITH(NOLOCK)
   ON wk.student_number = yr.student_number

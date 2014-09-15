@@ -9,7 +9,7 @@ GO
 
 
 
-CREATE PROCEDURE [sp_ILLUMINATE$repository_fields#static|refresh] AS
+ALTER PROCEDURE [sp_ILLUMINATE$repository_fields#static|refresh] AS
 BEGIN
 
  DECLARE @sql AS VARCHAR(MAX)='';
@@ -46,6 +46,7 @@ BEGIN
                      ,updated_at           
                      ,deleted_at     
                FROM dna_repositories.fields
+               WHERE deleted_at IS NULL
              ')
             ) sub
 		     ) rustandmartysurvive;

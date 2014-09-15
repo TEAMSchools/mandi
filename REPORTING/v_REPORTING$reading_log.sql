@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW reporting$reading_log AS
+ALTER VIEW reporting$reading_log AS
 
 WITH roster AS (
   SELECT studentid

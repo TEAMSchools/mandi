@@ -195,20 +195,19 @@ BEGIN
          ,grade
          ,course_number
    FROM OPENQUERY(PS_TEAM,''
-     SELECT TO_CHAR(pgf.sectionid) AS sectionid
-           ,TO_CHAR(pgf.studentid) AS studentid
+     SELECT TO_CHAR(cc.sectionid) AS sectionid
+           ,TO_CHAR(cc.studentid) AS studentid
            ,pgf.finalgradename
-           ,pgf.percent
-           ,pgf.grade
+           ,CASE WHEN pgf.grade = ''''--'''' THEN NULL ELSE pgf.percent END AS percent
+           ,CASE WHEN pgf.grade = ''''--'''' THEN NULL ELSE pgf.grade END AS grade
            ,cc.course_number
-     FROM pgfinalgrades pgf
-     JOIN cc
-       ON pgf.sectionid = cc.sectionid
-      AND pgf.studentid = cc.studentid
-      AND cc.termid >= ' + CONVERT(VARCHAR,@v_termid) + '
-      AND cc.schoolid = ' + CONVERT(VARCHAR,@v_schoolly_d) + '
-     WHERE pgf.finalgradename IN (''''' + @v_grade_1 + ''''', ''''' + @v_grade_2 + ''''', ''''' + @v_grade_3 + ''''', ''''' + @v_grade_4 + ''''')
-       AND pgf.percent > ' + CONVERT(VARCHAR, @v_0) + '
+     FROM cc
+     LEFT OUTER JOIN pgfinalgrades pgf     
+       ON cc.sectionid = pgf.sectionid
+      AND cc.studentid = pgf.studentid
+      AND pgf.finalgradename IN (''''' + @v_grade_1 + ''''', ''''' + @v_grade_2 + ''''', ''''' + @v_grade_3 + ''''', ''''' + @v_grade_4 + ''''')       
+     WHERE cc.termid >= ' + CONVERT(VARCHAR,@v_termid) + '
+       AND cc.schoolid = ' + CONVERT(VARCHAR,@v_schoolly_d) + '     
    '');
  '; 
  

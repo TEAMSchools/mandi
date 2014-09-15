@@ -47,9 +47,8 @@ BEGIN
           ,pgf.finalgradename
           ,pgf.percent
           ,cc.course_number
-          ,cc.schoolid
-          --break out the TYPE from the SEQUENCE
-          ,SUBSTR(pgf.finalgradename, 0, 1) AS pgf_type
+          ,cc.schoolid          
+          ,SUBSTR(pgf.finalgradename, 0, 1) AS pgf_type --break out the TYPE from the SEQUENCE
           ,SUBSTR(pgf.finalgradename, 2, 2) AS pgf_seq_num
           ,termbins.date1
           ,termbins.date2
@@ -57,25 +56,17 @@ BEGIN
     FROM pgfinalgrades pgf
     JOIN cc
       ON pgf.sectionid = cc.sectionid 
-     AND pgf.studentid = cc.studentid
-     
-     --are we concerned about spurious 0s?
-     AND pgf.percent != 0
-     
-     AND cc.termid >= 2300
-     --JUST FOR TESTING
-     --AND cc.studentid = 2542
-     --never use T trimester grades
-     AND SUBSTR(pgf.finalgradename, 0, 1) != ''T''
-     --Rise uses Q for HW quality, others should be EXCLUDED
-     AND (cc.schoolid = 73252 OR
-     (cc.schoolid != 73252 AND SUBSTR(pgf.finalgradename, 0, 1) != ''Q''))  
-     JOIN termbins
-       ON cc.termid = termbins.termid
-      AND cc.schoolid = termbins.schoolid
-      AND pgf.finalgradename = termbins.storecode
-      --ignore the future
-      AND termbins.date1 <= TRUNC(SYSDATE)
+     AND pgf.studentid = cc.studentid          
+     AND cc.termid >= 2300     
+     AND (cc.schoolid = 73252 
+           OR (cc.schoolid != 73252 AND SUBSTR(pgf.finalgradename, 0, 1) != ''Q'')) --Rise uses Q for HW quality, others should be EXCLUDED
+    JOIN termbins
+      ON cc.termid = termbins.termid
+     AND cc.schoolid = termbins.schoolid
+     AND pgf.finalgradename = termbins.storecode     
+     AND termbins.date1 <= TRUNC(SYSDATE) --ignore the future
+    WHERE pgf.percent != 0 -- are we concerned about spurious 0s?
+      AND SUBSTR(pgf.finalgradename, 0, 1) != ''T'' --never use T trimester grades     
   ') sub
   
   SELECT sub_1.studentid
@@ -93,26 +84,14 @@ BEGIN
         ,sub_1.grade_4_ct
          -- are the number of values evaluated by MAX larger than the number of non-null grade_1/grade_2 grades?
         ,CASE
-           WHEN --this statement counts how many values were evaulated by the max statement in sq_2
-             (sub_1.grade_1_ct + sub_1.grade_2_ct + sub_1.grade_3_ct + sub_1.grade_4_ct) >  
-                --this statement counts how many grade_1-grade_4 records are not null
-              ((CASE
-                  WHEN sub_1.grade_1 IS NOT NULL THEN 1
-                  ELSE 0
-                END)
-              +(CASE
-                  WHEN sub_1.grade_2 IS NOT NULL THEN 1
-                  ELSE 0
-                END)
-              +(CASE
-                  WHEN sub_1.grade_3 IS NOT NULL THEN 1
-                  ELSE 0
-                END)
-              +(CASE
-                  WHEN sub_1.grade_4 IS NOT NULL THEN 1
-                  ELSE 0
-                END))
-           THEN 'Flag'
+           WHEN 
+             (sub_1.grade_1_ct + sub_1.grade_2_ct + sub_1.grade_3_ct + sub_1.grade_4_ct) --this statement counts how many values were evaulated by the max statement in sq_2                
+                >
+             ((CASE WHEN sub_1.grade_1 IS NOT NULL THEN 1 ELSE 0 END) -- this statement counts how many grade_1-grade_4 records are not null
+                + (CASE WHEN sub_1.grade_2 IS NOT NULL THEN 1 ELSE 0 END)
+                + (CASE WHEN sub_1.grade_3 IS NOT NULL THEN 1 ELSE 0 END)
+                + (CASE WHEN sub_1.grade_4 IS NOT NULL THEN 1 ELSE 0 END))
+             THEN 'Flag'
            ELSE NULL
          END AS underlying_audit
   INTO [#GRADES$elements_s2]

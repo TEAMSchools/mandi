@@ -27,8 +27,8 @@ BEGIN
       SELECT repository_id          
       FROM dna_repositories.repositories    
       WHERE deleted_at IS NULL      
-        AND repository_id < 59
-        --AND repository_id NOT IN (43)
+        AND repository_id < 82
+        AND repository_id NOT IN (81)
     ')
 
   		    
@@ -69,26 +69,19 @@ BEGIN
 
       -- here's the beef, the query that the cursor is going to iterate over
       -- for each repo, SELECT the columns, CONVERT them to TEXT, and then UNPIVOT into a normalized form
-      -- then INSERT INTO the temp table
-      SET @query = N'                  
-        INSERT INTO [#ILLUMINATE$summary_assessment_results_long#static|refresh]
-        SELECT ' + @repository_id + ' AS repository_id
-              ,repository_row_id
-              ,student_id
-              ,field
-              ,value
-        FROM OPENQUERY(ILLUMINATE,''
-          SELECT s.local_student_id AS student_id, repository_row_id' + @converted_cols + ' AS TEXT)
-          FROM dna_repositories.repository_' + @repository_id + ' repo
-          JOIN public.students s
-            ON repo.student_id = s.student_id
-        '')
-        
-        UNPIVOT (
-          value
-          FOR field IN (' + @cols + ')
-         ) unpiv           
-      '        
+      -- then INSERT INTO the temp table      
+SET @query = N'INSERT INTO [#ILLUMINATE$summary_assessment_results_long#static|refresh]
+SELECT ' + @repository_id + ' AS repository_id
+,repository_row_id
+,student_id
+,field
+,value
+FROM OPENQUERY(ILLUMINATE,''SELECT s.local_student_id AS student_id,repository_row_id' + @converted_cols + ' AS TEXT) FROM dna_repositories.repository_' + @repository_id + ' repo JOIN public.students s ON repo.student_id = s.student_id'')
+UNPIVOT (
+value
+FOR field IN (' + @cols + ')
+) unpiv
+'        
       
       -- print the query that has just been prepared (for debugging)
       RAISERROR(@query, 0, 1)
@@ -115,7 +108,8 @@ BEGIN
      (repository_id
      ,repository_row_id
      ,student_id
-     ,field,value)
+     ,field
+     ,value)
    ON target.repository_id = source.repository_id
   AND target.repository_row_id = source.repository_row_id
   AND target.student_id = source.student_id

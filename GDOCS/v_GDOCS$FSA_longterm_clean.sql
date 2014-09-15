@@ -5,7 +5,7 @@ ALTER VIEW GDOCS$FSA_longterm_clean AS
 
 WITH dirty_data AS (
   SELECT 73254 AS schoolid
-        ,REPLACE(grade_level, 'K', 0) AS grade_level
+        ,CASE WHEN CONVERT(VARCHAR,grade_level) = 'K' OR grade_level IS NULL THEN 0 ELSE grade_level END AS grade_level
         ,subject
         ,LEFT(week_num, 7) AS week_num
         ,ccss_standard
@@ -18,7 +18,7 @@ WITH dirty_data AS (
   UNION ALL
 
   SELECT 73255
-        ,REPLACE(grade_level, 'K', 0) AS grade_level
+        ,CASE WHEN CONVERT(VARCHAR,grade_level) = 'K' OR grade_level IS NULL THEN 0 ELSE grade_level END AS grade_level
         ,subject
         ,LEFT(week_num, 7) AS week_num
         ,ccss_standard
@@ -31,7 +31,7 @@ WITH dirty_data AS (
   UNION ALL
 
   SELECT 73256
-        ,REPLACE(grade_level, 'K', 0) AS grade_level
+        ,CASE WHEN CONVERT(VARCHAR,grade_level) = 'K' OR grade_level IS NULL THEN 0 ELSE grade_level END AS grade_level
         ,subject
         ,LEFT(week_num, 7) AS week_num
         ,ccss_standard
@@ -44,7 +44,7 @@ WITH dirty_data AS (
   UNION ALL
 
   SELECT 73257
-        ,REPLACE(grade_level, 'K', 0) AS grade_level
+        ,CASE WHEN CONVERT(VARCHAR,grade_level) = 'K' OR grade_level IS NULL THEN 0 ELSE grade_level END AS grade_level
         ,subject
         ,LEFT(week_num, 7) AS week_num
         ,ccss_standard
@@ -57,7 +57,7 @@ WITH dirty_data AS (
   UNION ALL
 
   SELECT 179901
-        ,REPLACE(grade_level, 'K', 0) AS grade_level
+        ,CASE WHEN CONVERT(VARCHAR,grade_level) = 'K' OR grade_level IS NULL THEN 0 ELSE grade_level END AS grade_level
         ,subject
         ,LEFT(week_num, 7) AS week_num
         ,ccss_standard
@@ -70,10 +70,10 @@ WITH dirty_data AS (
 
 SELECT dirty_data.schoolid
       ,dirty_data.grade_level
-      ,dirty_data.subject
+      ,REPLACE(dirty_data.subject, 'Math', 'Mathematics') AS subject
       ,dirty_data.week_num
-      ,dirty_data.ccss_standard
-      ,dirty_data.other_standard
+      ,COALESCE(dirty_data.ccss_standard, dirty_data.other_standard) AS ccss_standard
+      ,COALESCE(dirty_data.other_standard, dirty_data.ccss_standard) AS other_standard
       ,REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.objective), 'ʺ', '"'), '’', ''''), '�', '') AS objective
       ,REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_mastered), 'ʺ', '"'), '’', ''''), '�', '') AS next_steps_mastered
       ,REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_notmastered), 'ʺ', '"'), '’', ''''), '�', '') AS next_steps_notmastered
@@ -87,5 +87,4 @@ SELECT dirty_data.schoolid
 FROM dirty_data
 WHERE dirty_data.grade_level IS NOT NULL
   AND dirty_data.subject IS NOT NULL
-  AND dirty_data.week_num IS NOT NULL
-  AND dirty_data.ccss_standard IS NOT NULL
+  AND dirty_data.week_num IS NOT NULL  

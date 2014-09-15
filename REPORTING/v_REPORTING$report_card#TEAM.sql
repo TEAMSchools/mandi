@@ -71,10 +71,11 @@ WITH curterm AS (
   WHERE sec.term IN (SELECT term FROM curterm)
  )  
   
-SELECT roster.*      
+SELECT roster.*
       
 --Course Grades
 --GRADES$wide_all
+
     /*--RC1--*/
       ,gr_wide.rc1_course_name
       ,gr_wide.rc1_teacher_last
@@ -153,17 +154,17 @@ SELECT roster.*
       
       ,ROUND(gr_wide.RC8_t1,0) AS RC8_t1_term_pct
       ,ROUND(gr_wide.RC8_t2,0) AS RC8_t2_term_pct
-      ,ROUND(gr_wide.RC8_t3,0) AS RC8_t3_term_pct
-    
-  /*--COMPONENT AVERAGES--*/       
-      --all classes for the year
+      ,ROUND(gr_wide.RC8_t3,0) AS RC8_t3_term_pct    
+
+    /*--current term component averages--*/       
+      --All classes element averages for the year
       ,gr_wide.HY_all AS homework_year_avg
       ,gr_wide.QY_all AS homework_qual_year_avg
       ,gr_wide.AY_all AS assess_year_avg       
        
       /*--UPDATE FIELD FOR CURRENT TERM--*//*--ACTIVATE code block--*/
      --T1--
-      /*
+      --/*
       --H
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_H1  END AS rc1_cur_hw_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_H1  END AS rc2_cur_hw_pct
@@ -173,15 +174,33 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_H1  END AS rc6_cur_hw_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_H1  END AS rc7_cur_hw_pct
       ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H1  END AS rc8_cur_hw_pct
-      --A
-      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_A1  END AS rc1_cur_assess_pct
-      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_A1  END AS rc2_cur_assess_pct
-      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_A1  END AS rc3_cur_assess_pct
-      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_A1  END AS rc4_cur_assess_pct
-      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_A1  END AS rc5_cur_assess_pct
-      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_A1  END AS rc6_cur_assess_pct
-      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_A1  END AS rc7_cur_assess_pct
-      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_A1  END AS rc8_cur_assess_pct      
+      --S
+      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_S1  END AS rc1_cur_s_pct
+      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_S1  END AS rc2_cur_s_pct
+      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_S1  END AS rc3_cur_s_pct
+      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_S1  END AS rc4_cur_s_pct
+      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_S1  END AS rc5_cur_s_pct
+      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_S1  END AS rc6_cur_s_pct
+      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_S1  END AS rc7_cur_s_pct
+      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_S1  END AS rc8_cur_s_pct
+      ----A
+      --,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_A1  END AS rc1_cur_assess_pct
+      --,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_A1  END AS rc2_cur_assess_pct
+      --,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_A1  END AS rc3_cur_assess_pct
+      --,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_A1  END AS rc4_cur_assess_pct
+      --,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_A1  END AS rc5_cur_assess_pct
+      --,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_A1  END AS rc6_cur_assess_pct
+      --,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_A1  END AS rc7_cur_assess_pct
+      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_A1  END AS rc8_cur_assess_pct
+      --Q
+      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q1  END AS rc1_cur_qual_pct
+      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q1  END AS rc2_cur_qual_pct
+      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_Q1  END AS rc3_cur_qual_pct
+      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_Q1  END AS rc4_cur_qual_pct
+      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_Q1  END AS rc5_cur_qual_pct
+      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_Q1  END AS rc6_cur_qual_pct
+      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_Q1  END AS rc7_cur_qual_pct
+      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q1  END AS rc8_cur_qual_pct
       --*/
     
     --T2--
@@ -194,20 +213,38 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_H2  END AS rc5_cur_hw_pct
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_H2  END AS rc6_cur_hw_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_H2  END AS rc7_cur_hw_pct
-      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H2  END AS rc8_cur_hw_pct
-      --A
-      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_A2  END AS rc1_cur_assess_pct
-      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_A2  END AS rc2_cur_assess_pct
-      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_A2  END AS rc3_cur_assess_pct
-      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_A2  END AS rc4_cur_assess_pct
-      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_A2  END AS rc5_cur_assess_pct
-      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_A2  END AS rc6_cur_assess_pct
-      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_A2  END AS rc7_cur_assess_pct
-      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_A2  END AS rc8_cur_assess_pct      
+      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H2  END AS rc8_cur_hw_pct
+      --S
+      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_S2  END AS rc1_cur_s_pct
+      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_S2  END AS rc2_cur_s_pct
+      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_S2  END AS rc3_cur_s_pct
+      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_S2  END AS rc4_cur_s_pct
+      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_S2  END AS rc5_cur_s_pct
+      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_S2  END AS rc6_cur_s_pct
+      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_S2  END AS rc7_cur_s_pct
+      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_S2  END AS rc8_cur_s_pct
+      ----A
+      --,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_A2  END AS rc1_cur_assess_pct
+      --,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_A2  END AS rc2_cur_assess_pct
+      --,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_A2  END AS rc3_cur_assess_pct
+      --,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_A2  END AS rc4_cur_assess_pct
+      --,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_A2  END AS rc5_cur_assess_pct
+      --,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_A2  END AS rc6_cur_assess_pct
+      --,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_A2  END AS rc7_cur_assess_pct
+      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_A2  END AS rc8_cur_assess_pct
+      --Q
+      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q2  END AS rc1_cur_qual_pct
+      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q2  END AS rc2_cur_qual_pct
+      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_Q2  END AS rc3_cur_qual_pct
+      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_Q2  END AS rc4_cur_qual_pct
+      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_Q2  END AS rc5_cur_qual_pct
+      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_Q2  END AS rc6_cur_qual_pct
+      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_Q2  END AS rc7_cur_qual_pct
+      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q2  END AS rc8_cur_qual_pct
       --*/
       
     --T3--
-      --/*
+      /*
        --H
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_H3  END AS rc1_cur_hw_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_H3  END AS rc2_cur_hw_pct
@@ -217,31 +254,59 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_H3  END AS rc6_cur_hw_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_H3  END AS rc7_cur_hw_pct
       ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H3  END AS rc8_cur_hw_pct
+      --S
+      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_S3  END AS rc1_cur_s_pct
+      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_S3  END AS rc2_cur_s_pct
+      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_S3  END AS rc3_cur_s_pct
+      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_S3  END AS rc4_cur_s_pct
+      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_S3  END AS rc5_cur_s_pct
+      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_S3  END AS rc6_cur_s_pct
+      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_S3  END AS rc7_cur_s_pct
+      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_S3  END AS rc8_cur_s_pct
       --A
-      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_A3  END AS rc1_cur_assess_pct
-      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_A3  END AS rc2_cur_assess_pct
-      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_A3  END AS rc3_cur_assess_pct
-      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_A3  END AS rc4_cur_assess_pct
-      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_A3  END AS rc5_cur_assess_pct
-      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_A3  END AS rc6_cur_assess_pct
-      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_A3  END AS rc7_cur_assess_pct
-      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_A3  END AS rc8_cur_assess_pct      
+      --,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_A3  END AS rc1_cur_assess_pct
+      --,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_A3  END AS rc2_cur_assess_pct
+      --,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_A3  END AS rc3_cur_assess_pct
+      --,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_A3  END AS rc4_cur_assess_pct
+      --,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_A3  END AS rc5_cur_assess_pct
+      --,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_A3  END AS rc6_cur_assess_pct
+      --,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_A3  END AS rc7_cur_assess_pct
+      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_A3  END AS rc8_cur_assess_pct
+      --Q
+      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q3  END AS rc1_cur_qual_pct
+      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q3  END AS rc2_cur_qual_pct
+      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_Q3  END AS rc3_cur_qual_pct
+      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_Q3  END AS rc4_cur_qual_pct
+      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_Q3  END AS rc5_cur_qual_pct
+      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_Q3  END AS rc6_cur_qual_pct
+      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_Q3  END AS rc7_cur_qual_pct
+      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q3  END AS rc8_cur_qual_pct
       --*/
-
 
 --Attendance & Tardies
 --ATT_MEM$attendance_percentages
 --ATT_MEM$attendance_counts      
+    
     /*--Year--*/
       ,att_counts.y1_abs_all AS Y1_absences_total
       ,att_counts.y1_a AS Y1_absences_undoc
-      ,ROUND(att_pct.Y1_att_pct_total,0)   AS Y1_att_pct_total
-      ,ROUND(att_pct.Y1_att_pct_undoc,0)   AS Y1_att_pct_undoc      
+      ,ROUND(att_pct.Y1_att_pct_total,0) AS Y1_att_pct_total
+      ,ROUND(att_pct.Y1_att_pct_undoc,0) AS Y1_att_pct_undoc      
       ,att_counts.y1_t_all AS Y1_tardies_total
       ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total      
 
-    /*--Current--*/
-      /*--UPDATE FIELD to current term--*//*--ACTIVATE code block--*/
+    /*--Current--*/      
+      --/*
+      --CUR--
+      ,att_counts.CUR_ABS_ALL AS curterm_absences_total
+      ,att_counts.CUR_A AS curterm_absences_undoc
+      ,ROUND(att_pct.cur_att_pct_total,0) AS curterm_att_pct_total
+      ,ROUND(att_pct.cur_att_pct_undoc,0) AS curterm_att_pct_undoc      
+      ,att_counts.CUR_T_ALL AS curterm_tardies_total
+      ,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total
+      --*/
+      
+      /* BY TERM == IN CASE YOU NEED IT */
       /*
       --T1--
       ,att_counts.RT1_absences_total        AS curterm_absences_total
@@ -250,8 +315,7 @@ SELECT roster.*
       ,ROUND(att_pct.RT1_att_pct_undoc,0)   AS curterm_att_pct_undoc      
       ,att_counts.RT1_tardies_total         AS curterm_tardies_total
       ,ROUND(att_pct.RT1_tardy_pct_total,0) AS curterm_tardy_pct_total
-      --*/
-      
+      --*/      
       /*
       --T2--
       ,att_counts.RT2_absences_total        AS curterm_absences_total
@@ -260,9 +324,8 @@ SELECT roster.*
       ,ROUND(att_pct.RT2_att_pct_undoc,0)   AS curterm_att_pct_undoc      
       ,att_counts.RT2_tardies_total         AS curterm_tardies_total
       ,ROUND(att_pct.RT2_tardy_pct_total,0) AS curterm_tardy_pct_total
-      --*/
-      
-      --/*
+      --*/      
+      /*
       --T3--
       ,att_counts.RT3_abs_all AS curterm_absences_total
       ,att_counts.RT3_a AS curterm_absences_undoc
@@ -271,35 +334,18 @@ SELECT roster.*
       ,att_counts.RT3_t_all AS curterm_tardies_total
       ,ROUND(att_pct.RT3_tardy_pct_total,0) AS curterm_tardy_pct_total
       --*/
-      
+
 --GPA
---GPA$detail#TEAM
-    /*--Year--*/     
-      ,team_gpa.gpa_Y1_all
-      ,team_gpa.gpa_Y1_core
-      
-    /*--Current Term--*/
-      /*--UPDATE FIELD FOR CURRENT TERM--*/
-      --T1--
-      /*
-      ,team_gpa.GPA_T1_weighted_all AS gpa_curterm_all
-      ,team_gpa.GPA_T1_weighted_core AS gpa_curterm_core
-      --*/
-      
-      --T2--
-      /*
-      ,team_gpa.GPA_T2_weighted_all AS gpa_curterm_all
-      ,team_gpa.GPA_T2_weighted_core AS gpa_curterm_core
-      --*/
-      
-      --T3--
-      --/*
-      ,team_gpa.GPA_T3_all AS gpa_curterm_all      
-      ,team_gpa.GPA_T3_core AS gpa_curterm_core
-      --*/
+--GPA$detail#MS
+    /*--Year--*/      
+      ,gpa.GPA_y1_all AS gpa_Y1
+      ,gpa.rank_gr_y1_all AS GPA_Y1_Rank_G
+      ,gpa.n_gr AS Y1_Dem   
+   /*--Current Term--*/      
+      ,gpa_long.GPA_all AS gpa_curterm
       
 --Promotional Criteria      
---REPORTING$promo_status#TEAM
+--REPORTING$promo_status#MS
       ,promo.promo_overall_team AS promo_status_overall
       ,promo.promo_att_team AS promo_status_att
       ,promo.promo_grades_team AS promo_status_grades
@@ -347,6 +393,7 @@ SELECT roster.*
       ,map_all.f_2014_math_pctle
       ,map_all.spr_2015_math_rit
       ,map_all.f_2014_math_rit      
+      ,map_all.f_2014_math_pctle - map_all.spr_2014_math_pctle AS sum_2014_math_pctle_chg
       -- 13-14
       ,map_all.spr_2014_math_pctle
       ,map_all.f_2013_math_pctle
@@ -508,7 +555,7 @@ SELECT roster.*
              ,0) AS INT)),1),'.00','') AS words_needed_cur_term
 --*/
 
---/*
+/*
 --Comments
 --PS$comments_gradebook
       ,comment_rc1.teacher_comment AS rc1_comment
@@ -527,19 +574,20 @@ SELECT roster.*
 
 FROM roster
 
---GRADES
-LEFT OUTER JOIN GRADES$wide_all#MS gr_wide WITH (NOLOCK)
-  ON roster.base_studentid = gr_wide.studentid
-
 --ATTENDANCE
 LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
   ON roster.base_studentid = att_counts.studentid
 LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON roster.base_studentid = att_pct.studentid
 
---GPA
-LEFT OUTER JOIN GPA$detail#MS team_gpa WITH (NOLOCK)
-  ON roster.base_studentid = team_gpa.studentid
+--GRADES & GPA
+LEFT OUTER JOIN GRADES$wide_all#MS gr_wide WITH (NOLOCK)
+  ON roster.base_studentid = gr_wide.studentid
+LEFT OUTER JOIN GPA$detail#MS gpa WITH (NOLOCK)
+  ON roster.base_studentid = gpa.studentid
+LEFT OUTER JOIN GPA$detail_long gpa_long WITH(NOLOCK)
+  ON roster.base_studentid = gpa_long.studentid
+ AND roster.curterm = gpa_long.term
 
 --PROMO STATUS  
 LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH (NOLOCK)
@@ -592,7 +640,8 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
  AND ar_curr.time_period_name = 'RT2'
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 --*/ 
- 
+
+/* 
 --GRADEBOOK COMMMENTS
 LEFT OUTER JOIN comments comment_rc1 WITH (NOLOCK)
   ON gr_wide.studentid = comment_rc1.studentid
@@ -638,3 +687,4 @@ LEFT OUTER JOIN comments comment_adv WITH (NOLOCK)
   ON roster.base_studentid = comment_adv.studentid
  AND comment_adv.course_number = 'HR'
  AND comment_adv.term = roster.curterm 
+--*/

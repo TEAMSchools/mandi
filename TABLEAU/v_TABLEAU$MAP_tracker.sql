@@ -171,6 +171,13 @@ SELECT r.year
       ,map_long.rit       
       ,map_long.pct       
       ,map_long.lex       
+      ,CASE 
+        WHEN map_long.pct >= 0 AND map_long.pct < 25 THEN 1
+        WHEN map_long.pct >= 25 AND map_long.pct < 50 THEN 2
+        WHEN map_long.pct >= 50 AND map_long.pct < 75 THEN 3
+        WHEN map_long.pct >= 75 AND map_long.pct < 100 THEN 4
+        ELSE NULL
+       END AS quartile
       ,map_curr.rit - map_long.base_rit AS ytd_rit_growth
       ,map_curr.pct - map_long.base_pct AS ytd_pct_growth
       ,map_curr.lexile - map_long.base_lex AS ytd_lex_growth

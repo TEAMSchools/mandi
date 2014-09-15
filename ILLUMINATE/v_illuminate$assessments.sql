@@ -40,7 +40,7 @@ FROM
              WHEN tag = 'k' THEN '0'
              WHEN tag IN ('1','2','3','4','5','6','7','8','9','10','11','12') THEN tag
              ELSE NULL
-            END AS grade_level -- it's simpler just to use the tag
+            END AS grade_level
            ,oq.subject
            ,CASE
              WHEN oq.subject = 'Arabic' THEN 'WLANG'
@@ -49,10 +49,13 @@ FROM
              WHEN oq.subject = 'Arts: Visual Arts' THEN 'ART'
              WHEN oq.subject = 'Comprehension' THEN 'ENG'
              WHEN oq.subject = 'English Language Arts' THEN 'ENG'
+             WHEN oq.subject = 'English' THEN 'ENG'
+             WHEN oq.subject = 'Vocabulary' THEN 'ENG'
              WHEN oq.subject = 'French' THEN 'WLANG'
              WHEN oq.subject = 'Grammar' THEN 'ENG'
              WHEN oq.subject = 'Historical Arts' THEN 'SOC'
              WHEN oq.subject = 'History' THEN 'SOC'
+             WHEN oq.subject = 'Humanities' THEN 'SOC'
              WHEN oq.subject = 'Mathematics' THEN 'MATH'
              WHEN oq.subject = 'Performing Arts' THEN 'ART'
              WHEN oq.subject = 'Phonics' THEN 'ENG'
@@ -93,7 +96,7 @@ FROM
        SELECT a.*
              ,subj.code_translation AS subject
              ,scope.code_translation AS scope
-             ,tags.tag
+             ,CAST(tags.tag AS VARCHAR) AS tag
              ,u.state_id
              ,u.first_name
              ,u.last_name
@@ -120,7 +123,8 @@ FROM
        LEFT OUTER JOIN standards.standards std
          ON a_std.standard_id = std.standard_id
        LEFT OUTER JOIN standards.standards parent
-         ON std.parent_standard_id = parent.standard_id                           
+         ON std.parent_standard_id = parent.standard_id     
+       WHERE a.deleted_at IS NULL                      
      ') oq            
      LEFT OUTER JOIN schools_assessed sch
        ON oq.assessment_id = sch.assessment_id
