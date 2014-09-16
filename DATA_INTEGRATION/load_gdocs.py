@@ -89,9 +89,11 @@ for record in wkbk_list:
 
     print 'Navigating to ' + url
     workbook = client.open_by_url(url)
-    print 'Now saving worksheets ' + str(start_sheet + 1) + ' through ' + str(end_sheet) + '...'
-    print 'Getting worksheet names...'
     sheet_names = workbook.worksheets()
+    print
+    
+    print 'Now saving worksheets ' + str(start_sheet + 1) + ' through ' + str(end_sheet) + '...'    
+    print
     print 'Let\'s go!'
     print
 
@@ -137,21 +139,15 @@ for record in wkbk_list:
     except:
         print '!!! ERROR LOADING FOLDER !!!'
         warn_email = """
-            DECLARE @MailProfileToSendVia sysname = 'DataRobot';
-            DECLARE @OperatorName sysname = 'DataRescueTeam';
-            DECLARE @Warning nvarchar(800);
-            DECLARE @Subject nvarchar(100);
+            DECLARE @body VARCHAR(MAX);
+            SET @body = 'The database load failed for ' + '""" + save_path + """' + '.  Check that the GDocs source still matches the destination table and reset if necessary.';
 
-            SET NOCOUNT ON;
-
-            SET @subject = '!!! GDocs sp_LoadFolder fail !!!'
-            SET @Warning = 'The database load failed for ' + '""" + save_path + """'
-                    
-            EXEC msdb..sp_notify_operator
-              @profile_name = @MailProfileToSendVia,
-              @name = @OperatorName,
-              @subject = @subject, 
-              @body = @warning;
+            EXEC msdb..sp_send_dbmail
+                @profile_name = 'DataRobot',
+                @recipients = 'cbini@teamschools.org',
+                @body = @body,
+                @subject = '!!! WARNING - GDocs sp_LoadFolder fail !!!',
+                @importance = 'High';
         """
         print warn_email
         cursor.execute(warn_email)
@@ -161,6 +157,7 @@ for record in wkbk_list:
 
     print
     print 'Next workbook!'
+    print
 
 print
 print 'All done!'
