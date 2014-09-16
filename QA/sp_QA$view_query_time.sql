@@ -11,8 +11,8 @@ IF OBJECT_ID('sp_QA$view_query_time', 'P') IS NOT NULL
     DROP PROCEDURE sp_QA$view_query_time;
 GO
 
-CREATE PROCEDURE sp_QA$view_query_time
-AS
+CREATE PROCEDURE sp_QA$view_query_time AS
+
 BEGIN  
   DECLARE @viewname SYSNAME
   --dynamic sql below
@@ -28,8 +28,8 @@ BEGIN
   --a cursor to loop over the views
   DECLARE csr CURSOR LOCAL FOR 
     SELECT views.name
-    FROM KIPP_NJ.sys.views views
-    JOIN KIPP_NJ.sys.extended_properties props
+    FROM KIPP_NJ.sys.views views WITH(NOLOCK)
+    JOIN KIPP_NJ.sys.extended_properties props WITH(NOLOCK)
       ON views.object_id = props.major_id
      AND props.name = 'has_static_cache'
      AND props.value != 'TRUE'

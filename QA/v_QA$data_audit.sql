@@ -24,8 +24,8 @@ FROM
                       WHEN s.lunchstatus IN ('F', 'P', 'R') THEN 'Pass'
                       ELSE 'Fail'
                     END AS assertion
-             FROM KIPP_NJ..STUDENTS s
-             JOIN KIPP_NJ..SCHOOLS sch
+             FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+             JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                ON s.schoolid = sch.school_number
              WHERE s.enroll_status = 0
              ) sub_1
@@ -56,8 +56,8 @@ FROM
                       WHEN s.ethnicity IN ('T','W','H','A','B','I') THEN 'Pass'
                       ELSE 'Fail'
                     END AS assertion
-             FROM KIPP_NJ..STUDENTS s
-             JOIN KIPP_NJ..SCHOOLS sch
+             FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+             JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                ON s.schoolid = sch.school_number
              WHERE s.enroll_status = 0
              ) sub_1
@@ -88,8 +88,8 @@ FROM
                       WHEN s.gender IN ('M', 'F') THEN 'Pass'
                       ELSE 'Fail'
                     END AS assertion
-             FROM KIPP_NJ..STUDENTS s
-             JOIN KIPP_NJ..SCHOOLS sch
+             FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+             JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                ON s.schoolid = sch.school_number
              WHERE s.enroll_status = 0
              ) sub_1
@@ -120,10 +120,10 @@ FROM
                       WHEN cust.spedlep IN ('No IEP', 'SPED', 'SPED SPEECH') THEN 'Pass'
                       ELSE 'Fail'
                     END AS assertion
-             FROM KIPP_NJ..STUDENTS s
-             JOIN KIPP_NJ..SCHOOLS sch
+             FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+             JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                ON s.schoolid = sch.school_number
-             JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+             JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH(NOLOCK)
                ON s.id = cust.studentid
              WHERE s.enroll_status = 0
              ) sub_1
@@ -154,8 +154,8 @@ FROM
                       WHEN s.state_studentnumber IS NOT NULL THEN 'Pass'
                       ELSE 'Fail'
                     END AS assertion
-             FROM KIPP_NJ..STUDENTS s
-             JOIN KIPP_NJ..SCHOOLS sch
+             FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+             JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                ON s.schoolid = sch.school_number
              WHERE s.enroll_status = 0
              ) sub_1
@@ -188,13 +188,13 @@ FROM
 		                    WHEN enr.course_number IS NULL THEN 'Fail'
 		                    ELSE 'Pass'
 		                  END AS assertion
-	           FROM KIPP_NJ..STUDENTS s
-	           JOIN KIPP_NJ..SCHOOLS sch
+	           FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+	           JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
 	             ON s.schoolid = sch.school_number
 	           LEFT OUTER JOIN 
 	               (SELECT cc.studentid
 			                    ,cc.course_number
-	                FROM KIPP_NJ..CC
+	                FROM KIPP_NJ..CC WITH(NOLOCK)
 	                WHERE cc.termid >= dbo.fn_Global_Term_Id()
 	                  AND cc.dateenrolled < GETDATE()
 	                  AND cc.dateleft > GETDATE()
@@ -238,8 +238,8 @@ FROM
                            ,sch.abbreviation AS school
                            ,sect.course_number
                            ,COUNT(*) AS N
-                     FROM KIPP_NJ..STUDENTS s
-                     JOIN KIPP_NJ..CC
+                     FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+                     JOIN KIPP_NJ..CC WITH(NOLOCK)
                        ON s.id = cc.studentid
                       --exclude dropped classes
                       AND cc.sectionid > 0
@@ -248,10 +248,10 @@ FROM
                       AND DATEDIFF(day, cc.dateenrolled, CURRENT_TIMESTAMP) >= 0
                       --isn't in future
                       AND DATEDIFF(day, CURRENT_TIMESTAMP, cc.dateleft) >= 0
-                     JOIN KIPP_NJ..SECTIONS sect
+                     JOIN KIPP_NJ..SECTIONS sect WITH(NOLOCK)
                        ON cc.sectionid = sect.id
                       AND cc.course_number  NOT IN ('HR','STUDY10')
-                     JOIN KIPP_NJ..SCHOOLS sch
+                     JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                        ON s.schoolid = sch.school_number
                      WHERE s.enroll_status = 0
                      GROUP BY s.id
@@ -287,8 +287,8 @@ FROM
                       WHEN s.fteid IS NOT NULL THEN 'Pass'
                       ELSE 'Fail'
                     END AS assertion
-             FROM KIPP_NJ..STUDENTS s
-             JOIN KIPP_NJ..SCHOOLS sch
+             FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+             JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                ON s.schoolid = sch.school_number
              WHERE s.enroll_status = 0
              ) sub_1
@@ -320,8 +320,8 @@ FROM
                       WHEN s.web_id IS NOT NULL OR s.student_web_id IS NOT NULL THEN 'Pass'
                       WHEN s.web_id IS NULL OR s.student_web_id IS NULL THEN 'Fail'
                     END AS assertion
-             FROM KIPP_NJ..STUDENTS s
-             JOIN KIPP_NJ..SCHOOLS sch
+             FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+             JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                ON s.schoolid = sch.school_number
              WHERE s.enroll_status = 0
              ) sub_1
@@ -342,7 +342,7 @@ SELECT 'Data Integration' AS audit_category
        END AS result
 FROM
       (SELECT DateDiff(hour, MAX(import_time), CURRENT_TIMESTAMP) AS AR_freshness      
-       FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_IMPORT_LOG].[dbo].[IMPORT_LOG]
+       FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_IMPORT_LOG].[dbo].[IMPORT_LOG] WITH(NOLOCK)
        ) sub
 
 UNION ALL
@@ -394,7 +394,7 @@ FROM
                               WHEN CAST(asmt.created_at AS DATE) = asmt.administered_at THEN 'Fail'
                               ELSE 'Pass'
                             END AS assertion
-                       FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments#static] asmt
+                       FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments#static] asmt WITH(NOLOCK)
                        WHERE asmt.tags LIKE '%FSA%'
                        --exclude deleted FSAs
                        AND deleted_at IS NULL
@@ -416,9 +416,9 @@ FROM
                             SELECT u.*
                             FROM public.users u
                             ') oq
-                    LEFT OUTER JOIN KIPP_NJ..TEACHERS tch
+                    LEFT OUTER JOIN KIPP_NJ..TEACHERS tch WITH(NOLOCK)
                       ON oq.local_user_id = CAST(tch.id AS VARCHAR)
-                    LEFT OUTER JOIN KIPP_NJ..SCHOOLS sch
+                    LEFT OUTER JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                       ON tch.schoolid = sch.school_number
                     WHERE oq.active = 1)
                 staff_decode
@@ -454,8 +454,8 @@ FROM
                       WHEN props.name IS NOT NULL THEN 'Pass'
                       WHEN props.name IS NULL THEN 'Fail'
                     END AS assertion
-              FROM KIPP_NJ.sys.views views
-              LEFT OUTER JOIN KIPP_NJ.sys.extended_properties props
+              FROM KIPP_NJ.sys.views views WITH(NOLOCK)
+              LEFT OUTER JOIN KIPP_NJ.sys.extended_properties props WITH(NOLOCK)
                 ON views.object_id = props.major_id
                AND props.name IN ('has_static_cache')
               WHERE is_ms_shipped=0 
@@ -513,7 +513,7 @@ FROM
                               WHEN len(asmt.tags) - len(replace(asmt.tags,',','')) >= 2 THEN 'Pass'
                               ELSE 'Fail'
                             END AS assertion
-                       FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments#static] asmt
+                       FROM [KIPP_NJ].[dbo].[ILLUMINATE$assessments#static] asmt WITH(NOLOCK)
                        WHERE asmt.tags LIKE '%FSA%'
                        --exclude deleted FSAs
                        AND deleted_at IS NULL
@@ -535,9 +535,9 @@ FROM
                             SELECT u.*
                             FROM public.users u
                             ') oq
-                    LEFT OUTER JOIN KIPP_NJ..TEACHERS tch
+                    LEFT OUTER JOIN KIPP_NJ..TEACHERS tch WITH(NOLOCK)
                       ON oq.local_user_id = CAST(tch.id AS VARCHAR)
-                    LEFT OUTER JOIN KIPP_NJ..SCHOOLS sch
+                    LEFT OUTER JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                       ON tch.schoolid = sch.school_number
                     WHERE oq.active = 1)
                 staff_decode
@@ -570,10 +570,10 @@ FROM
                        WHEN tests.outcome LIKE 'FAILED%' THEN 'Fail'
                        WHEN tests.outcome = 'PASSED' THEN 'Pass'
                      END AS assertion 
-              FROM KIPP_NJ..STUDENTS s
+              FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
              LEFT OUTER JOIN 
                (SELECT tests.*
-                FROM KIPP_NJ..[QA$student_login_tests] tests
+                FROM KIPP_NJ..[QA$student_login_tests] tests WITH(NOLOCK)
                 WHERE tests.product = 'FASTT Math'
                 AND CAST(tests.tested_on AS DATE) = CAST(GETDATE() AS DATE)
                ) tests

@@ -1,8 +1,8 @@
 USE [KIPP_NJ]
 GO
 
-ALTER VIEW ATT_MEM$att_percentages_cube AS
-SELECT TOP (100) PERCENT *
+--ALTER VIEW ATT_MEM$att_percentages_cube AS
+SELECT *
 FROM
      (SELECT CASE
              WHEN schoolid IS NULL THEN 'Region'
@@ -32,6 +32,5 @@ FROM
           GROUP BY CUBE (att.schoolid, s.grade_level)    
           ) sub
      ) sub2
-ORDER BY school
 
 

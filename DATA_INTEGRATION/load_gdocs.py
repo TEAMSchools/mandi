@@ -135,8 +135,28 @@ for record in wkbk_list:
         conn.commit()
         conn.close()
     except:
-        print "!!! ERROR LOADING FOLDER !!!"
-        print 'NARDO say: ' + cursor.fetchall()[0][0]
+        print '!!! ERROR LOADING FOLDER !!!'
+        warn_email = """
+            DECLARE @MailProfileToSendVia sysname = 'DataRobot';
+            DECLARE @OperatorName sysname = 'DataRescueTeam';
+            DECLARE @Warning nvarchar(800);
+            DECLARE @Subject nvarchar(100);
+
+            SET NOCOUNT ON;
+
+            SET @subject = '!!! GDocs sp_LoadFolder fail !!!'
+            SET @Warning = 'The database load failed for ' + '""" + save_path + """'
+                    
+            EXEC msdb..sp_notify_operator
+              @profile_name = @MailProfileToSendVia,
+              @name = @OperatorName,
+              @subject = @subject, 
+              @body = @warning;
+        """
+        print warn_email
+        cursor.execute(warn_email)
+        conn.commit()
+        conn.close()
         continue
 
     print
