@@ -22,10 +22,10 @@ WITH curterm AS (
         ,s.first_name AS stu_firstname
         ,s.last_name AS stu_lastname
         ,co.grade_level AS stu_grade_level
-        ,s.web_id
-        ,CASE WHEN s.web_password LIKE '{B64}%' THEN 'Changed By User' ELSE s.web_password END AS web_password
-        ,s.student_web_id
-        ,CASE WHEN s.student_web_password LIKE '{B64}%' THEN 'Changed By User' ELSE s.student_web_password END AS student_web_password
+        ,cs.DEFAULT_FAMILY_WEB_ID AS web_id
+        ,cs.DEFAULT_FAMILY_WEB_PASSWORD AS web_password
+        ,cs.default_student_web_id AS student_web_id
+        ,cs.default_student_web_password AS student_web_password
         ,s.street
         ,s.city
         ,s.home_phone
@@ -304,6 +304,7 @@ SELECT roster.*
       ,gr_wide.rc9_p1 AS rc9_cur_p_pct
       ,gr_wide.rc10_p1 AS rc10_cur_p_pct      
       
+      /*** EXAMS **/
       /*--E1--*/ -- Exams
       ,gr_wide.rc1_E1 AS rc1_exam
       ,gr_wide.rc2_E1 AS rc2_exam
@@ -369,12 +370,12 @@ SELECT roster.*
 --MAP$comprehensive#identifiers
       --Lexile (from MAP)
         --base for year
-      ,COALESCE(map_base.lexile_score, REPLACE(lex_base.RITtoReadingScore, 'BR', 'Beginning Reader')) AS lexile_base      
+      ,COALESCE(REPLACE(map_base.lexile_score, 'BR', 'Beginning Reader'), REPLACE(lex_base.RITtoReadingScore, 'BR', 'Beginning Reader')) AS lexile_base      
       ,COALESCE(map_base.testpercentile, lex_base.TestPercentile) AS lex_base_pct
         
       --current for year
-      ,REPLACE(lex_curr.RITtoReadingScore, 'BR', 'Beginning Reader') AS lexile_curr       
-      ,lex_curr.TestPercentile AS lex_curr_pct
+      ,COALESCE(REPLACE(lex_curr.RITtoReadingScore, 'BR', 'Beginning Reader'), REPLACE(map_base.lexile_score, 'BR', 'Beginning Reader')) AS lexile_curr       
+      ,COALESCE(lex_curr.TestPercentile, map_base.testpercentile) AS lex_curr_pct
 
 --Comments
 --PS$comments#static
@@ -445,7 +446,7 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
 
 --LEXILE
 LEFT OUTER JOIN MAP$best_baseline#static map_base WITH (NOLOCK)
-  ON roster.base_student_number = map_base.StudentID
+  ON roster.base_studentid = map_base.studentid
  AND map_base.MeasurementScale = 'Reading' 
  AND map_base.year = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)

@@ -185,64 +185,76 @@ FROM
      SELECT *
      FROM
          (
-          SELECT ps_studentid AS studentid
+          SELECT base.studentid                
                 ,CASE
+                  WHEN LTRIM(RTRIM(fallwinterspring)) IS NULL THEN 'f' 
                   WHEN LTRIM(RTRIM(fallwinterspring)) = 'Fall' THEN 'f' 
                   WHEN LTRIM(RTRIM(fallwinterspring)) = 'Winter' THEN 'w'
                   WHEN LTRIM(RTRIM(fallwinterspring)) = 'Spring' THEN 'spr'
                   ELSE NULL 
                  END + '_'
                   + CASE 
-                     WHEN fallwinterspring IN ('Winter','Spring') THEN CONVERT(VARCHAR,(map_year_academic + 1)) 
-                     ELSE CONVERT(VARCHAR,map_year_academic) END + '_'              
+                     WHEN fallwinterspring IN ('Winter','Spring') THEN CONVERT(VARCHAR,(base.year + 1)) 
+                     ELSE CONVERT(VARCHAR,base.year) END + '_'
                   + CASE
-                     WHEN measurementscale = 'Reading' THEN 'READ'
-                     WHEN measurementscale = 'Mathematics' THEN 'MATH'
-                     WHEN measurementscale = 'Language Usage' THEN 'LANG'
-                     WHEN measurementscale = 'Science - General Science' THEN 'GEN'
-                     WHEN measurementscale = 'Science - Concepts and Processes' THEN 'CP'
+                     WHEN base.measurementscale = 'Reading' THEN 'READ'
+                     WHEN base.measurementscale = 'Mathematics' THEN 'MATH'
+                     WHEN base.measurementscale = 'Language Usage' THEN 'LANG'
+                     WHEN base.measurementscale = 'Science - General Science' THEN 'GEN'
+                     WHEN base.measurementscale = 'Science - Concepts and Processes' THEN 'CP'
                      ELSE NULL
                     END
                   + '_RIT' AS pivot_on
-                ,testritscore AS value                        
+                ,CASE WHEN fallwinterspring = 'Fall' OR fallwinterspring IS NULL THEN base.testritscore ELSE map.testritscore END AS value
                 ,ROW_NUMBER() OVER (
                    PARTITION BY map.studentid, map.map_year, map.termname, CASE WHEN map.testname LIKE '%Algebra%' THEN 'Algebra' ELSE map.measurementscale END
                        ORDER BY map.teststartdate DESC) AS rn_curr
           FROM STUDENTS s WITH(NOLOCK)
-          JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
+          JOIN MAP$best_baseline#static base WITH(NOLOCK)
+            ON s.ID = base.studentid
+          LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
             ON s.ID = map.ps_studentid
-           AND map.testname NOT LIKE '%Algebra%'
-          WHERE s.ENROLL_STATUS = 0            
+           AND base.measurementscale = map.measurementscale
+           AND base.year = map.map_year_academic
+           AND map.rn = 1
+           AND map.testname NOT LIKE '%Algebra%'                    
+          WHERE s.ENROLL_STATUS = 0
      
           UNION ALL
      
-          SELECT ps_studentid AS studentid
+          SELECT base.studentid
                 ,CASE
+                  WHEN LTRIM(RTRIM(fallwinterspring)) IS NULL THEN 'f' 
                   WHEN LTRIM(RTRIM(fallwinterspring)) = 'Fall' THEN 'f' 
                   WHEN LTRIM(RTRIM(fallwinterspring)) = 'Winter' THEN 'w'
                   WHEN LTRIM(RTRIM(fallwinterspring)) = 'Spring' THEN 'spr'
                   ELSE NULL 
                  END + '_'
                   + CASE 
-                     WHEN fallwinterspring IN ('Winter','Spring') THEN CONVERT(VARCHAR,(map_year_academic + 1)) 
-                     ELSE CONVERT(VARCHAR,map_year_academic) END + '_'              
+                     WHEN fallwinterspring IN ('Winter','Spring') THEN CONVERT(VARCHAR,(base.year + 1)) 
+                     ELSE CONVERT(VARCHAR,base.year) END + '_'              
                   + CASE
-                     WHEN measurementscale = 'Reading' THEN 'READ'
-                     WHEN measurementscale = 'Mathematics' THEN 'MATH'
-                     WHEN measurementscale = 'Language Usage' THEN 'LANG'
-                     WHEN measurementscale = 'Science - General Science' THEN 'GEN'
-                     WHEN measurementscale = 'Science - Concepts and Processes' THEN 'CP'
+                     WHEN base.measurementscale = 'Reading' THEN 'READ'
+                     WHEN base.measurementscale = 'Mathematics' THEN 'MATH'
+                     WHEN base.measurementscale = 'Language Usage' THEN 'LANG'
+                     WHEN base.measurementscale = 'Science - General Science' THEN 'GEN'
+                     WHEN base.measurementscale = 'Science - Concepts and Processes' THEN 'CP'
                      ELSE NULL
                     END
                   + '_pctle' AS pivot_on
-                ,percentile_2011_norms AS value
+                ,CASE WHEN fallwinterspring = 'Fall' OR fallwinterspring IS NULL THEN base.testpercentile ELSE map.percentile_2011_norms END AS value
                 ,ROW_NUMBER() OVER (
                    PARTITION BY map.studentid, map.map_year, map.termname, CASE WHEN map.testname LIKE '%Algebra%' THEN 'Algebra' ELSE map.measurementscale END
                        ORDER BY map.teststartdate DESC) AS rn_curr
           FROM STUDENTS s WITH(NOLOCK)
-          JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
+          JOIN MAP$best_baseline#static base WITH(NOLOCK)
+            ON s.ID = base.studentid
+          LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
             ON s.ID = map.ps_studentid
-           AND map.testname NOT LIKE '%Algebra%'
+           AND base.measurementscale = map.measurementscale
+           AND base.year = map.map_year_academic
+           AND map.rn = 1
+           AND map.testname NOT LIKE '%Algebra%'                      
           WHERE s.ENROLL_STATUS = 0                   
          ) sub0
      WHERE rn_curr = 1

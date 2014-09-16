@@ -1,26 +1,3 @@
-/*
-PURPOSE:
-  Calculates merits bASed ON weeks without demerits (NCA Discipline)
-  
-MAINTENANCE:
-  Maintenance Yearly: change RT weeks use 
-                      SELECT TO_CHAR(to_date('04-SEP-12'), 'WW')
-                      AS week_number FROM dual to determine exact weeks
-                      
-  Dependent ON DISC$DEMERITS#NCA
-  
-MAJOR STRUCTURAL REVISIONS OR CHANGES:
-  9/18
-  created YYYYWW hash AND removed 'test if YYYY' logic
-  
-  8/21/14
-  Dude...just tore this apart
-  
-CREATED BY: AM2
-  
-ORIGIN DATE: Fall 2011
-*/
-
 USE KIPP_NJ
 GO
 
@@ -92,8 +69,8 @@ FROM
      SELECT DISTINCT
             r.student_number
            ,r.studentid
-           ,w.wk           
-           ,ISNULL(d.is_perfect, 1) AS is_perfect
+           ,w.wk                      
+           ,CASE WHEN w.is_past = 1 THEN ISNULL(d.is_perfect, 1) ELSE NULL END AS is_perfect
            ,CASE WHEN w.rt = 'RT1' AND w.is_past = 1 THEN ISNULL(d.is_perfect, 1) ELSE NULL END AS is_perfect_rt1
            ,CASE WHEN w.rt = 'RT2' AND w.is_past = 1 THEN ISNULL(d.is_perfect, 1) ELSE NULL END AS is_perfect_rt2
            ,CASE WHEN w.rt = 'RT3' AND w.is_past = 1 THEN ISNULL(d.is_perfect, 1) ELSE NULL END AS is_perfect_rt3
@@ -107,7 +84,7 @@ FROM
        ON 1 = 1
      LEFT OUTER JOIN demerits d
        ON r.studentid = d.studentid
-      AND w.wk = d.wk
+      AND w.wk = d.wk      
     ) sub
 GROUP BY sub.studentid
         ,sub.student_number

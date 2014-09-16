@@ -22,27 +22,31 @@ BEGIN
   SELECT *
   INTO [#PS$CUSTOM_STUDENTS|refresh]
   FROM OPENQUERY(PS_TEAM,'
-         SELECT id AS studentid      
-               ,DBMS_LOB.SUBSTR(guardianemail,2000,1) AS guardianemail
-               ,ps_customfields.getcf(''Students'',id,''SID'') AS SID
-               ,ps_customfields.getcf(''Students'',id,''Advisor'') AS advisor
-               ,ps_customfields.getcf(''Students'',id,''Advisor_Email'') AS advisor_email
-               ,ps_customfields.getcf(''Students'',id,''Advisor_Cell'') AS advisor_cell
-               ,ps_customfields.getcf(''Students'',id,''SPEDLEP'') AS SPEDLEP
-               ,ps_customfields.getcf(''Students'',id,''Mother_Cell'') AS mother_cell
-               ,ps_customfields.getcf(''Students'',id,''motherdayphone'') AS mother_day
-               ,ps_customfields.getcf(''Students'',id,''Mother_home_phone'') AS mother_home
-               ,ps_customfields.getcf(''Students'',id,''Father_Cell'') AS father_cell
-               ,ps_customfields.getcf(''Students'',id,''fatherdayphone'') AS father_day
-               ,ps_customfields.getcf(''Students'',id,''Father_home_phone'') AS father_home      
-               ,ps_customfields.getcf(''Students'',id,''Lunch_Status_1213'') AS Lunch_Status_1213
-               ,ps_customfields.getcf(''Students'',id,''Lunch_Balance'') AS lunch_balance
-               ,ps_customfields.getcf(''Students'',id,''DIYNickname'') AS diy_nickname
-               ,ps_customfields.getcf(''Students'',id,''504_status'') AS status_504
-               ,ps_customfields.getcf(''Students'',id,''SPEDLEP_CODES'') AS SPEDLEP_code
-               ,(CAST(transfercomment AS VARCHAR(50))) AS transfercomment
-         FROM students
-         ');
+    SELECT id AS studentid      
+          ,DBMS_LOB.SUBSTR(guardianemail,2000,1) AS guardianemail
+          ,ps_customfields.getcf(''Students'',id,''SID'') AS SID
+          ,ps_customfields.getcf(''Students'',id,''Advisor'') AS advisor
+          ,ps_customfields.getcf(''Students'',id,''Advisor_Email'') AS advisor_email
+          ,ps_customfields.getcf(''Students'',id,''Advisor_Cell'') AS advisor_cell
+          ,ps_customfields.getcf(''Students'',id,''SPEDLEP'') AS SPEDLEP
+          ,ps_customfields.getcf(''Students'',id,''Mother_Cell'') AS mother_cell
+          ,ps_customfields.getcf(''Students'',id,''motherdayphone'') AS mother_day
+          ,ps_customfields.getcf(''Students'',id,''Mother_home_phone'') AS mother_home
+          ,ps_customfields.getcf(''Students'',id,''Father_Cell'') AS father_cell
+          ,ps_customfields.getcf(''Students'',id,''fatherdayphone'') AS father_day
+          ,ps_customfields.getcf(''Students'',id,''Father_home_phone'') AS father_home      
+          ,ps_customfields.getcf(''Students'',id,''Lunch_Status_1213'') AS Lunch_Status_1213
+          ,ps_customfields.getcf(''Students'',id,''Lunch_Balance'') AS lunch_balance
+          ,ps_customfields.getcf(''Students'',id,''DIYNickname'') AS diy_nickname
+          ,ps_customfields.getcf(''Students'',id,''504_status'') AS status_504
+          ,ps_customfields.getcf(''Students'',id,''SPEDLEP_CODES'') AS SPEDLEP_code
+          ,(CAST(transfercomment AS VARCHAR(50))) AS transfercomment
+          ,ps_customfields.getcf(''Students'',id,''DEFAULT_STUDENT_WEB_ID'') AS DEFAULT_STUDENT_WEB_ID
+          ,ps_customfields.getcf(''Students'',id,''DEFAULT_STUDENT_WEB_PASSWORD'') AS DEFAULT_STUDENT_WEB_PASSWORD
+          ,ps_customfields.getcf(''Students'',id,''DEFAULT_FAMILY_WEB_ID'') AS DEFAULT_FAMILY_WEB_ID
+          ,ps_customfields.getcf(''Students'',id,''DEFAULT_FAMILY_WEB_PASSWORD'') AS DEFAULT_FAMILY_WEB_PASSWORD
+    FROM students s
+  ');
          
   --STEP 3: LOCK destination table exclusively load into a TEMPORARY staging table.
     --SELECT 1 FROM [] WITH (TABLOCKX);

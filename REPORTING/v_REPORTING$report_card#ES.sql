@@ -203,6 +203,16 @@ SELECT r.studentid
       ,daily.color_day_3
       ,daily.color_day_4
       ,daily.color_day_5
+      ,daily.color_am_1
+      ,daily.color_am_2
+      ,daily.color_am_3
+      ,daily.color_am_4
+      ,daily.color_am_5
+      ,daily.color_pm_1
+      ,daily.color_pm_2
+      ,daily.color_pm_3
+      ,daily.color_pm_4
+      ,daily.color_pm_5
       ,daily.hw_missing_days      
       ,ROUND(wk_totals.n_hw_wk,0) AS n_hw_wk
       ,ROUND(wk_totals.hw_complete_wk,0) AS hw_complete_wk

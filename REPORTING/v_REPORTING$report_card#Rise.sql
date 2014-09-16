@@ -379,53 +379,59 @@ SELECT roster.*
       -- 14-15
       ,map_all.spr_2015_read_pctle
       ,map_all.f_2014_read_pctle
-      ,map_all.spr_2015_read_rit
-      ,map_all.f_2014_read_rit            
-      ,map_all.f_2014_read_pctle - map_all.spr_2014_read_pctle AS sum_2014_read_pctle_chg
       -- 13-14
       ,map_all.spr_2014_read_pctle
       ,map_all.f_2013_read_pctle
-      ,map_all.spr_2014_read_rit
-      ,map_all.f_2013_read_rit            
-      ,map_all.f_2013_read_pctle - map_all.spr_2013_read_pctle AS sum_2013_read_pctle_chg
       -- 12-13
       ,map_all.spr_2013_read_pctle
       ,map_all.f_2012_read_pctle
-      ,map_all.spr_2013_read_rit
-      ,map_all.f_2012_read_rit            
-      ,map_all.f_2012_read_pctle - map_all.spr_2012_read_pctle AS sum_2012_read_pctle_chg
       -- 11-12
       ,map_all.spr_2012_read_pctle
       ,map_all.f_2011_read_pctle
-      ,map_all.spr_2012_read_rit
-      ,map_all.f_2011_read_rit            
-      ,map_all.f_2011_read_pctle - map_all.spr_2011_read_pctle AS sum_2011_read_pctle_chg
         
       --MAP math
       -- 14-15
       ,map_all.spr_2015_math_pctle
       ,map_all.f_2014_math_pctle
-      ,map_all.spr_2015_math_rit
-      ,map_all.f_2014_math_rit      
-      ,map_all.f_2014_math_pctle - map_all.spr_2014_math_pctle AS sum_2014_math_pctle_chg
       -- 13-14
       ,map_all.spr_2014_math_pctle
       ,map_all.f_2013_math_pctle
-      ,map_all.spr_2014_math_rit
-      ,map_all.f_2013_math_rit      
-      ,map_all.f_2013_math_pctle - map_all.spr_2013_math_pctle AS sum_2013_math_pctle_chg
       -- 12-13
       ,map_all.spr_2013_math_pctle
       ,map_all.f_2012_math_pctle
-      ,map_all.spr_2013_math_rit
-      ,map_all.f_2012_math_rit      
-      ,map_all.f_2012_math_pctle - map_all.spr_2012_math_pctle AS sum_2012_math_pctle_chg
       -- 11-12
       ,map_all.spr_2012_math_pctle
       ,map_all.f_2011_math_pctle
-      ,map_all.spr_2012_math_rit
-      ,map_all.f_2011_math_rit      
-      ,map_all.f_2011_math_pctle - map_all.spr_2011_math_pctle AS sum_2011_math_pctle_chg
+
+      --MAP science
+      -- 14-15
+      ,map_all.spr_2015_gen_pctle
+      ,map_all.f_2014_gen_pctle
+      -- 13-14
+      ,map_all.spr_2014_gen_pctle
+      ,map_all.f_2013_gen_pctle
+      -- 12-13
+      ,map_all.spr_2013_gen_pctle
+      ,map_all.f_2012_gen_pctle
+      -- 11-12
+      ,map_all.spr_2012_gen_pctle
+      ,map_all.f_2011_gen_pctle
+
+      --MAP science
+      -- 14-15
+      ,map_all.spr_2015_lang_pctle
+      ,map_all.f_2014_lang_pctle
+      -- 13-14
+      ,map_all.spr_2014_lang_pctle
+      ,map_all.f_2013_lang_pctle
+      -- 12-13
+      ,map_all.spr_2013_lang_pctle
+      ,map_all.f_2012_lang_pctle
+      -- 11-12
+      ,map_all.spr_2012_lang_pctle
+      ,map_all.f_2011_lang_pctle
+
+
 
 --Literacy tracking
 --MAP$comprehensive#identifiers
