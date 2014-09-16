@@ -65,42 +65,42 @@ BEGIN
   SET @sql_demog_audits = '
     SELECT audit_type
           ,result
-    FROM KIPP_NJ..QA$data_audit
+    FROM KIPP_NJ..QA$data_audit WITH(NOLOCK)
     WHERE audit_category = ''Demographic''
     '
 
   SET @sql_psconfig_audits = '
     SELECT audit_type
           ,result
-    FROM KIPP_NJ..QA$data_audit
+    FROM KIPP_NJ..QA$data_audit WITH(NOLOCK)
     WHERE audit_category = ''PS Config''
     '                
 
   SET @sql_warehouse_audits = '
     SELECT audit_type
           ,result
-    FROM KIPP_NJ..QA$data_audit
+    FROM KIPP_NJ..QA$data_audit WITH(NOLOCK)
     WHERE audit_category = ''Data Warehouse Config''
     '                
 
   SET @sql_illuminate_audits = '
     SELECT audit_type
           ,result
-    FROM KIPP_NJ..QA$data_audit
+    FROM KIPP_NJ..QA$data_audit WITH(NOLOCK)
     WHERE audit_category = ''Illuminate''
   '
 
   SET @sql_account_audits = '
     SELECT audit_type
           ,result
-    FROM KIPP_NJ..QA$data_audit
+    FROM KIPP_NJ..QA$data_audit WITH(NOLOCK)
     WHERE audit_category = ''Student Account''
   '
 
   SET @sql_integ_audits = '
     SELECT audit_type
           ,result
-    FROM KIPP_NJ..QA$data_audit
+    FROM KIPP_NJ..QA$data_audit WITH(NOLOCK)
     WHERE audit_category = ''Data Integration''
     '                
 
@@ -112,7 +112,7 @@ BEGIN
             WHEN SUBSTRING(run_duration, 1, 2) = ''00'' THEN STUFF(SUBSTRING(run_duration, 3, 8),3,0,'':'')
             ELSE STUFF(STUFF(run_duration,3,0,'':''),6,0,'':'') 
           END AS run_time
-   FROM master..QA$successful_job_history
+   FROM master..QA$successful_job_history WITH(NOLOCK)
    WHERE rn = 1
      AND (job_name LIKE ''KIPP_NJ%''
       OR job_name LIKE ''PS%''
@@ -129,8 +129,8 @@ BEGIN
           (SELECT j.name AS job_name
                 ,msdb.dbo.agent_datetime(run_date, run_time) AS run_date_format
                 ,h.*
-          FROM msdb.dbo.sysjobs j 
-          JOIN msdb.dbo.sysjobhistory h 
+          FROM msdb.dbo.sysjobs j WITH(NOLOCK)
+          JOIN msdb.dbo.sysjobhistory h WITH(NOLOCK)
            ON j.job_id = h.job_id 
           WHERE j.enabled = 1 
             AND msdb.dbo.agent_datetime(run_date, run_time) >= DATEADD(day, -1, GETDATE())
@@ -146,7 +146,7 @@ BEGIN
   SET @sql_views = '
     SELECT object_name AS "non-cached views"
           ,CAST(CAST(refresh_time / 1000.0 AS NUMERIC(8,2)) AS NVARCHAR(MAX)) AS "seconds to refresh"
-    FROM KIPP_NJ.dbo.QA$response_time_results
+    FROM KIPP_NJ.dbo.QA$response_time_results WITH(NOLOCK)
     WHERE batch_id =' + CAST(@return_value AS VARCHAR)
 
   --sp_TableToHTML is a procedure that TAKES a SQL statement and returns HTML

@@ -24,7 +24,7 @@ ORIGIN DATE: Fall 2011
 USE KIPP_NJ
 GO
 
---ALTER VIEW DISC$perfect_weeks#NCA AS
+ALTER VIEW DISC$perfect_weeks#NCA AS
 
 WITH roster AS (
   SELECT co.student_number
@@ -59,6 +59,15 @@ WITH roster AS (
     AND mem.calendardate >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
  )
 
+,curterm AS (
+  SELECT time_per_name
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE identifier = 'RT' 
+    AND start_date <= GETDATE()
+    AND end_date >= GETDATE()
+    AND schoolid = 73253
+ )
+
 ,demerits AS (
   SELECT demerits.studentid
         ,DATEPART(WEEK,demerits.entry_date) AS wk
@@ -77,6 +86,7 @@ SELECT sub.studentid
       ,SUM(is_perfect_rt2) AS perfect_wks_rt2
       ,SUM(is_perfect_rt3) AS perfect_wks_rt3
       ,SUM(is_perfect_rt4) AS perfect_wks_rt4
+      ,SUM(is_perfect_cur) AS perfect_wks_cur
 FROM
     (
      SELECT DISTINCT
@@ -88,10 +98,13 @@ FROM
            ,CASE WHEN w.rt = 'RT2' AND w.is_past = 1 THEN ISNULL(d.is_perfect, 1) ELSE NULL END AS is_perfect_rt2
            ,CASE WHEN w.rt = 'RT3' AND w.is_past = 1 THEN ISNULL(d.is_perfect, 1) ELSE NULL END AS is_perfect_rt3
            ,CASE WHEN w.rt = 'RT4' AND w.is_past = 1 THEN ISNULL(d.is_perfect, 1) ELSE NULL END AS is_perfect_rt4
+           ,CASE WHEN w.rt = curterm.time_per_name AND w.is_past = 1 THEN ISNULL(d.is_perfect, 1) ELSE NULL END AS is_perfect_cur
      FROM roster r
      JOIN weeks w
        ON r.entrydate <= w.calendardate
       AND r.exitdate >= w.calendardate
+     JOIN curterm
+       ON 1 = 1
      LEFT OUTER JOIN demerits d
        ON r.studentid = d.studentid
       AND w.wk = d.wk

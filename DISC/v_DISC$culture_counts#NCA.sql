@@ -52,6 +52,7 @@ WITH curterm AS (
         ,(perfect.perfect_wks_rt2 * 3) AS perfect_week_merits_rt2
         ,(perfect.perfect_wks_rt3 * 3) AS perfect_week_merits_rt3
         ,(perfect.perfect_wks_rt4 * 3) AS perfect_week_merits_rt4        
+        ,(perfect.perfect_wks_cur * 3) AS perfect_week_merits_cur
   FROM DISC$perfect_weeks#NCA perfect WITH(NOLOCK)
  )
 
@@ -165,13 +166,13 @@ SELECT co.studentid
       ,ISNULL(pw.perfect_week_merits_rt2,0) AS perfect_week_merits_rt2
       ,ISNULL(pw.perfect_week_merits_rt3,0) AS perfect_week_merits_rt3
       ,ISNULL(pw.perfect_week_merits_rt4,0) AS perfect_week_merits_rt4
-      --,ISNULL(pw.perfect_week_merits_cur,0) AS perfect_week_merits_cur
+      ,ISNULL(pw.perfect_week_merits_cur,0) AS perfect_week_merits_cur
       ,ISNULL(tm.teacher_merits_y1,0) + ISNULL(pw.perfect_week_merits_y1,0) AS total_merits_y1
       ,ISNULL(tm.teacher_merits_rt1,0) + ISNULL(pw.perfect_week_merits_rt1,0) AS total_merits_rt1
       ,ISNULL(tm.teacher_merits_rt2,0) + ISNULL(pw.perfect_week_merits_rt2,0) AS total_merits_rt2
       ,ISNULL(tm.teacher_merits_rt3,0) + ISNULL(pw.perfect_week_merits_rt3,0) AS total_merits_rt3
       ,ISNULL(tm.teacher_merits_rt4,0) + ISNULL(pw.perfect_week_merits_rt4,0) AS total_merits_rt4
-      ,ISNULL(tm.teacher_merits_cur,0) AS total_merits_cur
+      ,ISNULL(tm.teacher_merits_cur,0) + ISNULL(pw.perfect_week_merits_cur,0) AS total_merits_cur
       ,ISNULL(d.total_demerits_y1,0) AS total_demerits_y1
       ,ISNULL(d.total_demerits_rt1,0) AS total_demerits_rt1
       ,ISNULL(d.total_demerits_rt2,0) AS total_demerits_rt2

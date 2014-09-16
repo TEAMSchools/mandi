@@ -104,8 +104,7 @@ SELECT roster.*
       ,gpa_long.GPA_all AS gpa_curterm
       ,nca_gpa.gpa_Y1
       /*--Cumulative--*/
-      ,gpa_cumulative.cumulative_Y1_gpa
-      --,gpa_cumulative.audit_trail AS cumulative_gpa_audit_trail
+      ,gpa_cumulative.cumulative_Y1_gpa      
       
 --Course Grades
 --GRADES$wide_all
@@ -361,32 +360,20 @@ SELECT roster.*
       ,replace(convert(varchar,convert(Money, ar_curr.words_goal * 6),1),'.00','') AS words_goal_yr
       ,ar_yr.points AS points_yr
       
-      /*--AR current--*/
-      /*--UPDATE TERM in JOIN--*/
+      /*--AR current--*/      
       ,replace(convert(varchar,convert(Money, ar_curr.words),1),'.00','') AS words_read_cur_term
       ,replace(convert(varchar,convert(Money, ar_curr.words_goal),1),'.00','') AS words_goal_cur_term
       ,ar_curr.points AS points_curterm
 
 --Literacy tracking
 --MAP$comprehensive#identifiers
-      --Lexile (from MAP) -- update year in JOIN
+      --Lexile (from MAP)
         --base for year
-      ,CASE
-        WHEN lex_base.RITtoReadingScore = 'BR' THEN 'Beginning Reader'
-        ELSE lex_base.RITtoReadingScore
-       END AS lexile_base
-      --,lex_fall.RITtoReadingMin AS lexile_base_min
-      --,lex_fall.RITtoReadingMax AS lexile_base_max
-      ,lex_base.TestPercentile AS lex_base_pct
+      ,COALESCE(map_base.lexile_score, REPLACE(lex_base.RITtoReadingScore, 'BR', 'Beginning Reader')) AS lexile_base      
+      ,COALESCE(map_base.testpercentile, lex_base.TestPercentile) AS lex_base_pct
         
-      /*--UPDATE TERM in JOIN--*/
       --current for year
-      ,CASE
-        WHEN lex_curr.RITtoReadingScore = 'BR' THEN 'Beginning Reader'
-        ELSE lex_curr.RITtoReadingScore
-       END AS lexile_curr
-      --,lex_curr.RITtoReadingMin AS lexile_curr_min
-      --,lex_curr.RITtoReadingMax AS lexile_curr_max
+      ,REPLACE(lex_curr.RITtoReadingScore, 'BR', 'Beginning Reader') AS lexile_curr       
       ,lex_curr.TestPercentile AS lex_curr_pct
 
 --Comments
@@ -410,18 +397,16 @@ SELECT roster.*
       ,merits.teacher_merits_y1 AS teacher_merits_yr
       ,merits.perfect_week_merits_y1 AS perfect_week_yr
       ,merits.total_merits_y1 AS total_merits_yr
-       /*--Current--*/
-       /*--UPDATE FIELD for current term--*/
-      ,merits.teacher_merits_rt4         AS teacher_merits_curr
-      ,merits.perfect_week_merits_rt4    AS perfect_week_curr
-      ,merits.total_merits_rt4           AS total_merits_curr
+       /*--Current--*/       
+      ,merits.teacher_merits_cur AS teacher_merits_curr
+      ,merits.perfect_week_merits_cur AS perfect_week_curr
+      ,merits.total_merits_cur AS total_merits_curr
       
     /*--Demerits--*/
        /*--Year--*/
       ,merits.total_demerits_y1
-       /*--Current--*/
-       /*--UPDATE FIELD for current term--*/
-      ,merits.total_demerits_rt4         AS tier1_demerits_curr
+       /*--Current--*/       
+      ,merits.total_demerits_cur
 
 FROM roster WITH (NOLOCK)
 
@@ -443,6 +428,10 @@ LEFT OUTER JOIN GPA$detail_long gpa_long WITH(NOLOCK)
   ON roster.base_studentid = gpa_long.studentid
  AND roster.curterm = gpa_long.term
 
+--MERITS & DEMERITS
+LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
+  ON roster.base_studentid = merits.studentid
+
 --ED TECH
 --ACCELERATED READER
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
@@ -455,6 +444,10 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 
 --LEXILE
+LEFT OUTER JOIN MAP$best_baseline#static map_base WITH (NOLOCK)
+  ON roster.base_student_number = map_base.StudentID
+ AND map_base.MeasurementScale = 'Reading' 
+ AND map_base.year = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.base_student_number = lex_base.StudentID
  AND lex_base.MeasurementScale = 'Reading'
@@ -510,8 +503,4 @@ LEFT OUTER JOIN comments comment_rc10 WITH (NOLOCK)
 LEFT OUTER JOIN comments comment_adv WITH (NOLOCK)
   ON roster.base_studentid = comment_adv.studentid
  AND comment_adv.course_number = 'HR'
- AND comment_adv.term = roster.curterm 
-
---MERITS & DEMERITS
-LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
-  ON roster.base_studentid = merits.studentid
+ AND comment_adv.term = roster.curterm
