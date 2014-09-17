@@ -377,11 +377,11 @@ SELECT ROW_NUMBER() OVER(
      ,fp_curr.read_lvl AS end_letter
        --GLQ
      ,CASE
-       WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ
-       ELSE fp_curr.GLEQ
+       WHEN fp_base.GLEQ IS NOT NULL THEN ROUND(fp_base.GLEQ,1)
+       ELSE ROUND(fp_curr.GLEQ,1)
       END AS Start_GLEQ
-     ,fp_curr.GLEQ AS End_GLEQ
-     ,(fp_curr.GLEQ - CASE WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ ELSE fp_curr.GLEQ END) AS GLEQ_Growth
+     ,ROUND(fp_curr.GLEQ,1) AS End_GLEQ
+     ,ROUND((fp_curr.GLEQ - CASE WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ ELSE fp_curr.GLEQ END),1) AS GLEQ_Growth
        --Level #
      ,CASE
        WHEN fp_base.lvl_num IS NOT NULL THEN fp_base.lvl_num
@@ -734,4 +734,4 @@ LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
 LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
   ON roster.id = disc_recent.studentid
 LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)
-  ON roster.id = disc_count.base_studentid
+  ON roster.id = disc_count.studentid

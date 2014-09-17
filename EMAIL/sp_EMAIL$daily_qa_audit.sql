@@ -7,12 +7,12 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-IF OBJECT_ID('sp_EMAIL$daily_qa_audit', 'P') IS NOT NULL
-    DROP PROCEDURE sp_EMAIL$daily_qa_audit;
-GO
+--IF OBJECT_ID('sp_EMAIL$daily_qa_audit', 'P') IS NOT NULL
+--    DROP PROCEDURE sp_EMAIL$daily_qa_audit;
+--GO
 
-CREATE PROCEDURE sp_EMAIL$daily_qa_audit
-AS
+ALTER PROCEDURE sp_EMAIL$daily_qa_audit AS 
+
 BEGIN
   
   DECLARE

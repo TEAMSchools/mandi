@@ -40,9 +40,9 @@ WITH curterm AS (
         ,co.grade_level AS stu_grade_level
         ,s.team AS travel_group            
         ,s.web_id
-        ,NULL AS web_password
+        ,cs.default_family_web_password AS web_password
         ,s.student_web_id
-        ,NULL AS student_web_password
+        ,cs.default_student_web_password AS student_web_password
         ,s.street
         ,s.city
         ,s.home_phone
@@ -200,16 +200,7 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_S1  END AS rc5_cur_s_pct
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_S1  END AS rc6_cur_s_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_S1  END AS rc7_cur_s_pct
-      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_S1  END AS rc8_cur_s_pct
-      ----A
-      --,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_A1  END AS rc1_cur_assess_pct
-      --,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_A1  END AS rc2_cur_assess_pct
-      --,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_A1  END AS rc3_cur_assess_pct
-      --,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_A1  END AS rc4_cur_assess_pct
-      --,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_A1  END AS rc5_cur_assess_pct
-      --,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_A1  END AS rc6_cur_assess_pct
-      --,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_A1  END AS rc7_cur_assess_pct
-      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_A1  END AS rc8_cur_assess_pct
+      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_S1  END AS rc8_cur_s_pct      
       --Q
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q1  END AS rc1_cur_qual_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q1  END AS rc2_cur_qual_pct
@@ -373,8 +364,7 @@ SELECT roster.*
       ,promo.promo_hw_rise AS promo_status_hw
 
 --MAP scores
---MAP$wide_all
-     
+--MAP$wide_all     
       --MAP reading      
       -- 14-15
       ,map_all.spr_2015_read_pctle
@@ -431,14 +421,11 @@ SELECT roster.*
       ,map_all.spr_2012_lang_pctle
       ,map_all.f_2011_lang_pctle
 
-
-
 --Literacy tracking
 --MAP$comprehensive#identifiers
 --LIT$FP_test_events_long#identifiers#static
 
-     --F&P
-     --update terms in JOIN
+     --F&P     
      ,fp_base.read_lvl AS fp_letter_base
      ,fp_curr.read_lvl AS fp_letter_curr
      --GLEQ     
@@ -530,7 +517,6 @@ SELECT roster.*
 
 --Accelerated Reader
 --CURRENT = combination of hexemeters valid for current trimester
---update terms in JOIN
    --AR totals
      --year
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_yr.words),1),'.00','') AS words_read_yr
@@ -631,38 +617,13 @@ SELECT roster.*
       ,CASE
         WHEN (disc_count.iss + disc_count.oss) > 0 THEN 'Yes'
         ELSE 'No'
-       END AS ISS_OSS
-      
-      /*--UPDATE FIELD FOR CURRENT TERM--*/      
-      --T1--
-      --/*
-      ,ISNULL(disc_count.rt1_silent_lunches,0) AS cur_silent_lunches
-      ,ISNULL(disc_count.rt1_detentions,0) AS cur_detentions
+       END AS ISS_OSS      
+      ,ISNULL(disc_count.cur_silent_lunches,0) AS cur_silent_lunches
+      ,ISNULL(disc_count.cur_detentions,0) AS cur_detentions
       ,CASE
-        WHEN roster.stu_grade_level <= 6 THEN ISNULL(disc_count.rt1_bench,0)
-        ELSE ISNULL(disc_count.rt1_choices,0)
-       END AS bench_choices_cur
-      --*/
-      
-      --T2--
-      /*
-      ,ISNULL(disc_count.rt2_silent_lunches,0) AS cur_silent_lunches
-      ,ISNULL(disc_count.rt2_detentions,0) AS cur_detentions
-      ,CASE
-        WHEN roster.stu_grade_level <= 6 THEN ISNULL(disc_count.rt2_bench,0)
-        ELSE ISNULL(disc_count.rt2_choices,0)
-       END AS bench_choices_cur
-      --*/
-            
-      --T3--
-      /*
-      ,ISNULL(disc_count.rt3_silent_lunches,0) AS cur_silent_lunches
-      ,ISNULL(disc_count.rt3_detentions,0) AS cur_detentions
-      ,CASE
-        WHEN roster.stu_grade_level <= 6 THEN ISNULL(disc_count.rt3_bench,0)
-        ELSE ISNULL(disc_count.rt3_choices,0)
-       END AS bench_choices_cur
-      --*/       
+        WHEN roster.stu_grade_level <= 6 THEN ISNULL(disc_count.cur_bench,0)
+        ELSE ISNULL(disc_count.cur_choices,0)
+       END AS bench_choices_cur      
 
 --Comments
 --PS$comments_gradebook
@@ -716,7 +677,7 @@ LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH (NOLOCK)
 LEFT OUTER JOIN MAP$wide_all map_all WITH (NOLOCK)
   ON roster.base_studentid = map_all.studentid
   
---LITERACY -- upadate parameters for current term
+--LITERACY
 --F&P
 LEFT OUTER JOIN LIT$test_events#identifiers fp_base WITH (NOLOCK)
   ON roster.base_student_number = fp_base.student_number
@@ -748,7 +709,7 @@ LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
 
 --DISCIPLINE
 LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)
-  ON roster.base_studentid = disc_count.base_studentid
+  ON roster.base_studentid = disc_count.studentid
 LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
   ON roster.base_studentid = disc_recent.studentid
  AND disc_recent.log_type = 'Discipline'
@@ -767,6 +728,11 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
   ON roster.base_studentid = ar_curr2.studentid 
  AND ar_curr2.time_period_name = (SELECT hex_b FROM cur_hex WITH(NOLOCK))
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
+
+--Rise XC
+LEFT OUTER JOIN RutgersReady..XC$activities_wide xc WITH(NOLOCK)
+  ON roster.base_student_number = xc.student_number
+ AND xc.yearid = dbo.fn_Global_Term_Id()
 
 /*
 --GRADEBOOK COMMMENTS
@@ -814,8 +780,4 @@ LEFT OUTER JOIN comments comment_adv WITH (NOLOCK)
   ON roster.base_studentid = comment_adv.studentid
  AND comment_adv.course_number = 'HR'
  AND comment_adv.term = roster.curterm 
-*/
-
-LEFT OUTER JOIN RutgersReady..XC$activities_wide xc WITH(NOLOCK)
-  ON roster.base_student_number = xc.student_number
- AND xc.yearid = dbo.fn_Global_Term_Id()
+--*/

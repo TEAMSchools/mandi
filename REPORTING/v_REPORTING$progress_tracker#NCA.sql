@@ -602,9 +602,9 @@ FROM
             ,merits.total_demerits_rt4    AS demerits_curr /*--UPDATE FIELD FOR CURRENT TERM--*/
             ,disc.subtype
             ,disc.entry_date
-            ,dcounts.ISS AS disc_ISS
-            ,dcounts.OSS AS disc_OSS
-            ,dcounts.detentions
+            ,merits.iss_y1 AS disc_ISS
+            ,merits.OSS_y1 AS disc_OSS
+            ,merits.detention_y1 AS detentions
             ,dcounts.class_removal
             
       --College test scores
@@ -727,7 +727,7 @@ FROM
        AND disc.rn = 1
        AND disc.logtypeid = 3023      
       LEFT OUTER JOIN DISC$counts_wide dcounts WITH (NOLOCK)
-        ON roster.studentid = dcounts.base_studentid             
+        ON roster.studentid = dcounts.studentid             
       
       --Test scores
       --LEFT OUTER JOIN KTC$highest_scores_wide ktc WITH(NOLOCK)

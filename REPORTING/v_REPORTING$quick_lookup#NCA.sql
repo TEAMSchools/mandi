@@ -70,11 +70,11 @@ SELECT s.student_number AS SN
       ,merits.total_demerits_rt2 AS Demerits_Q2
       ,merits.total_demerits_rt3 AS Demerits_Q3
       ,merits.total_demerits_rt4 AS Demerits_Q4
-      ,dcounts.detentions AS Detentions_Y1
-      ,dcounts.rt1_detentions AS Detentions_Q1
-      ,dcounts.rt2_detentions AS Detentions_Q2
-      ,dcounts.rt3_detentions AS Detentions_Q3
-      ,dcounts.rt4_detentions AS Detentions_Q4
+      ,merits.detention_y1 AS Detentions_Y1
+      ,merits.detention_rt1 AS Detentions_Q1
+      ,merits.detention_rt2 AS Detentions_Q2
+      ,merits.detention_rt3 AS Detentions_Q3
+      ,merits.detention_rt4 AS Detentions_Q4
 
 --Reading
       ,ar.AR_Pts_Q1
@@ -98,8 +98,6 @@ LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
   ON s.id = cs.studentid
 LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
   ON s.id = merits.studentid
-LEFT OUTER JOIN DISC$counts_wide dcounts WITH (NOLOCK)
-  ON s.ID = dcounts.base_studentid
 LEFT OUTER JOIN ATT_MEM$attendance_counts att WITH (NOLOCK)
   ON s.id = att.studentid
 LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)

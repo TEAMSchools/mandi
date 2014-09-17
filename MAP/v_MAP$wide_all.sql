@@ -180,85 +180,94 @@ SELECT studentid
       ,[f_2008_CP_RIT]
       ,[f_2008_CP_pctle]     
 --*/
-FROM      
+FROM       
     (
-     SELECT *
-     FROM
-         (
-          SELECT base.studentid                
-                ,CASE
-                  WHEN LTRIM(RTRIM(fallwinterspring)) IS NULL THEN 'f' 
-                  WHEN LTRIM(RTRIM(fallwinterspring)) = 'Fall' THEN 'f' 
-                  WHEN LTRIM(RTRIM(fallwinterspring)) = 'Winter' THEN 'w'
-                  WHEN LTRIM(RTRIM(fallwinterspring)) = 'Spring' THEN 'spr'
-                  ELSE NULL 
-                 END + '_'
-                  + CASE 
-                     WHEN fallwinterspring IN ('Winter','Spring') THEN CONVERT(VARCHAR,(base.year + 1)) 
-                     ELSE CONVERT(VARCHAR,base.year) END + '_'
-                  + CASE
-                     WHEN base.measurementscale = 'Reading' THEN 'READ'
-                     WHEN base.measurementscale = 'Mathematics' THEN 'MATH'
-                     WHEN base.measurementscale = 'Language Usage' THEN 'LANG'
-                     WHEN base.measurementscale = 'Science - General Science' THEN 'GEN'
-                     WHEN base.measurementscale = 'Science - Concepts and Processes' THEN 'CP'
-                     ELSE NULL
-                    END
-                  + '_RIT' AS pivot_on
-                ,CASE WHEN fallwinterspring = 'Fall' OR fallwinterspring IS NULL THEN base.testritscore ELSE map.testritscore END AS value
-                ,ROW_NUMBER() OVER (
-                   PARTITION BY map.studentid, map.map_year, map.termname, CASE WHEN map.testname LIKE '%Algebra%' THEN 'Algebra' ELSE map.measurementscale END
-                       ORDER BY map.teststartdate DESC) AS rn_curr
-          FROM STUDENTS s WITH(NOLOCK)
-          JOIN MAP$best_baseline#static base WITH(NOLOCK)
-            ON s.ID = base.studentid
-          LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
-            ON s.ID = map.ps_studentid
-           AND base.measurementscale = map.measurementscale
-           AND base.year = map.map_year_academic
-           AND map.rn = 1
-           AND map.testname NOT LIKE '%Algebra%'                    
-          WHERE s.ENROLL_STATUS = 0
+     SELECT base.studentid                
+           ,CASE
+             WHEN LTRIM(RTRIM(fallwinterspring)) IS NULL THEN 'f' 
+             WHEN LTRIM(RTRIM(fallwinterspring)) = 'Fall' THEN 'f' 
+             WHEN LTRIM(RTRIM(fallwinterspring)) = 'Winter' THEN 'w'
+             WHEN LTRIM(RTRIM(fallwinterspring)) = 'Spring' THEN 'spr'
+             ELSE NULL 
+            END + '_'
+             + CASE 
+                WHEN fallwinterspring IN ('Winter','Spring') THEN CONVERT(VARCHAR,(base.year + 1)) 
+                ELSE CONVERT(VARCHAR,base.year) END + '_'
+             + CASE
+                WHEN base.measurementscale = 'Reading' THEN 'READ'
+                WHEN base.measurementscale = 'Mathematics' THEN 'MATH'
+                WHEN base.measurementscale = 'Language Usage' THEN 'LANG'
+                WHEN base.measurementscale = 'Science - General Science' THEN 'GEN'
+                WHEN base.measurementscale = 'Science - Concepts and Processes' THEN 'CP'
+                ELSE NULL
+               END
+             + '_RIT' AS pivot_on
+           ,CASE WHEN fallwinterspring = 'Fall' OR fallwinterspring IS NULL THEN COALESCE(base.testritscore, map.testritscore) ELSE map.testritscore END AS value              
+     FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+     JOIN (
+           SELECT 'Fall' AS term
+           UNION
+           SELECT 'Winter'
+           UNION
+           SELECT 'Spring'
+          ) terms
+       ON 1 = 1
+     JOIN MAP$best_baseline#static base WITH(NOLOCK)
+       ON co.studentid = base.studentid
+      AND co.year = base.year 
+     LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
+       ON co.studentid = map.ps_studentid
+      AND base.measurementscale = map.measurementscale 
+      AND base.year = map.map_year_academic
+      AND terms.term = map.fallwinterspring
+      AND map.rn = 1
+      AND map.testname NOT LIKE '%Algebra%'                      
+     WHERE co.rn = 1                    
      
-          UNION ALL
+     UNION ALL
      
-          SELECT base.studentid
-                ,CASE
-                  WHEN LTRIM(RTRIM(fallwinterspring)) IS NULL THEN 'f' 
-                  WHEN LTRIM(RTRIM(fallwinterspring)) = 'Fall' THEN 'f' 
-                  WHEN LTRIM(RTRIM(fallwinterspring)) = 'Winter' THEN 'w'
-                  WHEN LTRIM(RTRIM(fallwinterspring)) = 'Spring' THEN 'spr'
-                  ELSE NULL 
-                 END + '_'
-                  + CASE 
-                     WHEN fallwinterspring IN ('Winter','Spring') THEN CONVERT(VARCHAR,(base.year + 1)) 
-                     ELSE CONVERT(VARCHAR,base.year) END + '_'              
-                  + CASE
-                     WHEN base.measurementscale = 'Reading' THEN 'READ'
-                     WHEN base.measurementscale = 'Mathematics' THEN 'MATH'
-                     WHEN base.measurementscale = 'Language Usage' THEN 'LANG'
-                     WHEN base.measurementscale = 'Science - General Science' THEN 'GEN'
-                     WHEN base.measurementscale = 'Science - Concepts and Processes' THEN 'CP'
-                     ELSE NULL
-                    END
-                  + '_pctle' AS pivot_on
-                ,CASE WHEN fallwinterspring = 'Fall' OR fallwinterspring IS NULL THEN base.testpercentile ELSE map.percentile_2011_norms END AS value
-                ,ROW_NUMBER() OVER (
-                   PARTITION BY map.studentid, map.map_year, map.termname, CASE WHEN map.testname LIKE '%Algebra%' THEN 'Algebra' ELSE map.measurementscale END
-                       ORDER BY map.teststartdate DESC) AS rn_curr
-          FROM STUDENTS s WITH(NOLOCK)
-          JOIN MAP$best_baseline#static base WITH(NOLOCK)
-            ON s.ID = base.studentid
-          LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
-            ON s.ID = map.ps_studentid
-           AND base.measurementscale = map.measurementscale
-           AND base.year = map.map_year_academic
-           AND map.rn = 1
-           AND map.testname NOT LIKE '%Algebra%'                      
-          WHERE s.ENROLL_STATUS = 0                   
-         ) sub0
-     WHERE rn_curr = 1
-    ) sub
+     SELECT base.studentid
+           ,CASE
+             WHEN LTRIM(RTRIM(fallwinterspring)) IS NULL THEN 'f' 
+             WHEN LTRIM(RTRIM(fallwinterspring)) = 'Fall' THEN 'f' 
+             WHEN LTRIM(RTRIM(fallwinterspring)) = 'Winter' THEN 'w'
+             WHEN LTRIM(RTRIM(fallwinterspring)) = 'Spring' THEN 'spr'
+             ELSE NULL 
+            END + '_'
+             + CASE 
+                WHEN fallwinterspring IN ('Winter','Spring') THEN CONVERT(VARCHAR,(base.year + 1)) 
+                ELSE CONVERT(VARCHAR,base.year) END + '_'              
+             + CASE
+                WHEN base.measurementscale = 'Reading' THEN 'READ'
+                WHEN base.measurementscale = 'Mathematics' THEN 'MATH'
+                WHEN base.measurementscale = 'Language Usage' THEN 'LANG'
+                WHEN base.measurementscale = 'Science - General Science' THEN 'GEN'
+                WHEN base.measurementscale = 'Science - Concepts and Processes' THEN 'CP'
+                ELSE NULL
+               END
+             + '_pctle' AS pivot_on
+           ,CASE WHEN fallwinterspring = 'Fall' OR fallwinterspring IS NULL THEN COALESCE(base.testpercentile, map.percentile_2011_norms) ELSE map.percentile_2011_norms END AS value                
+     FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+     JOIN (
+           SELECT 'Fall' AS term
+           UNION
+           SELECT 'Winter'
+           UNION
+           SELECT 'Spring'
+          ) terms
+       ON 1 = 1
+     JOIN MAP$best_baseline#static base WITH(NOLOCK)
+       ON co.studentid = base.studentid
+      AND co.year = base.year 
+     LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
+       ON co.studentid = map.ps_studentid
+      AND base.measurementscale = map.measurementscale 
+      AND base.year = map.map_year_academic
+      AND terms.term = map.fallwinterspring
+      AND map.rn = 1
+      AND map.testname NOT LIKE '%Algebra%'                      
+     WHERE co.rn = 1                    
+    ) sub0     
 
 --/*    
 PIVOT (

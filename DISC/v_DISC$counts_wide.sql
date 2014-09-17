@@ -1,28 +1,19 @@
-/*
-PURPOSE:
-  Show discipline counts by type and reporting term, one row per student
-
-MAINTENANCE:
-
-MAJOR STRUCTURAL REVISIONS OR CHANGES:
-  Added new disc subtypes 2013-09-13
-  
-CREATED BY:
-  AM2
-  Added to SQL LD6 2013-09-13
-  
-ORIGIN DATE:
-  Summer 2011
-*/
-
 USE KIPP_NJ
 GO
 
 ALTER VIEW DISC$counts_wide AS
-SELECT s.id AS base_studentid
-      ,s.grade_level
-      ,s.lastfirst
-      ,s.schoolid
+
+WITH curterm AS (
+  SELECT DISTINCT time_per_name
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE start_date <= GETDATE()
+    AND end_date >= GETDATE()
+    AND identifier = 'RT'
+    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND school_level = 'MS'
+ )
+
+SELECT log.studentid
 
       --Year
       ,SUM(CASE WHEN log.subtype = 'Detention' THEN 1 ELSE NULL END) detentions
@@ -122,8 +113,21 @@ SELECT s.id AS base_studentid
       ,SUM(CASE WHEN log.subtype = 'Class Removal' AND log.rt = 'RT6' THEN 1 ELSE NULL END) rt6_class_removal
       ,SUM(CASE WHEN log.subtype = 'Bullying' AND log.rt = 'RT6' THEN 1 ELSE NULL END) rt6_bullying
 
-FROM STUDENTS s WITH (NOLOCK)
-LEFT OUTER JOIN DISC$log#static log WITH (NOLOCK)
-  ON s.id = log.studentid
-WHERE s.enroll_status = 0
-GROUP BY s.id, s.grade_level, s.lastfirst, s.schoolid
+      --CUR
+      ,SUM(CASE WHEN log.subtype = 'Detention' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_detentions
+      ,SUM(CASE WHEN log.subtype = 'Silent Lunch' AND log.rt = curterm.time_per_name THEN 1
+                WHEN log.subtype = 'Silent Lunch (5 Day)' AND log.rt = curterm.time_per_name THEN 5
+                ELSE NULL END) cur_silent_lunches
+      ,SUM(CASE WHEN log.subtype = 'Choices' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_choices
+      ,SUM(CASE WHEN log.subtype = 'Bench' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_bench
+      ,SUM(CASE WHEN log.subtype = 'ISS' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_ISS
+      ,SUM(CASE WHEN log.subtype = 'OSS' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_OSS
+      ,SUM(CASE WHEN log.subtype = 'Bus Warning' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_bus_warnings
+      ,SUM(CASE WHEN log.subtype = 'Bus Suspension' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_bus_suspensions
+      ,SUM(CASE WHEN log.subtype = 'Class Removal' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_class_removal
+      ,SUM(CASE WHEN log.subtype = 'Bullying' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_bullying
+
+FROM DISC$log#static log WITH(NOLOCK)
+JOIN curterm WITH(NOLOCK)
+  ON 1 = 1
+GROUP BY log.studentid

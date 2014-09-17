@@ -352,69 +352,67 @@ SELECT roster.*
       ,promo.attendance_points 
       ,promo.y1_att_pts_pct
 
---/*
+/*
+
 --MAP scores
 --MAP$wide_all     
 /*-- UPDATE FIELDS FOR CURRENT YEAR --*/
-      
+     
       --MAP reading      
       -- 14-15
       ,map_all.spr_2015_read_pctle
       ,map_all.f_2014_read_pctle
-      ,map_all.spr_2015_read_rit
-      ,map_all.f_2014_read_rit            
-      --,map_all.spring_2015_percentile - map_all.fall_2014_percentile AS f2s_2014_14_read_pctle_chg
-      ,map_all.f_2014_read_pctle - map_all.spr_2014_read_pctle AS sum_2014_read_pctle_chg
       -- 13-14
       ,map_all.spr_2014_read_pctle
       ,map_all.f_2013_read_pctle
-      ,map_all.spr_2014_read_rit
-      ,map_all.f_2013_read_rit            
-      --,map_all.spring_2014_percentile - map_all.fall_2013_percentile AS f2s_2013_14_read_pctle_chg
-      ,map_all.f_2013_read_pctle - map_all.spr_2013_read_pctle AS sum_2013_read_pctle_chg
       -- 12-13
       ,map_all.spr_2013_read_pctle
       ,map_all.f_2012_read_pctle
-      ,map_all.spr_2013_read_rit
-      ,map_all.f_2012_read_rit            
-      ,map_all.spr_2013_read_pctle - map_all.f_2012_read_pctle AS f2s_2012_13_read_pctle_chg
-      ,map_all.f_2012_read_pctle - map_all.spr_2012_read_pctle AS sum_2012_read_pctle_chg
       -- 11-12
       ,map_all.spr_2012_read_pctle
       ,map_all.f_2011_read_pctle
-      ,map_all.spr_2012_read_rit
-      ,map_all.f_2011_read_rit            
-      ,map_all.spr_2012_read_pctle - map_all.f_2011_read_pctle AS f2s_2011_12_read_pctle_chg
-      ,map_all.f_2011_read_pctle - map_all.spr_2011_read_pctle AS sum_2011_read_pctle_chg
         
       --MAP math
       -- 14-15
       ,map_all.spr_2015_math_pctle
       ,map_all.f_2014_math_pctle
-      ,map_all.spr_2015_math_rit
-      ,map_all.f_2014_math_rit      
-      ,map_all.f_2014_math_pctle - map_all.spr_2014_math_pctle AS sum_2014_math_pctle_chg
       -- 13-14
       ,map_all.spr_2014_math_pctle
       ,map_all.f_2013_math_pctle
-      ,map_all.spr_2014_math_rit
-      ,map_all.f_2013_math_rit      
-      --,map_all.spring_2014_percentile - map_all.fall_2013_percentile AS f2s_2013_14_math_pctle_chg
-      ,map_all.f_2013_math_pctle - map_all.spr_2013_math_pctle AS sum_2013_math_pctle_chg
       -- 12-13
       ,map_all.spr_2013_math_pctle
       ,map_all.f_2012_math_pctle
-      ,map_all.spr_2013_math_rit
-      ,map_all.f_2012_math_rit      
-      ,map_all.spr_2013_math_pctle - map_all.f_2012_math_pctle AS f2s_2012_13_math_pctle_chg
-      ,map_all.f_2012_math_pctle - map_all.spr_2012_math_pctle AS sum_2012_math_pctle_chg
       -- 11-12
       ,map_all.spr_2012_math_pctle
       ,map_all.f_2011_math_pctle
-      ,map_all.spr_2012_math_rit
-      ,map_all.f_2011_math_rit      
-      ,map_all.spr_2012_math_pctle - map_all.f_2011_math_pctle AS f2s_2011_12_math_pctle_chg
-      ,map_all.f_2011_math_pctle - map_all.spr_2011_math_pctle AS sum_2011_math_pctle_chg
+
+      --MAP science
+      -- 14-15
+      ,map_all.spr_2015_gen_pctle
+      ,map_all.f_2014_gen_pctle
+      -- 13-14
+      ,map_all.spr_2014_gen_pctle
+      ,map_all.f_2013_gen_pctle
+      -- 12-13
+      ,map_all.spr_2013_gen_pctle
+      ,map_all.f_2012_gen_pctle
+      -- 11-12
+      ,map_all.spr_2012_gen_pctle
+      ,map_all.f_2011_gen_pctle
+
+      --MAP science
+      -- 14-15
+      ,map_all.spr_2015_lang_pctle
+      ,map_all.f_2014_lang_pctle
+      -- 13-14
+      ,map_all.spr_2014_lang_pctle
+      ,map_all.f_2013_lang_pctle
+      -- 12-13
+      ,map_all.spr_2013_lang_pctle
+      ,map_all.f_2012_lang_pctle
+      -- 11-12
+      ,map_all.spr_2012_lang_pctle
+      ,map_all.f_2011_lang_pctle
 
 --Literacy tracking
 --MAP$comprehensive#identifiers
@@ -508,9 +506,7 @@ SELECT roster.*
       ,'(' + njask_math.prof_2013 + ')' AS math_prof_2013
       ,'(' + njask_math.prof_2012 + ')' AS math_prof_2012
       ,'(' + njask_math.prof_2011 + ')' AS math_prof_2011
---*/
 
-/*
 --Ed Tech
 --AR$progress_to_goals_long#static
 
@@ -593,7 +589,7 @@ LEFT OUTER JOIN GPA$detail_long gpa_long WITH(NOLOCK)
 LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH (NOLOCK)
   ON roster.base_studentid = promo.studentid
 
---/*
+/*
 --MAP
 LEFT OUTER JOIN MAP$wide_all map_all WITH (NOLOCK)
   ON roster.base_studentid = map_all.studentid
@@ -628,7 +624,7 @@ LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
   ON roster.base_studentid = njask_math.studentid
  AND njask_math.schoolid = 133570965
 
-/*
+
 --ED TECH
   --ACCELERATED READER
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
@@ -639,9 +635,7 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.base_studentid = ar_curr.studentid 
  AND ar_curr.time_period_name = 'RT2'
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
---*/ 
 
-/* 
 --GRADEBOOK COMMMENTS
 LEFT OUTER JOIN comments comment_rc1 WITH (NOLOCK)
   ON gr_wide.studentid = comment_rc1.studentid

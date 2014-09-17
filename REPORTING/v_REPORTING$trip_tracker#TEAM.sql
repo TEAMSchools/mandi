@@ -23,32 +23,7 @@ SELECT s.student_number AS sn
       ,counts.class_removal 
       ,counts.Bullying 
       ,counts.ISS 
-      ,counts.OSS 
-      --,incidents.DISC_01_GIVEN_BY
-      --,incidents.DISC_01_DATE_REPORTED
-      --,incidents.DISC_01_SUBJECT
-      --,incidents.DISC_01_SUBTYPE
-      --,incidents.DISC_01_INCIDENT
-      --,incidents.DISC_02_GIVEN_BY
-      --,incidents.DISC_02_DATE_REPORTED
-      --,incidents.DISC_02_SUBJECT
-      --,incidents.DISC_02_SUBTYPE
-      --,incidents.DISC_02_INCIDENT
-      --,incidents.DISC_03_GIVEN_BY
-      --,incidents.DISC_03_DATE_REPORTED
-      --,incidents.DISC_03_SUBJECT
-      --,incidents.DISC_03_SUBTYPE
-      --,incidents.DISC_03_INCIDENT
-      --,incidents.DISC_04_GIVEN_BY
-      --,incidents.DISC_04_DATE_REPORTED
-      --,incidents.DISC_04_SUBJECT
-      --,incidents.DISC_04_SUBTYPE
-      --,incidents.DISC_04_INCIDENT
-      --,incidents.DISC_05_GIVEN_BY
-      --,incidents.DISC_05_DATE_REPORTED
-      --,incidents.DISC_05_SUBJECT
-      --,incidents.DISC_05_SUBTYPE
-      --,incidents.DISC_05_INCIDENT      
+      ,counts.OSS       
       ,ISNULL(CONVERT(VARCHAR, incidents.DISC_01_DATE_REPORTED, 101) + '_','') + ISNULL(incidents.DISC_01_SUBJECT, '') + ' '
         + ISNULL(CONVERT(VARCHAR, incidents.DISC_02_DATE_REPORTED, 101) + '_', '') + ISNULL(incidents.DISC_02_SUBJECT, '') + ' '
         + ISNULL(CONVERT(VARCHAR, incidents.DISC_03_DATE_REPORTED, 101) + '_', '') + ISNULL(incidents.DISC_03_SUBJECT, '') + ' '
@@ -59,7 +34,7 @@ FROM students s WITH(NOLOCK)
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
   ON s.id = cs.STUDENTID
 LEFT OUTER JOIN DISC$counts_wide counts WITH(NOLOCK)
-  ON s.id = counts.base_studentid
+  ON s.id = counts.studentid
 LEFT OUTER JOIN DISC$recent_incidents_wide incidents WITH(NOLOCK)
   ON s.id = incidents.studentid
 LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH(NOLOCK)

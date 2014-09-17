@@ -709,7 +709,7 @@ LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
 LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
   ON roster.id = disc_recent.studentid
 LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)
-  ON roster.id = disc_count.base_studentid
+  ON roster.id = disc_count.studentid
   
 --XC
 LEFT OUTER JOIN RutgersReady..XC$activities_wide xc WITH(NOLOCK)
