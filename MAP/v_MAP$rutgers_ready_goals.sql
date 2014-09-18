@@ -213,8 +213,10 @@ FROM
            ,map_base.testritscore AS baseline_rit
            ,map_base.testpercentile AS baseline_percentile
            ,map_base.termname AS derived_from           
-           ,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
-           ,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
+           ,norm.r22 AS keep_up_goal
+           ,map_base.testritscore + norm.r22 AS keep_up_rit
+           --,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
+           --,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
            ,CASE 
              --bottom quartile
              WHEN CAST(map_base.testpercentile AS INT) > 0   AND CAST(map_base.testpercentile AS INT) < 25 
@@ -281,8 +283,10 @@ FROM
            ,map_base.testritscore AS baseline_rit
            ,map_base.testpercentile AS baseline_percentile
            ,map_base.termname AS derived_from           
-           ,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
-           ,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
+           ,norm.r22 AS keep_up_goal
+           ,map_base.testritscore + norm.r22 AS keep_up_rit
+           --,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
+           --,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
            ,CASE 
              --bottom quartile
              WHEN CAST(map_base.testpercentile AS INT) > 0   AND CAST(map_base.testpercentile AS INT) < 25 THEN ROUND(CAST(norm.r22 AS FLOAT) * 2, 0)

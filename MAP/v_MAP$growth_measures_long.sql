@@ -68,6 +68,16 @@ WITH cohort AS (
         ,'Winter'
         ,'Spring to half-of-Spring'
         ,0.5
+  UNION ALL
+  SELECT 2
+        ,4
+        ,24
+        ,-1
+        ,'Spring'
+        ,'Fall'
+        ,'Spring to Fall'
+        ,1
+
   /*
   UNION ALL
   SELECT 2
