@@ -42,7 +42,7 @@ WITH roster AS (
         ,CUR_TE AS cur_tardies_exc
         ,cur_le AS cur_early_dismiss
         ,cur_lex AS cur_early_dismiss_exc
-        ,cur_trip_abs AS trip_absences
+        ,ROUND(cur_trip_abs,1) AS trip_absences
         ,CASE WHEN cur_trip_abs >= 5 THEN 'Off Track' ELSE 'On Track' END AS trip_status
   FROM ATT_MEM$attendance_counts att WITH(NOLOCK)  
  )

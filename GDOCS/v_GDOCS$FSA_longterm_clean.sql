@@ -74,9 +74,9 @@ SELECT dirty_data.schoolid
       ,dirty_data.week_num
       ,COALESCE(dirty_data.ccss_standard, dirty_data.other_standard) AS ccss_standard
       ,COALESCE(dirty_data.other_standard, dirty_data.ccss_standard) AS other_standard
-      ,REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.objective), 'Êº', '"'), 'â€™', ''''), 'Â', '') AS objective
-      ,REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_mastered), 'Êº', '"'), 'â€™', ''''), 'Â', '') AS next_steps_mastered
-      ,REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_notmastered), 'Êº', '"'), 'â€™', ''''), 'Â', '') AS next_steps_notmastered
+      ,REPLACE(REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.objective), 'Êº', '"'), 'â€™', ''''), 'Â', ''), '€˜', '''') AS objective
+      ,REPLACE(REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_mastered), 'Êº', '"'), 'â€™', ''''), 'Â', ''), '€˜', '''') AS next_steps_mastered
+      ,REPLACE(REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_notmastered), 'Êº', '"'), 'â€™', ''''), 'Â', ''), '€˜', '''') AS next_steps_notmastered
       ,ROW_NUMBER() OVER (
          PARTITION BY dirty_data.schoolid
                      ,dirty_data.grade_level

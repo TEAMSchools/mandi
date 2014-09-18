@@ -212,7 +212,7 @@ FROM
                      ) sub        
                WHERE n >= 52)
            WHERE reporting_hash >= 200432
-             AND reporting_hash <= 201426
+             AND reporting_hash <= 201527
           ) weeks
           ON level_4.reporting_hash = weeks.reporting_hash
         ) level_5

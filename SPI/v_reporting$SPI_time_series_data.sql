@@ -51,14 +51,14 @@ WITH scaffold AS (
                WHEN 1 THEN 'campus'
                ELSE CAST(cohort.grade_level AS NVARCHAR)
               END AS grade_level
-             ,CAST(ROUND(AVG(CONVERT(FLOAT,ar.stu_status_words_numeric)) * 100,0) AS NUMERIC(4,1)) AS pct_met_goal
+             ,ROUND(AVG(CONVERT(FLOAT,ar.stu_status_words_numeric)) * 100,0) AS pct_met_goal
        FROM KIPP_NJ..[AR$progress_to_goals_long#static] ar WITH(NOLOCK)
-       JOIN KIPP_NJ..COHORT$comprehensive_long cohort WITH(NOLOCK)
+       JOIN KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)
          ON cohort.studentid = ar.studentid
-        AND KIPP_NJ.dbo.YearToTerm(cohort.year) = ar.yearid
-        AND ar.time_hierarchy = 1
+        AND KIPP_NJ.dbo.YearToTerm(cohort.year) = ar.yearid        
         AND cohort.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
         AND cohort.rn = 1
+       WHERE ar.time_hierarchy = 1
        GROUP BY cohort.schoolid
                ,ROLLUP(cohort.grade_level)
       ) sub
