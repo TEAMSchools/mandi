@@ -241,35 +241,35 @@ FROM
            --,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
            ,CASE 
              --bottom quartile
-             WHEN CAST(map_base.testpercentile AS INT) > 0   AND CAST(status_norms.percentile AS INT) < 25 
+             WHEN CAST(status_norms.percentile AS INT) > 0   AND CAST(status_norms.percentile AS INT) < 25 
               AND stu_roster.GRADE_LEVEL > 0
               THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0)
              --2nd quartile
-             WHEN CAST(map_base.testpercentile AS INT) >= 25 AND CAST(status_norms.percentile AS INT) < 50 
+             WHEN CAST(status_norms.percentile AS INT) >= 25 AND CAST(status_norms.percentile AS INT) < 50 
               AND stu_roster.GRADE_LEVEL > 0
               THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0)
              --3rd quartile
-             WHEN CAST(map_base.testpercentile AS INT) >= 50 AND CAST(status_norms.percentile AS INT) < 75 
+             WHEN CAST(status_norms.percentile AS INT) >= 50 AND CAST(status_norms.percentile AS INT) < 75 
               AND stu_roster.GRADE_LEVEL > 0
               THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)
              --top quartile
-             WHEN CAST(map_base.testpercentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100
+             WHEN CAST(status_norms.percentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100
               AND stu_roster.GRADE_LEVEL > 0
               THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)             
              --K needs fall to spring norm
-             WHEN CAST(map_base.testpercentile AS INT) > 0   AND CAST(status_norms.percentile AS INT) < 25 
+             WHEN CAST(status_norms.percentile AS INT) > 0   AND CAST(status_norms.percentile AS INT) < 25 
               AND stu_roster.GRADE_LEVEL = 0
               THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.5, 0)
              --2nd quartile
-             WHEN CAST(map_base.testpercentile AS INT) >= 25 AND CAST(status_norms.percentile AS INT) < 50 
+             WHEN CAST(status_norms.percentile AS INT) >= 25 AND CAST(status_norms.percentile AS INT) < 50 
               AND stu_roster.GRADE_LEVEL = 0
               THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.5, 0)
              --3rd quartile
-             WHEN CAST(map_base.testpercentile AS INT) >= 50 AND CAST(status_norms.percentile AS INT) < 75 
+             WHEN CAST(status_norms.percentile AS INT) >= 50 AND CAST(status_norms.percentile AS INT) < 75 
               AND stu_roster.GRADE_LEVEL = 0
               THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.25, 0)
              --top quartile
-             WHEN CAST(map_base.testpercentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100
+             WHEN CAST(status_norms.percentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100
               AND stu_roster.GRADE_LEVEL = 0
               THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.25, 0)
             END AS rutgers_ready_goal  
