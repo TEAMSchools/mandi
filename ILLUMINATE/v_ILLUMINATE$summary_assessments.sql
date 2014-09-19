@@ -16,6 +16,7 @@ WITH test_roster AS (
           SELECT repo.repository_id                
                 ,repo.date_administered                
           FROM dna_repositories.repositories repo          
+          WHERE deleted_at IS NULL
         ')
         ) repo
     ON res.repository_id = repo.repository_id
@@ -56,6 +57,7 @@ FROM OPENQUERY(ILLUMINATE,'
     ON repo.code_scope_id = scope.code_id
   LEFT OUTER JOIN public.users u
     ON repo.user_id = u.user_id
+  WHERE repo.deleted_at IS NULL
 ') repo
 LEFT OUTER JOIN TEACHERS t WITH(NOLOCK)
   ON CONVERT(INT,repo.teacher_number) = CONVERT(INT,t.TEACHERNUMBER)

@@ -90,7 +90,7 @@ FROM
            ,rs.testid           
            
            -- date stuff
-           ,CASE WHEN rs.academic_year IS NULL THEN dates.academic_year ELSE rs.academic_year END AS academic_year
+           ,COALESCE(rs.academic_year, dates.academic_year) AS academic_year
            ,CASE 
              WHEN rs.test_round IS NULL THEN (CASE
                                                WHEN rs.schoolid NOT IN (73252, 133570965) AND dates.time_per_name = 'Diagnostic' THEN 'DR' 
@@ -127,11 +127,8 @@ FROM
            ,rs.genre
            ,rs.fp_keylever           
            ,rs.fp_wpmrate
-           ,rs.instruct_lvl
-           ,CASE
-             WHEN rs.testid = 3273 AND rs.indep_lvl IS NULL THEN rs.step_ltr_level
-             ELSE rs.indep_lvl
-            END AS indep_lvl
+           ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
+           ,COALESCE(rs.indep_lvl, rs.step_ltr_level) AS indep_lvl
            ,CASE WHEN rs.testid = 3273 THEN 1 ELSE 0 END AS is_fp
      FROM LIT$readingscores#static rs WITH(NOLOCK)
      JOIN LIT$GLEQ gleq WITH(NOLOCK)
@@ -165,7 +162,7 @@ FROM
            ,rs.testid           
            
            -- date stuff
-           ,CASE WHEN rs.academic_year IS NULL THEN dates.academic_year ELSE rs.academic_year END AS academic_year
+           ,COALESCE(rs.academic_year, dates.academic_year) AS academic_year
            ,CASE 
              WHEN rs.test_round IS NULL THEN (CASE
                                                WHEN rs.schoolid NOT IN (73252, 133570965) AND dates.time_per_name = 'Diagnostic' THEN 'DR' 
@@ -202,11 +199,8 @@ FROM
            ,rs.genre
            ,rs.fp_keylever           
            ,rs.fp_wpmrate
-           ,CASE WHEN rs.testid = 3273 THEN gleq.instruct_lvl ELSE rs.instruct_lvl END AS instruct_lvl
-           ,CASE
-             WHEN rs.testid = 3273 AND rs.indep_lvl IS NULL THEN rs.step_ltr_level
-             ELSE rs.indep_lvl
-            END AS indep_lvl
+           ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
+           ,COALESCE(rs.indep_lvl, rs.step_ltr_level) AS indep_lvl
            ,CASE WHEN rs.testid = 3273 THEN 1 ELSE 0 END AS is_fp
      FROM LIT$readingscores#static rs WITH(NOLOCK)
      JOIN LIT$GLEQ gleq WITH(NOLOCK)

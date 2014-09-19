@@ -13,8 +13,8 @@ WITH scaffold AS (
     ON sch.school_number != 999999
    AND 1=1
   WHERE rd.date >= CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year()) + '-08-01'
-    AND rd.date <  CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year() + 1) + '-06-30'            
-    AND rd.day_of_week = 'Monday'
+    AND rd.date <  GETDATE()
+    AND rd.day_of_week = 'Monday'    
  )
 
 ,off_track AS (
@@ -83,6 +83,7 @@ SELECT 2 AS strand_number
 FROM SPI..[ATTRITION$weekly_counts#static] attr WITH(NOLOCK)
 WHERE attr.grade_level = 'campus'
   AND attr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  AND attr.weekday_start <= GETDATE()
  )          
 
 /* ATTENDANCE */
@@ -102,6 +103,7 @@ WHERE attr.grade_level = 'campus'
   FROM SPI..ATT_MEM$attendance_by_week_unbounded#static WITH(NOLOCK)
   WHERE studentid = 'campus'
     AND yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
+    AND REPORTING_HASH <= (DATEPART(YEAR,GETDATE()) * 100) + DATEPART(WEEK,GETDATE())
   GROUP BY school
           ,reporting_hash
   --*/
@@ -149,6 +151,7 @@ WHERE attr.grade_level = 'campus'
   FROM SPI..ATT_MEM$attendance_by_week_unbounded#static WITH(NOLOCK)
   WHERE studentid = 'campus'
     AND yearid = KIPP_NJ.dbo.fn_Global_Term_ID()
+    AND REPORTING_HASH <= (DATEPART(YEAR,GETDATE()) * 100) + DATEPART(WEEK,GETDATE())
   GROUP BY school
           ,reporting_hash      
  )
@@ -168,6 +171,7 @@ WHERE attr.grade_level = 'campus'
   FROM SPI..ATT_MEM$tardiness_by_week_unbounded#static WITH(NOLOCK)
   WHERE studentid = 'campus'
     AND yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
+    AND REPORTING_HASH <= (DATEPART(YEAR,GETDATE()) * 100) + DATEPART(WEEK,GETDATE())
   GROUP BY school
           ,reporting_hash
  )
@@ -187,6 +191,7 @@ WHERE attr.grade_level = 'campus'
   FROM SPI..ATT_MEM$tardiness_by_week_unbounded#static WITH(NOLOCK)
   WHERE studentid = 'campus'
     AND yearid = KIPP_NJ.dbo.fn_Global_Term_ID()
+    AND REPORTING_HASH <= (DATEPART(YEAR,GETDATE()) * 100) + DATEPART(WEEK,GETDATE())
   GROUP BY school
           ,reporting_hash      
  )
