@@ -223,8 +223,8 @@ SELECT unique_id
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field50'') AS academic_year
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field49'') AS test_round
       ,NULL AS color
-      ,NULL AS instruct_lvl
-      ,NULL AS indep_lvl
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field48'') AS instruct_lvl
+      ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field47'') AS indep_lvl
       ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''Field21'') AS genre
       ,NULL AS name_ass
       ,NULL AS ltr_nameid

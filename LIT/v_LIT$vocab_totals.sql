@@ -23,10 +23,17 @@ WITH valid_tests AS (
  )
 
 ,roster AS (
-  SELECT schoolid
+  SELECT co.schoolid
         ,grade_level
         ,STUDENT_NUMBER
+        ,dt.time_per_name
   FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+  JOIN REPORTING$dates dt WITH(NOLOCK)
+    ON co.schoolid = dt.schoolid 
+    AND dt.academic_year = dbo.fn_Global_Academic_Year()
+    AND dt.start_date <= GETDATE()
+    AND dt.identifier = 'REP'
+    AND dt.school_level = 'ES'
   WHERE co.rn = 1
     AND co.year = dbo.fn_Global_Academic_Year()
     AND co.grade_level < 5
@@ -36,25 +43,23 @@ WITH valid_tests AS (
   SELECT r.schoolid
         ,r.grade_level      
         ,r.STUDENT_NUMBER
-        ,listweek_num        
-        ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct_wk
+        ,r.time_per_name AS listweek_num        
+        ,res.value AS pct_correct_wk
   FROM roster r WITH(NOLOCK)
   LEFT OUTER JOIN scores_long res WITH(NOLOCK)
     ON r.STUDENT_NUMBER = res.student_number
-  GROUP BY r.schoolid
-          ,r.grade_level
-          ,r.STUDENT_NUMBER
-          ,res.listweek_num
+   AND r.time_per_name = res.listweek_num  
  )
  
 ,year_totals AS (
   SELECT r.schoolid
         ,r.grade_level      
         ,r.STUDENT_NUMBER                
-        ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct_yr        
+        ,AVG(res.value) AS pct_correct_yr        
   FROM roster r WITH(NOLOCK)
   LEFT OUTER JOIN scores_long res WITH(NOLOCK)
     ON r.STUDENT_NUMBER = res.student_number
+   AND r.time_per_name = res.listweek_num
   GROUP BY r.SCHOOLID
           ,r.GRADE_LEVEL
           ,r.STUDENT_NUMBER          
@@ -62,7 +67,7 @@ WITH valid_tests AS (
  
 SELECT wk.*      
       ,yr.pct_correct_yr      
-      ,ROUND(AVG(yr.pct_correct_yr) OVER(PARTITION BY yr.grade_level),0) AS avg_pct_correct_yr
+      ,ROUND(AVG(yr.pct_correct_yr) OVER(PARTITION BY yr.schoolid, yr.grade_level),0) AS avg_pct_correct_yr
 FROM week_totals wk WITH(NOLOCK)
 JOIN year_totals yr WITH(NOLOCK)
   ON wk.student_number = yr.student_number

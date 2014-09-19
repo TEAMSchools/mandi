@@ -2,20 +2,20 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW LIT$step_growth_measures_long AS
+
 SELECT lit_base.studentid
       ,lit_base.schoolid
       ,lit_base.grade_level
-      ,lit_base.year
+      ,lit_base.academic_year AS year
       ,lit_base.lastfirst
       ,lit_base.student_number
-      ,lit_base.step_level_numeric AS base_step
-      ,lit_end.step_level_numeric AS end_step
-      ,CAST(lit_end.step_level_numeric AS int) - CAST(lit_base.step_level_numeric AS int) AS step_change
-FROM LIT$step_headline_long#identifiers lit_base WITH(NOLOCK)
-LEFT OUTER JOIN LIT$step_headline_long#identifiers lit_end WITH(NOLOCK)
+      ,lit_base.lvl_num AS base_step
+      ,lit_end.lvl_num AS end_step
+      ,CONVERT(INT,lit_end.lvl_num) - CONVERT(INT,lit_base.lvl_num) AS step_change
+FROM LIT$test_events#identifiers lit_base WITH(NOLOCK)
+LEFT OUTER JOIN LIT$test_events#identifiers lit_end WITH(NOLOCK)
   ON lit_base.studentid = lit_end.studentid
-  AND lit_base.year = lit_end.year
-  AND lit_end.status = 'Achieved'
-  AND lit_end.rn_desc = 1
-WHERE lit_base.[status] = 'Achieved'
-  AND lit_base.rn_asc = 1
+  AND lit_base.academic_year = lit_end.academic_year
+  AND lit_end.achv_curr_yr = 1
+WHERE lit_base.academic_year IS NOT NULL
+  AND lit_base.achv_base_yr = 1

@@ -15,7 +15,7 @@ WITH roster AS (
    ON co.STUDENTID = s.ID
   AND s.ENROLL_STATUS = 0 
  WHERE co.YEAR = dbo.fn_Global_Academic_Year()
-   AND co.GRADE_LEVEL = 1
+   AND co.GRADE_LEVEL < 5
    AND co.RN = 1
  )
 

@@ -14,8 +14,8 @@ WITH valid_tests AS (
   SELECT res.student_id AS student_number             
         ,'Week_' + SUBSTRING(label, CHARINDEX('_',label) + 1, 2) AS listweek_num
         ,SUBSTRING(label, CHARINDEX('_',label,CHARINDEX('_',label) + 1) + 1, LEN(label) - CHARINDEX('_',label,CHARINDEX('_',label) + 1)) AS word
-        ,CONVERT(FLOAT,value) AS value        
-        ,CASE WHEN value = 0 AND 
+        ,CASE WHEN value = 9 THEN NULL ELSE CONVERT(FLOAT,value) END AS value        
+        ,CASE WHEN value IN (0,9) AND 
            ROW_NUMBER() OVER(
              PARTITION BY res.student_id, res.value
                ORDER BY SUBSTRING(label, CHARINDEX('_',label) + 1, 2)) <= 10 
@@ -31,10 +31,17 @@ WITH valid_tests AS (
  )
 
 ,roster AS (
-  SELECT schoolid
+  SELECT co.schoolid
         ,grade_level
         ,STUDENT_NUMBER
+        ,dt.time_per_name
   FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+  JOIN REPORTING$dates dt WITH(NOLOCK)
+    ON co.schoolid = dt.schoolid 
+    AND dt.academic_year = dbo.fn_Global_Academic_Year()
+    AND dt.start_date <= GETDATE()
+    AND dt.identifier = 'REP'
+    AND dt.school_level = 'ES'
   WHERE co.rn = 1
     AND co.year = dbo.fn_Global_Academic_Year()
     AND co.grade_level < 5
@@ -44,8 +51,8 @@ WITH valid_tests AS (
   SELECT r.schoolid
         ,r.grade_level      
         ,r.STUDENT_NUMBER
-        ,listweek_num
-        ,SUM(CONVERT(FLOAT,CASE WHEN value IS NOT NULL THEN 1 ELSE NULL END)) AS n_total
+        ,r.time_per_name AS listweek_num
+        ,SUM(CONVERT(FLOAT,value)) AS n_total
         ,SUM(CONVERT(FLOAT,value)) AS n_correct
         ,COUNT(CONVERT(FLOAT,value)) - SUM(CONVERT(FLOAT,value)) AS n_missed
         ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct
@@ -53,17 +60,18 @@ WITH valid_tests AS (
   FROM roster r WITH(NOLOCK)
   LEFT OUTER JOIN scores_long res WITH(NOLOCK)
     ON r.STUDENT_NUMBER = res.student_number
+   AND r.time_per_name = res.listweek_num
   GROUP BY r.schoolid
           ,r.grade_level
           ,r.STUDENT_NUMBER
-          ,res.listweek_num
+          ,r.time_per_name
  )
  
 ,year_totals AS (
   SELECT r.schoolid
         ,r.grade_level      
-        ,r.STUDENT_NUMBER        
-        ,SUM(CONVERT(FLOAT,CASE WHEN value IS NOT NULL THEN 1 ELSE NULL END)) AS n_total_yr
+        ,r.STUDENT_NUMBER                
+        ,SUM(CONVERT(FLOAT,value)) AS n_total_yr
         ,SUM(CONVERT(FLOAT,value)) AS n_correct_yr
         ,COUNT(CONVERT(FLOAT,value)) - SUM(CONVERT(FLOAT,value)) AS n_missed_yr
         ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct_yr
@@ -71,6 +79,7 @@ WITH valid_tests AS (
   FROM roster r WITH(NOLOCK)
   LEFT OUTER JOIN scores_long res WITH(NOLOCK)
     ON r.STUDENT_NUMBER = res.student_number
+   AND r.time_per_name = res.listweek_num
   GROUP BY r.SCHOOLID
           ,r.GRADE_LEVEL
           ,r.STUDENT_NUMBER          
@@ -82,9 +91,9 @@ SELECT wk.*
       ,yr.n_missed_yr
       ,yr.pct_correct_yr
       ,yr.missed_words_yr
-      ,ROUND(AVG(yr.n_total_yr) OVER(PARTITION BY yr.grade_level),0) AS avg_total_yr
-      ,ROUND(AVG(yr.n_correct_yr) OVER(PARTITION BY yr.grade_level),0) AS avg_correct_yr
-      ,ROUND(AVG(yr.pct_correct_yr) OVER(PARTITION BY yr.grade_level),0) AS avg_pct_correct_yr
+      ,ROUND(AVG(yr.n_total_yr) OVER(PARTITION BY yr.schoolid, yr.grade_level),0) AS avg_total_yr
+      ,ROUND(AVG(yr.n_correct_yr) OVER(PARTITION BY yr.schoolid, yr.grade_level),0) AS avg_correct_yr
+      ,ROUND(AVG(yr.pct_correct_yr) OVER(PARTITION BY yr.schoolid, yr.grade_level),0) AS avg_pct_correct_yr
 FROM week_totals wk WITH(NOLOCK)
 JOIN year_totals yr WITH(NOLOCK)
   ON wk.student_number = yr.student_number
