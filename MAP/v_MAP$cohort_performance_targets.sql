@@ -882,7 +882,7 @@ JOIN zscore
 WHERE rn = 1
 
 UNION ALL
---**NPR MEASURED** MS MATH BY COURSE NAME FOR 7th/8th Algebra Split 
+--**NPR MEASURED** BY COURSE NAME FOR VERY HIGH COURSES
 SELECT sub.school
       ,sub.course_enrollment + '_NPR' AS grade_level
       ,sub.year
@@ -938,12 +938,9 @@ FROM
                      JOIN map_baseline
                        ON cohort.studentid = map_baseline.studentid
                       AND map_baseline.join_credittype = cc.credittype
-                      AND map_baseline.measurementscale = 'Mathematics'
-                      AND (
-                         cohort.school = 'Rise' AND
-                         cc.course_name IN ('Math 8 Algebra I', 'Math 8 Algebra I Honors', 'Math IV Foundations')
-                       )
-                     WHERE cohort.grade_level >= 5 AND cohort.grade_level <= 8
+                      AND (cohort.school = 'Rise' AND cc.course_name IN ('Math 8 Algebra I', 'Math 8 Algebra I Honors', 'Math IV Foundations'))
+                        OR (cohort.school = 'TEAM' AND cc.course_name IN ('Algebra I'))
+                        OR (cohort.school = 'SPARK')     
                      ) sub
               GROUP BY sub.school
                       ,sub.course_enrollment
@@ -984,6 +981,107 @@ LEFT OUTER JOIN
  AND sub.grade_level = loose_agg.grade_level
  AND sub.course_enrollment = loose_agg.course_enrollment
  AND (
-   sub.school = 'Rise' AND
-   sub.course_enrollment IN ('Math 8 Algebra I', 'Math 8 Algebra I Honors', 'Math IV Foundations')
+   (sub.school = 'Rise' AND sub.course_enrollment IN ('Math 8 Algebra I Honors')) OR
+   (sub.school = 'TEAM' AND sub.course_enrollment IN ('Algebra I'))
  )
+
+UNION ALL
+
+SELECT sub.school
+      ,CAST(sub.grade_level AS VARCHAR) + '_NPR' AS grade_level
+      ,sub.year
+      ,sub.iep_status
+      ,sub.measurementscale
+      ,sub.avg_baseline_rit
+      ,sub.avg_baseline_percentile
+      ,sub.N
+      ,sub.comparison_start_rit
+      ,sub.mean
+      ,sub.sd
+      ,sub.roster_match_method
+      ,sub.cohort_growth_percentile
+      ,sub.zscore
+      ,NULL AS target_rit_change
+      ,NULL AS target_spr_rit
+      ,sub.target_npr_change
+      ,sub.avg_baseline_percentile + sub.target_npr_change AS target_spr_npr
+      ,loose_agg.avg_cur_endpoint_rit
+      ,loose_agg.avg_cur_endpoint_percentile      
+FROM
+       (SELECT sub.*
+             ,NULL AS comparison_start_rit
+             ,NULL AS mean
+             ,NULL AS sd
+             ,'loose' AS roster_match_method
+             ,zscore.percentile AS cohort_growth_percentile
+             ,zscore.zscore
+             ,NULL AS target_rit_change
+             ,NULL AS target_spr_rit
+            ,ROUND(((0.134056 * sub.grade_level) + (-0.0574764 * sub.avg_baseline_percentile) + log(-1*((12.583 * (zscore.percentile / 100))/((zscore.percentile / 100) - 1))))/0.292364, 2) AS target_npr_change
+       FROM
+             (SELECT sub.school
+                    ,sub.grade_level
+                    ,sub.year
+                    ,'All Students' AS iep_status
+                    ,sub.measurementscale
+                    ,CAST(ROUND(AVG(testritscore + 0.0),2) AS FLOAT) AS avg_baseline_rit
+                    ,CAST(ROUND(AVG(testpercentile + 0.0),1) AS FLOAT) AS avg_baseline_percentile
+                    ,COUNT(*) AS N
+              FROM
+                    (SELECT cohort.*
+                           ,map_baseline.measurementscale
+                           ,map_baseline.termname
+                           ,map_baseline.testritscore
+                           ,map_baseline.testpercentile
+                     FROM cohort
+                     JOIN map_baseline
+                       ON cohort.studentid = map_baseline.studentid
+                      AND (
+                         (cohort.school='SPARK' AND cohort.grade_level=1 AND map_baseline.measurementscale IN ('Reading','Mathematics'))
+                        )                     
+                      ) sub
+              GROUP BY sub.school
+                      ,sub.grade_level
+                      ,sub.year
+                      ,sub.measurementscale
+              ) sub
+       JOIN zscore
+         ON 1=1
+       ) sub
+LEFT OUTER JOIN 
+  (SELECT sub.year
+         ,sub.school
+         ,sub.measurementscale
+         ,CAST(sub.grade_level AS VARCHAR) AS grade_level
+         ,CASE GROUPING(sub.iep_status)
+            WHEN 1 THEN 'All Students'
+            ELSE sub.iep_status
+          END AS iep_status
+         ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
+         ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
+   FROM
+         (SELECT map_endpoint.map_year_academic AS year
+                ,map_endpoint.school
+                ,map_endpoint.measurementscale
+                ,map_endpoint.grade_level
+                ,CASE 
+                   WHEN cust.spedlep LIKE 'SPED%' THEN 'IEP'
+                   ELSE 'Gen Ed'
+                 END AS iep_status
+                ,map_endpoint.testritscore
+                ,map_endpoint.testpercentile
+          FROM map_endpoint
+          JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH (NOLOCK)
+            ON map_endpoint.ps_studentid = cust.studentid
+         ) sub
+   GROUP BY sub.year
+           ,sub.school
+           ,sub.measurementscale
+           ,sub.grade_level
+           ,CUBE(sub.iep_status)
+  ) loose_agg
+  ON sub.year = loose_agg.year
+ AND sub.school = loose_agg.school
+ AND sub.measurementscale = loose_agg.measurementscale
+ AND sub.grade_level = loose_agg.grade_level
+ AND sub.iep_status = loose_agg.iep_status
