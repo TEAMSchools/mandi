@@ -12,8 +12,8 @@ WITH reporting_weeks AS
            ,ROW_NUMBER() OVER
               (ORDER BY reporting_hash ASC) AS rn
        FROM KIPP_NJ..UTIL$reporting_weeks_days WITH (NOLOCK)
-     WHERE reporting_hash >= 201325
-       AND reporting_hash <= 201426
+     WHERE reporting_hash >= 201425
+       AND reporting_hash <= 201526
     )
     
    ,goal_stuff AS
@@ -65,7 +65,7 @@ WITH reporting_weeks AS
             FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
             JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
              ON c.studentid = s.id
-            AND c.year = 2013
+            AND c.year = 2014
             AND c.rn = 1
             AND s.enroll_status = 0
             ) sq_1

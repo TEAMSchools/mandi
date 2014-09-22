@@ -8,7 +8,7 @@ WITH stu AS
           ,c.year
           ,c.grade_level
           ,c.schoolid
-          ,CONVERT(datetime, CAST('07/05/' + c.year AS DATE), 101) AS custom_entry
+          ,CONVERT(datetime, '07/05/' + CAST(c.year AS VARCHAR), 101) AS custom_entry
           ,c.exitdate
     FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
     JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
@@ -16,7 +16,7 @@ WITH stu AS
      --AND s.last_name = 'Williams'
     WHERE c.rn = 1
       AND c.year >= 2011
-      AND c.schoolid IN (73252, 73253, 133570965, 73254)
+      AND c.schoolid IN (73252, 73253, 133570965, 73254, 73255)
       --AND c.studentid = 4054
    )
   ,rd AS

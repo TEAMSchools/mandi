@@ -234,9 +234,9 @@ FROM
            ,math_read.measurementscale
            ,map_base.testritscore AS baseline_rit
            ,map_base.testpercentile AS baseline_percentile
-           ,map_base.termname AS derived_from           
+           ,map_base.termname AS derived_from       
            ,CASE WHEN stu_roster.grade_level = 0 THEN norm.r42 ELSE norm.r22 END AS keep_up_goal
-           ,map_base.testritscore + norm.r22 AS keep_up_rit
+           ,CASE WHEN stu_roster.grade_level = 0 THEN map_base.testritscore + norm.r42 ELSE map_base.testritscore + norm.r22 END AS keep_up_rit
            --,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
            --,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
            ,CASE 
