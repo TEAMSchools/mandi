@@ -40,25 +40,20 @@ FROM STUDENTS s WITH (NOLOCK)
 LEFT OUTER JOIN NJASK$detail#static NJASK14 WITH (NOLOCK)
   ON s.id = NJASK14.studentid
  AND NJASK14.subject    = 'ELA'                            
- AND NJASK14.test_date >= '2014-01-01'                      
- AND NJASK14.test_date <= '2014-06-01'                      
+ AND NJASK14.test_year = 2013
 LEFT OUTER JOIN NJASK$detail#static NJASK13 WITH (NOLOCK)
   ON s.id = NJASK13.studentid
  AND NJASK13.subject    = 'ELA'                            
- AND NJASK13.test_date >= '2013-01-01'                      
- AND NJASK13.test_date <= '2013-06-01'                      
+ AND NJASK13.test_year = 2012
 LEFT OUTER JOIN NJASK$detail#static NJASK12 WITH (NOLOCK)
   ON s.id = NJASK12.studentid          
  AND NJASK12.subject    = 'ELA'                            
- AND NJASK12.test_date >= '2012-01-01'                      
- AND NJASK12.test_date <= '2012-06-01'                      
+ AND NJASK12.test_year = 2011
 LEFT OUTER JOIN NJASK$detail#static NJASK11 WITH (NOLOCK)
   ON s.id = NJASK11.studentid          
  AND NJASK11.subject    = 'ELA'                           
- AND NJASK11.test_date >= '2011-01-01'                      
- AND NJASK11.test_date <= '2011-06-01'                      
+ AND NJASK11.test_year = 2010
 LEFT OUTER JOIN NJASK$detail#static NJASK10 WITH (NOLOCK)
   ON s.id = NJASK10.studentid           
  AND NJASK10.subject    = 'ELA'                            
- AND NJASK10.test_date >= '2010-01-01'                       
- AND NJASK10.test_date <= '2010-06-01'
+ AND NJASK10.test_year = 2009

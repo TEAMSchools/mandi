@@ -2,39 +2,41 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW GRADES$wide_all#MS AS
-WITH rost AS
-  (SELECT sub.*
-         ,ROW_NUMBER() OVER
-            (PARTITION BY studentid
-             ORDER BY rn
-                     ,course_number
-             ) AS rn_format
-   FROM     
-        (SELECT studentid
-               ,student_number
-               ,schoolid
-               ,lastfirst
-               ,grade_level               
-               ,course_number --used for JOIN with pivot fields
-               ,ROW_NUMBER() OVER 
-                  (PARTITION BY studentid
-                   ORDER BY CASE
-                              WHEN credittype LIKE '%ENG%'     THEN '1'
-                              WHEN credittype LIKE '%RHET%'    THEN '2'
-                              WHEN credittype LIKE '%MATH%'    THEN '3'
-                              WHEN credittype LIKE '%SCI%'     THEN '4'
-                              WHEN credittype LIKE '%SOC%'     THEN '5'
-                              WHEN credittype LIKE '%WLANG%'   THEN '6'
-                              WHEN credittype LIKE '%COCUR%'   THEN '7'
-                              WHEN credittype LIKE '%LIB%'     THEN '8'
-                              WHEN credittype LIKE '%PHYSED%'  THEN '9'
-                              WHEN credittype LIKE '%CORE%'    THEN '10'                              
-                            END
-                  ) AS rn
-         FROM KIPP_NJ..GRADES$DETAIL#MS WITH (NOLOCK)
-         WHERE credittype IN ('MATH','ENG','SCI','SOC','RHET','WLANG','COCUR','LIB','PHYSED','CORE')           
-         )sub
-   )
+
+WITH rost AS (
+  SELECT sub.*
+        ,ROW_NUMBER() OVER
+           (PARTITION BY studentid
+            ORDER BY rn
+                    ,course_number
+            ) AS rn_format
+  FROM     
+      (
+       SELECT studentid
+             ,student_number
+             ,schoolid
+             ,lastfirst
+             ,grade_level               
+             ,course_number --used for JOIN with pivot fields
+             ,ROW_NUMBER() OVER 
+                (PARTITION BY studentid
+                 ORDER BY CASE
+                            WHEN credittype LIKE '%ENG%'     THEN '1'
+                            WHEN credittype LIKE '%RHET%'    THEN '2'
+                            WHEN credittype LIKE '%MATH%'    THEN '3'
+                            WHEN credittype LIKE '%SCI%'     THEN '4'
+                            WHEN credittype LIKE '%SOC%'     THEN '5'
+                            WHEN credittype LIKE '%WLANG%'   THEN '6'
+                            WHEN credittype LIKE '%COCUR%'   THEN '7'
+                            WHEN credittype LIKE '%LIB%'     THEN '8'
+                            WHEN credittype LIKE '%PHYSED%'  THEN '9'
+                            WHEN credittype LIKE '%CORE%'    THEN '10'                              
+                          END
+                ) AS rn
+       FROM KIPP_NJ..GRADES$DETAIL#MS WITH (NOLOCK)
+       WHERE credittype IN ('MATH','ENG','SCI','SOC','RHET','WLANG','COCUR','LIB','PHYSED','CORE')           
+      )sub
+  )
   
 SELECT *
 FROM

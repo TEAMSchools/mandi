@@ -178,9 +178,9 @@ SELECT r.year
         WHEN map_long.pct >= 75 AND map_long.pct < 100 THEN 4
         ELSE NULL
        END AS quartile
-      ,map_curr.rit - map_long.base_rit AS ytd_rit_growth
-      ,map_curr.pct - map_long.base_pct AS ytd_pct_growth
-      ,map_curr.lexile - map_long.base_lex AS ytd_lex_growth
+      ,CASE WHEN map_curr.fallwinterspring = 'Fall' THEN NULL ELSE map_curr.rit - map_long.base_rit END AS ytd_rit_growth
+      ,CASE WHEN map_curr.fallwinterspring = 'Fall' THEN NULL ELSE map_curr.pct - map_long.base_pct END AS ytd_pct_growth
+      ,CASE WHEN map_curr.fallwinterspring = 'Fall' THEN NULL ELSE map_curr.lexile - map_long.base_lex END AS ytd_lex_growth
       ,map_curr.pct - 75 AS dist_from_75
       ,CASE WHEN map_long.fallwinterspring = map_curr.fallwinterspring THEN 1 ELSE 0 END AS is_current
       ,enr.CREDITTYPE

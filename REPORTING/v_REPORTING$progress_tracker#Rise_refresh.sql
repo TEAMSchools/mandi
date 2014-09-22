@@ -704,6 +704,7 @@ LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
 LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
   ON roster.id = njask_math.studentid
  AND njask_math.schoolid = 73252
+ AND njask_math.rn = 1
 
 --Discipline
 LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
@@ -712,6 +713,6 @@ LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)
   ON roster.id = disc_count.studentid
   
 --XC
-LEFT OUTER JOIN RutgersReady..XC$activities_wide xc WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON roster.STUDENT_NUMBER = xc.student_number
  AND xc.yearid = dbo.fn_Global_Term_Id()  

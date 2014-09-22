@@ -174,6 +174,16 @@ SELECT roster.*
       ,ROUND(gr_wide.RC8_t2,0) AS RC8_t2_term_pct
       ,ROUND(gr_wide.RC8_t3,0) AS RC8_t3_term_pct    
 
+    /*-- Current term RC grades --*/
+      ,ROUND(rc.rc1,0) AS rc1_curterm_pct
+      ,ROUND(rc.rc2,0) AS rc2_curterm_pct
+      ,ROUND(rc.rc3,0) AS rc3_curterm_pct
+      ,ROUND(rc.rc4,0) AS rc4_curterm_pct
+      ,ROUND(rc.rc5,0) AS rc5_curterm_pct
+      ,ROUND(rc.rc6,0) AS rc6_curterm_pct
+      ,ROUND(rc.rc7,0) AS rc7_curterm_pct
+      ,ROUND(rc.rc8,0) AS rc8_curterm_pct
+
     /*--current term component averages--*/       
       --All classes element averages for the year
       ,gr_wide.HY_all AS homework_year_avg
@@ -663,6 +673,9 @@ LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
 --GRADES & GPA
 LEFT OUTER JOIN GRADES$wide_all#MS gr_wide WITH (NOLOCK)
   ON roster.base_studentid = gr_wide.studentid
+LEFT OUTER JOIN GRADES$rc_grades_by_term rc WITH(NOLOCK)
+  ON roster.base_studentid = rc.studentid
+ AND roster.curterm = rc.term
 LEFT OUTER JOIN GPA$detail#MS gpa WITH (NOLOCK)
   ON roster.base_studentid = gpa.studentid
 LEFT OUTER JOIN GPA$detail_long gpa_long WITH(NOLOCK)
@@ -730,7 +743,7 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
 --Rise XC
-LEFT OUTER JOIN RutgersReady..XC$activities_wide xc WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON roster.base_student_number = xc.student_number
  AND xc.yearid = dbo.fn_Global_Term_Id()
 

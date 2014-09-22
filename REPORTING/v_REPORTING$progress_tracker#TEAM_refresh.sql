@@ -729,6 +729,7 @@ LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
 LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
   ON roster.id = njask_math.studentid
  AND njask_math.schoolid = 133570965
+ AND njask_math.rn = 1
 
 --Discipline
 LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
