@@ -49,4 +49,4 @@ Jokes are fine but please be descriptive about what changed.
 + Avoid hard-coding __academic year__ parameters.  Instead, use the scalar-valued function `dbo.fn_Global_Academic_Year()`
 
 ## Code Reviews
-Follow along on this <a href="https://app.asana.com/0/14863779903009/14863779903009">Asana Project</a>
+Follow along at home on this <a href="https://app.asana.com/0/14863779903009/14863779903009">Asana Project</a>
