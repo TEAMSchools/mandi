@@ -29,10 +29,10 @@ WITH valid_dates AS (
         ,CONVERT(VARCHAR,hw_complete) AS hw_complete
         ,CONVERT(VARCHAR,hw_missing) AS hw_missing
         ,CONVERT(VARCHAR,hw_pct) AS hw_pct
-        ,CONVERT(VARCHAR,n_hw) AS n_uni
-        ,CONVERT(VARCHAR,hw_complete) AS uni_has
-        ,CONVERT(VARCHAR,hw_missing) AS uni_missing
-        ,CONVERT(VARCHAR,hw_pct) AS uni_pct
+        ,CONVERT(VARCHAR,n_uni) AS n_uni
+        ,CONVERT(VARCHAR,uni_has) AS uni_has
+        ,CONVERT(VARCHAR,uni_missing) AS uni_missing
+        ,CONVERT(VARCHAR,uni_pct) AS uni_pct
         ,CONVERT(VARCHAR,n_color) AS n_color
         ,CONVERT(VARCHAR,purple_pink) AS purple_pink
         ,CONVERT(VARCHAR,green) AS green
@@ -105,10 +105,10 @@ UNION ALL
         ,CONVERT(VARCHAR,hw_complete) AS hw_complete
         ,CONVERT(VARCHAR,hw_missing) AS hw_missing
         ,CONVERT(VARCHAR,hw_pct) AS hw_pct
-        ,CONVERT(VARCHAR,n_hw) AS n_uni
-        ,CONVERT(VARCHAR,hw_complete) AS uni_has
-        ,CONVERT(VARCHAR,hw_missing) AS uni_missing
-        ,CONVERT(VARCHAR,hw_pct) AS uni_pct
+        ,CONVERT(VARCHAR,n_uni) AS n_uni
+        ,CONVERT(VARCHAR,uni_has) AS uni_has
+        ,CONVERT(VARCHAR,uni_missing) AS uni_missing
+        ,CONVERT(VARCHAR,uni_pct) AS uni_pct
         ,CONVERT(VARCHAR,n_color) AS n_color
         ,CONVERT(VARCHAR,purple_pink) AS purple_pink
         ,CONVERT(VARCHAR,green) AS green
@@ -179,10 +179,10 @@ UNION ALL
         ,CONVERT(VARCHAR,hw_complete) AS hw_complete
         ,CONVERT(VARCHAR,hw_missing) AS hw_missing
         ,CONVERT(VARCHAR,hw_pct) AS hw_pct
-        ,CONVERT(VARCHAR,n_hw) AS n_uni
-        ,CONVERT(VARCHAR,hw_complete) AS uni_has
-        ,CONVERT(VARCHAR,hw_missing) AS uni_missing
-        ,CONVERT(VARCHAR,hw_pct) AS uni_pct
+        ,CONVERT(VARCHAR,n_uni) AS n_uni
+        ,CONVERT(VARCHAR,uni_has) AS uni_has
+        ,CONVERT(VARCHAR,uni_missing) AS uni_missing
+        ,CONVERT(VARCHAR,uni_pct) AS uni_pct
         ,CONVERT(VARCHAR,n_color) AS n_color
         ,CONVERT(VARCHAR,purple_pink) AS purple_pink
         ,CONVERT(VARCHAR,green) AS green
@@ -251,10 +251,10 @@ UNION ALL
         ,CONVERT(VARCHAR,hw_complete) AS hw_complete
         ,CONVERT(VARCHAR,hw_missing) AS hw_missing
         ,CONVERT(VARCHAR,hw_pct) AS hw_pct
-        ,CONVERT(VARCHAR,n_hw) AS n_uni
-        ,CONVERT(VARCHAR,hw_complete) AS uni_has
-        ,CONVERT(VARCHAR,hw_missing) AS uni_missing
-        ,CONVERT(VARCHAR,hw_pct) AS uni_pct
+        ,CONVERT(VARCHAR,n_uni) AS n_uni
+        ,CONVERT(VARCHAR,uni_has) AS uni_has
+        ,CONVERT(VARCHAR,uni_missing) AS uni_missing
+        ,CONVERT(VARCHAR,uni_pct) AS uni_pct
         ,CONVERT(VARCHAR,n_color) AS n_color
         ,CONVERT(VARCHAR,purple_pink) AS purple_pink
         ,CONVERT(VARCHAR,green) AS green

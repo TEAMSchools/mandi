@@ -3,6 +3,21 @@ GO
 
 ALTER VIEW TABLEAU$assessment_dashboard AS
 
+WITH distinct_assessments AS (
+  SELECT DISTINCT
+         assessment_id
+        ,standard_id
+        ,title
+        ,scope
+        ,subject
+        ,credittype
+        ,term
+        ,administered_at
+        ,standards_tested        
+        ,standard_descr
+  FROM ILLUMINATE$assessments#static WITH(NOLOCK)  
+ )
+
 SELECT co.schoolid
       ,co.grade_level
       ,s.team
@@ -32,13 +47,10 @@ JOIN STUDENTS s WITH(NOLOCK)
   ON co.studentid = s.id
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
   ON co.studentid = cs.studentid
-JOIN ILLUMINATE$assessments#static a WITH (NOLOCK)
+JOIN distinct_assessments a WITH (NOLOCK)
   ON res.assessment_id = a.assessment_id
- AND res.standard_id = a.standard_id
- AND co.schoolid = a.schoolid
- AND co.grade_level = a.grade_level
- AND a.deleted_at IS NULL
+ AND res.standard_id = a.standard_id  
 --LEFT OUTER JOIN ILLUMINATE$student_groups#static grp WITH(NOLOCK)
 --  ON co.STUDENT_NUMBER = grp.student_number
 -- AND res.academic_year = grp.academic_year
--- --AND res.administered_at >= grp.eligibility_start_date
+-- AND res.administered_at >= grp.eligibility_start_date

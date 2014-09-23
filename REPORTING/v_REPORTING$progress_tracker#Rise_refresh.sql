@@ -73,7 +73,7 @@ SELECT ROW_NUMBER() OVER(
       ,promo.attendance_points
       ,ROUND(promo.y1_att_pts_pct,1) AS ATT_POINTS_PCT      
       ,promo.promo_overall_rise
-      ,promo.promo_grades_rise
+      ,promo.promo_grades_gpa_rise AS promo_grades_rise
       ,promo.promo_att_rise
       ,promo.promo_hw_rise
       ,promo.days_to_90
