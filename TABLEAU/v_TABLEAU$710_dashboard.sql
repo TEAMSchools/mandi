@@ -38,7 +38,9 @@ WITH enrollments AS (
   JOIN TEACHERS t WITH(NOLOCK)
     ON cc.TEACHERID = t.ID
   WHERE cc.TERMID >= dbo.fn_Global_Term_Id()
-    AND cc.STUDENTID IN (SELECT studentid FROM COHORT$comprehensive_long#static co WITH(NOLOCK) WHERE co.year = dbo.fn_Global_Academic_Year() AND co.grade_level >= 5 AND co.grade_level <= 12)
+    AND cc.STUDENTID IN (SELECT studentid 
+                         FROM COHORT$comprehensive_long#static co WITH(NOLOCK) 
+                         WHERE co.year = dbo.fn_Global_Academic_Year() AND co.grade_level >= 5 AND co.grade_level <= 12)
  )
 
 ,reporting_weeks AS (
@@ -56,6 +58,7 @@ WITH enrollments AS (
    AND dt.identifier = 'RT'
    AND dt.school_level != 'ES'
   WHERE rw.academic_year = dbo.fn_Global_Academic_Year()
+    AND rw.weekday_start <= GETDATE()
  )
 
 ,course_scaffold AS (
@@ -77,7 +80,9 @@ WITH enrollments AS (
  )
 
 ,finalgrades_long AS ( 
-  SELECT *
+  SELECT sectionid
+        ,term
+        ,ROUND(AVG(termgrade),0) AS termgrade
   FROM
       (
        SELECT DISTINCT 
@@ -146,41 +151,212 @@ WITH enrollments AS (
                 ,Q1
                 ,Q2
                 ,Q3
-                ,Q4)
+                ,Q4
+                ,Y1
+                ,E1
+                ,E2)
    ) u2
+
+  GROUP BY sectionid
+          ,term
  )
 
-SELECT enr.*      
-      ,fg.y1
-      ,fg.e1
-      ,fg.e2
-      ,fg.termgrade
-      ,gr.ASSIGNMENTID
-      ,gr.assign_name
-      ,gr.finalgrade
-      ,gr.category
-      ,gr.pct
-      ,gr.student_number      
-      ,s.lastfirst
-      ,s.grade_level
-      ,s.team
-      ,s.gender
-      ,cs.advisor
-      ,cs.spedlep
-      ,co.year_in_network
+,attendance_weekly AS (
+  SELECT sectionid
+        ,week
+        ,SUM(is_absent) AS n_absent
+  FROM
+      (
+       SELECT studentid
+             ,sectionid
+             ,DATEPART(WEEK,att_date) AS week
+             ,att_code
+             ,CASE WHEN att_code IS NULL OR att_code IN ('T','T10','TE') THEN 0.0 ELSE 1.0 END AS is_absent
+       FROM ATT_MEM$meeting_attendance#static WITH(NOLOCK)
+      ) sub
+  GROUP BY sectionid
+          ,week
+ )
+
+,membership_weekly AS (
+  SELECT sectionid
+        ,week
+        ,SUM(MEMBERSHIPVALUE) AS n_mem
+  FROM
+      (
+       SELECT mem.STUDENTID      
+             ,mem.STUDENT_NUMBER      
+             ,ABS(cc.SECTIONID) AS sectionid
+             ,DATEPART(WEEK,mem.CALENDARDATE) AS week
+             ,CONVERT(FLOAT,mem.MEMBERSHIPVALUE) AS membershipvalue
+       FROM MEMBERSHIP mem WITH(NOLOCK)
+       JOIN CC WITH(NOLOCK)
+         ON mem.STUDENTID = cc.STUDENTID
+        AND mem.CALENDARDATE >= cc.DATEENROLLED
+        AND mem.CALENDARDATE <= cc.DATELEFT 
+       WHERE mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
+         AND mem.SCHOOLID IN (73253,73252,133570965)  
+      ) sub
+  GROUP BY sectionid
+          ,week
+ )
+
+,butts_in_seats AS (
+  SELECT mem.sectionid
+        ,mem.week
+        ,mem.n_mem
+        ,ISNULL(att.n_absent,0) AS n_absent
+        ,ROUND(((mem.n_mem - ISNULL(att.n_absent,0)) / mem.n_mem) * 100,0) AS butts_in_seats_pct
+  FROM membership_weekly mem
+  LEFT OUTER JOIN attendance_weekly att
+    ON mem.sectionid = att.sectionid
+   AND mem.week = att.week
+ )
+
+SELECT schoolid
+      ,week
+      ,week_of
+      ,reporting_hash
+      ,CREDITTYPE
+      ,COURSE_NUMBER
+      ,COURSE_NAME
+      ,sectionid
+      ,SECTION      
+      ,teacher_name
+      ,term
+      ,finalgrade
+      ,category
+      ,ROUND(AVG(pct),0) AS pct
+      ,ISNULL(COUNT(DISTINCT assign_name),0) AS n_assign
+FROM
+    (
+     SELECT enr.*            
+           ,gr.ASSIGNMENTID
+           ,gr.assign_name
+           ,gr.finalgrade
+           ,gr.category
+           ,gr.pct      
+           --,gr.student_number      
+           --,s.lastfirst
+           --,s.grade_level
+           --,s.team
+           --,s.gender
+           --,cs.advisor
+           --,cs.spedlep
+           --,co.year_in_network
+     FROM course_scaffold enr WITH(NOLOCK)
+     JOIN GRADES$asmt_scores_category_long gr WITH(NOLOCK)
+       ON enr.SECTIONID = gr.sectionid
+      AND enr.week = gr.week
+     --JOIN STUDENTS s WITH(NOLOCK)
+     --  ON gr.student_number = s.student_number
+     --JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+     --  ON s.id = cs.studentid
+     --JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+     --  ON s.id = co.studentid
+     -- AND co.year = dbo.fn_Global_Academic_Year()
+     -- AND co.rn = 1
+    ) sub
+GROUP BY schoolid
+        ,week
+        ,week_of
+        ,reporting_hash
+        ,CREDITTYPE
+        ,COURSE_NUMBER
+        ,COURSE_NAME
+        ,SECTIONID
+        ,SECTION
+        ,teacher_name
+        ,term
+        ,finalgrade
+        ,category
+
+UNION ALL
+
+SELECT enr.*            
+      --,NULL AS ASSIGNMENTID
+      --,'Term Grade' AS assign_name
+      ,fg.term AS finalgrade
+      ,NULL AS category
+      ,fg.termgrade AS pct
+      ,NULL AS n_assign
+      --,fg.student_number      
+      --,s.lastfirst
+      --,s.grade_level
+      --,s.team
+      --,s.gender
+      --,cs.advisor
+      --,cs.spedlep
+      --,co.year_in_network
 FROM course_scaffold enr WITH(NOLOCK)
-JOIN GRADES$asmt_scores_category_long#static gr WITH(NOLOCK)
-  ON enr.SECTIONID = gr.sectionid
- AND enr.week = gr.week
 JOIN finalgrades_long fg WITH(NOLOCK)
   ON enr.sectionid = fg.sectionid
  AND enr.term = fg.term
- AND gr.student_number = fg.student_number
-JOIN STUDENTS s WITH(NOLOCK)
-  ON gr.student_number = s.student_number
-JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON s.id = cs.studentid
-JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
-  ON s.id = co.studentid
- AND co.year = dbo.fn_Global_Academic_Year()
- AND co.rn = 1
+--JOIN STUDENTS s WITH(NOLOCK)
+--  ON fg.student_number = s.student_number
+--JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+--  ON s.id = cs.studentid
+--JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+--  ON s.id = co.studentid
+-- AND co.year = dbo.fn_Global_Academic_Year()
+-- AND co.rn = 1
+
+UNION ALL
+
+SELECT enr.*            
+      --,NULL AS ASSIGNMENTID
+      --,'Term Grade' AS assign_name
+      ,fg.term AS finalgrade
+      ,NULL AS category
+      ,fg.termgrade AS pct
+      ,NULL AS n_assign
+      --,fg.student_number      
+      --,s.lastfirst
+      --,s.grade_level
+      --,s.team
+      --,s.gender
+      --,cs.advisor
+      --,cs.spedlep
+      --,co.year_in_network
+FROM course_scaffold enr WITH(NOLOCK)
+JOIN finalgrades_long fg WITH(NOLOCK)
+  ON enr.sectionid = fg.sectionid
+ AND fg.term = 'Y1'
+--JOIN STUDENTS s WITH(NOLOCK)
+--  ON fg.student_number = s.student_number
+--JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+--  ON s.id = cs.studentid
+--JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+--  ON s.id = co.studentid
+-- AND co.year = dbo.fn_Global_Academic_Year()
+-- AND co.rn = 1
+
+UNION ALL
+
+SELECT enr.*            
+      --,NULL AS ASSIGNMENTID
+      --,'Attendance %' AS assign_name
+      ,'Att %' AS finalgrade
+      ,NULL AS category
+      ,bis.butts_in_seats_pct AS pct
+      ,NULL AS n_assign
+      --,bis.student_number      
+      --,s.lastfirst
+      --,s.grade_level
+      --,s.team
+      --,s.gender
+      --,cs.advisor
+      --,cs.spedlep
+      --,co.year_in_network
+FROM course_scaffold enr WITH(NOLOCK)
+JOIN butts_in_seats bis WITH(NOLOCK)
+  ON enr.SECTIONID = bis.sectionid
+ AND enr.week = bis.week
+--JOIN STUDENTS s WITH(NOLOCK)
+--  ON bis.student_number = s.student_number
+--JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+--  ON s.id = cs.studentid
+--JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+--  ON s.id = co.studentid
+-- AND co.year = dbo.fn_Global_Academic_Year()
+-- AND co.rn = 1
