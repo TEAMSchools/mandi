@@ -45,6 +45,7 @@ BEGIN
           ,ps_customfields.getcf(''Students'',id,''DEFAULT_STUDENT_WEB_PASSWORD'') AS DEFAULT_STUDENT_WEB_PASSWORD
           ,ps_customfields.getcf(''Students'',id,''DEFAULT_FAMILY_WEB_ID'') AS DEFAULT_FAMILY_WEB_ID
           ,ps_customfields.getcf(''Students'',id,''DEFAULT_FAMILY_WEB_PASSWORD'') AS DEFAULT_FAMILY_WEB_PASSWORD
+          ,ps_customfields.getcf(''Students'',id,''MIDDLE_NAME_CUSTOM'') AS MIDDLE_NAME_CUSTOM
     FROM students s
   ');
          
