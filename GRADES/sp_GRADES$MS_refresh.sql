@@ -233,6 +233,7 @@ BEGIN
     AND cc.course_number != @v_course_ex_hr
    JOIN courses c WITH(NOLOCK)
      ON cc.course_number = c.course_number
+    AND c.CREDITTYPE NOT IN ('LOG')
    WHERE co.YEAR = dbo.fn_Global_Academic_Year()
      AND co.schoolid IN (73252, 133570965)
      AND co.rn = 1

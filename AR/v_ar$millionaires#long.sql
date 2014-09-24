@@ -56,7 +56,7 @@ FROM
                            WHEN det.tipassed = 1 THEN det.iwordcount
                            ELSE 0
                          END) AS words
-              FROM scaffold
+              FROM scaffold WITH(NOLOCK)
               JOIN KIPP_NJ..AR$test_event_detail#static det WITH (NOLOCK)
                 ON CAST(scaffold.student_number AS VARCHAR) = det.student_number
                AND det.dtTaken >= scaffold.start_date_ar

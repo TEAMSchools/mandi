@@ -13,6 +13,7 @@ WITH enrollments AS (
         ,c.COURSE_NAME        
         ,sec.SECTION_NUMBER
         ,CASE        
+          WHEN sec.schoolid != 73253 THEN sec.SECTION_NUMBER
           WHEN sec.expression = '1(A)' THEN 'HR'
           WHEN sec.expression = '2(A)' THEN '1'
           WHEN sec.expression = '3(A)' THEN '2'

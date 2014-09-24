@@ -7,7 +7,7 @@ WITH disc_log AS (
   SELECT disc.schoolid
         ,CAST(disc.studentid AS INT) AS studentid        
         ,disc.entry_author
-        ,CASE WHEN DATEPART(MONTH,disc.entry_date) < 7 THEN (DATEPART(YEAR,disc.entry_date) - 1) ELSE DATEPART(YEAR,disc.entry_date) END AS academic_year
+        ,dbo.fn_DateToSY(disc.entry_date) AS academic_year
         ,CASE WHEN disc.logtypeid IN (3023, 3223) OR schoolid != 73253 THEN CONVERT(DATE,disc.entry_date) ELSE CONVERT(DATE,disc.discipline_incidentdate) END AS entry_date
         ,CONVERT(DATE,disc.entry_date) AS consequence_date
         ,disc.logtypeid      
@@ -57,7 +57,7 @@ WITH disc_log AS (
   SELECT att.schoolid
         ,att.studentid
         ,t.LASTFIRST AS entry_author
-        ,CASE WHEN DATEPART(MONTH,att_date) < 7 THEN (DATEPART(YEAR,att_date) - 1) ELSE DATEPART(YEAR,att_date) END AS academic_year
+        ,dbo.fn_DateToSY(att_date) AS academic_year
         ,CONVERT(DATE,att_date) AS entry_date
         ,NULL AS consequence_date
         ,3223 AS logtypeid
@@ -84,7 +84,7 @@ WITH disc_log AS (
   SELECT att.schoolid
         ,att.studentid
         ,t.LASTFIRST AS entry_author
-        ,CASE WHEN DATEPART(MONTH,att_date) < 7 THEN (DATEPART(YEAR,att_date) - 1) ELSE DATEPART(YEAR,att_date) END AS academic_year
+        ,dbo.fn_DateToSY(att_date) AS academic_year
         ,CONVERT(DATE,att_date) AS entry_date
         ,NULL AS consequence_date
         ,3223 AS logtypeid
@@ -110,6 +110,36 @@ WITH disc_log AS (
     AND att.ATT_DATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
  )
 
+,TEAM_bench AS (
+  SELECT 133570965 AS schoolid
+        ,CONVERT(INT,[student_number]) AS studentid
+        ,CONVERT(VARCHAR,[Teacher]) AS entry_author
+        ,dbo.fn_DateToSY(CONVERT(DATE,[Date])) AS academic_year
+        ,CONVERT(DATE,[Date]) AS entry_date
+        ,NULL AS consequence_date
+        ,-100000 AS logtypeid
+        ,CASE 
+          WHEN [Bench/ISS/OSS] = 'OSS' THEN 6
+          WHEN [Bench/ISS/OSS] = 'ISS' THEN 5
+          WHEN [Bench/ISS/OSS] = 'Bench' THEN 4
+         END AS subtypeid
+        ,CONVERT(VARCHAR,[Days on ]) AS n_days
+        ,'Discipline (MS/HS)' AS logtype
+        ,CONVERT(VARCHAR,[Bench/ISS/OSS]) AS subtype
+        ,CONVERT(VARCHAR,[Bench/ISS/OSS]) AS subject        
+        ,CONVERT(VARCHAR,ISNULL('Approved with: ' + CONVERT(VARCHAR,[Approved With] + CHAR(10) + CHAR(13)), '')
+          + ISNULL('Location: ' + CONVERT(VARCHAR,[Class and Time of Day] + CHAR(10) + CHAR(13)), '')
+          + ISNULL('Descr: ' + CONVERT(VARCHAR,[Description] + CHAR(10) + CHAR(13)), '')
+          + ISNULL('Parent Contact: ' + CONVERT(VARCHAR,[Parent Contact] + CHAR(10) + CHAR(13)), '')
+          + ISNULL('Off Bench: ' + CONVERT(VARCHAR,[Date off the Bench],101), ''))
+          AS entry
+        ,NULL AS discipline_details
+        ,NULL AS actiontaken
+        ,NULL AS followup      
+  FROM [dbo].[AUTOLOAD$GDOCS_MISC_TEAM_Bench_Log] log WITH(NOLOCK)
+  WHERE student_number IS NOT NULL
+ )
+
 ,all_logs AS (
   SELECT *
   FROM disc_log WITH(NOLOCK)
@@ -117,6 +147,9 @@ WITH disc_log AS (
   UNION ALL
   SELECT *
   FROM tardy_demerits WITH(NOLOCK)
+  UNION ALL
+  SELECT *
+  FROM TEAM_bench WITH(NOLOCK)
  )
 
 SELECT all_logs.*      

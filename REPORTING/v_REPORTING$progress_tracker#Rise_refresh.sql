@@ -3,7 +3,18 @@ GO
 
 ALTER VIEW REPORTING$progress_tracker#Rise AS
 
-WITH roster AS (
+WITH curterm AS (
+  SELECT time_per_name
+        ,alt_name AS term
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE identifier = 'RT'
+    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND schoolid = 73252
+    AND start_date <= GETDATE()
+    AND end_date >= GETDATE()
+ )
+
+,roster AS (
   SELECT s.id
         ,s.student_number
         ,s.schoolid
@@ -294,11 +305,23 @@ SELECT ROW_NUMBER() OVER(
       ,CONVERT(FLOAT,grades.rc5_A2) AS SOC_A2
       ,CONVERT(FLOAT,grades.rc5_A3) AS SOC_A3
       
-      ,((CONVERT(FLOAT,grades.rc1_y1) 
-         + CONVERT(FLOAT,grades.rc2_y1) 
-         + CONVERT(FLOAT,grades.rc3_y1) 
-         + CONVERT(FLOAT,grades.rc4_y1) 
-         + CONVERT(FLOAT,grades.rc5_y1)) / 5) AS Core_Avg
+      ,((CONVERT(FLOAT,ISNULL(grades.rc1_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc2_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc3_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc4_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc5_y1,0))) 
+          / 
+        CASE WHEN (CASE WHEN grades.rc1_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc2_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc3_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc4_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc5_y1 IS NOT NULL THEN 1 ELSE 0 END) = 0 THEN NULL
+             ELSE (CASE WHEN grades.rc1_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc2_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc3_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc4_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc5_y1 IS NOT NULL THEN 1 ELSE 0 END)
+        END) AS Core_Avg
       ,CONVERT(FLOAT,grades.HY_all) AS HW_Avg
       ,CONVERT(FLOAT,grades.QY_all) AS HW_Q_Avg      
 
@@ -370,17 +393,21 @@ SELECT ROW_NUMBER() OVER(
 --Accelerated Reader
 --update terms in JOIN
 --AR year
-     ,replace(convert(varchar,convert(Money, ar_yr.words),1),'.00','') AS words_read_yr
-     ,replace(convert(varchar,convert(Money, ar_curr.words_goal * 6),1),'.00','') AS words_goal_yr      
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_yr.words),1),'.00','') AS words_read_yr
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_yr.words_goal),1),'.00','') AS words_goal_yr      
      ,ar_yr.rank_words_grade_in_school AS words_rank_yr_in_grade
-     --,CONVERT(FLOAT,ar_yr.mastery) AS mastery_yr
+     ,CONVERT(FLOAT,ar_yr.mastery) AS mastery_yr
      ,NULL AS ONTRACK_WORDS_YR
      
      --AR current
      --current trimester = current HEX + previous HEX
-     ,replace(convert(varchar,convert(Money, ar_curr.words + ar_curr2.words),1),'.00','') AS words_read_cur_term
-     ,replace(convert(varchar,convert(Money, ar_curr.words_goal + ar_curr2.words_goal),1),'.00','') AS words_goal_cur_term
-     ,ar_curr2.rank_words_grade_in_school AS words_rank_cur_term_in_grade
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_curr.words + ar_curr2.words),1),'.00','') AS words_read_cur_term
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_curr.words_goal + ar_curr2.words_goal),1),'.00','') AS words_goal_cur_term
+     ,CASE 
+       WHEN (SELECT time_per_name FROM curterm) = ar_curr.time_period_name THEN ar_curr.rank_words_grade_in_school
+       WHEN (SELECT time_per_name FROM curterm) = ar_curr2.time_period_name THEN ar_curr2.rank_words_grade_in_school
+       ELSE NULL
+      END AS words_rank_cur_term_in_grade
      --,CONVERT(FLOAT,ar_curr2.mastery) AS mastery_curr
       
       --AR progress
@@ -397,10 +424,12 @@ SELECT ROW_NUMBER() OVER(
        END,0) AS INT)),1),'.00','') AS words_needed_yr
       --to term goal       
      ,CASE
-       WHEN ar_curr2.stu_status_words = 'On Track' THEN 'Yes!'
-       WHEN ar_curr2.stu_status_words = 'Off Track' THEN 'No'
-       WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) > 0 THEN 'Missed Goal'
-       ELSE ar_curr2.stu_status_words
+       WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN 'Met Goal'
+       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') AND ar_curr2.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') AND ar_curr2.stu_status_words IN ('Off Track','Missed Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') AND ar_curr2.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') AND ar_curr2.stu_status_words IN ('Off Track','Missed Goal') THEN 'No'              
+       ELSE COALESCE(ar_curr2.stu_status_words, ar_curr.stu_status_words)
       END AS stu_status_words_cur_term
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CAST(ROUND(
        CASE
@@ -715,4 +744,4 @@ LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)
 --XC
 LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON roster.STUDENT_NUMBER = xc.student_number
- AND xc.yearid = dbo.fn_Global_Term_Id()  
+ AND xc.yearid = dbo.fn_Global_Term_Id()
