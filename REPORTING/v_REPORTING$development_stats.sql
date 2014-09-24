@@ -45,7 +45,7 @@ FROM
                 ELSE 0.0
               END AS dummy
        FROM KIPP_NJ..STUDENTS s
-       WHERE s.ENTRYDATE > '01-AUG-13'
+       WHERE s.ENTRYDATE > '01-AUG-14'
          AND DATEDIFF(day,s.entrydate,s.exitdate) > 2
        ) sub
 
@@ -66,7 +66,7 @@ FROM
        FROM KIPP_NJ..STUDENTS s
        JOIN KIPP_NJ..SCHOOLS sch
          ON s.schoolid = sch.school_number
-       WHERE s.ENTRYDATE > '01-AUG-13'
+       WHERE s.ENTRYDATE > '01-AUG-14'
          AND DATEDIFF(day,s.entrydate,s.exitdate) > 2
        ) sub
 GROUP BY sub.school
