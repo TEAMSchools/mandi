@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW MAP$MAP$norm_table_extended#2011#dense AS
+ALTER VIEW MAP$norm_table_extended#2011#dense AS
 WITH nums AS
     (SELECT n
      FROM KIPP_NJ..UTIL$row_generator
