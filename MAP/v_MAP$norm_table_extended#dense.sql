@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW MAP$MAP$norm_table_extended#2011#dense AS
+ALTER VIEW MAP$MAP$norm_table_extended#2011#dense AS
 WITH nums AS
     (SELECT n
      FROM KIPP_NJ..UTIL$row_generator
@@ -22,8 +22,6 @@ WITH nums AS
      WHERE n.percentile <= 50
      UNION 
      SELECT n.*
-            --partition to get only one row per percentile
-            --later we'll union to put humpty dumpty back together
            ,ROW_NUMBER() OVER
              (PARTITION BY n.measurementscale
                           ,n.fallwinterspring
