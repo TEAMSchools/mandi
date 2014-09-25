@@ -4,7 +4,6 @@ GO
 ALTER VIEW AR$test_event_detail AS
 --CTE to enable manipulation of this guy w/o ugly self join
 WITH ar_detail AS
-    --Rise
     (SELECT REPLACE(LEFT(rluser.[vchPreviousIDNum], 5), '-','') AS student_number
            ,arsp.[iStudentPracticeID]
            ,arsp.[iUserID]
