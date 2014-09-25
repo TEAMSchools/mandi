@@ -45,5 +45,6 @@ LEFT OUTER JOIN GRADES$ELEMENTS hw WITH(NOLOCK)
   ON s.id = hw.studentid
  AND hw.pgf_type = 'H'
  AND hw.course_number = 'all_courses'
+ AND hw.yearid = LEFT(dbo.fn_Global_Term_Id(), 2)
 WHERE s.schoolid = 133570965
   AND s.enroll_status = 0

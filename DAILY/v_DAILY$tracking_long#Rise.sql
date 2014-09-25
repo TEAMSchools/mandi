@@ -3,7 +3,8 @@ GO
 
 ALTER VIEW DAILY$tracking_long#Rise AS
 
-SELECT studentid
+SELECT DISTINCT 
+       studentid
       ,schoolid
       ,att_date
       ,field AS class

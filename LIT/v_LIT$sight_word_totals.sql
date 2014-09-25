@@ -52,7 +52,7 @@ WITH valid_tests AS (
         ,r.grade_level      
         ,r.STUDENT_NUMBER
         ,r.time_per_name AS listweek_num
-        ,SUM(CONVERT(FLOAT,value)) AS n_total
+        ,COUNT(CONVERT(FLOAT,value)) AS n_total
         ,SUM(CONVERT(FLOAT,value)) AS n_correct
         ,COUNT(CONVERT(FLOAT,value)) - SUM(CONVERT(FLOAT,value)) AS n_missed
         ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct
@@ -71,7 +71,7 @@ WITH valid_tests AS (
   SELECT r.schoolid
         ,r.grade_level      
         ,r.STUDENT_NUMBER                
-        ,SUM(CONVERT(FLOAT,value)) AS n_total_yr
+        ,COUNT(CONVERT(FLOAT,value)) AS n_total_yr
         ,SUM(CONVERT(FLOAT,value)) AS n_correct_yr
         ,COUNT(CONVERT(FLOAT,value)) - SUM(CONVERT(FLOAT,value)) AS n_missed_yr
         ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct_yr

@@ -27,8 +27,7 @@ BEGIN
       SELECT repository_id          
       FROM dna_repositories.repositories    
       WHERE deleted_at IS NULL      
-        AND repository_id < 84
-        --AND repository_id NOT IN (81)
+        AND repository_id < 84        
     ')
 
   		    
@@ -97,37 +96,84 @@ FOR field IN (' + @cols + ')
   DEALLOCATE illuminate_cursor;
 
 
--- 5.) UPSERT: matching on repo, row number, studentid, and field name
-  MERGE ILLUMINATE$summary_assessment_results_long#static AS TARGET
-  USING (SELECT repository_id
-               ,repository_row_id
-               ,student_id
-               ,field
-               ,value
-         FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh]) AS SOURCE  
-     (repository_id
-     ,repository_row_id
-     ,student_id
-     ,field
-     ,value)
-   ON target.repository_id = source.repository_id
-  AND target.repository_row_id = source.repository_row_id
-  AND target.student_id = source.student_id
-  AND target.field = source.field           
-  WHEN MATCHED THEN
-    UPDATE
-    SET target.value = source.value          
-  WHEN NOT MATCHED THEN
-    INSERT (repository_id
-           ,repository_row_id
-           ,student_id
-           ,field
-           ,value)
-    VALUES (source.repository_id
-           ,source.repository_row_id
-           ,source.student_id
-           ,source.field
-           ,source.value);
+  --STEP 4: truncate 
+  EXEC('TRUNCATE TABLE KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static');
+
+
+  --STEP 5: disable all nonclustered indexes on table
+  SELECT @sql = @sql + 
+   'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name + ' DISABLE;' +CHAR(13)+CHAR(10)
+  FROM 
+   sys.indexes
+  JOIN 
+   sys.objects 
+   ON sys.indexes.object_id = sys.objects.object_id
+  WHERE sys.indexes.type_desc = 'NONCLUSTERED'
+   AND sys.objects.type_desc = 'USER_TABLE'
+   AND sys.objects.name = 'ILLUMINATE$summary_assessment_results_long#static';
+ EXEC (@sql);
+
+
+ -- step 6: insert into final destination
+ INSERT INTO [dbo].[ILLUMINATE$summary_assessment_results_long#static]
+ SELECT *
+ FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh];
+ 
+
+ -- Step 4: rebuld all nonclustered indexes on table
+ SELECT @sql = @sql + 
+  'ALTER INDEX ' + indexes.name + ' ON  dbo.' + objects.name +' REBUILD;' +CHAR(13)+CHAR(10)
+ FROM 
+  sys.indexes
+ JOIN 
+  sys.objects 
+  ON sys.indexes.object_id = sys.objects.object_id
+ WHERE sys.indexes.type_desc = 'NONCLUSTERED'
+  AND sys.objects.type_desc = 'USER_TABLE'
+  AND sys.objects.name = 'ILLUMINATE$summary_assessment_results_long#static';
+ EXEC (@sql);
+
+
+-- TURNED OFF -- If a value on a table was deleted on the source table, there would be no way to match it on the target table after the UNPIVOT
+---- 5.) UPSERT: matching on repo, row number, studentid, and field name
+--  MERGE ILLUMINATE$summary_assessment_results_long#static AS TARGET
+--  USING (
+--         SELECT repository_id
+--               ,repository_row_id
+--               ,student_id
+--               ,field
+--               ,value
+--         FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh]
+--        ) AS SOURCE  
+--        (
+--         repository_id
+--        ,repository_row_id
+--        ,student_id
+--        ,field
+--        ,value
+--        )
+--   ON target.repository_id = source.repository_id
+--  AND target.repository_row_id = source.repository_row_id
+--  AND target.student_id = source.student_id
+--  AND target.field = source.field           
+--  WHEN MATCHED THEN
+--    UPDATE
+--    SET target.value = source.value          
+--  WHEN NOT MATCHED THEN
+--    INSERT (
+--            repository_id
+--           ,repository_row_id
+--           ,student_id
+--           ,field
+--           ,value
+--           )
+--    VALUES (
+--            source.repository_id
+--           ,source.repository_row_id
+--           ,source.student_id
+--           ,source.field
+--           ,source.value
+--           );
 
 END
 

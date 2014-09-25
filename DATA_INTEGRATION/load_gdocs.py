@@ -7,6 +7,7 @@ import gspread
 import pymssql
 import codecs
 import cStringIO
+import time
 
 
 """
@@ -103,7 +104,10 @@ for record in wkbk_list:
         sheet_name = worksheet._title        
         clean_name = sheet_name.replace(' ', '_')  # removes spaces
 
-        print 'Opening worksheet ' + str(i + 1) + ': "' + str(clean_name) + '"'        
+        print 'Opening worksheet ' + str(i + 1) + ': "' + str(clean_name) + '"'                
+        print 'Allowing formulas to load... (5 sec)'
+        time.sleep(5)  # delays 5 seconds to allow any formulas to load
+        
         print 'Getting and cleaning data...'
         data = worksheet.get_all_values()
         # list comprehension quickly removes unwanted header rows
@@ -148,8 +152,7 @@ for record in wkbk_list:
                 @body = @body,
                 @subject = '!!! WARNING - GDocs sp_LoadFolder fail !!!',
                 @importance = 'High';
-        """
-        print warn_email
+        """        
         cursor.execute(warn_email)
         conn.commit()
         conn.close()
