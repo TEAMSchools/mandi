@@ -1,7 +1,6 @@
 USE KIPP_NJ
 GO
 
-
 ALTER VIEW MAP$norm_table#act_ES_extensions AS
 WITH base_norms AS
     (SELECT n_hi.*
@@ -11,7 +10,7 @@ WITH base_norms AS
                           ,grade
                           ,percentile
               ORDER BY RIT ASC) AS rn
-     FROM KIPP_NJ..MAP$norm_table_extended#2011#dense n_hi WITH(NOLOCK)
+     FROM KIPP_NJ..MAP$norm_table_extended#2011#dense n_hi WITH (NOLOCK)
      WHERE n_hi.percentile > 50
        AND (fallwinterspring = 'Spring' OR (fallwinterspring = 'Fall' AND grade = 0))
        AND n_hi.measurementscale IN ('Reading', 'Mathematics')
@@ -24,7 +23,7 @@ WITH base_norms AS
                           ,grade
                           ,percentile
               ORDER BY RIT DESC) AS rn
-     FROM KIPP_NJ..MAP$norm_table_extended#2011#dense n_lo WITH(NOLOCK)
+     FROM KIPP_NJ..MAP$norm_table_extended#2011#dense n_lo WITH (NOLOCK)
      WHERE n_lo.percentile <= 50
        AND (fallwinterspring = 'Spring' OR (fallwinterspring = 'Fall' AND grade = 0))
        AND n_lo.measurementscale IN ('Reading', 'Mathematics')
@@ -47,7 +46,7 @@ FROM
              ,sub.percentile
              ,sub.RIT
              ,CASE
-                WHEN sub.measurementscale = 'Mathematics' AND sub.percentile = 2 THEN 13
+                WHEN sub.measurementscale = 'Mathematics' AND sub.percentile = 2 AND act_band IS NULL THEN 13
                 WHEN sub.measurementscale = 'Mathematics' AND sub.percentile = 4 THEN 14
                 WHEN sub.measurementscale = 'Mathematics' AND sub.percentile = 8 THEN 15
                 WHEN sub.measurementscale = 'Mathematics' AND sub.percentile = 12 THEN 16
@@ -64,8 +63,8 @@ FROM
                 WHEN sub.measurementscale = 'Mathematics' AND sub.percentile = 94 THEN 27
                 WHEN sub.measurementscale = 'Mathematics' AND sub.percentile = 96 THEN 28
                 WHEN sub.measurementscale = 'Mathematics' AND sub.percentile = 97 THEN 29
-                WHEN sub.measurementscale = 'Mathematics' AND sub.percentile = 98 THEN 30
-                WHEN sub.measurementscale = 'Reading' AND sub.percentile = 2 THEN 8
+                WHEN sub.measurementscale = 'Mathematics' AND sub.percentile = 98 AND act_band IS NULL THEN 30
+                WHEN sub.measurementscale = 'Reading' AND sub.percentile = 2 AND act_band IS NULL THEN 8
                 WHEN sub.measurementscale = 'Reading' AND sub.percentile = 4 THEN 9
                 WHEN sub.measurementscale = 'Reading' AND sub.percentile = 5 THEN 10
                 WHEN sub.measurementscale = 'Reading' AND sub.percentile = 8 THEN 11
@@ -87,7 +86,7 @@ FROM
                 WHEN sub.measurementscale = 'Reading' AND sub.percentile = 89 THEN 27
                 WHEN sub.measurementscale = 'Reading' AND sub.percentile = 92 THEN 28
                 WHEN sub.measurementscale = 'Reading' AND sub.percentile = 94 THEN 29
-                WHEN sub.measurementscale = 'Reading' AND sub.percentile = 95 THEN 30
+                WHEN sub.measurementscale = 'Reading' AND sub.percentile = 95 AND act_band IS NULL THEN 30
                 ELSE act_band
               END AS act_band
        FROM
@@ -100,7 +99,7 @@ FROM
               FROM base_norms base
               WHERE rn = 1
               UNION
-              --all stuff below 1st percentile
+              --all stuff below ACT 13 (2nd percentile)
               --since we CANT follow the percentile line, we need to approximate
               SELECT measurementscale
                     ,fallwinterspring
@@ -109,7 +108,7 @@ FROM
                     ,RIT - 3 AS rit
                     ,12 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -120,7 +119,7 @@ FROM
                     ,RIT - 6 AS rit
                     ,11 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -131,7 +130,7 @@ FROM
                     ,RIT - 10 AS rit
                     ,10 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -142,7 +141,7 @@ FROM
                     ,RIT - 13 AS rit
                     ,9 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -153,7 +152,7 @@ FROM
                     ,RIT - 16 AS rit
                     ,8 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -164,7 +163,7 @@ FROM
                     ,RIT - 20 AS rit
                     ,7 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -175,7 +174,7 @@ FROM
                     ,RIT - 23 AS rit
                     ,6 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -186,7 +185,7 @@ FROM
                     ,RIT - 26 AS rit
                     ,5 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -197,7 +196,7 @@ FROM
                     ,RIT - 29 AS rit
                     ,4 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -208,7 +207,7 @@ FROM
                     ,RIT - 32 AS rit
                     ,3 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -219,7 +218,7 @@ FROM
                     ,RIT - 36 AS rit
                     ,2 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -230,9 +229,10 @@ FROM
                     ,RIT - 39 AS rit
                     ,1 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
+              --reading below act 8 (2nd percentile)
               UNION ALL
               SELECT measurementscale
                     ,fallwinterspring
@@ -241,7 +241,7 @@ FROM
                     ,RIT - 3 AS rit
                     ,7 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Reading'
               UNION ALL
@@ -252,7 +252,7 @@ FROM
                     ,RIT - 5 AS rit
                     ,6 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Reading'
               UNION ALL
@@ -263,7 +263,7 @@ FROM
                     ,RIT - 8 AS rit
                     ,5 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Reading'
               UNION ALL
@@ -274,7 +274,7 @@ FROM
                     ,RIT - 10 AS rit
                     ,4 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Reading'
               UNION ALL
@@ -285,7 +285,7 @@ FROM
                     ,RIT - 12 AS rit
                     ,3 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Reading'
               UNION ALL
@@ -296,7 +296,7 @@ FROM
                     ,RIT - 15 AS rit
                     ,2 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Reading'
               UNION ALL
@@ -307,10 +307,10 @@ FROM
                     ,RIT - 17 AS rit
                     ,1 AS act_band
               FROM base_norms 
-              WHERE percentile = 1
+              WHERE percentile = 2
                 AND rn = 1
                 AND measurementscale = 'Reading'
-              --stuff ABOVE the 99th percentile
+              --stuff ABOVE ACT 30 math (98th percentile)
               UNION ALL
               SELECT measurementscale
                     ,fallwinterspring
@@ -319,7 +319,7 @@ FROM
                     ,RIT + 4 AS rit
                     ,31 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 98
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -330,7 +330,7 @@ FROM
                     ,RIT + 7 AS rit
                     ,32 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 98
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -341,7 +341,7 @@ FROM
                     ,RIT + 10 AS rit
                     ,33 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 98
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -352,7 +352,7 @@ FROM
                     ,RIT + 13 AS rit
                     ,34 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 98
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -363,7 +363,7 @@ FROM
                     ,RIT + 17 AS rit
                     ,35 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 98
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
               UNION ALL
@@ -374,9 +374,10 @@ FROM
                     ,RIT + 20 AS rit
                     ,36 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 98
                 AND rn = 1
                 AND measurementscale = 'Mathematics'
+              --stuff above ACT 30 reading (95th percentile)
               UNION ALL
               SELECT measurementscale
                     ,fallwinterspring
@@ -385,7 +386,7 @@ FROM
                     ,RIT + 3 AS rit
                     ,31 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 95
                 AND rn = 1
                 AND measurementscale = 'Reading'
               UNION ALL
@@ -396,7 +397,7 @@ FROM
                     ,RIT + 5 AS rit
                     ,32 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 95
                 AND rn = 1
                 AND measurementscale = 'Reading'
               UNION ALL
@@ -407,7 +408,7 @@ FROM
                     ,RIT + 7 AS rit
                     ,33 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 95
                 AND rn = 1
                 AND measurementscale = 'Reading'
               UNION ALL
@@ -418,7 +419,7 @@ FROM
                     ,RIT + 10 AS rit
                     ,34 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 95
                 AND rn = 1
                 AND measurementscale = 'Reading'
               UNION ALL
@@ -429,7 +430,7 @@ FROM
                     ,RIT + 12 AS rit
                     ,35 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 95
                 AND rn = 1
                 AND measurementscale = 'Reading'
               UNION ALL
@@ -440,7 +441,7 @@ FROM
                     ,RIT + 15 AS rit
                     ,36 AS act_band
               FROM base_norms 
-              WHERE percentile = 99
+              WHERE percentile = 95
                 AND rn = 1
                 AND measurementscale = 'Reading'
               ) sub
