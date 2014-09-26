@@ -1,8 +1,20 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$progress_tracker#TEAM AS
-WITH roster AS (
+ALTER VIEW REPORTING$progress_tracker#Rise AS
+
+WITH curterm AS (
+  SELECT time_per_name
+        ,alt_name AS term
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE identifier = 'RT'
+    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND schoolid = 73252
+    AND start_date <= GETDATE()
+    AND end_date >= GETDATE()
+ )
+
+,roster AS (
   SELECT s.id
         ,s.student_number
         ,s.schoolid
@@ -23,7 +35,7 @@ WITH roster AS (
   FROM STUDENTS s WITH (NOLOCK)
   LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
     ON s.id = cs.studentid
-  WHERE s.schoolid = 133570965
+  WHERE s.schoolid = 73252
     AND s.enroll_status = 0
     --AND s.id = 4686
  )
@@ -37,8 +49,8 @@ WITH roster AS (
           WHEN RIGHT(time_per_name, 1) IN (1, 3, 5) THEN 'RT' + CONVERT(VARCHAR,RIGHT(time_per_name, 1) + 1)
           ELSE 'RT' + RIGHT(time_per_name, 1)
          END AS hex_b
-  FROM REPORTING$dates
-  WHERE academic_year = 2014
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE academic_year = dbo.fn_Global_Academic_Year()
     AND schoolid = 73252
     AND identifier = 'HEX'
     AND start_date <= GETDATE()
@@ -48,7 +60,8 @@ WITH roster AS (
 SELECT ROW_NUMBER() OVER(
            ORDER BY roster.grade_level
                    ,roster.lastfirst) AS Count
-      ,roster.*       
+      ,roster.*
+       
 --ATTENDANCE
       --yr
       ,att_counts.Y1_ABS_ALL AS Y1_absences_total
@@ -70,31 +83,25 @@ SELECT ROW_NUMBER() OVER(
 --PROMOTIONAL STATUS
       ,promo.attendance_points
       ,ROUND(promo.y1_att_pts_pct,1) AS ATT_POINTS_PCT      
-      ,promo.promo_overall_team
-      ,promo.promo_grades_team
-      ,promo.promo_att_team
-      ,promo.promo_hw_team
+      ,promo.promo_overall_rise
+      ,promo.promo_grades_gpa_rise AS promo_grades_rise
+      ,promo.promo_att_rise
+      ,promo.promo_hw_rise
       ,promo.days_to_90
 
---GPA
-      /*
-      ,CONVERT(FLOAT,gpa.gpa_t1) AS gpa_t1
-      ,gpa.GPA_T1_Rank_G AS GPA_T1_RANK
-      ,CONVERT(FLOAT,gpa.gpa_t2) AS gpa_t2
-      ,gpa.GPA_T2_Rank_G AS GPA_T2_RANK
-      ,CONVERT(FLOAT,gpa.GPA_t3) AS gpa_t3
-      ,gpa.GPA_T3_Rank_G AS GPA_T3_RANK
-      ,CONVERT(FLOAT,gpa.gpa_y1) AS gpa_y1       
-      ,gpa.GPA_Y1_Rank_G AS GPA_Y1_RANK      
-      */      
-      ,gpa.GPA_t1_all
-      ,gpa.GPA_T2_all
-      ,gpa.GPA_T3_all
-      ,gpa.GPA_Y1_all
+--GPA      
+      ,CONVERT(FLOAT,gpa.GPA_t1_all) AS gpa_t1
+      ,gpa.rank_gr_t1_all AS GPA_T1_RANK
+      ,CONVERT(FLOAT,gpa.GPA_t2_all) AS gpa_t2
+      ,gpa.rank_gr_t2_all AS GPA_T2_RANK
+      ,CONVERT(FLOAT,gpa.GPA_t3_all) AS gpa_t3
+      ,gpa.rank_gr_t3_all AS GPA_T3_RANK
+      ,CONVERT(FLOAT,gpa.GPA_y1_all) AS gpa_y1       
+      ,gpa.rank_gr_y1_all AS GPA_Y1_RANK      
       ,gpa.elements_all
       ,gpa.failing_all
       ,gpa.n_failing_all      
-      --,gpa.Y1_Dem AS IN_GRADE_DENOM
+      ,gpa.n_gr AS IN_GRADE_DENOM
 
 --COURSE GRADES
       ,grades.rc1_course_number AS ENGLISH_course_number
@@ -297,31 +304,23 @@ SELECT ROW_NUMBER() OVER(
       ,CONVERT(FLOAT,grades.rc5_A2) AS SOC_A2
       ,CONVERT(FLOAT,grades.rc5_A3) AS SOC_A3
       
-      ,CASE
-        WHEN roster.grade_level != 7 THEN
-         ((CONVERT(FLOAT,grades.rc1_y1) 
-           + CONVERT(FLOAT,grades.rc2_y1) 
-           + CONVERT(FLOAT,grades.rc3_y1) 
-           + CONVERT(FLOAT,grades.rc4_y1) 
-           + CONVERT(FLOAT,grades.rc5_y1)) / 5)
-        WHEN roster.grade_level = 7 THEN
-        ((CONVERT(FLOAT,grades.rc1_y1) 
-           --+ CONVERT(FLOAT,grades.rc2_y1) 
-           + CONVERT(FLOAT,grades.rc3_y1) 
-           + CONVERT(FLOAT,grades.rc4_y1) 
-           + CONVERT(FLOAT,grades.rc5_y1)) / 4)
-        WHEN grades.rc5_course_number IS NULL THEN
-        ((CONVERT(FLOAT,grades.rc1_y1) 
-           + CONVERT(FLOAT,grades.rc2_y1) 
-           + CONVERT(FLOAT,grades.rc3_y1) 
-           + CONVERT(FLOAT,grades.rc4_y1)) / 4)
-        WHEN grades.rc4_course_number IS NULL THEN
-        ((CONVERT(FLOAT,grades.rc1_y1) 
-           + CONVERT(FLOAT,grades.rc2_y1) 
-           + CONVERT(FLOAT,grades.rc3_y1) 
-           --+ CONVERT(FLOAT,grades.rc4_y1) 
-           + CONVERT(FLOAT,grades.rc5_y1)) / 4)
-       END AS Core_Avg
+      ,((CONVERT(FLOAT,ISNULL(grades.rc1_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc2_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc3_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc4_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc5_y1,0))) 
+          / 
+        CASE WHEN (CASE WHEN grades.rc1_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc2_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc3_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc4_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc5_y1 IS NOT NULL THEN 1 ELSE 0 END) = 0 THEN NULL
+             ELSE (CASE WHEN grades.rc1_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc2_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc3_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc4_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc5_y1 IS NOT NULL THEN 1 ELSE 0 END)
+        END) AS Core_Avg
       ,CONVERT(FLOAT,grades.HY_all) AS HW_Avg
       ,CONVERT(FLOAT,grades.QY_all) AS HW_Q_Avg      
 
@@ -335,7 +334,7 @@ SELECT ROW_NUMBER() OVER(
      ,lex_curr.rittoreadingscore AS CUR_LEX
        --GLQ
      ,CASE
-       WHEN lex_base.RITtoReadingScore  = 'BR' THEN NULL
+       WHEN lex_base.RITtoReadingScore  = 'BR' THEN 'Pre-K'
        WHEN lex_base.RITtoReadingScore <= 100  THEN 'K'
        WHEN lex_base.RITtoReadingScore <= 300  AND lex_base.RITtoReadingScore > 100  THEN '1st'
        WHEN lex_base.RITtoReadingScore <= 500  AND lex_base.RITtoReadingScore > 300  THEN '2nd'
@@ -352,7 +351,7 @@ SELECT ROW_NUMBER() OVER(
        ELSE NULL
       END AS BASE_LEX_GLQ_STARTING
      ,CASE
-       WHEN lex_curr.RITtoReadingScore  = 'BR' THEN NULL
+       WHEN lex_curr.RITtoReadingScore  = 'BR' THEN 'Pre-K'
        WHEN lex_curr.RITtoReadingScore <= 100  THEN 'K'
        WHEN lex_curr.RITtoReadingScore <= 300  AND lex_curr.RITtoReadingScore > 100  THEN '1st'
        WHEN lex_curr.RITtoReadingScore <= 500  AND lex_curr.RITtoReadingScore > 300  THEN '2nd'
@@ -369,7 +368,7 @@ SELECT ROW_NUMBER() OVER(
        ELSE NULL
       END AS BASE_LEX_GLQ_CURRENT
 
-     --F&P          
+     --F&P     
      ,CASE
        WHEN fp_base.read_lvl IS NOT NULL THEN fp_base.read_lvl
        ELSE fp_curr.read_lvl
@@ -377,11 +376,11 @@ SELECT ROW_NUMBER() OVER(
      ,fp_curr.read_lvl AS end_letter
        --GLQ
      ,CASE
-       WHEN fp_base.GLEQ IS NOT NULL THEN ROUND(fp_base.GLEQ,1)
-       ELSE ROUND(fp_curr.GLEQ,1)
+       WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ
+       ELSE fp_curr.GLEQ
       END AS Start_GLEQ
-     ,ROUND(fp_curr.GLEQ,1) AS End_GLEQ
-     ,ROUND((fp_curr.GLEQ - CASE WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ ELSE fp_curr.GLEQ END),1) AS GLEQ_Growth
+     ,fp_curr.GLEQ AS End_GLEQ
+     ,(fp_curr.GLEQ - CASE WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ ELSE fp_curr.GLEQ END) AS GLEQ_Growth
        --Level #
      ,CASE
        WHEN fp_base.lvl_num IS NOT NULL THEN fp_base.lvl_num
@@ -393,17 +392,22 @@ SELECT ROW_NUMBER() OVER(
 --Accelerated Reader
 --update terms in JOIN
 --AR year
-     ,replace(convert(varchar,convert(Money, ar_yr.words),1),'.00','') AS words_read_yr
-     ,replace(convert(varchar,convert(Money, ar_curr.words_goal * 6),1),'.00','') AS words_goal_yr      
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_yr.words),1),'.00','') AS words_read_yr
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_yr.words_goal),1),'.00','') AS words_goal_yr      
      ,ar_yr.rank_words_grade_in_school AS words_rank_yr_in_grade
-     ,ar_yr.mastery AS mastery_yr
+     ,CONVERT(FLOAT,ar_yr.mastery) AS mastery_yr
      ,NULL AS ONTRACK_WORDS_YR
      
      --AR current
-     ,replace(convert(varchar,convert(Money, ar_curr.words),1),'.00','') AS words_read_cur_term
-     ,replace(convert(varchar,convert(Money, ar_curr.words_goal),1),'.00','') AS words_goal_cur_term
-     ,ar_curr.rank_words_grade_in_school AS words_rank_cur_term_in_grade
-     ,ar_curr.mastery AS mastery_curr
+     --current trimester = current HEX + previous HEX
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_curr.words + ar_curr2.words),1),'.00','') AS words_read_cur_term
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_curr.words_goal + ar_curr2.words_goal),1),'.00','') AS words_goal_cur_term
+     ,CASE 
+       WHEN (SELECT time_per_name FROM curterm) = ar_curr.time_period_name THEN ar_curr.rank_words_grade_in_school
+       WHEN (SELECT time_per_name FROM curterm) = ar_curr2.time_period_name THEN ar_curr2.rank_words_grade_in_school
+       ELSE NULL
+      END AS words_rank_cur_term_in_grade
+     --,CONVERT(FLOAT,ar_curr2.mastery) AS mastery_curr
       
       --AR progress
         --to year goal      
@@ -419,19 +423,21 @@ SELECT ROW_NUMBER() OVER(
        END,0) AS INT)),1),'.00','') AS words_needed_yr
       --to term goal       
      ,CASE
-       WHEN ar_curr.stu_status_words = 'On Track' THEN 'Yes!'
-       WHEN ar_curr.stu_status_words = 'Off Track' THEN 'No'
-       ELSE ar_curr.stu_status_words
-      END AS stu_status_words_cur_term      
+       WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN 'Met Goal'
+       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') AND ar_curr2.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') AND ar_curr2.stu_status_words IN ('Off Track','Missed Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') AND ar_curr2.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') AND ar_curr2.stu_status_words IN ('Off Track','Missed Goal') THEN 'No'              
+       ELSE COALESCE(ar_curr2.stu_status_words, ar_curr.stu_status_words)
+      END AS stu_status_words_cur_term
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CAST(ROUND(
        CASE
-        WHEN (ar_curr.words_goal - ar_curr.words) <= 0 THEN NULL 
-        ELSE ar_curr.words_goal - ar_curr.words
+        WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN NULL 
+        ELSE ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words))
        END,0) AS INT)),1),'.00','') AS words_needed_cur_term     
       
 --MAP scores
---MAP$wide_all
-     
+/*--UPDATE FIELDS FOR CURRENT YEAR--*/
 --14-15
       --reading
       ,map_all.spr_2015_read_pctle
@@ -596,40 +602,35 @@ SELECT ROW_NUMBER() OVER(
       --Math
       ,njask_math.score_2011 AS math_score_2011
       ,njask_math.prof_2011 AS math_prof_2011
-      
-      
+
 --DISCIPLINE
+--DISC$log#static
       ,disc_recent.disc_01_date_reported
       ,disc_recent.disc_01_given_by
-      ,disc_recent.DISC_01_subtype
       ,CASE
         WHEN disc_recent.disc_01_subject IS NULL THEN disc_recent.disc_01_incident 
         ELSE disc_recent.disc_01_subject
        END AS disc_01_incident
       ,disc_recent.disc_02_date_reported
       ,disc_recent.disc_02_given_by
-      ,disc_recent.DISC_02_subtype
       ,CASE 
         WHEN disc_recent.disc_02_subject IS NULL THEN disc_recent.disc_02_incident 
         ELSE disc_recent.disc_02_subject
        END AS disc_02_incident
       ,disc_recent.disc_03_date_reported
       ,disc_recent.disc_03_given_by
-      ,disc_recent.DISC_03_subtype
       ,CASE
         WHEN disc_recent.disc_03_subject IS NULL THEN disc_recent.disc_03_incident 
         ELSE disc_recent.disc_03_subject
        END AS disc_03_incident
       ,disc_recent.disc_04_date_reported
       ,disc_recent.disc_04_given_by
-      ,disc_recent.DISC_04_subtype
       ,CASE
         WHEN disc_recent.disc_04_subject IS NULL THEN disc_recent.disc_04_incident 
         ELSE disc_recent.disc_04_subject
        END AS disc_04_incident
       ,disc_recent.disc_05_date_reported
       ,disc_recent.disc_05_given_by
-      ,disc_recent.DISC_05_subtype
       ,CASE
         WHEN disc_recent.disc_05_subject IS NULL THEN disc_recent.disc_05_incident 
         ELSE disc_recent.disc_05_subject
@@ -645,22 +646,24 @@ SELECT ROW_NUMBER() OVER(
       ,ISNULL(disc_count.rt1_detentions,0) AS t1_detentions
       ,ISNULL(disc_count.rt2_detentions,0) AS t2_detentions      
       ,ISNULL(disc_count.rt3_detentions,0) AS t3_detentions
-      ,ISNULL(disc_count.ISS,0) AS Y1_iss
-      ,ISNULL(disc_count.rt1_iss,0) AS t1_iss
-      ,ISNULL(disc_count.rt2_iss,0) AS t2_iss      
-      ,ISNULL(disc_count.rt3_iss,0) AS t3_iss      
-      ,ISNULL(disc_count.oss,0) AS Y1_oss
-      ,ISNULL(disc_count.rt1_oss,0) AS t1_oss
-      ,ISNULL(disc_count.rt2_oss,0) AS t2_oss      
-      ,ISNULL(disc_count.rt3_oss,0) AS t3_oss      
-      ,ISNULL(disc_count.bench,0) AS Y1_bench
-      ,ISNULL(disc_count.rt1_bench,0) AS t1_bench
-      ,ISNULL(disc_count.rt2_bench,0) AS t2_bench      
-      ,ISNULL(disc_count.rt3_bench,0) AS t3_bench  
-      --,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.bench,0) ELSE ISNULL(disc_count.choices,0) END AS Y1_bench_choices      
-      --,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt1_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T1_bench_choices
-      --,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt2_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T2_bench_choices
-      --,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt3_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T3_bench_choices
+      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.bench,0) ELSE ISNULL(disc_count.choices,0) END AS Y1_bench_choices      
+      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt1_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T1_bench_choices
+      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt2_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T2_bench_choices
+      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt3_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T3_bench_choices
+
+--Extracurriculars
+--RutgersReady..XC$activities_wide
+      ,xc.Fall_1 AS xc_Fall_1
+      ,xc.Fall_2 AS xc_Fall_2
+      ,xc.Winter_1 AS xc_Winter_1
+      ,xc.Winter_2 AS xc_Winter_2
+      ,xc.Spring_1 AS xc_Spring_1
+      ,xc.Spring_2 AS xc_Spring_2
+      ,xc.[Winter-Spring_1] AS xc_WinterSpring_1
+      ,xc.[Winter-Spring_2] AS xc_WinterSpring_2
+      ,xc.[Year-Round_1] AS xc_YearRound_1
+      ,xc.[Year-Round_2] AS xc_YearRound_2
+      ,CASE WHEN xc.activity_hash IS NULL THEN 'None' ELSE xc.activity_hash END AS activity_hash
       
 FROM roster WITH (NOLOCK)
 
@@ -680,7 +683,7 @@ LEFT OUTER JOIN GPA$detail#MS gpa WITH (NOLOCK)
 LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH (NOLOCK)
   ON roster.id = promo.studentid
   
---LITERACY -- upadate parameters for current term
+--LITERACY
   --F&P
 LEFT OUTER JOIN LIT$test_events#identifiers fp_base WITH (NOLOCK)
   ON roster.student_number = fp_base.STUDENT_NUMBER
@@ -724,11 +727,11 @@ LEFT OUTER JOIN MAP$wide_all map_all WITH (NOLOCK)
 --NJASK
 LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
   ON roster.id = njask_ela.studentid
- AND njask_ela.schoolid = 133570965
+ AND njask_ela.schoolid = 73252
  AND njask_ela.rn = 1
 LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
   ON roster.id = njask_math.studentid
- AND njask_math.schoolid = 133570965
+ AND njask_math.schoolid = 73252
  AND njask_math.rn = 1
 
 --Discipline
@@ -736,3 +739,8 @@ LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
   ON roster.id = disc_recent.studentid
 LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)
   ON roster.id = disc_count.studentid
+  
+--XC
+LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
+  ON roster.STUDENT_NUMBER = xc.student_number
+ AND xc.yearid = dbo.fn_Global_Term_Id()
