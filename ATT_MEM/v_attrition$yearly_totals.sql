@@ -13,6 +13,7 @@ WITH base_roster AS
      WHERE c.exitdate >= CAST(CAST(c.year AS varchar) + '-' + CAST(10 AS varchar) + '-' + CAST(15 AS varchar) AS DATETIME)
       AND c.schoolid != 999999
       AND c.rn = 1
+      AND (c.year_in_network > 1 OR (c.year_in_network = 1 AND c.exitdate > CONVERT(datetime, '10/15/' + CAST(c.year AS VARCHAR), 101)))
      )
 
 SELECT TOP 10000000 CASE GROUPING(schools.abbreviation)
