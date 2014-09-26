@@ -4,7 +4,7 @@ GO
 ALTER VIEW MAP$norm_table_extended#2011#dense AS
 WITH nums AS
     (SELECT n
-     FROM KIPP_NJ..UTIL$row_generator
+     FROM KIPP_NJ..UTIL$row_generator WITH (NOLOCK)
      WHERE n < 100 AND n > 0
     )
     ,base_norms AS
@@ -18,7 +18,7 @@ WITH nums AS
                           ,n.percentile
               ORDER BY RIT DESC
              ) AS rn
-     FROM KIPP_NJ..MAP$norm_table_extended#2011 n
+     FROM KIPP_NJ..MAP$norm_table_extended#2011 n WITH (NOLOCK)
      WHERE n.percentile <= 50
      UNION 
      SELECT n.*
@@ -29,7 +29,7 @@ WITH nums AS
                           ,n.percentile
               ORDER BY RIT ASC
              ) AS rn
-     FROM KIPP_NJ..MAP$norm_table_extended#2011 n
+     FROM KIPP_NJ..MAP$norm_table_extended#2011 n WITH (NOLOCK)
      WHERE n.percentile > 50
     )
 SELECT TOP 1000000000 sub.measurementscale

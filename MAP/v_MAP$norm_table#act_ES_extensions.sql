@@ -11,7 +11,7 @@ WITH base_norms AS
                           ,grade
                           ,percentile
               ORDER BY RIT ASC) AS rn
-     FROM KIPP_NJ..MAP$norm_table_extended#2011 n_hi
+     FROM KIPP_NJ..MAP$norm_table_extended#2011#dense n_hi WITH(NOLOCK)
      WHERE n_hi.percentile > 50
        AND (fallwinterspring = 'Spring' OR (fallwinterspring = 'Fall' AND grade = 0))
        AND n_hi.measurementscale IN ('Reading', 'Mathematics')
@@ -24,7 +24,7 @@ WITH base_norms AS
                           ,grade
                           ,percentile
               ORDER BY RIT DESC) AS rn
-     FROM KIPP_NJ..MAP$norm_table_extended#2011 n_lo
+     FROM KIPP_NJ..MAP$norm_table_extended#2011#dense n_lo WITH(NOLOCK)
      WHERE n_lo.percentile <= 50
        AND (fallwinterspring = 'Spring' OR (fallwinterspring = 'Fall' AND grade = 0))
        AND n_lo.measurementscale IN ('Reading', 'Mathematics')
