@@ -471,6 +471,19 @@ FROM
         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
        
        UNION ALL
+        
+        --AY1
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_AY1' AS pivot_on
+	         ,CAST(pivot_ele.simple_avg AS VARCHAR) AS value
+       FROM rost WITH (NOLOCK)
+       JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
+         ON rost.studentid = pivot_ele.studentid
+        AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'A'                     
+        AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
+
+       UNION ALL
        
         --Q1
        SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
@@ -534,6 +547,58 @@ FROM
         AND pivot_ele.course_number = 'all_courses'        
         AND pivot_ele.pgf_type = 'Q'
         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
+
+       UNION ALL
+              
+       --S1
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_S1' AS pivot_on
+	         ,CAST(pivot_ele.grade_1 AS VARCHAR) AS value
+       FROM rost WITH (NOLOCK)
+       JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
+         ON rost.studentid = pivot_ele.studentid
+        AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'S'
+        AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
+       
+       UNION ALL
+        
+        --S2
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_S2' AS pivot_on
+	         ,CAST(pivot_ele.grade_2 AS VARCHAR) AS value
+       FROM rost WITH (NOLOCK)
+       JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
+         ON rost.studentid = pivot_ele.studentid
+        AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'S'
+        AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
+       
+       UNION ALL
+        
+        --S3
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_S3' AS pivot_on
+	         ,CAST(pivot_ele.grade_3 AS VARCHAR) AS value
+       FROM rost WITH (NOLOCK)
+       JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
+         ON rost.studentid = pivot_ele.studentid
+        AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'S'                     
+        AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
+       
+       UNION ALL
+        
+        --SY1
+       SELECT rost.studentid, rost.student_number, rost.schoolid, rost.lastfirst, rost.grade_level
+	         ,'rc' + CAST(rost.rn_format AS VARCHAR) + '_SY1' AS pivot_on
+	         ,CAST(pivot_ele.simple_avg AS VARCHAR) AS value
+       FROM rost WITH (NOLOCK)
+       JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
+         ON rost.studentid = pivot_ele.studentid
+        AND rost.course_number = pivot_ele.course_number
+        AND pivot_ele.pgf_type = 'S'                     
+        AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
        )sub
 --/*
 PIVOT (
@@ -574,6 +639,11 @@ PIVOT (
      ,rc1_A1
      ,rc1_A2
      ,rc1_A3
+     ,rc1_AY1
+     ,rc1_S1
+     ,rc1_S2
+     ,rc1_S3
+     ,rc1_SY1
      ,rc1_Q1
      ,rc1_Q2
      ,rc1_Q3
@@ -613,6 +683,10 @@ PIVOT (
      ,rc2_A1
      ,rc2_A2
      ,rc2_A3
+     ,rc2_S1
+     ,rc2_S2
+     ,rc2_S3
+     ,rc2_SY1
      ,rc2_Q1
      ,rc2_Q2
      ,rc2_Q3
@@ -652,6 +726,10 @@ PIVOT (
      ,rc3_A1
      ,rc3_A2
      ,rc3_A3
+     ,rc3_S1
+     ,rc3_S2
+     ,rc3_S3
+     ,rc3_SY1
      ,rc3_Q1
      ,rc3_Q2
      ,rc3_Q3
@@ -691,6 +769,10 @@ PIVOT (
      ,rc4_A1
      ,rc4_A2
      ,rc4_A3
+     ,rc4_S1
+     ,rc4_S2
+     ,rc4_S3
+     ,rc4_SY1
      ,rc4_Q1
      ,rc4_Q2
      ,rc4_Q3
@@ -730,6 +812,10 @@ PIVOT (
      ,rc5_A1
      ,rc5_A2
      ,rc5_A3
+     ,rc5_S1
+     ,rc5_S2
+     ,rc5_S3
+     ,rc5_SY1
      ,rc5_Q1
      ,rc5_Q2
      ,rc5_Q3

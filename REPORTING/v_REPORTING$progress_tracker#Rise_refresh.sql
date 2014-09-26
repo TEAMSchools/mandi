@@ -89,8 +89,7 @@ SELECT ROW_NUMBER() OVER(
       ,promo.promo_hw_rise
       ,promo.days_to_90
 
---GPA
-      
+--GPA      
       ,CONVERT(FLOAT,gpa.GPA_t1_all) AS gpa_t1
       ,gpa.rank_gr_t1_all AS GPA_T1_RANK
       ,CONVERT(FLOAT,gpa.GPA_t2_all) AS gpa_t2

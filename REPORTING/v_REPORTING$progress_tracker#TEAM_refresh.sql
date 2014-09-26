@@ -2,7 +2,19 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW REPORTING$progress_tracker#TEAM AS
-WITH roster AS (
+
+WITH curterm AS (
+  SELECT time_per_name
+        ,alt_name AS term
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE identifier = 'RT'
+    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND schoolid = 73252
+    AND start_date <= GETDATE()
+    AND end_date >= GETDATE()
+ )
+
+,roster AS (
   SELECT s.id
         ,s.student_number
         ,s.schoolid
@@ -77,24 +89,18 @@ SELECT ROW_NUMBER() OVER(
       ,promo.days_to_90
 
 --GPA
-      /*
-      ,CONVERT(FLOAT,gpa.gpa_t1) AS gpa_t1
-      ,gpa.GPA_T1_Rank_G AS GPA_T1_RANK
-      ,CONVERT(FLOAT,gpa.gpa_t2) AS gpa_t2
-      ,gpa.GPA_T2_Rank_G AS GPA_T2_RANK
-      ,CONVERT(FLOAT,gpa.GPA_t3) AS gpa_t3
-      ,gpa.GPA_T3_Rank_G AS GPA_T3_RANK
-      ,CONVERT(FLOAT,gpa.gpa_y1) AS gpa_y1       
-      ,gpa.GPA_Y1_Rank_G AS GPA_Y1_RANK      
-      */      
-      ,gpa.GPA_t1_all
-      ,gpa.GPA_T2_all
-      ,gpa.GPA_T3_all
-      ,gpa.GPA_Y1_all
+      ,CONVERT(FLOAT,gpa.GPA_t1_all) AS gpa_t1
+      ,gpa.rank_gr_t1_all AS GPA_T1_RANK
+      ,CONVERT(FLOAT,gpa.GPA_t2_all) AS gpa_t2
+      ,gpa.rank_gr_t2_all AS GPA_T2_RANK
+      ,CONVERT(FLOAT,gpa.GPA_t3_all) AS gpa_t3
+      ,gpa.rank_gr_t3_all AS GPA_T3_RANK
+      ,CONVERT(FLOAT,gpa.GPA_y1_all) AS gpa_y1       
+      ,gpa.rank_gr_y1_all AS GPA_Y1_RANK      
       ,gpa.elements_all
       ,gpa.failing_all
       ,gpa.n_failing_all      
-      --,gpa.Y1_Dem AS IN_GRADE_DENOM
+      ,gpa.n_gr AS IN_GRADE_DENOM
 
 --COURSE GRADES
       ,grades.rc1_course_number AS ENGLISH_course_number
@@ -133,9 +139,10 @@ SELECT ROW_NUMBER() OVER(
       ,CONVERT(FLOAT,grades.rc1_Q2)  AS ENGLISH_Q2 
       ,CONVERT(FLOAT,grades.rc1_Q3)  AS ENGLISH_Q3 
       ,CONVERT(FLOAT,grades.rc1_QY1) AS ENGLISH_QY1
-      ,CONVERT(FLOAT,grades.rc1_A1) AS ENGLISH_A1
-      ,CONVERT(FLOAT,grades.rc1_A2) AS ENGLISH_A2
-      ,CONVERT(FLOAT,grades.rc1_A3) AS ENGLISH_A3
+      ,CONVERT(FLOAT,grades.rc1_S1) AS ENGLISH_S1
+      ,CONVERT(FLOAT,grades.rc1_S2) AS ENGLISH_S2
+      ,CONVERT(FLOAT,grades.rc1_S3) AS ENGLISH_S3
+      ,CONVERT(FLOAT,grades.rc1_SY1) AS ENGLISH_SY1
       
       ,grades.rc2_course_number AS RHET_course_number
       ,grades.rc2_credittype AS RHET_credittype
@@ -173,9 +180,10 @@ SELECT ROW_NUMBER() OVER(
       ,CONVERT(FLOAT,grades.rc2_Q2)  AS RHET_Q2 
       ,CONVERT(FLOAT,grades.rc2_Q3)  AS RHET_Q3 
       ,CONVERT(FLOAT,grades.rc2_QY1) AS RHET_QY1
-      ,CONVERT(FLOAT,grades.rc2_A1) AS RHET_A1
-      ,CONVERT(FLOAT,grades.rc2_A2) AS RHET_A2
-      ,CONVERT(FLOAT,grades.rc2_A3) AS RHET_A3
+      ,CONVERT(FLOAT,grades.rc2_S1) AS RHET_S1
+      ,CONVERT(FLOAT,grades.rc2_S2) AS RHET_S2
+      ,CONVERT(FLOAT,grades.rc2_S3) AS RHET_S3
+      ,CONVERT(FLOAT,grades.rc2_SY1) AS RHET_SY1
       
       ,grades.rc3_course_number AS MATH_course_number
       ,grades.rc3_credittype AS MATH_credittype
@@ -213,9 +221,10 @@ SELECT ROW_NUMBER() OVER(
       ,CONVERT(FLOAT,grades.rc3_Q2)  AS MATH_Q2 
       ,CONVERT(FLOAT,grades.rc3_Q3)  AS MATH_Q3 
       ,CONVERT(FLOAT,grades.rc3_QY1) AS MATH_QY1
-      ,CONVERT(FLOAT,grades.rc3_A1) AS MATH_A1
-      ,CONVERT(FLOAT,grades.rc3_A2) AS MATH_A2
-      ,CONVERT(FLOAT,grades.rc3_A3) AS MATH_A3
+      ,CONVERT(FLOAT,grades.rc3_S1) AS MATH_S1
+      ,CONVERT(FLOAT,grades.rc3_S2) AS MATH_S2
+      ,CONVERT(FLOAT,grades.rc3_S3) AS MATH_S3
+      ,CONVERT(FLOAT,grades.rc3_SY1) AS MATH_SY1
       
       ,grades.rc4_course_number AS SCIENCE_course_number
       ,grades.rc4_credittype AS SCIENCE_credittype
@@ -253,9 +262,10 @@ SELECT ROW_NUMBER() OVER(
       ,CONVERT(FLOAT,grades.rc4_Q2)  AS SCIENCE_Q2 
       ,CONVERT(FLOAT,grades.rc4_Q3)  AS SCIENCE_Q3 
       ,CONVERT(FLOAT,grades.rc4_QY1) AS SCIENCE_QY1
-      ,CONVERT(FLOAT,grades.rc4_A1) AS SCIENCE_A1
-      ,CONVERT(FLOAT,grades.rc4_A2) AS SCIENCE_A2
-      ,CONVERT(FLOAT,grades.rc4_A3) AS SCIENCE_A3
+      ,CONVERT(FLOAT,grades.rc4_S1) AS SCIENCE_S1
+      ,CONVERT(FLOAT,grades.rc4_S2) AS SCIENCE_S2
+      ,CONVERT(FLOAT,grades.rc4_S3) AS SCIENCE_S3
+      ,CONVERT(FLOAT,grades.rc4_SY1) AS SCIENCE_SY1
       
       ,grades.rc5_course_number AS SOC_course_number
       ,grades.rc5_credittype AS SOC_credittype
@@ -293,35 +303,28 @@ SELECT ROW_NUMBER() OVER(
       ,CONVERT(FLOAT,grades.rc5_Q2)  AS SOC_Q2 
       ,CONVERT(FLOAT,grades.rc5_Q3)  AS SOC_Q3 
       ,CONVERT(FLOAT,grades.rc5_QY1) AS SOC_QY1
-      ,CONVERT(FLOAT,grades.rc5_A1) AS SOC_A1
-      ,CONVERT(FLOAT,grades.rc5_A2) AS SOC_A2
-      ,CONVERT(FLOAT,grades.rc5_A3) AS SOC_A3
+      ,CONVERT(FLOAT,grades.rc5_S1) AS SOC_S1
+      ,CONVERT(FLOAT,grades.rc5_S2) AS SOC_S2
+      ,CONVERT(FLOAT,grades.rc5_S3) AS SOC_S3
+      ,CONVERT(FLOAT,grades.rc5_SY1) AS SOC_SY1
       
-      ,CASE
-        WHEN roster.grade_level != 7 THEN
-         ((CONVERT(FLOAT,grades.rc1_y1) 
-           + CONVERT(FLOAT,grades.rc2_y1) 
-           + CONVERT(FLOAT,grades.rc3_y1) 
-           + CONVERT(FLOAT,grades.rc4_y1) 
-           + CONVERT(FLOAT,grades.rc5_y1)) / 5)
-        WHEN roster.grade_level = 7 THEN
-        ((CONVERT(FLOAT,grades.rc1_y1) 
-           --+ CONVERT(FLOAT,grades.rc2_y1) 
-           + CONVERT(FLOAT,grades.rc3_y1) 
-           + CONVERT(FLOAT,grades.rc4_y1) 
-           + CONVERT(FLOAT,grades.rc5_y1)) / 4)
-        WHEN grades.rc5_course_number IS NULL THEN
-        ((CONVERT(FLOAT,grades.rc1_y1) 
-           + CONVERT(FLOAT,grades.rc2_y1) 
-           + CONVERT(FLOAT,grades.rc3_y1) 
-           + CONVERT(FLOAT,grades.rc4_y1)) / 4)
-        WHEN grades.rc4_course_number IS NULL THEN
-        ((CONVERT(FLOAT,grades.rc1_y1) 
-           + CONVERT(FLOAT,grades.rc2_y1) 
-           + CONVERT(FLOAT,grades.rc3_y1) 
-           --+ CONVERT(FLOAT,grades.rc4_y1) 
-           + CONVERT(FLOAT,grades.rc5_y1)) / 4)
-       END AS Core_Avg
+      ,((CONVERT(FLOAT,ISNULL(grades.rc1_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc2_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc3_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc4_y1,0)) 
+          + CONVERT(FLOAT,ISNULL(grades.rc5_y1,0))) 
+          / 
+        CASE WHEN (CASE WHEN grades.rc1_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc2_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc3_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc4_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc5_y1 IS NOT NULL THEN 1 ELSE 0 END) = 0 THEN NULL
+             ELSE (CASE WHEN grades.rc1_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc2_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc3_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc4_y1 IS NOT NULL THEN 1 ELSE 0 END
+                    + CASE WHEN grades.rc5_y1 IS NOT NULL THEN 1 ELSE 0 END)
+        END) AS Core_Avg
       ,CONVERT(FLOAT,grades.HY_all) AS HW_Avg
       ,CONVERT(FLOAT,grades.QY_all) AS HW_Q_Avg      
 
@@ -370,40 +373,36 @@ SELECT ROW_NUMBER() OVER(
       END AS BASE_LEX_GLQ_CURRENT
 
      --F&P          
-     ,CASE
-       WHEN fp_base.read_lvl IS NOT NULL THEN fp_base.read_lvl
-       ELSE fp_curr.read_lvl
-      END AS start_letter
+     ,COALESCE(fp_base.read_lvl, fp_curr.read_lvl) AS start_letter
      ,fp_curr.read_lvl AS end_letter
-       --GLQ
-     ,CASE
-       WHEN fp_base.GLEQ IS NOT NULL THEN ROUND(fp_base.GLEQ,1)
-       ELSE ROUND(fp_curr.GLEQ,1)
-      END AS Start_GLEQ
+     --GLQ
+     ,COALESCE(fp_base.GLEQ, fp_curr.GLEQ) AS Start_GLEQ
      ,ROUND(fp_curr.GLEQ,1) AS End_GLEQ
-     ,ROUND((fp_curr.GLEQ - CASE WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ ELSE fp_curr.GLEQ END),1) AS GLEQ_Growth
+     ,ROUND(fp_curr.GLEQ - COALESCE(fp_base.GLEQ, fp_curr.GLEQ),1) AS GLEQ_Growth
        --Level #
-     ,CASE
-       WHEN fp_base.lvl_num IS NOT NULL THEN fp_base.lvl_num
-       ELSE fp_curr.lvl_num
-      END AS [Start_#]
+     ,COALESCE(fp_base.lvl_num, fp_curr.lvl_num) AS [Start_#]
      ,fp_curr.lvl_num AS [End_#]
-     ,(fp_curr.lvl_num - CASE WHEN fp_base.lvl_num IS NOT NULL THEN fp_base.lvl_num ELSE fp_curr.lvl_num END) AS [Levels_grown]
+     ,ROUND(fp_curr.lvl_num - COALESCE(fp_base.lvl_num, fp_curr.lvl_num),1) AS [Levels_grown]
       
 --Accelerated Reader
 --update terms in JOIN
 --AR year
-     ,replace(convert(varchar,convert(Money, ar_yr.words),1),'.00','') AS words_read_yr
-     ,replace(convert(varchar,convert(Money, ar_curr.words_goal * 6),1),'.00','') AS words_goal_yr      
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_yr.words),1),'.00','') AS words_read_yr
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_yr.words_goal),1),'.00','') AS words_goal_yr      
      ,ar_yr.rank_words_grade_in_school AS words_rank_yr_in_grade
-     ,ar_yr.mastery AS mastery_yr
+     ,CONVERT(FLOAT,ar_yr.mastery) AS mastery_yr
      ,NULL AS ONTRACK_WORDS_YR
      
      --AR current
-     ,replace(convert(varchar,convert(Money, ar_curr.words),1),'.00','') AS words_read_cur_term
-     ,replace(convert(varchar,convert(Money, ar_curr.words_goal),1),'.00','') AS words_goal_cur_term
-     ,ar_curr.rank_words_grade_in_school AS words_rank_cur_term_in_grade
-     ,ar_curr.mastery AS mastery_curr
+     --current trimester = current HEX + previous HEX
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_curr.words + ar_curr2.words),1),'.00','') AS words_read_cur_term
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_curr.words_goal + ar_curr2.words_goal),1),'.00','') AS words_goal_cur_term
+     ,CASE 
+       WHEN (SELECT time_per_name FROM curterm) = ar_curr.time_period_name THEN ar_curr.rank_words_grade_in_school
+       WHEN (SELECT time_per_name FROM curterm) = ar_curr2.time_period_name THEN ar_curr2.rank_words_grade_in_school
+       ELSE NULL
+      END AS words_rank_cur_term_in_grade
+     --,CONVERT(FLOAT,ar_curr2.mastery) AS mastery_curr
       
       --AR progress
         --to year goal      
@@ -419,19 +418,21 @@ SELECT ROW_NUMBER() OVER(
        END,0) AS INT)),1),'.00','') AS words_needed_yr
       --to term goal       
      ,CASE
-       WHEN ar_curr.stu_status_words = 'On Track' THEN 'Yes!'
-       WHEN ar_curr.stu_status_words = 'Off Track' THEN 'No'
-       ELSE ar_curr.stu_status_words
-      END AS stu_status_words_cur_term      
+       WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN 'Met Goal'
+       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') AND ar_curr2.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') AND ar_curr2.stu_status_words IN ('Off Track','Missed Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') AND ar_curr2.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') AND ar_curr2.stu_status_words IN ('Off Track','Missed Goal') THEN 'No'              
+       ELSE COALESCE(ar_curr2.stu_status_words, ar_curr.stu_status_words)
+      END AS stu_status_words_cur_term
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CAST(ROUND(
        CASE
-        WHEN (ar_curr.words_goal - ar_curr.words) <= 0 THEN NULL 
-        ELSE ar_curr.words_goal - ar_curr.words
-       END,0) AS INT)),1),'.00','') AS words_needed_cur_term     
-      
+        WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN NULL 
+        ELSE ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words))
+       END,0) AS INT)),1),'.00','') AS words_needed_cur_term      
+             
 --MAP scores
---MAP$wide_all
-     
+/*--UPDATE FIELDS FOR CURRENT YEAR--*/
 --14-15
       --reading
       ,map_all.spr_2015_read_pctle
