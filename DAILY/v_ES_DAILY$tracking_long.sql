@@ -17,7 +17,10 @@ SELECT daily.studentid
         WHEN daily.hw = 'No' THEN 0.0
         ELSE NULL 
        END AS has_hw
-      ,CASE 
+      -- FML -- THRIVE told teachers to log uniform infractions the opposite of what it should have been
+      -- delete this next year and #planbetter
+      ,CASE         
+        WHEN (daily.schoolid = 73255 AND daily.att_date <= '2014-09-30') THEN NULL
         WHEN daily.uniform = 'Yes' THEN 1.0 
         WHEN daily.uniform = 'No' THEN 0.0
         ELSE NULL 

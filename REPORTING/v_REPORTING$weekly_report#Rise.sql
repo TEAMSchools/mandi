@@ -189,7 +189,7 @@ WITH roster AS (
 ,assignment_scores AS (
   SELECT s.ASSIGNMENTID
         ,STUDENT_NUMBER
-        ,CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0)) AS score_numeric        
+        ,CASE WHEN EXEMPT = 1 THEN NULL ELSE CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0)) END AS score_numeric        
         ,CASE WHEN EXEMPT = 1 THEN 'Ex' ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0))) END AS score_text
   FROM GRADES$assignment_scores#static s WITH(NOLOCK)
   JOIN weekly_assignments a WITH(NOLOCK)

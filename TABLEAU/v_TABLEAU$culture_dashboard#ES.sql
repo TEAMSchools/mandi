@@ -134,7 +134,7 @@ LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
  AND dt.att_date IS NOT NULL 
 WHERE co.rn = 1
   AND co.grade_level < 5
-  AND co.SCHOOLID IN (73255, 179901)
+  AND co.SCHOOLID IN (73255)
         
 UNION ALL
 

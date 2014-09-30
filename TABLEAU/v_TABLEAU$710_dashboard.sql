@@ -71,7 +71,14 @@ WITH enrollments AS (
         ,COURSE_NUMBER
         ,COURSE_NAME
         ,SECTIONID
-        ,CASE WHEN enr.schoolid = 73253 THEN enr.nca_period ELSE enr.SECTION_NUMBER END AS section        
+        ,SECTION_NUMBER
+        ,CASE 
+          WHEN enr.schoolid = 73253 THEN enr.nca_period 
+          WHEN enr.schoolid = 73252 AND LEN(enr.SECTION_NUMBER) <= 5 THEN UPPER(SUBSTRING(enr.SECTION_NUMBER, 2, 10))
+          WHEN enr.schoolid = 73252 AND LEN(enr.SECTION_NUMBER) > 5 THEN UPPER(SUBSTRING(enr.SECTION_NUMBER, 2, 1)) + SUBSTRING(enr.SECTION_NUMBER, 3, 10)
+          WHEN enr.schoolid = 133570965 AND LEN(enr.SECTION_NUMBER) <= 6 THEN UPPER(SUBSTRING(enr.SECTION_NUMBER, 3, 10))
+          WHEN enr.schoolid = 133570965 AND LEN(enr.SECTION_NUMBER) > 6 THEN UPPER(SUBSTRING(enr.SECTION_NUMBER, 3, 1)) + SUBSTRING(enr.SECTION_NUMBER, 4, 10)
+         END AS section        
         ,teacher_name        
         ,rw.alt_name AS term
   FROM enrollments enr WITH(NOLOCK)
@@ -173,6 +180,7 @@ WITH enrollments AS (
              ,att_code
              ,CASE WHEN att_code IS NULL OR att_code IN ('T','T10','TE') THEN 0.0 ELSE 1.0 END AS is_absent
        FROM ATT_MEM$meeting_attendance#static WITH(NOLOCK)
+       WHERE schoolid = 73253
       ) sub
   GROUP BY sectionid
           ,week
@@ -195,7 +203,7 @@ WITH enrollments AS (
         AND mem.CALENDARDATE >= cc.DATEENROLLED
         AND mem.CALENDARDATE <= cc.DATELEFT 
        WHERE mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
-         AND mem.SCHOOLID IN (73253,73252,133570965)  
+         AND mem.SCHOOLID = 73253
       ) sub
   GROUP BY sectionid
           ,week
@@ -203,6 +211,7 @@ WITH enrollments AS (
 
 ,butts_in_seats AS (
   SELECT mem.sectionid
+        ,NULL AS section_number
         ,mem.week
         ,mem.n_mem
         ,ISNULL(att.n_absent,0) AS n_absent
@@ -211,6 +220,26 @@ WITH enrollments AS (
   LEFT OUTER JOIN attendance_weekly att
     ON mem.sectionid = att.sectionid
    AND mem.week = att.week
+
+  UNION ALL
+
+  SELECT NULL AS sectionid
+        ,cc.SECTION_NUMBER
+        ,DATEPART(WEEK,mem.CALENDARDATE) AS week
+        ,NULL AS n_mem
+        ,NULL AS n_absent
+        ,ROUND(SUM(CONVERT(FLOAT,mem.attendancevalue)) / SUM(CONVERT(FLOAT,mem.membershipvalue)) * 100,0) AS butts_in_seats_pct
+  FROM MEMBERSHIP mem WITH(NOLOCK)
+  JOIN CC WITH(NOLOCK)
+    ON mem.STUDENTID = cc.STUDENTID
+   AND cc.COURSE_NUMBER = 'HR' 
+   AND cc.TERMID >= dbo.fn_Global_Term_Id()
+   AND cc.DATELEFT >= GETDATE()
+   AND cc.SECTIONID > 0
+  WHERE mem.SCHOOLID IN (73252, 133570965)
+    AND mem.CALENDARDATE >= CONVERT(DATE,(CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01'))
+  GROUP BY cc.SECTION_NUMBER
+          ,DATEPART(WEEK,mem.CALENDARDATE)
  )
 
 SELECT schoolid
@@ -221,6 +250,7 @@ SELECT schoolid
       ,COURSE_NUMBER
       ,COURSE_NAME
       ,sectionid
+      ,SECTION_NUMBER
       ,SECTION      
       ,teacher_name
       ,term
@@ -265,6 +295,7 @@ GROUP BY schoolid
         ,COURSE_NUMBER
         ,COURSE_NAME
         ,SECTIONID
+        ,SECTION_NUMBER
         ,SECTION
         ,teacher_name
         ,term
@@ -277,7 +308,7 @@ SELECT enr.*
       --,NULL AS ASSIGNMENTID
       --,'Term Grade' AS assign_name
       ,fg.term AS finalgrade
-      ,NULL AS category
+      ,'Term Grade' AS category
       ,fg.termgrade AS pct
       ,NULL AS n_assign
       --,fg.student_number      
@@ -307,7 +338,7 @@ SELECT enr.*
       --,NULL AS ASSIGNMENTID
       --,'Term Grade' AS assign_name
       ,fg.term AS finalgrade
-      ,NULL AS category
+      ,'Final Grade' AS category
       ,fg.termgrade AS pct
       ,NULL AS n_assign
       --,fg.student_number      
@@ -337,7 +368,7 @@ SELECT enr.*
       --,NULL AS ASSIGNMENTID
       --,'Attendance %' AS assign_name
       ,'Att %' AS finalgrade
-      ,NULL AS category
+      ,'Butts in Seats' AS category
       ,bis.butts_in_seats_pct AS pct
       ,NULL AS n_assign
       --,bis.student_number      
@@ -350,7 +381,7 @@ SELECT enr.*
       --,co.year_in_network
 FROM course_scaffold enr WITH(NOLOCK)
 JOIN butts_in_seats bis WITH(NOLOCK)
-  ON enr.SECTIONID = bis.sectionid
+  ON ((enr.schoolid = 73253 AND enr.SECTIONID = bis.sectionid) OR enr.section_number = bis.section_number)
  AND enr.week = bis.week
 --JOIN STUDENTS s WITH(NOLOCK)
 --  ON bis.student_number = s.student_number

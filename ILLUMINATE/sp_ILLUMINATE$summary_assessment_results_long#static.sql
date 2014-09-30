@@ -27,7 +27,7 @@ BEGIN
       SELECT repository_id          
       FROM dna_repositories.repositories    
       WHERE deleted_at IS NULL      
-        AND repository_id < 84        
+        AND repository_id <= 94        
     ')
 
   		    

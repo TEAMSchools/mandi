@@ -176,23 +176,23 @@ SELECT roster.*
      --T1--
       --/*
       --H
-      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_H1  END AS rc1_cur_hw_pct
-      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_H1  END AS rc2_cur_hw_pct
-      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_H1  END AS rc3_cur_hw_pct
-      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_H1  END AS rc4_cur_hw_pct
-      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_H1  END AS rc5_cur_hw_pct
-      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_H1  END AS rc6_cur_hw_pct
-      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_H1  END AS rc7_cur_hw_pct
-      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H1  END AS rc8_cur_hw_pct
+      ,gr_wide.rc1_H1 AS rc1_cur_hw_pct
+      ,gr_wide.rc2_H1 AS rc2_cur_hw_pct
+      ,gr_wide.rc3_H1 AS rc3_cur_hw_pct
+      ,gr_wide.rc4_H1 AS rc4_cur_hw_pct
+      ,gr_wide.rc5_H1 AS rc5_cur_hw_pct
+      ,gr_wide.rc6_H1 AS rc6_cur_hw_pct
+      ,gr_wide.rc7_H1 AS rc7_cur_hw_pct
+      ,gr_wide.rc8_H1 AS rc8_cur_hw_pct
       --S
-      ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_S1  END AS rc1_cur_s_pct
-      ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_S1  END AS rc2_cur_s_pct
-      ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_S1  END AS rc3_cur_s_pct
-      ,CASE WHEN gr_wide.rc4_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc4_S1  END AS rc4_cur_s_pct
-      ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_S1  END AS rc5_cur_s_pct
-      ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_S1  END AS rc6_cur_s_pct
-      ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_S1  END AS rc7_cur_s_pct
-      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_S1  END AS rc8_cur_s_pct            
+      ,gr_wide.rc1_S1 AS rc1_cur_s_pct
+      ,gr_wide.rc2_S1 AS rc2_cur_s_pct
+      ,gr_wide.rc3_S1 AS rc3_cur_s_pct
+      ,gr_wide.rc4_S1 AS rc4_cur_s_pct
+      ,gr_wide.rc5_S1 AS rc5_cur_s_pct
+      ,gr_wide.rc6_S1 AS rc6_cur_s_pct
+      ,gr_wide.rc7_S1 AS rc7_cur_s_pct
+      ,gr_wide.rc8_S1 AS rc8_cur_s_pct            
       --*/
     
     --T2--
