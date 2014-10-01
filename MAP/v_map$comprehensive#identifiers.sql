@@ -16,6 +16,9 @@ SELECT cohort.schoolid
       ,ROW_NUMBER() OVER 
            (PARTITION BY sq_2.studentid, sq_2.map_year_academic, sq_2.measurementscale
                 ORDER BY sq_2.teststartdate DESC, sq_2.teststarttime DESC) AS rn_curr
+      ,ROW_NUMBER() OVER 
+           (PARTITION BY sq_2.rn, sq_2.studentid, sq_2.measurementscale
+                ORDER BY sq_2.teststartdate ASC, sq_2.teststarttime ASC) AS rn_asc
       ,CASE
          --MATH ACT model
          WHEN sq_2.measurementscale = 'Mathematics'
