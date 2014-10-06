@@ -12,6 +12,7 @@ WITH roster AS (
         ,co.grade_level
         ,s.TEAM
         ,cs.SPEDLEP
+        ,s.GENDER
   FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
   LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
     ON co.studentid = s.ID

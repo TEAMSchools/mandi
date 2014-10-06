@@ -38,7 +38,7 @@ FROM
     ) sub1
 JOIN KIPP_NJ..schools WITH(NOLOCK)
   ON sub1.schoolid = schools.school_number
-WHERE (DATEPART(DW,date_value) = 6 OR date_value = CONVERT(DATE,GETDATE()))
+--WHERE (DATEPART(DW,date_value) = 6 OR date_value = CONVERT(DATE,GETDATE()))
 GROUP BY schools.ABBREVIATION
         ,CUBE(grade_level)
         ,date_value

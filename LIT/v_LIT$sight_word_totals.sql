@@ -93,7 +93,11 @@ SELECT wk.*
       ,yr.missed_words_yr
       ,ROUND(AVG(yr.n_total_yr) OVER(PARTITION BY yr.schoolid, yr.grade_level),0) AS avg_total_yr
       ,ROUND(AVG(yr.n_correct_yr) OVER(PARTITION BY yr.schoolid, yr.grade_level),0) AS avg_correct_yr
-      ,ROUND(AVG(yr.pct_correct_yr) OVER(PARTITION BY yr.schoolid, yr.grade_level),0) AS avg_pct_correct_yr
+      ,ROUND(
+        ROUND(AVG(CONVERT(FLOAT,yr.n_correct_yr)) OVER(PARTITION BY yr.schoolid, yr.grade_level),0)
+         /
+        ROUND(AVG(CONVERT(FLOAT,yr.n_total_yr)) OVER(PARTITION BY yr.schoolid, yr.grade_level),0)
+         * 100, 0) AS avg_pct_correct_yr
 FROM week_totals wk WITH(NOLOCK)
 JOIN year_totals yr WITH(NOLOCK)
   ON wk.student_number = yr.student_number

@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW KTC$highest_SAT AS
+
 SELECT s.student_number
       ,s.id AS studentid
       ,MAX(sat.verbal) AS highest_verbal
@@ -14,11 +15,7 @@ SELECT s.student_number
         + MAX(sat.math)
         + MAX(sat.writing)
         AS highest_combined
-FROM STUDENTS s
-LEFT OUTER JOIN CUSTOM_STUDENTS cs
-  ON s.id = cs.studentid
-JOIN NAVIANCE$ID_key nav
-  ON s.id = nav.studentid
-JOIN NAVIANCE$SAT_scores sat
-  ON nav.naviance_id = sat.naviance_id
+FROM STUDENTS s WITH(NOLOCK)
+JOIN NAVIANCE$SAT_clean sat WITH(NOLOCK)
+  ON s.STUDENT_NUMBER = sat.student_number
 GROUP BY s.student_number, s.id

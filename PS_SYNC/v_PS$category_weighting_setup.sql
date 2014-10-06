@@ -15,6 +15,7 @@ FROM OPENQUERY(PS_TEAM,'
         ,fgsetup.finalgradesetuptype
         ,cat.name
         ,cat.abbreviation
+        ,cat.includeinfinalgrades
         ,gfw.weighting        
   FROM PSM_Term term
   JOIN PSM_Section sec
@@ -28,9 +29,8 @@ FROM OPENQUERY(PS_TEAM,'
   JOIN PSM_GradingFormulaweighting gfw
     ON grf.id = gfw.parentgradingformulaid
   JOIN PSM_AssignmentCategory cat
-    ON gfw.assignmentcategoryid = cat.id
-   AND cat.includeinfinalgrades = 1
+    ON gfw.assignmentcategoryid = cat.id   
   JOIN SYNC_SectionMap sync
     ON sec.id = sync.sectionid
   WHERE term.schoolyear = 2015
-')
+') /*-- UPDATE schoolyear ANNUALLY --*/

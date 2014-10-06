@@ -3,19 +3,6 @@ GO
 
 ALTER VIEW NJASK$proficiency_rollup AS
 
-WITH njask AS(
-  SELECT *
-  FROM
-      (
-       SELECT *
-             ,ROW_NUMBER() OVER(
-                 PARTITION BY studentid, test_year, subject
-                     ORDER BY subject) AS rn
-       FROM NJASK$detail#static
-      ) sub
-  WHERE rn = 1
- )
-
 SELECT year
       ,school
       ,subject
@@ -28,7 +15,7 @@ SELECT year
       ,ROUND(((prof + adv_prof) / n_tested * 100),0) AS pct_prof
 FROM
     (
-     SELECT test_year + 1 AS year
+     SELECT academic_year + 1 AS year
            ,CASE GROUPING(test_schoolid)
               WHEN 1 THEN 'Network'
               ELSE CASE
@@ -44,10 +31,9 @@ FROM
            ,CONVERT(FLOAT,SUM(CASE WHEN njask_proficiency = 'Below Proficient' THEN 1.0 ELSE 0.0 END)) AS part_prof
            ,CONVERT(FLOAT,SUM(CASE WHEN njask_proficiency = 'Proficient' THEN 1.0 ELSE 0.0 END)) AS prof
            ,CONVERT(FLOAT,SUM(CASE WHEN njask_proficiency = 'Advanced Proficient' THEN 1.0 ELSE 0.0 END)) AS adv_prof           
-     FROM njask
-     WHERE test_schoolid IN (73252,133570965,73254)
-       --AND test_year >= 2009
-     GROUP BY test_year
+     FROM NJASK$detail  WITH(NOLOCK)
+     WHERE test_schoolid IN (73252,133570965,73254)       
+     GROUP BY academic_year
              ,CUBE(test_schoolid)
              ,test_grade_level
              ,subject

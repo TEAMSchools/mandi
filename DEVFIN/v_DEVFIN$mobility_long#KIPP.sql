@@ -14,8 +14,8 @@ WITH denom AS (
         ,YEAR
         ,COHORT
   FROM COHORT$comprehensive_long#static WITH(NOLOCK)
-  WHERE ENTRYDATE <= CONVERT(VARCHAR,YEAR) + '-10-01'
-    AND EXITDATE > CONVERT(VARCHAR,YEAR) + '-10-01'
+  WHERE ENTRYDATE <= CONVERT(DATE,CONVERT(VARCHAR,YEAR) + '-10-01')
+    AND EXITDATE > CONVERT(DATE,CONVERT(VARCHAR,YEAR) + '-10-01')
   GROUP BY STUDENTID
         ,GRADE_LEVEL
         ,SCHOOLID
@@ -38,8 +38,8 @@ WITH denom AS (
   FROM COHORT$comprehensive_long#static WITH(NOLOCK)
   --graduated students do not have an exitdate
   --these statements allow graduates to match on the denom set
-  WHERE (ENTRYDATE <= CONVERT(VARCHAR,YEAR) + '-10-01' OR ENTRYDATE IS NULL)       
-    AND (EXITDATE > CONVERT(VARCHAR,YEAR) + '-10-01' OR EXITDATE IS NULL)       
+  WHERE (ENTRYDATE <= CONVERT(DATE,CONVERT(VARCHAR,YEAR) + '-10-01') OR ENTRYDATE IS NULL)       
+    AND (EXITDATE > CONVERT(DATE,CONVERT(VARCHAR,YEAR) + '-10-01') OR EXITDATE IS NULL)       
   GROUP BY STUDENTID
           ,GRADE_LEVEL
           ,SCHOOLID
@@ -61,19 +61,19 @@ LEFT OUTER JOIN raw_numer
 GROUP BY denom.YEAR 
 --*/
 
---/*
 SELECT denom.YEAR
       ,denom.COHORT
-      ,denom.EXITCODE
-      ,'Newark' AS region
+      ,denom.EXITCODE      
       ,denom.SCHOOLID AS d_schoolid
       ,denom.GRADE_LEVEL AS d_grade_level
       ,denom.studentid AS d_studentid
       ,raw_numer.schoolid AS n_schoolid
       ,raw_numer.GRADE_LEVEL AS n_grade_level
-      ,raw_numer.studentid AS n_studentid      
-FROM denom
-LEFT OUTER JOIN raw_numer
+      ,raw_numer.studentid AS n_studentid    
+      ,cs.spedlep  
+FROM denom WITH(NOLOCK)
+LEFT OUTER JOIN raw_numer WITH(NOLOCK)
   ON denom.STUDENTID = raw_numer.STUDENTID
  AND denom.YEAR = (raw_numer.YEAR - 1)
---*/
+LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+  ON denom.studentid = cs.STUDENTID

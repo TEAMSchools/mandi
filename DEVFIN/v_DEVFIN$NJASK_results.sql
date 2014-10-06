@@ -2,21 +2,8 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW DEVFIN$NJASK_results AS
-
-WITH njask AS(
-  SELECT *
-  FROM
-      (
-       SELECT *
-             ,ROW_NUMBER() OVER(
-                 PARTITION BY studentid, test_year, subject
-                     ORDER BY subject) AS rn
-       FROM NJASK$detail#static WITH(NOLOCK)
-      ) sub
-  WHERE rn = 1
- )
  
-,external_NJASK AS (
+WITH external_NJASK AS (
   SELECT academic_year
         ,test_year
         ,schoolid
@@ -67,7 +54,7 @@ WITH njask AS(
                   ,SCI_AP_pct
                   ,SCI_P_pct
                   ,SCI_PP_pct
-            FROM DEVFIN$external_data
+            FROM DEVFIN$external_data WITH(NOLOCK)
             WHERE district_code IN (3310,3570,9999)              
               AND school_code = 999
            ) sub
@@ -97,11 +84,13 @@ WITH njask AS(
    ) piv
  )    
  
-SELECT njask.test_year AS academic_year 
-      ,(njask.test_year + 1) AS test_year      
+
+SELECT njask.academic_year AS academic_year 
+      ,(njask.academic_year + 1) AS test_year      
       ,co.SCHOOLID
       ,njask.studentid
       ,co.GRADE_LEVEL
+      ,cs.SPEDLEP
       ,co.COHORT
       ,co.YEAR_IN_NETWORK
       ,njask.subject
@@ -110,14 +99,56 @@ SELECT njask.test_year AS academic_year
       ,CASE WHEN njask.njask_proficiency = 'Below Proficient' THEN 1.0 ELSE 0.0 END AS part_prof
       ,CASE WHEN njask.njask_proficiency = 'Proficient' THEN 1.0 ELSE 0.0 END AS prof
       ,CASE WHEN njask.njask_proficiency = 'Advanced Proficient' THEN 1.0 ELSE 0.0 END AS adv_prof      
-FROM njask
+      ,0 AS is_retest
+FROM NJASK$detail njask WITH(NOLOCK)
 JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
   ON njask.studentid = co.STUDENTID
- AND njask.test_year = co.YEAR
+ AND njask.academic_year = co.YEAR
  AND co.RN = 1
-WHERE njask.test_year >= 2009
+JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+  ON njask.studentid = cs.STUDENTID
+WHERE njask.academic_year >= 2009
 
 UNION ALL
 
-SELECT *
-FROM external_NJASK
+SELECT hspa.academic_year
+      ,hspa.academic_year + 1 AS test_year
+      ,hspa.test_schoolid AS schoolid
+      ,hspa.studentid
+      ,test_grade_level AS grade_level
+      ,cs.SPEDLEP
+      ,co.cohort
+      ,co.year_in_network
+      ,hspa.subject
+      ,hspa.scale_score AS njask_scale_score
+      ,hspa.proficiency AS njask_proficiency
+      ,CASE WHEN hspa.proficiency = 'Partially Proficient' THEN 1.0 ELSE 0.0 END AS part_prof
+      ,CASE WHEN hspa.proficiency = 'Proficient' THEN 1.0 ELSE 0.0 END AS prof
+      ,CASE WHEN hspa.proficiency = 'Advanced Proficient' THEN 1.0 ELSE 0.0 END AS adv_prof
+      ,hspa.is_retest
+FROM HSPA$detail hspa WITH(NOLOCK)
+JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+  ON hspa.studentid = cs.STUDENTID
+JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+  ON hspa.studentid = co.studentid
+ AND hspa.academic_year = co.year
+ AND co.rn = 1
+
+UNION ALL
+
+SELECT academic_year
+      ,test_year
+      ,schoolid
+      ,studentid
+      ,grade_level
+      ,NULL AS spedlep
+      ,cohort
+      ,year_in_network
+      ,subject
+      ,njask_scale_score
+      ,NULL AS njask_proficiency
+      ,part_prof
+      ,prof
+      ,adv_prof
+      ,0 AS is_retest
+FROM external_NJASK WITH(NOLOCK)
