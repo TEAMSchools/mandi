@@ -15,8 +15,8 @@ WITH stu_cal_frame AS (
               ,CONVERT(DATE,weekday_sun) AS week_of
               ,DATEPART(MONTH,weekday_sun) AS month
         FROM UTIL$reporting_weeks_days WITH(NOLOCK)
-        WHERE year = 2014
-          AND weekday_sun >= '2014-02-23'
+        WHERE year = dbo.fn_Global_Academic_Year()
+          AND weekday_sun >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
           AND weekday_sun <= GETDATE()
        ) cal
     ON 1 = 1
@@ -54,7 +54,7 @@ WITH stu_cal_frame AS (
          JOIN grades$time_series_detail gr
            ON s.id = gr.studentid
           AND (gr.rt_name LIKE ''Q%'' OR gr.rt_name LIKE ''H%'')
-          AND gr.date_value >= TO_DATE(''2014-03-01'', ''YYYY-MM-DD'')
+          AND gr.date_value >= TO_DATE(''2014-08-01'', ''YYYY-MM-DD'')
           AND gr.synthetic_percent IS NOT NULL
          WHERE s.enroll_status = 0
            AND s.grade_level = 5
@@ -98,23 +98,23 @@ WITH stu_cal_frame AS (
                   ,DATEPART(WEEK,log.entry_date) AS week_number
                   ,CASE
                     WHEN log.subtype = 'Silent Lunch' THEN 'SL'
-                    WHEN log.subtype = 'Detention' AND log.incident_decoded = 'Homework' THEN 'HW Detention'
+                    WHEN log.subtype = 'Detention' AND log.discipline_details = 'Homework' THEN 'HW Detention'
                     ELSE log.subtype
                    END AS subtype
-                  ,log.incident_decoded
+                  ,log.discipline_details
                   ,CASE
-                    WHEN log.subtype = 'Bench' THEN 10                    
+                    WHEN log.subtype = 'Bench / Choices' THEN 10                    
                     WHEN log.subtype = 'Silent Lunch' THEN 2
-                    WHEN log.subtype = 'Detention' AND log.incident_decoded != 'Homework' THEN 4 
-                    WHEN log.subtype = 'Detention' AND log.incident_decoded = 'Homework' THEN 8
-                    WHEN log.subtype = 'Paycheck' AND log.incident_decoded = 'Paycheck Below $80' THEN 5
-                    WHEN log.subtype = 'Paycheck' AND log.incident_decoded = 'Paycheck Below $90' THEN 2
+                    WHEN log.subtype = 'Detention' AND log.discipline_details != 'Homework' THEN 4 
+                    WHEN log.subtype = 'Detention' AND log.discipline_details = 'Homework' THEN 8
+                    WHEN log.subtype = 'Paycheck' AND log.discipline_details = 'Paycheck Below $80' THEN 5
+                    WHEN log.subtype = 'Paycheck' AND log.discipline_details = 'Paycheck Below $90' THEN 2
                     ELSE 0
                    END AS disc_points        
             FROM STUDENTS s WITH(NOLOCK)
             JOIN DISC$log#static log WITH(NOLOCK)
               ON s.ID = log.studentid
-             AND log.entry_date >= '2014-02-23'
+             AND log.entry_date >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
             WHERE s.ENROLL_STATUS = 0
               AND s.SCHOOLID = 73252
               AND s.GRADE_LEVEL = 5  

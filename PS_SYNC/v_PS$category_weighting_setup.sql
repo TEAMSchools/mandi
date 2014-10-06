@@ -19,18 +19,18 @@ FROM OPENQUERY(PS_TEAM,'
         ,gfw.weighting        
   FROM PSM_Term term
   JOIN PSM_Section sec
-    ON term.id = sec.termid  
+    ON term.id = sec.termid     
   JOIN PSM_FinalGradeSetup fgsetup
     ON sec.id = fgsetup.sectionid  
+  JOIN SYNC_SectionMap sync
+    ON sec.id = sync.sectionid   
   JOIN PSM_ReportingTerm rt
     ON fgsetup.reportingtermid = rt.id
-  JOIN PSM_GradingFormula grf
+  LEFT OUTER JOIN PSM_GradingFormula grf
     ON fgsetup.gradingformulaid = grf.id
-  JOIN PSM_GradingFormulaweighting gfw
+  LEFT OUTER JOIN PSM_GradingFormulaweighting gfw
     ON grf.id = gfw.parentgradingformulaid
-  JOIN PSM_AssignmentCategory cat
-    ON gfw.assignmentcategoryid = cat.id   
-  JOIN SYNC_SectionMap sync
-    ON sec.id = sync.sectionid
+  LEFT OUTER JOIN PSM_AssignmentCategory cat
+    ON gfw.assignmentcategoryid = cat.id     
   WHERE term.schoolyear = 2015
 ') /*-- UPDATE schoolyear ANNUALLY --*/
