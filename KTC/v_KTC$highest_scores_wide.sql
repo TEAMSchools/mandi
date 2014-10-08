@@ -30,4 +30,4 @@ LEFT OUTER JOIN KTC$highest_SAT sat WITH(NOLOCK)
 LEFT OUTER JOIN KTC$highest_ACT act WITH(NOLOCK)
   ON s.STUDENT_NUMBER = act.student_number
 WHERE s.enroll_status = 0
-  AND (sat.highest_combined IS NOT NULL OR act.highest_composite IS NOT NULL OR psat.highest_combined IS NOT NULL)
+  AND s.GRADE_LEVEL >= 9

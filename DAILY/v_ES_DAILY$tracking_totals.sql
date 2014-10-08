@@ -24,7 +24,7 @@ WITH valid_dates AS (
         ,schoolid
         ,studentid
         ,week_num
-        ,month
+        ,NULL AS month
         ,CONVERT(VARCHAR,n_hw) AS n_hw
         ,CONVERT(VARCHAR,hw_complete) AS hw_complete
         ,CONVERT(VARCHAR,hw_missing) AS hw_missing
@@ -49,7 +49,7 @@ WITH valid_dates AS (
        SELECT daily.schoolid
              ,daily.studentid      
              ,daily.week_num
-             ,DATENAME(MONTH,daily.att_date) AS month
+             --,DATENAME(MONTH,daily.att_date) AS month
              ,COUNT(hw) AS n_hw
              ,SUM(has_hw) AS hw_complete
              ,COUNT(hw) - SUM(has_hw) AS hw_missing
@@ -90,7 +90,7 @@ WITH valid_dates AS (
        GROUP BY daily.schoolid
                ,daily.studentid        
                ,daily.week_num
-               ,DATENAME(MONTH,daily.att_date)
+               --,DATENAME(MONTH,daily.att_date)
       ) sub  
  
 UNION ALL 

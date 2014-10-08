@@ -40,6 +40,7 @@ WITH fsa_rn AS (
 ,fsa_scaffold AS (
   SELECT co.studentid
         ,co.STUDENT_NUMBER
+        ,cs.SPEDLEP
         ,a.assessment_id
         ,a.fsa_week
         ,a.schoolid
@@ -57,6 +58,8 @@ WITH fsa_rn AS (
    AND a.grade_level = co.GRADE_LEVEL   
    AND a.academic_year = co.year   
    AND co.rn = 1  
+  JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+    ON co.studentid = cs.STUDENTID
  )
 
 SELECT *
@@ -77,23 +80,33 @@ FROM
                 ,a.FSA_standard
                 ,a.FSA_obj                
                 ,CASE
+                  WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 60 THEN a.FSA_nxtstp_y
+                  WHEN a.SPEDLEP = 'SPED' AND res.percent_correct < 60 THEN a.FSA_nxtstp_n
                   WHEN res.percent_correct >= 80 THEN a.FSA_nxtstp_y
                   WHEN res.percent_correct < 80 THEN a.FSA_nxtstp_n
                  END AS FSA_nxtstp
                 ,a.FSA_std_rn
                 ,CONVERT(VARCHAR(250),
                   CASE 
+                   WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 60 THEN 3
+                   WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 30 AND res.percent_correct < 60 THEN 2
+                   WHEN a.SPEDLEP = 'SPED' AND res.percent_correct < 30 THEN 1
                    WHEN res.percent_correct >= 80 THEN 3
-                   WHEN res.percent_correct >= 60 AND res.percent_correct < 80 THEN 1
+                   WHEN res.percent_correct >= 60 AND res.percent_correct < 80 THEN 2
                    WHEN res.percent_correct < 60 THEN 1
                   END) AS FSA_score
                 ,CONVERT(VARCHAR(250),
                   CASE
+                   WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 60 THEN 'Proficient' 
+                   WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 30 AND res.percent_correct < 60 THEN 'Approaching'
+                   WHEN a.SPEDLEP = 'SPED' AND res.percent_correct < 30 THEN 'Not Yet'
                    WHEN res.percent_correct >= 80 THEN 'Proficient' 
                    WHEN res.percent_correct >= 60 AND res.percent_correct < 80 THEN 'Approaching'
                    WHEN res.percent_correct < 60 THEN 'Not Yet'
                   END) AS FSA_prof                
                 ,CONVERT(FLOAT,SUM(CASE
+                                    WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 60 THEN 1
+                                    WHEN a.SPEDLEP = 'SPED' AND res.percent_correct < 60 THEN 0
                                     WHEN res.percent_correct >= 80 THEN 1
                                     WHEN res.percent_correct < 80 THEN 0
                                    END) OVER(PARTITION BY a.studentid, a.fsa_week)) AS n_mastered

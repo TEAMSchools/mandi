@@ -74,9 +74,12 @@ SELECT dirty_data.schoolid
       ,dirty_data.week_num
       ,COALESCE(dirty_data.ccss_standard, dirty_data.other_standard) AS ccss_standard
       ,COALESCE(dirty_data.other_standard, dirty_data.ccss_standard) AS other_standard
-      ,REPLACE(REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.objective), 'Êº', '"'), 'â€™', ''''), 'Â', ''), '€˜', '''') AS objective
-      ,REPLACE(REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_mastered), 'Êº', '"'), 'â€™', ''''), 'Â', ''), '€˜', '''') AS next_steps_mastered
-      ,REPLACE(REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_notmastered), 'Êº', '"'), 'â€™', ''''), 'Â', ''), '€˜', '''') AS next_steps_notmastered
+      ,dirty_data.objective AS objective_dirty
+      ,dirty_data.next_steps_mastered AS nxtstp_mastered_dirty
+      ,dirty_data.next_steps_notmastered AS nxtstp_notmastered_dirty
+      ,dbo.fn_StripCharacters(REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.objective), 'Êº', ''''), '€™', ''''), '€˜', ''''), '"Â') AS objective
+      ,dbo.fn_StripCharacters(REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_mastered), 'Êº', ''''), '€™', ''''), '€˜', ''''), '"Â') AS next_steps_mastered
+      ,dbo.fn_StripCharacters(REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),dirty_data.next_steps_notmastered), 'Êº', ''''), '€™', ''''), '€˜', ''''), '"Â') AS next_steps_notmastered
       ,ROW_NUMBER() OVER (
          PARTITION BY dirty_data.schoolid
                      ,dirty_data.grade_level

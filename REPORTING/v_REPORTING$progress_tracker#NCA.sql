@@ -187,20 +187,20 @@ SELECT ROW_NUMBER() OVER(
       ,p2
       ,p3
       ,p4
-      --,PSAT_highest_math
-      --,PSAT_highest_verbal
-      --,PSAT_highest_writing
-      --,PSAT_highest_combined
-      --,SAT_highest_math
-      --,SAT_highest_verbal
-      --,SAT_highest_writing
-      --,SAT_highest_math_verbal
-      --,SAT_highest_combined
-      --,ACT_highest_math
-      --,ACT_highest_english
-      --,ACT_highest_reading
-      --,ACT_highest_science
-      --,ACT_highest_composite
+      ,PSAT_highest_math
+      ,PSAT_highest_verbal
+      ,PSAT_highest_writing
+      ,PSAT_highest_combined
+      ,SAT_highest_math
+      ,SAT_highest_verbal
+      ,SAT_highest_writing
+      ,SAT_highest_math_verbal
+      ,SAT_highest_combined
+      ,ACT_highest_math
+      ,ACT_highest_english
+      ,ACT_highest_reading
+      ,ACT_highest_science
+      ,ACT_highest_composite
       ,HSPA_LAL_scale
       ,HSPA_LAL_prof
       ,HSPA_math_scale
@@ -358,21 +358,21 @@ SELECT ROW_NUMBER() OVER(
        END AS num_failing_prof
       --,points_goal_yr,points_yr -- prof is relative to goal
       ,CASE
-        WHEN map_sci_pct >= 75.0 THEN 4
-        WHEN map_sci_pct <  75.0 AND map_sci_pct >= 62.0 THEN 3
-        WHEN map_sci_pct <  62.0 AND map_sci_pct >= 50.0 THEN 2
+        WHEN map_sci_pct >= 80.0 THEN 4
+        WHEN map_sci_pct <  80.0 AND map_sci_pct >= 70.0 THEN 3
+        WHEN map_sci_pct <  70.0 AND map_sci_pct >= 50.0 THEN 2
         WHEN map_sci_pct <  50.0 THEN 1
        END AS map_sci_pct_prof
       ,CASE
-        WHEN map_math_pct >= 75.0 THEN 4
-        WHEN map_math_pct <  75.0 AND map_math_pct >= 62.0 THEN 3
-        WHEN map_math_pct <  62.0 AND map_math_pct >= 50.0 THEN 2
+        WHEN map_math_pct >= 80.0 THEN 4
+        WHEN map_math_pct <  80.0 AND map_math_pct >= 70.0 THEN 3
+        WHEN map_math_pct <  70.0 AND map_math_pct >= 50.0 THEN 2
         WHEN map_math_pct <  50.0 THEN 1
        END AS map_math_pct_prof
       ,CASE
-        WHEN map_read_pct >= 75.0 THEN 4
-        WHEN map_read_pct <  75.0 AND map_read_pct >= 62.0 THEN 3
-        WHEN map_read_pct <  62.0 AND map_read_pct >= 50.0 THEN 2
+        WHEN map_read_pct >= 80.0 THEN 4
+        WHEN map_read_pct <  80.0 AND map_read_pct >= 70.0 THEN 3
+        WHEN map_read_pct <  70.0 AND map_read_pct >= 50.0 THEN 2
         WHEN map_read_pct <  50.0 THEN 1
        END AS map_read_pct_prof                        
       ,CASE
@@ -571,13 +571,13 @@ FROM
 
       --MAP & Lexile scores
       --MAP$comprehensive#identifiers
-            ,map_sci_cur.percentile_2011_norms AS map_sci_pct
-            ,map_sci_cur.testritscore AS map_sci_rit
-            ,map_math_cur.percentile_2011_norms AS map_math_pct
-            ,map_math_cur.testritscore AS map_math_rit
-            ,map_read_cur.percentile_2011_norms AS map_read_pct
-            ,map_read_cur.testritscore AS map_read_rit
-            ,map_read_cur.rittoreadingscore AS lexile_cur
+            ,COALESCE(map_sci_cur.percentile_2011_norms, map_sci_base.testpercentile) AS map_sci_pct
+            ,COALESCE(map_sci_cur.testritscore, map_sci_base.testritscore) AS map_sci_rit
+            ,COALESCE(map_math_cur.percentile_2011_norms, map_math_base.testpercentile) AS map_math_pct
+            ,COALESCE(map_math_cur.testritscore, map_math_base.testritscore) AS map_math_rit
+            ,COALESCE(map_read_cur.percentile_2011_norms, map_read_base.testpercentile) AS map_read_pct
+            ,COALESCE(map_read_cur.testritscore, map_read_base.testritscore) AS map_read_rit
+            ,COALESCE(map_read_cur.rittoreadingscore, map_read_base.lexile_score) AS lexile_cur
             ,map_read_cur.rittoreadingmin AS lexile_min
             ,map_read_cur.rittoreadingmax AS lexile_max
           
@@ -609,20 +609,20 @@ FROM
             
       --College test scores
       --KTC$highest_scores_wide
-            --,ktc.PSAT_highest_math
-            --,ktc.PSAT_highest_verbal
-            --,ktc.PSAT_highest_writing
-            --,ktc.PSAT_highest_combined
-            --,ktc.SAT_highest_math
-            --,ktc.SAT_highest_verbal
-            --,ktc.SAT_highest_writing
-            --,ktc.SAT_highest_math_verbal
-            --,ktc.SAT_highest_combined
-            --,ktc.ACT_highest_math
-            --,ktc.ACT_highest_english
-            --,ktc.ACT_highest_reading
-            --,ktc.ACT_highest_science
-            --,ktc.ACT_highest_composite
+            ,ktc.PSAT_highest_math
+            ,ktc.PSAT_highest_verbal
+            ,ktc.PSAT_highest_writing
+            ,ktc.PSAT_highest_combined
+            ,ktc.SAT_highest_math
+            ,ktc.SAT_highest_verbal
+            ,ktc.SAT_highest_writing
+            ,ktc.SAT_highest_math_verbal
+            ,ktc.SAT_highest_combined
+            ,ktc.ACT_highest_math
+            ,ktc.ACT_highest_english
+            ,ktc.ACT_highest_reading
+            ,ktc.ACT_highest_science
+            ,ktc.ACT_highest_composite
       --HSPA
             ,hspa.LAL_scale_score AS HSPA_LAL_scale
             ,hspa.LAL_proficiency AS HSPA_LAL_prof
@@ -692,8 +692,7 @@ FROM
        AND ar_cur.schoolid = 73253
        AND ar_cur.yearid = dbo.fn_Global_Term_Id()
        AND GETDATE() >= ar_cur.start_date
-       AND GETDATE() <= ar_cur.end_date
-       --AND ar_cur.time_period_name = 'RT4'
+       AND GETDATE() <= ar_cur.end_date       
        AND ar_cur.time_hierarchy = 2
       LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
         ON roster .studentid = ar_yr.studentid      
@@ -708,16 +707,28 @@ FROM
        AND map_read_cur.measurementscale  = 'Reading'
        AND map_read_cur.map_year_academic = dbo.fn_Global_Academic_Year()
        AND map_read_cur.rn_curr = 1
+      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_read_base WITH (NOLOCK)
+        ON roster.studentid = map_read_base.studentid
+       AND map_read_base.measurementscale  = 'Reading'
+       AND map_read_base.year = dbo.fn_Global_Academic_Year()       
       LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_math_cur WITH (NOLOCK)
         ON roster.studentid = map_math_cur.ps_studentid
        AND map_math_cur.measurementscale = 'Mathematics'
        AND map_math_cur.map_year_academic = dbo.fn_Global_Academic_Year()
        AND map_math_cur.rn_curr = 1
+      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_math_base WITH (NOLOCK)
+        ON roster.studentid = map_math_base.studentid
+       AND map_math_base.measurementscale  = 'Mathematics'
+       AND map_math_base.year = dbo.fn_Global_Academic_Year()       
       LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_sci_cur WITH (NOLOCK)
         ON roster.studentid = map_sci_cur.ps_studentid
        AND map_sci_cur.measurementscale = 'Science - General Science'
        AND map_sci_cur.map_year_academic = dbo.fn_Global_Academic_Year()
        AND map_sci_cur.rn_curr = 1
+      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_sci_base WITH (NOLOCK)
+        ON roster.studentid = map_sci_base.studentid
+       AND map_sci_base.measurementscale  = 'Science - General Science'
+       AND map_sci_base.year = dbo.fn_Global_Academic_Year()       
 
       --MERITS & DEMERITS
       LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
@@ -730,8 +741,8 @@ FROM
         ON roster.studentid = dcounts.studentid             
       
       --Test scores
-      --LEFT OUTER JOIN KTC$highest_scores_wide ktc WITH(NOLOCK)
-      --  ON roster.student_number = ktc.student_number
+      LEFT OUTER JOIN KTC$highest_scores_wide ktc WITH(NOLOCK)
+        ON roster.student_number = ktc.student_number
       LEFT OUTER JOIN HSPA$best_score hspa WITH(NOLOCK)
         ON roster.SID = hspa.SID       
      ) sub_1

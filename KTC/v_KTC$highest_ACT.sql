@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW KTC$highest_ACT AS
+
 SELECT STUDENT_NUMBER
       ,highest_english
       ,highest_math
@@ -19,11 +20,9 @@ FROM
             ,ROW_NUMBER() OVER(
                 PARTITION BY s.student_number
                     ORDER BY act.composite DESC) AS rn
-      FROM STUDENTS s
-      JOIN NAVIANCE$ID_key nav
-        ON s.id = nav.studentid
-      JOIN NAVIANCE$ACT_scores act
-        ON nav.naviance_id = act.naviance_id
+      FROM STUDENTS s      
+      JOIN NAVIANCE$ACT_clean act
+        ON s.STUDENT_NUMBER = act.student_number
       WHERE act.is_plan = 0
      ) sub
 WHERE rn = 1     

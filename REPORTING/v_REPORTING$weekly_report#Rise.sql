@@ -41,8 +41,8 @@ WITH roster AS (
   SELECT dt.studentid
         ,att_date        
         ,dt.class
-        ,CASE WHEN dt.class = 'other' AND dt.ccr NOT IN ('N', 'U') THEN NULL ELSE dt.ccr END AS ccr
-        ,CASE WHEN dt.class = 'other' AND dt.ccr NOT IN ('N', 'U') THEN NULL ELSE dt.ccr_score END AS ccr_score
+        ,CASE WHEN dt.class = 'other' AND dt.ccr = 'S' THEN NULL ELSE dt.ccr END AS ccr
+        ,CASE WHEN dt.class = 'other' AND dt.ccr = 'S' THEN NULL ELSE dt.ccr_score END AS ccr_score        
   FROM DAILY$tracking_long#Rise#static dt WITH(NOLOCK)
   WHERE att_date IN (SELECT date FROM reporting_week WITH(NOLOCK))
 )

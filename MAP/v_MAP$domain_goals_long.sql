@@ -16,7 +16,7 @@ WITH map_tests AS (
        SELECT ps_studentid AS studentid
              ,map_year_academic AS year
              ,fallwinterspring
-             ,measurementscale
+             ,map.measurementscale             
              ,goal1name
              ,goal1ritscore      
              ,goal1range
@@ -36,9 +36,43 @@ WITH map_tests AS (
              ,goal5name
              ,goal5ritscore      
              ,goal5range
-             ,goal5adjective
-       FROM MAP$comprehensive#identifiers map WITH(NOLOCK)
+             ,goal5adjective             
+       FROM MAP$comprehensive#identifiers map WITH(NOLOCK)               
        WHERE map.rn = 1
+         AND map.fallwinterspring IN ('Winter', 'Spring')
+
+       UNION ALL
+       
+       SELECT base.studentid
+             ,base.year
+             ,'Fall' AS fallwinterspring
+             ,base.measurementscale
+             ,map.goal1name
+             ,map.goal1ritscore      
+             ,map.goal1range
+             ,map.goal1adjective
+             ,map.goal2name
+             ,map.goal2ritscore      
+             ,map.goal2range
+             ,map.goal2adjective
+             ,map.goal3name
+             ,map.goal3ritscore      
+             ,map.goal3range
+             ,map.goal3adjective
+             ,map.goal4name
+             ,map.goal4ritscore      
+             ,map.goal4range
+             ,map.goal4adjective
+             ,map.goal5name
+             ,map.goal5ritscore      
+             ,map.goal5range
+             ,map.goal5adjective  
+       FROM MAP$best_baseline#static base WITH(NOLOCK)
+       JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
+         ON base.studentid = map.ps_studentid
+        AND base.measurementscale = map.measurementscale
+        AND base.termname = map.termname
+        AND map.rn = 1
       ) sub
 
   UNPIVOT (
@@ -88,17 +122,17 @@ WITH map_tests AS (
    ) p
  )
  
-,map_curr AS (
-  SELECT map.ps_studentid AS studentid
-        ,map.map_year_academic AS year
-        ,map.measurementscale
-        ,map.fallwinterspring
-        ,CONVERT(INT,map.testritscore) AS rit
-        ,CONVERT(INT,map.testpercentile) AS pct
-        ,CONVERT(INT,REPLACE(map.rittoreadingscore, 'BR', 0)) AS lexile
-  FROM MAP$comprehensive#identifiers map WITH(NOLOCK)
-  WHERE rn_curr = 1
- )
+--,map_curr AS (
+--  SELECT map.ps_studentid AS studentid
+--        ,map.map_year_academic AS year
+--        ,map.measurementscale
+--        ,map.fallwinterspring
+--        ,CONVERT(INT,map.testritscore) AS rit
+--        ,CONVERT(INT,map.testpercentile) AS pct
+--        ,CONVERT(INT,REPLACE(map.rittoreadingscore, 'BR', 0)) AS lexile
+--  FROM MAP$comprehensive#identifiers map WITH(NOLOCK)
+--  WHERE rn_curr = 1
+-- )
 
 ,enrollments AS (
   SELECT *
@@ -151,10 +185,10 @@ SELECT domain.studentid
       ,scores.ritscore
       ,scores.range
       ,scores.adjective
-      ,map_curr.rit AS cur_rit
-      ,map_curr.pct AS cur_pct
-      ,map_curr.lexile AS cur_lex
-      ,map_curr.fallwinterspring AS cur_term
+      --,map_curr.rit AS cur_rit
+      --,map_curr.pct AS cur_pct
+      --,map_curr.lexile AS cur_lex
+      --,map_curr.fallwinterspring AS cur_term
       ,enr.COURSE_NAME
       ,enr.COURSE_NUMBER
       ,enr.period
@@ -167,16 +201,16 @@ JOIN STUDENTS s WITH(NOLOCK)
   ON co.studentid = s.id
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
   ON co.studentid = cs.STUDENTID
-JOIN domain_scores scores
+LEFT OUTER JOIN domain_scores scores
   ON domain.studentid = scores.studentid
  AND domain.year = scores.year
  AND domain.measurementscale = scores.measurementscale
  AND domain.fallwinterspring = scores.fallwinterspring
  AND domain.n = scores.n
-JOIN map_curr
-  ON domain.studentid = map_curr.studentid
- AND domain.year = map_curr.year
- AND domain.measurementscale = map_curr.measurementscale
+--LEFT OUTER JOIN map_curr
+--  ON domain.studentid = map_curr.studentid
+-- AND domain.year = map_curr.year
+-- AND domain.measurementscale = map_curr.measurementscale
 LEFT OUTER JOIN enrollments enr
   ON domain.studentid = enr.STUDENTID
  AND domain.year = enr.year

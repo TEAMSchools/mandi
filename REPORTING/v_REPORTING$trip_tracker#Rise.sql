@@ -15,8 +15,8 @@ WITH stu_cal_frame AS (
               ,CONVERT(DATE,weekday_sun) AS week_of
               ,DATEPART(MONTH,weekday_sun) AS month
         FROM UTIL$reporting_weeks_days WITH(NOLOCK)
-        WHERE year = 2014
-          AND weekday_sun >= '2014-02-23'
+        WHERE year = dbo.fn_Global_Academic_Year()
+          AND weekday_sun >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
           AND weekday_sun <= GETDATE()
        ) cal
     ON 1 = 1
@@ -29,7 +29,7 @@ WITH stu_cal_frame AS (
   SELECT studentid
         ,month        
         ,ISNULL([H],0) AS [H]
-        ,ISNULL([Q],0) AS [Q]
+        --,ISNULL([Q],0) AS [Q]
   FROM
       (
        SELECT oq.studentid
@@ -38,11 +38,11 @@ WITH stu_cal_frame AS (
              ,CONVERT(VARCHAR,DATEPART(MONTH, date_value)) AS month
              --,ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) AS hw_avg
              ,CASE
-               WHEN oq.rt_name LIKE 'H%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 70.0 THEN 10
-               WHEN oq.rt_name LIKE 'H%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 80.0 THEN 5 
-               WHEN oq.rt_name LIKE 'H%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 90.0 THEN 2
-               WHEN oq.rt_name LIKE 'Q%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 70.0 THEN 10
-               WHEN oq.rt_name LIKE 'Q%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 80.0 THEN 2                
+               WHEN oq.rt_name LIKE 'H%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 70.0 THEN 5
+               WHEN oq.rt_name LIKE 'H%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 80.0 THEN 2 
+               --WHEN oq.rt_name LIKE 'H%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 90.0 THEN 2
+               --WHEN oq.rt_name LIKE 'Q%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 70.0 THEN 10
+               --WHEN oq.rt_name LIKE 'Q%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 80.0 THEN 2                
                ELSE 0
               END AS hw_pts             
        FROM OPENQUERY(KIPP_NWK,'
@@ -53,8 +53,8 @@ WITH stu_cal_frame AS (
          FROM students@PS_TEAM s
          JOIN grades$time_series_detail gr
            ON s.id = gr.studentid
-          AND (gr.rt_name LIKE ''Q%'' OR gr.rt_name LIKE ''H%'')
-          AND gr.date_value >= TO_DATE(''2014-03-01'', ''YYYY-MM-DD'')
+          AND gr.rt_name LIKE ''H%''
+          AND gr.date_value >= TO_DATE(''2014-08-01'', ''YYYY-MM-DD'')
           AND gr.synthetic_percent IS NOT NULL
          WHERE s.enroll_status = 0
            AND s.grade_level = 5
@@ -66,14 +66,15 @@ WITH stu_cal_frame AS (
   
   PIVOT (
     MAX(hw_pts)
-    FOR category IN ([H],[Q])
+    FOR category IN ([H])
+    --FOR category IN ([H],[Q])
    ) p
 )
 
 ,hw_totals AS (
   SELECT studentid
         ,SUM(H) AS H
-        ,SUM(Q) AS Q
+        --,SUM(Q) AS Q
   FROM hw_points
   GROUP BY studentid
  )
@@ -98,23 +99,24 @@ WITH stu_cal_frame AS (
                   ,DATEPART(WEEK,log.entry_date) AS week_number
                   ,CASE
                     WHEN log.subtype = 'Silent Lunch' THEN 'SL'
-                    WHEN log.subtype = 'Detention' AND log.incident_decoded = 'Homework' THEN 'HW Detention'
+                    --WHEN log.subtype = 'Detention' AND log.discipline_details = 'Homework' THEN 'HW Detention'
                     ELSE log.subtype
                    END AS subtype
-                  ,log.incident_decoded
+                  ,log.discipline_details
                   ,CASE
-                    WHEN log.subtype = 'Bench' THEN 10                    
+                    WHEN log.subtype = 'Bench / Choices' THEN 8
                     WHEN log.subtype = 'Silent Lunch' THEN 2
-                    WHEN log.subtype = 'Detention' AND log.incident_decoded != 'Homework' THEN 4 
-                    WHEN log.subtype = 'Detention' AND log.incident_decoded = 'Homework' THEN 8
-                    WHEN log.subtype = 'Paycheck' AND log.incident_decoded = 'Paycheck Below $80' THEN 5
-                    WHEN log.subtype = 'Paycheck' AND log.incident_decoded = 'Paycheck Below $90' THEN 2
+                    WHEN log.subtype = 'Detention' THEN 4
+                    --WHEN log.subtype = 'Detention' AND log.discipline_details != 'Homework' THEN 4 
+                    --WHEN log.subtype = 'Detention' AND log.discipline_details = 'Homework' THEN 8
+                    WHEN log.subtype = 'Paycheck' AND log.discipline_details = 'Paycheck Below $80' THEN 2
+                    WHEN log.subtype = 'Paycheck' AND log.discipline_details = 'Paycheck Below $70' THEN 5
                     ELSE 0
                    END AS disc_points        
             FROM STUDENTS s WITH(NOLOCK)
             JOIN DISC$log#static log WITH(NOLOCK)
               ON s.ID = log.studentid
-             AND log.entry_date >= '2014-02-23'
+             AND log.entry_date >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
             WHERE s.ENROLL_STATUS = 0
               AND s.SCHOOLID = 73252
               AND s.GRADE_LEVEL = 5  
@@ -140,18 +142,18 @@ SELECT s.LASTFIRST AS Name
               ORDER BY s.week_number) AS Week_Number
       ,CONVERT(VARCHAR,s.week_of) AS Week_of
       ,hw.H
-      ,hw.Q
+      --,hw.Q
       ,ISNULL(disc.Bench,0) AS Bench
       ,ISNULL(disc.SL,0) AS Silent_Lunch
       ,ISNULL(disc.Detention,0) AS Detention
-      ,ISNULL(disc.[HW Detention],0) AS HW_Detention
+      --,ISNULL(disc.[HW Detention],0) AS HW_Detention
       ,ISNULL(disc.Paycheck,0) AS Paycheck
       ,ISNULL(hw.H,0)
-        + ISNULL(hw.Q,0)
+        --+ ISNULL(hw.Q,0)
         + ISNULL(disc.Bench,0)
         + ISNULL(disc.SL,0)
         + ISNULL(disc.Detention,0)
-        + ISNULL(disc.[HW Detention],0)
+        --+ ISNULL(disc.[HW Detention],0)
         + ISNULL(disc.Paycheck,0)
         AS TOTAL
 FROM stu_cal_frame s
@@ -170,19 +172,19 @@ SELECT s.LASTFIRST AS Name
       ,0 AS Week_Number
       ,'Total' AS Week_of
       ,hw.H AS H
-      ,hw.Q AS Q
+      --,hw.Q AS Q
       ,SUM(ISNULL(disc.Bench,0)) AS Bench
       ,SUM(ISNULL(disc.SL,0)) AS Silent_Lunch
       ,SUM(ISNULL(disc.Detention,0)) AS Detention
-      ,SUM(ISNULL(disc.[HW Detention],0)) AS HW_Detention
+      --,SUM(ISNULL(disc.[HW Detention],0)) AS HW_Detention
       ,SUM(ISNULL(disc.Paycheck,0)) AS Paycheck
       ,SUM(ISNULL(disc.Bench,0)
             + ISNULL(disc.SL,0)
             + ISNULL(disc.Detention,0)
-            + ISNULL(disc.[HW Detention],0)
+            --+ ISNULL(disc.[HW Detention],0)
             + ISNULL(disc.Paycheck,0))
          + ISNULL(hw.H,0)
-         + ISNULL(hw.Q,0)
+         --+ ISNULL(hw.Q,0)
          AS TOTAL
 FROM stu_cal_frame s
 LEFT OUTER JOIN hw_totals hw
@@ -194,4 +196,4 @@ GROUP BY s.LASTFIRST
         ,s.GRADE_LEVEL
         ,s.TEAM
         ,hw.H
-        ,hw.Q
+        --,hw.Q

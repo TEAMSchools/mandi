@@ -445,46 +445,46 @@ SELECT roster.*
      --Lexile (from MAP)     
      --BASE
      ,CASE
-       WHEN lex_base.RITtoReadingScore = 'BR' THEN 'Pre-K'
-       ELSE lex_base.RITtoReadingScore
+       WHEN lex_base.lexile_score = 'BR' THEN 'Pre-K'
+       ELSE lex_base.lexile_score
       END AS lexile_base          
      ,CASE
-       WHEN lex_base.RITtoReadingScore  = 'BR' THEN 'Pre-K'
-       WHEN lex_base.RITtoReadingScore <= 100  THEN 'K'
-       WHEN lex_base.RITtoReadingScore <= 300  AND lex_base.RITtoReadingScore > 100  THEN '1st'
-       WHEN lex_base.RITtoReadingScore <= 500  AND lex_base.RITtoReadingScore > 300  THEN '2nd'
-       WHEN lex_base.RITtoReadingScore <= 600  AND lex_base.RITtoReadingScore > 500  THEN '3rd'
-       WHEN lex_base.RITtoReadingScore <= 700  AND lex_base.RITtoReadingScore > 600  THEN '4th'
-       WHEN lex_base.RITtoReadingScore <= 800  AND lex_base.RITtoReadingScore > 700  THEN '5th'
-       WHEN lex_base.RITtoReadingScore <= 900  AND lex_base.RITtoReadingScore > 800  THEN '6th'
-       WHEN lex_base.RITtoReadingScore <= 1000 AND lex_base.RITtoReadingScore > 900  THEN '7th'
-       WHEN lex_base.RITtoReadingScore <= 1100 AND lex_base.RITtoReadingScore > 1000 THEN '8th'
-       WHEN lex_base.RITtoReadingScore <= 1200 AND lex_base.RITtoReadingScore > 1100 THEN '9th'
-       WHEN lex_base.RITtoReadingScore <= 1300 AND lex_base.RITtoReadingScore > 1200 THEN '10th'
-       WHEN lex_base.RITtoReadingScore <= 1400 AND lex_base.RITtoReadingScore > 1300 THEN '11th'
-       WHEN lex_base.RITtoReadingScore  > 1400 THEN '12th'
+       WHEN lex_base.lexile_score  = 'BR' THEN 'Pre-K'
+       WHEN lex_base.lexile_score <= 100  THEN 'K'
+       WHEN lex_base.lexile_score <= 300  AND lex_base.lexile_score > 100  THEN '1st'
+       WHEN lex_base.lexile_score <= 500  AND lex_base.lexile_score > 300  THEN '2nd'
+       WHEN lex_base.lexile_score <= 600  AND lex_base.lexile_score > 500  THEN '3rd'
+       WHEN lex_base.lexile_score <= 700  AND lex_base.lexile_score > 600  THEN '4th'
+       WHEN lex_base.lexile_score <= 800  AND lex_base.lexile_score > 700  THEN '5th'
+       WHEN lex_base.lexile_score <= 900  AND lex_base.lexile_score > 800  THEN '6th'
+       WHEN lex_base.lexile_score <= 1000 AND lex_base.lexile_score > 900  THEN '7th'
+       WHEN lex_base.lexile_score <= 1100 AND lex_base.lexile_score > 1000 THEN '8th'
+       WHEN lex_base.lexile_score <= 1200 AND lex_base.lexile_score > 1100 THEN '9th'
+       WHEN lex_base.lexile_score <= 1300 AND lex_base.lexile_score > 1200 THEN '10th'
+       WHEN lex_base.lexile_score <= 1400 AND lex_base.lexile_score > 1300 THEN '11th'
+       WHEN lex_base.lexile_score  > 1400 THEN '12th'
        ELSE NULL
       END AS lexile_base_GLQ
      --CUR
      ,CASE
-       WHEN lex_cur.RITtoReadingScore = 'BR' THEN 'Pre-K'
-       ELSE lex_cur.RITtoReadingScore
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) = 'BR' THEN 'Pre-K'
+       ELSE COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score)
       END AS lexile_cur     
      ,CASE
-       WHEN lex_cur.RITtoReadingScore  = 'BR' THEN 'Pre-K'
-       WHEN lex_cur.RITtoReadingScore <= 100  THEN 'K'
-       WHEN lex_cur.RITtoReadingScore <= 300  AND lex_cur.RITtoReadingScore > 100  THEN '1st'
-       WHEN lex_cur.RITtoReadingScore <= 500  AND lex_cur.RITtoReadingScore > 300  THEN '2nd'
-       WHEN lex_cur.RITtoReadingScore <= 600  AND lex_cur.RITtoReadingScore > 500  THEN '3rd'
-       WHEN lex_cur.RITtoReadingScore <= 700  AND lex_cur.RITtoReadingScore > 600  THEN '4th'
-       WHEN lex_cur.RITtoReadingScore <= 800  AND lex_cur.RITtoReadingScore > 700  THEN '5th'
-       WHEN lex_cur.RITtoReadingScore <= 900  AND lex_cur.RITtoReadingScore > 800  THEN '6th'
-       WHEN lex_cur.RITtoReadingScore <= 1000 AND lex_cur.RITtoReadingScore > 900  THEN '7th'
-       WHEN lex_cur.RITtoReadingScore <= 1100 AND lex_cur.RITtoReadingScore > 1000 THEN '8th'
-       WHEN lex_cur.RITtoReadingScore <= 1200 AND lex_cur.RITtoReadingScore > 1100 THEN '9th'
-       WHEN lex_cur.RITtoReadingScore <= 1300 AND lex_cur.RITtoReadingScore > 1200 THEN '10th'
-       WHEN lex_cur.RITtoReadingScore <= 1400 AND lex_cur.RITtoReadingScore > 1300 THEN '11th'
-       WHEN lex_cur.RITtoReadingScore  > 1400 THEN '12th'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score)  = 'BR' THEN 'Pre-K'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 100  THEN 'K'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 300  AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 100  THEN '1st'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 500  AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 300  THEN '2nd'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 600  AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 500  THEN '3rd'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 700  AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 600  THEN '4th'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 800  AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 700  THEN '5th'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 900  AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 800  THEN '6th'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 1000 AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 900  THEN '7th'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 1100 AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 1000 THEN '8th'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 1200 AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 1100 THEN '9th'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 1300 AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 1200 THEN '10th'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 1400 AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 1300 THEN '11th'
+       WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score)  > 1400 THEN '12th'
        ELSE NULL
       END AS lexile_cur_GLQ      
 
@@ -700,11 +700,10 @@ LEFT OUTER JOIN LIT$test_events#identifiers fp_curr WITH (NOLOCK)
   ON roster.base_student_number = fp_curr.student_number 
  AND fp_curr.achv_curr_all = 1
 --LEXILE
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
-  ON roster.base_student_number = lex_base.studentid
- AND lex_base.MeasurementScale = 'Reading'
- AND lex_base.rn_base = 1
- AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
+LEFT OUTER JOIN MAP$best_baseline#static lex_base WITH (NOLOCK)
+  ON roster.base_studentid = lex_base.studentid
+ AND lex_base.MeasurementScale = 'Reading' 
+ AND lex_base.year = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
   ON roster.base_student_number = lex_cur.studentid
  AND lex_cur.MeasurementScale = 'Reading'
@@ -719,6 +718,7 @@ LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
 LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
   ON roster.base_studentid = njask_math.studentid
  AND njask_math.schoolid = 73252
+ AND njask_math.rn = 1
 
 --DISCIPLINE
 LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)

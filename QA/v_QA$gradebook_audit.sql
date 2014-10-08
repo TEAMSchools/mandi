@@ -30,7 +30,7 @@ WITH enrollments AS (
           WHEN sec.expression = '14(A)' THEN '7'
           ELSE NULL
          END AS period
-        ,t.LASTFIRST AS teacher
+        ,t.last_name + ', ' + LEFT(t.FIRST_NAME, 1) AS teacher
   FROM SECTIONS sec WITH(NOLOCK)    
   JOIN COURSES c WITH(NOLOCK)
     ON sec.course_number = c.COURSE_NUMBER
@@ -56,7 +56,8 @@ SELECT enr.schoolid
       ,cat.FINALGRADESETUPTYPE
       ,cat.NAME AS category
       ,LTRIM(RTRIM(cat.ABBREVIATION)) AS abbv
-      ,ROUND(CONVERT(FLOAT,cat.WEIGHTING), 3) AS weight
+      ,cat.includeinfinalgrades
+      ,ROUND(CONVERT(FLOAT,cat.WEIGHTING), 3) AS weight      
 FROM enrollments enr WITH(NOLOCK)
 LEFT OUTER JOIN PS$category_weighting_setup#static cat WITH(NOLOCK)
   ON enr.dcid = cat.sectionsdcid

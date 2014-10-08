@@ -21,7 +21,7 @@ SELECT 'KIPP NJ' AS Network
       ,co.grade_level
       ,s.team
       ,cs.spedlep      
-            
+      ,s.gender      
       --
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
@@ -46,7 +46,8 @@ LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
  AND dt.att_date IS NOT NULL 
 WHERE co.rn = 1
   AND co.grade_level < 5
-  AND co.SCHOOLID NOT IN (73255, 179901)
+  AND co.year >= (dbo.fn_Global_Academic_Year() - 1)
+  AND co.SCHOOLID NOT IN (73255, 179901)  
 
 UNION ALL
 
@@ -65,7 +66,7 @@ SELECT 'KIPP NJ' AS Network
       ,co.grade_level
       ,s.team
       ,cs.spedlep      
-            
+      ,s.gender      
       --
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
@@ -90,6 +91,7 @@ LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
  AND dt.att_date IS NOT NULL 
 WHERE co.rn = 1
   AND co.grade_level < 5
+  AND co.year >= (dbo.fn_Global_Academic_Year() - 1)
   AND co.SCHOOLID IN (73255, 179901)
         
 UNION ALL
@@ -109,7 +111,7 @@ SELECT 'KIPP NJ' AS Network
       ,co.grade_level
       ,s.team
       ,cs.spedlep      
-            
+      ,s.gender      
       --
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
@@ -134,6 +136,7 @@ LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
  AND dt.att_date IS NOT NULL 
 WHERE co.rn = 1
   AND co.grade_level < 5
+  AND co.year >= (dbo.fn_Global_Academic_Year() - 1)
   AND co.SCHOOLID IN (73255)
         
 UNION ALL
@@ -153,7 +156,7 @@ SELECT 'KIPP NJ' AS Network
       ,co.grade_level
       ,s.team
       ,cs.spedlep      
-            
+      ,s.gender      
       --
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
@@ -178,4 +181,5 @@ LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
  AND dt.att_date IS NOT NULL 
 WHERE co.rn = 1
   AND co.grade_level < 5
+  AND co.year >= (dbo.fn_Global_Academic_Year() - 1)
   AND co.SCHOOLID IN (73255, 179901)

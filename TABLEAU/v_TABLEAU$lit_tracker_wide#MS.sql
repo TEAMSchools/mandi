@@ -40,6 +40,7 @@ WITH roster AS (
                               END) AS pct_goal
              ,CONVERT(VARCHAR,mastery_fiction) AS mastery_f
              ,CONVERT(VARCHAR,mastery_nonfiction) AS mastery_nf
+             ,CONVERT(VARCHAR,mastery) AS mastery_all
              ,CONVERT(VARCHAR,CASE WHEN N_total > 0 THEN ROUND(CONVERT(FLOAT,N_passed) / CONVERT(FLOAT,N_total) * 100,0) ELSE NULL END) AS pct_pass
        FROM AR$progress_to_goals_long#static WITH(NOLOCK)
        --WHERE yearid = dbo.fn_Global_Term_Id()
@@ -47,7 +48,7 @@ WITH roster AS (
   
   UNPIVOT (
      value
-     FOR field IN (words, pct_goal, mastery_f, mastery_nf, pct_pass)
+     FOR field IN (words, pct_goal, mastery_f, mastery_nf, mastery_all, pct_pass)
    ) u
  )
 
@@ -338,37 +339,44 @@ SELECT year
       ,CONVERT(FLOAT,[Y1_pct_goal]) AS Y1_pct_goal
       ,CONVERT(FLOAT,[Y1_mastery_f]) AS Y1_mastery_f
       ,CONVERT(FLOAT,[Y1_mastery_nf]) AS Y1_mastery_nf
+      ,CONVERT(FLOAT,[Y1_mastery_all]) AS Y1_mastery_all
       ,CONVERT(FLOAT,[Y1_pct_pass]) AS Y1_pct_pass
       ,CONVERT(FLOAT,[HEX1_words]) AS HEX1_words
-      ,CONVERT(FLOAT,[HEX1_pct_goal]) AS HEX1_pct_goal
+      ,CONVERT(FLOAT,[HEX1_pct_goal]) AS HEX1_pct_goal      
       ,CONVERT(FLOAT,[HEX1_mastery_f]) AS HEX1_mastery_f
+      ,CONVERT(FLOAT,[HEX1_mastery_nf]) AS HEX1_mastery_nf
+      ,CONVERT(FLOAT,[HEX1_mastery_all]) AS HEX1_mastery_all
       ,CONVERT(FLOAT,[HEX1_pct_pass]) AS HEX1_pct_pass
       ,CONVERT(FLOAT,[HEX2_words]) AS HEX2_words
       ,CONVERT(FLOAT,[HEX2_pct_goal]) AS HEX2_pct_goal
       ,CONVERT(FLOAT,[HEX2_mastery_f]) AS HEX2_mastery_f
       ,CONVERT(FLOAT,[HEX2_mastery_nf]) AS HEX2_mastery_nf
+      ,CONVERT(FLOAT,[HEX2_mastery_all]) AS HEX2_mastery_all
       ,CONVERT(FLOAT,[HEX2_pct_pass]) AS HEX2_pct_pass
       ,CONVERT(FLOAT,[HEX3_words]) AS HEX3_words
       ,CONVERT(FLOAT,[HEX3_pct_goal]) AS HEX3_pct_goal
       ,CONVERT(FLOAT,[HEX3_mastery_f]) AS HEX3_mastery_f
       ,CONVERT(FLOAT,[HEX3_mastery_nf]) AS HEX3_mastery_nf
-      ,CONVERT(FLOAT,[HEX3_pct_pass]) AS HEX3_pct_pass
-      ,CONVERT(FLOAT,[HEX1_mastery_nf]) AS HEX1_mastery_nf
+      ,CONVERT(FLOAT,[HEX3_mastery_all]) AS HEX3_mastery_all
+      ,CONVERT(FLOAT,[HEX3_pct_pass]) AS HEX3_pct_pass      
       ,CONVERT(FLOAT,[HEX4_words]) AS HEX4_words
       ,CONVERT(FLOAT,[HEX4_pct_goal]) AS HEX4_pct_goal
       ,CONVERT(FLOAT,[HEX4_mastery_f]) AS HEX4_mastery_f
+      ,CONVERT(FLOAT,[HEX4_mastery_nf]) AS HEX4_mastery_nf
+      ,CONVERT(FLOAT,[HEX4_mastery_all]) AS HEX4_mastery_all
       ,CONVERT(FLOAT,[HEX4_pct_pass]) AS HEX4_pct_pass
       ,CONVERT(FLOAT,[HEX5_words]) AS HEX5_words
       ,CONVERT(FLOAT,[HEX5_pct_goal]) AS HEX5_pct_goal
       ,CONVERT(FLOAT,[HEX5_mastery_f]) AS HEX5_mastery_f
       ,CONVERT(FLOAT,[HEX5_mastery_nf]) AS HEX5_mastery_nf
+      ,CONVERT(FLOAT,[HEX5_mastery_all]) AS HEX5_mastery_all
       ,CONVERT(FLOAT,[HEX5_pct_pass]) AS HEX5_pct_pass
       ,CONVERT(FLOAT,[HEX6_words]) AS HEX6_words
       ,CONVERT(FLOAT,[HEX6_pct_goal]) AS HEX6_pct_goal
       ,CONVERT(FLOAT,[HEX6_mastery_f]) AS HEX6_mastery_f
-      ,CONVERT(FLOAT,[HEX6_pct_pass]) AS HEX6_pct_pass
-      ,CONVERT(FLOAT,[HEX6_mastery_nf]) AS HEX6_mastery_nf
-      ,CONVERT(FLOAT,[HEX4_mastery_nf]) AS HEX4_mastery_nf
+      ,CONVERT(FLOAT,[HEX6_mastery_nf]) AS HEX6_mastery_nf      
+      ,CONVERT(FLOAT,[HEX6_mastery_all]) AS HEX6_mastery_all
+      ,CONVERT(FLOAT,[HEX6_pct_pass]) AS HEX6_pct_pass      
       ,CONVERT(FLOAT,[B_pct]) AS B_pct
       ,CONVERT(FLOAT,[S_pct]) AS S_pct
       ,CONVERT(FLOAT,[W_pct]) AS W_pct
@@ -495,37 +503,44 @@ PIVOT (
                 ,[Y1_pct_goal]
                 ,[Y1_mastery_f]
                 ,[Y1_mastery_nf]
+                ,[Y1_mastery_all]
                 ,[Y1_pct_pass]
                 ,[HEX1_words]
                 ,[HEX1_pct_goal]
                 ,[HEX1_mastery_f]
+                ,[HEX1_mastery_nf]
+                ,[HEX1_mastery_all]
                 ,[HEX1_pct_pass]
                 ,[HEX2_words]
                 ,[HEX2_pct_goal]
                 ,[HEX2_mastery_f]
                 ,[HEX2_mastery_nf]
+                ,[HEX2_mastery_all]
                 ,[HEX2_pct_pass]
                 ,[HEX3_words]
                 ,[HEX3_pct_goal]
                 ,[HEX3_mastery_f]
                 ,[HEX3_mastery_nf]
-                ,[HEX3_pct_pass]
-                ,[HEX1_mastery_nf]
+                ,[HEX3_mastery_all]
+                ,[HEX3_pct_pass]                
                 ,[HEX4_words]
                 ,[HEX4_pct_goal]
                 ,[HEX4_mastery_f]
+                ,[HEX4_mastery_nf]
+                ,[HEX4_mastery_all]
                 ,[HEX4_pct_pass]
                 ,[HEX5_words]
                 ,[HEX5_pct_goal]
                 ,[HEX5_mastery_f]
                 ,[HEX5_mastery_nf]
+                ,[HEX5_mastery_all]
                 ,[HEX5_pct_pass]
                 ,[HEX6_words]
                 ,[HEX6_pct_goal]
                 ,[HEX6_mastery_f]
-                ,[HEX6_pct_pass]
                 ,[HEX6_mastery_nf]
-                ,[HEX4_mastery_nf]
+                ,[HEX6_mastery_all]
+                ,[HEX6_pct_pass]                
                 ,[B_pct]
                 ,[S_pct]
                 ,[W_pct]
