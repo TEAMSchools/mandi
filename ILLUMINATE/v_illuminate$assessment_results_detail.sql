@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW ILLUMINATE$assessment_results_detail AS 
+ALTER VIEW ILLUMINATE$assessment_results_detail AS 
      --first get the questions per assessment
 WITH assess_questions AS
     (SELECT *
@@ -57,7 +57,7 @@ WITH assess_questions AS
        FROM dna_assessments.students_assessments_responses sar
        JOIN dna_assessments.assessments a
          ON sar.assessment_id = a.assessment_id
-        AND a.assessment_id = ''3762''
+        --AND a.assessment_id = ''3762''
        ')
      )
      --illuminate normalizes responses via an ID.  join to resposnes
