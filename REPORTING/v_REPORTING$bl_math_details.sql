@@ -1,6 +1,8 @@
 USE KIPP_NJ
 GO
 
+--ALTER VIEW REPORTING$bl_math_details AS
+
 WITH
 
 --roster of students
@@ -18,10 +20,13 @@ WITH
       JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
         ON c.studentid = s.id
        AND s.enroll_status = 0       
-      WHERE year = 2014 -- dbo.fn_Global_Academic_Year()
+      
+	  --reportingdates
+	  
+	  WHERE year = 2014 -- dbo.fn_Global_Academic_Year()
         AND c.rn = 1        
         AND c.schoolid = 73252 
-	--	AND c.studentid = 4742       
+	--	AND c.studentid = 5778       
 	)
 
 --ST Math data
@@ -33,8 +38,8 @@ WITH
 		(
 		  SELECT stmath.student_number
 				,stmath.studentid
-				,stmath.K_5_Mastery
-				,stmath.K_5_Progress
+				,ROUND(stmath.K_5_Mastery,0) AS K_5_Mastery
+				,ROUND(stmath.K_5_Progress,0) AS K_5_Progress
 				,stmath.objective_name
 				,stmath.cur_hurdle_num_tries
 				,stmath.teacher_name
@@ -115,11 +120,12 @@ WITH
 	(
 	SELECT map.*
 
-	FROM MAP$comprehensive#identifiers map
+	FROM MAP$comprehensive#identifiers map WITH (NOLOCK)
 
 	WHERE map.rn_curr = 1
-	  AND map.map_year = dbo.fn_Global_Academic_Year()
-	  AND map.discipline = 'Mathematics'
+	  AND map.map_year IN (2014)
+	  AND map.discipline LIKE 'Math%'
+
 	)
 
 --select fields for view
@@ -128,22 +134,32 @@ SELECT roster.stu_lastfirst
 	  ,roster.stu_grade_level
 	  ,roster.base_student_number
 	  ,roster.base_studentid
+	  
+	  ,stmath.stmath_level
       ,stmath.K_5_Progress AS stmath_progress
---	  ,stmath.stmath_level
+	  ,CASE WHEN stmath.K_5_Progress > 0 THEN 1 
+			ELSE NULL 
+			END AS stmath_valid
 	  ,CASE WHEN stmath.K_5_Progress = 100 THEN 1 
 			ELSE NULL 
 			END AS stmath_achieved
+	  
 	  ,khan.mastered AS khan_obj
 	  ,CASE WHEN roster.stu_grade_level = 6 AND khan.mastered >= 100 THEN 1 
 			WHEN roster.stu_grade_level = 7 AND khan.mastered >= 200 THEN 1 
 			WHEN roster.stu_grade_level = 8 AND khan.mastered >= 200 THEN 1  
 			ELSE NULL 
 			END AS khan_achieved
+	  
 	  ,am.objectives AS am_obj
+	  
 	  ,map.testritscore AS map_rit
 	  ,map.testpercentile AS map_pctl
+--	  ,map.discipline
+--	  ,map.fallwinterspring
+--	  ,map.map_year
 	
-
+	
 FROM roster 
 
 LEFT OUTER JOIN stmath
