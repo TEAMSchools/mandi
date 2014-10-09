@@ -29,6 +29,7 @@ WITH fsa_rn AS (
         AND a.GRADE_LEVEL = nxt.grade_level
         AND a.fsa_week = nxt.week_num
         AND a.standards_tested = nxt.ccss_standard  
+        AND nxt.dupe_audit = 1
        WHERE a.schoolid IN (73254, 73255, 73256, 73257, 179901)
          AND a.scope = 'FSA'
          AND a.subject IS NOT NULL

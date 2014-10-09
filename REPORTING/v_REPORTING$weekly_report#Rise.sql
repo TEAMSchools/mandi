@@ -18,11 +18,11 @@ WITH roster AS (
 -- thurs to wed
 ,reporting_week AS (
   SELECT date
-        ,day_of_week
+        ,day_of_week        
   FROM UTIL$reporting_days days WITH(NOLOCK)
   WHERE CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) >= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1) + '5')
     AND CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) <= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())) + '4')
-    AND DATEPART(DAY,date) NOT IN (6,7)
+    AND DATEPART(WEEKDAY,date) NOT IN (1,7)
   --WHERE date >= '2014-08-14' -- in case of vacations
     --AND date <= '2014-09-03' -- in case of vacations
  )
