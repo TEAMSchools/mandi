@@ -71,9 +71,12 @@ SELECT denom.YEAR
       ,raw_numer.GRADE_LEVEL AS n_grade_level
       ,raw_numer.studentid AS n_studentid    
       ,cs.spedlep  
+      ,s.GENDER
 FROM denom WITH(NOLOCK)
 LEFT OUTER JOIN raw_numer WITH(NOLOCK)
   ON denom.STUDENTID = raw_numer.STUDENTID
  AND denom.YEAR = (raw_numer.YEAR - 1)
+LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
+  ON denom.studentid = s.ID
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
   ON denom.studentid = cs.STUDENTID

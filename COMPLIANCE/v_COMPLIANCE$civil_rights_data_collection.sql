@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW COMPLIANCE$civil_rights_data_collection AS 
+ALTER VIEW COMPLIANCE$civil_rights_data_collection AS 
 
 WITH pt1_roster AS (
   SELECT co.studentid
@@ -366,7 +366,7 @@ GROUP BY LEP
 UNION ALL
 
 -- Students WITH disabilities who received one or more in-school suspensions
-SELECT 'SCH_DISCWDIS_ISS_IDEA' + ethnicity + '_' + GENDER AS field_name
+SELECT 'SCH_DISCWDIS_ISS_IDEA_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
 WHERE ISS >= 1
@@ -398,7 +398,7 @@ GROUP BY GENDER
 UNION ALL
 
 -- Students WITH disabilities who received only one out-of-school suspension
-SELECT 'SCH_DISCWDIS_SINGOOS_IDEA' + ethnicity + '_' + GENDER AS field_name
+SELECT 'SCH_DISCWDIS_SINGOOS_IDEA_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
 WHERE OSS = 1
@@ -430,7 +430,7 @@ GROUP BY GENDER
 UNION ALL
 
 -- Students WITH disabilities who received more than one out-of-school suspension
-SELECT 'SCH_DISCWDIS_MULTOOS_IDEA' + ethnicity + '_' + GENDER AS field_name
+SELECT 'SCH_DISCWDIS_MULTOOS_IDEA_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
 WHERE OSS > 1
