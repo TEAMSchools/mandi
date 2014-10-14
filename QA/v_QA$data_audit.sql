@@ -284,13 +284,13 @@ FROM
       FROM
             (SELECT s.first_name + ' ' + s.last_name + ' (' + sch.abbreviation + ')' AS hash
                    ,CASE 
-                      WHEN s.fteid IS NOT NULL THEN 'Pass'
+                      WHEN s.fteid IS NOT NULL AND s.FTEID > 0 THEN 'Pass'
                       ELSE 'Fail'
                     END AS assertion
              FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
              JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                ON s.schoolid = sch.school_number
-             WHERE s.enroll_status = 0
+WHERE s.enroll_status = 0
              ) sub_1
       GROUP BY sub_1.assertion
       ) sub_2
