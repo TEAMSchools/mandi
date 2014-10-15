@@ -648,8 +648,8 @@ SELECT ROW_NUMBER() OVER(
       ,ISNULL(disc_count.rt3_detentions,0) AS t3_detentions
       ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.bench,0) ELSE ISNULL(disc_count.choices,0) END AS Y1_bench_choices      
       ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt1_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T1_bench_choices
-      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt2_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T2_bench_choices
-      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt3_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T3_bench_choices
+      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt2_bench,0) ELSE ISNULL(disc_count.rt2_choices,0) END AS T2_bench_choices
+      ,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt3_bench,0) ELSE ISNULL(disc_count.rt3_choices,0) END AS T3_bench_choices
 
 --Extracurriculars
 --RutgersReady..XC$activities_wide
