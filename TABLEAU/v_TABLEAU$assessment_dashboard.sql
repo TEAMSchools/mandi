@@ -21,6 +21,7 @@ WITH distinct_assessments AS (
 ,enrollments AS (
   SELECT cc.STUDENTID
         ,cc.TERMID
+        ,dbo.fn_DateToSY(cc.DATEENROLLED) AS academic_year
         ,cou.CREDITTYPE
         ,cc.COURSE_NUMBER      
         ,cou.COURSE_NAME
@@ -44,21 +45,27 @@ WITH distinct_assessments AS (
           WHEN cc.expression = '14(A)' THEN '7'       
          END AS period
         ,ROW_NUMBER() OVER(
-           PARTITION BY cc.studentid, cou.credittype
-             ORDER BY cc.termid DESC, cc.course_number DESC) AS rn
+           PARTITION BY cc.studentid, cou.credittype, dbo.fn_DateToSY(cc.DATEENROLLED)
+             ORDER BY cc.termid DESC, cc.dateenrolled DESC) AS rn
    FROM CC WITH(NOLOCK)
    JOIN COURSES cou WITH(NOLOCK)
-    ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
-   AND cou.CREDITTYPE IS NOT NULL
-   AND cou.CREDITTYPE NOT IN ('LOG', 'PHYSED', 'STUDY')
-   WHERE cc.TERMID >= dbo.fn_Global_Term_Id()
+     ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
+    AND cou.CREDITTYPE IS NOT NULL
+    AND cou.CREDITTYPE NOT IN ('LOG', 'PHYSED', 'STUDY')   
+ )
+
+,groups AS (
+  SELECT student_number
+        ,dbo.GROUP_CONCAT_D(group_name,', ') + ',' AS groups
+  FROM ILLUMINATE$student_groups#static WITH(NOLOCK)
+  GROUP BY student_number
  )
 
 SELECT co.schoolid
       ,co.year AS academic_year
       ,co.grade_level
       ,s.team
-      --,grp.group_name
+      ,groups.groups
       ,co.student_number
       ,co.lastfirst
       ,cs.spedlep      
@@ -91,9 +98,8 @@ JOIN distinct_assessments a WITH (NOLOCK)
  AND res.standard_id = a.standard_id  
 LEFT OUTER JOIN enrollments enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
+ AND co.year = enr.academic_year
  AND a.credittype = enr.credittype
  AND enr.rn = 1
---LEFT OUTER JOIN ILLUMINATE$student_groups#static grp WITH(NOLOCK)
---  ON co.STUDENT_NUMBER = grp.student_number
--- AND res.academic_year = grp.academic_year
--- AND res.administered_at >= grp.eligibility_start_date
+LEFT OUTER JOIN groups WITH(NOLOCK)
+  ON co.STUDENT_NUMBER = groups.student_number

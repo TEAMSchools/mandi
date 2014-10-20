@@ -61,24 +61,24 @@ SELECT cs.SID
         WHEN s.GRADE_LEVEL = 11 AND s.grade_level = entrydate.prev_grade THEN 'R12'
         ELSE CONVERT(VARCHAR,s.grade_level)
        END AS grade_level      
-      ,s.FIRST_NAME
-      ,s.LAST_NAME      
+      ,LEFT(LTRIM(RTRIM(dbo.fn_StripCharacters(REPLACE(s.LAST_NAME,'Jr',''),'^A-Z'))), 14) AS last_name
+      ,LEFT(LTRIM(RTRIM(dbo.fn_StripCharacters(s.FIRST_NAME,'^A-Z'))), 9) AS first_name      
       ,LEFT(s.MIDDLE_NAME,1) AS MiddleInitial            
       ,CONVERT(VARCHAR,s.DOB,1) AS DOB
       ,s.GENDER
       ,CASE WHEN s.ETHNICITY = 'W' THEN s.ETHNICITY END AS ethnic_code_white
-      ,CASE WHEN s.ETHNICITY = 'B' THEN s.ETHNICITY END AS ethnic_code_black
+      ,CASE WHEN s.ETHNICITY IN ('B','T') THEN 'B' END AS ethnic_code_black
       ,CASE WHEN s.ETHNICITY = 'A' THEN s.ETHNICITY END AS ethnic_code_asian
       ,CASE WHEN s.ETHNICITY = 'P' THEN s.ETHNICITY END AS ethnic_code_hawaiian
       ,CASE WHEN s.ETHNICITY = 'H' THEN s.ETHNICITY END AS ethnic_code_hispanic
       ,CASE WHEN s.ETHNICITY = 'I' THEN s.ETHNICITY END AS ethnic_code_amerindian
       ,s.STUDENT_NUMBER AS DistrictSchool_StudentID      
       ,'B' AS TitleIBio
-      ,CASE WHEN s.LUNCHSTATUS IN ('F','R') THEN 'Y' WHEN s.LUNCHSTATUS = 'P' THEN 'N' END AS EconDis_Flag
+      ,CASE WHEN s.LUNCHSTATUS IN ('F','R') THEN 'Y' END AS EconDis_Flag
       ,NULL AS homeless_flag
       ,NULL AS migrant_flag
-      ,CASE WHEN cs.SPEDLEP = 'LEP' THEN 'Y' ELSE 'N' END AS LEP
-      ,CASE WHEN cs.STATUS_504 = 1 THEN 'Y' ELSE 'N' END AS Sec504
+      ,CASE WHEN cs.SPEDLEP = 'LEP' THEN 'Y' END AS LEP
+      ,CASE WHEN cs.STATUS_504 = 1 THEN 'Y' END AS Sec504
       ,CASE WHEN cs.SPEDLEP LIKE '%SPED%' THEN LEFT(cs.SPEDLEP_CODE,2) ELSE NULL END AS SE_code
       ,NULL AS SE_A_Setting
       ,NULL AS SE_B_Sched
@@ -111,7 +111,7 @@ LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
   ON s.ID = cs.STUDENTID
 LEFT OUTER JOIN entrydate WITH(NOLOCK)
   ON s.ID = entrydate.STUDENTID  
-LEFT OUTER JOIN bio_enrollments bio WITH(NOLOCK)
+JOIN bio_enrollments bio WITH(NOLOCK)
   ON s.id = bio.studentid
  AND bio.rn = 1
 WHERE s.ENROLL_STATUS = 0  

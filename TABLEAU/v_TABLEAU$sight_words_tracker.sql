@@ -20,8 +20,8 @@ SELECT res.student_id AS student_number
       ,REVERSE(LEFT(REVERSE(label),CHARINDEX('_', REVERSE(label)) - 1)) AS word
       ,CASE WHEN value = 9 THEN NULL ELSE CONVERT(FLOAT,value) END AS value        
 FROM ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
-JOIN ILLUMINATE$repository_fields f WITH(NOLOCK)
-  ON res.repository_id = f.repository_id
+LEFT OUTER JOIN ILLUMINATE$repository_fields f WITH(NOLOCK)
+  ON res.repository_id = f.repository_id 
  AND res.field = f.name
  AND f.rn = 1
 JOIN STUDENTS s WITH(NOLOCK)

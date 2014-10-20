@@ -40,6 +40,8 @@ WITH curterm AS (
         ,cs.SPEDLEP AS SPED
         ,cs.lunch_balance AS lunch_balance
         ,curterm.term AS curterm
+        ,REPLACE(curterm.term, 'T', 'Trimester ') AS curterm_long
+        ,DATENAME(MONTH,GETDATE()) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,GETDATE())) + ', ' + CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) AS today_text
   FROM KIPP_NJ..COHORT$comprehensive_long#static co  WITH (NOLOCK)    
   JOIN curterm
     ON 1 = 1

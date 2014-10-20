@@ -17,7 +17,7 @@ WITH assessments AS (
   FROM ILLUMINATE$summary_assessments#static a WITH(NOLOCK)
   JOIN ILLUMINATE$repository_fields f WITH(NOLOCK)
     ON a.repository_id = f.repository_id      
-  WHERE a.title IN ('Writing - Interim - TEAM MS', 'Writing - Interim - TEAM HS')
+  WHERE a.title IN ('Writing - Interim - TEAM MS', 'English OE - Quarterly Assessments')
  )
 
 ,results_wide AS (
@@ -51,12 +51,37 @@ WITH assessments AS (
     MAX(field_value)
     FOR field_label IN ([Year]
                        ,[Interim]
+                       ,[Quarter]
                        ,[Overall]
                        ,[Organization]
                        ,[Elaboration]
                        ,[Conventions]
                        ,[Capitalization]
-                       ,[End Punctuation])
+                       ,[End Punctuation]
+                       ,[Prompt 1 - Overall]
+                       ,[Prompt 1 - Quality of Ideas]
+                       ,[Prompt 1 - Context of Evidence]
+                       ,[Prompt 1 - Choice of Evidence]
+                       ,[Prompt 1 - Analysis of Evidence]
+                       ,[Prompt 1 - Justification ]
+                       ,[Prompt 2 - Overall]
+                       ,[Prompt 2 - Quality of Ideas]
+                       ,[Prompt 2 - Context of Evidence]
+                       ,[Prompt 2 - Choice of Evidence]
+                       ,[Prompt 2 - Analysis of Evidence]
+                       ,[Prompt 2 - Justification]
+                       ,[Prompt 3 - Overall]
+                       ,[Prompt 3 - Quality of Ideas]
+                       ,[Prompt 3 - Context of Evidence]
+                       ,[Prompt 3 - Choice of Evidence]
+                       ,[Prompt 3 - Analysis of Evidence]
+                       ,[Prompt 3 - Justification]
+                       ,[Prompt 4 - Overall]
+                       ,[Prompt 4 - Quality of Ideas]
+                       ,[Prompt 4 - Context of Evidence]
+                       ,[Prompt 4 - Choice of Evidence]
+                       ,[Prompt 4 - Analysis of Evidence]
+                       ,[Prompt 4 - Justification])
    ) p
  )
 
@@ -76,7 +101,93 @@ WITH assessments AS (
     AND cc.SECTIONID > 0
  )
 
-SELECT w.*
+SELECT w.SCHOOLID
+      ,w.GRADE_LEVEL
+      ,w.studentid
+      ,w.student_number
+      ,w.lastfirst
+      ,w.team
+      ,w.title
+      ,w.year
+      ,COALESCE(w.Interim, w.Quarter) AS interim
+      ,[Overall]
+      ,[Organization]
+      ,[Elaboration]
+      ,[Conventions]
+      ,[Capitalization]
+      ,[End Punctuation]
+      ,[Prompt 1 - Overall]
+      ,[Prompt 1 - Quality of Ideas]
+      ,[Prompt 1 - Context of Evidence]
+      ,[Prompt 1 - Choice of Evidence]
+      ,[Prompt 1 - Analysis of Evidence]
+      ,[Prompt 1 - Justification ]
+      ,[Prompt 2 - Overall]
+      ,[Prompt 2 - Quality of Ideas]
+      ,[Prompt 2 - Context of Evidence]
+      ,[Prompt 2 - Choice of Evidence]
+      ,[Prompt 2 - Analysis of Evidence]
+      ,[Prompt 2 - Justification]
+      ,[Prompt 3 - Overall]
+      ,[Prompt 3 - Quality of Ideas]
+      ,[Prompt 3 - Context of Evidence]
+      ,[Prompt 3 - Choice of Evidence]
+      ,[Prompt 3 - Analysis of Evidence]
+      ,[Prompt 3 - Justification]
+      ,[Prompt 4 - Overall]
+      ,[Prompt 4 - Quality of Ideas]
+      ,[Prompt 4 - Context of Evidence]
+      ,[Prompt 4 - Choice of Evidence]
+      ,[Prompt 4 - Analysis of Evidence]
+      ,[Prompt 4 - Justification]
+      ,ROUND(
+        (ISNULL(CONVERT(FLOAT,[Prompt 1 - Overall]),0) + ISNULL(CONVERT(FLOAT,[Prompt 2 - Overall]),0) + ISNULL(CONVERT(FLOAT,[Prompt 3 - Overall]),0) + ISNULL(CONVERT(FLOAT,[Prompt 4 - Overall]),0))
+         /
+        (CASE 
+          WHEN (CASE WHEN [Prompt 1 - Overall] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - Overall] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - Overall] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - Overall] IS NOT NULL THEN 1 ELSE 0 END) = 0 THEN NULL
+          ELSE (CASE WHEN [Prompt 1 - Overall] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - Overall] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - Overall] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - Overall] IS NOT NULL THEN 1 ELSE 0 END)
+         END)
+       ,1) AS overall_avg
+      ,ROUND(
+        (ISNULL(CONVERT(FLOAT,[Prompt 1 - quality of ideas]),0) + ISNULL(CONVERT(FLOAT,[Prompt 2 - quality of ideas]),0) + ISNULL(CONVERT(FLOAT,[Prompt 3 - quality of ideas]),0) + ISNULL(CONVERT(FLOAT,[Prompt 4 - quality of ideas]),0))
+         /
+        (CASE 
+          WHEN (CASE WHEN [Prompt 1 - quality of ideas] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - quality of ideas] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - quality of ideas] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - quality of ideas] IS NOT NULL THEN 1 ELSE 0 END) = 0 THEN NULL
+          ELSE (CASE WHEN [Prompt 1 - quality of ideas] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - quality of ideas] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - quality of ideas] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - quality of ideas] IS NOT NULL THEN 1 ELSE 0 END)
+         END)
+       ,1) AS quality_of_ideas_avg
+      ,ROUND(
+        (ISNULL(CONVERT(FLOAT,[Prompt 1 - context of evidence]),0) + ISNULL(CONVERT(FLOAT,[Prompt 2 - context of evidence]),0) + ISNULL(CONVERT(FLOAT,[Prompt 3 - context of evidence]),0) + ISNULL(CONVERT(FLOAT,[Prompt 4 - context of evidence]),0))
+         /
+        (CASE 
+          WHEN (CASE WHEN [Prompt 1 - context of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - context of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - context of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - context of evidence] IS NOT NULL THEN 1 ELSE 0 END) = 0 THEN NULL
+          ELSE (CASE WHEN [Prompt 1 - context of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - context of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - context of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - context of evidence] IS NOT NULL THEN 1 ELSE 0 END)
+         END)
+       ,1) AS context_of_evidence_avg
+      ,ROUND(
+        (ISNULL(CONVERT(FLOAT,[Prompt 1 - choice of evidence]),0) + ISNULL(CONVERT(FLOAT,[Prompt 2 - choice of evidence]),0) + ISNULL(CONVERT(FLOAT,[Prompt 3 - choice of evidence]),0) + ISNULL(CONVERT(FLOAT,[Prompt 4 - choice of evidence]),0))
+         /
+        (CASE 
+          WHEN (CASE WHEN [Prompt 1 - choice of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - choice of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - choice of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - choice of evidence] IS NOT NULL THEN 1 ELSE 0 END) = 0 THEN NULL
+          ELSE (CASE WHEN [Prompt 1 - choice of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - choice of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - choice of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - choice of evidence] IS NOT NULL THEN 1 ELSE 0 END)
+         END)
+       ,1) AS choice_of_evidence_avg
+      ,ROUND(
+        (ISNULL(CONVERT(FLOAT,[Prompt 1 - analysis of evidence]),0) + ISNULL(CONVERT(FLOAT,[Prompt 2 - analysis of evidence]),0) + ISNULL(CONVERT(FLOAT,[Prompt 3 - analysis of evidence]),0) + ISNULL(CONVERT(FLOAT,[Prompt 4 - analysis of evidence]),0))
+         /
+        (CASE 
+          WHEN (CASE WHEN [Prompt 1 - analysis of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - analysis of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - analysis of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - analysis of evidence] IS NOT NULL THEN 1 ELSE 0 END) = 0 THEN NULL
+          ELSE (CASE WHEN [Prompt 1 - analysis of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - analysis of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - analysis of evidence] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - analysis of evidence] IS NOT NULL THEN 1 ELSE 0 END)
+         END)
+       ,1) AS analysis_of_evidence_avg
+      ,ROUND(
+        (ISNULL(CONVERT(FLOAT,[Prompt 1 - justification]),0) + ISNULL(CONVERT(FLOAT,[Prompt 2 - justification]),0) + ISNULL(CONVERT(FLOAT,[Prompt 3 - justification]),0) + ISNULL(CONVERT(FLOAT,[Prompt 4 - justification]),0))
+         /
+        (CASE 
+          WHEN (CASE WHEN [Prompt 1 - justification] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - justification] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - justification] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - justification] IS NOT NULL THEN 1 ELSE 0 END) = 0 THEN NULL
+          ELSE (CASE WHEN [Prompt 1 - justification] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 2 - justification] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 3 - justification] IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN [Prompt 4 - justification] IS NOT NULL THEN 1 ELSE 0 END)
+         END)
+       ,1) AS justification_avg
       ,cs.SPEDLEP
       ,co.grade_level AS test_grade_level
       ,enr.course_name AS nca_course_name

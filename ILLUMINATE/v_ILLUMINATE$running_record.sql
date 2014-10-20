@@ -17,9 +17,9 @@ WITH running_record AS (
         ,CONVERT(INT,[field_within_the_text]) AS within_the_text
         ,CONVERT(INT,[field_beyond_the_text]) AS beyond_the_text
         ,CONVERT(FLOAT,[field_accuracy_1]) AS fp_accuracy
-        ,CONVERT(INT,[field_about_the_text])
-          + CONVERT(INT,[field_within_the_text])
-          + CONVERT(INT,[field_beyond_the_text]) AS fp_comp_prof
+        ,ISNULL(CONVERT(INT,[field_about_the_text]),0)
+          + ISNULL(CONVERT(INT,[field_within_the_text]),0)
+          + iSNULL(CONVERT(INT,[field_beyond_the_text]),0) AS fp_comp_prof
   FROM 
       (
        SELECT student_id AS student_number
@@ -74,10 +74,10 @@ SELECT s.LASTFIRST
       ,gleq.lvl_num
       ,CASE WHEN rr.fp_comp_prof < prof_wide.fp_comp_prof THEN 1 ELSE 0 END AS dna_comp
       ,CASE WHEN rr.fp_accuracy < prof_wide.fp_accuracy THEN 1 ELSE 0 END AS dna_accuracy
-FROM running_record rr
-JOIN LIT$GLEQ gleq
+FROM running_record rr WITH(NOLOCK)
+JOIN LIT$GLEQ gleq WITH(NOLOCK)
   ON RIGHT(LTRIM(RTRIM(rr.level_tested)), 1) = gleq.read_lvl
-JOIN prof_wide
+JOIN prof_wide WITH(NOLOCK)
   ON gleq.lvl_num = prof_wide.lvl_num
 JOIN STUDENTS s WITH(NOLOCK)
   ON rr.student_number = s.STUDENT_NUMBER

@@ -142,7 +142,7 @@ FROM
       AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
       AND cohort.rn = 1          
      LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
-       ON rs.schoolid = dates.schoolid
+       ON ((rs.test_date > '2013-06-30' AND rs.schoolid = dates.schoolid) OR (rs.test_date <= '2013-06-30' AND dates.schoolid IS NULL))
       AND rs.test_date >= dates.start_date
       AND rs.test_date <= dates.end_date
       AND dates.identifier = 'LIT'
@@ -204,8 +204,7 @@ FROM
            ,CASE WHEN rs.testid = 3273 THEN 1 ELSE 0 END AS is_fp
      FROM LIT$readingscores#static rs WITH(NOLOCK)
      JOIN LIT$GLEQ gleq WITH(NOLOCK)
-       ON rs.testid = gleq.testid
-      AND rs.step_ltr_level = gleq.read_lvl     
+       ON gleq.read_lvl = 'Pre DNA'
      JOIN STUDENTS s WITH(NOLOCK)
        ON rs.studentid = s.id
      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
@@ -214,7 +213,7 @@ FROM
       AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
       AND cohort.rn = 1          
      LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
-       ON rs.schoolid = dates.schoolid
+       ON ((rs.test_date > '2013-06-30' AND rs.schoolid = dates.schoolid) OR (rs.test_date <= '2013-06-30' AND dates.schoolid IS NULL))
       AND rs.test_date >= dates.start_date
       AND rs.test_date <= dates.end_date
       AND dates.identifier = 'LIT'

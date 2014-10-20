@@ -59,6 +59,7 @@ WITH curterm AS (
         ,curterm.time_per_name
         ,curterm.term AS curterm
         ,REPLACE(curterm.term, 'T', 'Trimester ') AS curterm_long
+        ,DATENAME(MONTH,GETDATE()) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,GETDATE())) + ', ' + CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) AS today_text
   FROM KIPP_NJ..COHORT$comprehensive_long#static co  WITH (NOLOCK)    
   JOIN curterm
     ON 1 = 1
@@ -90,8 +91,7 @@ WITH curterm AS (
   WHERE sec.term IN (SELECT term FROM curterm)
  )  
 
-SELECT roster.*
-      ,DATENAME(MONTH,GETDATE()) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,GETDATE())) + ', ' + CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) AS today_text
+SELECT roster.*      
       
 --Course Grades
 --GRADES$wide_all

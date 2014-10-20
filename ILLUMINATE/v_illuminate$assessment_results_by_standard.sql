@@ -4,10 +4,7 @@ GO
 ALTER VIEW ILLUMINATE$assessment_results_by_standard AS
 
 SELECT *
-      ,CASE
-        WHEN DATEPART(MONTH,administered_at) <= 6 THEN (DATEPART(YEAR,administered_at) - 1)
-        ELSE DATEPART(YEAR,administered_at)
-       END AS academic_year
+      ,dbo.fn_DateToSY(administered_at) AS academic_year
 FROM OPENQUERY(ILLUMINATE,'
   SELECT s.local_student_id 
         ,agg_resp_standard.*
