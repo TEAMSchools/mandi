@@ -12,6 +12,7 @@ WITH distinct_assessments AS (
         ,subject
         ,credittype
         ,term
+        ,academic_year
         ,administered_at
         ,standards_tested        
         ,standard_descr
@@ -69,6 +70,7 @@ SELECT co.schoolid
       ,co.student_number
       ,co.lastfirst
       ,cs.spedlep      
+      ,a.assessment_id
       ,a.title
       ,a.scope            
       ,a.subject      
@@ -81,21 +83,25 @@ SELECT co.schoolid
       ,dbo.ASCII_CONVERT(a.standard_descr) AS standard_descr
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS percent_correct
       ,CONVERT(FLOAT,res.mastered) AS mastered
+      --,ROUND(CONVERT(FLOAT,overall.percent_correct),1) AS overall_pct_correct
       ,ROW_NUMBER() OVER(
           PARTITION BY co.studentid, a.scope, a.standards_tested
               ORDER BY a.administered_at DESC) AS rn_curr
 FROM ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOCK)
+--JOIN ILLUMINATE$assessment_results_overall#static overall WITH(NOLOCK)
+--  ON res.assessment_id = overall.assessment_id
+-- AND res.local_student_id = overall.student_number
+JOIN distinct_assessments a WITH (NOLOCK)
+  ON res.assessment_id = a.assessment_id
+ AND res.standard_id = a.standard_id  
 JOIN COHORT$comprehensive_long#static co WITH (NOLOCK)
   ON res.local_student_id = co.student_number
- AND res.academic_year = co.year
+ AND a.academic_year = co.year
  AND co.rn = 1
 JOIN STUDENTS s WITH(NOLOCK)
   ON co.studentid = s.id
 LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
   ON co.studentid = cs.studentid
-JOIN distinct_assessments a WITH (NOLOCK)
-  ON res.assessment_id = a.assessment_id
- AND res.standard_id = a.standard_id  
 LEFT OUTER JOIN enrollments enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
  AND co.year = enr.academic_year
