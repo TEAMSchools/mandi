@@ -19,7 +19,7 @@ WITH roster AS (
 ,reporting_week AS (
   SELECT date
         ,day_of_week        
-  FROM UTIL$reporting_days days WITH(NOLOCK)
+  FROM UTIL$reporting_days#static days WITH(NOLOCK)
   WHERE CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) >= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1) + '5')
     AND CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) <= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())) + '4')
     AND DATEPART(WEEKDAY,date) NOT IN (1,7)

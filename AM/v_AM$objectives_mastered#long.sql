@@ -19,11 +19,10 @@ WITH scaffold AS
        ON c.schoolid = sch.school_number
      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
        ON c.studentid = s.id
-     JOIN KIPP_NJ..UTIL$reporting_days rd WITH (NOLOCK)
+     JOIN KIPP_NJ..UTIL$reporting_days#static rd WITH (NOLOCK)
        ON rd.date >= c.entrydate
       AND rd.date <  c.exitdate
-      AND rd.date <= CAST(GETDATE() AS date)         
-  
+      AND rd.date <= CAST(GETDATE() AS date)           
      WHERE c.schoolid IN (73252, 133570965, 73253)
        AND c.year >= 2010
        AND c.rn = 1
@@ -62,7 +61,7 @@ FROM
                   AND timasteredtype > 0 THEN lib.dgradelevel
                  ELSE NULL
               END AS dgradelevel
-       FROM scaffold
+       FROM scaffold WITH(NOLOCK)
        JOIN KIPP_NJ..AM$detail#static am WITH (NOLOCK)
          ON scaffold.studentid = am.base_studentid
         AND CAST(am.dtmastereddate AS date) >= scaffold.custom_start

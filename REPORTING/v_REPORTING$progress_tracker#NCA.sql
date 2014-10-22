@@ -19,7 +19,7 @@ WITH roster AS (
         ,cs.mother_cell
         ,cs.father_cell
         ,c.grade_level AS grade_level
-        ,s.classof
+        ,c.cohort AS classof
         ,cs.guardianemail
         ,cs.advisor
         ,cs.SPEDLEP AS SPED
