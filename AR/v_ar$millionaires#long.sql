@@ -18,8 +18,7 @@ WITH scaffold AS (
     ON c.schoolid = sch.school_number
   WHERE c.schoolid IN (73252, 133570965, 73253)
     AND c.year >= 2010
-    AND c.schoolid != 999999
-    AND c.rn = 1
+    AND c.schoolid != 999999    
     --testing
     --AND s.last_name = 'Williams'
     --AND c.year = 2012
