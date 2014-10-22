@@ -30,20 +30,7 @@ WITH distinct_assessments AS (
         ,cc.SECTIONID      
         ,CASE        
           WHEN cc.SCHOOLID != 73253 THEN cc.EXPRESSION
-          WHEN cc.expression = '1(A)' THEN 'HR'
-          WHEN cc.expression = '2(A)' THEN '1'
-          WHEN cc.expression = '3(A)' THEN '2'
-          WHEN cc.expression = '4(A)' THEN '3'
-          WHEN cc.expression = '5(A)' THEN '4A'
-          WHEN cc.expression = '6(A)' THEN '4B'
-          WHEN cc.expression = '7(A)' THEN '4C'
-          WHEN cc.expression = '8(A)' THEN '4D'
-          WHEN cc.expression = '9(A)' THEN '5A'
-          WHEN cc.expression = '10(A)' THEN '5B'
-          WHEN cc.expression = '11(A)' THEN '5C'
-          WHEN cc.expression = '12(A)' THEN '5D'
-          WHEN cc.expression = '13(A)' THEN '6'
-          WHEN cc.expression = '14(A)' THEN '7'       
+          WHEN cc.schoolid = 73253 THEN dbo.fn_ExprToPeriod(cc.expression)
          END AS period
         ,ROW_NUMBER() OVER(
            PARTITION BY cc.studentid, cou.credittype, dbo.fn_DateToSY(cc.DATEENROLLED)
@@ -53,6 +40,8 @@ WITH distinct_assessments AS (
      ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
     AND cou.CREDITTYPE IS NOT NULL
     AND cou.CREDITTYPE NOT IN ('LOG', 'PHYSED', 'STUDY')   
+   WHERE cc.termid >= 2300 -- first year w/ Illuminate, OK to be hard-coded
+     AND cc.SCHOOLID IN (73252,73253,133570965)
  )
 
 ,groups AS (

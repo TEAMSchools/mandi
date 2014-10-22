@@ -7,11 +7,12 @@ WITH disc_log AS (
   SELECT disc.schoolid
         ,CAST(disc.studentid AS INT) AS studentid        
         ,disc.entry_author
-        ,dbo.fn_DateToSY(CASE 
-                          WHEN CONVERT(DATE,disc.discipline_incidentdate) = '1900-01-01' THEN CONVERT(DATE,disc.entry_date) 
-                          WHEN disc.logtypeid IN (3023, 3223) OR schoolid = 73253 THEN CONVERT(DATE,disc.entry_date) 
-                          ELSE CONVERT(DATE,disc.discipline_incidentdate) 
-                         END) AS academic_year
+        ,dbo.fn_DateToSY(
+           CASE 
+            WHEN CONVERT(DATE,disc.discipline_incidentdate) = '1900-01-01' THEN CONVERT(DATE,disc.entry_date) 
+            WHEN disc.logtypeid IN (3023, 3223) OR schoolid = 73253 THEN CONVERT(DATE,disc.entry_date) 
+            ELSE CONVERT(DATE,disc.discipline_incidentdate) 
+           END) AS academic_year
         ,CASE 
           WHEN CONVERT(DATE,disc.discipline_incidentdate) = '1900-01-01' THEN CONVERT(DATE,disc.entry_date) 
           WHEN disc.logtypeid IN (3023, 3223) OR schoolid = 73253 THEN CONVERT(DATE,disc.entry_date) 

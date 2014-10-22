@@ -2,8 +2,9 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ILLUMINATE$assessment_results_detail AS 
+
 SELECT *
-FROM OPENQUERY(illuminate,'
+FROM OPENQUERY(ILLUMINATE,'
   WITH stu_assess AS ( 
     SELECT sa.student_assessment_id
           ,sa.assessment_id
@@ -13,7 +14,8 @@ FROM OPENQUERY(illuminate,'
     JOIN public.students s
       ON sa.student_id = s.student_id
     --WHERE sa.assessment_id > 3750  
-    )
+   )
+  
   SELECT stu_assess.*
         ,a.title AS assessment_name
         ,f.order
@@ -33,8 +35,5 @@ FROM OPENQUERY(illuminate,'
     ON sar.response_id = r.response_id
   LEFT OUTER JOIN dna_assessments.field_responses fr
     ON f.field_id = fr.field_id
-   AND sar.response_id = fr.response_id
-  ORDER BY a.assessment_id
-          ,stu_assess.local_student_id
-          ,f.order
-  ')
+   AND sar.response_id = fr.response_id  
+')

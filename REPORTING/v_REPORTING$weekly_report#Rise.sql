@@ -12,19 +12,37 @@ WITH roster AS (
   FROM STUDENTS s WITH(NOLOCK)
   WHERE s.ENROLL_STATUS = 0
     AND s.SCHOOLID = 73252
-    AND s.GRADE_LEVEL = 8
+    AND s.GRADE_LEVEL >= 7
  )
 
--- thurs to wed
+-- most recently active Thurs - Wed timespan
+-- can span multiple weeks in case of vacation
+-- will filter out Thur & Fri of the current week regardless of the day it's run on
 ,reporting_week AS (
   SELECT date
-        ,day_of_week        
-  FROM UTIL$reporting_days#static days WITH(NOLOCK)
-  WHERE CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) >= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1) + '5')
-    AND CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) <= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())) + '4')
-    AND DATEPART(WEEKDAY,date) NOT IN (1,7)
-  --WHERE date >= '2014-08-14' -- in case of vacations
-    --AND date <= '2014-09-03' -- in case of vacations
+        ,day_of_week
+  FROM
+      (
+       SELECT *
+             ,ROW_NUMBER() OVER(
+                PARTITION BY day_of_week
+                  ORDER BY date DESC) AS rn
+       FROM
+           (
+            SELECT DISTINCT
+                   CALENDARDATE AS date
+                  ,DATENAME(WEEKDAY,calendardate) AS day_of_week      
+            FROM MEMBERSHIP WITH(NOLOCK)
+            WHERE SCHOOLID = 73252
+              AND dbo.fn_DateToSY(CALENDARDATE) = dbo.fn_Global_Academic_Year()     
+              AND DATEPART(WEEKDAY,CALENDARDATE) NOT IN (1,7)
+              AND CALENDARDATE < CASE 
+                                  WHEN DATEPART(WEEKDAY,CALENDARDATE) >= 5 THEN DATEADD(DAY, 4 - DATEPART(WEEKDAY,GETDATE()), CONVERT(DATE,GETDATE()))
+                                  ELSE DATEADD(DAY, 5 - DATEPART(WEEKDAY,GETDATE()), CONVERT(DATE,GETDATE()))
+                                 END
+           ) sub
+      ) sub
+  WHERE rn = 1
  )
 
 -- start and end days
@@ -45,7 +63,7 @@ WITH roster AS (
         ,CASE WHEN dt.class = 'other' AND dt.ccr = 'S' THEN NULL ELSE dt.ccr_score END AS ccr_score        
   FROM DAILY$tracking_long#Rise#static dt WITH(NOLOCK)
   WHERE att_date IN (SELECT date FROM reporting_week WITH(NOLOCK))
-)
+ )
 
 -- ccr data wide by class and day of week
 ,ccr_wide AS (
@@ -173,22 +191,29 @@ WITH roster AS (
         ,asmt.ASSIGNMENTID
         ,asmt.ASSIGN_NAME
         ,asmt.POINTSPOSSIBLE
-        ,asmt.CATEGORY        
+        ,CASE 
+          WHEN asmt.CATEGORY IN ('HQ','HWQ','HWA','Q','Homework Quality') THEN 'HWQ'
+          WHEN asmt.CATEGORY IN ('Homework Completion','HW Completion') THEN 'HWC'
+          ELSE NULL
+         END AS category
   FROM GRADES$assignments#static asmt WITH(NOLOCK)
   JOIN sections sec WITH(NOLOCK)
     ON asmt.sectionid = sec.id
    AND sec.SCHOOLID = 73252
    AND sec.termid = dbo.fn_Global_Term_Id()
-   AND sec.GRADE_LEVEL = 8
+   AND sec.GRADE_LEVEL >= 7
   JOIN COURSES cou WITH(NOLOCK)
     ON sec.COURSE_NUMBER = cou.COURSE_NUMBER
   WHERE asmt.ASSIGN_DATE IN (SELECT date FROM reporting_week WITH(NOLOCK))
-    AND asmt.CATEGORY IN ('HQ','HWQ','HWA','Q')
+    AND ((sec.GRADE_LEVEL = 8 AND asmt.CATEGORY IN ('HQ','HWQ','HWA','Q'))
+           OR (sec.GRADE_LEVEL = 7 AND asmt.CATEGORY IN ('Homework Completion','HW Completion','Homework Quality')))
  )
 
 ,assignment_scores AS (
   SELECT s.ASSIGNMENTID
         ,STUDENT_NUMBER
+        ,category
+        ,credittype
         ,CASE WHEN EXEMPT = 1 THEN NULL ELSE CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0)) END AS score_numeric        
         ,CASE WHEN EXEMPT = 1 THEN 'Ex' ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0))) END AS score_text
   FROM GRADES$assignment_scores#static s WITH(NOLOCK)
@@ -254,6 +279,17 @@ WITH roster AS (
        FROM weekly_assignments asmt WITH(NOLOCK)
        JOIN assignment_scores scores WITH(NOLOCK)
          ON asmt.assignmentid = scores.assignmentid
+
+       UNION ALL
+
+       SELECT LOWER(asmt.credittype) + '_'
+                + LOWER(asmt.category) + '_avg'
+             ,scores.student_number
+             ,CONVERT(VARCHAR,ROUND(AVG(scores.score_numeric),0)) AS hw_avg
+       FROM weekly_assignments asmt WITH(NOLOCK)
+       JOIN assignment_scores scores WITH(NOLOCK)
+         ON asmt.assignmentid = scores.assignmentid
+       GROUP BY scores.student_number, asmt.CREDITTYPE, asmt.category
       ) sub
   PIVOT (
     MAX(score_text)
@@ -262,34 +298,56 @@ WITH roster AS (
                       ,[eng_score_3]
                       ,[eng_score_4]
                       ,[eng_score_5]
+                      ,[eng_hwq_avg]
+                      ,[eng_hwc_avg]
                       ,[math_score_1]
                       ,[math_score_2]
                       ,[math_score_3]
                       ,[math_score_4]
                       ,[math_score_5]
+                      ,[math_hwq_avg]
+                      ,[math_hwc_avg]
                       ,[sci_score_1]
                       ,[sci_score_2]
                       ,[sci_score_3]
                       ,[sci_score_4]
                       ,[sci_score_5]
+                      ,[sci_hwq_avg]
+                      ,[sci_hwc_avg]
                       ,[rhet_score_1]
                       ,[rhet_score_2]
                       ,[rhet_score_3]
                       ,[rhet_score_4]
                       ,[rhet_score_5]
+                      ,[rhet_hwq_avg]
+                      ,[rhet_hwc_avg]
                       ,[soc_score_1]
                       ,[soc_score_2]
                       ,[soc_score_3]
                       ,[soc_score_4]
-                      ,[soc_score_5])
+                      ,[soc_score_5]
+                      ,[soc_hwq_avg]
+                      ,[soc_hwc_avg])
    ) p2
  )
 
 ,scores_totals AS (
   SELECT student_number
-        ,AVG(score_numeric) AS hwq_avg
-  FROM assignment_scores WITH(NOLOCK)
-  GROUP BY student_number
+        ,[HWQ] AS hwq_avg
+        ,[HWC] AS hwc_avg
+  FROM
+      (
+       SELECT student_number
+             ,category
+             ,AVG(score_numeric) AS hw_avg
+       FROM assignment_scores WITH(NOLOCK)
+       GROUP BY student_number
+               ,category
+      ) sub
+  PIVOT(
+    MAX(hw_avg)
+    FOR category IN ([HWQ],[HWC])
+   ) p
  )
 
 SELECT r.STUDENT_NUMBER
@@ -311,18 +369,27 @@ SELECT r.STUDENT_NUMBER
       
       -- hw totals      
       ,ROUND(CONVERT(FLOAT,scores_totals.hwq_avg),0) AS hwq_avg
+      ,ROUND(CONVERT(FLOAT,scores_totals.hwc_avg),0) AS hwc_avg
+      -- fun friday test
       ,ROUND((scores_totals.hwq_avg + ccr_totals.ccr_pct) / 2, 0) AS fun_friday_avg
       ,CASE         
         WHEN ROUND((scores_totals.hwq_avg + ccr_totals.ccr_pct) / 2, 0) >= 80 THEN 'Yes' 
         WHEN ROUND((scores_totals.hwq_avg + ccr_totals.ccr_pct) / 2, 0) < 80 THEN 'No' 
         ELSE NULL
        END AS fun_friday_status
+      -- dress down test
       ,ROUND(CONVERT(FLOAT,scores_totals.hwq_avg),0) AS dress_down_avg
       ,CASE 
         WHEN ROUND(CONVERT(FLOAT,scores_totals.hwq_avg),0) >= 85 THEN 'Yes' 
         WHEN ROUND(CONVERT(FLOAT,scores_totals.hwq_avg),0) < 85 THEN 'No' 
         ELSE NULL
        END AS dress_down_status
+      -- manic monday test
+      ,CASE 
+        WHEN hwc_avg IS NULL OR ccr_totals.ccr_total IS NULL THEN NULL
+        WHEN hwc_avg >= 80 AND ccr_totals.ccr_total >= 210 THEN 'Yes' 
+        ELSE 'No' 
+       END AS manic_monday_status
       
       -- ccr wide
       ,ccr_wide.mon_adv_behavior
@@ -371,7 +438,7 @@ SELECT r.STUDENT_NUMBER
       ,ccr_wide.fri_science
       ,ccr_wide.fri_writing
       
-      -- hw wide
+      -- assignment name
       ,[eng_assign_1]
       ,[eng_assign_2]
       ,[eng_assign_3]
@@ -397,31 +464,43 @@ SELECT r.STUDENT_NUMBER
       ,[soc_assign_3]
       ,[soc_assign_4]
       ,[soc_assign_5]
+      -- assignment score
       ,[eng_score_1]
       ,[eng_score_2]
       ,[eng_score_3]
       ,[eng_score_4]
-      ,[eng_score_5]
+      ,[eng_score_5]      
       ,[math_score_1]
       ,[math_score_2]
       ,[math_score_3]
       ,[math_score_4]
-      ,[math_score_5]
+      ,[math_score_5]      
       ,[sci_score_1]
       ,[sci_score_2]
       ,[sci_score_3]
       ,[sci_score_4]
-      ,[sci_score_5]
+      ,[sci_score_5]      
       ,[rhet_score_1]
       ,[rhet_score_2]
       ,[rhet_score_3]
       ,[rhet_score_4]
-      ,[rhet_score_5]
+      ,[rhet_score_5]      
       ,[soc_score_1]
       ,[soc_score_2]
       ,[soc_score_3]
       ,[soc_score_4]
       ,[soc_score_5]
+      -- class averages
+      ,[eng_hwq_avg]
+      ,[eng_hwc_avg]
+      ,[math_hwq_avg]
+      ,[math_hwc_avg]
+      ,[sci_hwq_avg]
+      ,[sci_hwc_avg]
+      ,[rhet_hwq_avg]
+      ,[rhet_hwc_avg]
+      ,[soc_hwq_avg]
+      ,[soc_hwc_avg]
 FROM roster r WITH(NOLOCK)
 JOIN date_strings ds WITH(NOLOCK)
   ON 1 = 1
