@@ -6,22 +6,13 @@ ALTER VIEW AR$millionaires#long AS
 WITH scaffold AS (
   SELECT c.student_number
         ,c.grade_level
-        ,sch.abbreviation AS school
+        ,c.school_name AS school
         ,c.year
         ,CONVERT(DATE,CONVERT(VARCHAR,c.year) + '-07-01') AS start_date_ar        
-        ,CONVERT(DATE,rd.date) AS date        
-  FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
-  JOIN KIPP_NJ..UTIL$reporting_days#static rd WITH (NOLOCK)
-    ON c.entrydate <= rd.date
-   AND c.exitdate > rd.date
-  JOIN KIPP_NJ..SCHOOLS sch WITH (NOLOCK)
-    ON c.schoolid = sch.school_number
+        ,c.date AS date        
+  FROM KIPP_NJ..COHORT$identifiers_scaffold#static c WITH (NOLOCK)
   WHERE c.schoolid IN (73252, 133570965, 73253)
     AND c.year >= 2010
-    AND c.schoolid != 999999    
-    --testing
-    --AND s.last_name = 'Williams'
-    --AND c.year = 2012
  )
 
 SELECT CASE GROUPING(sub.grade_level) WHEN 1 THEN 'School' ELSE CONVERT(NVARCHAR,sub.grade_level) END AS grade_level
