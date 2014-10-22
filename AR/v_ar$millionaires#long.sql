@@ -8,8 +8,8 @@ WITH scaffold AS (
         ,c.grade_level
         ,sch.abbreviation AS school
         ,c.year
-        ,CONVERT(datetime, '07/01/' + CONVERT(VARCHAR,c.year), 101) AS start_date_ar        
-        ,CAST(rd.date AS DATE) AS date        
+        ,CONVERT(DATE,CONVERT(VARCHAR,c.year) + '-07-01') AS start_date_ar        
+        ,CONVERT(DATE,rd.date) AS date        
   FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
   JOIN KIPP_NJ..UTIL$reporting_days#static rd WITH (NOLOCK)
     ON c.entrydate <= rd.date
