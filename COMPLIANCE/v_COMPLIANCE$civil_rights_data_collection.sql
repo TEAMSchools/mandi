@@ -24,7 +24,7 @@ WITH pt1_roster AS (
   JOIN STUDENTS s WITH(NOLOCK)
     ON co.studentid = s.id
   JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-    ON co.studentid = cs.STUDENTID
+    ON co.studentid = cs.STUDENTID  
   WHERE co.year = 2013
     AND co.grade_level < 99
     AND co.entrydate <= '2013-10-15'
@@ -51,7 +51,7 @@ WITH pt1_roster AS (
         ,CASE 
           WHEN co.grade_level < next_yr.grade_level THEN 0
           WHEN co.grade_level = next_yr.grade_level THEN 1          
-          WHEN cs.transfercomment LIKE '%Retained%' THEN 1 
+          WHEN blobs.transfercomment LIKE '%Retained%' THEN 1 
           ELSE 0 
          END AS is_retained
   FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
@@ -63,6 +63,8 @@ WITH pt1_roster AS (
     ON co.studentid = s.id
   JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
     ON co.studentid = cs.STUDENTID
+  LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
+    ON co.studentid = blobs.studentid
   WHERE co.year = 2013
     AND co.grade_level < 99    
     AND co.rn = 1
