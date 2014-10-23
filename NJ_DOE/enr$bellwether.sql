@@ -2,7 +2,7 @@ USE NJ_DOE
 GO
 
 ALTER VIEW enr$bellwether AS
-SELECT TOP 750000
+SELECT TOP 1750000
 --SELECT TOP 7500
        e.[YEAR]
       ,LEFT(e.year, 4) * 1 AS academic_year
@@ -40,6 +40,7 @@ SELECT TOP 750000
       ,e.[MIGRANT]
       ,cc.City AS charter_city
       ,cc.[CITY DISTRICT CODE] AS city_district_code
+      ,CASE WHEN cc.City IS NOT NULL THEN 1 ELSE 0 END AS is_charter
 FROM NJ_DOE..enr e
 LEFT OUTER JOIN NJ_DOE..charter_city cc
   ON e.[DISTRICT CODE] = cc.[DISTRICT CODE]
