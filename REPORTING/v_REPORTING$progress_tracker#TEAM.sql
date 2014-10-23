@@ -31,10 +31,12 @@ WITH curterm AS (
         ,cs.mother_home
         ,cs.father_cell
         ,cs.father_home
-        ,cs.guardianemail AS contactemail
+        ,blobs.guardianemail AS contactemail
   FROM STUDENTS s WITH (NOLOCK)
   LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
     ON s.id = cs.studentid
+  LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
+   ON s.id = blobs.studentid
   WHERE s.schoolid = 133570965
     AND s.enroll_status = 0
     --AND s.id = 4686

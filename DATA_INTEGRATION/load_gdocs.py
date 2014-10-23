@@ -89,7 +89,25 @@ for record in wkbk_list:
     
 
     print 'Navigating to ' + url
-    workbook = client.open_by_url(url)
+    try:
+        workbook = client.open_by_url(url)
+    except:
+        print '!!! ERROR NAVIGATING TO URL !!!'
+        warn_email = """
+            DECLARE @body VARCHAR(MAX);
+            SET @body = 'Navigation failed for ' + '""" + save_path + """' + '.  Check that the GDocs URL is correct.';
+
+            EXEC msdb..sp_send_dbmail
+                @profile_name = 'DataRobot',
+                @recipients = 'cbini@teamschools.org',
+                @body = @body,
+                @subject = '!!! WARNING - GDocs HTTP Error !!!',
+                @importance = 'High';
+        """        
+        cursor.execute(warn_email)
+        conn.commit()
+        conn.close()
+        continue
     sheet_names = workbook.worksheets()
     print
     
@@ -104,9 +122,7 @@ for record in wkbk_list:
         sheet_name = worksheet._title        
         clean_name = sheet_name.replace(' ', '_')  # removes spaces
 
-        print 'Opening worksheet ' + str(i + 1) + ': "' + str(clean_name) + '"'                
-        print 'Allowing formulas to load... (5 sec)'
-        time.sleep(5)  # delays 5 seconds to allow any formulas to load
+        print 'Opening worksheet ' + str(i + 1) + ': "' + str(clean_name) + '"'                        
         
         print 'Getting and cleaning data...'
         data = worksheet.get_all_values()

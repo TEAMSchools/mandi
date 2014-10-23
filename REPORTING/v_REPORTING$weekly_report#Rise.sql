@@ -9,6 +9,7 @@ WITH roster AS (
         ,s.LASTFIRST
         ,s.FIRST_NAME + ' ' + s.LAST_NAME AS full_name
         ,s.team
+        ,s.GRADE_LEVEL
   FROM STUDENTS s WITH(NOLOCK)
   WHERE s.ENROLL_STATUS = 0
     AND s.SCHOOLID = 73252
@@ -21,28 +22,7 @@ WITH roster AS (
 ,reporting_week AS (
   SELECT date
         ,day_of_week
-  FROM
-      (
-       SELECT *
-             ,ROW_NUMBER() OVER(
-                PARTITION BY day_of_week
-                  ORDER BY date DESC) AS rn
-       FROM
-           (
-            SELECT DISTINCT
-                   CALENDARDATE AS date
-                  ,DATENAME(WEEKDAY,calendardate) AS day_of_week      
-            FROM MEMBERSHIP WITH(NOLOCK)
-            WHERE SCHOOLID = 73252
-              AND dbo.fn_DateToSY(CALENDARDATE) = dbo.fn_Global_Academic_Year()     
-              AND DATEPART(WEEKDAY,CALENDARDATE) NOT IN (1,7)
-              AND CALENDARDATE < CASE 
-                                  WHEN DATEPART(WEEKDAY,CALENDARDATE) >= 5 THEN DATEADD(DAY, 4 - DATEPART(WEEKDAY,GETDATE()), CONVERT(DATE,GETDATE()))
-                                  ELSE DATEADD(DAY, 5 - DATEPART(WEEKDAY,GETDATE()), CONVERT(DATE,GETDATE()))
-                                 END
-           ) sub
-      ) sub
-  WHERE rn = 1
+  FROM REPORTING$Rise_weekly_dates#static WITH(NOLOCK)
  )
 
 -- start and end days
@@ -355,6 +335,7 @@ SELECT r.STUDENT_NUMBER
       ,r.LASTFIRST
       ,r.full_name
       ,r.TEAM      
+      ,r.grade_level
       
       -- date stuff
       ,ds.start_date_str

@@ -36,7 +36,7 @@ WITH curterm AS (
         ,COALESCE(cs.mother_home, cs.mother_day) AS mother_daytime
         ,cs.father_cell
         ,COALESCE(cs.father_home, cs.father_day) AS father_daytime
-        ,cs.guardianemail           
+        ,blobs.guardianemail           
         ,cs.SPEDLEP AS SPED
         ,cs.lunch_balance AS lunch_balance
         ,curterm.term AS curterm
@@ -50,6 +50,8 @@ WITH curterm AS (
    AND s.enroll_status = 0
   LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
     ON co.studentid = cs.studentid
+  LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
+    ON co.studentid = blobs.studentid
   WHERE co.year = dbo.fn_Global_Academic_Year()
     AND co.rn = 1        
     AND co.schoolid = 133570965

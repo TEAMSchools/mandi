@@ -36,7 +36,7 @@ WITH curterm AS (
         ,CASE WHEN cs.mother_home is NULL THEN cs.mother_day ELSE cs.mother_home END AS mother_daytime
         ,cs.father_cell
         ,CASE WHEN cs.father_home is NULL THEN cs.father_day ELSE cs.father_home END AS father_daytime
-        ,cs.GUARDIANEMAIL           
+        ,blobs.GUARDIANEMAIL           
         ,cs.SPEDLEP AS SPED
         ,cs.lunch_balance AS lunch_balance
         ,curterm.term AS curterm
@@ -49,6 +49,8 @@ WITH curterm AS (
    AND s.enroll_status = 0   
   LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH(NOLOCK)
     ON co.studentid = cs.STUDENTID
+  LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
+   ON co.studentid = blobs.studentid
   WHERE year = dbo.fn_Global_Academic_Year()
     AND co.rn = 1
     AND co.schoolid = 73253

@@ -22,8 +22,7 @@ BEGIN
   SELECT *
   INTO [#PS$CUSTOM_STUDENTS|refresh]
   FROM OPENQUERY(PS_TEAM,'
-    SELECT id AS studentid      
-          ,DBMS_LOB.SUBSTR(guardianemail,2000,1) AS guardianemail
+    SELECT id AS studentid                
           ,ps_customfields.getcf(''Students'',id,''SID'') AS SID
           ,ps_customfields.getcf(''Students'',id,''Advisor'') AS advisor
           ,ps_customfields.getcf(''Students'',id,''Advisor_Email'') AS advisor_email
@@ -39,8 +38,7 @@ BEGIN
           ,ps_customfields.getcf(''Students'',id,''Lunch_Balance'') AS lunch_balance
           ,ps_customfields.getcf(''Students'',id,''DIYNickname'') AS diy_nickname
           ,ps_customfields.getcf(''Students'',id,''504_status'') AS status_504
-          ,ps_customfields.getcf(''Students'',id,''SPEDLEP_CODES'') AS SPEDLEP_code
-          ,(CAST(transfercomment AS VARCHAR(50))) AS transfercomment
+          ,ps_customfields.getcf(''Students'',id,''SPEDLEP_CODES'') AS SPEDLEP_code          
           ,ps_customfields.getcf(''Students'',id,''DEFAULT_STUDENT_WEB_ID'') AS DEFAULT_STUDENT_WEB_ID
           ,ps_customfields.getcf(''Students'',id,''DEFAULT_STUDENT_WEB_PASSWORD'') AS DEFAULT_STUDENT_WEB_PASSWORD
           ,ps_customfields.getcf(''Students'',id,''DEFAULT_FAMILY_WEB_ID'') AS DEFAULT_FAMILY_WEB_ID

@@ -57,6 +57,8 @@ BEGIN
               ,AB_COURSE_CMP_MET_CD
               ,AB_COURSE_EVA_PRO_CD
               ,AB_COURSE_CMP_STA_CD
+              ,dbo.fn_DateToSY(DATEENROLLED) AS academic_year
+              ,dbo.fn_ExprToPeriod(EXPRESSION) AS period
         FROM OPENQUERY(PS_TEAM,'
                SELECT TO_CHAR(dcid) AS dcid
                      ,TO_CHAR(id) AS id

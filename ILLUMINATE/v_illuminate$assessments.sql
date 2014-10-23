@@ -71,7 +71,7 @@ FROM
            ,oq.custom_code AS standards_tested -- I regret using the plaural form #cringe
            ,oq.parent_standard
            ,oq.label AS standard_type
-           ,oq.std_descr AS standard_descr
+           ,dbo.ASCII_CONVERT(oq.std_descr) AS standard_descr
            ,oq.user_id
            ,oq.state_id AS teachernumber
            ,oq.last_name + ', ' + oq.first_name AS created_by                          

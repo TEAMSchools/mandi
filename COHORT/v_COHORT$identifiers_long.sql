@@ -19,6 +19,7 @@ SELECT co.year
       ,s.LUNCHSTATUS      
       ,cs.SPEDLEP            
       ,s.enroll_status
+      ,co.rn
 FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH (NOLOCK)
 JOIN KIPP_NJ..SCHOOLS sch WITH (NOLOCK)
   ON co.schoolid = sch.school_number
