@@ -11,35 +11,11 @@ DECLARE bini_cursor CURSOR FOR
   FROM
         (SELECT 'Rise 90/90 Tracking, Rise Advisor Amanda Geiger' AS job_name
          UNION
-         SELECT 'Rise 90/90 Tracking, Rise Advisor Mark Joseph'
-         UNION
-         SELECT 'Rise 90/90 Tracking, Rise Advisor Travis Dempsey'
-         UNION
-         SELECT 'Rise 90/90 Tracking, Rise Advisor Daniel Gosselink'
-         UNION
-         SELECT 'Rise 90/90 Tracking, Rise Advisor Doug Dobkowski'
-         UNION
-         SELECT 'Rise 90/90 Tracking, Rise Advisor Jyron Brooks'
-         UNION
-         SELECT 'Rise 90/90 Tracking, Rise Advisor Kristen Jones'
-         UNION
-         SELECT 'Rise 90/90 Tracking, Rise Advisor Kristen Pasheluk'
-         UNION
-         SELECT 'Rise 90/90 Tracking, Rise Advisor Kristin Kell'
-         UNION
-         SELECT 'Rise 90/90 Tracking, Rise Advisor Laura Joseph'
-         UNION
-         SELECT 'Rise 90/90 Tracking, Rise Advisor Marissa Perlman'
-         UNION        
          SELECT 'Rise 90/90 Tracking, Rise Advisor Stephany Copeland'
          UNION
          SELECT 'Rise 90/90 Tracking, Rise Grade 5'
          UNION
          SELECT 'Rise 90/90 Tracking, Rise Grade 6'
-         UNION
-         SELECT 'Rise 90/90 Tracking, Rise Grade 7'
-         UNION
-         SELECT 'Rise 90/90 Tracking, Rise Grade 8'
          ) sub
 
 OPEN bini_cursor
@@ -66,7 +42,7 @@ WHILE 1 = 1
      VALUES
       (@this_job_name
       ,'auto'
-      ,'2013-12-02 07:11:00.000')
+      ,'2014-10-24 07:11:00.000')
 
  --end of cursor action
  END
