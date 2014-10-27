@@ -21,7 +21,7 @@ WITH stu AS
    )
   ,rd AS
   (SELECT CAST(rd.date AS date) AS date
-   FROM KIPP_NJ..UTIL$reporting_days rd WITH(NOLOCK)
+   FROM KIPP_NJ..UTIL$reporting_days#static rd WITH(NOLOCK)
    WHERE rd.date >= '07/05/2011'
      AND rd.date <= CAST(GETDATE() AS date)
   )
@@ -76,8 +76,8 @@ SELECT stu.studentid
          WHEN SUM(ISNULL(te.iWordCount,0)) = 0 THEN NULL
          ELSE ROUND(CAST(SUM(te.iAlternateBookLevel_2 * CAST(te.iWordCount AS bigint)) AS BIGINT) / SUM(te.iWordCount), 0) 
        END AS lexile_avg
-FROM stu
-JOIN rd
+FROM stu WITH(NOLOCK)
+JOIN rd WITH(NOLOCK)
   ON stu.custom_entry <= rd.date
  AND stu.exitdate >= rd.date
 LEFT OUTER JOIN AR$test_event_detail#static te WITH(NOLOCK)
@@ -89,6 +89,3 @@ GROUP BY stu.studentid
         ,stu.grade_level
         ,stu.schoolid
         ,rd.date 
-
-
-  

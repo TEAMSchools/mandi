@@ -68,7 +68,7 @@ FROM OPENQUERY(PS_TEAM,'
   FROM virtualtablesdata2
   WHERE related_to_table = ''dailytracking''
     AND schoolid IN (73254, 73255, 73256, 73257, 179901)
-    AND user_defined_date >= ''2013-08-01''
+    AND user_defined_date >= TO_DATE(''2013-08-01'',''YYYY-MM-DD'')
  ') daily
 LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
   ON daily.att_date >= dates.start_date

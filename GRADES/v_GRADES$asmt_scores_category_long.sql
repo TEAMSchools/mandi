@@ -10,7 +10,8 @@ WITH reporting_weeks AS (
   WHERE academic_year = dbo.fn_Global_Academic_Year()
  )
 
-SELECT sec.id AS sectionid           
+SELECT sec.SCHOOLID
+      ,sec.id AS sectionid           
       ,LEFT(cat.FINALGRADENAME,1) AS finalgrade
       ,CONVERT(FLOAT,cat.WEIGHTING) AS fg_weighting
       ,cat.ABBREVIATION AS category      

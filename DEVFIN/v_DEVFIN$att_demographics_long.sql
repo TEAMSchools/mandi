@@ -5,7 +5,7 @@ ALTER VIEW DEVFIN$att_demographics_long AS
 
 WITH calendar AS(
   SELECT CONVERT(DATE,date) AS date
-  FROM UTIL$reporting_days WITH(NOLOCK)
+  FROM UTIL$reporting_days#static WITH(NOLOCK)
   WHERE date >= '2013-07-01'
     AND date <= GETDATE()
  )
@@ -33,8 +33,7 @@ WITH calendar AS(
   LEFT OUTER JOIN PS$lunch_status_long#static lunch WITH(NOLOCK)
     ON co.studentid = lunch.studentid
    AND co.YEAR = lunch.year
-  WHERE co.schoolid != 999999
-    AND co.grade_level != 99
+  WHERE co.schoolid != 999999    
  )
 
 ,attendance AS(
@@ -62,10 +61,10 @@ SELECT calendar.date
       ,roster.lunchstatus
       ,roster.ethnicity
       ,roster.gender
-FROM calendar
-JOIN roster
+FROM calendar WITH(NOLOCK)
+JOIN roster WITH(NOLOCK)
   ON calendar.date >= roster.ENTRYDATE
  AND calendar.date <= roster.EXITDATE
-LEFT OUTER JOIN attendance
+LEFT OUTER JOIN attendance WITH(NOLOCK)
   ON calendar.date = attendance.date
  AND roster.studentid = attendance.studentid

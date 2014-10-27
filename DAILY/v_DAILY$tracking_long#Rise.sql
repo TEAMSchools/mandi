@@ -8,13 +8,19 @@ SELECT DISTINCT
       ,schoolid
       ,att_date
       ,field AS class
-      ,value AS ccr
+      ,CASE WHEN GRADE_LEVEL = 7 AND value = 'S' THEN '$' ELSE value END AS ccr
       ,CASE 
+        -- 8th codes
+        WHEN GRADE_LEVEL = 8 AND value = 'S' THEN 1
         WHEN value = 'E' THEN 3
-        WHEN value = 'G' THEN 2
-        WHEN value = 'S' THEN 1
+        WHEN value = 'G' THEN 2        
         WHEN value = 'N' THEN 0
-        WHEN value = 'U' THEN -3
+        WHEN value = 'U' THEN -3        
+        -- 7th codes
+        WHEN GRADE_LEVEL = 7 AND value = 'S' THEN 5
+        WHEN value = 'SL' THEN 0
+        WHEN value = 'D' THEN -3
+        WHEN value = 'C' THEN -11
         ELSE NULL
        END AS ccr_score
       ,CASE WHEN value = 'E' THEN 1 ELSE 0 END AS E
@@ -26,6 +32,7 @@ FROM
     (
      SELECT daily.studentid
            ,daily.schoolid
+           ,s.GRADE_LEVEL
            ,CONVERT(DATE,daily.att_date) AS att_date
            ,LTRIM(RTRIM(daily.adv_behavior)) AS adv_behavior
            ,LTRIM(RTRIM(daily.adv_logistic)) AS adv_logistic
@@ -55,6 +62,8 @@ FROM
          AND schoolid = 73252
          AND user_defined_date >= ''2014-08-01''
      ') daily /*-- UPDATE FOR CURRENT YEAR --*/
+     JOIN STUDENTS s WITH(NOLOCK)
+       ON daily.studentid = s.id
     ) sub
 
 UNPIVOT (

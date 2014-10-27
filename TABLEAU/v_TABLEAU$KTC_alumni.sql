@@ -79,7 +79,7 @@ WITH max_grade AS (
   FROM combined_roster r WITH(NOLOCK)
   JOIN (
         SELECT DISTINCT year_part
-        FROM UTIL$reporting_days WITH(NOLOCK)
+        FROM UTIL$reporting_days#static WITH(NOLOCK)
         WHERE year_part >= 2010
           AND year_part <= dbo.fn_Global_Academic_Year()
        ) year

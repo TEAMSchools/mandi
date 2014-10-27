@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW TABLEAU$attendance_dashboard AS
+--ALTER VIEW TABLEAU$attendance_dashboard AS
 
 SELECT 'KIPP NJ' AS Network
       ,CASE

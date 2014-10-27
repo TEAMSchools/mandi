@@ -18,14 +18,14 @@ WITH scaffold AS
        ON c.schoolid = sch.school_number
      JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
        ON c.studentid = s.id
-     JOIN KIPP_NJ..UTIL$reporting_days rd WITH (NOLOCK)
+     JOIN KIPP_NJ..UTIL$reporting_days#static rd WITH (NOLOCK)
        ON rd.date >= c.entrydate
       AND rd.date <  c.exitdate
       --no sundays or saturdays
       AND rd.dw_numeric != 7
       AND rd.dw_numeric != 1
       AND rd.date <= CAST(GETDATE() AS date)
-     WHERE c.schoolid IN (73254, 73255, 73256)
+     WHERE c.schoolid IN (73254, 73255, 73256, 73257, 179901)
        AND c.year = dbo.fn_Global_Academic_Year()
        AND c.rn = 1
        --testing
@@ -81,21 +81,21 @@ WITH scaffold AS
     FROM
           (SELECT c.studentid
                  ,CAST(rd.date AS date) AS date
-                 ,step.step_level
-                 ,step.level_number AS step_numeric
+                 ,step.read_lvl AS step_level
+                 ,step.lvl_num AS step_numeric
                  ,ROW_NUMBER() OVER
                     (PARTITION BY c.studentid
                                  ,CAST(rd.date AS date)
                      ORDER BY CAST(step.test_date AS date) DESC
-                             ,step.level_number DESC
+                             ,step.lvl_num DESC
                      ) AS rn
            FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
-           JOIN KIPP_NJ..UTIL$reporting_days rd WITH (NOLOCK)
+           JOIN KIPP_NJ..UTIL$reporting_days#static rd WITH (NOLOCK)
              ON rd.date >= c.entrydate
             AND rd.date <  c.exitdate
             AND rd.date <= CAST(GETDATE() AS date)   
             --AND rd.date = CAST(GETDATE() AS date)
-           JOIN KIPP_NJ..LIT$STEP_test_events_long#identifiers step WITH(NOLOCK)
+           JOIN KIPP_NJ..LIT$test_events#identifiers step WITH(NOLOCK)
              ON c.studentid = step.studentid
             AND step.status = 'Achieved'
             AND step.test_date >= '08/01/2013'
@@ -122,7 +122,7 @@ WITH scaffold AS
            FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
            JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
              ON c.studentid = s.id
-           JOIN KIPP_NJ..UTIL$reporting_days rd WITH (NOLOCK)
+           JOIN KIPP_NJ..UTIL$reporting_days#static rd WITH (NOLOCK)
              ON rd.date >= c.entrydate
             AND rd.date <= c.exitdate
             AND rd.date <= CAST(GETDATE() AS date)

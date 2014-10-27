@@ -33,17 +33,13 @@ WITH roster AS (
              ,student_number
              ,CASE WHEN time_period_name = 'Year' THEN 'Y1' ELSE REPLACE(time_period_name, 'RT', 'HEX') END AS time_period_name
              ,CONVERT(VARCHAR,words) AS words
-             ,CONVERT(VARCHAR,CASE 
-                               WHEN words_goal > 0 AND ROUND(words / words_goal * 100, 0) > 100 THEN 100
-                               WHEN words_goal > 0 AND ROUND(words / words_goal * 100, 0) <= 100 THEN ROUND(words / words_goal * 100, 0)
-                               ELSE NULL 
-                              END) AS pct_goal
+             ,CONVERT(VARCHAR,CASE WHEN ROUND(words / words_goal * 100, 0) > 110 THEN 110 ELSE ROUND(words / words_goal * 100, 0) END) AS pct_goal
              ,CONVERT(VARCHAR,mastery_fiction) AS mastery_f
              ,CONVERT(VARCHAR,mastery_nonfiction) AS mastery_nf
              ,CONVERT(VARCHAR,mastery) AS mastery_all
              ,CONVERT(VARCHAR,CASE WHEN N_total > 0 THEN ROUND(CONVERT(FLOAT,N_passed) / CONVERT(FLOAT,N_total) * 100,0) ELSE NULL END) AS pct_pass
        FROM AR$progress_to_goals_long#static WITH(NOLOCK)
-       --WHERE yearid = dbo.fn_Global_Term_Id()
+       WHERE words_goal > 0
       ) sub
   
   UNPIVOT (

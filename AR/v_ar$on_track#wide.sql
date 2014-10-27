@@ -5,7 +5,7 @@ ALTER VIEW AR$on_track#wide AS
 WITH cur_term AS
     (SELECT schoolid
            ,time_per_name
-     FROM KIPP_NJ..REPORTING$dates
+     FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
      WHERE identifier = 'HEX'
         OR (school_level = 'HS' AND identifier = 'RT_IR')
        AND start_date <= GETDATE()
@@ -33,16 +33,16 @@ WITH cur_term AS
           ,dense.dense_running_weighted_lexile_avg
           ,dense.dense_running_books_passed
           ,dense.dense_running_books_attempted
-    FROM KIPP_NJ..AR$time_series_dense#static dense
-    JOIN KIPP_NJ..COHORT$comprehensive_long#static cohort
+    FROM KIPP_NJ..AR$time_series_dense#static dense WITH(NOLOCK)
+    JOIN KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)
       ON dense.studentid = cohort.studentid
      AND cohort.year = dbo.fn_Global_Academic_Year()
      AND cohort.rn = 1
-    JOIN KIPP_NJ..STUDENTS s
+    JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
       ON dense.studentid = s.id
      --AND s.schoolid = 73253
      --AND s.grade_level = 9
-    JOIN KIPP_NJ..SCHOOLS sch
+    JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
       ON cohort.schoolid = sch.school_number
     --WHERE dense.on_track_status_words IS NOT NULL
     )
@@ -57,19 +57,19 @@ WITH cur_term AS
              ,courses.course_name
              ,s.grade_level
              ,sch.abbreviation AS school
-       FROM KIPP_NJ..CC
-       JOIN KIPP_NJ..SECTIONS
+       FROM KIPP_NJ..CC WITH(NOLOCK)
+       JOIN KIPP_NJ..SECTIONS WITH(NOLOCK)
          ON cc.sectionid = sections.id
         AND cc.termid >= dbo.fn_Global_Term_Id()
-       JOIN KIPP_NJ..TEACHERS
+       JOIN KIPP_NJ..TEACHERS WITH(NOLOCK)
          ON sections.teacher = teachers.id
-       JOIN KIPP_NJ..COURSES
+       JOIN KIPP_NJ..COURSES WITH(NOLOCK)
          ON sections.course_number = courses.course_number
         AND courses.credittype LIKE '%ENG%'
-       JOIN KIPP_NJ..STUDENTS s
+       JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
          ON cc.studentid = s.id
         AND s.enroll_status = 0
-       JOIN KIPP_NJ..SCHOOLS sch
+       JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
          ON s.schoolid = sch.school_number
        WHERE cc.dateenrolled <= GETDATE()
          AND cc.dateleft >= GETDATE()
@@ -103,8 +103,8 @@ FROM
                           ,ar_stats.week_start
                           ,ar_stats.time_period_name
                           ,ar_stats.on_track_status_words
-                    FROM ar_stats
-                    JOIN enr
+                    FROM ar_stats WITH(NOLOCK)
+                    JOIN enr WITH(NOLOCK)
                       ON ar_stats.studentid = enr.studentid
                     WHERE time_period_name = 'Year'
                     --current term
@@ -117,11 +117,11 @@ FROM
                           ,ar_stats.week_start
                           ,ar_stats.time_period_name
                           ,ar_stats.on_track_status_words
-                    FROM ar_stats
-                    JOIN cur_term
+                    FROM ar_stats WITH(NOLOCK)
+                    JOIN cur_term WITH(NOLOCK)
                       ON ar_stats.time_period_name = cur_term.time_per_name
                      AND CAST(ar_stats.schoolid AS INT) = CAST(cur_term.schoolid AS INT)
-                    JOIN enr
+                    JOIN enr WITH(NOLOCK)
                       ON ar_stats.studentid = enr.studentid
                     ) sub
             GROUP BY sub.school
@@ -148,7 +148,7 @@ FROM
                          ,grade_level
                          ,enr.course_name + ': ' + enr.section_number AS eng_enr
                          ,stu_name
-                   FROM enr
+                   FROM enr WITH(NOLOCK)
                   ) sub
              GROUP BY school
                      ,CUBE(
@@ -188,8 +188,8 @@ FROM
                           ,ar_stats.week_start
                           ,ar_stats.time_period_name
                           ,ar_stats.on_track_status_points
-                    FROM ar_stats
-                    JOIN enr
+                    FROM ar_stats WITH(NOLOCK)
+                    JOIN enr WITH(NOLOCK)
                       ON ar_stats.studentid = enr.studentid
                     WHERE time_period_name = 'Year'
                     --current term
@@ -202,11 +202,11 @@ FROM
                           ,ar_stats.week_start
                           ,ar_stats.time_period_name
                           ,ar_stats.on_track_status_points
-                    FROM ar_stats
-                    JOIN cur_term
+                    FROM ar_stats WITH(NOLOCK)
+                    JOIN cur_term WITH(NOLOCK)
                       ON ar_stats.time_period_name = cur_term.time_per_name
                      AND CAST(ar_stats.schoolid AS INT) = CAST(cur_term.schoolid AS INT)
-                    JOIN enr
+                    JOIN enr WITH(NOLOCK)
                       ON ar_stats.studentid = enr.studentid
                     ) sub
             GROUP BY sub.school
@@ -233,7 +233,7 @@ FROM
                          ,grade_level
                          ,enr.course_name + ': ' + enr.section_number AS eng_enr
                          ,stu_name
-                   FROM enr
+                   FROM enr WITH(NOLOCK)
                   ) sub
              GROUP BY school
                      ,CUBE(
@@ -270,8 +270,8 @@ FROM
                           ,ar_stats.week_start
                           ,ar_stats.time_period_name
                           ,ar_stats.on_track_status_points
-                    FROM ar_stats
-                    JOIN enr
+                    FROM ar_stats WITH(NOLOCK)
+                    JOIN enr WITH(NOLOCK)
                       ON ar_stats.studentid = enr.studentid
                     WHERE time_period_name = 'Year'
                     --current term
@@ -284,11 +284,11 @@ FROM
                           ,ar_stats.week_start
                           ,ar_stats.time_period_name
                           ,ar_stats.on_track_status_points
-                    FROM ar_stats
-                    JOIN cur_term
+                    FROM ar_stats WITH(NOLOCK)
+                    JOIN cur_term WITH(NOLOCK)
                       ON ar_stats.time_period_name = cur_term.time_per_name
                      AND CAST(ar_stats.schoolid AS INT) = CAST(cur_term.schoolid AS INT)
-                    JOIN enr
+                    JOIN enr WITH(NOLOCK)
                       ON ar_stats.studentid = enr.studentid
                     ) sub
             GROUP BY sub.school
@@ -311,7 +311,7 @@ FROM
                          ,enr.teacher AS grade_level
                          ,enr.teacher + '|' + enr.course_number + ' ' + enr.section_number AS eng_enr
                          ,stu_name
-                   FROM enr
+                   FROM enr WITH(NOLOCK)
                   ) sub
              GROUP BY school
                      ,sub.grade_level

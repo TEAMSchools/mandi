@@ -22,13 +22,15 @@ WITH roster AS (
        ,cs.MOTHER_DAY
        ,cs.FATHER_CELL
        ,cs.FATHER_DAY
-       ,cs.GUARDIANEMAIL
+       ,blobs.GUARDIANEMAIL
  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
  JOIN STUDENTS s WITH(NOLOCK)
    ON co.STUDENTID = s.ID
   AND s.ENROLL_STATUS = 0
  LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
    ON co.STUDENTID = cs.STUDENTID
+ LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
+   ON co.studentid = blobs.studentid
  WHERE co.YEAR = dbo.fn_Global_Academic_Year()
    AND co.GRADE_LEVEL < 5
    AND co.RN = 1

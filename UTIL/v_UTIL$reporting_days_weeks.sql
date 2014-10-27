@@ -23,13 +23,13 @@ FROM
            ,d_sun.date AS weekday_sun
      FROM UTIL$reporting_weeks w WITH(NOLOCK)
      --last day of week
-     JOIN UTIL$reporting_days d_start WITH(NOLOCK)
+     JOIN UTIL$reporting_days#static d_start WITH(NOLOCK)
        ON w.reporting_hash = d_start.reporting_hash
       AND d_start.day_of_week = 'Monday'
-     JOIN UTIL$reporting_days d_end WITH(NOLOCK)
+     JOIN UTIL$reporting_days#static d_end WITH(NOLOCK)
        ON w.reporting_hash = d_end.reporting_hash
       AND d_end.day_of_week = 'Friday'
-     JOIN UTIL$reporting_days d_sun WITH(NOLOCK)
+     JOIN UTIL$reporting_days#static d_sun WITH(NOLOCK)
        ON w.reporting_hash = d_sun.reporting_hash
       AND d_sun.day_of_week = 'Sunday'
      ) sub

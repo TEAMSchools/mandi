@@ -53,7 +53,7 @@ FROM
       FROM
             (SELECT s.first_name + ' ' + s.last_name + ' (' + sch.abbreviation + ')' AS hash
                    ,CASE 
-                      WHEN s.ethnicity IN ('T','W','H','A','B','I') THEN 'Pass'
+                      WHEN s.ethnicity IN ('T','W','H','A','B','I','P') THEN 'Pass'
                       ELSE 'Fail'
                     END AS assertion
              FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
@@ -250,7 +250,7 @@ FROM
                       AND DATEDIFF(day, CURRENT_TIMESTAMP, cc.dateleft) >= 0
                      JOIN KIPP_NJ..SECTIONS sect WITH(NOLOCK)
                        ON cc.sectionid = sect.id
-                      AND cc.course_number  NOT IN ('HR','STUDY10')
+                      AND cc.course_number  NOT IN ('STUDY10')
                      JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
                        ON s.schoolid = sch.school_number
                      WHERE s.enroll_status = 0

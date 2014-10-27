@@ -19,8 +19,8 @@ WITH roster AS (
         ,cs.mother_cell
         ,cs.father_cell
         ,c.grade_level AS grade_level
-        ,s.classof
-        ,cs.guardianemail
+        ,c.cohort AS classof
+        ,blobs.guardianemail
         ,cs.advisor
         ,cs.SPEDLEP AS SPED
         ,cs.SID
@@ -31,6 +31,8 @@ WITH roster AS (
    AND s.enroll_status = 0
   LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
     ON cs.studentid = s.id
+  LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
+   ON c.studentid = blobs.studentid
   WHERE year = dbo.fn_Global_Academic_Year()
     AND c.rn = 1        
     AND c.schoolid = 73253

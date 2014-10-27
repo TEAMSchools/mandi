@@ -12,6 +12,7 @@ WITH distinct_assessments AS (
         ,subject
         ,credittype
         ,term
+        ,academic_year
         ,administered_at
         ,standards_tested        
         ,standard_descr
@@ -19,81 +20,73 @@ WITH distinct_assessments AS (
  )
 
 ,enrollments AS (
-  SELECT cc.STUDENTID
-        ,cc.TERMID
-        ,cou.CREDITTYPE
-        ,cc.COURSE_NUMBER      
-        ,cou.COURSE_NAME
-        ,cc.SECTION_NUMBER
-        ,cc.SECTIONID      
+  SELECT cc.STUDENTID        
+        ,cc.academic_year
+        ,cou.CREDITTYPE        
+        ,cou.COURSE_NAME                
         ,CASE        
-          WHEN cc.SCHOOLID != 73253 THEN cc.EXPRESSION
-          WHEN cc.expression = '1(A)' THEN 'HR'
-          WHEN cc.expression = '2(A)' THEN '1'
-          WHEN cc.expression = '3(A)' THEN '2'
-          WHEN cc.expression = '4(A)' THEN '3'
-          WHEN cc.expression = '5(A)' THEN '4A'
-          WHEN cc.expression = '6(A)' THEN '4B'
-          WHEN cc.expression = '7(A)' THEN '4C'
-          WHEN cc.expression = '8(A)' THEN '4D'
-          WHEN cc.expression = '9(A)' THEN '5A'
-          WHEN cc.expression = '10(A)' THEN '5B'
-          WHEN cc.expression = '11(A)' THEN '5C'
-          WHEN cc.expression = '12(A)' THEN '5D'
-          WHEN cc.expression = '13(A)' THEN '6'
-          WHEN cc.expression = '14(A)' THEN '7'       
-         END AS period
+          WHEN cc.SCHOOLID != 73253 THEN cc.section_number
+          WHEN cc.schoolid = 73253 THEN cc.period
+         END AS section
         ,ROW_NUMBER() OVER(
-           PARTITION BY cc.studentid, cou.credittype
-             ORDER BY cc.termid DESC, cc.course_number DESC) AS rn
-   FROM CC WITH(NOLOCK)
-   JOIN COURSES cou WITH(NOLOCK)
+           PARTITION BY cc.studentid, cou.credittype, cc.academic_year
+             ORDER BY cc.termid DESC, cc.dateenrolled DESC) AS rn
+  FROM CC WITH(NOLOCK)
+  JOIN COURSES cou WITH(NOLOCK)
     ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
    AND cou.CREDITTYPE IS NOT NULL
-   AND cou.CREDITTYPE NOT IN ('LOG', 'PHYSED', 'STUDY')
-   WHERE cc.TERMID >= dbo.fn_Global_Term_Id()
+   AND cou.CREDITTYPE NOT IN ('LOG', 'PHYSED', 'STUDY')   
+  WHERE cc.termid >= 2300 -- first year w/ Illuminate, OK to be hard-coded
+    AND cc.SCHOOLID IN (73252,73253,133570965)
+ )
+
+,groups AS (
+  SELECT student_number
+        ,dbo.GROUP_CONCAT_D(group_name,', ') + ',' AS groups
+  FROM ILLUMINATE$student_groups#static WITH(NOLOCK)
+  GROUP BY student_number
  )
 
 SELECT co.schoolid
       ,co.year AS academic_year
       ,co.grade_level
-      ,s.team
-      --,grp.group_name
+      ,co.team
+      ,groups.groups
       ,co.student_number
       ,co.lastfirst
-      ,cs.spedlep      
+      ,co.spedlep      
+      ,a.assessment_id
       ,a.title
       ,a.scope            
       ,a.subject      
       ,a.credittype      
       ,enr.COURSE_NAME
-      ,CASE WHEN co.schoolid = 73253 THEN enr.period ELSE enr.SECTION_NUMBER END AS section
+      ,enr.section
       ,a.term
       ,a.administered_at
-      ,CONVERT(VARCHAR,a.standards_tested) AS standards_tested
-      ,dbo.ASCII_CONVERT(a.standard_descr) AS standard_descr
+      ,CONVERT(VARCHAR,a.standards_tested) AS standards_tested      
+      ,a.standard_descr
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS percent_correct
       ,CONVERT(FLOAT,res.mastered) AS mastered
+      --,ROUND(CONVERT(FLOAT,overall.percent_correct),1) AS overall_pct_correct
       ,ROW_NUMBER() OVER(
-          PARTITION BY co.studentid, a.scope, a.standards_tested
-              ORDER BY a.administered_at DESC) AS rn_curr
+         PARTITION BY co.studentid, a.scope, a.standards_tested
+           ORDER BY a.administered_at DESC) AS rn_curr
 FROM ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOCK)
-JOIN COHORT$comprehensive_long#static co WITH (NOLOCK)
-  ON res.local_student_id = co.student_number
- AND res.academic_year = co.year
- AND co.rn = 1
-JOIN STUDENTS s WITH(NOLOCK)
-  ON co.studentid = s.id
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON co.studentid = cs.studentid
+--JOIN ILLUMINATE$assessment_results_overall#static overall WITH(NOLOCK)
+--  ON res.assessment_id = overall.assessment_id
+-- AND res.local_student_id = overall.student_number
 JOIN distinct_assessments a WITH (NOLOCK)
   ON res.assessment_id = a.assessment_id
  AND res.standard_id = a.standard_id  
+JOIN COHORT$identifiers_long#static co WITH (NOLOCK)
+  ON res.local_student_id = co.student_number
+ AND a.academic_year = co.year
+ AND co.rn = 1
 LEFT OUTER JOIN enrollments enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
+ AND co.year = enr.academic_year
  AND a.credittype = enr.credittype
  AND enr.rn = 1
---LEFT OUTER JOIN ILLUMINATE$student_groups#static grp WITH(NOLOCK)
---  ON co.STUDENT_NUMBER = grp.student_number
--- AND res.academic_year = grp.academic_year
--- AND res.administered_at >= grp.eligibility_start_date
+LEFT OUTER JOIN groups WITH(NOLOCK)
+  ON co.STUDENT_NUMBER = groups.student_number

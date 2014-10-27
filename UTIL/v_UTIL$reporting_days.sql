@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW UTIL$reporting_days AS
+
 WITH calendar AS
     (
      SELECT DATEADD(DAY, n, '01-AUG-02') AS date
@@ -9,7 +10,7 @@ WITH calendar AS
      WHERE n < (365 * 40)
     )
 
-SELECT TOP 10000000000 sub.*
+SELECT sub.*
       ,CASE 
         WHEN week_part = '01' AND month_part = 12 THEN CAST((year_part + 1) AS NVARCHAR)
         ELSE CAST(year_part AS NVARCHAR)
@@ -25,4 +26,3 @@ FROM
            ,RIGHT('00' + CAST(DATEPART(WEEK, calendar.date) AS VARCHAR(2)), 2) AS week_part
      FROM calendar
     ) sub
-ORDER BY date ASC

@@ -16,7 +16,7 @@ WITH stu_cal_frame AS (
               ,DATEPART(MONTH,weekday_sun) AS month
         FROM UTIL$reporting_weeks_days WITH(NOLOCK)
         WHERE year = dbo.fn_Global_Academic_Year()
-          AND weekday_sun >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
+          AND weekday_sun >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-10-01')
           AND weekday_sun <= GETDATE()
        ) cal
     ON 1 = 1
@@ -99,6 +99,7 @@ WITH stu_cal_frame AS (
                   ,DATEPART(WEEK,log.entry_date) AS week_number
                   ,CASE
                     WHEN log.subtype = 'Silent Lunch' THEN 'SL'
+                    WHEN log.subtype = 'Bench / Choices' THEN 'Bench'
                     --WHEN log.subtype = 'Detention' AND log.discipline_details = 'Homework' THEN 'HW Detention'
                     ELSE log.subtype
                    END AS subtype

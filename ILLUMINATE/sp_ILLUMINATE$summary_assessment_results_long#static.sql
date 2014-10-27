@@ -4,6 +4,8 @@ GO
 ALTER PROCEDURE [sp_ILLUMINATE$summary_assessment_results_long#static|refresh] AS
 
 BEGIN
+  
+  SET NOCOUNT ON
 
 -- 1.) Drop and recreate the temp table --
   IF OBJECT_ID(N'tempdb..#ILLUMINATE$summary_assessment_results_long#static|refresh') IS NOT NULL
