@@ -83,7 +83,7 @@ WITH attendance_long AS (
       (
        SELECT studentid
              ,dates.time_per_name AS rt
-             ,CAST(RAND(CHECKSUM(NEWID())) * 2 as INT) AS has_uniform -- generates a 1 or 0 for testing
+             ,dt.has_uniform
        FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
        JOIN REPORTING$dates dates WITH(NOLOCK)
          ON dt.schoolid = dates.schoolid
@@ -95,7 +95,7 @@ WITH attendance_long AS (
 
        SELECT studentid
              ,curterm.time_per_name AS rt
-             ,CAST(RAND(CHECKSUM(NEWID())) * 2 as INT) AS has_uniform -- generates a 1 or 0 for testing
+             ,dt.has_uniform
        FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
        JOIN REPORTING$dates curterm WITH (NOLOCK)
          ON dt.schoolid = curterm.schoolid

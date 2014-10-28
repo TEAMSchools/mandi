@@ -34,15 +34,53 @@ WITH roster AS (
   FROM reporting_week WITH(NOLOCK)
  )
 
+,classes AS (
+  SELECT 'adv_behavior' AS class
+  UNION
+  SELECT 'adv_logistic'
+  UNION
+  SELECT 'math'
+  UNION
+  SELECT 'science'
+  UNION
+  SELECT 'reading'
+  UNION
+  SELECT 'writing'
+  UNION
+  SELECT 'history'
+  UNION
+  SELECT 'elec'
+  UNION
+  SELECT 'other'
+ )
+
 -- long data from daily tracking
 ,ccr_long AS (
-  SELECT dt.studentid
-        ,att_date        
-        ,dt.class
-        ,CASE WHEN dt.class = 'other' AND dt.ccr = 'S' THEN NULL ELSE dt.ccr END AS ccr
-        ,CASE WHEN dt.class = 'other' AND dt.ccr = 'S' THEN NULL ELSE dt.ccr_score END AS ccr_score        
-  FROM DAILY$tracking_long#Rise#static dt WITH(NOLOCK)
-  WHERE att_date IN (SELECT date FROM reporting_week WITH(NOLOCK))
+  SELECT s.id AS studentid      
+        ,rw.date AS att_date
+        ,cl.class
+        ,CASE 
+          WHEN s.GRADE_LEVEL = 8 AND dt.class = 'other' AND dt.ccr = 'S' THEN NULL 
+          WHEN s.GRADE_LEVEL = 7 AND dt.ccr IS NULL THEN 'S'
+          ELSE dt.ccr 
+         END AS ccr
+        ,CASE 
+          WHEN s.GRADE_LEVEL = 8 AND dt.class = 'other' AND dt.ccr = 'S' THEN NULL 
+          WHEN s.GRADE_LEVEL = 7 AND dt.ccr IS NULL THEN 5
+          ELSE dt.ccr_score
+         END AS ccr_score        
+  FROM STUDENTS s WITH(NOLOCK)
+  JOIN reporting_week rw WITH(NOLOCK)
+    ON 1 = 1
+  JOIN classes cl WITH(NOLOCK)
+    ON 1 = 1
+  LEFT OUTER JOIN DAILY$tracking_long#Rise#static dt WITH(NOLOCK)
+    ON s.id = dt.studentid
+   AND rw.date = dt.att_date
+   AND cl.class = dt.class
+  WHERE s.SCHOOLID = 73252
+    AND s.GRADE_LEVEL >= 7
+    AND s.ENROLL_STATUS = 0
  )
 
 -- ccr data wide by class and day of week
@@ -97,10 +135,10 @@ WITH roster AS (
       (
        SELECT ccr_long.studentid           
              ,LEFT(LOWER(wk.day_of_week), 3) + '_' + ccr_long.class AS hash
-             ,ccr_long.ccr      
+             ,ccr_long.ccr                   
        FROM ccr_long WITH(NOLOCK)
        JOIN reporting_week wk WITH(NOLOCK)
-         ON wk.date = ccr_long.att_date
+         ON wk.date = ccr_long.att_date       
       ) sub
 
   PIVOT (
@@ -167,13 +205,14 @@ WITH roster AS (
 ,weekly_assignments AS (
   SELECT asmt.sectionid
         ,sec.course_number
+        ,sec.GRADE_LEVEL
         ,cou.credittype
         ,asmt.ASSIGNMENTID
         ,asmt.ASSIGN_NAME
         ,asmt.POINTSPOSSIBLE
         ,CASE 
-          WHEN asmt.CATEGORY IN ('HQ','HWQ','HWA','Q','Homework Quality') THEN 'HWQ'
-          WHEN asmt.CATEGORY IN ('Homework Completion','HW Completion') THEN 'HWC'
+          WHEN asmt.CATEGORY IN ('HW Q','HQ','HWQ','HWA','Q','Homework Quality') THEN 'HWQ'
+          WHEN asmt.CATEGORY IN ('HC','HW C','HWC','Homework Completion','HW Completion') THEN 'HWC'
           ELSE NULL
          END AS category
   FROM GRADES$assignments#static asmt WITH(NOLOCK)
@@ -186,7 +225,7 @@ WITH roster AS (
     ON sec.COURSE_NUMBER = cou.COURSE_NUMBER
   WHERE asmt.ASSIGN_DATE IN (SELECT date FROM reporting_week WITH(NOLOCK))
     AND ((sec.GRADE_LEVEL = 8 AND asmt.CATEGORY IN ('HQ','HWQ','HWA','Q'))
-           OR (sec.GRADE_LEVEL = 7 AND asmt.CATEGORY IN ('Homework Completion','HW Completion','Homework Quality')))
+           OR (sec.GRADE_LEVEL = 7 AND asmt.CATEGORY IN ('HW','HQ','HW Comp','Homework Quality','HC','Homework Completion','HW Q','HW C','homework','Homework Completion','HW Completion','Homework Quality')))
  )
 
 ,assignment_scores AS (
@@ -215,6 +254,7 @@ WITH roster AS (
        FROM weekly_assignments asmt WITH(NOLOCK)
        JOIN assignment_scores scores WITH(NOLOCK)
          On asmt.assignmentid = scores.assignmentid
+       WHERE asmt.grade_level = 8 OR (asmt.grade_level = 7 AND asmt.category = 'HWC')
       ) sub
   PIVOT (
     MAX(assign_name)

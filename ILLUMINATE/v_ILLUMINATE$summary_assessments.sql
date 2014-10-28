@@ -33,6 +33,31 @@ SELECT test_roster.SCHOOLID
       ,repo.title
       ,repo.description
       ,repo.subject
+      ,CASE
+        WHEN repo.subject = 'Arabic' THEN 'WLANG'
+        WHEN repo.subject = 'Arts: Music' THEN 'ART'
+        WHEN repo.subject = 'Arts: Theatre' THEN 'ART'
+        WHEN repo.subject = 'Arts: Visual Arts' THEN 'ART'
+        WHEN repo.subject = 'Comprehension' THEN 'ENG'
+        WHEN repo.subject = 'English Language Arts' THEN 'ENG'
+        WHEN repo.subject = 'English' THEN 'ENG'
+        WHEN repo.subject = 'Vocabulary' THEN 'ENG'
+        WHEN repo.subject = 'French' THEN 'WLANG'
+        WHEN repo.subject = 'Grammar' THEN 'ENG'
+        WHEN repo.subject = 'Historical Arts' THEN 'SOC'
+        WHEN repo.subject = 'History' THEN 'SOC'
+        WHEN repo.subject = 'Humanities' THEN 'SOC'
+        WHEN repo.subject = 'Mathematics' THEN 'MATH'
+        WHEN repo.subject = 'Performing Arts' THEN 'ART'
+        WHEN repo.subject = 'Phonics' THEN 'ENG'
+        WHEN repo.subject = 'Physical Education' THEN 'PHYSED'
+        WHEN repo.subject = 'Reading' THEN 'ENG'
+        WHEN repo.subject = 'Science' THEN 'SCI'
+        WHEN repo.subject = 'Spanish' THEN 'WLANG'
+        WHEN repo.subject = 'Word Work' THEN 'ENG'
+        WHEN repo.subject = 'Writing' THEN 'RHET'
+        ELSE NULL
+       END AS credittype
       ,repo.scope
       ,t.LASTFIRST AS created_by
       ,repo.teacher_number

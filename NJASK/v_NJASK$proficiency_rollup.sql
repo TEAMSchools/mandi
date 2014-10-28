@@ -31,8 +31,29 @@ FROM
            ,CONVERT(FLOAT,SUM(CASE WHEN njask_proficiency = 'Below Proficient' THEN 1.0 ELSE 0.0 END)) AS part_prof
            ,CONVERT(FLOAT,SUM(CASE WHEN njask_proficiency = 'Proficient' THEN 1.0 ELSE 0.0 END)) AS prof
            ,CONVERT(FLOAT,SUM(CASE WHEN njask_proficiency = 'Advanced Proficient' THEN 1.0 ELSE 0.0 END)) AS adv_prof           
-     FROM NJASK$detail  WITH(NOLOCK)
-     WHERE test_schoolid IN (73252,133570965,73254)       
+     FROM NJASK$detail  WITH(NOLOCK)     
+     GROUP BY academic_year
+             ,CUBE(test_schoolid)
+             ,test_grade_level
+             ,subject
+
+     UNION ALL
+
+     SELECT academic_year + 1 AS year
+           ,CASE GROUPING(test_schoolid)
+              WHEN 1 THEN 'Network'
+              ELSE CASE                     
+                     WHEN test_schoolid = 73253 THEN 'NCA'
+                   END
+            END AS school
+           ,subject
+           ,test_grade_level AS grade_level
+           ,COUNT(studentid) AS n_tested
+           ,ROUND(AVG(CONVERT(INT,scale_score)),0) AS avg_scale           
+           ,CONVERT(FLOAT,SUM(CASE WHEN proficiency = 'Below Proficient' THEN 1.0 ELSE 0.0 END)) AS part_prof
+           ,CONVERT(FLOAT,SUM(CASE WHEN proficiency = 'Proficient' THEN 1.0 ELSE 0.0 END)) AS prof
+           ,CONVERT(FLOAT,SUM(CASE WHEN proficiency = 'Advanced Proficient' THEN 1.0 ELSE 0.0 END)) AS adv_prof           
+     FROM HSPA$detail WITH(NOLOCK)
      GROUP BY academic_year
              ,CUBE(test_schoolid)
              ,test_grade_level

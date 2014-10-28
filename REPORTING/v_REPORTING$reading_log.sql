@@ -145,6 +145,7 @@ SELECT roster.*
       ,ROUND((CONVERT(FLOAT,ar_h1.N_passed) / CONVERT(FLOAT,ar_h1.N_total) * 100),1) AS hex1_pct_passing
       ,ar_h1.mastery_fiction AS hex1_accuracy_fiction
       ,ar_h1.mastery_nonfiction AS hex1_accuracy_nonfiction
+      ,ar_h1.mastery AS hex1_accuracy_all
         --Hex 2
       ,replace(convert(varchar,convert(Money, ar_h2.words),1),'.00','') AS hex2_words
       ,replace(convert(varchar,convert(Money, ar_h2.words_goal),1),'.00','') AS hex2_goal
@@ -155,6 +156,7 @@ SELECT roster.*
       ,ROUND((CONVERT(FLOAT,ar_h2.N_passed) / CONVERT(FLOAT,ar_h2.N_total) * 100),1) AS hex2_pct_passing
       ,ar_h2.mastery_fiction AS hex2_accuracy_fiction
       ,ar_h2.mastery_nonfiction AS hex2_accuracy_nonfiction
+      ,ar_h2.mastery AS hex2_accuracy_all
         --Hex 3
       ,replace(convert(varchar,convert(Money, ar_h3.words),1),'.00','') AS hex3_words
       ,replace(convert(varchar,convert(Money, ar_h3.words_goal),1),'.00','') AS hex3_goal
@@ -165,6 +167,7 @@ SELECT roster.*
       ,ROUND((CONVERT(FLOAT,ar_h3.N_passed) / CONVERT(FLOAT,ar_h3.N_total) * 100),1) AS hex3_pct_passing
       ,ar_h3.mastery_fiction AS hex3_accuracy_fiction
       ,ar_h3.mastery_nonfiction AS hex3_accuracy_nonfiction
+      ,ar_h3.mastery AS hex3_accuracy_all
         --Hex 4
       ,replace(convert(varchar,convert(Money, ar_h4.words),1),'.00','') AS hex4_words
       ,replace(convert(varchar,convert(Money, ar_h4.words_goal),1),'.00','') AS hex4_goal
@@ -175,6 +178,7 @@ SELECT roster.*
       ,ROUND((CONVERT(FLOAT,ar_h4.N_passed) / CONVERT(FLOAT,ar_h4.N_total) * 100),1) AS hex4_pct_passing
       ,ar_h4.mastery_fiction AS hex4_accuracy_fiction
       ,ar_h4.mastery_nonfiction AS hex4_accuracy_nonfiction      
+      ,ar_h4.mastery AS hex4_accuracy_all
         --Hex 5
       ,replace(convert(varchar,convert(Money, ar_h5.words),1),'.00','') AS hex5_words
       ,replace(convert(varchar,convert(Money, ar_h5.words_goal),1),'.00','') AS hex5_goal
@@ -185,6 +189,7 @@ SELECT roster.*
       ,ROUND((CONVERT(FLOAT,ar_h5.N_passed) / CONVERT(FLOAT,ar_h5.N_total) * 100),1) AS hex5_pct_passing
       ,ar_h5.mastery_fiction AS hex5_accuracy_fiction
       ,ar_h5.mastery_nonfiction AS hex5_accuracy_nonfiction
+      ,ar_h5.mastery AS hex5_accuracy_all
         --Hex 6
       ,replace(convert(varchar,convert(Money, ar_h6.words),1),'.00','') AS hex6_words
       ,replace(convert(varchar,convert(Money, ar_h6.words_goal),1),'.00','') AS hex6_goal
@@ -195,6 +200,7 @@ SELECT roster.*
       ,ROUND((CONVERT(FLOAT,ar_h6.N_passed) / CONVERT(FLOAT,ar_h6.N_total) * 100),1) AS hex6_pct_passing
       ,ar_h6.mastery_fiction AS hex6_accuracy_fiction
       ,ar_h6.mastery_nonfiction AS hex6_accuracy_nonfiction
+      ,ar_h6.mastery AS hex6_accuracy_all
 
       ,map_goals.keep_up_goal
       ,map_goals.keep_up_rit

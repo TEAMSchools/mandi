@@ -10,6 +10,7 @@ WITH assessments AS (
         ,a.title
         ,a.scope
         ,a.subject      
+        ,a.credittype
         ,a.date_administered
         ,dbo.fn_DateToSY(a.date_administered) AS academic_year
         ,f.label AS field_label
@@ -34,6 +35,7 @@ WITH assessments AS (
              ,a.title
              --,a.scope
              --,a.subject                            
+             ,a.credittype
              ,a.field_label
              ,res.repository_row_id
              ,res.value AS field_value           
@@ -87,15 +89,16 @@ WITH assessments AS (
 
 ,enrollments AS (
   SELECT cc.studentid
-        ,c.COURSE_NAME      
-        ,dbo.fn_ExprToPeriod(cc.EXPRESSION) AS period
+        ,c.COURSE_NAME
+        ,c.CREDITTYPE        
+        ,cc.period
         ,ROW_NUMBER() OVER(
-           PARTITION BY cc.studentid
+           PARTITION BY cc.studentid, c.credittype
              ORDER BY c.course_number DESC) AS rn
   FROM CC WITH(NOLOCK)
   JOIN COURSES c WITH(NOLOCK)
     ON cc.course_number = c.course_number
-   AND c.CREDITTYPE = 'RHET'
+   AND c.CREDITTYPE IN ('RHET','ENG')
   WHERE cc.SCHOOLID = 73253
     AND cc.TERMID >= dbo.fn_Global_Term_Id()
     AND cc.SECTIONID > 0
@@ -240,4 +243,5 @@ JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
  AND co.rn = 1
 LEFT OUTER JOIN enrollments enr WITH(NOLOCK)
   ON w.studentid = enr.STUDENTID
+ AND w.credittype = enr.CREDITTYPE
  AND enr.rn = 1

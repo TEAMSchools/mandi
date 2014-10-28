@@ -111,7 +111,7 @@ WITH stu_cal_frame AS (
                     --WHEN log.subtype = 'Detention' AND log.discipline_details != 'Homework' THEN 4 
                     --WHEN log.subtype = 'Detention' AND log.discipline_details = 'Homework' THEN 8
                     WHEN log.subtype = 'Paycheck' AND log.discipline_details = 'Paycheck Below $90' THEN 2
-                    WHEN log.subtype = 'Paycheck' AND log.discipline_details = 'Paycheck Below $80' THEN 5
+                    WHEN log.subtype = 'Paycheck' AND log.discipline_details IN ('Paycheck Below $80','Paycheck Below $70') THEN 5
                     ELSE 0
                    END AS disc_points        
             FROM STUDENTS s WITH(NOLOCK)
