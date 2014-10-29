@@ -98,10 +98,10 @@ SELECT *
        END AS on_time_grad
 FROM
     (
-     SELECT f.studentid AS studentid
-           ,f.STUDENT_NUMBER AS student_number
+     SELECT f.studentid
+           ,f.STUDENT_NUMBER
            ,u.lastfirst
-           ,u.cohort AS cohort -- final cohort before graduating/transferring
+           ,f.cohort
            ,f.year AS first_year
            ,u.year AS final_year      
            ,u.year - f.year + 1 AS yrs_in_hs
