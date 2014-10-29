@@ -3,66 +3,82 @@ GO
 
 ALTER VIEW COMPLIANCE$adj_cohort_grad_detail AS
 
--- first time freshmen
-WITH first_year_frosh AS (
-  SELECT *
-  FROM
-      (
-       SELECT co.studentid
-             ,co.STUDENT_NUMBER
-             ,co.grade_level
-             ,co.year
-             ,co.cohort             
-             ,prev.grade_level AS prev_grade
-       FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-       LEFT OUTER JOIN COHORT$comprehensive_long#static prev WITH(NOLOCK)
-         ON co.studentid = prev.studentid 
-        AND co.year = (prev.year + 1)  
-        AND prev.rn = 1
-       WHERE co.grade_level = 9           
-         AND co.rn = 1
-         AND co.year < dbo.fn_Global_Academic_Year()
-      ) sub
-  WHERE (grade_level > prev_grade OR prev_grade IS NULL)
- )
-
--- transfers into cohort
-,backfills AS (
+-- first year at NCA, cohort assigned upon entry expecting 4-year graduation
+WITH baseline AS ( 
   SELECT studentid
-        ,STUDENT_NUMBER
+        ,student_number        
         ,grade_level
         ,year
-        ,cohort
-        ,prev_grade
+        ,year + (12 - grade_level) + 1 AS DOE_cohort
   FROM
       (
        SELECT studentid
              ,STUDENT_NUMBER
+             ,lastfirst
              ,grade_level
              ,year
              ,cohort
-             ,NULL AS prev_grade
              ,ROW_NUMBER() OVER(
-               PARTITION BY studentid
-                 ORDER BY year) AS first_yr
-       FROM COHORT$comprehensive_long#static
+                PARTITION BY studentid
+                  ORDER BY year ASC) AS first_hs_yr
+       FROM COHORT$comprehensive_long#static WITH(NOLOCK)
        WHERE schoolid = 73253
-         AND grade_level > 9
          AND rn = 1
-         AND year < dbo.fn_Global_Academic_Year()         
       ) sub
-  WHERE first_yr = 1    
-    AND studentid NOT IN (SELECT studentid FROM first_year_frosh)
-)
-
--- combined cohort
-,baseline AS ( 
-  SELECT *
-  FROM first_year_frosh
-  UNION
-  SELECT *
-  FROM backfills
+  WHERE first_hs_yr = 1
  )
+
+/* orginally the logic was more complicated, but retained students were messing with the cohort counts */
+-- first time freshmen
+--WITH first_year_frosh AS (
+--  SELECT *
+--  FROM
+--      (
+--       SELECT co.studentid
+--             ,co.STUDENT_NUMBER
+--             ,co.grade_level
+--             ,co.year
+--             ,co.cohort             
+--             ,prev.grade_level AS prev_grade
+--       FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+--       LEFT OUTER JOIN COHORT$comprehensive_long#static prev WITH(NOLOCK)
+--         ON co.studentid = prev.studentid 
+--        AND co.year = (prev.year + 1)  
+--        AND prev.rn = 1
+--       WHERE co.grade_level = 9           
+--         AND co.rn = 1
+--         AND co.year < dbo.fn_Global_Academic_Year()
+--      ) sub
+--  WHERE (grade_level > prev_grade OR prev_grade IS NULL)
+-- )
+---- transfers into cohort
+--,backfills AS (
+--  SELECT studentid
+--        ,STUDENT_NUMBER
+--        ,grade_level
+--        ,year
+--        ,cohort
+--        ,prev_grade
+--  FROM
+--      (
+--       SELECT studentid
+--             ,STUDENT_NUMBER
+--             ,grade_level
+--             ,year
+--             ,cohort
+--             ,NULL AS prev_grade
+--             ,ROW_NUMBER() OVER(
+--               PARTITION BY studentid
+--                 ORDER BY year) AS first_yr
+--       FROM COHORT$comprehensive_long#static
+--       WHERE schoolid = 73253
+--         AND grade_level > 9
+--         AND rn = 1
+--         AND year < dbo.fn_Global_Academic_Year()         
+--      ) sub
+--  WHERE first_yr = 1    
+--    AND studentid NOT IN (SELECT studentid FROM first_year_frosh)
+--)
 
 -- last year a student was enrolled with us
 ,ultimate_year AS (
@@ -101,7 +117,7 @@ FROM
      SELECT f.studentid
            ,f.STUDENT_NUMBER
            ,u.lastfirst
-           ,f.cohort
+           ,f.DOE_cohort
            ,f.year AS first_year
            ,u.year AS final_year      
            ,u.year - f.year + 1 AS yrs_in_hs
@@ -116,5 +132,5 @@ FROM
      JOIN ultimate_year u
        ON f.studentid = u.studentid
     ) sub
-WHERE cohort <= dbo.fn_Global_Academic_Year()
+WHERE DOE_cohort <= dbo.fn_Global_Academic_Year()
   --AND is_excluded = 0
