@@ -99,8 +99,7 @@ WITH baseline AS (
        FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
        WHERE co.grade_level >= 9
          AND co.grade_level < 99
-         AND co.rn = 1       
-         AND co.year < dbo.fn_Global_Academic_Year()
+         AND co.rn = 1                
       ) sub
   WHERE rn = 1  
  )
@@ -120,13 +119,14 @@ FROM
            ,f.DOE_cohort
            ,f.year AS first_year
            ,u.year AS final_year      
-           ,u.year - f.year + 1 AS yrs_in_hs
+           ,u.year - f.year + 1 + (f.grade_level - 9) AS yrs_in_hs -- adjusts for transfers in
            ,u.highest_achieved
            ,u.exitcode
+           ,f.grade_level AS entry_grade
            ,u.grade_level AS exit_grade
-           ,CASE WHEN u.exitcode IN ('D1','D2','D3','D4','D5','D6','D7','D8','D10','D11') THEN 1 END AS is_dropout
+           ,CASE WHEN u.exitcode IN ('D1','D2','D3','D4','D5','D6','D7','D8','D10','D11') THEN 1 ELSE 0 END AS is_dropout
            ,CASE WHEN u.exitcode IN ('D9', 'T3', 'T8', 'T9', 'TP') THEN 1 ELSE 0 END AS is_excluded
-           ,CASE WHEN u.exitcode IN ('T4', 'T6', 'T7', 'TC', 'TD', 'TA') THEN 0 END AS verified_transf
+           ,CASE WHEN u.exitcode IN ('T4', 'T6', 'T7', 'TC', 'TD', 'TA') THEN 1 ELSE 0 END AS verified_transf
            ,CASE WHEN u.highest_achieved = 99 THEN 1 ELSE 0 END AS is_grad
      FROM baseline f
      JOIN ultimate_year u

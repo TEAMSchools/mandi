@@ -15,37 +15,19 @@ WITH curterm AS (
  )
 
 ,roster AS (
-  SELECT s.id AS JOINID
-        ,s.student_number AS ID
-        ,s.lastfirst AS NAME
+  SELECT c.studentid AS JOINID
+        ,c.student_number AS ID
+        ,c.lastfirst AS NAME
         ,c.grade_level AS GR
-        ,cs.advisor AS ADVISOR
-        ,cs.SPEDLEP AS IEP
-        ,CASE 
-          WHEN ms.schoolid IS NULL THEN 'New to TEAM Schools'
-          WHEN ms.schoolid = 73252 THEN 'Rise'
-          WHEN ms.schoolid = 133570965 THEN 'TEAM Academy'
-         END AS prev_school
-  FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
-  LEFT OUTER JOIN KIPP_NJ..COHORT$middle_school_attended ms WITH(NOLOCK)
-    ON c.studentid = ms.studentid
-  JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
-    ON c.studentid = s.id
-   AND s.enroll_status = 0
-  LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
-    ON cs.studentid = s.id
+        ,c.advisor AS ADVISOR
+        ,c.SPEDLEP AS IEP
+        ,c.entry_school_name AS prev_school
+        ,c.entry_grade_level AS entry_grade
+  FROM KIPP_NJ..COHORT$identifiers_long#static c WITH (NOLOCK)    
   WHERE c.year = dbo.fn_Global_Academic_Year()
     AND c.rn = 1        
     AND c.schoolid = 73253
- )
-
-,entry_grade AS (
-  SELECT STUDENTID
-        ,LASTFIRST
-        ,GRADE_LEVEL      
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  WHERE YEAR_IN_NETWORK = 1
-    AND RN = 1
+    AND c.enroll_status = 0
  )
  
 ,cur_section AS (
@@ -69,25 +51,11 @@ SELECT roster.ID
       ,gr.course_number AS COURSE_NUM
       ,gr.course_name AS COURSE_NAME
       ,sec.teacher
-      ,CASE 
-        WHEN cc.expression = '1(A)' THEN 'HR'
-        WHEN cc.expression = '2(A)' THEN '1'
-        WHEN cc.expression = '3(A)' THEN '2'
-        WHEN cc.expression = '4(A)' THEN '3'
-        WHEN cc.expression = '5(A)' THEN '4A'
-        WHEN cc.expression = '6(A)' THEN '4B'
-        WHEN cc.expression = '7(A)' THEN '4C'
-        WHEN cc.expression = '8(A)' THEN '4D'
-        WHEN cc.expression = '9(A)' THEN '5A'
-        WHEN cc.expression = '10(A)' THEN '5B'
-        WHEN cc.expression = '11(A)' THEN '5C'
-        WHEN cc.expression = '12(A)' THEN '5D'
-        WHEN cc.expression = '13(A)' THEN '6'
-        WHEN cc.expression = '14(A)' THEN '7'
-        ELSE NULL
-       END AS SECT
+      ,cc.period AS SECT
+      ,rti.tier AS RTI_Tier
       ,cc.currentabsences AS [ABS]
-      ,cc.currenttardies AS TARDY,Y1
+      ,cc.currenttardies AS TARDY
+      ,Y1
       ,Y1_letter AS Y1_LTR
       ,CASE
         WHEN Y1 <  70 THEN 'Failing'
@@ -207,10 +175,14 @@ SELECT roster.ID
         WHEN ele_a.simple_avg >= 55 AND ele_a.simple_avg < 60 THEN 'Fair (55-59)'
         WHEN ele_a.simple_avg < 55 THEN 'Fail (< 55)'
        END AS ay_label      
-      ,entry_grade.GRADE_LEVEL AS entry_grade
+      ,roster.entry_grade      
+      ,rti.behavior_tier
 FROM roster WITH (NOLOCK)
 LEFT OUTER JOIN GRADES$DETAIL#NCA gr WITH (NOLOCK)
   ON roster.joinid = gr.studentid
+LEFT OUTER JOIN PS$rti_tiers#static rti WITH(NOLOCK)
+  ON roster.joinid = rti.studentid
+ AND gr.credittype = rti.credittype
 LEFT OUTER JOIN cur_section sec
   ON roster.joinid = sec.studentid
  AND gr.course_number = sec.course_number
@@ -239,5 +211,3 @@ LEFT OUTER JOIN GRADES$elements ele_p WITH (NOLOCK)
  AND ele_p.yearid >= LEFT(dbo.fn_Global_Term_ID(), 2)
 LEFT OUTER JOIN GPA$detail#NCA gpa WITH (NOLOCK)
   ON roster.joinid = gpa.studentid
-LEFT OUTER JOIN entry_grade
-  ON roster.JOINID = entry_grade.STUDENTID  
