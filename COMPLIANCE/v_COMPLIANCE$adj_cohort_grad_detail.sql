@@ -26,7 +26,7 @@ WITH first_year_frosh AS (
   WHERE (grade_level > prev_grade OR prev_grade IS NULL)
  )
 
--- transfers in
+-- transfers into cohort
 ,backfills AS (
   SELECT studentid
         ,STUDENT_NUMBER
@@ -101,7 +101,7 @@ FROM
      SELECT f.studentid AS studentid
            ,f.STUDENT_NUMBER AS student_number
            ,u.lastfirst
-           ,f.cohort AS cohort
+           ,u.cohort AS cohort -- final cohort before graduating/transferring
            ,f.year AS first_year
            ,u.year AS final_year      
            ,u.year - f.year + 1 AS yrs_in_hs
