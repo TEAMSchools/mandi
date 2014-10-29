@@ -3,6 +3,7 @@ GO
 
 ALTER VIEW COMPLIANCE$adj_cohort_grad_detail AS
 
+-- first time freshmen
 WITH first_year_frosh AS (
   SELECT *
   FROM
@@ -25,6 +26,7 @@ WITH first_year_frosh AS (
   WHERE (grade_level > prev_grade OR prev_grade IS NULL)
  )
 
+-- transfers in
 ,backfills AS (
   SELECT studentid
         ,STUDENT_NUMBER
@@ -53,6 +55,7 @@ WITH first_year_frosh AS (
     AND studentid NOT IN (SELECT studentid FROM first_year_frosh)
 )
 
+-- combined cohort
 ,baseline AS ( 
   SELECT *
   FROM first_year_frosh
@@ -61,6 +64,7 @@ WITH first_year_frosh AS (
   FROM backfills
  )
 
+-- last year a student was enrolled with us
 ,ultimate_year AS (
   SELECT *
   FROM
@@ -94,10 +98,10 @@ SELECT *
        END AS on_time_grad
 FROM
     (
-     SELECT COALESCE(f.studentid, u.studentid) AS studentid
-           ,COALESCE(f.STUDENT_NUMBER, u.student_number) AS student_number
+     SELECT f.studentid AS studentid
+           ,f.STUDENT_NUMBER AS student_number
            ,u.lastfirst
-           ,COALESCE(f.cohort, u.cohort) AS cohort
+           ,f.cohort AS cohort
            ,f.year AS first_year
            ,u.year AS final_year      
            ,u.year - f.year + 1 AS yrs_in_hs
@@ -107,10 +111,10 @@ FROM
            ,CASE WHEN u.exitcode IN ('D1','D2','D3','D4','D5','D6','D7','D8','D10','D11') THEN 1 END AS is_dropout
            ,CASE WHEN u.exitcode IN ('D9', 'T3', 'T8', 'T9', 'TP') THEN 1 ELSE 0 END AS is_excluded
            ,CASE WHEN u.exitcode IN ('T4', 'T6', 'T7', 'TC', 'TD', 'TA') THEN 0 END AS verified_transf
-           ,CASE WHEN u.highest_achieved = 99 THEN 1 END AS is_grad
+           ,CASE WHEN u.highest_achieved = 99 THEN 1 ELSE 0 END AS is_grad
      FROM baseline f
      JOIN ultimate_year u
        ON f.studentid = u.studentid
     ) sub
 WHERE cohort <= dbo.fn_Global_Academic_Year()
-  AND is_excluded = 0
+  --AND is_excluded = 0
