@@ -3,8 +3,8 @@ GO
 
 ALTER VIEW COMPLIANCE$Hayden_suspensions AS
 
-SELECT DISTINCT
-       co.grade_level
+SELECT co.schoolid
+      ,co.grade_level
       ,co.gender
       ,co.spedlep
       ,ISNULL(co.lep_status,'No LEP') AS lep_status
