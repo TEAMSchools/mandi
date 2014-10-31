@@ -20,31 +20,20 @@ BEGIN
 		
 		--STEP 2: load into a TEMPORARY staging table.
   SELECT *
+        ,dbo.fn_DateToSY(calendardate) AS academic_year
 		INTO [#PS$MEMBERSHIP|refresh]
   FROM OPENQUERY(PS_TEAM,'
-     SELECT ctod.studentid
-           ,s.student_number
-           ,ctod.schoolid
-           ,ctod.calendardate
-           ,ctod.fteid
-           ,ctod.attendance_conversion_id
-           ,ctod.attendancevalue
-           ,ctod.membershipvalue             
-           ,ctod.ontrack
-           ,ctod.offtrack
-           ,ctod.student_track
-           ,ctod.potential_attendancevalue
-     FROM ps_adaadm_daily_ctod ctod
-     JOIN students s
-       ON ctod.studentid = s.id
-     JOIN terms
-       ON ctod.schoolid = terms.schoolid
-      AND ctod.calendardate >= terms.firstday 
-      AND ctod.calendardate <= terms.lastday
-      AND ctod.calendardate <= SYSDATE
-      AND terms.yearid >= 22
-      AND terms.portion = 1
-  ');
+    SELECT ctod.studentid         
+          ,ctod.schoolid
+          ,ctod.calendardate         
+          ,ctod.attendancevalue
+          ,ctod.membershipvalue             
+          ,ctod.potential_attendancevalue
+    FROM ps_adaadm_daily_ctod ctod   
+    WHERE calendardate >= TO_DATE(''2012-08-01'',''YYYY-MM-DD'')
+      AND calendardate <= TRUNC(SYSDATE)
+  '); /*-- UPDATE EVERY YEAR --*/
+  
 
   --STEP 3: truncate 
   EXEC('TRUNCATE TABLE KIPP_NJ..MEMBERSHIP');

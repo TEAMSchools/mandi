@@ -23,14 +23,9 @@ BEGIN
 		INTO [#PS$ATTENDANCE|refresh]
   FROM OPENQUERY(PS_TEAM,'
     SELECT att.*
-    FROM PS_ATTENDANCE_DAILY att
-    JOIN terms
-      ON terms.firstday <= att.att_date
-     AND terms.lastday >= att.att_date
-     AND terms.yearid >= 23
-     AND terms.schoolid = att.schoolid
-     AND terms.portion = 1     
-    WHERE att.att_date <= TRUNC(SYSDATE)    
+    FROM PS_ATTENDANCE_DAILY att    
+    WHERE att.att_date >= TO_DATE(''2012-08-01'',''YYYY-MM-DD'')
+      AND att.att_date <= TRUNC(SYSDATE)    
   ');
    
   --STEP 4: truncate 

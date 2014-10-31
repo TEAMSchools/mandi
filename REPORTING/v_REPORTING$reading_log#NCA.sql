@@ -52,53 +52,15 @@ SELECT s.LASTFIRST
       ,ar_yr.mastery AS mastery_yr      
       ,eng1.COURSE_NAME AS eng1_course
       ,eng1.SECTION_NUMBER AS eng1_section
-      ,CASE        
-        WHEN eng1.expression = '1(A)' THEN 'HR'
-        WHEN eng1.expression = '2(A)' THEN '1'
-        WHEN eng1.expression = '3(A)' THEN '2'
-        WHEN eng1.expression = '4(A)' THEN '3'
-        WHEN eng1.expression = '5(A)' THEN '4A'
-        WHEN eng1.expression = '6(A)' THEN '4B'
-        WHEN eng1.expression = '7(A)' THEN '4C'
-        WHEN eng1.expression = '8(A)' THEN '4D'
-        WHEN eng1.expression = '9(A)' THEN '5A'
-        WHEN eng1.expression = '10(A)' THEN '5B'
-        WHEN eng1.expression = '11(A)' THEN '5C'
-        WHEN eng1.expression = '12(A)' THEN '5D'
-        WHEN eng1.expression = '13(A)' THEN '6'
-        WHEN eng1.expression = '14(A)' THEN '7'
-        ELSE NULL
-       END AS eng1_period
+      ,eng1.period AS eng1_period
       ,eng1.LASTFIRST AS eng1_teacher
       ,eng2.COURSE_NAME AS eng2_course
       ,eng2.SECTION_NUMBER AS eng2_section
-      ,CASE        
-        WHEN eng2.expression = '1(A)' THEN 'HR'
-        WHEN eng2.expression = '2(A)' THEN '1'
-        WHEN eng2.expression = '3(A)' THEN '2'
-        WHEN eng2.expression = '4(A)' THEN '3'
-        WHEN eng2.expression = '5(A)' THEN '4A'
-        WHEN eng2.expression = '6(A)' THEN '4B'
-        WHEN eng2.expression = '7(A)' THEN '4C'
-        WHEN eng2.expression = '8(A)' THEN '4D'
-        WHEN eng2.expression = '9(A)' THEN '5A'
-        WHEN eng2.expression = '10(A)' THEN '5B'
-        WHEN eng2.expression = '11(A)' THEN '5C'
-        WHEN eng2.expression = '12(A)' THEN '5D'
-        WHEN eng2.expression = '13(A)' THEN '6'
-        WHEN eng2.expression = '14(A)' THEN '7'
-        ELSE NULL
-       END AS eng2_period
+      ,eng2.period AS eng2_period
       ,eng2.LASTFIRST AS eng2_teacher
       ,diff.COURSE_NAME AS fourth_per_class
       ,diff.LASTFIRST AS fourth_per_teacher
-      ,CASE        
-        WHEN diff.expression = '5(A)' THEN '4B'
-        WHEN diff.expression = '6(A)' THEN '4A'
-        WHEN diff.expression = '7(A)' THEN '4D'
-        WHEN diff.expression = '8(A)' THEN '4C'        
-        ELSE NULL
-       END AS diff_block_period
+      ,diff.period AS diff_block_period
       ,diff.COURSE_NAME AS diff_block_assignment
       ,CASE
         WHEN ar_q1.points = 0 THEN 'Tied for last place with 0 points'
@@ -283,7 +245,7 @@ LEFT OUTER JOIN (
                        ,c.COURSE_NAME
                        ,c.COURSE_NUMBER
                        ,cc.SECTION_NUMBER
-                       ,cc.EXPRESSION
+                       ,cc.period
                        ,t.LASTFIRST
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
@@ -305,7 +267,7 @@ LEFT OUTER JOIN (
                        ,c.COURSE_NAME
                        ,c.COURSE_NUMBER
                        ,cc.SECTION_NUMBER                       
-                       ,cc.EXPRESSION
+                       ,cc.period
                        ,t.LASTFIRST
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
@@ -330,7 +292,7 @@ LEFT OUTER JOIN (
                        ,cc.SECTION_NUMBER
                        ,t.TEACHERNUMBER
                        ,t.LASTFIRST
-                       ,CC.EXPRESSION
+                       ,CC.period
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
                                ORDER BY cc.termid DESC) AS rn

@@ -6,9 +6,9 @@ ALTER VIEW REPORTING$quick_lookup#NCA AS
 SELECT s.student_number AS SN
       ,s.lastfirst AS Name
       ,s.grade_level AS Gr
-      ,cs.Advisor
+      ,s.Advisor
       ,s.Gender
-      ,cs.SPEDLEP AS SPED
+      ,s.SPEDLEP AS SPED
 
       --GPA      
       ,nca_GPA.GPA_q1 AS GPA_Q1
@@ -77,88 +77,67 @@ SELECT s.student_number AS SN
       ,merits.detention_rt4 AS Detentions_Q4
 
 --Reading
-      ,ar.AR_Pts_Q1
-      ,ar.AR_Pts_Q2
-      ,ar.AR_Pts_Q3
-      ,ar.AR_Pts_Q4
-      ,ar.AR_Pts_Yr
-      ,ar.AR_Words_Q1
-      ,ar.AR_Words_Q2
-      ,ar.AR_Words_Q3      
-      ,ar.AR_Words_Q4
-      ,ar.AR_Words_Yr
+      ,ar_Q1.points AS AR_Pts_Q1
+      ,ar_q2.points AS AR_Pts_Q2
+      ,ar_q3.points AS AR_Pts_Q3
+      ,ar_q4.points AS AR_Pts_Q4
+      ,ar_yr.points AS AR_Pts_Yr
+      ,ar_Q1.words AS AR_Words_Q1
+      ,ar_q2.words AS AR_Words_Q2
+      ,ar_q3.words AS AR_Words_Q3      
+      ,ar_q4.words AS AR_Words_Q4
+      ,ar_yr.words AS AR_Words_Yr
       --Lexile
       ,lex_base.rittoreadingscore AS Lexile_base
       ,lex_cur.rittoreadingscore AS Lexile_current
       --,lex_base.testpercentile AS map_pctl_base
       --,lex_cur.testpercentile AS map_pctl_curterm
 
-FROM STUDENTS s WITH (NOLOCK)
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
-  ON s.id = cs.studentid
+FROM COHORT$identifiers_long#static s WITH(NOLOCK)
 LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
-  ON s.id = merits.studentid
+  ON s.studentid = merits.studentid
 LEFT OUTER JOIN ATT_MEM$attendance_counts att WITH (NOLOCK)
-  ON s.id = att.studentid
+  ON s.studentid = att.studentid
 LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
-  ON s.id = att_pct.studentid
+  ON s.studentid = att_pct.studentid
 LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide WITH (NOLOCK)
-  ON s.id = gr_wide.studentid
+  ON s.studentid = gr_wide.studentid
 LEFT OUTER JOIN GPA$detail#NCA nca_GPA WITH (NOLOCK)
-  ON s.id = nca_GPA.studentid
+  ON s.studentid = nca_GPA.studentid
 LEFT OUTER JOIN GPA$cumulative GPA_cum WITH (NOLOCK)
-  ON s.id = GPA_cum.studentid
- AND s.schoolid = GPA_cum.schoolid
-LEFT OUTER JOIN (
-                 SELECT s.id
-                       ,ar_Q1.points AS AR_Pts_Q1
-                       ,ar_q2.points AS AR_Pts_Q2
-                       ,ar_q3.points AS AR_Pts_Q3
-                       ,ar_q4.points AS AR_Pts_Q4
-                       ,ar_yr.points AS AR_Pts_Yr
-                       ,ar_Q1.words AS AR_Words_Q1
-                       ,ar_q2.words AS AR_Words_Q2
-                       ,ar_q3.words AS AR_Words_Q3      
-                       ,ar_q4.words AS AR_Words_Q4
-                       ,ar_yr.words AS AR_Words_Yr
-                       ,ROW_NUMBER() OVER
-                          (PARTITION BY s.lastfirst
-                           ORDER BY s.lastfirst) AS rn
-                 FROM STUDENTS s WITH (NOLOCK)
-                 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
-                   ON s.id = ar_yr.studentid 
-                  AND ar_yr.time_period_name = 'Year'
-                  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
-                 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q1 WITH (NOLOCK)
-                   ON s.id = ar_q1.studentid 
-                  AND ar_q1.time_period_name = 'RT1'
-                  AND ar_q1.yearid = dbo.fn_Global_Term_Id() 
-                 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q2 WITH (NOLOCK)
-                   ON s.id = ar_q2.studentid
-                  AND ar_q2.time_period_name = 'RT2'
-                  AND ar_q2.yearid = dbo.fn_Global_Term_Id() 
-                 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q3 WITH (NOLOCK)
-                   ON s.id = ar_q3.studentid
-                  AND ar_q3.time_period_name = 'RT3'
-                  AND ar_q3.yearid = dbo.fn_Global_Term_Id() 
-                 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q4 WITH (NOLOCK)
-                   ON s.id = ar_q4.studentid
-                  AND ar_q4.time_period_name = 'RT4'
-                  AND ar_q4.yearid = dbo.fn_Global_Term_Id() 
-                 WHERE s.SCHOOLID = 73253
-                   AND s.ENROLL_STATUS = 0
-                ) ar
-  ON s.id = ar.id
- AND ar.rn = 1
+  ON s.studentid = GPA_cum.studentid
+ AND s.schoolid = GPA_cum.schoolid                 
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
+  ON s.studentid = ar_yr.studentid 
+ AND ar_yr.time_period_name = 'Year'
+ AND ar_yr.yearid = dbo.fn_Global_Term_Id()
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q1 WITH (NOLOCK)
+  ON s.studentid = ar_q1.studentid 
+ AND ar_q1.time_period_name = 'RT1'
+ AND ar_q1.yearid = dbo.fn_Global_Term_Id() 
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q2 WITH (NOLOCK)
+  ON s.studentid = ar_q2.studentid
+ AND ar_q2.time_period_name = 'RT2'
+ AND ar_q2.yearid = dbo.fn_Global_Term_Id() 
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q3 WITH (NOLOCK)
+  ON s.studentid = ar_q3.studentid
+ AND ar_q3.time_period_name = 'RT3'
+ AND ar_q3.yearid = dbo.fn_Global_Term_Id() 
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q4 WITH (NOLOCK)
+  ON s.studentid = ar_q4.studentid
+ AND ar_q4.time_period_name = 'RT4'
+ AND ar_q4.yearid = dbo.fn_Global_Term_Id()                    
 LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
-  ON s.id = lex_cur.ps_studentid
+  ON s.studentid = lex_cur.ps_studentid
  AND lex_cur.measurementscale  = 'Reading'
  AND lex_cur.map_year_academic = dbo.fn_Global_Academic_Year()
  AND lex_cur.rn_curr = 1
 LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
-  ON s.id = lex_base.ps_studentid
+  ON s.studentid = lex_base.ps_studentid
  AND lex_base.measurementscale  = 'Reading'
  AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
  AND lex_base.rn_base = 1
 WHERE s.schoolid = 73253
   AND s.enroll_status = 0
+  AND s.year = dbo.fn_Global_Academic_Year()
+  AND s.rn = 1

@@ -7,23 +7,30 @@ SELECT date
       ,day_of_week
 FROM
     (
-     SELECT *
-           ,ROW_NUMBER() OVER(
-              PARTITION BY day_of_week
-                ORDER BY date DESC) AS rn
+     SELECT date
+           ,day_of_week
+           ,MAX(date) OVER() AS max_date
      FROM
          (
-          SELECT DISTINCT
-                 CALENDARDATE AS date
-                ,DATENAME(WEEKDAY,calendardate) AS day_of_week      
-          FROM MEMBERSHIP WITH(NOLOCK)
-          WHERE SCHOOLID = 73252
-            AND dbo.fn_DateToSY(CALENDARDATE) = dbo.fn_Global_Academic_Year()     
-            AND DATEPART(WEEKDAY,CALENDARDATE) NOT IN (1,7)
-            AND CALENDARDATE < CASE 
-                                WHEN DATEPART(WEEKDAY,CALENDARDATE) >= 5 THEN DATEADD(DAY, 4 - DATEPART(WEEKDAY,GETDATE()), CONVERT(DATE,GETDATE()))
-                                ELSE DATEADD(DAY, 5 - DATEPART(WEEKDAY,GETDATE()), CONVERT(DATE,GETDATE()))
-                               END
+          SELECT *
+                ,ROW_NUMBER() OVER(
+                   PARTITION BY day_of_week
+                     ORDER BY date DESC) AS rn
+          FROM
+              (
+               SELECT DISTINCT
+                      CALENDARDATE AS date
+                     ,DATENAME(WEEKDAY,calendardate) AS day_of_week                        
+               FROM MEMBERSHIP WITH(NOLOCK)
+               WHERE SCHOOLID = 73252
+                 AND dbo.fn_DateToSY(CALENDARDATE) = dbo.fn_Global_Academic_Year()     
+                 AND DATEPART(WEEKDAY,CALENDARDATE) NOT IN (1,7)
+                 AND CALENDARDATE < CASE 
+                                     WHEN DATEPART(WEEKDAY,CALENDARDATE) >= 5 THEN DATEADD(DAY, 4 - DATEPART(WEEKDAY,GETDATE()), CONVERT(DATE,GETDATE()))
+                                     ELSE DATEADD(DAY, 5 - DATEPART(WEEKDAY,GETDATE()), CONVERT(DATE,GETDATE()))
+                                    END
+              ) sub
          ) sub
+     WHERE rn = 1
     ) sub
-WHERE rn = 1
+WHERE DATEDIFF(DAY,date, max_date) <= 7 -- if there's a day off during the week, this will prevent earlier dates from filling in the gaps

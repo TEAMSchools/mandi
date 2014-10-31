@@ -15,31 +15,28 @@ WITH curterm AS (
  )
 
 ,roster AS (
-  SELECT s.id
-        ,s.student_number
-        ,s.schoolid
-        ,s.lastfirst
-        ,s.grade_level
-        ,s.team
-        ,cs.advisor       
-        ,cs.SPEDLEP
-        ,s.gender
-        ,s.mother
-        ,s.father       
-        ,s.home_phone
-        ,cs.mother_cell
-        ,cs.mother_home
-        ,cs.father_cell
-        ,cs.father_home
-        ,blobs.guardianemail AS contactemail
-  FROM STUDENTS s WITH (NOLOCK)
-  LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
-    ON s.id = cs.studentid
-  LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
-    ON s.id = blobs.studentid
-  WHERE s.schoolid = 73252
-    AND s.enroll_status = 0
-    --AND s.id = 4686
+  SELECT co.studentid AS id
+        ,co.student_number
+        ,co.schoolid
+        ,co.lastfirst
+        ,co.grade_level
+        ,co.team
+        ,co.advisor       
+        ,co.SPEDLEP
+        ,co.gender
+        ,co.mother
+        ,co.father       
+        ,co.home_phone
+        ,co.mother_cell
+        ,co.mother_home
+        ,co.father_cell
+        ,co.father_home
+        ,co.guardianemail AS contactemail
+  FROM COHORT$identifiers_long#static co WITH(NOLOCK)
+  WHERE co.schoolid = 73252
+    AND co.enroll_status = 0
+    AND co.year = dbo.fn_Global_Academic_Year()
+    AND co.rn = 1
  )
 
 ,cur_hex AS (

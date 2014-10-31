@@ -55,6 +55,19 @@ WITH dirty_data AS (
   FROM AUTOLOAD$GDOCS_FSA_Life WITH(NOLOCK)
 
   UNION ALL
+  
+  SELECT 73257
+        ,CASE WHEN CONVERT(VARCHAR,grade_level) = 'K' OR grade_level IS NULL THEN 0 ELSE grade_level END AS grade_level
+        ,subject
+        ,LEFT(week_num, 7) AS week_num
+        ,ccss_standard
+        ,other_standard
+        ,objective
+        ,next_steps_mastered
+        ,next_steps_notmastered
+  FROM AUTOLOAD$GDOCS_FSA_Life_Upper WITH(NOLOCK)
+
+  UNION ALL
 
   SELECT 179901
         ,CASE WHEN CONVERT(VARCHAR,grade_level) = 'K' OR grade_level IS NULL THEN 0 ELSE grade_level END AS grade_level

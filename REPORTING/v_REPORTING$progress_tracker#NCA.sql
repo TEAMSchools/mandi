@@ -6,34 +6,27 @@ GO
 ALTER VIEW REPORTING$progress_tracker#NCA AS
 
 WITH roster AS (
-  SELECT s.student_number
-        ,s.id AS studentid
-        ,s.lastfirst
-        ,s.first_name
-        ,s.last_name                        
-        ,s.gender
-        ,CONVERT(DATE,s.dob) AS dob
-        ,s.student_web_id
-        ,s.student_web_password
-        ,s.home_phone
-        ,cs.mother_cell
-        ,cs.father_cell
+  SELECT c.student_number
+        ,c.studentid
+        ,c.lastfirst
+        ,c.first_name
+        ,c.last_name                        
+        ,c.gender
+        ,CONVERT(VARCHAR,c.DOB,101) AS dob
+        ,c.student_web_id
+        ,c.student_web_password
+        ,c.home_phone
+        ,c.mother_cell
+        ,c.father_cell
         ,c.grade_level AS grade_level
         ,c.cohort AS classof
-        ,blobs.guardianemail
-        ,cs.advisor
-        ,cs.SPEDLEP AS SPED
-        ,cs.SID
-        ,COUNT(*) OVER(PARTITION BY s.grade_level) AS in_grade_denom
-  FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
-  JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
-    ON c.studentid = s.id
-   AND s.enroll_status = 0
-  LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
-    ON cs.studentid = s.id
-  LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
-   ON c.studentid = blobs.studentid
-  WHERE year = dbo.fn_Global_Academic_Year()
+        ,c.guardianemail
+        ,c.advisor
+        ,c.SPEDLEP AS SPED
+        ,c.SID
+        ,COUNT(*) OVER(PARTITION BY c.grade_level) AS in_grade_denom
+  FROM KIPP_NJ..COHORT$identifiers_long#static c WITH (NOLOCK)  
+  WHERE c.year = dbo.fn_Global_Academic_Year()
     AND c.rn = 1        
     AND c.schoolid = 73253
  )

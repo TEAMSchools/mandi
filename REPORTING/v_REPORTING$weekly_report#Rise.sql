@@ -5,25 +5,46 @@ ALTER VIEW REPORTING$weekly_report#Rise AS
 
 WITH roster AS (
   SELECT s.STUDENT_NUMBER
-        ,s.id AS studentid
+        ,s.studentid
         ,s.LASTFIRST
-        ,s.FIRST_NAME + ' ' + s.LAST_NAME AS full_name
+        ,s.full_name
         ,s.team
         ,s.GRADE_LEVEL
-  FROM STUDENTS s WITH(NOLOCK)
+  FROM COHORT$identifiers_long#static s WITH(NOLOCK)
   WHERE s.ENROLL_STATUS = 0
     AND s.SCHOOLID = 73252
     AND s.GRADE_LEVEL >= 7
+    AND s.year = dbo.fn_Global_Academic_Year()
+    AND s.rn = 1
  )
 
--- most recently active Thurs - Wed timespan
+-- most recently ACTIVE Thurs - Wed timespan
 -- can span multiple weeks in case of vacation
--- will filter out Thur & Fri of the current week regardless of the day it's run on
 ,reporting_week AS (
   SELECT date
         ,day_of_week
   FROM REPORTING$Rise_weekly_dates#static WITH(NOLOCK)
+  -- in case of emergency
+  --SELECT date
+  --      ,DATENAME(WEEKDAY,date) AS day_of_week
+  --FROM UTIL$reporting_days WITH(NOLOCK)
+  --WHERE date >= '2014-10-23'
+  --  AND date <= '2014-10-29'
  )
+
+,missing_days AS (
+  SELECT COUNT(*) * 45 AS free_points
+  FROM
+      (
+       SELECT date
+             ,DATENAME(WEEKDAY,date) AS day_of_week
+       FROM UTIL$reporting_days days WITH(NOLOCK)
+       WHERE CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) >= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1) + '5')
+         AND CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) <= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())) + '4')
+         AND DATEPART(WEEKDAY,date) NOT IN (1,7)
+         AND date NOT IN (SELECT date FROM reporting_week)
+      ) sub
+)
 
 -- start and end days
 ,date_strings AS (
@@ -57,6 +78,7 @@ WITH roster AS (
 -- long data from daily tracking
 ,ccr_long AS (
   SELECT s.id AS studentid      
+        ,s.grade_level
         ,rw.date AS att_date
         ,cl.class
         ,CASE 
@@ -86,54 +108,55 @@ WITH roster AS (
 -- ccr data wide by class and day of week
 ,ccr_wide AS (
   SELECT studentid
-        ,[mon_adv_behavior]
-        ,[mon_adv_logistic]
-        ,[mon_elec]
-        ,[mon_history]
-        ,[mon_math]
-        ,[mon_other]
-        ,[mon_reading]
-        ,[mon_science]
-        ,[mon_writing]      
-        ,[tue_adv_behavior]
-        ,[tue_adv_logistic]
-        ,[tue_elec]
-        ,[tue_history]
-        ,[tue_math]
-        ,[tue_other]
-        ,[tue_reading]
-        ,[tue_science]
-        ,[tue_writing]
-        ,[wed_adv_behavior]
-        ,[wed_adv_logistic]
-        ,[wed_elec]
-        ,[wed_history]
-        ,[wed_math]
-        ,[wed_other]
-        ,[wed_reading]
-        ,[wed_science]
-        ,[wed_writing]
-        ,[thu_adv_behavior]
-        ,[thu_adv_logistic]
-        ,[thu_elec]
-        ,[thu_history]
-        ,[thu_math]
-        ,[thu_other]
-        ,[thu_reading]
-        ,[thu_science]
-        ,[thu_writing]
-        ,[fri_adv_behavior]
-        ,[fri_adv_logistic]
-        ,[fri_elec]
-        ,[fri_history]
-        ,[fri_math]
-        ,[fri_other]
-        ,[fri_reading]
-        ,[fri_science]
-        ,[fri_writing]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([mon_adv_behavior],'$') ELSE [mon_adv_behavior] END AS [mon_adv_behavior]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([mon_adv_logistic],'$') ELSE [mon_adv_logistic] END AS [mon_adv_logistic]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([mon_elec],'$') ELSE [mon_elec] END AS [mon_elec]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([mon_history],'$') ELSE [mon_history] END AS [mon_history]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([mon_math],'$') ELSE [mon_math] END AS [mon_math]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([mon_other],'$') ELSE [mon_other] END AS [mon_other]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([mon_reading],'$') ELSE [mon_reading] END AS [mon_reading]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([mon_science],'$') ELSE [mon_science] END AS [mon_science]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([mon_writing],'$') ELSE [mon_writing] END AS [mon_writing]      
+        ,CASE WHEN grade_level = 7 THEN ISNULL([tue_adv_behavior],'$') ELSE [tue_adv_behavior] END AS [tue_adv_behavior]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([tue_adv_logistic],'$') ELSE [tue_adv_logistic] END AS [tue_adv_logistic]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([tue_elec],'$') ELSE [tue_elec] END AS [tue_elec]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([tue_history],'$') ELSE [tue_history] END AS [tue_history]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([tue_math],'$') ELSE [tue_math] END AS [tue_math]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([tue_other],'$') ELSE [tue_other] END AS [tue_other]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([tue_reading],'$') ELSE [tue_reading] END AS [tue_reading]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([tue_science],'$') ELSE [tue_science] END AS [tue_science]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([tue_writing],'$') ELSE [tue_writing] END AS [tue_writing]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([wed_adv_behavior],'$') ELSE [wed_adv_behavior] END AS [wed_adv_behavior]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([wed_adv_logistic],'$') ELSE [wed_adv_logistic] END AS [wed_adv_logistic]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([wed_elec],'$') ELSE [wed_elec] END AS [wed_elec]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([wed_history],'$') ELSE [wed_history] END AS [wed_history]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([wed_math],'$') ELSE [wed_math] END AS [wed_math]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([wed_other],'$') ELSE [wed_other] END AS [wed_other]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([wed_reading],'$') ELSE [wed_reading] END AS [wed_reading]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([wed_science],'$') ELSE [wed_science] END AS [wed_science]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([wed_writing],'$') ELSE [wed_writing] END AS [wed_writing]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([thu_adv_behavior],'$') ELSE [thu_adv_behavior] END AS [thu_adv_behavior]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([thu_adv_logistic],'$') ELSE [thu_adv_logistic] END AS [thu_adv_logistic]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([thu_elec],'$') ELSE [thu_elec] END AS [thu_elec]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([thu_history],'$') ELSE [thu_history] END AS [thu_history]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([thu_math],'$') ELSE [thu_math] END AS [thu_math]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([thu_other],'$') ELSE [thu_other] END AS [thu_other]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([thu_reading],'$') ELSE [thu_reading] END AS [thu_reading]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([thu_science],'$') ELSE [thu_science] END AS [thu_science]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([thu_writing],'$') ELSE [thu_writing] END AS [thu_writing]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([fri_adv_behavior],'$') ELSE [fri_adv_behavior] END AS [fri_adv_behavior]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([fri_adv_logistic],'$') ELSE [fri_adv_logistic] END AS [fri_adv_logistic]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([fri_elec],'$') ELSE [fri_elec] END AS [fri_elec]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([fri_history],'$') ELSE [fri_history] END AS [fri_history]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([fri_math],'$') ELSE [fri_math] END AS [fri_math]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([fri_other],'$') ELSE [fri_other] END AS [fri_other]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([fri_reading],'$') ELSE [fri_reading] END AS [fri_reading]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([fri_science],'$') ELSE [fri_science] END AS [fri_science]
+        ,CASE WHEN grade_level = 7 THEN ISNULL([fri_writing],'$') ELSE [fri_writing] END AS [fri_writing]
   FROM
       (
        SELECT ccr_long.studentid           
+             ,ccr_long.grade_level
              ,LEFT(LOWER(wk.day_of_week), 3) + '_' + ccr_long.class AS hash
              ,ccr_long.ccr                   
        FROM ccr_long WITH(NOLOCK)
@@ -195,11 +218,29 @@ WITH roster AS (
 -- denominator will be smaller if students aren't present or if data is not entered for that day
 ,ccr_totals AS (
   SELECT studentid
-        ,SUM(ccr_score) AS ccr_total
-        ,COUNT(ccr_score) AS ccr_poss
-        ,ROUND(SUM(CONVERT(FLOAT,ccr_score)) / COUNT(CONVERT(FLOAT,ccr_score)) * 100, 0) AS ccr_pct
+        ,CASE 
+          WHEN ccr_long.GRADE_LEVEL = 7 THEN SUM(ccr_score) + (SELECT free_points FROM missing_days) 
+          ELSE SUM(ccr_score)
+         END AS ccr_total
+        ,CASE 
+          WHEN ccr_long.GRADE_LEVEL = 7 THEN COUNT(ccr_score) + (SELECT free_points FROM missing_days) 
+          ELSE COUNT(ccr_score)
+         END AS ccr_poss
+        ,ROUND(
+          CONVERT(FLOAT,
+           CASE 
+            WHEN ccr_long.GRADE_LEVEL = 7 THEN SUM(ccr_score) + (SELECT free_points FROM missing_days) 
+            ELSE SUM(ccr_score)
+           END)
+            / 
+          CONVERT(FLOAT,
+           CASE 
+            WHEN ccr_long.GRADE_LEVEL = 7 THEN COUNT(ccr_score) + (SELECT free_points FROM missing_days) 
+            ELSE COUNT(ccr_score)
+           END)
+           * 100, 0) AS ccr_pct
   FROM ccr_long WITH(NOLOCK)
-  GROUP BY studentid
+  GROUP BY studentid, grade_level
  )
 
 ,weekly_assignments AS (
@@ -212,7 +253,7 @@ WITH roster AS (
         ,asmt.POINTSPOSSIBLE
         ,CASE 
           WHEN asmt.CATEGORY IN ('HW Q','HQ','HWQ','HWA','Q','Homework Quality') THEN 'HWQ'
-          WHEN asmt.CATEGORY IN ('HC','HW C','HWC','Homework Completion','HW Completion') THEN 'HWC'
+          WHEN asmt.CATEGORY IN ('HC','HW C','HWC','Homework Completion','HW Completion','HW Comp') THEN 'HWC'
           ELSE NULL
          END AS category
   FROM GRADES$assignments#static asmt WITH(NOLOCK)
@@ -225,7 +266,7 @@ WITH roster AS (
     ON sec.COURSE_NUMBER = cou.COURSE_NUMBER
   WHERE asmt.ASSIGN_DATE IN (SELECT date FROM reporting_week WITH(NOLOCK))
     AND ((sec.GRADE_LEVEL = 8 AND asmt.CATEGORY IN ('HQ','HWQ','HWA','Q'))
-           OR (sec.GRADE_LEVEL = 7 AND asmt.CATEGORY IN ('HW','HQ','HW Comp','Homework Quality','HC','Homework Completion','HW Q','HW C','homework','Homework Completion','HW Completion','Homework Quality')))
+          OR (sec.GRADE_LEVEL = 7 AND asmt.CATEGORY IN ('HW','HWQ','HQ','HW Comp','Homework Quality','HC','Homework Completion','HW Q','HW C','homework','Homework Completion','HW Completion','Homework Quality')))
  )
 
 ,assignment_scores AS (
@@ -254,7 +295,7 @@ WITH roster AS (
        FROM weekly_assignments asmt WITH(NOLOCK)
        JOIN assignment_scores scores WITH(NOLOCK)
          On asmt.assignmentid = scores.assignmentid
-       WHERE asmt.grade_level = 8 OR (asmt.grade_level = 7 AND asmt.category = 'HWC')
+       WHERE (asmt.grade_level = 8 OR (asmt.grade_level = 7 AND asmt.category = 'HWQ'))
       ) sub
   PIVOT (
     MAX(assign_name)
@@ -299,6 +340,7 @@ WITH roster AS (
        FROM weekly_assignments asmt WITH(NOLOCK)
        JOIN assignment_scores scores WITH(NOLOCK)
          ON asmt.assignmentid = scores.assignmentid
+       WHERE (asmt.grade_level = 8 OR (asmt.grade_level = 7 AND asmt.category = 'HWQ'))
 
        UNION ALL
 

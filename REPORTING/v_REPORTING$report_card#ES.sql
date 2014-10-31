@@ -4,33 +4,26 @@ GO
 ALTER VIEW REPORTING$report_card#ES AS
 
 WITH roster AS (
- SELECT cs.STUDENTID
-       ,s.STUDENT_NUMBER      
-       ,s.LASTFIRST
-       ,s.LAST_NAME
-       ,s.FIRST_NAME
+ SELECT co.STUDENTID
+       ,co.STUDENT_NUMBER      
+       ,co.LASTFIRST
+       ,co.LAST_NAME
+       ,co.FIRST_NAME
        ,REPLACE(co.GRADE_LEVEL, 0 ,'K') AS grade_level
        ,co.SCHOOLID
-       ,s.TEAM
-       ,cs.LUNCH_BALANCE
-       ,s.STREET AS address
-       ,s.CITY
-       ,s.STATE
-       ,s.ZIP
-       ,s.HOME_PHONE
-       ,cs.MOTHER_CELL
-       ,cs.MOTHER_DAY
-       ,cs.FATHER_CELL
-       ,cs.FATHER_DAY
-       ,blobs.GUARDIANEMAIL
- FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
- JOIN STUDENTS s WITH(NOLOCK)
-   ON co.STUDENTID = s.ID
-  AND s.ENROLL_STATUS = 0
- LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-   ON co.STUDENTID = cs.STUDENTID
- LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
-   ON co.studentid = blobs.studentid
+       ,co.TEAM
+       ,co.LUNCH_BALANCE
+       ,co.STREET AS address
+       ,co.CITY
+       ,co.STATE
+       ,co.ZIP
+       ,co.HOME_PHONE
+       ,co.MOTHER_CELL
+       ,co.MOTHER_DAY
+       ,co.FATHER_CELL
+       ,co.FATHER_DAY
+       ,co.GUARDIANEMAIL
+ FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
  WHERE co.YEAR = dbo.fn_Global_Academic_Year()
    AND co.GRADE_LEVEL < 5
    AND co.RN = 1
