@@ -290,7 +290,7 @@ UNION ALL
 SELECT enr.*            
       --,NULL AS ASSIGNMENTID
       --,'Term Grade' AS assign_name
-      ,fg.term AS finalgrade
+      ,'Term Grade' AS finalgrade
       ,'Term Grade' AS category
       ,fg.termgrade AS pct
       ,NULL AS n_assign

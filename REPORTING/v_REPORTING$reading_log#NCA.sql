@@ -18,11 +18,11 @@ SELECT s.LASTFIRST
       ,cs.ADVISOR
       ,s.GRADE_LEVEL
       ,cs.SPEDLEP
-      ,ar_Q1.points_goal AS AR_goal_Q1
-      ,ar_q2.points_goal AS AR_goal_Q2
-      ,ar_q3.points_goal AS AR_goal_Q3
-      ,ar_q4.points_goal AS AR_goal_Q4
-      ,ar_yr.points_goal AS AR_goal_Yr
+      ,CASE WHEN ar_Q1.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,ar_q1.points_goal) END AS AR_goal_Q1
+      ,CASE WHEN ar_q2.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,ar_q2.points_goal) END AS AR_goal_Q2
+      ,CASE WHEN ar_q3.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,ar_q3.points_goal) END AS AR_goal_Q3
+      ,CASE WHEN ar_q4.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,ar_q4.points_goal) END AS AR_goal_Q4
+      ,CASE WHEN ar_yr.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,ar_yr.points_goal) END AS AR_goal_yr
       ,ar_Q1.points AS AR_Pts_Q1
       ,ar_q2.points AS AR_Pts_Q2
       ,ar_q3.points AS AR_Pts_Q3
@@ -33,11 +33,26 @@ SELECT s.LASTFIRST
       ,CASE WHEN (ar_q3.points_goal - ar_q3.points) <= 0 THEN 0 ELSE (ar_q3.points_goal - ar_q3.points) END AS AR_pts_to_goal_Q3
       ,CASE WHEN (ar_q4.points_goal - ar_q4.points) <= 0 THEN 0 ELSE (ar_q4.points_goal - ar_q4.points) END AS AR_pts_to_goal_Q4
       ,CASE WHEN (ar_yr.points_goal - ar_yr.points) <= 0 THEN 0 ELSE (ar_yr.points_goal - ar_yr.points) END AS AR_pts_to_goal_Yr
-      ,CONVERT(FLOAT,ROUND((ar_q1.points / ar_q1.points_goal * 100),1)) AS AR_pct_of_goal_Q1
-      ,CONVERT(FLOAT,ROUND((ar_q2.points / ar_q2.points_goal * 100),1)) AS AR_pct_of_goal_Q2
-      ,CONVERT(FLOAT,ROUND((ar_Q3.points / ar_Q3.points_goal * 100),1)) AS AR_pct_of_goal_Q3
-      ,CONVERT(FLOAT,ROUND((ar_Q4.points / ar_Q4.points_goal * 100),1)) AS AR_pct_of_goal_Q4
-      ,CONVERT(FLOAT,ROUND((ar_Yr.points / ar_Yr.points_goal * 100),1)) AS AR_pct_of_goal_Yr
+      ,CASE
+        WHEN ar_q1.points_goal = -1 THEN 'Exempt'
+        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q1.points / ar_q1.points_goal * 100),1)))
+       END AS AR_pct_of_goal_Q1
+      ,CASE
+        WHEN ar_q2.points_goal = -1 THEN 'Exempt'
+        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q2.points / ar_q2.points_goal * 100),1)))
+       END AS AR_pct_of_goal_q2
+      ,CASE
+        WHEN ar_q3.points_goal = -1 THEN 'Exempt'
+        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q3.points / ar_q3.points_goal * 100),1)))
+       END AS AR_pct_of_goal_q3
+      ,CASE
+        WHEN ar_q4.points_goal = -1 THEN 'Exempt'
+        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q4.points / ar_q4.points_goal * 100),1)))
+       END AS AR_pct_of_goal_q4
+      ,CASE
+        WHEN ar_yr.points_goal = -1 THEN 'Exempt'
+        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_yr.points / ar_yr.points_goal * 100),1)))
+       END AS AR_pct_of_goal_yr            
       ,base.lexile_score AS lexile_base
       ,base.lexile_score AS lexile_fall
       ,lex_winter.rittoreadingscore AS lexile_winter
@@ -87,12 +102,30 @@ SELECT s.LASTFIRST
       ,ar_q3.rank_points_overall_in_school AS AR_schoolrank_Q3
       ,ar_q4.rank_points_overall_in_school AS AR_schoolrank_Q4
       ,ar_yr.rank_points_overall_in_school AS AR_schoolrank_Yr      
-      ,ROUND(((ar_cur.points / ar_cur.points_goal) * 100),0) AS AR_progress_cur
-      ,ROUND(((ar_q1.points / ar_q1.points_goal) * 100),0) AS AR_progress_q1
-      ,ROUND(((ar_q2.points / ar_q2.points_goal) * 100),0) AS AR_progress_q2
-      ,ROUND(((ar_q3.points / ar_q3.points_goal) * 100),0) AS AR_progress_q3
-      ,ROUND(((ar_q4.points / ar_q4.points_goal) * 100),0) AS AR_progress_q4
-      ,ROUND(((ar_yr.points / ar_yr.points_goal) * 100),0) AS AR_progress_yr
+      ,CASE
+        WHEN ar_cur.points_goal = -1 THEN 'Exempt'
+        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_cur.points / ar_cur.points_goal * 100),1)))
+       END AS AR_progress_cur
+      ,CASE
+        WHEN ar_q1.points_goal = -1 THEN 'Exempt'
+        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q1.points / ar_q1.points_goal * 100),1)))
+       END AS AR_progress_Q1
+      ,CASE
+        WHEN ar_q2.points_goal = -1 THEN 'Exempt'
+        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q2.points / ar_q2.points_goal * 100),1)))
+       END AS AR_progress_q2
+      ,CASE
+        WHEN ar_q3.points_goal = -1 THEN 'Exempt'
+        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q3.points / ar_q3.points_goal * 100),1)))
+       END AS AR_progress_q3
+      ,CASE
+        WHEN ar_q4.points_goal = -1 THEN 'Exempt'
+        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q4.points / ar_q4.points_goal * 100),1)))
+       END AS AR_progress_q4
+      ,CASE
+        WHEN ar_yr.points_goal = -1 THEN 'Exempt'
+        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_yr.points / ar_yr.points_goal * 100),1)))
+       END AS AR_progress_yr            
       ,CASE WHEN ROUND(((ar_cur.points / ar_cur.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_cur
       ,CASE WHEN ROUND(((ar_q1.points / ar_q1.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q1
       ,CASE WHEN ROUND(((ar_q2.points / ar_q2.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q2

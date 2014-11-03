@@ -27,6 +27,7 @@ WITH roster AS (
  WHERE co.YEAR = dbo.fn_Global_Academic_Year()
    AND co.GRADE_LEVEL < 5
    AND co.RN = 1
+   AND co.enroll_status = 0
  )
 
 ,attendance AS (

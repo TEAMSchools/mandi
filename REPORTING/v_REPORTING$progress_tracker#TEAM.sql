@@ -9,7 +9,7 @@ WITH curterm AS (
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND academic_year = dbo.fn_Global_Academic_Year()
-    AND schoolid = 73252
+    AND schoolid = 133570965
     AND start_date <= GETDATE()
     AND end_date >= GETDATE()
  )
@@ -33,7 +33,7 @@ WITH curterm AS (
         ,co.father_home
         ,co.guardianemail AS contactemail
   FROM COHORT$identifiers_long#static co WITH(NOLOCK)
-  WHERE co.schoolid = 73252
+  WHERE co.schoolid = 133570965
     AND co.enroll_status = 0
     AND co.year = dbo.fn_Global_Academic_Year()
     AND co.rn = 1
@@ -50,8 +50,8 @@ WITH curterm AS (
           ELSE 'RT' + RIGHT(time_per_name, 1)
          END AS hex_b
   FROM REPORTING$dates
-  WHERE academic_year = 2014
-    AND schoolid = 73252
+  WHERE academic_year = dbo.fn_Global_Academic_Year()
+    AND schoolid = 133570965
     AND identifier = 'HEX'
     AND start_date <= GETDATE()
     AND end_date >= GETDATE()

@@ -377,12 +377,12 @@ BEGIN
        ,level_pgf.credittype
        ,level_pgf.course_name
        ,level_pgf.credit_hours
-       ,CASE WHEN level_sg.q1_percent IS NOT NULL THEN level_sg.q1_percent ELSE level_pgf.q1_percent END AS Q1
-       ,CASE WHEN level_sg.q2_percent IS NOT NULL THEN level_sg.q2_percent ELSE level_pgf.q2_percent END AS Q2
-       ,CASE WHEN level_sg.q3_percent IS NOT NULL THEN level_sg.q3_percent ELSE level_pgf.q3_percent END AS Q3
-       ,CASE WHEN level_sg.q4_percent IS NOT NULL THEN level_sg.q4_percent ELSE level_pgf.q4_percent END AS Q4
-       ,level_sg.e1_percent AS e1
-       ,level_sg.e2_percent AS e2
+       ,ROUND(CASE WHEN level_sg.q1_percent IS NOT NULL THEN level_sg.q1_percent ELSE level_pgf.q1_percent END,0) AS Q1
+       ,ROUND(CASE WHEN level_sg.q2_percent IS NOT NULL THEN level_sg.q2_percent ELSE level_pgf.q2_percent END,0) AS Q2
+       ,ROUND(CASE WHEN level_sg.q3_percent IS NOT NULL THEN level_sg.q3_percent ELSE level_pgf.q3_percent END,0) AS Q3
+       ,ROUND(CASE WHEN level_sg.q4_percent IS NOT NULL THEN level_sg.q4_percent ELSE level_pgf.q4_percent END,0) AS Q4
+       ,ROUND(level_sg.e1_percent,0) AS e1
+       ,ROUND(level_sg.e2_percent,0) AS e2
        ,level_sg.y1_percent AS Y1_stored
        --letter grades
        ,CASE WHEN level_sg.q1_grade IS NOT NULL THEN level_sg.q1_grade ELSE level_pgf.q1_grade END AS q1_letter
