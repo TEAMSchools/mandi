@@ -24,6 +24,7 @@ WITH distinct_assessments AS (
         ,cc.academic_year
         ,cou.CREDITTYPE        
         ,cou.COURSE_NAME                
+        ,t.lastfirst AS teacher_name
         ,CASE        
           WHEN cc.SCHOOLID != 73253 THEN cc.section_number
           WHEN cc.schoolid = 73253 THEN cc.period
@@ -36,6 +37,8 @@ WITH distinct_assessments AS (
     ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
    AND cou.CREDITTYPE IS NOT NULL
    AND cou.CREDITTYPE NOT IN ('LOG', 'PHYSED', 'STUDY')   
+  JOIN TEACHERS t WITH(NOLOCK)
+    ON cc.teacherid = t.id
   WHERE cc.termid >= 2300 -- first year w/ Illuminate, OK to be hard-coded
     AND cc.SCHOOLID IN (73252,73253,133570965)
  )
@@ -61,6 +64,7 @@ SELECT co.schoolid
       ,a.subject      
       ,a.credittype      
       ,enr.COURSE_NAME
+      ,enr.teacher_name
       ,enr.section
       ,a.term
       ,a.administered_at

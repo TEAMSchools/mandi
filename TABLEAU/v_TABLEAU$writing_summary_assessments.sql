@@ -91,6 +91,7 @@ WITH assessments AS (
   SELECT cc.studentid
         ,c.COURSE_NAME
         ,c.CREDITTYPE        
+        ,t.lastfirst AS teacher_name
         ,cc.period
         ,ROW_NUMBER() OVER(
            PARTITION BY cc.studentid, c.credittype
@@ -99,6 +100,8 @@ WITH assessments AS (
   JOIN COURSES c WITH(NOLOCK)
     ON cc.course_number = c.course_number
    AND c.CREDITTYPE IN ('RHET','ENG')
+  JOIN TEACHERS t WITH(NOLOCK)
+    ON cc.teacherid = t.id
   WHERE cc.SCHOOLID = 73253
     AND cc.TERMID >= dbo.fn_Global_Term_Id()
     AND cc.SECTIONID > 0
@@ -230,6 +233,7 @@ SELECT w.SCHOOLID
       ,co.grade_level AS test_grade_level
       ,enr.course_name AS nca_course_name
       ,enr.period AS nca_period
+      ,enr.teacher_name
 FROM results_wide w WITH(NOLOCK)
 LEFT OUTER JOIN ILLUMINATE$writing_growth_wide growth WITH(NOLOCK)
   ON w.student_number = growth.student_number

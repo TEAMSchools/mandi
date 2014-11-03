@@ -13,23 +13,7 @@ WITH enrollments AS (
         ,cc.SECTION_NUMBER
         ,cc.SECTIONID
         ,t.last_name AS teacher_name
-        ,CASE        
-          WHEN cc.SCHOOLID != 73253 THEN cc.EXPRESSION
-          WHEN cc.expression = '1(A)' THEN 'HR'
-          WHEN cc.expression = '2(A)' THEN '1'
-          WHEN cc.expression = '3(A)' THEN '2'
-          WHEN cc.expression = '4(A)' THEN '3'
-          WHEN cc.expression = '5(A)' THEN '4A'
-          WHEN cc.expression = '6(A)' THEN '4B'
-          WHEN cc.expression = '7(A)' THEN '4C'
-          WHEN cc.expression = '8(A)' THEN '4D'
-          WHEN cc.expression = '9(A)' THEN '5A'
-          WHEN cc.expression = '10(A)' THEN '5B'
-          WHEN cc.expression = '11(A)' THEN '5C'
-          WHEN cc.expression = '12(A)' THEN '5D'
-          WHEN cc.expression = '13(A)' THEN '6'
-          WHEN cc.expression = '14(A)' THEN '7'       
-         END AS nca_period
+        ,cc.period AS nca_period
   FROM CC WITH(NOLOCK)
   JOIN COURSES cou WITH(NOLOCK)
     ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
@@ -192,8 +176,7 @@ WITH enrollments AS (
         ,SUM(MEMBERSHIPVALUE) AS n_mem
   FROM
       (
-       SELECT mem.STUDENTID      
-             ,mem.STUDENT_NUMBER      
+       SELECT mem.STUDENTID                   
              ,ABS(cc.SECTIONID) AS sectionid
              ,DATEPART(WEEK,mem.CALENDARDATE) AS week
              ,CONVERT(FLOAT,mem.MEMBERSHIPVALUE) AS membershipvalue
