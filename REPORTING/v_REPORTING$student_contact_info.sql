@@ -3,10 +3,10 @@ GO
 
 ALTER VIEW REPORTING$student_contact_info AS
 
-SELECT s.schoolid
-      ,s.student_number AS SN
-      ,s.lastfirst AS Name
-      ,s.grade_level AS Grade
+SELECT co.schoolid
+      ,co.student_number AS SN
+      ,co.lastfirst AS Name
+      ,co.grade_level AS Grade
       /*
       ,CASE         
         WHEN CONVERT(VARCHAR,s.transfercomment) LIKE 'Retain%' THEN 'Retained' 
@@ -17,26 +17,25 @@ SELECT s.schoolid
         ELSE 'New to Network'
        END AS Enroll_Status
        --*/      
-      ,cs.Advisor
-      ,s.team AS [Travel Group]
-      ,s.home_phone AS Home
-      ,cs.mother_cell AS [Mother Cell]
-      ,cs.father_cell AS [Father Cell]
-      ,s.mother [Mother]
-      ,s.father [Father]
-      ,CONVERT(VARCHAR,s.DOB,101) AS DOB      
-      ,s.Gender      
-      ,s.Street
-      ,s.City
-      ,s.Zip
-      ,blobs.GuardianEmail
-      ,cs.default_student_web_id AS [Student Login]
-      ,cs.default_student_web_password AS [Student PW]
-      ,cs.DEFAULT_FAMILY_WEB_ID AS [Family Login]
-      ,cs.DEFAULT_FAMILY_WEB_PASSWORD AS [Family PW]
-FROM STUDENTS s WITH(NOLOCK)
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON s.id = cs.studentid
-LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
-  ON s.id = blobs.STUDENTID
-WHERE s.enroll_status = 0  
+      ,co.Advisor
+      ,co.team AS [Travel Group]
+      ,co.home_phone AS Home
+      ,co.mother_cell AS [Mother Cell]
+      ,co.father_cell AS [Father Cell]
+      ,co.mother [Mother]
+      ,co.father [Father]
+      ,CONVERT(VARCHAR,co.DOB,101) AS DOB      
+      ,co.Gender      
+      ,co.Street
+      ,co.City
+      ,co.Zip
+      ,co.GuardianEmail
+      ,co.STUDENT_WEB_ID AS [Student Login]
+      ,co.student_web_password AS [Student PW]
+      ,co.family_web_id AS [Family Login]
+      ,co.FAMILY_WEB_PASSWORD AS [Family PW]
+      ,co.LUNCH_BALANCE AS [Lunch Balance]
+FROM COHORT$identifiers_long#static co WITH(NOLOCK)
+WHERE co.enroll_status = 0
+  AND co.year = dbo.fn_Global_Academic_Year()
+  AND co.rn = 1

@@ -439,12 +439,12 @@ BEGIN
             WHEN qtr_valid + exam_valid = 0 THEN NULL
             --
             ELSE ROUND (
-                  (((CASE WHEN Q1 IS NULL THEN 0 WHEN Q1 < 50 THEN 50 ELSE COALESCE(Q1, 0) END -- quarterly grades
-                       + CASE WHEN Q2 IS NULL THEN 0 WHEN Q2 < 50 THEN 50 ELSE COALESCE(Q2, 0) END
-                       + CASE WHEN Q3 IS NULL THEN 0 WHEN Q3 < 50 THEN 50 ELSE COALESCE(Q3, 0) END
-                       + CASE WHEN Q4 IS NULL THEN 0 WHEN Q4 < 50 THEN 50 ELSE COALESCE(Q4, 0) END) * 0.225) 
-                 + ((CASE WHEN E1 IS NULL THEN 0 WHEN E1 < 50 THEN 50 ELSE COALESCE(E1, 0) END -- exams
-                       + CASE WHEN E2 IS NULL THEN 0 WHEN E2 < 50 THEN 50 ELSE COALESCE(E2, 0) END) * 0.05)) 
+                  (((CASE WHEN Q1 < 50 THEN 50 ELSE COALESCE(Q1, 0) END -- quarterly grades
+                       + CASE WHEN Q2 < 50 THEN 50 ELSE COALESCE(Q2, 0) END
+                       + CASE WHEN Q3 < 50 THEN 50 ELSE COALESCE(Q3, 0) END
+                       + CASE WHEN Q4 < 50 THEN 50 ELSE COALESCE(Q4, 0) END) * 0.225) 
+                 + ((CASE WHEN E1 < 50 THEN 50 ELSE COALESCE(E1, 0) END -- exams
+                       + CASE WHEN E2 < 50 THEN 50 ELSE COALESCE(E2, 0) END) * 0.05)) 
                    / 
                   ((qtr_valid * 22.5) + (exam_valid * 5)) * 100 -- number of valid terms
                  ,0)
@@ -458,22 +458,24 @@ BEGIN
                  + ((CASE WHEN E1 IS NULL THEN 0 WHEN E1 < 50 THEN 50 ELSE COALESCE(E1, 0) END) * 0.05)) 
                    / 
                   ((qtr_in_books * 22.5) + (exam_in_books * 5)) * 100                 
-                 ,1)
+                 ,0)
            END AS in_the_books
           ,(qtr_in_books * .225) + (exam_in_books * .05) AS used_year
           ,CASE 
             WHEN Y1_stored IS NOT NULL THEN Y1_stored
             WHEN qtr_valid + exam_valid = 0 THEN NULL
-            --
+            -- tests whether this grade should be an F*
+            -- same as Y1 calc but replaces 50's with 49's 
+            -- to differentiate between actual 50's and sub-50 scores
             WHEN ROUND (
-                  (((COALESCE(Q1, 0) 
-                       + COALESCE(Q2, 0) 
-                       + COALESCE(Q3, 0) 
-                       + COALESCE(Q4, 0)) * 0.225) 
-                 + ((COALESCE(E1, 0)
-                       + COALESCE(E2, 0)) * 0.05)) 
+                  (((CASE WHEN Q1 < 50 THEN 49 ELSE COALESCE(Q1, 0) END -- quarterly grades
+                       + CASE WHEN Q2 < 50 THEN 49 ELSE COALESCE(Q2, 0) END
+                       + CASE WHEN Q3 < 50 THEN 49 ELSE COALESCE(Q3, 0) END
+                       + CASE WHEN Q4 < 50 THEN 49 ELSE COALESCE(Q4, 0) END) * 0.225) 
+                 + ((CASE WHEN E1 < 50 THEN 49 ELSE COALESCE(E1, 0) END -- exams
+                       + CASE WHEN E2 < 50 THEN 49 ELSE COALESCE(E2, 0) END) * 0.05)) 
                    / 
-                  ((qtr_valid * 22.5) + (exam_valid * 5)) * 100
+                  ((qtr_valid * 22.5) + (exam_valid * 5)) * 100 -- number of valid terms
                  ,0) < 50 THEN 1 
             ELSE NULL
            END AS f_star_flag

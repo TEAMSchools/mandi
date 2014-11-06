@@ -1,17 +1,17 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$report_card#NCA AS
+ALTER VIEW REPORTING$report_card_term#NCA AS
 
 WITH curterm AS (
-  SELECT time_per_name
-        ,alt_name AS term
+  SELECT 'RT' + CONVERT(VARCHAR,(RIGHT(time_per_name,1) - 1)) AS time_per_name
+        ,'Q' + CONVERT(VARCHAR,(RIGHT(alt_name,1) - 1)) AS term
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND academic_year = dbo.fn_Global_Academic_Year()
     AND schoolid = 73253
     AND start_date <= GETDATE()
-    AND end_date >= GETDATE()    
+    AND end_date >= GETDATE()
  )
 
 ,roster AS (
@@ -47,8 +47,7 @@ WITH curterm AS (
     ON 1 = 1  
   WHERE year = dbo.fn_Global_Academic_Year()
     AND co.rn = 1
-    AND co.schoolid = 73253
-    --AND co.studentid = 639   
+    AND co.schoolid = 73253    
  )
 
 ,comments AS (
@@ -384,8 +383,8 @@ SELECT roster.*
       ,comment_rc7.teacher_comment  AS rc7_comment
       ,comment_rc8.teacher_comment  AS rc8_comment
       ,comment_rc9.teacher_comment  AS rc9_comment
-      ,comment_rc10.teacher_comment AS rc10_comment      
-      ,comment_adv.advisor_comment  AS advisor_comment      
+      ,comment_rc10.teacher_comment AS rc10_comment
+      ,comment_adv.advisor_comment  AS advisor_comment
     
 --Discipline
 --DISC$merits_demerits_count#NCA

@@ -41,7 +41,7 @@ WITH fsa_rn AS (
 ,fsa_scaffold AS (
   SELECT co.studentid
         ,co.STUDENT_NUMBER
-        ,cs.SPEDLEP
+        ,co.SPEDLEP
         ,a.assessment_id
         ,a.fsa_week
         ,a.schoolid
@@ -54,13 +54,11 @@ WITH fsa_rn AS (
         ,a.FSA_obj
         ,a.FSA_std_rn
   FROM fsa_rn a WITH(NOLOCK)
-  JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+  JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
     ON a.schoolid = co.SCHOOLID
    AND a.grade_level = co.GRADE_LEVEL   
    AND a.academic_year = co.year   
    AND co.rn = 1  
-  JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-    ON co.studentid = cs.STUDENTID
  )
 
 SELECT *

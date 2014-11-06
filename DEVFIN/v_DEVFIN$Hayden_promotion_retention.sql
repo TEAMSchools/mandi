@@ -6,8 +6,9 @@ ALTER VIEW DEVFIN$Hayden_promotion_retention AS
 WITH roster AS (
   SELECT co.studentid      
         ,co.year AS academic_year
+        ,co.schoolid
         ,co.grade_level
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+  FROM COHORT$identifiers_long#static co WITH(NOLOCK)
   WHERE co.schoolid != 999999    
     AND co.entrydate <= CONVERT(DATE,CONVERT(VARCHAR,co.year) + '-10-15')
     AND co.exitdate >= CONVERT(DATE,CONVERT(VARCHAR,co.year) + '-10-15')
@@ -23,6 +24,7 @@ FROM
     (
      SELECT r1.studentid
            ,r1.academic_year
+           ,r1.schoolid
            ,r1.grade_level
            ,r_prev.grade_level AS prev_grade_level
            ,CASE WHEN r_prev.grade_level < r1.grade_level THEN 1 ELSE 0 END AS promoted

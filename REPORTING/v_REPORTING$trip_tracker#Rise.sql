@@ -11,7 +11,7 @@ WITH stu_cal_frame AS (
         ,cal.*
   FROM STUDENTS s WITH(NOLOCK)
   JOIN (
-        SELECT (CONVERT(INT,week) + 1) AS week_number
+        SELECT (CONVERT(INT,week)) AS week_number
               ,CONVERT(DATE,weekday_sun) AS week_of
               ,DATEPART(MONTH,weekday_sun) AS month
         FROM UTIL$reporting_weeks_days WITH(NOLOCK)
