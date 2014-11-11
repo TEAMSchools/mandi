@@ -179,7 +179,7 @@ SELECT roster.ID
       ,rti.behavior_tier
 FROM roster WITH (NOLOCK)
 LEFT OUTER JOIN GRADES$DETAIL#NCA gr WITH (NOLOCK)
-  ON roster.joinid = gr.studentid
+  ON roster.joinid = gr.studentid 
 LEFT OUTER JOIN PS$rti_tiers#static rti WITH(NOLOCK)
   ON roster.joinid = rti.studentid
  AND gr.credittype = rti.credittype

@@ -6,10 +6,7 @@ ALTER VIEW ILLUMINATE$student_groups AS
 SELECT local_student_id AS student_number
       ,group_id
       ,group_name
-      ,CASE
-        WHEN DATEPART(MONTH,start_date) <= 6 THEN (DATEPART(YEAR,start_date) - 1)
-        ELSE DATEPART(YEAR,start_date)
-       END AS academic_year
+      ,dbo.fn_DateToSY(start_date) AS academic_year
       ,start_date
       ,end_date
       ,eligibility_start_date

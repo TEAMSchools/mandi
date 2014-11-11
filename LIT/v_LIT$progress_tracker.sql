@@ -40,6 +40,23 @@ WITH goals_wide AS (
    ) piv
  )
 
+,terms AS (      
+  SELECT academic_year
+        ,schoolid
+        ,CASE 
+          WHEN school_level = 'MS' AND time_per_name = 'DR' THEN 'BOY' 
+          ELSE REPLACE(time_per_name, 'Diagnostic', 'DR')
+         END AS test_round
+        ,ROW_NUMBER() OVER (
+           PARTITION BY academic_year, schoolid
+           ORDER BY start_date ASC) AS round_num
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE identifier = 'LIT'      
+    AND school_level = 'ES'
+    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND start_date <= GETDATE()
+ )
+
 SELECT
  --REPORTING HASHES
        CONVERT(VARCHAR,details.student_number) + '_'
@@ -158,6 +175,7 @@ LEFT OUTER JOIN [AUTOLOAD$GDOCS_LIT_GR_Group] grteacher WITH(NOLOCK)
 LEFT OUTER JOIN goals_wide
   ON scores.STUDENTID = goals_wide.studentid
 WHERE scores.academic_year >= dbo.fn_Global_Academic_Year()
+  AND scores.test_round IN (SELECT test_round FROM terms WITH(NOLOCK))
 
 UNION ALL
 

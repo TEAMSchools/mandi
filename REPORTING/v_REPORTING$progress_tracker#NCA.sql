@@ -646,7 +646,7 @@ FROM
                              ,COUNT(fail.y1) AS num_failing
                              ,dbo.GROUP_CONCAT_DS(fail.course_name, CHAR(10), 1) AS courses
                        FROM GRADES$DETAIL#NCA fail WITH (NOLOCK)
-                       WHERE fail.y1 < 70
+                       WHERE fail.y1 < 70                         
                        GROUP BY studentid) fail
         ON roster.studentid = fail.studentid
       LEFT OUTER JOIN GRADES$elements ele_a WITH (NOLOCK)

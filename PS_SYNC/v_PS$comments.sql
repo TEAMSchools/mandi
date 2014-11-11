@@ -3,7 +3,8 @@ GO
 
 ALTER VIEW PS$comments AS
 
-SELECT s.id AS studentid
+SELECT tco.studentid
+      ,cc.SCHOOLID
       ,cc.course_number
       ,tco.sectionid
       ,tco.finalgradename AS term
@@ -16,11 +17,10 @@ FROM OPENQUERY(PS_TEAM,'
         ,CAST(SUBSTR(pgf.comment_value,1,4000) AS varchar2(4000)) AS teacher_comment
   FROM pgfinalgrades pgf       
   WHERE (pgf.finalgradename LIKE ''T%'' OR pgf.finalgradename LIKE ''Q%'')       
-    AND pgf.startdate >= ''2013-05-01''
+    AND pgf.startdate >= ''2014-08-01''
+    AND pgf.startdate <= TRUNC(SYSDATE)
     AND pgf.comment_value IS NOT NULL         
-') tco
-JOIN STUDENTS s WITH(NOLOCK)
-  ON tco.studentid = s.id
+') tco /* UPDATE DATE ANNUALLY */
 LEFT OUTER JOIN CC WITH(NOLOCK)
-  ON s.id = cc.studentid
- AND cc.sectionid = tco.sectionid
+  ON tco.studentid = cc.studentid
+ AND tco.sectionid = cc.sectionid
