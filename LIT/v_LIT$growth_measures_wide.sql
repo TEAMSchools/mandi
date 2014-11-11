@@ -47,8 +47,7 @@ WITH roster AS (
                   ,CONVERT(VARCHAR,read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,GLEQ) AS GLEQ
                   ,CONVERT(VARCHAR,lvl_num) AS lvl_num
-            FROM LIT$test_events#identifiers WITH(NOLOCK)
-            WHERE achv_curr_round = 1
+            FROM LIT$achieved_by_round#static WITH(NOLOCK)            
            ) sub
 
        UNPIVOT (
