@@ -23,13 +23,13 @@ FROM
          AND cpt.grade_level NOT LIKE '%_NPR'
          AND cpt.avg_baseline_rit IS NOT NULL
          AND cpt.cohort_growth_percentile IN
-           (1, 5, 10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 95, 99)
+           (1, 5, 10, 20, 25, 30, 40, 50, 60, 66, 70, 75, 80, 90, 95, 99)
        ) rit_data
 PIVOT (
   MAX(target_end_rit)
   --MAX(target_rit_change) 
   FOR cohort_growth_percentile 
-  IN (p1,p5,p10,p20,p30,p40,p50,p60,p70,p75,p80,p90,p95,p99) 
+  IN (p1,p5,p10,p20,p30,p40,p50,p60,p66, p70,p75,p80,p90,p95,p99) 
 ) AS target_cgp
 
 --npr
@@ -57,12 +57,12 @@ FROM
          )
          AND cpt.avg_baseline_rit IS NOT NULL
          AND cpt.cohort_growth_percentile IN
-           (1, 5, 10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 95, 99)
+           (1, 5, 10, 20, 25, 30, 40, 50, 60, 66, 70, 75, 80, 90, 95, 99)
        ) rit_data
 PIVOT (
   MAX(target_end_npr)
   --MAX(target_npr_change) 
   FOR cohort_growth_percentile 
-  IN (p1,p5,p10,p20,p30,p40,p50,p60,p70,p75,p80,p90,p95,p99) 
+  IN (p1,p5,p10,p20,p30,p40,p50,p60,p66,p70,p75,p80,p90,p95,p99) 
 ) AS target_cgp
 ORDER BY subject, school, grade_level, iep_status

@@ -3,10 +3,7 @@ GO
 
 CREATE VIEW progress_completion#identifiers AS
 SELECT p.*
-      ,s.school_student_id AS student_number
-      ,st.id AS studentid
+      ,s.id AS studentid
 FROM STMath..progress_completion p
-JOIN STMath..student_id_linkages s
-  ON p.UUID = s.UUID
-JOIN KIPP_NJ..STUDENTS st
-  ON s.school_student_id = st.student_number
+JOIN KIPP_NJ..STUDENTS s
+  ON p.school_student_id = s.student_number
