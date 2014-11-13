@@ -20,6 +20,9 @@ GRANT SELECT ON REPORTING$progress_tracker#TEAM#static TO db_data_tool_reader
 GRANT SELECT ON REPORTING$progress_tracker#NCA#static TO db_data_tool_reader
 GRANT SELECT ON REPORTING$quick_lookup#NCA#static TO db_data_tool_reader
 
+--blended
+GRANT SELECT ON KIPP_NJ..REPORTING$st_math_tracker TO db_data_tool_reader
+
 --PS sync
 GRANT SELECT ON STUDENTS TO db_data_tool_reader
 GRANT SELECT ON CUSTOM_STUDENTS TO db_data_tool_reader

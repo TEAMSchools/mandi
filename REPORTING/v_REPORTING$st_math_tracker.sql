@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW REPORTING$st_math_tracker AS
+ALTER VIEW REPORTING$st_math_tracker AS
 WITH observed_completion AS
     (SELECT studentid
            ,SUM(K_5_Progress) AS total_completion
@@ -35,6 +35,7 @@ WITH observed_completion AS
 SELECT sub.studentid
       ,s.student_number
       ,s.grade_level
+      ,s.schoolid
       ,s.lastfirst
       ,observed_completion.total_completion
       ,prev_week_completion.total_completion AS prev_week
