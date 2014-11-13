@@ -57,9 +57,6 @@ FROM
                ON scaffold.studentid = prog.studentid
               AND prog.yearid = dbo.fn_Global_Term_Id()
               AND prog.time_hierarchy = 1
-             --ORDER BY scaffold.school DESC
-             --        ,scaffold.grade_level
-             --        ,scaffold.student_name
              ) sub
       ) sub
 WHERE stu_year > 0

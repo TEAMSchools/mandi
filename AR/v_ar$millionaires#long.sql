@@ -4,7 +4,8 @@ GO
 ALTER VIEW AR$millionaires#long AS
 
 WITH scaffold AS (
-  SELECT c.student_number
+  SELECT c.studentid
+        ,c.student_number
         ,c.grade_level
         ,c.school_name AS school
         ,c.year
@@ -28,17 +29,19 @@ FROM
            ,CASE WHEN sub.words >= 1000000 THEN 1 ELSE 0 END AS millionaire_test
      FROM
          (
-          SELECT scaffold.grade_level
+          SELECT scaffold.studentid
+                ,scaffold.grade_level
                 ,scaffold.school
                 ,scaffold.year
                 ,scaffold.date                
                 ,SUM(CASE WHEN det.tipassed = 1 THEN det.iwordcount ELSE 0 END) AS words
           FROM scaffold WITH(NOLOCK)
-          JOIN KIPP_NJ..AR$test_event_detail#static det WITH (NOLOCK)
+          JOIN KIPP_NJ..AR$test_event_detail det WITH (NOLOCK)
             ON scaffold.student_number = det.student_number
            AND det.dtTaken >= scaffold.start_date_ar
            AND det.dtTaken <  scaffold.date
-          GROUP BY scaffold.grade_level
+          GROUP BY scaffold.studentid
+                  ,scaffold.grade_level
                   ,scaffold.school
                   ,scaffold.year
                   ,scaffold.date                  
