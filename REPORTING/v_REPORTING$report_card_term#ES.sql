@@ -460,7 +460,17 @@ SELECT r.studentid
       ,ta.VIZ_TA_prof_4
       ,ta.VIZ_TA_prof_5
       --comments
+      ,comm.ela_comment
+      ,comm.humanities_comment
+      ,comm.math_comment
+      ,comm.perfarts_comment
+      ,comm.sci_comment
+      ,comm.socskills_comment
+      ,comm.span_comment
+      ,comm.viz_comment
+      ,comm.writing_comment
       --ARFR
+      ,arfr.ARFR_reason
       --social skills
 
 FROM roster r WITH(NOLOCK)
@@ -488,3 +498,8 @@ LEFT OUTER JOIN reading_level rs WITH(NOLOCK)
   ON r.studentid = rs.studentid
 LEFT OUTER JOIN REPORTING$report_card_comments#ES comm WITH(NOLOCK)
   ON r.student_number = comm.student_number
+ AND rt.term = comm.term
+LEFT OUTER JOIN REPORTING$ARFR_reasons#ES arfr WITH(NOLOCK)
+  ON r.student_number = arfr.student_number
+ AND rt.term = arfr.term
+ AND arfr.academic_year = dbo.fn_Global_Academic_Year()

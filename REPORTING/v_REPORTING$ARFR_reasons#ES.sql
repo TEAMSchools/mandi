@@ -12,7 +12,7 @@ WITH valid_assessments AS (
 
 SELECT student_number
       ,repository_row_id
-      ,[Year] AS academic_year
+      ,LEFT([Year],4) AS academic_year
       ,[Term] AS term      
       ,'At Risk for Retention due to: ' 
         + CASE 
