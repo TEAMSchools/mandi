@@ -21,6 +21,22 @@ WITH roster AS (
     AND co.schoolid IN (73252,133570965)
 )
 
+,terms AS (      
+  SELECT DISTINCT 
+         CASE 
+          WHEN school_level = 'MS' AND time_per_name = 'DR' THEN 'BOY' 
+          ELSE REPLACE(time_per_name, 'Diagnostic', 'DR')
+         END AS test_round
+        ,ROW_NUMBER() OVER (
+           PARTITION BY academic_year, schoolid
+           ORDER BY start_date ASC) AS round_num
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE identifier = 'LIT'      
+    AND school_level = 'MS'
+    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND start_date <= GETDATE()
+ )
+
 -- AR data, long by term (including year)
 ,ar_data AS (
   SELECT yearid
@@ -164,7 +180,7 @@ WITH roster AS (
              ,CONVERT(VARCHAR,ROUND(fp.GLEQ - gleq.GLEQ,1)) AS yrs_behind
              ,CONVERT(VARCHAR,CASE WHEN fp.schoolid = 73252 THEN rl.wpm ELSE fp.fp_wpmrate END) AS wpm
              ,CONVERT(VARCHAR,fp.fp_keylever) AS keylever            
-       FROM LIT$achieved_by_round fp WITH(NOLOCK)       
+       FROM LIT$achieved_by_round#static fp WITH(NOLOCK)       
        LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
          ON fp.GRADE_LEVEL = goals.grade_level
         AND REPLACE(fp.test_round, 'EOY', 'T3') = goals.test_round
@@ -179,6 +195,7 @@ WITH roster AS (
              WHEN fp.test_round = 'T3' THEN 'Winter'
              WHEN fp.test_round = 'EOY' THEN 'Spring'
             END = rl.season       
+       WHERE ((fp.academic_year < dbo.fn_Global_Academic_Year()) OR (fp.academic_year = dbo.fn_Global_Academic_Year() AND fp.test_round IN (SELECT test_round FROM terms WITH(NOLOCK))))
       ) sub
   
   UNPIVOT (
@@ -203,7 +220,7 @@ WITH roster AS (
              ,t1t2_growth_GLEQ
              ,t2t3_growth_GLEQ
              ,t3EOY_growth_GLEQ
-       FROM LIT$growth_measures_wide WITH(NOLOCK)
+       FROM LIT$growth_measures_wide#static WITH(NOLOCK)
       ) sub
   
   UNPIVOT (

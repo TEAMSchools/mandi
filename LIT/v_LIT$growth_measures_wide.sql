@@ -265,8 +265,8 @@ SELECT YEAR
       ,EOY_cur_read_lvl
       ,EOY_dna_read_lvl
       ,EOY_dna_reason    
-      ,CONVERT(FLOAT,yr_cur_GLEQ) - CONVERT(FLOAT,DR_cur_GLEQ) AS yr_growth_GLEQ
-      ,CONVERT(INT,yr_cur_lvl_num) - CONVERT(INT,DR_cur_lvl_num) AS yr_growth_lvl
+      ,CONVERT(FLOAT,yr_cur_GLEQ) - CONVERT(FLOAT,COALESCE(DR_cur_GLEQ, T1_cur_GLEQ, T2_cur_GLEQ, T3_cur_GLEQ, EOY_cur_GLEQ)) AS yr_growth_GLEQ
+      ,CONVERT(INT,yr_cur_lvl_num) - CONVERT(INT,COALESCE(DR_cur_lvl_num, T1_cur_lvl_num, T2_cur_lvl_num, T3_cur_lvl_num, EOY_cur_lvl_num)) AS yr_growth_lvl
       ,CONVERT(FLOAT,T1_cur_GLEQ) - CONVERT(FLOAT,DR_cur_GLEQ) AS t1_growth_GLEQ
       ,CONVERT(INT,T1_cur_lvl_num) - CONVERT(INT,DR_cur_lvl_num) AS t1_growth_lvl
       ,CONVERT(FLOAT,T2_cur_GLEQ) - CONVERT(FLOAT,DR_cur_GLEQ) AS t2_growth_GLEQ

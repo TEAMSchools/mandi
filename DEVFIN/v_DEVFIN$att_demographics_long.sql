@@ -16,23 +16,16 @@ WITH calendar AS(
         ,co.cohort
         ,co.studentid
         ,co.lastfirst
-        ,CASE WHEN dbo.fn_Global_Academic_Year() = co.YEAR THEN s.lunchstatus ELSE lunch.lunch_status END AS lunchstatus
-        ,CASE WHEN UPPER(cs.spedlep) LIKE '%SPEECH%' THEN 'SPEECH' ELSE cs.SPEDLEP END AS SPEDLEP
-        ,s.ethnicity
-        ,s.gender
+        ,co.lunchstatus
+        ,CASE WHEN UPPER(co.spedlep) LIKE '%SPEECH%' THEN 'SPEECH' ELSE co.SPEDLEP END AS SPEDLEP
+        ,co.ethnicity
+        ,co.gender
         ,co.year
         ,co.entrydate
         ,co.exitdate
-        ,s.ENROLL_STATUS
+        ,co.ENROLL_STATUS
         ,co.rn
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
-    ON co.studentid = s.id
-  LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-    ON co.studentid = cs.studentid
-  LEFT OUTER JOIN PS$lunch_status_long#static lunch WITH(NOLOCK)
-    ON co.studentid = lunch.studentid
-   AND co.YEAR = lunch.year
+  FROM COHORT$identifiers_long#static co WITH(NOLOCK)  
   WHERE co.schoolid != 999999    
  )
 

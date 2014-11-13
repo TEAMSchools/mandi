@@ -50,9 +50,10 @@ WITH goals_wide AS (
         ,ROW_NUMBER() OVER (
            PARTITION BY academic_year, schoolid
            ORDER BY start_date ASC) AS round_num
+        ,CASE WHEN start_date <= GETDATE() AND end_date >= GETDATE() THEN 1 ELSE 0 END AS is_curr
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'LIT'      
-    AND school_level = 'ES'
+    AND schoolid = 73254 -- peg it to SPARK's date, always peg it to SPARK's date
     AND academic_year = dbo.fn_Global_Academic_Year()
     AND start_date <= GETDATE()
  )
@@ -66,7 +67,12 @@ SELECT
         + '1'
        AS reporting_hash
       ,NULL AS reasons_for_DNA
-      ,CASE WHEN details.achv_curr_yr = 1 THEN CONVERT(VARCHAR,details.student_number) + '_MostCurrent_' + CONVERT(VARCHAR,scores.academic_year) ELSE NULL END AS mostcurr_hash
+      ,CASE 
+        WHEN details.achv_curr_yr = 1 AND details.academic_year = scores.academic_year AND details.test_round = (SELECT DISTINCT test_round FROM terms WHERE is_curr = 1)
+         THEN CONVERT(VARCHAR,details.student_number) + '_MostCurrent_' 
+               + CONVERT(VARCHAR,scores.academic_year) 
+        ELSE NULL 
+       END AS mostcurr_hash
  --STUDENT IDENTIFIERS
       ,s.schoolid
       ,s.grade_level

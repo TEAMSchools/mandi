@@ -1,6 +1,8 @@
 USE KIPP_NJ
 GO
 
+ALTER VIEW REPORTING$report_card_term#ES AS
+
 WITH roster AS (
  SELECT co.STUDENTID
        ,co.STUDENT_NUMBER      
@@ -18,7 +20,7 @@ WITH roster AS (
  )
 
 ,curterm AS (
-  SELECT DISTINCT 'RT' + CONVERT(VARCHAR,(RIGHT(time_per_name,1) - 1)) AS time_per_name
+  SELECT DISTINCT 'RT' + CONVERT(VARCHAR,(RIGHT(time_per_name,1) - 1)) AS time_per_name                 
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND school_level = 'ES'
@@ -132,20 +134,15 @@ WITH roster AS (
 ,reading_level AS (
   SELECT sub.studentid
         ,[DR_goal_lvl]
-        ,[DR_lvl_hash]
-        ,[DR_lvl_num]
+        ,[DR_lvl_hash]        
         ,[T1_goal_lvl]
-        ,[T1_lvl_hash]
-        ,[T1_lvl_num]
+        ,[T1_lvl_hash]        
         ,[T2_goal_lvl]
-        ,[T2_lvl_hash]
-        ,[T2_lvl_num]
+        ,[T2_lvl_hash]        
         ,[T3_goal_lvl]
-        ,[T3_lvl_hash]
-        ,[T3_lvl_num]
+        ,[T3_lvl_hash]        
         ,[EOY_goal_lvl]
-        ,[EOY_lvl_hash]
-        ,[EOY_lvl_num]
+        ,[EOY_lvl_hash]        
         ,cur.lvl_num - dr_lvl_num AS levels_grown
   FROM
       (
@@ -183,6 +180,14 @@ WITH roster AS (
                  FROM LIT$achieved_by_round#static WITH(NOLOCK)
                  WHERE grade_level < 5
                    AND academic_year = dbo.fn_Global_Academic_Year()
+                   AND test_round IN (
+                                      SELECT DISTINCT time_per_name
+                                      FROM REPORTING$dates WITH(NOLOCK)
+                                      WHERE identifier = 'LIT'
+                                        AND academic_year = dbo.fn_Global_Academic_Year()
+                                        AND school_level = 'ES'
+                                        AND start_date <= GETDATE()
+                                     )
                 ) sub
             UNPIVOT(
               value
@@ -221,6 +226,7 @@ SELECT r.studentid
       ,r.FIRST_NAME
       ,r.GRADE_LEVEL
       ,r.SCHOOLID
+      ,r.school_name
       ,r.TEAM      
       ,rt.term          
       -- attendance
@@ -254,30 +260,26 @@ SELECT r.studentid
       ,ROUND(vocab.pct_correct_yr,0) AS v_average_yr
       -- STEP
       ,rs.[DR_goal_lvl]
-      ,rs.[DR_lvl_hash]
-      ,rs.[DR_lvl_num]
+      ,rs.[DR_lvl_hash]      
       ,rs.[T1_goal_lvl]
-      ,rs.[T1_lvl_hash]
-      ,rs.[T1_lvl_num]
+      ,rs.[T1_lvl_hash]      
       ,rs.[T2_goal_lvl]
-      ,rs.[T2_lvl_hash]
-      ,rs.[T2_lvl_num]
+      ,rs.[T2_lvl_hash]      
       ,rs.[T3_goal_lvl]
-      ,rs.[T3_lvl_hash]
-      ,rs.[T3_lvl_num]
+      ,rs.[T3_lvl_hash]      
       ,rs.[EOY_goal_lvl]
-      ,rs.[EOY_lvl_hash]
-      ,rs.[EOY_lvl_num]
+      ,rs.[EOY_lvl_hash]      
       ,rs.levels_grown
       -- TA % of standards
       ,ta.COMP_pct_stds_mastered
       ,ta.MATH_pct_stds_mastered
       ,ta.PERF_pct_stds_mastered
       ,ta.PHON_pct_stds_mastered
+      ,ta.HUM_pct_stds_mastered
       ,ta.SCI_pct_stds_mastered
       ,ta.SPAN_pct_stds_mastered
       ,ta.VIZ_pct_stds_mastered
-      ,ta.RHET_pct_stds_mastered      
+      ,NULL AS RHET_pct_stds_mastered      
       -- TA objectives
       -- math
       ,ta.MATH_TA_obj_1
@@ -328,21 +330,18 @@ SELECT r.studentid
       ,ta.PHON_TA_obj_14
       ,ta.PHON_TA_obj_15
       -- writing
-      ,ta.RHET_TA_obj_1
-      ,ta.RHET_TA_obj_2
-      ,ta.RHET_TA_obj_3
-      ,ta.RHET_TA_obj_4
-      ,ta.RHET_TA_obj_5
-      ,ta.RHET_TA_obj_6
-      ,ta.RHET_TA_obj_7
-      ,ta.RHET_TA_obj_8
-      ,ta.RHET_TA_obj_9
-      ,ta.RHET_TA_obj_10
-      ,ta.RHET_TA_obj_11
-      ,ta.RHET_TA_obj_12
-      ,ta.RHET_TA_obj_13
-      ,ta.RHET_TA_obj_14
-      ,ta.RHET_TA_obj_15
+      ,NULL AS RHET_TA_obj_1
+      ,NULL AS RHET_TA_obj_2
+      ,NULL AS RHET_TA_obj_3
+      ,NULL AS RHET_TA_obj_4
+      ,NULL AS RHET_TA_obj_5
+      ,NULL AS RHET_TA_obj_6
+      ,NULL AS RHET_TA_obj_7
+      ,NULL AS RHET_TA_obj_8
+      ,NULL AS RHET_TA_obj_9
+      ,NULL AS RHET_TA_obj_10
+      ,NULL AS RHET_TA_obj_11
+      ,NULL AS RHET_TA_obj_12      
       -- specials
       ,ta.PERF_TA_obj_1
       ,ta.PERF_TA_obj_2
@@ -419,21 +418,21 @@ SELECT r.studentid
       ,ta.PHON_TA_prof_14
       ,ta.PHON_TA_prof_15
       -- writing
-      ,ta.RHET_TA_prof_1
-      ,ta.RHET_TA_prof_2
-      ,ta.RHET_TA_prof_3
-      ,ta.RHET_TA_prof_4
-      ,ta.RHET_TA_prof_5
-      ,ta.RHET_TA_prof_6
-      ,ta.RHET_TA_prof_7
-      ,ta.RHET_TA_prof_8
-      ,ta.RHET_TA_prof_9
-      ,ta.RHET_TA_prof_10
-      ,ta.RHET_TA_prof_11
-      ,ta.RHET_TA_prof_12
-      ,ta.RHET_TA_prof_13
-      ,ta.RHET_TA_prof_14
-      ,ta.RHET_TA_prof_15
+      ,NULL AS RHET_TA_prof_1
+      ,NULL AS RHET_TA_prof_2
+      ,NULL AS RHET_TA_prof_3
+      ,NULL AS RHET_TA_prof_4
+      ,NULL AS RHET_TA_prof_5
+      ,NULL AS RHET_TA_prof_6
+      ,NULL AS RHET_TA_prof_7
+      ,NULL AS RHET_TA_prof_8
+      ,NULL AS RHET_TA_prof_9
+      ,NULL AS RHET_TA_prof_10
+      ,NULL AS RHET_TA_prof_11
+      ,NULL AS RHET_TA_prof_12
+      ,NULL AS RHET_TA_prof_13
+      ,NULL AS RHET_TA_prof_14
+      ,NULL AS RHET_TA_prof_15
       -- specials
       ,ta.PERF_TA_prof_1
       ,ta.PERF_TA_prof_2
@@ -460,6 +459,10 @@ SELECT r.studentid
       ,ta.VIZ_TA_prof_3
       ,ta.VIZ_TA_prof_4
       ,ta.VIZ_TA_prof_5
+      --comments
+      --ARFR
+      --social skills
+
 FROM roster r WITH(NOLOCK)
 JOIN curterm WITH(NOLOCK)
   ON 1 = 1

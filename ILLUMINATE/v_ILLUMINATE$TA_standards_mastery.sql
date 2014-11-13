@@ -147,20 +147,20 @@ SELECT sub.student_number
         END) AS TA_score
       ,CONVERT(VARCHAR(250),
         CASE
-         WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct >= 60 THEN 'Proficient' 
-         WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct >= 30 AND sub.total_weighted_pct_correct < 60 THEN 'Approaching'
-         WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct < 30 THEN 'Not Yet'
-         WHEN sub.total_weighted_pct_correct >= 80 THEN 'Proficient' 
-         WHEN sub.total_weighted_pct_correct >= 60 AND sub.total_weighted_pct_correct < 80 THEN 'Approaching'
-         WHEN sub.total_weighted_pct_correct < 60 THEN 'Not Yet'
+         WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct >= 60 THEN 'Meets Standard' 
+         WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct >= 30 AND sub.total_weighted_pct_correct < 60 THEN 'Approaching Standard'
+         WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct < 30 THEN 'Far Below Standard'
+         WHEN sub.total_weighted_pct_correct >= 80 THEN 'Meets Standard'
+         WHEN sub.total_weighted_pct_correct >= 60 AND sub.total_weighted_pct_correct < 80 THEN 'Approaching Standard'
+         WHEN sub.total_weighted_pct_correct < 60 THEN 'Far Below Standard'
         END) AS TA_prof                            
       ,CONVERT(FLOAT,SUM(CASE
                           WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct >= 60 THEN 1
                           WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct < 60 THEN 0
                           WHEN sub.total_weighted_pct_correct >= 80 THEN 1
                           WHEN sub.total_weighted_pct_correct < 80 THEN 0
-                         END) OVER(PARTITION BY sub.student_number, sub.term)) AS n_mastered
-      ,CONVERT(FLOAT,COUNT(sub.standards_tested) OVER(PARTITION BY sub.student_number, sub.term)) AS n_total
+                         END) OVER(PARTITION BY sub.student_number, sub.term, sub.subject)) AS n_mastered
+      ,CONVERT(FLOAT,COUNT(sub.standards_tested) OVER(PARTITION BY sub.student_number, sub.term, sub.subject)) AS n_total
 FROM
     (
      SELECT student_number

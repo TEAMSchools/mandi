@@ -22,7 +22,7 @@ FROM
                   WHEN field_name LIKE ('%0910%') THEN 2009
                   WHEN field_name LIKE ('%1011%') THEN 2010
                   WHEN field_name LIKE ('%1112%') THEN 2011
-                  WHEN field_name LIKE ('%1213%') THEN 2012                          
+                  WHEN field_name LIKE ('%1213%') THEN 2012                                            
                  END AS year        
                 ,CASE                  
                   WHEN string_value = 'Free' THEN 'F'
@@ -73,10 +73,8 @@ UNION ALL
 -- current year
 SELECT studentid
       ,year
-      ,s.LUNCHSTATUS AS lunch_status
-FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-JOIN STUDENTS s WITH(NOLOCK)
-  ON co.studentid = s.id
-WHERE co.year = 2014
+      ,co.LUNCHSTATUS AS lunch_status
+FROM COHORT$identifiers_long#static co WITH(NOLOCK)
+WHERE co.year = dbo.fn_Global_Academic_Year()
   AND co.grade_level < 99
   AND co.rn = 1

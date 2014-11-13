@@ -90,7 +90,8 @@ SELECT njask.academic_year AS academic_year
       ,co.SCHOOLID
       ,njask.studentid
       ,co.GRADE_LEVEL
-      ,cs.SPEDLEP
+      ,co.LUNCHSTATUS
+      ,co.SPEDLEP
       ,co.COHORT
       ,co.YEAR_IN_NETWORK
       ,njask.subject
@@ -101,12 +102,10 @@ SELECT njask.academic_year AS academic_year
       ,CASE WHEN njask.njask_proficiency = 'Advanced Proficient' THEN 1.0 ELSE 0.0 END AS adv_prof      
       ,0 AS is_retest
 FROM NJASK$detail njask WITH(NOLOCK)
-JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
   ON njask.studentid = co.STUDENTID
  AND njask.academic_year = co.YEAR
  AND co.RN = 1
-JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON njask.studentid = cs.STUDENTID
 WHERE njask.academic_year >= 2009
 
 UNION ALL
@@ -116,7 +115,8 @@ SELECT hspa.academic_year
       ,hspa.test_schoolid AS schoolid
       ,hspa.studentid
       ,test_grade_level AS grade_level
-      ,cs.SPEDLEP
+      ,co.LUNCHSTATUS
+      ,co.SPEDLEP
       ,co.cohort
       ,co.year_in_network
       ,hspa.subject
@@ -127,9 +127,7 @@ SELECT hspa.academic_year
       ,CASE WHEN hspa.proficiency = 'Advanced Proficient' THEN 1.0 ELSE 0.0 END AS adv_prof
       ,hspa.is_retest
 FROM HSPA$detail hspa WITH(NOLOCK)
-JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON hspa.studentid = cs.STUDENTID
-JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
   ON hspa.studentid = co.studentid
  AND hspa.academic_year = co.year
  AND co.rn = 1
@@ -141,6 +139,7 @@ SELECT academic_year
       ,schoolid
       ,studentid
       ,grade_level
+      ,NULL AS lunchstatus
       ,NULL AS spedlep
       ,cohort
       ,year_in_network

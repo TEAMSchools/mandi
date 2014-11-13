@@ -11,7 +11,7 @@ SELECT co.schoolid
       ,co.lastfirst
       ,s.first_name
       ,s.last_name
-      ,s.first_name + '' + s.last_name AS full_name
+      ,s.first_name + ' ' + s.last_name AS full_name
       ,co.grade_level
       ,co.year            
       ,co.cohort
@@ -21,7 +21,7 @@ SELECT co.schoolid
       ,cs.ADVISOR
       ,s.GENDER
       ,s.ETHNICITY
-      ,s.LUNCHSTATUS      
+      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunch_status END AS lunchstatus
       ,cs.SPEDLEP            
       ,cs.LEP_STATUS
       ,s.enroll_status
@@ -52,6 +52,16 @@ SELECT co.schoolid
       ,cs.FATHER_CELL
       ,cs.FATHER_DAY
       ,blobs.guardianemail
+      ,emerg.Release_1_Name
+      ,emerg.Release_2_Name
+      ,emerg.Release_3_Name
+      ,emerg.Release_4_Name
+      ,emerg.Release_5_Name
+      ,emerg.Release_1_Phone
+      ,emerg.Release_2_Phone
+      ,emerg.Release_3_Phone
+      ,emerg.Release_4_Phone
+      ,emerg.Release_5_Phone
 FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH (NOLOCK)
 JOIN KIPP_NJ..SCHOOLS sch WITH (NOLOCK)
   ON co.schoolid = sch.school_number
@@ -66,3 +76,8 @@ LEFT OUTER JOIN KIPP_NJ..COHORT$comprehensive_long#static gr WITH(NOLOCK)
  AND gr.year_in_network = 1
 LEFT OUTER JOIN KIPP_NJ..PS$student_BLObs#static blobs WITH(NOLOCK)
   ON co.studentid = blobs.STUDENTID
+LEFT OUTER JOIN PS$lunch_status_long#static lunch WITH(NOLOCK)
+  ON co.studentid = lunch.studentid
+ AND co.year = lunch.year
+LEFT OUTER JOIN PS$emerg_release_contact emerg WITH(NOLOCK)
+  ON co.studentid = emerg.STUDENTID

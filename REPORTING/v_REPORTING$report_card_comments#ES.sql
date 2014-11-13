@@ -13,18 +13,16 @@ WITH valid_assessments AS (
 SELECT student_number
       ,repository_row_id
       ,[Year_comment] AS academic_year
-      ,[Term_comment] AS term
-      ,[Attendance_comment]
-      ,[Achievement_comment]
-      ,[ELA_comment]
-      ,[Humanities_comment]
-      ,[Math_comment]
-      ,[PerformingArts_comment]
-      ,[Science_comment]
-      ,[SocialSkills_comment]
-      ,[Spanish_comment]      
-      ,[VisualArts_comment]
-      ,[Writing_comment]      
+      ,[Term_comment] AS term      
+      ,'ELA: ' + [ELA_comment] AS ela_comment
+      ,'Humanities: ' + [Humanities_comment] AS humanities_comment
+      ,'Math: ' + [Math_comment] AS math_comment
+      ,'Performing Arts: ' + [PerformingArts_comment] AS perfarts_comment
+      ,'Science: ' + [Science_comment] AS sci_comment
+      ,'Social Skills: ' + [SocialSkills_comment] AS socskills_comment
+      ,'Spanish: ' + [Spanish_comment] AS span_comment
+      ,'Visual Arts: ' + [VisualArts_comment] AS viz_comment
+      ,'Writing: ' + [Writing_comment] AS writing_comment
 FROM 
     (
      SELECT repo.student_id AS student_number
@@ -43,9 +41,7 @@ FROM
 
 PIVOT(
   MAX(value)
-  FOR field IN ([Achievement_comment]
-               ,[Attendance_comment]
-               ,[ELA_comment]
+  FOR field IN ([ELA_comment]
                ,[Humanities_comment]
                ,[Math_comment]
                ,[PerformingArts_comment]
@@ -57,29 +53,3 @@ PIVOT(
                ,[Writing_comment]
                ,[Year_comment])
  ) p
-
--- not sure if I need to do it this way instead
---SELECT student_number
---      ,academic_year
---      ,term
---FROM 
---    (
---     SELECT comment.student_number      
---           ,year.value AS academic_year
---           ,term.value AS term
---           ,comment.field AS subject
---           ,comment.value AS comment
---     FROM raw_data comment WITH(NOLOCK)
---     LEFT OUTER JOIN raw_data term WITH(NOLOCK)
---       ON comment.student_number = term.student_number
---      AND comment.repository_row_id = term.repository_row_id
---      AND term.field = 'Term'
---     LEFT OUTER JOIN raw_data year WITH(NOLOCK)
---       ON comment.student_number = year.student_number
---      AND comment.repository_row_id = year.repository_row_id
---      AND year.field = 'Year'
---     WHERE comment.field NOT IN ('Year','Term')
---    ) sub
---PIVOT(
---  MAX(comment)
---  FOR subject IN ()
