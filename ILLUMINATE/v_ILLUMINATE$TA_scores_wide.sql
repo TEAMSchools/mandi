@@ -3,6 +3,108 @@ GO
 
 ALTER VIEW ILLUMINATE$TA_scores_wide AS
 
+WITH writing_scores AS (
+  SELECT student_number
+        ,repository_row_id
+        ,writing_type
+        ,date_administered
+        ,writing_obj_1
+        ,writing_obj_2
+        ,writing_obj_3
+        ,writing_obj_4
+        ,writing_obj_5
+        ,writing_obj_6
+        ,writing_obj_7
+        ,writing_obj_8
+        ,writing_obj_9
+        ,writing_obj_10
+        ,writing_prof_1
+        ,writing_prof_2
+        ,writing_prof_3
+        ,writing_prof_4
+        ,writing_prof_5
+        ,writing_prof_6
+        ,writing_prof_7
+        ,writing_prof_8
+        ,writing_prof_9
+        ,writing_prof_10
+        ,ROW_NUMBER() OVER(
+           PARTITION BY student_number
+             ORDER BY date_administered DESC) AS rn_cur
+        ,ROW_NUMBER() OVER(
+           PARTITION BY student_number, writing_type
+             ORDER BY date_administered DESC) AS rn_type_cur
+  FROM
+      (
+       SELECT student_number
+             ,repository_row_id
+             ,writing_type
+             ,date_administered
+             ,MAX([writing_obj_1]) AS [writing_obj_1]
+             ,MAX([writing_obj_2]) AS [writing_obj_2]
+             ,MAX([writing_obj_3]) AS [writing_obj_3]
+             ,MAX([writing_obj_4]) AS [writing_obj_4]
+             ,MAX([writing_obj_5]) AS [writing_obj_5]
+             ,MAX([writing_obj_6]) AS [writing_obj_6]
+             ,MAX([writing_obj_7]) AS [writing_obj_7]
+             ,MAX([writing_obj_8]) AS [writing_obj_8]
+             ,MAX([writing_obj_9]) AS [writing_obj_9]
+             ,MAX([writing_obj_10]) AS [writing_obj_10]
+             ,MAX([writing_prof_1]) AS [writing_prof_1]
+             ,MAX([writing_prof_2]) AS [writing_prof_2]
+             ,MAX([writing_prof_3]) AS [writing_prof_3]
+             ,MAX([writing_prof_4]) AS [writing_prof_4]
+             ,MAX([writing_prof_5]) AS [writing_prof_5]
+             ,MAX([writing_prof_6]) AS [writing_prof_6]
+             ,MAX([writing_prof_7]) AS [writing_prof_7]
+             ,MAX([writing_prof_8]) AS [writing_prof_8]
+             ,MAX([writing_prof_9]) AS [writing_prof_9]
+             ,MAX([writing_prof_10]) AS [writing_prof_10]
+       FROM
+           (
+            SELECT student_number
+                  ,repository_row_id
+                  ,writing_type
+                  ,date_administered
+                  ,pivot_hash_obj
+                  ,pivot_hash_prof
+                  ,writing_obj
+                  ,proficiency      
+            FROM ILLUMINATE$writing_scores_long#ES WITH(NOLOCK)
+           ) sub
+       PIVOT(
+         MAX(writing_obj)
+         FOR pivot_hash_obj IN ([writing_obj_1]
+                               ,[writing_obj_2]
+                               ,[writing_obj_3]
+                               ,[writing_obj_4]
+                               ,[writing_obj_5]
+                               ,[writing_obj_6]
+                               ,[writing_obj_7]
+                               ,[writing_obj_8]
+                               ,[writing_obj_9]
+                               ,[writing_obj_10])
+        ) p1
+       PIVOT(
+         MAX(proficiency)
+         FOR pivot_hash_prof IN ([writing_prof_1]
+                                ,[writing_prof_2]
+                                ,[writing_prof_3]
+                                ,[writing_prof_4]
+                                ,[writing_prof_5]
+                                ,[writing_prof_6]
+                                ,[writing_prof_7]
+                                ,[writing_prof_8]
+                                ,[writing_prof_9]
+                                ,[writing_prof_10])
+        ) p2
+       GROUP BY student_number
+               ,repository_row_id
+               ,date_administered
+               ,writing_type
+      ) sub
+ )
+
 SELECT student_number
       ,term
       ,[COMP_TA_obj_1]
@@ -125,21 +227,21 @@ SELECT student_number
       ,[VIZ_TA_obj_13]
       ,[VIZ_TA_obj_14]
       ,[VIZ_TA_obj_15]
-      ,[RHET_TA_obj_1]
-      ,[RHET_TA_obj_2]
-      ,[RHET_TA_obj_3]
-      ,[RHET_TA_obj_4]
-      ,[RHET_TA_obj_5]
-      ,[RHET_TA_obj_6]
-      ,[RHET_TA_obj_7]
-      ,[RHET_TA_obj_8]
-      ,[RHET_TA_obj_9]
-      ,[RHET_TA_obj_10]
-      ,[RHET_TA_obj_11]
-      ,[RHET_TA_obj_12]
-      ,[RHET_TA_obj_13]
-      ,[RHET_TA_obj_14]
-      ,[RHET_TA_obj_15]
+      --,[RHET_TA_obj_1]
+      --,[RHET_TA_obj_2]
+      --,[RHET_TA_obj_3]
+      --,[RHET_TA_obj_4]
+      --,[RHET_TA_obj_5]
+      --,[RHET_TA_obj_6]
+      --,[RHET_TA_obj_7]
+      --,[RHET_TA_obj_8]
+      --,[RHET_TA_obj_9]
+      --,[RHET_TA_obj_10]
+      --,[RHET_TA_obj_11]
+      --,[RHET_TA_obj_12]
+      --,[RHET_TA_obj_13]
+      --,[RHET_TA_obj_14]
+      --,[RHET_TA_obj_15]
       ,[COMP_TA_prof_1]
       ,[COMP_TA_prof_2]
       ,[COMP_TA_prof_3]
@@ -260,29 +362,30 @@ SELECT student_number
       ,[VIZ_TA_prof_13]
       ,[VIZ_TA_prof_14]
       ,[VIZ_TA_prof_15]
-      ,[RHET_TA_prof_1]
-      ,[RHET_TA_prof_2]
-      ,[RHET_TA_prof_3]
-      ,[RHET_TA_prof_4]
-      ,[RHET_TA_prof_5]
-      ,[RHET_TA_prof_6]
-      ,[RHET_TA_prof_7]
-      ,[RHET_TA_prof_8]
-      ,[RHET_TA_prof_9]
-      ,[RHET_TA_prof_10]
-      ,[RHET_TA_prof_11]
-      ,[RHET_TA_prof_12]
-      ,[RHET_TA_prof_13]
-      ,[RHET_TA_prof_14]
-      ,[RHET_TA_prof_15]
+      --,[RHET_TA_prof_1]
+      --,[RHET_TA_prof_2]
+      --,[RHET_TA_prof_3]
+      --,[RHET_TA_prof_4]
+      --,[RHET_TA_prof_5]
+      --,[RHET_TA_prof_6]
+      --,[RHET_TA_prof_7]
+      --,[RHET_TA_prof_8]
+      --,[RHET_TA_prof_9]
+      --,[RHET_TA_prof_10]
+      --,[RHET_TA_prof_11]
+      --,[RHET_TA_prof_12]
+      --,[RHET_TA_prof_13]
+      --,[RHET_TA_prof_14]
+      --,[RHET_TA_prof_15]
       ,[COMP_pct_stds_mastered_1] AS [COMP_pct_stds_mastered]
       ,[MATH_pct_stds_mastered_1] AS [MATH_pct_stds_mastered]
       ,[PERF_pct_stds_mastered_1] AS [PERF_pct_stds_mastered]
       ,[PHON_pct_stds_mastered_1] AS [PHON_pct_stds_mastered]
+      ,[HUM_pct_stds_mastered_1] AS [HUM_pct_stds_mastered]
       ,[SCI_pct_stds_mastered_1] AS [SCI_pct_stds_mastered]
       ,[SPAN_pct_stds_mastered_1] AS [SPAN_pct_stds_mastered]
       ,[VIZ_pct_stds_mastered_1] AS [VIZ_pct_stds_mastered]
-      ,[RHET_pct_stds_mastered_1] AS [RHET_pct_stds_mastered]
+      --,[RHET_pct_stds_mastered_1] AS [RHET_pct_stds_mastered]
 FROM
     (
      SELECT student_number
@@ -295,7 +398,7 @@ FROM
                 ,term
                 ,TA_subject                
                 ,CONVERT(VARCHAR,TA_obj) AS TA_obj
-                ,CONVERT(VARCHAR,CONVERT(VARCHAR,TA_score) + ' - ' + CONVERT(VARCHAR,TA_prof)) AS TA_prof
+                ,CONVERT(VARCHAR,CONVERT(VARCHAR,TA_score) + ' = ' + CONVERT(VARCHAR,TA_prof)) AS TA_prof
                 ,CONVERT(VARCHAR,ROUND((n_mastered / n_total) * 100,0)) AS pct_stds_mastered
                 ,ROW_NUMBER() OVER(
                    PARTITION BY student_number, term
@@ -431,22 +534,7 @@ PIVOT(
                     ,[VIZ_TA_obj_12]
                     ,[VIZ_TA_obj_13]
                     ,[VIZ_TA_obj_14]
-                    ,[VIZ_TA_obj_15]
-                    ,[RHET_TA_obj_1]
-                    ,[RHET_TA_obj_2]
-                    ,[RHET_TA_obj_3]
-                    ,[RHET_TA_obj_4]
-                    ,[RHET_TA_obj_5]
-                    ,[RHET_TA_obj_6]
-                    ,[RHET_TA_obj_7]
-                    ,[RHET_TA_obj_8]
-                    ,[RHET_TA_obj_9]
-                    ,[RHET_TA_obj_10]
-                    ,[RHET_TA_obj_11]
-                    ,[RHET_TA_obj_12]
-                    ,[RHET_TA_obj_13]
-                    ,[RHET_TA_obj_14]
-                    ,[RHET_TA_obj_15]
+                    ,[VIZ_TA_obj_15]                    
                     ,[COMP_TA_prof_1]
                     ,[COMP_TA_prof_2]
                     ,[COMP_TA_prof_3]
@@ -566,28 +654,13 @@ PIVOT(
                     ,[VIZ_TA_prof_12]
                     ,[VIZ_TA_prof_13]
                     ,[VIZ_TA_prof_14]
-                    ,[VIZ_TA_prof_15]
-                    ,[RHET_TA_prof_1]
-                    ,[RHET_TA_prof_2]
-                    ,[RHET_TA_prof_3]
-                    ,[RHET_TA_prof_4]
-                    ,[RHET_TA_prof_5]
-                    ,[RHET_TA_prof_6]
-                    ,[RHET_TA_prof_7]
-                    ,[RHET_TA_prof_8]
-                    ,[RHET_TA_prof_9]
-                    ,[RHET_TA_prof_10]
-                    ,[RHET_TA_prof_11]
-                    ,[RHET_TA_prof_12]
-                    ,[RHET_TA_prof_13]
-                    ,[RHET_TA_prof_14]
-                    ,[RHET_TA_prof_15]
+                    ,[VIZ_TA_prof_15]                    
                     ,[COMP_pct_stds_mastered_1]
                     ,[MATH_pct_stds_mastered_1]
                     ,[PERF_pct_stds_mastered_1]
                     ,[PHON_pct_stds_mastered_1]
+                    ,[HUM_pct_stds_mastered_1]
                     ,[SCI_pct_stds_mastered_1]
                     ,[SPAN_pct_stds_mastered_1]
-                    ,[VIZ_pct_stds_mastered_1]
-                    ,[RHET_pct_stds_mastered_1])
+                    ,[VIZ_pct_stds_mastered_1])
  ) p

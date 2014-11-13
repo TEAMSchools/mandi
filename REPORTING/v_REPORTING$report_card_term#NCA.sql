@@ -41,7 +41,7 @@ WITH curterm AS (
         ,co.lunch_balance AS lunch_balance
         ,curterm.term AS curterm
         ,curterm.time_per_name AS rt
-        ,DATENAME(MONTH,GETDATE()) + ' ' + DATEPART(DAY,GETDATE()) + ', ' + DATEPART(YEAR,GETDATE()) AS today_words
+        ,CONVERT(VARCHAR,DATENAME(MONTH,GETDATE())) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,GETDATE())) + ', ' + CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) AS today_words
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK)
   JOIN curterm
     ON 1 = 1  
@@ -496,7 +496,7 @@ LEFT OUTER JOIN comments comment_rc10 WITH (NOLOCK)
   ON gr_wide.studentid = comment_rc10.studentid
  AND gr_wide.rc10_course_number = comment_rc10.course_number
  AND comment_rc10.term = roster.curterm
-LEFT OUTER JOIN comments comment_adv WITH (NOLOCK)
+LEFT OUTER JOIN PS$comments#static comment_adv WITH (NOLOCK)
   ON roster.base_studentid = comment_adv.studentid
  AND comment_adv.course_number = 'HR'
  AND comment_adv.term = roster.curterm
