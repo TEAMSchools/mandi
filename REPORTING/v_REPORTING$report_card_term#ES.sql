@@ -279,7 +279,7 @@ SELECT r.studentid
       ,ta.SCI_pct_stds_mastered
       ,ta.SPAN_pct_stds_mastered
       ,ta.VIZ_pct_stds_mastered
-      ,NULL AS RHET_pct_stds_mastered      
+      ,ta.RHET_pct_stds_mastered      
       -- TA objectives
       -- math
       ,ta.MATH_TA_obj_1
@@ -330,18 +330,18 @@ SELECT r.studentid
       ,ta.PHON_TA_obj_14
       ,ta.PHON_TA_obj_15
       -- writing
-      ,NULL AS RHET_TA_obj_1
-      ,NULL AS RHET_TA_obj_2
-      ,NULL AS RHET_TA_obj_3
-      ,NULL AS RHET_TA_obj_4
-      ,NULL AS RHET_TA_obj_5
-      ,NULL AS RHET_TA_obj_6
-      ,NULL AS RHET_TA_obj_7
-      ,NULL AS RHET_TA_obj_8
-      ,NULL AS RHET_TA_obj_9
-      ,NULL AS RHET_TA_obj_10
-      ,NULL AS RHET_TA_obj_11
-      ,NULL AS RHET_TA_obj_12      
+      ,ta.RHET_TA_obj_1
+      ,ta.RHET_TA_obj_2
+      ,ta.RHET_TA_obj_3
+      ,ta.RHET_TA_obj_4
+      ,ta.RHET_TA_obj_5
+      ,ta.RHET_TA_obj_6
+      ,ta.RHET_TA_obj_7
+      ,ta.RHET_TA_obj_8
+      ,ta.RHET_TA_obj_9
+      ,ta.RHET_TA_obj_10
+      ,ta.RHET_TA_obj_11
+      ,ta.RHET_TA_obj_12      
       -- specials
       ,ta.PERF_TA_obj_1
       ,ta.PERF_TA_obj_2
@@ -418,21 +418,18 @@ SELECT r.studentid
       ,ta.PHON_TA_prof_14
       ,ta.PHON_TA_prof_15
       -- writing
-      ,NULL AS RHET_TA_prof_1
-      ,NULL AS RHET_TA_prof_2
-      ,NULL AS RHET_TA_prof_3
-      ,NULL AS RHET_TA_prof_4
-      ,NULL AS RHET_TA_prof_5
-      ,NULL AS RHET_TA_prof_6
-      ,NULL AS RHET_TA_prof_7
-      ,NULL AS RHET_TA_prof_8
-      ,NULL AS RHET_TA_prof_9
-      ,NULL AS RHET_TA_prof_10
-      ,NULL AS RHET_TA_prof_11
-      ,NULL AS RHET_TA_prof_12
-      ,NULL AS RHET_TA_prof_13
-      ,NULL AS RHET_TA_prof_14
-      ,NULL AS RHET_TA_prof_15
+      ,ta.RHET_TA_prof_1
+      ,ta.RHET_TA_prof_2
+      ,ta.RHET_TA_prof_3
+      ,ta.RHET_TA_prof_4
+      ,ta.RHET_TA_prof_5
+      ,ta.RHET_TA_prof_6
+      ,ta.RHET_TA_prof_7
+      ,ta.RHET_TA_prof_8
+      ,ta.RHET_TA_prof_9
+      ,ta.RHET_TA_prof_10
+      ,ta.RHET_TA_prof_11
+      ,ta.RHET_TA_prof_12      
       -- specials
       ,ta.PERF_TA_prof_1
       ,ta.PERF_TA_prof_2
