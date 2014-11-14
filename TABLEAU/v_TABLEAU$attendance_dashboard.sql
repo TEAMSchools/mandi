@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW TABLEAU$attendance_dashboard AS
+ALTER VIEW TABLEAU$attendance_dashboard AS
 
 SELECT 'KIPP NJ' AS Network
       ,CASE
@@ -16,8 +16,8 @@ SELECT 'KIPP NJ' AS Network
       ,co.schoolid
       ,co.lastfirst
       ,co.grade_level
-      ,s.team
-      ,cs.SPEDLEP
+      ,co.team
+      ,co.SPEDLEP
       ,CONVERT(DATE,mem.calendardate) AS att_date
       ,mem.membershipvalue
       ,att.att_code
@@ -38,11 +38,7 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN att.att_code = 'OSS' THEN 1 ELSE 0 END AS OSS
       --other
       ,CASE WHEN ed.subtype = '01' THEN 1 ELSE 0 END AS early_dismissal
-FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
-  ON co.studentid = s.id
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON co.studentid = cs.studentid
+FROM COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
  AND co.schoolid = mem.schoolid
@@ -54,5 +50,5 @@ LEFT OUTER JOIN DISC$log#static ed WITH(NOLOCK)
   ON co.studentid = ed.studentid
  AND mem.CALENDARDATE = ed.entry_date
  AND ed.logtypeid = 3953
-WHERE co.year = 2014 --dbo.fn_Global_Academic_Year()
+WHERE co.year = dbo.fn_Global_Academic_Year()
   AND co.rn = 1

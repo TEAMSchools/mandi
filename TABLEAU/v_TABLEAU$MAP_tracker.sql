@@ -11,13 +11,9 @@ WITH roster AS (
         ,co.schoolid
         ,co.grade_level
         ,co.cohort
-        ,s.team        
-        ,cs.SPEDLEP        
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)  
-  LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
-    ON co.studentid = s.id
-  LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-    ON co.studentid = cs.STUDENTID
+        ,co.team        
+        ,co.SPEDLEP        
+  FROM COHORT$identifiers_long#static co WITH(NOLOCK)    
   WHERE co.rn = 1
     AND co.grade_level < 99
  )
@@ -40,28 +36,12 @@ WITH roster AS (
            (
             SELECT cc.studentid                
                   ,cc.TERMID
-                  ,(CONVERT(FLOAT,(LEFT(cc.TERMID, 2) + '00')) + CONVERT(FLOAT, '1.990000e+05')) / 100 AS year
+                  ,cc.academic_year AS year
                   ,c.credittype
                   ,cc.COURSE_NUMBER
                   ,c.course_name                
                   ,t.LASTFIRST AS teacher
-                  ,CASE        
-                    WHEN cc.expression = '1(A)' THEN 'HR'
-                    WHEN cc.expression = '2(A)' THEN '1'
-                    WHEN cc.expression = '3(A)' THEN '2'
-                    WHEN cc.expression = '4(A)' THEN '3'
-                    WHEN cc.expression = '5(A)' THEN '4A'
-                    WHEN cc.expression = '6(A)' THEN '4B'
-                    WHEN cc.expression = '7(A)' THEN '4C'
-                    WHEN cc.expression = '8(A)' THEN '4D'
-                    WHEN cc.expression = '9(A)' THEN '5A'
-                    WHEN cc.expression = '10(A)' THEN '5B'
-                    WHEN cc.expression = '11(A)' THEN '5C'
-                    WHEN cc.expression = '12(A)' THEN '5D'
-                    WHEN cc.expression = '13(A)' THEN '6'
-                    WHEN cc.expression = '14(A)' THEN '7'
-                    ELSE cc.SECTION_NUMBER
-                   END AS period
+                  ,cc.period
             FROM cc WITH(NOLOCK)
             JOIN COURSES c WITH(NOLOCK)
               ON cc.course_number = c.course_number
@@ -114,7 +94,7 @@ WITH roster AS (
     ON 1 = 1
   LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
     ON base.year = rr.year
-   AND base.measurementscale = rr.measurementscale
+   AND REPLACE(base.measurementscale,' Usage','') = rr.measurementscale
    AND base.studentid = rr.studentid
   LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
     ON base.studentid = map.ps_studentid
@@ -147,7 +127,7 @@ WITH roster AS (
           WHEN test_round = 'T3' THEN 'Spring'
           ELSE NULL
          END AS fallwinterspring
-  FROM LIT$achieved_by_round WITH(NOLOCK)
+  FROM LIT$achieved_by_round#static WITH(NOLOCK)
  )
 
 SELECT r.year

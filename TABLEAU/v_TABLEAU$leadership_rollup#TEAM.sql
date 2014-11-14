@@ -9,18 +9,15 @@ WITH roster AS (
         ,co.schoolid
         ,co.lastfirst
         ,co.grade_level
-        ,s.team
-        ,s.GENDER
-        ,cs.SPEDLEP
+        ,co.team
+        ,co.GENDER
+        ,co.SPEDLEP
         ,co.entrydate
         ,co.exitdate
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  JOIN STUDENTS s WITH(NOLOCK)
-    ON co.studentid = s.id
-  JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-    ON co.studentid = cs.STUDENTID
+  FROM COHORT$identifiers_long#static co WITH(NOLOCK)  
   WHERE co.year = dbo.fn_Global_Academic_Year()  
     AND co.schoolid = 133570965
+    AND co.rn = 1
  )
 
 ,reporting_weeks AS (

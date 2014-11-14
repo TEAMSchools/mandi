@@ -22,7 +22,49 @@ WITH assessments AS (
  )
 
 ,results_wide AS (
-  SELECT *
+  SELECT [SCHOOLID]
+        ,[grade_level]
+        ,[studentid]
+        ,[STUDENT_NUMBER]
+        ,[lastfirst]
+        ,[team]
+        ,[repository_id]
+        ,[title]
+        ,[credittype]
+        ,[repository_row_id]
+        ,LEFT([Year],4) AS academic_year
+        ,[Interim]
+        ,[Quarter]
+        ,[Overall]
+        ,[Organization]
+        ,[Elaboration]
+        ,[Conventions]
+        ,[Capitalization]
+        ,[End Punctuation]
+        ,[Prompt 1 - Overall]
+        ,[Prompt 1 - Quality of Ideas]
+        ,[Prompt 1 - Context of Evidence]
+        ,[Prompt 1 - Choice of Evidence]
+        ,[Prompt 1 - Analysis of Evidence]
+        ,[Prompt 1 - Justification ]
+        ,[Prompt 2 - Overall]
+        ,[Prompt 2 - Quality of Ideas]
+        ,[Prompt 2 - Context of Evidence]
+        ,[Prompt 2 - Choice of Evidence]
+        ,[Prompt 2 - Analysis of Evidence]
+        ,[Prompt 2 - Justification]
+        ,[Prompt 3 - Overall]
+        ,[Prompt 3 - Quality of Ideas]
+        ,[Prompt 3 - Context of Evidence]
+        ,[Prompt 3 - Choice of Evidence]
+        ,[Prompt 3 - Analysis of Evidence]
+        ,[Prompt 3 - Justification]
+        ,[Prompt 4 - Overall]
+        ,[Prompt 4 - Quality of Ideas]
+        ,[Prompt 4 - Context of Evidence]
+        ,[Prompt 4 - Choice of Evidence]
+        ,[Prompt 4 - Analysis of Evidence]
+        ,[Prompt 4 - Justification]
   FROM
       (
        SELECT s.SCHOOLID
@@ -114,7 +156,7 @@ SELECT w.SCHOOLID
       ,w.lastfirst
       ,w.team
       ,w.title
-      ,w.year
+      ,w.academic_year AS year
       ,COALESCE(w.Interim, w.Quarter) AS interim
       ,[Overall]
       ,[Organization]
@@ -229,7 +271,7 @@ SELECT w.SCHOOLID
       ,[YTD_justification_growth]
       ,[YTD_qualityofideas_growth]
       ,[YTD_overall_growth]
-      ,cs.SPEDLEP
+      ,co.SPEDLEP
       ,co.grade_level AS test_grade_level
       ,enr.course_name AS nca_course_name
       ,enr.period AS nca_period
@@ -238,12 +280,10 @@ FROM results_wide w WITH(NOLOCK)
 LEFT OUTER JOIN ILLUMINATE$writing_growth_wide growth WITH(NOLOCK)
   ON w.student_number = growth.student_number
  AND w.repository_id = growth.repository_id
- AND LEFT(w.year,4) = growth.academic_year
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON w.studentid = cs.STUDENTID
-JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+ AND w.academic_year = growth.academic_year
+JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
   ON w.student_number = co.student_number
- AND LEFT(w.year,4) = co.year
+ AND w.academic_year = co.year
  AND co.rn = 1
 LEFT OUTER JOIN enrollments enr WITH(NOLOCK)
   ON w.studentid = enr.STUDENTID

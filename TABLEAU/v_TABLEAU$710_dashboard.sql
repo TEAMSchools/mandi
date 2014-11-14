@@ -21,7 +21,7 @@ WITH enrollments AS (
    AND cou.CREDITTYPE NOT IN ('LOG')
   JOIN TEACHERS t WITH(NOLOCK)
     ON cc.TEACHERID = t.ID
-  WHERE cc.TERMID >= dbo.fn_Global_Term_Id()
+  WHERE cc.TERMID >= dbo.fn_Global_Term_Id()    
     AND cc.STUDENTID IN (SELECT studentid 
                          FROM COHORT$comprehensive_long#static co WITH(NOLOCK) 
                          WHERE co.year = dbo.fn_Global_Academic_Year() AND co.grade_level >= 5 AND co.grade_level <= 12)

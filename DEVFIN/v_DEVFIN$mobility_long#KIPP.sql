@@ -69,31 +69,29 @@ SELECT denom.YEAR
       ,raw_numer.schoolid AS n_schoolid
       ,raw_numer.GRADE_LEVEL AS n_grade_level
       ,raw_numer.studentid AS n_studentid    
-      ,s.STUDENT_NUMBER
-      ,s.FIRST_NAME
-      ,s.MIDDLE_NAME
-      ,s.LAST_NAME
-      ,s.ETHNICITY
-      ,s.GENDER
-      ,CONVERT(DATE,s.DOB) AS DOB
-      ,cs.spedlep        
+      ,co.STUDENT_NUMBER
+      ,co.FIRST_NAME
+      ,co.MIDDLE_NAME
+      ,co.LAST_NAME
+      ,co.ETHNICITY
+      ,co.GENDER
+      ,CONVERT(DATE,co.DOB) AS DOB
+      ,co.spedlep        
       ,CASE 
-        WHEN cs.spedlep LIKE '%SPED%' THEN 'Y'
-        WHEN cs.spedlep = 'No IEP' THEN 'N'
+        WHEN co.spedlep LIKE '%SPED%' THEN 'Y'
+        WHEN co.spedlep = 'No IEP' THEN 'N'
         ELSE 'U'
        END AS special_needs
       ,CONVERT(DATE,denom.entrydate) AS entrydate
       ,CONVERT(DATE,denom.exitdate) AS exitdate
       ,CASE WHEN raw_numer.schoolid = 999999 THEN 1 ELSE 0 END AS grad_flag
-      ,blobs.EXITCOMMENT
+      ,co.EXITCOMMENT
       ,CASE WHEN raw_numer.studentid IS NULL THEN 1 ELSE 0 END AS attr_flag      
 FROM denom WITH(NOLOCK)
 LEFT OUTER JOIN raw_numer WITH(NOLOCK)
   ON denom.STUDENTID = raw_numer.STUDENTID
  AND denom.YEAR = (raw_numer.YEAR - 1)
-LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
-  ON denom.studentid = s.ID
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON denom.studentid = cs.STUDENTID
-LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
-  ON denom.studentid = blobs.STUDENTID
+LEFT OUTER JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
+  ON denom.studentid = co.studentid
+ AND denom.year = co.year
+ AND co.rn = 1

@@ -16,14 +16,7 @@ FROM
      FROM
          (
           SELECT studentid
-                ,CASE
-                  WHEN field_name LIKE ('%0708%') THEN 2007
-                  WHEN field_name LIKE ('%0809%') THEN 2008
-                  WHEN field_name LIKE ('%0910%') THEN 2009
-                  WHEN field_name LIKE ('%1011%') THEN 2010
-                  WHEN field_name LIKE ('%1112%') THEN 2011
-                  WHEN field_name LIKE ('%1213%') THEN 2012                                            
-                 END AS year        
+                ,CONVERT(INT,'20' + REVERSE(SUBSTRING(REVERSE(field_name),3,2))) AS year        
                 ,CASE                  
                   WHEN string_value = 'Free' THEN 'F'
                   WHEN string_value = 'TANF' THEN 'F'

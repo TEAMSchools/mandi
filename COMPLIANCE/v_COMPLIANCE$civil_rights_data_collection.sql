@@ -76,7 +76,7 @@ WITH pt1_roster AS (
   FROM pt2_roster r WITH(NOLOCK)
   LEFT OUTER JOIN MEMBERSHIP mem WITH(NOLOCK)
     ON r.studentid = mem.STUDENTID
-   AND dbo.fn_DateToSY(mem.calendardate) = 2013
+   AND mem.academic_year = 2013
    AND mem.MEMBERSHIPVALUE = 1
    AND mem.ATTENDANCEVALUE = 0
   GROUP BY r.studentid
@@ -101,7 +101,7 @@ WITH pt1_roster AS (
    AND att.att_code = 'S'
   LEFT OUTER JOIN (
                    SELECT studentid
-                         ,COUNT(streak_grp) AS OSS
+                         ,COUNT(streak_id) AS OSS
                    FROM ATT_MEM$attendance_streak WITH(NOLOCK)
                    WHERE academic_year = 2013
                      AND att_code = 'OS'

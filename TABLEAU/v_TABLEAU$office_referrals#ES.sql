@@ -10,14 +10,10 @@ WITH roster AS (
         ,co.year
         ,co.schoolid
         ,co.grade_level
-        ,s.TEAM
-        ,cs.SPEDLEP
-        ,s.GENDER
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
-    ON co.studentid = s.ID
-  LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-    ON co.studentid = cs.STUDENTID
+        ,co.TEAM
+        ,co.SPEDLEP
+        ,co.GENDER
+  FROM COHORT$identifiers_long#static co WITH(NOLOCK)
   WHERE co.grade_level < 5
     AND co.rn = 1
  )

@@ -8,26 +8,26 @@ SET QUOTED_IDENTIFIER ON
 GO
 
                   
-ALTER PROCEDURE [sp_PS$emerg_release_contact#static|refresh] AS
+ALTER PROCEDURE [sp_PS$SPED_archive#static|refresh] AS
 BEGIN
 
   DECLARE @sql AS VARCHAR(MAX)='';
 
   -- STEP 1: make sure no temp table
-		IF OBJECT_ID(N'tempdb..#PS$emerg_release_contact#static|refresh') IS NOT NULL
+		IF OBJECT_ID(N'tempdb..#PS$SPED_archive#static|refresh') IS NOT NULL
 		BEGIN
-						DROP TABLE [#PS$emerg_release_contact#static|refresh]
+						DROP TABLE [#PS$SPED_archive#static|refresh]
 		END
 
 
   -- STEP 2: load into a temporary staging table.
   SELECT *
-		INTO [#PS$emerg_release_contact#static|refresh]
-  FROM PS$emerg_release_contact;
+		INTO [#PS$SPED_archive#static|refresh]
+  FROM PS$SPED_archive;
          
 
   -- STEP 3: truncate destination table
-  EXEC('TRUNCATE TABLE KIPP_NJ..PS$emerg_release_contact#static');
+  EXEC('TRUNCATE TABLE KIPP_NJ..PS$SPED_archive#static');
 
 
   -- STEP 4: disable all nonclustered indexes on table
@@ -39,14 +39,14 @@ BEGIN
     ON sys.indexes.object_id = sys.objects.object_id
   WHERE sys.indexes.type_desc = 'NONCLUSTERED'
     AND sys.objects.type_desc = 'USER_TABLE'
-    AND sys.objects.name = 'PS$emerg_release_contact#static';
+    AND sys.objects.name = 'PS$SPED_archive#static';
   EXEC (@sql);
 
 
   -- STEP 5: insert into final destination
-  INSERT INTO [PS$emerg_release_contact#static]
+  INSERT INTO [PS$SPED_archive#static]
   SELECT *
-  FROM [#PS$emerg_release_contact#static|refresh];
+  FROM [#PS$SPED_archive#static|refresh];
  
 
   -- STEP 6: rebuld all nonclustered indexes on table
@@ -58,7 +58,7 @@ BEGIN
     ON sys.indexes.object_id = sys.objects.object_id
   WHERE sys.indexes.type_desc = 'NONCLUSTERED'
     AND sys.objects.type_desc = 'USER_TABLE'
-    AND sys.objects.name = 'PS$emerg_release_contact#static';
+    AND sys.objects.name = 'PS$SPED_archive#static';
   EXEC (@sql);
   
 END                  

@@ -10,6 +10,7 @@ SELECT co.schoolid
       ,cs.SID
       ,co.lastfirst
       ,s.first_name
+      ,s.MIDDLE_NAME
       ,s.last_name
       ,s.first_name + ' ' + s.last_name AS full_name
       ,co.grade_level
@@ -17,19 +18,25 @@ SELECT co.schoolid
       ,co.cohort
       ,co.entrydate
       ,co.exitdate
+      ,blobs.EXITCOMMENT
       ,s.TEAM
       ,cs.ADVISOR
       ,s.GENDER
       ,s.ETHNICITY
       ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunch_status END AS lunchstatus
-      ,cs.SPEDLEP            
+      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE sped.SPEDLEP END AS SPEDLEP
+      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE ELSE sped.SPEDCODE END AS SPED_code
       ,cs.LEP_STATUS
       ,s.enroll_status
       ,co.rn
       ,co.year_in_network
+      ,ROW_NUMBER() OVER(
+         PARTITION BY co.studentid, co.schoolid
+           ORDER BY co.year ASC) AS year_in_school
       ,ms.school AS entry_school_name
       ,ms.schoolid AS entry_schoolid
       ,gr.grade_level AS entry_grade_level
+      ,gr.highest_achieved      
       ,s.DOB
       ,cs.DEFAULT_STUDENT_WEB_ID AS STUDENT_WEB_ID
       ,cs.DEFAULT_STUDENT_WEB_PASSWORD AS STUDENT_WEB_PASSWORD
@@ -79,5 +86,8 @@ LEFT OUTER JOIN KIPP_NJ..PS$student_BLObs#static blobs WITH(NOLOCK)
 LEFT OUTER JOIN PS$lunch_status_long#static lunch WITH(NOLOCK)
   ON co.studentid = lunch.studentid
  AND co.year = lunch.year
-LEFT OUTER JOIN PS$emerg_release_contact emerg WITH(NOLOCK)
+LEFT OUTER JOIN PS$emerg_release_contact#static emerg WITH(NOLOCK)
   ON co.studentid = emerg.STUDENTID
+LEFT OUTER JOIN PS$SPED_archive#static sped WITH(NOLOCK)
+  ON co.studentid = sped.studentid
+ AND co.year  = sped.academic_year

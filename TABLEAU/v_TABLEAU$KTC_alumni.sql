@@ -13,7 +13,7 @@ WITH max_grade AS (
         ,ROW_NUMBER() OVER(
            PARTITION BY co.studentid
              ORDER BY co.year DESC) AS rn
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+  FROM COHORT$identifiers_long#static co WITH(NOLOCK)
   WHERE co.schoolid != 999999         
     AND co.rn = 1
  )
@@ -25,7 +25,7 @@ WITH max_grade AS (
         ,max_grade.grade_level + (dbo.fn_Global_Academic_Year() - co.year) AS grade_level
         ,max_grade.cohort
         ,max_grade.schoolid        
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+  FROM COHORT$identifiers_long#static co WITH(NOLOCK)
   JOIN max_grade WITH(NOLOCK)
     ON co.studentid = max_grade.studentid
    AND co.year >= max_grade.cohort

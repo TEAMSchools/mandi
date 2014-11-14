@@ -11,75 +11,67 @@ SELECT sub.*
        END AS met_goal
        
       -- test sequence identifiers      
-      ,CASE -- base letter for the round
-        WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER
-           (PARTITION BY studentid, academic_year, test_round, status
-                ORDER BY test_date ASC, lvl_num ASC)
+      -- base letter for the round
+      ,CASE WHEN status = 'Achieved' THEN
+         ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year, test_round, status
+             ORDER BY round_num ASC, lvl_num ASC)
         ELSE NULL
        END AS achv_base_round
-      
-      ,CASE -- base letter for the year
-        WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER
-           (PARTITION BY studentid, academic_year, status
-                ORDER BY test_date ASC, lvl_num ASC)
+      -- base letter for the year
+      ,CASE WHEN status = 'Achieved' THEN
+         ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year, status
+             ORDER BY round_num ASC, lvl_num ASC)
         ELSE NULL
        END AS achv_base_yr
-       
-      ,CASE -- base letter, all time
-        WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER
-           (PARTITION BY studentid, status
-                ORDER BY test_date ASC, lvl_num ASC)
+      -- base letter, all time
+      ,CASE WHEN status = 'Achieved' THEN
+         ROW_NUMBER() OVER(
+           PARTITION BY studentid, status
+             ORDER BY round_num ASC, lvl_num ASC)
         ELSE NULL
        END AS achv_base_all
-       
-      ,CASE -- current letter for the round
-        WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER
-           (PARTITION BY studentid, academic_year, test_round, status
-                ORDER BY test_date DESC, lvl_num DESC)
+      -- current letter for the round
+      ,CASE WHEN status = 'Achieved' THEN
+         ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year, test_round, status
+             ORDER BY round_num DESC, lvl_num DESC)
         ELSE NULL
        END AS achv_curr_round
-      
-      ,CASE -- current letter for the year
-        WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER
-           (PARTITION BY studentid, academic_year, status
-                ORDER BY test_date DESC, lvl_num DESC)
+      -- current letter for the year
+      ,CASE WHEN status = 'Achieved' THEN
+         ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year, status
+             ORDER BY round_num DESC, lvl_num DESC)
         ELSE NULL
        END AS achv_curr_yr   
-      
-      ,CASE -- current letter, all time
-        WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER
-           (PARTITION BY studentid, status
-                ORDER BY test_date DESC, lvl_num DESC)
+      -- current letter, all time
+      ,CASE WHEN status = 'Achieved' THEN
+         ROW_NUMBER() OVER(
+           PARTITION BY studentid, status
+             ORDER BY round_num DESC, lvl_num DESC)
         ELSE NULL
        END AS achv_curr_all
-       
-      ,CASE -- current DNA for the round
-        WHEN status = 'Did Not Achieve' THEN
-         ROW_NUMBER() OVER
-           (PARTITION BY studentid, academic_year, test_round, status
-                ORDER BY test_date DESC, lvl_num DESC)
+       -- current DNA for the round
+      ,CASE WHEN status = 'Did Not Achieve' THEN
+         ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year, test_round, status
+             ORDER BY round_num DESC, lvl_num DESC)
         ELSE NULL
        END AS dna_round
-       
-      ,CASE -- current DNA for the year
-        WHEN status = 'Did Not Achieve' THEN
-         ROW_NUMBER() OVER
-           (PARTITION BY studentid, academic_year, status
-                ORDER BY test_date DESC, lvl_num DESC)
+       -- current DNA for the year
+      ,CASE WHEN status = 'Did Not Achieve' THEN
+         ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year, status
+             ORDER BY round_num DESC, lvl_num DESC)
         ELSE NULL
        END AS dna_yr
-       
-      ,CASE -- current DNA, all time
-        WHEN status = 'Did Not Achieve' THEN
-         ROW_NUMBER() OVER
-           (PARTITION BY studentid, status
-                ORDER BY test_date DESC, lvl_num DESC)
+       -- current DNA, all time
+      ,CASE WHEN status = 'Did Not Achieve' THEN
+         ROW_NUMBER() OVER(
+           PARTITION BY studentid, status
+             ORDER BY round_num DESC, lvl_num DESC)
         ELSE NULL
        END AS dna_all
 FROM
@@ -103,6 +95,24 @@ FROM
                     ELSE rs.test_round
                    END) 
             END AS test_round
+           ,CASE 
+             WHEN rs.test_round IS NULL THEN (CASE
+                                               WHEN rs.schoolid NOT IN (73252, 133570965) AND dates.time_per_name = 'Diagnostic' THEN 1
+                                               WHEN rs.schoolid IN (73252, 133570965) AND dates.time_per_name IN ('Diagnostic', 'DR') THEN 1
+                                               WHEN dates.time_per_name = 'T1' THEN 2
+                                               WHEN dates.time_per_name = 'T2' THEN 3
+                                               WHEN dates.time_per_name = 'T3' THEN 4
+                                               WHEN dates.time_per_name = 'EOY' THEN 5
+                                              END)
+             ELSE (CASE
+                    WHEN rs.schoolid NOT IN (73252, 133570965) AND rs.test_round = 'Diagnostic' THEN 1
+                    WHEN rs.schoolid IN (73252, 133570965) AND rs.test_round IN ('Diagnostic', 'DR') THEN 1
+                    WHEN rs.test_round = 'T1' THEN 2
+                    WHEN rs.test_round = 'T2' THEN 3
+                    WHEN rs.test_round = 'T3' THEN 4
+                    WHEN rs.test_round = 'EOY' THEN 5
+                   END) 
+            END AS round_num
            ,rs.test_date
            
            -- student identifiers
@@ -175,6 +185,24 @@ FROM
                     ELSE rs.test_round
                    END) 
             END AS test_round
+           ,CASE 
+             WHEN rs.test_round IS NULL THEN (CASE
+                                               WHEN rs.schoolid NOT IN (73252, 133570965) AND dates.time_per_name = 'Diagnostic' THEN 1
+                                               WHEN rs.schoolid IN (73252, 133570965) AND dates.time_per_name IN ('Diagnostic', 'DR') THEN 1
+                                               WHEN dates.time_per_name = 'T1' THEN 2
+                                               WHEN dates.time_per_name = 'T2' THEN 3
+                                               WHEN dates.time_per_name = 'T3' THEN 4
+                                               WHEN dates.time_per_name = 'EOY' THEN 5
+                                              END)
+             ELSE (CASE
+                    WHEN rs.schoolid NOT IN (73252, 133570965) AND rs.test_round = 'Diagnostic' THEN 1
+                    WHEN rs.schoolid IN (73252, 133570965) AND rs.test_round IN ('Diagnostic', 'DR') THEN 1
+                    WHEN rs.test_round = 'T1' THEN 2
+                    WHEN rs.test_round = 'T2' THEN 3
+                    WHEN rs.test_round = 'T3' THEN 4
+                    WHEN rs.test_round = 'EOY' THEN 5
+                   END) 
+            END AS round_num
            ,rs.test_date
            
            -- student identifiers

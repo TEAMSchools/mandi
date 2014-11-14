@@ -23,7 +23,7 @@ WITH goals_wide AS (
              ,co.studentid      
              ,goals.test_round
              ,COALESCE(indiv.goal, goals.read_lvl) AS goal      
-       FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+       FROM COHORT$identifiers_long#static co WITH(NOLOCK)
        JOIN LIT$goals goals WITH(NOLOCK)
          ON co.grade_level = goals.grade_level
        LEFT OUTER JOIN LIT$individual_goals indiv WITH(NOLOCK)
@@ -41,8 +41,7 @@ WITH goals_wide AS (
  )
 
 ,terms AS (      
-  SELECT academic_year
-        ,schoolid
+  SELECT academic_year        
         ,CASE 
           WHEN school_level = 'MS' AND time_per_name = 'DR' THEN 'BOY' 
           ELSE REPLACE(time_per_name, 'Diagnostic', 'DR')
@@ -61,31 +60,28 @@ WITH goals_wide AS (
 SELECT
  --REPORTING HASHES
        CONVERT(VARCHAR,details.student_number) + '_'
-        + CONVERT(VARCHAR,scores.test_round) + '_' 
-        + 'Achieved_' 
-        + CONVERT(VARCHAR,scores.academic_year) + '_'
-        + '1'
+        + CONVERT(VARCHAR,scores.test_round) + '_Achieved_' 
+        + CONVERT(VARCHAR,scores.academic_year) + '_1'
        AS reporting_hash
       ,NULL AS reasons_for_DNA
       ,CASE 
-        WHEN details.achv_curr_yr = 1 AND details.academic_year = scores.academic_year AND details.test_round = (SELECT DISTINCT test_round FROM terms WHERE is_curr = 1)
-         THEN CONVERT(VARCHAR,details.student_number) + '_MostCurrent_' 
-               + CONVERT(VARCHAR,scores.academic_year) 
+        WHEN details.achv_curr_yr = 1 AND scores.academic_year = dbo.fn_Global_Academic_Year() AND scores.test_round = (SELECT DISTINCT test_round FROM terms WHERE is_curr = 1)
+         THEN CONVERT(VARCHAR,details.student_number) + '_MostCurrent_' + CONVERT(VARCHAR,dbo.fn_Global_Academic_Year())
         ELSE NULL 
        END AS mostcurr_hash
  --STUDENT IDENTIFIERS
       ,s.schoolid
       ,s.grade_level
-      ,s.id AS studentid
+      ,s.studentid
       ,s.student_number
       ,s.lastfirst
-      ,s.FIRST_NAME + ' ' + s.LAST_NAME AS full_name       
+      ,s.full_name       
       ,scores.academic_year
       ,scores.schoolid AS test_schoolid
       ,scores.grade_level AS test_grade_level      
       ,s.team
-      ,cs.advisor
-      ,cs.SPEDLEP
+      ,s.advisor
+      ,s.SPEDLEP
       ,grteacher.t1_teach AS read_teacher_t1
       ,grteacher.t2_teach AS read_teacher_t2
       ,grteacher.t3_teach AS read_teacher_t3
@@ -125,8 +121,8 @@ SELECT
       ,growth.t2t3_growth_lvl AS T2T3_lvl
       ,growth.t3EOY_growth_GLEQ AS T3EOY_GLEQ
       ,growth.t3EOY_growth_lvl AS T3EOY_lvl
-      ,growth.yr_growth_GLEQ AS YTD_GLEQ
-      ,growth.yr_growth_lvl AS YTD_lvl
+      ,ISNULL(growth.yr_growth_GLEQ,0) AS YTD_GLEQ
+      ,ISNULL(growth.yr_growth_lvl,0) AS YTD_lvl
             
 --MAP Reading
 -- most recent test, if none, then baseline
@@ -157,11 +153,11 @@ JOIN LIT$test_events#identifiers details WITH(NOLOCK)
 LEFT OUTER JOIN LIT$growth_measures_wide#static growth WITH(NOLOCK)
   ON scores.studentid = growth.STUDENTID
  AND scores.academic_year = growth.year
-JOIN STUDENTS s WITH(NOLOCK)
-  ON scores.studentid = s.id
+JOIN COHORT$identifiers_long#static s WITH(NOLOCK)
+  ON scores.studentid = s.studentid
  AND s.GRADE_LEVEL < 5
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
-  ON scores.studentid = cs.studentid
+ AND s.year = dbo.fn_Global_Academic_Year()
+ AND s.rn = 1
 LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH (NOLOCK)
   ON scores.studentid = map.ps_studentid 
  AND scores.academic_year = map.map_year_academic
@@ -188,8 +184,7 @@ UNION ALL
 SELECT
  --REPORTING HASHES
        CONVERT(VARCHAR,scores.student_number) + '_'
-        + CONVERT(VARCHAR,test_round) + '_' 
-        + 'Did Not Achieve_' 
+        + CONVERT(VARCHAR,test_round) + '_Did Not Achieve_' 
         + CONVERT(VARCHAR, academic_year) + '_'
         + CONVERT(VARCHAR,dna_round) 
        AS reporting_hash
@@ -201,13 +196,13 @@ SELECT
       ,scores.studentid
       ,scores.student_number
       ,scores.lastfirst
-      ,s.FIRST_NAME + ' ' + s.LAST_NAME AS full_name       
+      ,s.full_name       
       ,scores.academic_year
       ,scores.schoolid AS test_schoolid
       ,scores.grade_level AS test_grade_level      
       ,s.team
-      ,cs.advisor
-      ,cs.SPEDLEP
+      ,s.advisor
+      ,s.SPEDLEP
       ,grteacher.t1_teach AS read_teacher_t1
       ,grteacher.t2_teach AS read_teacher_t2
       ,grteacher.t3_teach AS read_teacher_t3
@@ -278,11 +273,11 @@ LEFT OUTER JOIN LIT$dna_reasons dna WITH(NOLOCK)
 LEFT OUTER JOIN LIT$growth_measures_wide#static growth WITH(NOLOCK)
   ON scores.studentid = growth.STUDENTID
  AND scores.academic_year = growth.year
-JOIN STUDENTS s WITH(NOLOCK)
-  ON scores.studentid = s.id
+JOIN COHORT$identifiers_long#static s WITH(NOLOCK)
+  ON scores.studentid = s.studentid
  AND s.GRADE_LEVEL < 5
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
-  ON scores.studentid = cs.studentid
+ AND s.year = dbo.fn_Global_Academic_Year()
+ AND s.rn = 1
 LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH (NOLOCK)
   ON scores.studentid = map.ps_studentid 
  AND scores.academic_year = map.map_year_academic

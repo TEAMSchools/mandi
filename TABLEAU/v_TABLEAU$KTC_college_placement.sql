@@ -10,7 +10,7 @@ WITH roster AS (
         ,co.cohort
         ,co.schoolid
         ,CASE WHEN s.counselor_name = 'NULL' THEN NULL ELSE s.counselor_name END AS counselor_name                
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+  FROM COHORT$identifiers_long#static co WITH(NOLOCK)
   LEFT OUTER JOIN NAVIANCE$students_clean s WITH(NOLOCK)
     ON co.STUDENT_NUMBER = s.student_number
    AND s.rn = 1  
@@ -37,7 +37,7 @@ WITH roster AS (
              ,ROW_NUMBER() OVER(
                 PARTITION BY co.studentid
                   ORDER BY co.year DESC) AS last_yr
-       FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+       FROM COHORT$identifiers_long#static co WITH(NOLOCK)
        WHERE co.schoolid != 999999
          AND co.highest_achieved = 99
          AND co.rn = 1

@@ -19,9 +19,9 @@ SELECT 'KIPP NJ' AS Network
       ,co.student_number
       ,co.lastfirst
       ,co.grade_level
-      ,s.team
-      ,cs.spedlep      
-      ,s.gender      
+      ,co.team
+      ,co.spedlep      
+      ,co.gender      
       --
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
@@ -34,12 +34,7 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN dt.color_day = 'Orange' THEN 1 ELSE 0 END AS orange
       ,CASE WHEN dt.color_day = 'Red' THEN 1 ELSE 0 END AS red
       ,CASE WHEN dt.color_day IS NULL THEN 1 ELSE 0 END AS no_color            
-FROM COHORT$comprehensive_long#static co WITH(NOLOCK) 
-JOIN STUDENTS s WITH(NOLOCK)
-  ON co.studentid = s.ID
- AND s.ENROLL_STATUS = 0 
-JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON co.studentid = cs.STUDENTID
+FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dbo.fn_DateToSY(dt.att_date)
@@ -48,6 +43,7 @@ WHERE co.rn = 1
   AND co.grade_level < 5
   AND co.year >= (dbo.fn_Global_Academic_Year() - 1)
   AND co.SCHOOLID NOT IN (73255, 179901)  
+  AND co.enroll_status = 0
 
 UNION ALL
 
@@ -64,9 +60,9 @@ SELECT 'KIPP NJ' AS Network
       ,co.student_number
       ,co.lastfirst
       ,co.grade_level
-      ,s.team
-      ,cs.spedlep      
-      ,s.gender      
+      ,co.team
+      ,co.spedlep      
+      ,co.gender      
       --
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
@@ -79,12 +75,7 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN dt.color_am = 'Orange' THEN 1 ELSE 0 END AS orange
       ,CASE WHEN dt.color_am = 'Red' THEN 1 ELSE 0 END AS red
       ,CASE WHEN dt.color_am IS NULL THEN 1 ELSE 0 END AS no_color            
-FROM COHORT$comprehensive_long#static co WITH(NOLOCK) 
-JOIN STUDENTS s WITH(NOLOCK)
-  ON co.studentid = s.ID
- AND s.ENROLL_STATUS = 0 
-JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON co.studentid = cs.STUDENTID
+FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dbo.fn_DateToSY(dt.att_date)
@@ -93,13 +84,14 @@ WHERE co.rn = 1
   AND co.grade_level < 5
   AND co.year >= (dbo.fn_Global_Academic_Year() - 1)
   AND co.SCHOOLID IN (73255, 179901)
+  AND co.enroll_status = 0
         
 UNION ALL
 
 --THRIVE Mid
 SELECT 'KIPP NJ' AS Network
       ,CASE
-        WHEN s.schoolid IN (179901) THEN 'Camden'
+        WHEN co.schoolid IN (179901) THEN 'Camden'
         ELSE 'Newark'
        END AS Region
       ,'ES' AS school_level
@@ -109,9 +101,9 @@ SELECT 'KIPP NJ' AS Network
       ,co.student_number
       ,co.lastfirst
       ,co.grade_level
-      ,s.team
-      ,cs.spedlep      
-      ,s.gender      
+      ,co.team
+      ,co.spedlep      
+      ,co.gender      
       --
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
@@ -124,12 +116,7 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN dt.color_mid = 'Orange' THEN 1 ELSE 0 END AS orange
       ,CASE WHEN dt.color_mid = 'Red' THEN 1 ELSE 0 END AS red
       ,CASE WHEN dt.color_mid IS NULL THEN 1 ELSE 0 END AS no_color
-FROM COHORT$comprehensive_long#static co WITH(NOLOCK) 
-JOIN STUDENTS s WITH(NOLOCK)
-  ON co.studentid = s.ID
- AND s.ENROLL_STATUS = 0 
-JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON co.studentid = cs.STUDENTID
+FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dbo.fn_DateToSY(dt.att_date)
@@ -138,6 +125,7 @@ WHERE co.rn = 1
   AND co.grade_level < 5
   AND co.year >= (dbo.fn_Global_Academic_Year() - 1)
   AND co.SCHOOLID IN (73255)
+  AND co.enroll_status = 0
         
 UNION ALL
 
@@ -154,9 +142,9 @@ SELECT 'KIPP NJ' AS Network
       ,co.student_number
       ,co.lastfirst
       ,co.grade_level
-      ,s.team
-      ,cs.spedlep      
-      ,s.gender      
+      ,co.team
+      ,co.spedlep      
+      ,co.gender      
       --
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
@@ -169,12 +157,7 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN dt.color_pm = 'Orange' THEN 1 ELSE 0 END AS orange
       ,CASE WHEN dt.color_pm = 'Red' THEN 1 ELSE 0 END AS red
       ,CASE WHEN dt.color_pm IS NULL THEN 1 ELSE 0 END AS no_color            
-FROM COHORT$comprehensive_long#static co WITH(NOLOCK) 
-JOIN STUDENTS s WITH(NOLOCK)
-  ON co.studentid = s.ID
- AND s.ENROLL_STATUS = 0 
-JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON co.studentid = cs.STUDENTID
+FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dbo.fn_DateToSY(dt.att_date)
@@ -183,3 +166,4 @@ WHERE co.rn = 1
   AND co.grade_level < 5
   AND co.year >= (dbo.fn_Global_Academic_Year() - 1)
   AND co.SCHOOLID IN (73255, 179901)
+  AND co.enroll_status = 0
