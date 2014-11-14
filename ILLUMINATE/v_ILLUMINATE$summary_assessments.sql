@@ -64,6 +64,7 @@ SELECT test_roster.SCHOOLID
       ,dt.time_per_name AS fsa_week
       ,CONVERT(DATE,repo.date_administered) AS date_administered
       ,CONVERT(DATE,repo.deleted_at) AS deleted_at
+      ,dbo.fn_DateToSY(repo.date_administered) AS academic_year
       ,repo.db_virtual_table_id
 FROM OPENQUERY(ILLUMINATE,'
   SELECT repo.repository_id

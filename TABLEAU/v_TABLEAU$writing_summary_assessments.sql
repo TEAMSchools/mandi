@@ -12,7 +12,7 @@ WITH assessments AS (
         ,a.subject      
         ,a.credittype
         ,a.date_administered
-        ,dbo.fn_DateToSY(a.date_administered) AS academic_year
+        ,a.academic_year
         ,f.label AS field_label
         ,f.name AS field_name        
   FROM ILLUMINATE$summary_assessments#static a WITH(NOLOCK)

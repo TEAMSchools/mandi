@@ -16,7 +16,7 @@ SELECT academic_year
       ,CASE WHEN ROUND(SUM(meets) / CASE WHEN SUM(n_measures) = 0 THEN NULL ELSE SUM(n_measures) END * 100,0) >= 80 THEN 1.0 ELSE 0.0 END AS is_80
 FROM
     (
-     SELECT dbo.fn_DateToSY(dt.att_date) AS academic_year
+     SELECT dt.academic_year
            ,DATEPART(WEEK,dt.att_date) AS week
            ,DATEADD(WEEK,DATEDIFF(WEEK,0,dt.att_date), 0) AS week_of
            ,s.schoolid

@@ -97,7 +97,7 @@ WITH pt1_roster AS (
   FROM pt2_roster r WITH(NOLOCK)
   LEFT OUTER JOIN ATTENDANCE att WITH(NOLOCK)
     ON r.studentid = att.STUDENTID
-   AND dbo.fn_DateToSY(att.ATT_DATE) = 2013
+   AND att.academic_year = 2013
    AND att.att_code = 'S'
   LEFT OUTER JOIN (
                    SELECT studentid

@@ -20,6 +20,7 @@ BEGIN
 		
 		--STEP 2: load into a TEMPORARY staging table.
   SELECT *
+        ,dbo.fn_DateToSY(att_date) AS academic_year
 		INTO [#PS$ATTENDANCE|refresh]
   FROM OPENQUERY(PS_TEAM,'
     SELECT att.*

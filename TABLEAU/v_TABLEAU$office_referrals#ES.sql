@@ -3,22 +3,15 @@ GO
 
 ALTER VIEW TABLEAU$office_referrals#ES AS
 
-WITH roster AS (
-  SELECT co.studentid
-        ,co.STUDENT_NUMBER
-        ,co.lastfirst
-        ,co.year
-        ,co.schoolid
-        ,co.grade_level
-        ,co.TEAM
-        ,co.SPEDLEP
-        ,co.GENDER
-  FROM COHORT$identifiers_long#static co WITH(NOLOCK)
-  WHERE co.grade_level < 5
-    AND co.rn = 1
- )
-
-SELECT r.*
+SELECT co.studentid
+      ,co.STUDENT_NUMBER
+      ,co.lastfirst
+      ,co.year
+      ,co.schoolid
+      ,co.grade_level
+      ,co.TEAM
+      ,co.SPEDLEP
+      ,co.GENDER
       ,disc.entry_author
       ,disc.entry_date
       ,disc.consequence_date
@@ -31,8 +24,10 @@ SELECT r.*
       ,disc.actiontaken
       ,disc.followup
       ,disc.RT
-FROM roster r
+FROM COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN DISC$log#static disc WITH(NOLOCK)
-  ON r.studentid = disc.studentid
- AND r.year = disc.academic_year
+  ON co.studentid = disc.studentid
+ AND co.year = disc.academic_year
  AND disc.logtypeid = 3123
+WHERE co.grade_level < 5
+  AND co.rn = 1

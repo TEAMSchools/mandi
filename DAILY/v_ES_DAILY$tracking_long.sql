@@ -5,6 +5,7 @@ ALTER VIEW ES_DAILY$tracking_long AS
 
 SELECT daily.studentid
       ,daily.schoolid
+      ,dbo.fn_DateToSY(daily.att_date) AS academic_year
       ,CONVERT(DATE,daily.att_date) AS att_date
       ,daily.hw
       ,CASE

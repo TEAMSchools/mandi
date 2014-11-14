@@ -37,7 +37,7 @@ SELECT 'KIPP NJ' AS Network
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
- AND co.year = dbo.fn_DateToSY(dt.att_date)
+ AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 
 WHERE co.rn = 1
   AND co.grade_level < 5
@@ -78,7 +78,7 @@ SELECT 'KIPP NJ' AS Network
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
- AND co.year = dbo.fn_DateToSY(dt.att_date)
+ AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 
 WHERE co.rn = 1
   AND co.grade_level < 5
@@ -119,7 +119,7 @@ SELECT 'KIPP NJ' AS Network
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
- AND co.year = dbo.fn_DateToSY(dt.att_date)
+ AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 
 WHERE co.rn = 1
   AND co.grade_level < 5
@@ -160,7 +160,7 @@ SELECT 'KIPP NJ' AS Network
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
- AND co.year = dbo.fn_DateToSY(dt.att_date)
+ AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 
 WHERE co.rn = 1
   AND co.grade_level < 5
