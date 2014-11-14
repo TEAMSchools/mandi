@@ -136,7 +136,9 @@ FROM
       AND map_base.testritscore = norm.startrit
       AND stu_roster.grade_level - 1 = norm.startgrade
      LEFT OUTER JOIN KIPP_NJ..MAP$norm_table#2011 status_norms
-        ON map_base.measurementscale = status_norms.measurementscale
+        ON (
+          (map_base.measurementscale = status_norms.measurementscale) OR (sci_lang.alt_measurementscale = status_norms.measurementscale)
+        )
         AND map_base.testritscore = status_norms.RIT
         AND (
           (stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') OR
@@ -212,7 +214,9 @@ FROM
         (stu_roster.grade_level = 0 AND stu_roster.grade_level = norm.startgrade)
       )
       LEFT OUTER JOIN KIPP_NJ..MAP$norm_table#2011 status_norms
-        ON map_base.measurementscale = status_norms.measurementscale
+        ON (
+          (map_base.measurementscale = status_norms.measurementscale) OR (sci_lang.alt_measurementscale = status_norms.measurementscale)
+        )
         AND map_base.testritscore = status_norms.RIT
         AND (
           (stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') OR
