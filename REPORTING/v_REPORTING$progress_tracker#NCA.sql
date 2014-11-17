@@ -5,7 +5,18 @@ GO
 
 ALTER VIEW REPORTING$progress_tracker#NCA AS
 
-WITH roster AS (
+WITH curterm AS (
+  SELECT time_per_name
+        ,alt_name AS term
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE identifier = 'RT'
+    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND schoolid = 73253
+    AND start_date <= GETDATE()
+    AND end_date >= GETDATE()
+ )
+
+,roster AS (
   SELECT c.student_number
         ,c.studentid
         ,c.lastfirst
@@ -29,6 +40,7 @@ WITH roster AS (
   WHERE c.year = dbo.fn_Global_Academic_Year()
     AND c.rn = 1        
     AND c.schoolid = 73253
+    AND c.enroll_status = 0
  )
 
 SELECT ROW_NUMBER() OVER(          
@@ -182,6 +194,16 @@ SELECT ROW_NUMBER() OVER(
       ,p2
       ,p3
       ,p4
+      ,rc1_cur
+      ,rc2_cur
+      ,rc3_cur
+      ,rc4_cur
+      ,rc5_cur
+      ,rc6_cur
+      ,rc7_cur
+      ,rc8_cur
+      ,rc9_cur
+      ,rc10_cur
       ,PSAT_highest_math
       ,PSAT_highest_verbal
       ,PSAT_highest_writing
@@ -544,6 +566,16 @@ FROM
             ,ele_p.grade_2 AS p2
             ,ele_p.grade_3 AS p3
             ,ele_p.grade_4 AS p4
+            ,rc.rc1 AS rc1_cur
+            ,rc.rc2 AS rc2_cur
+            ,rc.rc3 AS rc3_cur
+            ,rc.rc4 AS rc4_cur
+            ,rc.rc5 AS rc5_cur
+            ,rc.rc6 AS rc6_cur
+            ,rc.rc7 AS rc7_cur
+            ,rc.rc8 AS rc8_cur
+            ,rc.rc9 AS rc9_cur
+            ,rc.rc10 AS rc10_cur
             
             --On-track?
             ,fail.courses
@@ -679,6 +711,9 @@ FROM
        AND ele_p.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
        AND ele_p.course_number = 'all_courses'
        AND ele_p.pgf_type = 'P'
+      LEFT OUTER JOIN GRADES$rc_grades_by_term rc WITH(NOLOCK)
+        ON roster.studentid = rc.studentid
+       AND rc.term IN (SELECT term FROM curterm WITH(NOLOCK))
         
       --ED TECH
         --ACCELERATED READER
@@ -690,7 +725,7 @@ FROM
        AND GETDATE() <= ar_cur.end_date       
        AND ar_cur.time_hierarchy = 2
       LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
-        ON roster .studentid = ar_yr.studentid      
+        ON roster.studentid = ar_yr.studentid      
        AND ar_yr.yearid = dbo.fn_Global_Term_Id()
        AND GETDATE() >= ar_yr.start_date
        AND GETDATE() <= ar_yr.end_date

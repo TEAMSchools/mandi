@@ -4,7 +4,7 @@ GO
 ALTER VIEW COHORT$identifiers_long AS
 
 SELECT co.schoolid
-      ,sch.abbreviation AS school_name      
+      ,REPLACE(sch.abbreviation,'Rev','Revolution') AS school_name      
       ,co.studentid
       ,co.student_number      
       ,cs.SID

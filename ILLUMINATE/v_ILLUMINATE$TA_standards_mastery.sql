@@ -114,12 +114,11 @@ WITH valid_TAs AS (
          ON r.student_number = res.student_number
         AND a.assessment_id = res.assessment_id
         AND a.standard_id = res.standard_id
-       ) sub
+      ) sub
   WHERE has_tested = 1
  )
 
-SELECT sub.student_number
-      --,sub.grade_level
+SELECT sub.student_number      
       ,sub.term
       ,CASE
         WHEN sub.subject = 'Comprehension' THEN 'COMP'
@@ -129,12 +128,11 @@ SELECT sub.student_number
         WHEN sub.subject = 'Phonics' THEN 'PHON'
         WHEN sub.subject = 'Science' THEN 'SCI'
         WHEN sub.subject = 'Spanish' THEN 'SPAN'
-        WHEN sub.subject = 'Visual Arts' THEN 'VIZ'
-        WHEN sub.subject = 'Writing' THEN 'RHET'
+        WHEN sub.subject = 'Visual Arts' THEN 'VIZ'        
         ELSE NULL
        END AS TA_subject
       ,sub.standards_tested AS TA_standard
-      --,sub.total_weighted_pct_correct
+      ,sub.total_weighted_pct_correct
       ,obj.objective AS TA_obj
       ,CONVERT(VARCHAR(250),
         CASE 
@@ -212,7 +210,7 @@ FROM
                    THEN pct_correct
                   ELSE NULL
                  END AS weighted_pct_points
-                -- weighted points availalbe
+                -- weighted points possible (depending on IA/FSA)
                 ,CASE
                   -- Gr 1+ math/comp, IA, weighted 60%
                   WHEN grade_level >= 1          

@@ -220,6 +220,66 @@ WITH roster AS (
    AND cur.achv_curr_all = 1
  )
 
+,social_skills AS (
+  SELECT student_number
+        ,MAX([soc_skill_descr_1]) AS [soc_skill_descr_1]
+        ,MAX([soc_skill_descr_2]) AS [soc_skill_descr_2]
+        ,MAX([soc_skill_descr_3]) AS [soc_skill_descr_3]
+        ,MAX([soc_skill_descr_4]) AS [soc_skill_descr_4]
+        ,MAX([soc_skill_descr_5]) AS [soc_skill_descr_5]
+        ,MAX([soc_skill_descr_6]) AS [soc_skill_descr_6]
+        ,MAX([soc_skill_T1_score_1]) AS [soc_skill_T1_score_1]
+        ,MAX([soc_skill_T1_score_2]) AS [soc_skill_T1_score_2]
+        ,MAX([soc_skill_T1_score_3]) AS [soc_skill_T1_score_3]
+        ,MAX([soc_skill_T1_score_4]) AS [soc_skill_T1_score_4]
+        ,MAX([soc_skill_T1_score_5]) AS [soc_skill_T1_score_5]
+        ,MAX([soc_skill_T1_score_6]) AS [soc_skill_T1_score_6]
+        ,MAX([soc_skill_T2_score_1]) AS [soc_skill_T2_score_1]
+        ,MAX([soc_skill_T2_score_2]) AS [soc_skill_T2_score_2]
+        ,MAX([soc_skill_T2_score_3]) AS [soc_skill_T2_score_3]
+        ,MAX([soc_skill_T2_score_4]) AS [soc_skill_T2_score_4]
+        ,MAX([soc_skill_T2_score_5]) AS [soc_skill_T2_score_5]
+        ,MAX([soc_skill_T2_score_6]) AS [soc_skill_T2_score_6]
+        ,MAX([soc_skill_T3_score_1]) AS [soc_skill_T3_score_1]
+        ,MAX([soc_skill_T3_score_2]) AS [soc_skill_T3_score_2]
+        ,MAX([soc_skill_T3_score_3]) AS [soc_skill_T3_score_3]
+        ,MAX([soc_skill_T3_score_4]) AS [soc_skill_T3_score_4]
+        ,MAX([soc_skill_T3_score_5]) AS [soc_skill_T3_score_5]
+        ,MAX([soc_skill_T3_score_6]) AS [soc_skill_T3_score_6]
+  FROM ILLUMINATE$social_skills#ES WITH(NOLOCK)
+  PIVOT(
+    MAX(soc_skill)
+    FOR descr_pivot_hash IN ([soc_skill_descr_1]
+                            ,[soc_skill_descr_2]
+                            ,[soc_skill_descr_3]
+                            ,[soc_skill_descr_4]
+                            ,[soc_skill_descr_5]
+                            ,[soc_skill_descr_6])
+   ) p1
+  PIVOT(
+    MAX(score)
+    FOR score_pivot_hash IN ([soc_skill_T1_score_1]
+                            ,[soc_skill_T1_score_2]
+                            ,[soc_skill_T1_score_3]
+                            ,[soc_skill_T1_score_4]
+                            ,[soc_skill_T1_score_5]
+                            ,[soc_skill_T1_score_6]
+                            ,[soc_skill_T2_score_1]
+                            ,[soc_skill_T2_score_2]
+                            ,[soc_skill_T2_score_3]
+                            ,[soc_skill_T2_score_4]
+                            ,[soc_skill_T2_score_5]
+                            ,[soc_skill_T2_score_6]
+                            ,[soc_skill_T3_score_1]
+                            ,[soc_skill_T3_score_2]
+                            ,[soc_skill_T3_score_3]
+                            ,[soc_skill_T3_score_4]
+                            ,[soc_skill_T3_score_5]
+                            ,[soc_skill_T3_score_6])
+   ) p2
+  GROUP BY student_number
+ )
+
 SELECT r.studentid
       ,r.student_number
       ,r.LASTFIRST      
@@ -469,7 +529,30 @@ SELECT r.studentid
       --ARFR
       ,arfr.ARFR_reason
       --social skills
-
+      ,soc.soc_skill_descr_1
+      ,soc.soc_skill_descr_2
+      ,soc.soc_skill_descr_3
+      ,soc.soc_skill_descr_4
+      ,soc.soc_skill_descr_5
+      ,soc.soc_skill_descr_6
+      ,soc.soc_skill_T1_score_1
+      ,soc.soc_skill_T1_score_2
+      ,soc.soc_skill_T1_score_3
+      ,soc.soc_skill_T1_score_4
+      ,soc.soc_skill_T1_score_5
+      ,soc.soc_skill_T1_score_6
+      ,soc.soc_skill_T2_score_1
+      ,soc.soc_skill_T2_score_2
+      ,soc.soc_skill_T2_score_3
+      ,soc.soc_skill_T2_score_4
+      ,soc.soc_skill_T2_score_5
+      ,soc.soc_skill_T2_score_6
+      ,soc.soc_skill_T3_score_1
+      ,soc.soc_skill_T3_score_2
+      ,soc.soc_skill_T3_score_3
+      ,soc.soc_skill_T3_score_4
+      ,soc.soc_skill_T3_score_5
+      ,soc.soc_skill_T3_score_6
 FROM roster r WITH(NOLOCK)
 JOIN curterm WITH(NOLOCK)
   ON 1 = 1
@@ -489,7 +572,7 @@ LEFT OUTER JOIN LIT$vocab_totals vocab WITH(NOLOCK)
   ON r.STUDENT_NUMBER = vocab.student_number
  AND vocab.listweek_num = 'Week_01'
 LEFT OUTER JOIN ILLUMINATE$TA_scores_wide ta WITH(NOLOCK)
-  ON r.STUDENTID = ta.student_number
+  ON r.student_number = ta.student_number
  AND rt.term = ta.term
 LEFT OUTER JOIN reading_level rs WITH(NOLOCK)
   ON r.studentid = rs.studentid
@@ -500,3 +583,5 @@ LEFT OUTER JOIN REPORTING$ARFR_reasons#ES arfr WITH(NOLOCK)
   ON r.student_number = arfr.student_number
  AND rt.term = arfr.term
  AND arfr.academic_year = dbo.fn_Global_Academic_Year()
+LEFT OUTER JOIN social_skills soc WITH(NOLOCK)
+  ON r.student_number = soc.student_number

@@ -32,47 +32,41 @@ WITH curterm AS (
  )
 
 ,roster AS (
-  SELECT s.student_number AS base_student_number
-        ,s.id AS base_studentid
-        ,s.lastfirst AS stu_lastfirst
-        ,s.first_name AS stu_firstname
-        ,s.last_name AS stu_lastname
+  SELECT co.student_number AS base_student_number
+        ,co.studentid AS base_studentid
+        ,co.lastfirst AS stu_lastfirst
+        ,co.first_name AS stu_firstname
+        ,co.last_name AS stu_lastname
         ,co.grade_level AS stu_grade_level
-        ,s.team AS travel_group            
-        ,s.web_id
-        ,cs.default_family_web_password AS web_password
-        ,s.student_web_id
-        ,cs.default_student_web_password AS student_web_password
-        ,s.street
-        ,s.city
-        ,s.home_phone
-        ,cs.advisor
+        ,co.team AS travel_group            
+        ,co.FAMILY_WEB_ID AS web_id
+        ,co.FAMILY_WEB_PASSWORD AS web_password
+        ,co.student_web_id
+        ,co.STUDENT_WEB_PASSWORD AS student_web_password
+        ,co.street
+        ,co.city
+        ,co.home_phone
+        ,co.advisor
         ,NULL AS advisor_email
         ,NULL AS advisor_cell
-        ,cs.mother_cell
-        ,CASE WHEN cs.mother_home is NULL THEN cs.mother_day ELSE cs.mother_home END AS mother_daytime
-        ,cs.father_cell
-        ,CASE WHEN cs.father_home is NULL THEN cs.father_day ELSE cs.father_home END AS father_daytime
-        ,blobs.guardianemail           
-        ,cs.SPEDLEP AS SPED
-        ,cs.lunch_balance AS lunch_balance
+        ,co.mother_cell
+        ,CASE WHEN co.mother_home is NULL THEN co.mother_day ELSE co.mother_home END AS mother_daytime
+        ,co.father_cell
+        ,CASE WHEN co.father_home is NULL THEN co.father_day ELSE co.father_home END AS father_daytime
+        ,co.guardianemail           
+        ,co.SPEDLEP AS SPED
+        ,co.lunch_balance AS lunch_balance
         ,curterm.time_per_name
         ,curterm.term AS curterm
         ,REPLACE(curterm.term, 'T', 'Trimester ') AS curterm_long
         ,DATENAME(MONTH,GETDATE()) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,GETDATE())) + ', ' + CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) AS today_text
-  FROM KIPP_NJ..COHORT$comprehensive_long#static co  WITH (NOLOCK)    
+  FROM COHORT$identifiers_long#static co WITH (NOLOCK)    
   JOIN curterm
     ON 1 = 1
-  JOIN KIPP_NJ..STUDENTS s  WITH (NOLOCK)
-    ON co.studentid = s.id
-   AND s.enroll_status = 0
-  LEFT OUTER JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH (NOLOCK)
-    ON co.studentid = cs.studentid
-  LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
-    ON co.studentid = blobs.studentid
   WHERE co.year = dbo.fn_Global_Academic_Year()
     AND co.rn = 1        
     AND co.schoolid = 73252
+    AND co.enroll_status = 0
  )
 
 ,comments AS (

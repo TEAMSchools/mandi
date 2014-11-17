@@ -17,7 +17,7 @@ WITH dismiss_change AS (
 
 SELECT s.STUDENT_NUMBER
       ,s.SCHOOLID
-      ,sch.ABBREVIATION AS school_name
+      ,s.school_name
       ,s.GRADE_LEVEL
       ,s.TEAM
       ,s.LASTFIRST
@@ -31,12 +31,12 @@ SELECT s.STUDENT_NUMBER
         ELSE BUS_INFO_PM 
        END AS BUS_PM_TODAY      
       ,CASE WHEN ch.studentid IS NOT NULL THEN 1 ELSE 0 END AS dismissal_flag
-FROM STUDENTS s WITH(NOLOCK)
-JOIN SCHOOLS sch WITH(NOLOCK)
-  ON s.SCHOOLID = sch.SCHOOL_NUMBER
+FROM COHORT$identifiers_long#static s WITH(NOLOCK)
 LEFT OUTER JOIN PS$bus_info#static bus WITH(NOLOCK)
-  ON s.id = bus.STUDENTID
+  ON s.studentid = bus.STUDENTID
 LEFT OUTER JOIN dismiss_change ch WITH(NOLOCK)
   ON bus.studentid = ch.studentid
 WHERE s.ENROLL_STATUS = 0
   AND s.GRADE_LEVEL < 5
+  AND s.year = dbo.fn_Global_Academic_Year()
+  AND s.rn = 1
