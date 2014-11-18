@@ -672,7 +672,7 @@ FROM
        AND gpa_cumulative.schoolid = 73253
         
       --GRADES
-      LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide WITH (NOLOCK)
+      LEFT OUTER JOIN GRADES$wide_all#NCA#static gr_wide WITH (NOLOCK)
         ON roster.studentid = gr_wide.studentid
       LEFT OUTER JOIN (SELECT studentid
                              ,COUNT(fail.y1) AS num_failing

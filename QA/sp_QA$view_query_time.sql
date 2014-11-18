@@ -7,11 +7,11 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-IF OBJECT_ID('sp_QA$view_query_time', 'P') IS NOT NULL
-    DROP PROCEDURE sp_QA$view_query_time;
-GO
+--IF OBJECT_ID('sp_QA$view_query_time', 'P') IS NOT NULL
+--    DROP PROCEDURE sp_QA$view_query_time;
+--GO
 
-CREATE PROCEDURE sp_QA$view_query_time AS
+ALTER PROCEDURE sp_QA$view_query_time AS
 
 BEGIN  
   DECLARE @viewname SYSNAME

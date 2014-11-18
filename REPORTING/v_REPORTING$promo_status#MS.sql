@@ -113,7 +113,7 @@ FROM
                 ,hw.simple_avg
                 ,mem.Y1_MEM
           FROM COHORT$comprehensive_long#static co WITH (NOLOCK)
-          LEFT OUTER JOIN GRADES$wide_all#MS gr_wide WITH (NOLOCK)
+          LEFT OUTER JOIN GRADES$wide_all#MS#static gr_wide WITH (NOLOCK)
             ON co.studentid = gr_wide.studentid
           LEFT OUTER JOIN GPA$detail#MS gpa WITH (NOLOCK)
             ON co.studentid = gpa.studentid

@@ -91,7 +91,7 @@ FROM
                 ,NULL AS rc10_q2
                 ,NULL AS rc10_q3
                 ,NULL AS rc10_q4
-          FROM GRADES$wide_all#MS WITH(NOLOCK)
+          FROM GRADES$wide_all#MS#static WITH(NOLOCK)
 
           UNION ALL
 
@@ -161,7 +161,7 @@ FROM
                 ,rc10_q2
                 ,rc10_q3
                 ,rc10_q4
-          FROM GRADES$wide_all#NCA WITH(NOLOCK)
+          FROM GRADES$wide_all#NCA#static WITH(NOLOCK)
          ) sub
 
      UNPIVOT (

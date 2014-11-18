@@ -413,7 +413,7 @@ LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON roster.base_studentid = att_pct.studentid
   
 --GRADES & GPA
-LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide WITH (NOLOCK)
+LEFT OUTER JOIN GRADES$wide_all#NCA#static gr_wide WITH (NOLOCK)
   ON roster.base_studentid = gr_wide.studentid
 LEFT OUTER JOIN GPA$detail#NCA nca_gpa WITH (NOLOCK)
   ON roster.base_studentid = nca_gpa.studentid

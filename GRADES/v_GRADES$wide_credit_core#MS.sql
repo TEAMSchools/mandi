@@ -46,11 +46,11 @@ WITH rost AS
            SELECT 'CORE'
                  ,10
           ) sub
-      JOIN STUDENTS s
+      JOIN STUDENTS s WITH(NOLOCK)
         ON 1 = 1
        AND s.ENROLL_STATUS = 0
        AND s.SCHOOLID IN (73252, 133570965)
-      LEFT OUTER JOIN GRADES$DETAIL#MS gr
+      LEFT OUTER JOIN GRADES$DETAIL#MS gr WITH(NOLOCK)
         ON s.id = gr.studentid
        AND sub.credittype = gr.credittype
      )   

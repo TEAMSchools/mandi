@@ -400,8 +400,9 @@ SELECT r.studentid
       ,ta.RHET_TA_obj_8
       ,ta.RHET_TA_obj_9
       ,ta.RHET_TA_obj_10
-      ,ta.RHET_TA_obj_11
-      ,ta.RHET_TA_obj_12      
+      ,ta.RHET_TA_narr_obj
+      ,ta.RHET_TA_info_obj
+      ,ta.RHET_TA_op_obj
       -- specials
       ,ta.PERF_TA_obj_1
       ,ta.PERF_TA_obj_2
@@ -488,8 +489,9 @@ SELECT r.studentid
       ,ta.RHET_TA_prof_8
       ,ta.RHET_TA_prof_9
       ,ta.RHET_TA_prof_10
-      ,ta.RHET_TA_prof_11
-      ,ta.RHET_TA_prof_12      
+      ,ta.RHET_TA_narr_prof
+      ,ta.RHET_TA_info_prof
+      ,ta.RHET_TA_op_prof
       -- specials
       ,ta.PERF_TA_prof_1
       ,ta.PERF_TA_prof_2
@@ -516,6 +518,7 @@ SELECT r.studentid
       ,ta.VIZ_TA_prof_3
       ,ta.VIZ_TA_prof_4
       ,ta.VIZ_TA_prof_5
+      
       --comments
       ,comm.ela_comment
       ,comm.humanities_comment
@@ -525,9 +528,11 @@ SELECT r.studentid
       ,comm.socskills_comment
       ,comm.span_comment
       ,comm.viz_comment
-      ,comm.writing_comment
+      ,comm.writing_comment      
+      
       --ARFR
       ,arfr.ARFR_reason
+      
       --social skills
       ,soc.soc_skill_descr_1
       ,soc.soc_skill_descr_2

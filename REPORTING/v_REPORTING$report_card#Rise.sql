@@ -651,7 +651,7 @@ LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON roster.base_studentid = att_pct.studentid
 
 --GRADES & GPA
-LEFT OUTER JOIN GRADES$wide_all#MS gr_wide WITH (NOLOCK)
+LEFT OUTER JOIN GRADES$wide_all#MS#static gr_wide WITH (NOLOCK)
   ON roster.base_studentid = gr_wide.studentid
 LEFT OUTER JOIN GRADES$rc_grades_by_term rc WITH(NOLOCK)
   ON roster.base_studentid = rc.studentid

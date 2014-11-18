@@ -674,7 +674,7 @@ LEFT OUTER JOIN ATT_MEM$membership_counts membership_counts WITH (NOLOCK)
   ON roster.id = membership_counts.studentid
 
 --Grades & GPA
-LEFT OUTER JOIN GRADES$wide_credit_core#MS grades WITH (NOLOCK)
+LEFT OUTER JOIN GRADES$wide_credit_core#MS#static grades WITH (NOLOCK)
   ON roster.ID = grades.studentid
 LEFT OUTER JOIN GPA$detail#MS gpa WITH (NOLOCK)
   ON roster.id = gpa.studentid

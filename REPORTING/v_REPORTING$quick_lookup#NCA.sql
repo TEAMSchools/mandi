@@ -100,7 +100,7 @@ LEFT OUTER JOIN ATT_MEM$attendance_counts att WITH (NOLOCK)
   ON s.studentid = att.studentid
 LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON s.studentid = att_pct.studentid
-LEFT OUTER JOIN GRADES$wide_all#NCA gr_wide WITH (NOLOCK)
+LEFT OUTER JOIN GRADES$wide_all#NCA#static gr_wide WITH (NOLOCK)
   ON s.studentid = gr_wide.studentid
 LEFT OUTER JOIN GPA$detail#NCA nca_GPA WITH (NOLOCK)
   ON s.studentid = nca_GPA.studentid

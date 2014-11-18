@@ -8,8 +8,7 @@ WITH rost AS (
         ,ROW_NUMBER() OVER
            (PARTITION BY studentid
             ORDER BY rn
-                    ,course_number
-            ) AS rn_format
+                    ,course_number) AS rn_format
   FROM     
       (
        SELECT studentid

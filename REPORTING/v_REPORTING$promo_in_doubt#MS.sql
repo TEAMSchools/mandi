@@ -65,7 +65,7 @@ WITH roster AS (
                                       + CASE WHEN rc5_Y1 < 65 THEN 1 ELSE 0 END) > 0 THEN 1 
           ELSE 0 
          END AS is_failing         
-  FROM grades$wide_credit_core#ms WITH(NOLOCK)
+  FROM grades$wide_credit_core#ms#static WITH(NOLOCK)
  )
 
 ,att_status AS (

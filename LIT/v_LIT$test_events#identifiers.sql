@@ -50,7 +50,7 @@ SELECT sub.*
       ,CASE WHEN status = 'Achieved' THEN
          ROW_NUMBER() OVER(
            PARTITION BY studentid, status
-             ORDER BY round_num DESC, lvl_num DESC)
+             ORDER BY academic_year DESC, round_num DESC, lvl_num DESC)
         ELSE NULL
        END AS achv_curr_all
        -- current DNA for the round
@@ -97,16 +97,14 @@ FROM
             END AS test_round
            ,CASE 
              WHEN rs.test_round IS NULL THEN (CASE
-                                               WHEN rs.schoolid NOT IN (73252, 133570965) AND dates.time_per_name = 'Diagnostic' THEN 1
-                                               WHEN rs.schoolid IN (73252, 133570965) AND dates.time_per_name IN ('Diagnostic', 'DR') THEN 1
+                                               WHEN dates.time_per_name IN ('Diagnostic', 'DR', 'BOY') THEN 1
                                                WHEN dates.time_per_name = 'T1' THEN 2
                                                WHEN dates.time_per_name = 'T2' THEN 3
                                                WHEN dates.time_per_name = 'T3' THEN 4
                                                WHEN dates.time_per_name = 'EOY' THEN 5
                                               END)
              ELSE (CASE
-                    WHEN rs.schoolid NOT IN (73252, 133570965) AND rs.test_round = 'Diagnostic' THEN 1
-                    WHEN rs.schoolid IN (73252, 133570965) AND rs.test_round IN ('Diagnostic', 'DR') THEN 1
+                    WHEN rs.test_round IN ('Diagnostic', 'DR', 'BOY') THEN 1
                     WHEN rs.test_round = 'T1' THEN 2
                     WHEN rs.test_round = 'T2' THEN 3
                     WHEN rs.test_round = 'T3' THEN 4
@@ -187,16 +185,14 @@ FROM
             END AS test_round
            ,CASE 
              WHEN rs.test_round IS NULL THEN (CASE
-                                               WHEN rs.schoolid NOT IN (73252, 133570965) AND dates.time_per_name = 'Diagnostic' THEN 1
-                                               WHEN rs.schoolid IN (73252, 133570965) AND dates.time_per_name IN ('Diagnostic', 'DR') THEN 1
+                                               WHEN dates.time_per_name IN ('Diagnostic', 'DR', 'BOY') THEN 1
                                                WHEN dates.time_per_name = 'T1' THEN 2
                                                WHEN dates.time_per_name = 'T2' THEN 3
                                                WHEN dates.time_per_name = 'T3' THEN 4
                                                WHEN dates.time_per_name = 'EOY' THEN 5
                                               END)
              ELSE (CASE
-                    WHEN rs.schoolid NOT IN (73252, 133570965) AND rs.test_round = 'Diagnostic' THEN 1
-                    WHEN rs.schoolid IN (73252, 133570965) AND rs.test_round IN ('Diagnostic', 'DR') THEN 1
+                    WHEN rs.test_round IN ('Diagnostic', 'DR', 'BOY') THEN 1
                     WHEN rs.test_round = 'T1' THEN 2
                     WHEN rs.test_round = 'T2' THEN 3
                     WHEN rs.test_round = 'T3' THEN 4
