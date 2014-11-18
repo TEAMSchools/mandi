@@ -56,12 +56,12 @@ WITH log_totals AS (
        FROM COHORT$identifiers_scaffold#static co WITH(NOLOCK)
        LEFT OUTER JOIN log_totals disc WITH(NOLOCK)
          ON co.studentid = disc.studentid
-        AND co.date = disc.entry_date        
+        AND co.date = disc.entry_date
        WHERE co.year = dbo.fn_Global_Academic_Year()
          AND co.schoolid = 73253
          AND co.term IS NOT NULL
-         AND co.date IN (SELECT calendardate FROM MEMBERSHIP WITH(NOLOCK) WHERE schoolid = 73253 AND academic_year = dbo.fn_Global_Academic_Year())
-         AND co.date < CONVERT(DATE,GETDATE())         
+         AND co.date IN (SELECT calendardate FROM MEMBERSHIP WITH(NOLOCK) WHERE schoolid = 73253 AND academic_year = dbo.fn_Global_Academic_Year() AND DATEPART(WEEKDAY,calendardate) NOT IN (1,7))
+         --AND co.date < CONVERT(DATE,GETDATE())         
       ) sub
   PIVOT(
     MAX(running_total)
@@ -104,6 +104,9 @@ SELECT academic_year
         ELSE NULL
        END AS moved_demerit_bucket
       ,prev_demerits
+      ,CASE WHEN day_order = MAX(day_order) OVER(PARTITION BY academic_year, studentid) - 1 THEN 1 ELSE NULL END AS prev_date_flag
+      ,DATEADD(DAY, -1, MAX(date) OVER(PARTITION BY academic_year)) AS prev_date
+      
 FROM
     (
      SELECT academic_year

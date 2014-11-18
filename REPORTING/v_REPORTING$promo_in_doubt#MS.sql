@@ -71,17 +71,9 @@ WITH roster AS (
 ,att_status AS (
   SELECT student_number
         ,Y1_att_pts_pct
-        ,promo_status_att
-        ,days_to_perfect
-  FROM reporting$promo_status#team WITH(NOLOCK)
-
-  UNION ALL
-
-  SELECT student_number
-        ,Y1_att_pts_pct
-        ,promo_status_att
-        ,days_to_perfect
-  FROM reporting$promo_status#rise WITH(NOLOCK)
+        ,COALESCE(promo_att_rise, promo_att_team) AS promo_status_att
+        ,days_to_90
+  FROM REPORTING$promo_status#MS WITH(NOLOCK)
  )
 
 ,Y1_avg AS (
