@@ -92,6 +92,8 @@ SELECT academic_year
         ELSE NULL
        END AS merit_bucket
       ,CASE
+        WHEN demerits >= 50 THEN 5
+        WHEN demerits >= 35 THEN 4
         WHEN demerits >= 25 THEN 3
         WHEN demerits >= 15 THEN 2
         WHEN demerits >= 10 THEN 1
@@ -101,6 +103,8 @@ SELECT academic_year
         WHEN demerits >= 10 AND prev_demerits < 10 THEN 1
         WHEN demerits >= 15 AND prev_demerits < 15 THEN 1
         WHEN demerits >= 25 AND prev_demerits < 25 THEN 1
+        WHEN demerits >= 35 AND prev_demerits < 35 THEN 1
+        WHEN demerits >= 50 AND prev_demerits < 50 THEN 1
         ELSE NULL
        END AS moved_demerit_bucket
       ,prev_demerits

@@ -4,27 +4,18 @@ GO
 ALTER VIEW reporting$reading_log AS
 
 WITH roster AS (
-  SELECT studentid
-        ,s.student_number
+  SELECT c.studentid
+        ,c.student_number
         ,c.grade_level
         ,c.schoolid
-        ,s.lastfirst
-        ,s.FIRST_NAME + ' ' + s.LAST_NAME AS name
-        ,sch.abbreviation AS school
-  FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
-  JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
-    ON c.schoolid = sch.school_number
-  JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
-    ON c.studentid = s.id
-   AND s.enroll_status = 0    
-   --AND s.ID = 4772
-   --AND c.grade_level = 5
-   --AND c.schoolid = 133570965
-   --AND s.student_number = 12135
+        ,c.lastfirst
+        ,c.full_name AS name
+        ,c.school_name AS school
+  FROM KIPP_NJ..COHORT$identifiers_long#static c WITH(NOLOCK)   
   WHERE year = dbo.fn_Global_Academic_Year()
-    AND rn = 1
-    AND c.schoolid != 999999
+    AND rn = 1    
     AND c.schoolid IN (73252, 133570965)
+    AND c.enroll_status = 0    
  )
  
 ,curterm AS (
@@ -58,7 +49,7 @@ WITH roster AS (
   
 ,map_goals AS (
   SELECT *
-  FROM KIPP_NJ..MAP$rutgers_ready_student_goals g
+  FROM KIPP_NJ..MAP$rutgers_ready_student_goals g WITH(NOLOCK)
   WHERE g.measurementscale = 'Reading'
     AND g.year = dbo.fn_Global_Academic_Year()
  )

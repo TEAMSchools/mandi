@@ -104,8 +104,7 @@ for record in wkbk_list:
                 @subject = '!!! WARNING - GDocs HTTP Error !!!',
                 @importance = 'High';
         """        
-        cursor.execute(warn_email)
-        conn.commit()
+        cursor.execute(warn_email)        
         conn.close()
         continue
     sheet_names = workbook.worksheets()
@@ -169,8 +168,7 @@ for record in wkbk_list:
                 @subject = '!!! WARNING - GDocs sp_LoadFolder fail !!!',
                 @importance = 'High';
         """        
-        cursor.execute(warn_email)
-        conn.commit()
+        cursor.execute(warn_email)        
         conn.close()
         continue
 
