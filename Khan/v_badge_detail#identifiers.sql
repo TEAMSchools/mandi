@@ -4,6 +4,7 @@ GO
 ALTER VIEW badge_detail#identifiers AS
 SELECT s.id AS studentid
       ,sub.*
+      ,KIPP_NJ.dbo.fn_DateToSY(sub.date_earned) AS academic_year
 FROM
       (SELECT b.*
              ,REPLACE(stu_detail.identity_email, '@teamstudents.org', '') + '.student' AS id_key
