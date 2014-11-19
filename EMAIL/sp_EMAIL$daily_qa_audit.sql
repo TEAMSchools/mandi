@@ -83,12 +83,12 @@ BEGIN
     WHERE audit_category = ''Data Warehouse Config''
     '                
 
-  SET @sql_illuminate_audits = '
-    SELECT audit_type
-          ,result
-    FROM KIPP_NJ..QA$data_audit WITH(NOLOCK)
-    WHERE audit_category = ''Illuminate''
-  '
+  --SET @sql_illuminate_audits = '
+  --  SELECT audit_type
+  --        ,result
+  --  FROM KIPP_NJ..QA$data_audit WITH(NOLOCK)
+  --  WHERE audit_category = ''Illuminate''
+  --'
 
   SET @sql_account_audits = '
     SELECT audit_type
@@ -153,7 +153,7 @@ BEGIN
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_demog_audits, @html_demog_audits OUTPUT  
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_psconfig_audits, @html_psconfig_audits OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_integ_audits, @html_integ_audits OUTPUT
-  EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_illuminate_audits, @html_illuminate_audits OUTPUT
+  --EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_illuminate_audits, @html_illuminate_audits OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_account_audits, @html_account_audits OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_warehouse_audits, @html_warehouse_audits OUTPUT  
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_last_refresh, @html_last_refresh OUTPUT
@@ -206,11 +206,11 @@ SET @email_body =
   <span style="med_text">Data Warehouse Config Audits</span> 
 '
 + @html_warehouse_audits +
-'
-<br>
-  <span style="med_text">Illuminate Data Audits</span> 
-'
-+ @html_illuminate_audits +
+--'
+--<br>
+--  <span style="med_text">Illuminate Data Audits</span> 
+--'
+--+ @html_illuminate_audits +
 '
 <br>
   <span style="med_text">Student Account Audits</span> 
