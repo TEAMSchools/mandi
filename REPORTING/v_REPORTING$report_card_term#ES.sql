@@ -339,7 +339,7 @@ SELECT r.studentid
       ,ta.SCI_pct_stds_mastered
       ,ta.SPAN_pct_stds_mastered
       ,ta.VIZ_pct_stds_mastered
-      ,ta.RHET_pct_stds_mastered      
+      ,wr.RHET_pct_stds_mastered      
       -- TA objectives
       -- math
       ,ta.MATH_TA_obj_1
@@ -390,19 +390,19 @@ SELECT r.studentid
       ,ta.PHON_TA_obj_14
       ,ta.PHON_TA_obj_15
       -- writing
-      ,ta.RHET_TA_obj_1
-      ,ta.RHET_TA_obj_2
-      ,ta.RHET_TA_obj_3
-      ,ta.RHET_TA_obj_4
-      ,ta.RHET_TA_obj_5
-      ,ta.RHET_TA_obj_6
-      ,ta.RHET_TA_obj_7
-      ,ta.RHET_TA_obj_8
-      ,ta.RHET_TA_obj_9
-      ,ta.RHET_TA_obj_10
-      ,ta.RHET_TA_narr_obj
-      ,ta.RHET_TA_info_obj
-      ,ta.RHET_TA_op_obj
+      ,wr.RHET_TA_obj_1
+      ,wr.RHET_TA_obj_2
+      ,wr.RHET_TA_obj_3
+      ,wr.RHET_TA_obj_4
+      ,wr.RHET_TA_obj_5
+      ,wr.RHET_TA_obj_6
+      ,wr.RHET_TA_obj_7
+      ,wr.RHET_TA_obj_8
+      ,wr.RHET_TA_obj_9
+      ,wr.RHET_TA_obj_10
+      ,wr.RHET_TA_narr_obj
+      ,wr.RHET_TA_info_obj
+      ,wr.RHET_TA_op_obj
       -- specials
       ,ta.PERF_TA_obj_1
       ,ta.PERF_TA_obj_2
@@ -479,19 +479,19 @@ SELECT r.studentid
       ,ta.PHON_TA_prof_14
       ,ta.PHON_TA_prof_15
       -- writing
-      ,ta.RHET_TA_prof_1
-      ,ta.RHET_TA_prof_2
-      ,ta.RHET_TA_prof_3
-      ,ta.RHET_TA_prof_4
-      ,ta.RHET_TA_prof_5
-      ,ta.RHET_TA_prof_6
-      ,ta.RHET_TA_prof_7
-      ,ta.RHET_TA_prof_8
-      ,ta.RHET_TA_prof_9
-      ,ta.RHET_TA_prof_10
-      ,ta.RHET_TA_narr_prof
-      ,ta.RHET_TA_info_prof
-      ,ta.RHET_TA_op_prof
+      ,wr.RHET_TA_prof_1
+      ,wr.RHET_TA_prof_2
+      ,wr.RHET_TA_prof_3
+      ,wr.RHET_TA_prof_4
+      ,wr.RHET_TA_prof_5
+      ,wr.RHET_TA_prof_6
+      ,wr.RHET_TA_prof_7
+      ,wr.RHET_TA_prof_8
+      ,wr.RHET_TA_prof_9
+      ,wr.RHET_TA_prof_10
+      ,wr.RHET_TA_narr_prof
+      ,wr.RHET_TA_info_prof
+      ,wr.RHET_TA_op_prof
       -- specials
       ,ta.PERF_TA_prof_1
       ,ta.PERF_TA_prof_2
@@ -576,9 +576,12 @@ LEFT OUTER JOIN LIT$spelling_totals sp WITH(NOLOCK)
 LEFT OUTER JOIN LIT$vocab_totals vocab WITH(NOLOCK)
   ON r.STUDENT_NUMBER = vocab.student_number
  AND vocab.listweek_num = 'Week_01'
-LEFT OUTER JOIN ILLUMINATE$TA_scores_wide ta WITH(NOLOCK)
+LEFT OUTER JOIN ILLUMINATE$TA_scores_wide#static ta WITH(NOLOCK)
   ON r.student_number = ta.student_number
  AND rt.term = ta.term
+LEFT OUTER JOIN ILLUMINATE$TA_writing_scores_wide#static wr WITH(NOLOCK)
+  ON r.student_number = wr.student_number
+ AND rt.term = wr.term
 LEFT OUTER JOIN reading_level rs WITH(NOLOCK)
   ON r.studentid = rs.studentid
 LEFT OUTER JOIN REPORTING$report_card_comments#ES comm WITH(NOLOCK)

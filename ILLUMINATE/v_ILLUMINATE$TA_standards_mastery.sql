@@ -6,6 +6,7 @@ ALTER VIEW ILLUMINATE$TA_standards_mastery AS
 -- only IA and FSA tests
 WITH valid_TAs AS (
   SELECT assessment_id
+        ,academic_year
         ,schoolid
         ,title
         ,grade_level
@@ -16,8 +17,7 @@ WITH valid_TAs AS (
         ,administered_at
         ,term
   FROM ILLUMINATE$assessments#static a WITH(NOLOCK)
-  WHERE schoolid IN (73254,73255,73256,73257,179901)
-    AND academic_year = dbo.fn_Global_Academic_Year()
+  WHERE schoolid IN (73254,73255,73256,73257,179901)    
     AND term IS NOT NULL
     AND scope = 'Interim Assessment'
     AND subject NOT IN ('Writing') -- summary assessment
@@ -25,6 +25,7 @@ WITH valid_TAs AS (
 
 ,valid_FSAs AS (
   SELECT assessment_id
+        ,academic_year
         ,schoolid
         ,title
         ,grade_level
@@ -35,8 +36,7 @@ WITH valid_TAs AS (
         ,administered_at
         ,term
   FROM ILLUMINATE$assessments#static a WITH(NOLOCK)
-  WHERE schoolid IN (73254,73255,73256,73257,179901)
-    AND academic_year = dbo.fn_Global_Academic_Year()
+  WHERE schoolid IN (73254,73255,73256,73257,179901)    
     AND term IS NOT NULL
     AND scope = 'FSA'
     AND subject IN (SELECT subject FROM valid_TAs WITH(NOLOCK)) -- only TA subjects factor into mastery
@@ -44,10 +44,32 @@ WITH valid_TAs AS (
  )
 
 ,valid_assessments AS (
-  SELECT *
+  SELECT assessment_id
+        ,academic_year
+        ,schoolid
+        ,title
+        ,grade_level
+        ,scope
+        ,subject
+        ,standard_id
+        ,standards_tested
+        ,administered_at
+        ,term
   FROM valid_TAs WITH(NOLOCK)
+  
   UNION ALL
-  SELECT *
+  
+  SELECT assessment_id
+        ,academic_year
+        ,schoolid
+        ,title
+        ,grade_level
+        ,scope
+        ,subject
+        ,standard_id
+        ,standards_tested
+        ,administered_at
+        ,term
   FROM valid_FSAs WITH(NOLOCK)
  ) 
 
@@ -63,13 +85,13 @@ WITH valid_TAs AS (
 
 -- ES students
 ,roster AS (
-  SELECT schoolid
+  SELECT year AS academic_year
+        ,schoolid
         ,student_number        
         ,grade_level
         ,spedlep
   FROM COHORT$identifiers_long#static WITH(NOLOCK)
-  WHERE year = dbo.fn_Global_Academic_Year()  
-    AND grade_level < 5
+  WHERE grade_level < 5
     AND enroll_status = 0
     AND rn = 1
  )
@@ -77,6 +99,8 @@ WITH valid_TAs AS (
 -- the above combined, only those that students have been tested on
 ,scores_long AS (
   SELECT student_number        
+        ,schoolid
+        ,academic_year
         ,grade_level
         ,SPEDLEP
         ,assessment_id
@@ -93,11 +117,13 @@ WITH valid_TAs AS (
              ORDER BY administered_at DESC) AS rn_cur
   FROM
       (
-       SELECT r.student_number             
+       SELECT r.academic_year
+             ,r.student_number             
+             ,r.schoolid
              ,r.grade_level
              ,r.SPEDLEP
              ,a.assessment_id
-             ,a.title
+             ,a.title             
              ,a.administered_at
              ,a.term
              ,a.scope
@@ -109,9 +135,10 @@ WITH valid_TAs AS (
        FROM roster r WITH(NOLOCK)
        JOIN valid_assessments a WITH(NOLOCK)
          ON r.schoolid = a.schoolid
+        AND r.academic_year = a.academic_year
         AND r.grade_level = a.grade_level
        LEFT OUTER JOIN standard_scores res WITH(NOLOCK)
-         ON r.student_number = res.student_number
+         ON r.student_number = res.student_number        
         AND a.assessment_id = res.assessment_id
         AND a.standard_id = res.standard_id
       ) sub
@@ -119,6 +146,8 @@ WITH valid_TAs AS (
  )
 
 SELECT sub.student_number      
+      ,sub.schoolid      
+      ,sub.academic_year
       ,sub.term
       ,CASE
         WHEN sub.subject = 'Comprehension' THEN 'COMP'
@@ -152,6 +181,12 @@ SELECT sub.student_number
          WHEN sub.total_weighted_pct_correct >= 60 AND sub.total_weighted_pct_correct < 80 THEN 'Approaching Standard'
          WHEN sub.total_weighted_pct_correct < 60 THEN 'Far Below Standard'
         END) AS TA_prof                            
+      ,CASE
+        WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct >= 60 THEN 1
+        WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct < 60 THEN 0
+        WHEN sub.total_weighted_pct_correct >= 80 THEN 1
+        WHEN sub.total_weighted_pct_correct < 80 THEN 0
+       END AS is_mastery
       ,CONVERT(FLOAT,SUM(CASE
                           WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct >= 60 THEN 1
                           WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct < 60 THEN 0
@@ -162,6 +197,8 @@ SELECT sub.student_number
 FROM
     (
      SELECT student_number
+           ,schoolid
+           ,academic_year
            ,grade_level
            ,SPEDLEP
            ,term
@@ -173,6 +210,8 @@ FROM
      FROM 
          (
           SELECT student_number
+                ,schoolid                
+                ,academic_year
                 ,grade_level
                 ,SPEDLEP
                 ,term        
@@ -244,6 +283,8 @@ FROM
           FROM scores_long WITH(NOLOCK)
          ) sub
      GROUP BY student_number
+             ,schoolid
+             ,academic_year
              ,grade_level
              ,SPEDLEP
              ,term

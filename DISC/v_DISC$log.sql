@@ -150,18 +150,78 @@ WITH disc_log AS (
  )
 
 ,all_logs AS (
-  SELECT *
+  SELECT schoolid
+        ,studentid
+        ,entry_author
+        ,academic_year
+        ,entry_date
+        ,consequence_date
+        ,logtypeid
+        ,subtypeid
+        ,n_days
+        ,logtype
+        ,subtype
+        ,subject
+        ,entry
+        ,discipline_details
+        ,actiontaken
+        ,followup
   FROM disc_log WITH(NOLOCK)
   --WHERE subtype IS NOT NULL
   UNION ALL
-  SELECT *
+  SELECT schoolid
+        ,studentid
+        ,entry_author
+        ,academic_year
+        ,entry_date
+        ,consequence_date
+        ,logtypeid
+        ,subtypeid
+        ,n_days
+        ,logtype
+        ,subtype
+        ,subject
+        ,entry
+        ,discipline_details
+        ,actiontaken
+        ,followup
   FROM tardy_demerits WITH(NOLOCK)
   UNION ALL
-  SELECT *
+  SELECT schoolid
+        ,studentid
+        ,entry_author
+        ,academic_year
+        ,entry_date
+        ,consequence_date
+        ,logtypeid
+        ,subtypeid
+        ,n_days
+        ,logtype
+        ,subtype
+        ,subject
+        ,entry
+        ,discipline_details
+        ,actiontaken
+        ,followup
   FROM TEAM_bench WITH(NOLOCK)
  )
 
-SELECT all_logs.*      
+SELECT all_logs.schoolid
+      ,all_logs.studentid
+      ,all_logs.entry_author
+      ,all_logs.academic_year
+      ,all_logs.entry_date
+      ,all_logs.consequence_date
+      ,all_logs.logtypeid
+      ,all_logs.subtypeid
+      ,all_logs.n_days
+      ,all_logs.logtype
+      ,all_logs.subtype
+      ,all_logs.subject
+      ,all_logs.entry
+      ,all_logs.discipline_details
+      ,all_logs.actiontaken
+      ,all_logs.followup
       ,dates.time_per_name AS RT
       ,ROW_NUMBER() OVER(
           PARTITION BY studentid, logtypeid
