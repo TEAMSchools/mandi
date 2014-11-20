@@ -151,7 +151,7 @@ END
               IF @rebuild = 0
               -- if the table exists, this will print and the procedure will terminate              
                 BEGIN
-                  PRINT 'Static table already exists.  You''re gonna break something, ya dingus!  Aborting process... (sorry Hobby Lobby)'
+                  PRINT 'Static table already exists.  You''re gonna break something, ya dingus!  Aborting process.'
                 END
               ELSE
                 BEGIN
