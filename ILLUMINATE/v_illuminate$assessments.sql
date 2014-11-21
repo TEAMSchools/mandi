@@ -19,7 +19,7 @@ WITH schools_assessed AS (
   ') oq 
   JOIN COHORT$comprehensive_long#static co WITH (NOLOCK)
     ON oq.local_student_id = co.student_number   
-   AND CASE WHEN DATEPART(MONTH,oq.administered_at) < 7 THEN (DATEPART(YEAR,oq.administered_at) - 1) ELSE DATEPART(YEAR,oq.administered_at) END = co.YEAR
+   AND dbo.fn_DateToSY(oq.administered_at) = co.YEAR
  )
 
 SELECT sub.*
