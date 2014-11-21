@@ -34,11 +34,16 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN dt.color_day = 'Orange' THEN 1 ELSE 0 END AS orange
       ,CASE WHEN dt.color_day = 'Red' THEN 1 ELSE 0 END AS red
       ,CASE WHEN dt.color_day IS NULL THEN 1 ELSE 0 END AS no_color            
+      ,supp.[Behavior Tier ] AS behavior_tier
+      ,supp.[Plan Owner ] AS plan_owner
+      ,supp.[Admin Support] AS admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 
+LEFT OUTER JOIN AUTOLOAD$GDOCS_SUPPORT_Master_List supp WITH(NOLOCK)
+  ON co.student_number = supp.SN
 WHERE co.rn = 1
   AND co.grade_level < 5
   AND co.year >= (dbo.fn_Global_Academic_Year() - 1)
@@ -75,11 +80,16 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN dt.color_am = 'Orange' THEN 1 ELSE 0 END AS orange
       ,CASE WHEN dt.color_am = 'Red' THEN 1 ELSE 0 END AS red
       ,CASE WHEN dt.color_am IS NULL THEN 1 ELSE 0 END AS no_color            
+      ,supp.[Behavior Tier ] AS behavior_tier
+      ,supp.[Plan Owner ] AS plan_owner
+      ,supp.[Admin Support] AS admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 
+LEFT OUTER JOIN AUTOLOAD$GDOCS_SUPPORT_Master_List supp WITH(NOLOCK)
+  ON co.student_number = supp.SN
 WHERE co.rn = 1
   AND co.grade_level < 5
   AND co.year >= (dbo.fn_Global_Academic_Year() - 1)
@@ -116,11 +126,16 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN dt.color_mid = 'Orange' THEN 1 ELSE 0 END AS orange
       ,CASE WHEN dt.color_mid = 'Red' THEN 1 ELSE 0 END AS red
       ,CASE WHEN dt.color_mid IS NULL THEN 1 ELSE 0 END AS no_color
+      ,supp.[Behavior Tier ] AS behavior_tier
+      ,supp.[Plan Owner ] AS plan_owner
+      ,supp.[Admin Support] AS admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 
+LEFT OUTER JOIN AUTOLOAD$GDOCS_SUPPORT_Master_List supp WITH(NOLOCK)
+  ON co.student_number = supp.SN
 WHERE co.rn = 1
   AND co.grade_level < 5
   AND co.year >= (dbo.fn_Global_Academic_Year() - 1)
@@ -157,11 +172,16 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN dt.color_pm = 'Orange' THEN 1 ELSE 0 END AS orange
       ,CASE WHEN dt.color_pm = 'Red' THEN 1 ELSE 0 END AS red
       ,CASE WHEN dt.color_pm IS NULL THEN 1 ELSE 0 END AS no_color            
+      ,supp.[Behavior Tier ] AS behavior_tier
+      ,supp.[Plan Owner ] AS plan_owner
+      ,supp.[Admin Support] AS admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
 LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 
+LEFT OUTER JOIN AUTOLOAD$GDOCS_SUPPORT_Master_List supp WITH(NOLOCK)
+  ON co.student_number = supp.SN
 WHERE co.rn = 1
   AND co.grade_level < 5
   AND co.year >= (dbo.fn_Global_Academic_Year() - 1)

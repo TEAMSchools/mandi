@@ -38,6 +38,9 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN att.att_code = 'OSS' THEN 1 ELSE 0 END AS OSS
       --other
       ,CASE WHEN ed.subtype = '01' THEN 1 ELSE 0 END AS early_dismissal
+      ,supp.[Behavior Tier ] AS behavior_tier
+      ,supp.[Plan Owner ] AS plan_owner
+      ,supp.[Admin Support] AS admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
@@ -50,5 +53,7 @@ LEFT OUTER JOIN DISC$log#static ed WITH(NOLOCK)
   ON co.studentid = ed.studentid
  AND mem.CALENDARDATE = ed.entry_date
  AND ed.logtypeid = 3953
+LEFT OUTER JOIN AUTOLOAD$GDOCS_SUPPORT_Master_List supp WITH(NOLOCK)
+  ON co.student_number = supp.SN
 WHERE co.year = dbo.fn_Global_Academic_Year()
   AND co.rn = 1

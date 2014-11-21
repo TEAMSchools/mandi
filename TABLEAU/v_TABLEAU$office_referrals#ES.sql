@@ -24,10 +24,15 @@ SELECT co.studentid
       ,disc.actiontaken
       ,disc.followup
       ,disc.RT
+      ,supp.[Behavior Tier ] AS behavior_tier
+      ,supp.[Plan Owner ] AS plan_owner
+      ,supp.[Admin Support] AS admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN DISC$log#static disc WITH(NOLOCK)
   ON co.studentid = disc.studentid
  AND co.year = disc.academic_year
  AND disc.logtypeid = 3123
-WHERE co.grade_level < 5
+LEFT OUTER JOIN AUTOLOAD$GDOCS_SUPPORT_Master_List supp WITH(NOLOCK)
+  ON co.student_number = supp.SN
+WHERE co.grade_level < 5  
   AND co.rn = 1
