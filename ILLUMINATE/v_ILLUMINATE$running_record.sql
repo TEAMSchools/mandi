@@ -4,22 +4,22 @@ GO
 ALTER VIEW ILLUMINATE$running_record AS
 
 WITH running_record AS (
-  SELECT CONVERT(INT,student_number) AS student_number
+  SELECT CONVERT(FLOAT,student_number) AS student_number
         ,CONVERT(DATE,[field_date_administered]) AS date_administered
         ,[field_administrator_1] AS administrator      
         ,[field_level_tested] AS level_tested
         ,[field_fiction_nonfiction] AS fiction_nonfiction
         ,[field_pass_fall] AS pass_fall
         ,CONVERT(FLOAT,[field_accuracy_1]) AS accuracy
-        ,CONVERT(INT,[field_fluency_1]) AS fluency
+        ,CONVERT(FLOAT,[field_fluency_1]) AS fluency
         ,CONVERT(FLOAT,[field_reading_rate_wpm]) AS reading_rate_wpm
-        ,CONVERT(INT,[field_about_the_text]) AS about_the_text
-        ,CONVERT(INT,[field_within_the_text]) AS within_the_text
-        ,CONVERT(INT,[field_beyond_the_text]) AS beyond_the_text
+        ,CONVERT(FLOAT,[field_about_the_text]) AS about_the_text
+        ,CONVERT(FLOAT,[field_within_the_text]) AS within_the_text
+        ,CONVERT(FLOAT,[field_beyond_the_text]) AS beyond_the_text
         ,CONVERT(FLOAT,[field_accuracy_1]) AS fp_accuracy
-        ,ISNULL(CONVERT(INT,[field_about_the_text]),0)
-          + ISNULL(CONVERT(INT,[field_within_the_text]),0)
-          + iSNULL(CONVERT(INT,[field_beyond_the_text]),0) AS fp_comp_prof
+        ,ISNULL(CONVERT(FLOAT,[field_about_the_text]),0)
+          + ISNULL(CONVERT(FLOAT,[field_within_the_text]),0)
+          + iSNULL(CONVERT(FLOAT,[field_beyond_the_text]),0) AS fp_comp_prof
   FROM 
       (
        SELECT student_id AS student_number

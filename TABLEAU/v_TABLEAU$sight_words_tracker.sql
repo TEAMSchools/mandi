@@ -18,7 +18,7 @@ SELECT res.student_id AS student_number
       ,cs.SPEDLEP
       ,CONVERT(INT,SUBSTRING(label, CHARINDEX('_',label) + 1, 2)) AS list_num
       ,REVERSE(LEFT(REVERSE(label),CHARINDEX('_', REVERSE(label)) - 1)) AS word
-      ,CASE WHEN value = 9 THEN NULL ELSE CONVERT(FLOAT,value) END AS value        
+      ,CASE WHEN CONVERT(FLOAT,value) = 9 THEN NULL ELSE CONVERT(FLOAT,value) END AS value        
 FROM ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
 LEFT OUTER JOIN ILLUMINATE$repository_fields f WITH(NOLOCK)
   ON res.repository_id = f.repository_id 
