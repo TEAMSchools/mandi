@@ -29,7 +29,8 @@ BEGIN
       SELECT repository_id          
       FROM dna_repositories.repositories    
       WHERE deleted_at IS NULL      
-        AND repository_id <= 105   
+        AND repository_id <= 105
+      ORDER BY repository_id DESC
     ')
 
   		    
@@ -59,7 +60,7 @@ BEGIN
 
       -- grab another set of column headers for the SELECT statement, CONVERTing everything to TEXT (NVARCHAR)
       -- this avoids the data-type collisions that would otherwise occur during the UNPIVOT
-      SELECT @converted_cols = dbo.GROUP_CONCAT_BIGD(',CAST(' + name, ' AS TEXT)')
+      SELECT @converted_cols = dbo.GROUP_CONCAT_D('CONVERT(NVARCHAR(MAX),' + name + ') AS ' + name, ',')
       FROM OPENQUERY(ILLUMINATE,'
         SELECT name
               ,repository_id
@@ -72,16 +73,28 @@ BEGIN
       -- for each repo, SELECT the columns, CONVERT them to TEXT, and then UNPIVOT into a normalized form
       -- then INSERT INTO the temp table      
 SET @query = N'INSERT INTO [#ILLUMINATE$summary_assessment_results_long#static|refresh]
-SELECT ' + @repository_id + ' AS repository_id
-,repository_row_id
-,student_id
-,field
-,value
-FROM OPENQUERY(ILLUMINATE,''SELECT s.local_student_id AS student_id,repository_row_id' + @converted_cols + ' AS TEXT) FROM dna_repositories.repository_' + @repository_id + ' repo JOIN public.students s ON repo.student_id = s.student_id'')
-UNPIVOT (
-value
-FOR field IN (' + @cols + ')
-) unpiv
+  SELECT ' + @repository_id + ' AS repository_id
+         ,repository_row_id
+         ,student_id
+         ,field
+         ,value
+  FROM 
+      (
+       SELECT local_student_id AS student_id
+             ,repository_row_id
+             ,' + @converted_cols + '
+       FROM OPENQUERY(ILLUMINATE,''
+         SELECT s.local_student_id          
+               ,repo.*
+         FROM dna_repositories.repository_' + @repository_id + ' repo 
+         JOIN public.students s 
+           ON repo.student_id = s.student_id
+       '')
+      ) sub
+  UNPIVOT (
+    value
+    FOR field IN (' + @cols + ')
+   ) unpiv
 '        
       
       -- print the query that has just been prepared (for debugging)

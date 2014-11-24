@@ -8,7 +8,7 @@ WITH roster AS (
        ,co.STUDENT_NUMBER      
        ,co.LASTFIRST       
        ,co.FIRST_NAME
-       ,REPLACE(co.GRADE_LEVEL, 0 ,'K') AS grade_level
+       ,CASE WHEN co.GRADE_LEVEL = 0 THEN 'K' ELSE CONVERT(VARCHAR,co.grade_level) END AS grade_level
        ,co.SCHOOLID
        ,co.school_name
        ,co.TEAM       

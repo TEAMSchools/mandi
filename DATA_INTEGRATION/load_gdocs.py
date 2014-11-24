@@ -7,7 +7,6 @@ import gspread
 import pymssql
 import codecs
 import cStringIO
-import time
 
 
 """
@@ -93,6 +92,8 @@ for record in wkbk_list:
         workbook = client.open_by_url(url)
     except:
         print '!!! ERROR NAVIGATING TO URL !!!'
+        conn = pymssql.connect(server_name, db_user, db_pass, db_name)
+        cursor = conn.cursor()
         warn_email = """
             DECLARE @body VARCHAR(MAX);
             SET @body = 'Navigation failed for ' + '""" + save_path + """' + '.  Check that the GDocs URL is correct.';
@@ -105,6 +106,7 @@ for record in wkbk_list:
                 @importance = 'High';
         """        
         cursor.execute(warn_email)        
+        conn.commit()
         conn.close()
         continue
     sheet_names = workbook.worksheets()
@@ -169,6 +171,7 @@ for record in wkbk_list:
                 @importance = 'High';
         """        
         cursor.execute(warn_email)        
+        conn.commit()
         conn.close()
         continue
 

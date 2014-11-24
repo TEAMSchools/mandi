@@ -14,8 +14,8 @@ WITH valid_tests AS (
   SELECT res.student_id AS student_number             
         ,'Week_' + SUBSTRING(label, CHARINDEX('_',label) + 1, 2) AS listweek_num
         ,SUBSTRING(label, CHARINDEX('_',label,CHARINDEX('_',label) + 1) + 1, LEN(label) - CHARINDEX('_',label,CHARINDEX('_',label) + 1)) AS word
-        ,CASE WHEN value = 9 THEN NULL ELSE CONVERT(FLOAT,value) END AS value        
-        ,CASE WHEN value IN (0,9) AND 
+        ,CASE WHEN CONVERT(FLOAT,value) = 9 THEN NULL ELSE CONVERT(FLOAT,value) END AS value                
+        ,CASE WHEN CONVERT(FLOAT,value) IN (0,9) AND 
            ROW_NUMBER() OVER(
              PARTITION BY res.student_id, res.value
                ORDER BY SUBSTRING(label, CHARINDEX('_',label) + 1, 2)) <= 10 

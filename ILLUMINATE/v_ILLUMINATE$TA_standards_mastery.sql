@@ -125,7 +125,11 @@ WITH valid_TAs AS (
              ,a.assessment_id
              ,a.title             
              ,a.administered_at
-             ,a.term
+             ,CASE 
+               WHEN a.term LIKE '%Summer%' THEN 'T1'
+               WHEN a.term IN ('EOY','Capstone') THEN 'T3'
+               ELSE a.term
+              END AS term
              ,a.scope
              ,a.subject
              ,a.standard_id

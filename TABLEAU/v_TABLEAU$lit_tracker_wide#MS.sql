@@ -10,13 +10,9 @@ WITH roster AS (
         ,co.lastfirst
         ,co.schoolid
         ,co.grade_level
-        ,cs.SPEDLEP
-        ,s.team
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
-    ON co.studentid = s.id
-  LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-    ON co.studentid = cs.studentid
+        ,co.SPEDLEP
+        ,co.team
+  FROM COHORT$identifiers_long#static co WITH(NOLOCK)  
   WHERE co.rn = 1
     AND co.schoolid IN (73252,133570965)
 )
@@ -176,6 +172,7 @@ WITH roster AS (
                ELSE fp.test_round
               END AS test_round
              ,CONVERT(VARCHAR,fp.read_lvl) AS read_lvl
+             ,CONVERT(VARCHAR,fp.indep_lvl) AS indep_lvl
              ,CONVERT(VARCHAR,fp.GLEQ) AS GLEQ      
              ,CONVERT(VARCHAR,ROUND(fp.GLEQ - gleq.GLEQ,1)) AS yrs_behind
              ,CONVERT(VARCHAR,CASE WHEN fp.schoolid = 73252 THEN rl.wpm ELSE fp.fp_wpmrate END) AS wpm
@@ -200,7 +197,7 @@ WITH roster AS (
   
   UNPIVOT (
     value
-    FOR field IN (read_lvl, gleq, wpm, keylever, yrs_behind)
+    FOR field IN (read_lvl, indep_lvl, gleq, wpm, keylever, yrs_behind)
    ) u
  )
 
@@ -407,14 +404,17 @@ SELECT year
       ,CONVERT(FLOAT,[BOY_wpm]) AS BOY_wpm
       ,CONVERT(VARCHAR,[BOY_keylever]) AS BOY_keylever
       ,CONVERT(VARCHAR,T1_read_lvl) AS T1_read_lvl
+      ,CONVERT(VARCHAR,T1_indep_lvl) AS T1_indep_lvl
       ,CONVERT(FLOAT,[T1_GLEQ]) AS T1_GLEQ
       ,CONVERT(FLOAT,[T1_wpm]) AS T1_wpm
       ,CONVERT(VARCHAR,[T1_keylever]) AS T1_keylever
       ,CONVERT(VARCHAR,T2_read_lvl) AS T2_read_lvl
+      ,CONVERT(VARCHAR,T2_indep_lvl) AS T2_indep_lvl
       ,CONVERT(FLOAT,[T2_GLEQ]) AS T2_GLEQ
       ,CONVERT(FLOAT,[T2_wpm]) AS T2_wpm
       ,CONVERT(VARCHAR,[T2_keylever]) AS T2_keylever
       ,CONVERT(VARCHAR,T3_read_lvl) AS T3_read_lvl
+      ,CONVERT(VARCHAR,T3_indep_lvl) AS T3_indep_lvl
       ,CONVERT(FLOAT,[T3_GLEQ]) AS T3_GLEQ
       ,CONVERT(FLOAT,[T3_wpm]) AS T3_wpm
       ,CONVERT(VARCHAR,[T3_keylever]) AS T3_keylever
@@ -571,14 +571,17 @@ PIVOT (
                 ,[BOY_wpm]
                 ,[BOY_keylever]
                 ,[T1_read_lvl]
+                ,[T1_indep_lvl]
                 ,[T1_GLEQ]
                 ,[T1_wpm]
                 ,[T1_keylever]
                 ,[T2_read_lvl]
+                ,[T2_indep_lvl]
                 ,[T2_GLEQ]
                 ,[T2_wpm]
                 ,[T2_keylever]
                 ,[T3_read_lvl]
+                ,[T3_indep_lvl]
                 ,[T3_GLEQ]
                 ,[T3_wpm]
                 ,[T3_keylever]
