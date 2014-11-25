@@ -3,7 +3,8 @@ GO
 
 ALTER VIEW REPORTING$khan_math_missions_totals AS
 SELECT s.id AS studentid
-      ,r.mission
+      ,s.student_number
+	  ,r.mission
       ,sch.abbreviation AS school
       ,s.grade_level
       ,s.first_name + ' ' + s.last_name AS name
@@ -29,6 +30,7 @@ LEFT OUTER JOIN Khan..REPORTING$khan_math_missions#long#static r
 LEFT OUTER JOIN Khan..stu_detail#identifiers st
   ON s.id = st.studentid
 GROUP BY s.id
+		,s.STUDENT_NUMBER
         ,r.mission
         ,sch.abbreviation
         ,s.grade_level

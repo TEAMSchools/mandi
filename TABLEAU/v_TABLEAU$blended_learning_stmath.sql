@@ -113,7 +113,6 @@ SELECT roster.*
 	  ,st_math.cur_lib
 	  ,st_math.change
 
-
 	  ,st_math_lib_track.lib_K
 	  ,st_math_lib_track.lib_1st
 	  ,st_math_lib_track.lib_2nd

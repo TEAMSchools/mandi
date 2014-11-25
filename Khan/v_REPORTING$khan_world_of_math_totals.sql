@@ -3,6 +3,7 @@ GO
 
 ALTER VIEW REPORTING$khan_world_of_math_totals AS
 SELECT s.id AS studentid
+	  ,s.student_number
       ,sch.abbreviation AS school
       ,s.grade_level
       ,s.first_name + ' ' + s.last_name AS name
@@ -28,6 +29,7 @@ LEFT OUTER JOIN Khan..REPORTING$khan_world_of_math#long#static r
 LEFT OUTER JOIN Khan..stu_detail#identifiers st
   ON s.id = st.studentid
 GROUP BY s.id
+		,s.student_number
         ,sch.abbreviation
         ,s.grade_level
         ,s.first_name + ' ' + s.last_name
