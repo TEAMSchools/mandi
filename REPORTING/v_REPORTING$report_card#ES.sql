@@ -3,47 +3,7 @@ GO
 
 ALTER VIEW REPORTING$report_card#ES AS
 
-WITH roster AS (
- SELECT co.STUDENTID
-       ,co.STUDENT_NUMBER      
-       ,co.LASTFIRST
-       ,co.LAST_NAME
-       ,co.FIRST_NAME
-       ,REPLACE(co.GRADE_LEVEL, 0 ,'K') AS grade_level
-       ,co.SCHOOLID
-       ,co.TEAM
-       ,co.LUNCH_BALANCE
-       ,co.STREET AS address
-       ,co.CITY
-       ,co.STATE
-       ,co.ZIP
-       ,co.HOME_PHONE
-       ,co.MOTHER_CELL
-       ,co.MOTHER_DAY
-       ,co.FATHER_CELL
-       ,co.FATHER_DAY
-       ,co.GUARDIANEMAIL
- FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
- WHERE co.YEAR = dbo.fn_Global_Academic_Year()
-   AND co.GRADE_LEVEL < 5
-   AND co.RN = 1
-   AND co.enroll_status = 0
- )
-
-,attendance AS (
-  SELECT att.studentid
-        ,CUR_ABS_ALL AS cur_absences_total
-        ,CUR_AD + CUR_AE AS excused_absences
-        ,cur_t_all AS cur_tardies_total
-        ,CUR_TE AS cur_tardies_exc
-        ,cur_le AS cur_early_dismiss
-        ,cur_lex AS cur_early_dismiss_exc
-        ,ROUND(cur_trip_abs,1) AS trip_absences
-        ,CASE WHEN cur_trip_abs >= 5 THEN 'Off Track' ELSE 'On Track' END AS trip_status
-  FROM ATT_MEM$attendance_counts att WITH(NOLOCK)  
- )
-
-,reporting_week AS (
+WITH reporting_week AS (
   SELECT schoolid
         ,time_per_name AS week_num        
         ,start_date
@@ -57,16 +17,6 @@ WITH roster AS (
     AND school_level = 'ES'
  )
 
-,curterm AS (
-  SELECT DISTINCT alt_name
-                 ,DATENAME(MONTH,end_date) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,end_date)) AS end_date                 
-  FROM REPORTING$dates WITH(NOLOCK)
-  WHERE identifier = 'RT'
-    AND school_level = 'ES'
-    AND start_date <= GETDATE()
-    AND end_date >= GETDATE()
- )
-
 SELECT r.studentid
       ,r.student_number
       ,r.LASTFIRST
@@ -76,7 +26,7 @@ SELECT r.studentid
       ,r.SCHOOLID
       ,r.TEAM
       ,r.LUNCH_BALANCE
-      ,r.address
+      ,r.STREET AS address
       ,r.CITY
       ,r.STATE
       ,r.ZIP
@@ -88,16 +38,16 @@ SELECT r.studentid
       ,r.GUARDIANEMAIL
       ,REPLACE(rw.week_num, '_', ' ') AS week_num
       ,rw.week_title
-      ,curterm.alt_name AS term_name
-      ,curterm.end_date AS term_end      
-      ,att.cur_absences_total
-      ,att.excused_absences
-      ,att.cur_tardies_total
-      ,att.cur_tardies_exc
-      ,att.cur_early_dismiss
-      ,att.cur_early_dismiss_exc
-      ,att.trip_absences
-      ,att.trip_status      
+      ,dt.alt_name AS term_name
+      ,DATENAME(MONTH,dt.end_date) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,dt.end_date)) AS term_end      
+      ,att.CUR_ABS_ALL AS cur_absences_total
+      ,att.CUR_AD + att.CUR_AE AS excused_absences
+      ,att.cur_t_all AS cur_tardies_total
+      ,att.CUR_TE AS cur_tardies_exc
+      ,att.cur_le AS cur_early_dismiss
+      ,att.cur_lex AS cur_early_dismiss_exc
+      ,ROUND(att.cur_trip_abs,1) AS trip_absences
+      ,CASE WHEN att.cur_trip_abs >= 5 THEN 'Off Track' ELSE 'On Track' END AS trip_status      
       ,fsa.pct_mastered_wk
       ,fsa.FSA_subject_1
       ,fsa.FSA_subject_2
@@ -255,36 +205,43 @@ SELECT r.studentid
       ,sp.pct_correct_yr AS sp_average_yr
       ,vocab.pct_correct_wk AS v_average_w
       ,vocab.pct_correct_yr AS v_average_yr
-FROM roster r WITH(NOLOCK)
-JOIN curterm WITH(NOLOCK)
-  ON 1 = 1
+FROM COHORT$identifiers_long#static r WITH(NOLOCK) 
+JOIN REPORTING$dates dt WITH(NOLOCK)
+  ON r.schoolid = dt.schoolid
+ AND dt.identifier = 'RT'    
+ AND dt.start_date <= GETDATE()
+ AND dt.end_date >= GETDATE()
 LEFT OUTER JOIN reporting_week rw WITH(NOLOCK)
   ON r.schoolid = rw.schoolid
-LEFT OUTER JOIN attendance att WITH(NOLOCK)
+LEFT OUTER JOIN ATT_MEM$attendance_counts#static att WITH(NOLOCK)
   ON r.STUDENTID = att.studentid
 LEFT OUTER JOIN ILLUMINATE$FSA_scores_wide#static fsa WITH(NOLOCK)
   ON r.STUDENTID = fsa.studentid
  AND rw.week_num = fsa.fsa_week
-LEFT OUTER JOIN ES_DAILY$tracking_wide daily WITH(NOLOCK) 
+LEFT OUTER JOIN ES_DAILY$tracking_wide#static daily WITH(NOLOCK) 
   ON r.STUDENTID = daily.studentid
  AND rw.week_num = daily.week_num
-LEFT OUTER JOIN ES_DAILY$tracking_totals wk_totals WITH(NOLOCK)
+LEFT OUTER JOIN ES_DAILY$tracking_totals#static wk_totals WITH(NOLOCK)
   ON r.STUDENTID = wk_totals.studentid
  AND rw.week_num = wk_totals.week_num 
-LEFT OUTER JOIN ES_DAILY$tracking_totals mth_totals WITH(NOLOCK)
+LEFT OUTER JOIN ES_DAILY$tracking_totals#static mth_totals WITH(NOLOCK)
   ON r.STUDENTID = mth_totals.studentid 
  AND mth_totals.week_num IS NULL
  AND rw.month = mth_totals.month 
-LEFT OUTER JOIN ES_DAILY$tracking_totals cur_totals WITH(NOLOCK)
+LEFT OUTER JOIN ES_DAILY$tracking_totals#static cur_totals WITH(NOLOCK)
   ON r.STUDENTID = cur_totals.studentid 
  AND cur_totals.week_num IS NULL
  AND cur_totals.month IS NULL
-LEFT OUTER JOIN LIT$sight_word_totals sw WITH(NOLOCK)
+LEFT OUTER JOIN LIT$sight_word_totals#static sw WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sw.student_number
  AND rw.week_num = sw.listweek_num
-LEFT OUTER JOIN LIT$spelling_totals sp WITH(NOLOCK)
+LEFT OUTER JOIN LIT$spelling_totals#static sp WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sp.student_number
  AND rw.week_num = sp.listweek_num
-LEFT OUTER JOIN LIT$vocab_totals vocab WITH(NOLOCK)
+LEFT OUTER JOIN LIT$vocab_totals#static vocab WITH(NOLOCK)
   ON r.STUDENT_NUMBER = vocab.student_number
  AND rw.week_num = vocab.listweek_num
+WHERE r.YEAR = dbo.fn_Global_Academic_Year()
+  AND r.GRADE_LEVEL < 5
+  AND r.RN = 1
+  AND r.enroll_status = 0

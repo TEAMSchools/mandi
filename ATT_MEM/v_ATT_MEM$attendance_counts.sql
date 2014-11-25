@@ -65,7 +65,7 @@ WITH attendance_long AS (
           ELSE NULL
          END AS att_code
   FROM DISC$log#static disc WITH(NOLOCK)
-  JOIN REPORTING$dates curterm WITH (NOLOCK)
+  JOIN REPORTING$dates curterm WITH(NOLOCK)
     ON disc.schoolid = curterm.schoolid
    AND disc.entry_date >= curterm.start_date
    AND disc.entry_date <= curterm.end_date
@@ -78,34 +78,31 @@ WITH attendance_long AS (
 
 -- uniform violations by date
 ,uniform AS (
-  SELECT *
-  FROM
-      (
-       SELECT studentid
-             ,dates.time_per_name AS rt
-             ,dt.has_uniform
-       FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
-       JOIN REPORTING$dates dates WITH(NOLOCK)
-         ON dt.schoolid = dates.schoolid
-        AND dt.att_date >= dates.start_date
-        AND dt.att_date <= dates.end_date
-        AND dates.identifier = 'RT'
+  SELECT studentid
+        ,dates.time_per_name AS rt
+        ,dt.has_uniform
+  FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+  JOIN REPORTING$dates dates WITH(NOLOCK)
+    ON dt.schoolid = dates.schoolid
+   AND dt.att_date >= dates.start_date
+   AND dt.att_date <= dates.end_date
+   AND dates.identifier = 'RT'
+  WHERE dt.has_uniform = 0
      
-       UNION ALL
+  UNION ALL
 
-       SELECT studentid
-             ,curterm.time_per_name AS rt
-             ,dt.has_uniform
-       FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
-       JOIN REPORTING$dates curterm WITH (NOLOCK)
-         ON dt.schoolid = curterm.schoolid
-        AND dt.att_date >= curterm.start_date
-        AND dt.att_date <= curterm.end_date
-        AND curterm.identifier = 'RT'
-       WHERE curterm.start_date <= GETDATE()
-         AND curterm.end_date >= GETDATE()       
-      ) sub
-  WHERE has_uniform = 0
+  SELECT studentid
+        ,curterm.time_per_name AS rt
+        ,dt.has_uniform
+  FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+  JOIN REPORTING$dates curterm WITH (NOLOCK)
+    ON dt.schoolid = curterm.schoolid
+   AND dt.att_date >= curterm.start_date
+   AND dt.att_date <= curterm.end_date
+   AND curterm.identifier = 'RT'
+  WHERE dt.has_uniform = 0
+    AND curterm.start_date <= GETDATE()
+    AND curterm.end_date >= GETDATE()       
  )
 
 SELECT studentid

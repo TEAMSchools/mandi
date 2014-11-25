@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW DISC$recent_incidents_wide AS
+
 SELECT s.id AS studentid
       --this logtypeid determines what type of log goes into the rest of the row, see JOIN for the logic
       ,CASE

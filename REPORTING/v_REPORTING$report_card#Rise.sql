@@ -645,7 +645,7 @@ SELECT roster.*
 FROM roster WITH (NOLOCK)
 
 --ATTENDANCE
-LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
+LEFT OUTER JOIN ATT_MEM$attendance_counts#static att_counts WITH (NOLOCK)
   ON roster.base_studentid = att_counts.studentid
 LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON roster.base_studentid = att_pct.studentid
@@ -667,7 +667,7 @@ LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH (NOLOCK)
   ON roster.base_studentid = promo.studentid
 
 --MAP
-LEFT OUTER JOIN MAP$wide_all map_all WITH (NOLOCK)
+LEFT OUTER JOIN MAP$wide_all#static map_all WITH (NOLOCK)
   ON roster.base_studentid = map_all.studentid
   
 --LITERACY

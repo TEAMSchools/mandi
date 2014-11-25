@@ -667,11 +667,11 @@ SELECT ROW_NUMBER() OVER(
 FROM roster WITH (NOLOCK)
 
 --Attendance
-LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
+LEFT OUTER JOIN ATT_MEM$attendance_counts#static att_counts WITH (NOLOCK)
   ON roster.id = att_counts.studentid
 LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON roster.id = att_pct.studentid
-LEFT OUTER JOIN ATT_MEM$membership_counts membership_counts WITH (NOLOCK)
+LEFT OUTER JOIN ATT_MEM$membership_counts#static membership_counts WITH (NOLOCK)
   ON roster.id = membership_counts.studentid
 
 --Grades & GPA
@@ -720,7 +720,7 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
 --MAP
-LEFT OUTER JOIN MAP$wide_all map_all WITH (NOLOCK)
+LEFT OUTER JOIN MAP$wide_all#static map_all WITH (NOLOCK)
   ON roster.id = map_all.studentid
   
 --NJASK

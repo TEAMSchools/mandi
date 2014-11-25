@@ -117,9 +117,9 @@ FROM
             ON co.studentid = gr_wide.studentid
           LEFT OUTER JOIN GPA$detail#MS gpa WITH (NOLOCK)
             ON co.studentid = gpa.studentid
-          LEFT OUTER JOIN ATT_MEM$attendance_counts ac WITH (NOLOCK)
+          LEFT OUTER JOIN ATT_MEM$attendance_counts#static ac WITH (NOLOCK)
             ON co.studentid = ac.studentid
-          LEFT OUTER JOIN ATT_MEM$membership_counts mem WITH (NOLOCK)
+          LEFT OUTER JOIN ATT_MEM$membership_counts#static mem WITH (NOLOCK)
             ON co.studentid = mem.studentid
           LEFT OUTER JOIN GRADES$elements hw WITH (NOLOCK)
             ON co.studentid = hw.studentid

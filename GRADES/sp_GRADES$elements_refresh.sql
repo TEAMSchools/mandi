@@ -13,61 +13,59 @@ BEGIN
   IF OBJECT_ID(N'tempdb..#GRADES$elements_s1') IS NOT NULL
   BEGIN
     DROP TABLE [#GRADES$elements_s1]
-  END
+  END;
   
-  IF OBJECT_ID(N'tempdb..#GRADES$elemegnts_s2') IS NOT NULL
+  IF OBJECT_ID(N'tempdb..#GRADES$elements_s2') IS NOT NULL
   BEGIN
     DROP TABLE [#GRADES$elements_s2]
-  END
+  END;
 
   IF OBJECT_ID(N'tempdb..#GRADES$elements_s3') IS NOT NULL
   BEGIN
     DROP TABLE [#GRADES$elements_s3]
-  END
+  END;
 
   IF OBJECT_ID(N'tempdb..#GRADES$elements_final') IS NOT NULL
   BEGIN
     DROP TABLE [#GRADES$elements_final]
-  END
+  END;
  
-  SELECT CAST(studentid AS INT) AS studentid
-        ,CAST(schoolid AS INT) AS schoolid
-        ,CAST(yearid AS INT) AS yearid
+  SELECT studentid
+        ,schoolid
+        ,yearid
         ,finalgradename
-        ,CAST([percent] AS FLOAT) AS [percent]
-        ,course_number
+        ,[percent]
+        ,COURSE_NUMBER
         ,pgf_type
-        ,CAST(pgf_seq_num AS INT) AS pgf_seq_num
-        ,CAST(date1 AS DATE) AS start_date
-        ,CAST(date2 AS DATE) AS end_date
-  INTO #GRADES$elements_s1
-  FROM OPENQUERY(PS_TEAM, '
-    SELECT pgf.sectionid
-          ,pgf.studentid
-          ,pgf.finalgradename
-          ,pgf.percent
-          ,cc.course_number
-          ,cc.schoolid          
-          ,SUBSTR(pgf.finalgradename, 0, 1) AS pgf_type --break out the TYPE from the SEQUENCE
-          ,SUBSTR(pgf.finalgradename, 2, 2) AS pgf_seq_num
-          ,termbins.date1
-          ,termbins.date2
-          ,termbins.yearid
-    FROM pgfinalgrades pgf
-    JOIN cc
-      ON pgf.sectionid = cc.sectionid 
-     AND pgf.studentid = cc.studentid          
-     AND cc.termid >= 2300     
-     AND (cc.schoolid = 73252 
-           OR (cc.schoolid != 73252 AND SUBSTR(pgf.finalgradename, 0, 1) != ''Q'')) --Rise uses Q for HW quality, others should be EXCLUDED
-    JOIN termbins
-      ON cc.termid = termbins.termid
-     AND cc.schoolid = termbins.schoolid
-     AND pgf.finalgradename = termbins.storecode     
-     AND termbins.date1 <= TRUNC(SYSDATE) --ignore the future
-    WHERE pgf.percent != 0 -- are we concerned about spurious 0s?
-      AND SUBSTR(pgf.finalgradename, 0, 1) != ''T'' --never use T trimester grades     
-  ') sub
+        ,pgf_seq_num
+  INTO #GRADES$elements_s1  
+  FROM
+      (
+       SELECT CONVERT(INT,oq.studentid) AS studentid
+             ,CONVERT(INT,cc.schoolid) AS schoolid
+             ,LEFT(cc.termid, 2) AS yearid
+             ,finalgradename
+             ,CONVERT(FLOAT,[percent]) AS [percent]
+             ,course_number      
+             ,LEFT(oq.finalgradename, 1) AS pgf_type
+             ,RIGHT(oq.finalgradename, 1) AS pgf_seq_num              
+       FROM OPENQUERY(PS_TEAM, '
+         SELECT pgf.sectionid
+               ,pgf.studentid
+               ,pgf.finalgradename
+               ,pgf.percent                
+         FROM pgfinalgrades pgf  
+         WHERE pgf.startdate >= TO_DATE(''2014-08-01'',''YYYY-MM-DD'')
+           AND pgf.startdate <= TRUNC(SYSDATE)    
+           AND pgf.percent != 0
+           AND SUBSTR(pgf.finalgradename, 0, 1) != ''T''
+       ') oq
+       JOIN CC WITH(NOLOCK)
+         ON oq.sectionid = cc.sectionid
+        AND oq.studentid = cc.STUDENTID
+      ) sub
+  --Rise uses Q for HW quality, others should be EXCLUDED
+  WHERE (sub.schoolid = 73252 OR (sub.schoolid != 73252 AND sub.pgf_type != 'Q'));
   
   SELECT sub_1.studentid
         ,sub_1.schoolid
@@ -96,50 +94,27 @@ BEGIN
          END AS underlying_audit
   INTO [#GRADES$elements_s2]
   FROM
-       (SELECT temp_ele.studentid
-              ,temp_ele.schoolid
-              ,temp_ele.yearid
-              ,temp_ele.course_number
-              ,temp_ele.pgf_type
-              ,MAX(CASE 
-                     WHEN temp_ele.pgf_seq_num = 1 THEN temp_ele.[percent]
-                     ELSE NULL
-                   END) AS grade_1
-              ,MAX(CASE 
-                     WHEN temp_ele.pgf_seq_num = 2 THEN temp_ele.[percent]
-                     ELSE NULL
-                   end) AS grade_2
-              ,MAX(CASE 
-                     WHEN temp_ele.pgf_seq_num = 3 THEN temp_ele.[percent]
-                     ELSE NULL
-                   END) AS grade_3
-              ,MAX(CASE 
-                     WHEN temp_ele.pgf_seq_num = 4 THEN temp_ele.[percent]
-                     ELSE NULL
-                   END) AS grade_4
-              ,SUM(CASE
-                     WHEN temp_ele.pgf_seq_num = 1 THEN 1
-                     ELSE 0
-                   END) AS grade_1_ct
-              ,SUM(CASE
-                     WHEN temp_ele.pgf_seq_num = 2 THEN 1
-                     ELSE 0
-                   END) AS grade_2_ct
-              ,SUM(CASE
-                     WHEN temp_ele.pgf_seq_num = 3 THEN 1
-                     ELSE 0
-                   END) AS grade_3_ct
-              ,SUM(CASE
-                     WHEN temp_ele.pgf_seq_num = 4 THEN 1
-                     ELSE 0
-                   END) AS grade_4_ct           
-        FROM #GRADES$elements_s1 temp_ele
-        GROUP BY temp_ele.studentid
-                ,temp_ele.schoolid
-                ,temp_ele.yearid
-                ,temp_ele.course_number
-                ,temp_ele.pgf_type
-        ) sub_1
+      (
+       SELECT temp_ele.studentid
+             ,temp_ele.schoolid
+             ,temp_ele.yearid
+             ,temp_ele.course_number
+             ,temp_ele.pgf_type
+             ,MAX(CASE WHEN temp_ele.pgf_seq_num = 1 THEN temp_ele.[percent] ELSE NULL END) AS grade_1
+             ,MAX(CASE WHEN temp_ele.pgf_seq_num = 2 THEN temp_ele.[percent] ELSE NULL END) AS grade_2
+             ,MAX(CASE WHEN temp_ele.pgf_seq_num = 3 THEN temp_ele.[percent] ELSE NULL END) AS grade_3
+             ,MAX(CASE WHEN temp_ele.pgf_seq_num = 4 THEN temp_ele.[percent] ELSE NULL END) AS grade_4
+             ,SUM(CASE WHEN temp_ele.pgf_seq_num = 1 THEN 1 ELSE 0 END) AS grade_1_ct
+             ,SUM(CASE WHEN temp_ele.pgf_seq_num = 2 THEN 1 ELSE 0 END) AS grade_2_ct
+             ,SUM(CASE WHEN temp_ele.pgf_seq_num = 3 THEN 1 ELSE 0 END) AS grade_3_ct
+             ,SUM(CASE WHEN temp_ele.pgf_seq_num = 4 THEN 1 ELSE 0 END) AS grade_4_ct           
+       FROM #GRADES$elements_s1 temp_ele
+       GROUP BY temp_ele.studentid
+               ,temp_ele.schoolid
+               ,temp_ele.yearid
+               ,temp_ele.course_number
+               ,temp_ele.pgf_type
+      ) sub_1;
   
   SELECT studentid
         ,schoolid
@@ -163,7 +138,7 @@ BEGIN
         ,schoolid
         ,yearid
         ,pgf_type
-        ,ROLLUP(course_number)
+        ,ROLLUP(course_number);
   
   SELECT ele.*
         ,scales.letter_grade
@@ -172,7 +147,7 @@ BEGIN
   JOIN KIPP_NJ..GRADES$grade_scales#static scales WITH(NOLOCK)
     ON ele.simple_avg >= scales.low_cut 
    AND ele.simple_avg <  scales.high_cut
-   AND scales.scale_name = 'NCA 2011'
+   AND scales.scale_name = 'NCA 2011';
   
   EXEC('TRUNCATE TABLE dbo.[GRADES$elements]');
  

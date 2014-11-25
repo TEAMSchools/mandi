@@ -4,7 +4,9 @@ GO
 ALTER VIEW ES_DAILY$tracking_totals AS
 
 WITH valid_dates AS (
-  SELECT *
+  SELECT schoolid
+        ,att_date
+        ,week_num
         ,ROW_NUMBER() OVER(
             PARTITION BY schoolid, week_num
                 ORDER BY att_date) AS day_number

@@ -96,7 +96,7 @@ SELECT s.student_number AS SN
 FROM COHORT$identifiers_long#static s WITH(NOLOCK)
 LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
   ON s.studentid = merits.studentid
-LEFT OUTER JOIN ATT_MEM$attendance_counts att WITH (NOLOCK)
+LEFT OUTER JOIN ATT_MEM$attendance_counts#static att WITH (NOLOCK)
   ON s.studentid = att.studentid
 LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON s.studentid = att_pct.studentid

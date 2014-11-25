@@ -659,7 +659,7 @@ FROM
       FROM roster WITH (NOLOCK)
        
       --ATTENDANCE
-      LEFT OUTER JOIN ATT_MEM$attendance_counts att_counts WITH (NOLOCK)
+      LEFT OUTER JOIN ATT_MEM$attendance_counts#static att_counts WITH (NOLOCK)
         ON roster.studentid = att_counts.studentid
       LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
         ON roster.studentid = att_pct.studentid

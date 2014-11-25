@@ -3,23 +3,7 @@ GO
 
 ALTER VIEW REPORTING$report_card_term#ES AS
 
-WITH roster AS (
- SELECT co.STUDENTID
-       ,co.STUDENT_NUMBER      
-       ,co.LASTFIRST       
-       ,co.FIRST_NAME
-       ,CASE WHEN co.GRADE_LEVEL = 0 THEN 'K' ELSE CONVERT(VARCHAR,co.grade_level) END AS grade_level
-       ,co.SCHOOLID
-       ,co.school_name
-       ,co.TEAM       
- FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
- WHERE co.YEAR = dbo.fn_Global_Academic_Year()
-   AND co.GRADE_LEVEL < 5
-   AND co.RN = 1
-   AND co.enroll_status = 0
- )
-
-,curterm AS (
+WITH curterm AS (
   SELECT DISTINCT 'RT' + CONVERT(VARCHAR,(RIGHT(time_per_name,1) - 1)) AS time_per_name                 
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
@@ -30,16 +14,35 @@ WITH roster AS (
     AND end_date >= '2014-12-02' -- testing
  )
 
-,reporting_term AS (
-  SELECT schoolid
-        ,time_per_name
-        ,alt_name AS term                
-  FROM REPORTING$dates WITH(NOLOCK)    
-  WHERE academic_year = dbo.fn_Global_Academic_Year()
-    AND identifier = 'RT'    
-    AND school_level = 'ES'
-    AND time_per_name = (SELECT time_per_name FROM curterm WITH(NOLOCK))
+,roster AS (
+ SELECT co.STUDENTID
+       ,co.STUDENT_NUMBER      
+       ,co.LASTFIRST       
+       ,co.FIRST_NAME
+       ,CASE WHEN co.GRADE_LEVEL = 0 THEN 'K' ELSE CONVERT(VARCHAR,co.grade_level) END AS grade_level
+       ,co.SCHOOLID
+       ,co.school_name
+       ,co.TEAM       
+       ,dt.time_per_name
+       ,dt.alt_name AS term
+ FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
+ JOIN REPORTING$dates dt WITH(NOLOCK)    
+   ON co.schoolid = dt.schoolid    
+  AND dt.academic_year = dbo.fn_Global_Academic_Year()
+  AND identifier = 'RT'      
+  AND time_per_name = (SELECT time_per_name FROM curterm WITH(NOLOCK))
+ WHERE co.YEAR = dbo.fn_Global_Academic_Year()
+   AND co.GRADE_LEVEL < 5
+   AND co.RN = 1
+   AND co.enroll_status = 0
  )
+
+--,reporting_term AS (
+--  SELECT schoolid
+--        ,time_per_name
+--        ,alt_name AS term                
+--  FROM 
+-- )
 
 ,attendance AS (
   SELECT studentid
@@ -108,7 +111,7 @@ WITH roster AS (
             SELECT mth.studentid
                   ,mth.month
                   ,mth.pct_ontrack_mth      
-            FROM ES_DAILY$tracking_totals mth WITH(NOLOCK)
+            FROM ES_DAILY$tracking_totals#static mth WITH(NOLOCK)
             WHERE mth.month IS NOT NULL
            ) sub
        PIVOT(
@@ -125,7 +128,7 @@ WITH roster AS (
                           ,[June])
         ) p
       ) sub
-  LEFT OUTER JOIN ES_DAILY$tracking_totals yr WITH(NOLOCK)
+  LEFT OUTER JOIN ES_DAILY$tracking_totals#static yr WITH(NOLOCK)
     ON sub.studentid = yr.studentid
    AND yr.month IS NULL
    AND yr.week_num IS NULL  
@@ -288,7 +291,7 @@ SELECT r.studentid
       ,r.SCHOOLID
       ,r.school_name
       ,r.TEAM      
-      ,rt.term          
+      ,r.term          
       -- attendance
       ,att.absences      
       ,att.tardies      
@@ -561,35 +564,35 @@ SELECT r.studentid
 FROM roster r WITH(NOLOCK)
 JOIN curterm WITH(NOLOCK)
   ON 1 = 1
-LEFT OUTER JOIN reporting_term rt WITH(NOLOCK)
-  ON r.schoolid = rt.schoolid
+--LEFT OUTER JOIN reporting_term rt WITH(NOLOCK)
+--  ON r.schoolid = rt.schoolid
 LEFT OUTER JOIN attendance att WITH(NOLOCK)
   ON r.STUDENTID = att.studentid
 LEFT OUTER JOIN behavior bhv WITH(NOLOCK)
   ON r.studentid = bhv.studentid
-LEFT OUTER JOIN LIT$sight_word_totals sw WITH(NOLOCK)
+LEFT OUTER JOIN LIT$sight_word_totals#static sw WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sw.student_number
   AND sw.listweek_num = 'Week_01'
-LEFT OUTER JOIN LIT$spelling_totals sp WITH(NOLOCK)
+LEFT OUTER JOIN LIT$spelling_totals#static sp WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sp.student_number
  AND sp.listweek_num = 'Week_01'
-LEFT OUTER JOIN LIT$vocab_totals vocab WITH(NOLOCK)
+LEFT OUTER JOIN LIT$vocab_totals#static vocab WITH(NOLOCK)
   ON r.STUDENT_NUMBER = vocab.student_number
  AND vocab.listweek_num = 'Week_01'
 LEFT OUTER JOIN ILLUMINATE$TA_scores_wide#static ta WITH(NOLOCK)
   ON r.student_number = ta.student_number
- AND rt.term = ta.term
+ AND r.term = ta.term
 LEFT OUTER JOIN ILLUMINATE$TA_writing_scores_wide#static wr WITH(NOLOCK)
   ON r.student_number = wr.student_number
- AND rt.term = wr.term
+ AND r.term = wr.term
 LEFT OUTER JOIN reading_level rs WITH(NOLOCK)
   ON r.studentid = rs.studentid
 LEFT OUTER JOIN REPORTING$report_card_comments#ES comm WITH(NOLOCK)
   ON r.student_number = comm.student_number
- AND rt.term = comm.term
+ AND r.term = comm.term
 LEFT OUTER JOIN REPORTING$ARFR_reasons#ES arfr WITH(NOLOCK)
   ON r.student_number = arfr.student_number
- AND rt.term = arfr.term
+ AND r.term = arfr.term
  AND arfr.academic_year = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN social_skills soc WITH(NOLOCK)
   ON r.student_number = soc.student_number

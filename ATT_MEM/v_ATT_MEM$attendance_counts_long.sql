@@ -4,11 +4,10 @@ GO
 ALTER VIEW ATT_MEM$attendance_counts_long AS
 
 SELECT studentid      
-      ,LEFT(field,CHARINDEX('_',field)-1) AS term
-      ,SUBSTRING(field,CHARINDEX('_',field)+1,8) AS code      
+      ,LEFT(field, CHARINDEX('_', field) - 1) AS term
+      ,SUBSTRING(field, CHARINDEX('_', field) + 1, 8) AS code      
       ,value
-FROM ATT_MEM$attendance_counts WITH(NOLOCK)
-
+FROM ATT_MEM$attendance_counts#static WITH(NOLOCK)
 UNPIVOT(
   value
   FOR field IN (Y1_A
