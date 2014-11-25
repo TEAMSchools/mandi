@@ -8,10 +8,10 @@ WITH curterm AS (
         ,alt_name AS term
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
-    AND academic_year = 2014
+    AND academic_year = dbo.fn_Global_Academic_Year()
     AND schoolid = 133570965
-    AND start_date <= GETDATE()
-    AND end_date >= GETDATE()
+    AND start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())
  )
 
 ,roster AS (

@@ -1,39 +1,40 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$report_card#Rise AS
+----CREATE VIEW REPORTING$report_card_term#MS AS
 
 WITH curterm AS (
-  SELECT time_per_name
-        ,alt_name AS term
+  SELECT schoolid
+        ,'RT' + CONVERT(VARCHAR,(RIGHT(time_per_name,1) - 1)) AS time_per_name
+        ,'T' + CONVERT(VARCHAR,(RIGHT(alt_name,1) - 1)) AS term
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND academic_year = dbo.fn_Global_Academic_Year()
-    AND schoolid = 73252
-    AND start_date <= CONVERT(DATE,GETDATE())
-    AND end_date >= CONVERT(DATE,GETDATE())
+    AND school_level = 'MS'
+    ----AND start_date <= CONVERT(DATE,GETDATE())
+    ----AND end_date >= CONVERT(DATE,GETDATE())
+    AND start_date <= '2014-12-01' -- testing
+    AND end_date >= '2014-12-01' -- testing
  )
 
 ,cur_hex AS (
-  SELECT CASE 
-          WHEN RIGHT(time_per_name, 1) IN (1, 3, 5) THEN 'RT' + RIGHT(time_per_name, 1)
-          ELSE 'RT' + CONVERT(VARCHAR,RIGHT(time_per_name, 1) - 1)
-         END AS hex_a
-        ,CASE 
-          WHEN RIGHT(time_per_name, 1) IN (1, 3, 5) THEN 'RT' + CONVERT(VARCHAR,RIGHT(time_per_name, 1) + 1)
-          ELSE 'RT' + RIGHT(time_per_name, 1)
-         END AS hex_b
+  SELECT schoolid
+        ,'RT' + CONVERT(VARCHAR,(RIGHT(time_per_name, 1) - 2)) AS hex_a
+        ,'RT' + CONVERT(VARCHAR,(RIGHT(time_per_name, 1) - 1)) AS hex_b
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE academic_year = dbo.fn_Global_Academic_Year()
-    AND schoolid = 73252
+    AND school_level = 'MS'
     AND identifier = 'HEX'
-    AND start_date <= GETDATE()
-    AND end_date >= GETDATE()
+    ----AND start_date <= CONVERT(DATE,GETDATE())
+    ----AND end_date >= CONVERT(DATE,GETDATE())
+    AND start_date <= '2014-12-01' -- testing
+    AND end_date >= '2014-12-01' -- testing
  )
 
 ,roster AS (
   SELECT co.student_number AS base_student_number
         ,co.studentid AS base_studentid
+        ,co.schoolid
         ,co.lastfirst AS stu_lastfirst
         ,co.first_name AS stu_firstname
         ,co.last_name AS stu_lastname
@@ -60,12 +61,16 @@ WITH curterm AS (
         ,curterm.term AS curterm
         ,REPLACE(curterm.term, 'T', 'Trimester ') AS curterm_long
         ,DATENAME(MONTH,GETDATE()) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,GETDATE())) + ', ' + CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) AS today_text
+        ,cur_hex.hex_a
+        ,cur_hex.hex_b
   FROM COHORT$identifiers_long#static co WITH (NOLOCK)    
-  JOIN curterm
-    ON 1 = 1
+  JOIN curterm WITH(NOLOCK)
+    ON co.schoolid = curterm.schoolid
+  JOIN cur_hex WITH(NOLOCK)
+    ON co.schoolid = cur_hex.schoolid
   WHERE co.year = dbo.fn_Global_Academic_Year()
     AND co.rn = 1        
-    AND co.schoolid = 73252
+    AND co.schoolid IN (73252, 133570965)
     AND co.enroll_status = 0
  )
 
@@ -84,13 +89,39 @@ WITH curterm AS (
    AND sec.course_number = comm.course_number
    AND sec.sectionid = comm.sectionid
    AND sec.term = comm.term
-  WHERE sec.term IN (SELECT term FROM curterm)
+  WHERE sec.term IN (SELECT term FROM curterm WITH(NOLOCK))
  )  
 
-SELECT roster.*      
+SELECT roster.base_student_number
+      ,roster.base_studentid
+      ,roster.schoolid
+      ,roster.stu_lastfirst
+      ,roster.stu_firstname
+      ,roster.stu_lastname
+      ,roster.stu_grade_level
+      ,roster.travel_group
+      ,roster.web_id
+      ,roster.web_password
+      ,roster.student_web_id
+      ,roster.student_web_password
+      ,roster.street
+      ,roster.city
+      ,roster.home_phone
+      ,roster.advisor
+      ,roster.advisor_email
+      ,roster.advisor_cell
+      ,roster.mother_cell
+      ,roster.mother_daytime
+      ,roster.father_cell
+      ,roster.father_daytime
+      ,roster.guardianemail
+      ,roster.SPED
+      ,roster.lunch_balance
+      ,roster.curterm_long
+      ,roster.today_text
       
---Course Grades
---GRADES$wide_all
+----Course Grades
+----GRADES$wide_all
 
     /*--RC1--*/
       ,gr_wide.rc1_course_name
@@ -183,15 +214,15 @@ SELECT roster.*
       ,ROUND(rc.rc8,0) AS rc8_curterm_pct
 
     /*--current term component averages--*/       
-      --All classes element averages for the year
+      ----All classes element averages for the year
       ,gr_wide.HY_all AS homework_year_avg
       ,gr_wide.QY_all AS homework_qual_year_avg
       ,gr_wide.AY_all AS assess_year_avg       
        
       /*--UPDATE FIELD FOR CURRENT TERM--*//*--ACTIVATE code block--*/
-     --T1--
-      --/*
-      --H
+     ----T1--
+      /*
+      H
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_H1  END AS rc1_cur_hw_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_H1  END AS rc2_cur_hw_pct
       ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_H1  END AS rc3_cur_hw_pct
@@ -200,7 +231,7 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_H1  END AS rc6_cur_hw_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_H1  END AS rc7_cur_hw_pct
       ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H1  END AS rc8_cur_hw_pct
-      --S
+      S
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_S1  END AS rc1_cur_s_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_S1  END AS rc2_cur_s_pct
       ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_S1  END AS rc3_cur_s_pct
@@ -209,7 +240,7 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_S1  END AS rc6_cur_s_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_S1  END AS rc7_cur_s_pct
       ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_S1  END AS rc8_cur_s_pct      
-      --Q
+      Q
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q1  END AS rc1_cur_qual_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q1  END AS rc2_cur_qual_pct
       ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_Q1  END AS rc3_cur_qual_pct
@@ -218,11 +249,11 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_Q1  END AS rc6_cur_qual_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_Q1  END AS rc7_cur_qual_pct
       ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q1  END AS rc8_cur_qual_pct
-      --*/
+      */
     
-    --T2--
+    ----T2--
       /*
-      --H
+      H
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_H2  END AS rc1_cur_hw_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_H2  END AS rc2_cur_hw_pct
       ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_H2  END AS rc3_cur_hw_pct
@@ -230,8 +261,8 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_H2  END AS rc5_cur_hw_pct
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_H2  END AS rc6_cur_hw_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_H2  END AS rc7_cur_hw_pct
-      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H2  END AS rc8_cur_hw_pct
-      --S
+      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H2  END AS rc8_cur_hw_pct
+      S
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_S2  END AS rc1_cur_s_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_S2  END AS rc2_cur_s_pct
       ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_S2  END AS rc3_cur_s_pct
@@ -240,7 +271,7 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_S2  END AS rc6_cur_s_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_S2  END AS rc7_cur_s_pct
       ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_S2  END AS rc8_cur_s_pct      
-      --Q
+      Q
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q2  END AS rc1_cur_qual_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q2  END AS rc2_cur_qual_pct
       ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_Q2  END AS rc3_cur_qual_pct
@@ -248,12 +279,12 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc5_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc5_Q2  END AS rc5_cur_qual_pct
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_Q2  END AS rc6_cur_qual_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_Q2  END AS rc7_cur_qual_pct
-      --,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q2  END AS rc8_cur_qual_pct
-      --*/
+      ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q2  END AS rc8_cur_qual_pct
+      */
       
-    --T3--
+    ----T3--
       /*
-       --H
+       H
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_H3  END AS rc1_cur_hw_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_H3  END AS rc2_cur_hw_pct
       ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_H3  END AS rc3_cur_hw_pct
@@ -262,7 +293,7 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_H3  END AS rc6_cur_hw_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_H3  END AS rc7_cur_hw_pct
       ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_H3  END AS rc8_cur_hw_pct
-      --S
+      S
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_S3  END AS rc1_cur_s_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_S3  END AS rc2_cur_s_pct
       ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_S3  END AS rc3_cur_s_pct
@@ -271,7 +302,7 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_S3  END AS rc6_cur_s_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_S3  END AS rc7_cur_s_pct
       ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_S3  END AS rc8_cur_s_pct      
-      --Q
+      Q
       ,CASE WHEN gr_wide.rc1_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc1_Q3  END AS rc1_cur_qual_pct
       ,CASE WHEN gr_wide.rc2_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc2_Q3  END AS rc2_cur_qual_pct
       ,CASE WHEN gr_wide.rc3_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc3_Q3  END AS rc3_cur_qual_pct
@@ -280,11 +311,11 @@ SELECT roster.*
       ,CASE WHEN gr_wide.rc6_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc6_Q3  END AS rc6_cur_qual_pct
       ,CASE WHEN gr_wide.rc7_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc7_Q3  END AS rc7_cur_qual_pct
       ,CASE WHEN gr_wide.rc8_credittype  = 'COCUR' THEN NULL ELSE gr_wide.rc8_Q3  END AS rc8_cur_qual_pct
-      --*/
+      */
 
---Attendance & Tardies
---ATT_MEM$attendance_percentages
---ATT_MEM$attendance_counts      
+----Attendance & Tardies
+----ATT_MEM$attendance_percentages
+----ATT_MEM$attendance_counts      
     
     /*--Year--*/
       ,att_counts.y1_abs_all AS Y1_absences_total
@@ -295,15 +326,15 @@ SELECT roster.*
       ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total      
 
     /*--Current--*/      
-      --/*
-      --CUR--
-      ,att_counts.CUR_ABS_ALL        AS curterm_absences_total
-      ,att_counts.CUR_A        AS curterm_absences_undoc
-      ,ROUND(att_pct.cur_att_pct_total,0)   AS curterm_att_pct_total
-      ,ROUND(att_pct.cur_att_pct_undoc,0)   AS curterm_att_pct_undoc      
-      ,att_counts.CUR_T_ALL         AS curterm_tardies_total
+      /*
+      CUR--
+      ,att_counts.CUR_ABS_ALL AS curterm_absences_total
+      ,att_counts.CUR_A AS curterm_absences_undoc
+      ,ROUND(att_pct.cur_att_pct_total,0) AS curterm_att_pct_total
+      ,ROUND(att_pct.cur_att_pct_undoc,0) AS curterm_att_pct_undoc      
+      ,att_counts.CUR_T_ALL AS curterm_tardies_total
       ,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total
-      --*/
+      */
       
       /* BY TERM == IN CASE YOU NEED IT */
       /*
@@ -334,8 +365,8 @@ SELECT roster.*
       ,ROUND(att_pct.RT3_tardy_pct_total,0) AS curterm_tardy_pct_total
       --*/
 
---GPA
---GPA$detail#MS
+----GPA
+----GPA$detail#MS
     /*--Year--*/      
       ,gpa.GPA_y1_all AS gpa_Y1
       ,gpa.rank_gr_y1_all AS GPA_Y1_Rank_G
@@ -344,86 +375,98 @@ SELECT roster.*
    /*--Current Term--*/
       ,gpa_long.GPA_all AS gpa_curterm
       
---Promotional Criteria
---REPORTING$promo_status#MS
+----Promotional Criteria
+----REPORTING$promo_status#MS
       ,promo.y1_att_pts_pct
       ,promo.attendance_points      
-      ,promo.promo_overall_rise AS promo_status_overall
-      ,promo.promo_grades_gpa_rise AS GPA_Promo_Status_Grades  
-      ,promo.promo_att_rise AS promo_status_att
-      ,promo.promo_hw_rise AS promo_status_hw
+      ,CASE
+        WHEN roster.schoolid = 73252 THEN promo.promo_overall_rise 
+        WHEN roster.schoolid = 133570965 THEN promo.promo_overall_team
+       END AS promo_status_overall
+      ,CASE
+        WHEN roster.schoolid = 73252 THEN promo.promo_grades_gpa_rise 
+        WHEN roster.schoolid = 133570965 THEN promo.promo_grades_team
+       END AS GPA_Promo_Status_Grades  
+      ,CASE
+        WHEN roster.schoolid = 73252 THEN promo.promo_att_rise 
+        WHEN roster.schoolid = 133570965 THEN promo.promo_att_team
+       END AS promo_status_att
+      ,CASE
+        WHEN roster.schoolid = 73252 THEN promo.promo_hw_rise 
+        WHEN roster.schoolid = 133570965 THEN promo.promo_hw_team
+       END AS promo_status_hw
 
---MAP scores
---MAP$wide_all     
-      --MAP reading      
-      -- 14-15
+----MAP scores
+----MAP$wide_all     
+----      MAP reading      
+----       14-15
       ,map_all.spr_2015_read_pctle
       ,map_all.f_2014_read_pctle
-      -- 13-14
+       ----13-14
       ,map_all.spr_2014_read_pctle
       ,map_all.f_2013_read_pctle
-      -- 12-13
+       ----12-13
       ,map_all.spr_2013_read_pctle
       ,map_all.f_2012_read_pctle
-      -- 11-12
+       ----11-12
       ,map_all.spr_2012_read_pctle
       ,map_all.f_2011_read_pctle
         
-      --MAP math
-      -- 14-15
+      ----MAP math
+      ---- 14-15
       ,map_all.spr_2015_math_pctle
       ,map_all.f_2014_math_pctle
-      -- 13-14
+      ---- 13-14
       ,map_all.spr_2014_math_pctle
       ,map_all.f_2013_math_pctle
-      -- 12-13
+      ---- 12-13
       ,map_all.spr_2013_math_pctle
       ,map_all.f_2012_math_pctle
-      -- 11-12
+      ---- 11-12
       ,map_all.spr_2012_math_pctle
       ,map_all.f_2011_math_pctle
 
-      --MAP science
-      -- 14-15
+      ----MAP science
+      ---- 14-15
       ,map_all.spr_2015_gen_pctle
       ,map_all.f_2014_gen_pctle
-      -- 13-14
+      ---- 13-14
       ,map_all.spr_2014_gen_pctle
       ,map_all.f_2013_gen_pctle
-      -- 12-13
+      ---- 12-13
       ,map_all.spr_2013_gen_pctle
       ,map_all.f_2012_gen_pctle
-      -- 11-12
+      ---- 11-12
       ,map_all.spr_2012_gen_pctle
       ,map_all.f_2011_gen_pctle
 
-      --MAP science
-      -- 14-15
+      ----MAP writing
+      ---- 14-15
       ,map_all.spr_2015_lang_pctle
       ,map_all.f_2014_lang_pctle
-      -- 13-14
+       ----13-14
       ,map_all.spr_2014_lang_pctle
       ,map_all.f_2013_lang_pctle
-      -- 12-13
+       ----12-13
       ,map_all.spr_2013_lang_pctle
       ,map_all.f_2012_lang_pctle
-      -- 11-12
+       ----11-12
       ,map_all.spr_2012_lang_pctle
       ,map_all.f_2011_lang_pctle
 
---Literacy tracking
---MAP$comprehensive#identifiers
---LIT$FP_test_events_long#identifiers#static
+----Literacy tracking
+----MAP$comprehensive#identifiers
+----LIT$FP_test_events_long#identifiers#static
 
-     --F&P     
+----     F&P     
      ,fp_base.read_lvl AS fp_letter_base
      ,fp_curr.read_lvl AS fp_letter_curr
-     --GLEQ     
+----     GLEQ     
      ,ROUND(fp_base.GLEQ,1) AS fp_base_GLQ
      ,ROUND(fp_curr.GLEQ,1) AS fp_curr_GLQ
      
-     --Lexile (from MAP)     
-     --BASE
+     ----Lexile (from MAP)     
+     ----BASE
      ,CASE
        WHEN lex_base.lexile_score = 'BR' THEN 'Pre-K'
        ELSE lex_base.lexile_score
@@ -445,7 +488,7 @@ SELECT roster.*
        WHEN lex_base.lexile_score  > 1400 THEN '12th'
        ELSE NULL
       END AS lexile_base_GLQ
-     --CUR
+     ----CUR
      ,CASE
        WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) = 'BR' THEN 'Pre-K'
        ELSE COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score)
@@ -466,13 +509,13 @@ SELECT roster.*
        WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) <= 1400 AND COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score) > 1300 THEN '11th'
        WHEN COALESCE(lex_cur.RITtoReadingScore, lex_base.lexile_score)  > 1400 THEN '12th'
        ELSE NULL
-      END AS lexile_cur_GLQ      
+      END AS lexile_cur_GLQ
 
---NJASK scores
---NJASK$ela_wide
---NJASK$math_wide
+----NJASK scores
+----NJASK$ela_wide
+----NJASK$math_wide
 /*-- UPDATE FIELD FOR CURRENT YEAR --*/
-      --Test name
+      ----Test name
       ,CASE WHEN njask_ela.score_2014 IS NOT NULL OR njask_math.score_2014 IS NOT NULL 
             THEN 'NJASK | Gr '+ njask_ela.gr_lev_2014 + ' | 2014' ELSE NULL END AS NJASK_14_Name
       ,CASE WHEN njask_ela.score_2013 IS NOT NULL OR njask_math.score_2013 IS NOT NULL 
@@ -482,23 +525,23 @@ SELECT roster.*
       ,CASE WHEN njask_ela.score_2011 IS NOT NULL OR njask_math.score_2011 IS NOT NULL 
             THEN 'NJASK | Gr '+ njask_ela.gr_lev_2011 + ' | 2011' ELSE NULL END AS NJASK_11_Name      
       
-      --ELA scores
+      ----ELA scores
       ,njask_ela.score_2014 AS ela_score_2014
       ,njask_ela.score_2013 AS ela_score_2013
       ,njask_ela.score_2012 AS ela_score_2012
       ,njask_ela.score_2011 AS ela_score_2011      
-      --ELA proficiency
+      ----ELA proficiency
       ,'(' + njask_ela.prof_2014 + ')' AS ela_prof_2014
       ,'(' + njask_ela.prof_2013 + ')' AS ela_prof_2013
       ,'(' + njask_ela.prof_2012 + ')' AS ela_prof_2012
       ,'(' + njask_ela.prof_2011 + ')' AS ela_prof_2011      
 
-      --Math scores
+      ----Math scores
       ,njask_math.score_2014 AS math_score_2014
       ,njask_math.score_2013 AS math_score_2013
       ,njask_math.score_2012 AS math_score_2012
       ,njask_math.score_2011 AS math_score_2011      
-      --Math proficiency
+      ----Math proficiency
       ,'(' + njask_math.prof_2014 + ')' AS math_prof_2014
       ,'(' + njask_math.prof_2013 + ')' AS math_prof_2013
       ,'(' + njask_math.prof_2012 + ')' AS math_prof_2012
@@ -618,7 +661,7 @@ SELECT roster.*
 --Comments
 --PS$comments_gradebook
       /*--NOT USED FOR PROGRESS REPORTS--*/
-      /*
+      --/*
       ,comment_rc1.teacher_comment AS rc1_comment
       ,comment_rc2.teacher_comment AS rc2_comment
       ,comment_rc3.teacher_comment AS rc3_comment
@@ -691,13 +734,13 @@ LEFT OUTER JOIN MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
  AND lex_cur.map_year_academic = dbo.fn_Global_Academic_Year()
   
 --NJASK
-LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
+LEFT OUTER JOIN NJASK$ELA_wide njask_ela WITH (NOLOCK)
   ON roster.base_studentid = njask_ela.studentid
- AND njask_ela.schoolid = 73252
+ AND roster.schoolid = njask_ela.schoolid
  AND njask_ela.rn = 1
 LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
   ON roster.base_studentid = njask_math.studentid
- AND njask_math.schoolid = 73252
+ AND roster.schoolid = njask_math.schoolid
  AND njask_math.rn = 1
 
 --DISCIPLINE
@@ -715,11 +758,11 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.base_studentid = ar_curr.studentid 
- AND ar_curr.time_period_name = (SELECT hex_a FROM cur_hex WITH(NOLOCK))
+ AND ar_curr.time_period_name = (SELECT hex_a FROM roster WITH(NOLOCK))
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
   ON roster.base_studentid = ar_curr2.studentid 
- AND ar_curr2.time_period_name = (SELECT hex_b FROM cur_hex WITH(NOLOCK))
+ AND ar_curr2.time_period_name = (SELECT hex_b FROM roster WITH(NOLOCK))
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
 --Rise XC
@@ -727,7 +770,6 @@ LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON roster.base_student_number = xc.student_number
  AND xc.yearid = dbo.fn_Global_Term_Id()
 
-/*
 --GRADEBOOK COMMMENTS
 LEFT OUTER JOIN comments comment_rc1 WITH (NOLOCK)
   ON gr_wide.studentid = comment_rc1.studentid
@@ -769,8 +811,7 @@ LEFT OUTER JOIN comments comment_rc10 WITH (NOLOCK)
   ON gr_wide.studentid = comment_rc10.studentid
  AND gr_wide.rc10_course_number = comment_rc10.course_number
  AND comment_rc10.term = roster.curterm
-LEFT OUTER JOIN comments comment_adv WITH (NOLOCK)
-  ON roster.base_studentid = comment_adv.studentid
- AND comment_adv.course_number = 'HR'
- AND comment_adv.term = roster.curterm 
---*/
+--LEFT OUTER JOIN PS$comments#static comment_adv WITH (NOLOCK)
+--  ON roster.base_studentid = comment_adv.studentid
+-- AND comment_adv.course_number = 'HR'
+-- AND comment_adv.term = roster.curterm

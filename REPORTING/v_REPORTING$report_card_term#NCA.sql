@@ -255,49 +255,49 @@ SELECT roster.*
 
     /*--Current component averages -- UPDATE TERM NUMBER (e.g. H1/H2/H3/H4) on FIELD to current term--*/
       /*--H--*/
-      ,gr_wide.rc1_h1 AS rc1_cur_hw_pct
-      ,gr_wide.rc2_h1 AS rc2_cur_hw_pct
-      ,gr_wide.rc3_H1 AS rc3_cur_hw_pct
-      ,gr_wide.rc4_h1 AS rc4_cur_hw_pct
-      ,gr_wide.rc5_h1 AS rc5_cur_hw_pct
-      ,gr_wide.rc6_h1 AS rc6_cur_hw_pct
-      ,gr_wide.rc7_h1 AS rc7_cur_hw_pct
-      ,gr_wide.rc8_h1 AS rc8_cur_hw_pct
-      ,gr_wide.rc9_h1 AS rc9_cur_hw_pct
-      ,gr_wide.rc10_h1 AS rc10_cur_hw_pct      
+      ,gr_wide.rc1_h2 AS rc1_cur_hw_pct
+      ,gr_wide.rc2_h2 AS rc2_cur_hw_pct
+      ,gr_wide.rc3_H2 AS rc3_cur_hw_pct
+      ,gr_wide.rc4_h2 AS rc4_cur_hw_pct
+      ,gr_wide.rc5_h2 AS rc5_cur_hw_pct
+      ,gr_wide.rc6_h2 AS rc6_cur_hw_pct
+      ,gr_wide.rc7_h2 AS rc7_cur_hw_pct
+      ,gr_wide.rc8_h2 AS rc8_cur_hw_pct
+      ,gr_wide.rc9_h2 AS rc9_cur_hw_pct
+      ,gr_wide.rc10_h2 AS rc10_cur_hw_pct      
       /*--A--*/
-      ,gr_wide.rc1_a1 AS rc1_cur_a_pct
-      ,gr_wide.rc2_a1 AS rc2_cur_a_pct
-      ,gr_wide.rc3_A1 AS rc3_cur_a_pct
-      ,gr_wide.rc4_a1 AS rc4_cur_a_pct
-      ,gr_wide.rc5_a1 AS rc5_cur_a_pct
-      ,gr_wide.rc6_a1 AS rc6_cur_a_pct
-      ,gr_wide.rc7_a1 AS rc7_cur_a_pct
-      ,gr_wide.rc8_a1 AS rc8_cur_a_pct
-      ,gr_wide.rc9_a1 AS rc9_cur_a_pct
-      ,gr_wide.rc10_a1 AS rc10_cur_a_pct
+      ,gr_wide.rc1_a2 AS rc1_cur_a_pct
+      ,gr_wide.rc2_a2 AS rc2_cur_a_pct
+      ,gr_wide.rc3_A2 AS rc3_cur_a_pct
+      ,gr_wide.rc4_a2 AS rc4_cur_a_pct
+      ,gr_wide.rc5_a2 AS rc5_cur_a_pct
+      ,gr_wide.rc6_a2 AS rc6_cur_a_pct
+      ,gr_wide.rc7_a2 AS rc7_cur_a_pct
+      ,gr_wide.rc8_a2 AS rc8_cur_a_pct
+      ,gr_wide.rc9_a2 AS rc9_cur_a_pct
+      ,gr_wide.rc10_a2 AS rc10_cur_a_pct
       /*--CW--*/
-      ,gr_wide.rc1_c1 AS rc1_cur_cw_pct
-      ,gr_wide.rc2_c1 AS rc2_cur_cw_pct
-      ,gr_wide.rc3_C1 AS rc3_cur_cw_pct
-      ,gr_wide.rc4_c1 AS rc4_cur_cw_pct
-      ,gr_wide.rc5_c1 AS rc5_cur_cw_pct
-      ,gr_wide.rc6_c1 AS rc6_cur_cw_pct
-      ,gr_wide.rc7_c1 AS rc7_cur_cw_pct
-      ,gr_wide.rc8_c1 AS rc8_cur_cw_pct
-      ,gr_wide.rc9_c1 AS rc9_cur_cw_pct
-      ,gr_wide.rc10_c1 AS rc10_cur_cw_pct
+      ,gr_wide.rc1_c2 AS rc1_cur_cw_pct
+      ,gr_wide.rc2_c2 AS rc2_cur_cw_pct
+      ,gr_wide.rc3_C2 AS rc3_cur_cw_pct
+      ,gr_wide.rc4_c2 AS rc4_cur_cw_pct
+      ,gr_wide.rc5_c2 AS rc5_cur_cw_pct
+      ,gr_wide.rc6_c2 AS rc6_cur_cw_pct
+      ,gr_wide.rc7_c2 AS rc7_cur_cw_pct
+      ,gr_wide.rc8_c2 AS rc8_cur_cw_pct
+      ,gr_wide.rc9_c2 AS rc9_cur_cw_pct
+      ,gr_wide.rc10_c2 AS rc10_cur_cw_pct
       /*--P--*/
-      ,gr_wide.rc1_p1 AS rc1_cur_p_pct
-      ,gr_wide.rc2_p1 AS rc2_cur_p_pct
-      ,gr_wide.rc3_P1 AS rc3_cur_p_pct
-      ,gr_wide.rc4_p1 AS rc4_cur_p_pct
-      ,gr_wide.rc5_p1 AS rc5_cur_p_pct
-      ,gr_wide.rc6_p1 AS rc6_cur_p_pct
-      ,gr_wide.rc7_p1 AS rc7_cur_p_pct
-      ,gr_wide.rc8_p1 AS rc8_cur_p_pct
-      ,gr_wide.rc9_p1 AS rc9_cur_p_pct
-      ,gr_wide.rc10_p1 AS rc10_cur_p_pct      
+      ,gr_wide.rc1_p2 AS rc1_cur_p_pct
+      ,gr_wide.rc2_p2 AS rc2_cur_p_pct
+      ,gr_wide.rc3_P2 AS rc3_cur_p_pct
+      ,gr_wide.rc4_p2 AS rc4_cur_p_pct
+      ,gr_wide.rc5_p2 AS rc5_cur_p_pct
+      ,gr_wide.rc6_p2 AS rc6_cur_p_pct
+      ,gr_wide.rc7_p2 AS rc7_cur_p_pct
+      ,gr_wide.rc8_p2 AS rc8_cur_p_pct
+      ,gr_wide.rc9_p2 AS rc9_cur_p_pct
+      ,gr_wide.rc10_p2 AS rc10_cur_p_pct      
       
       /*** EXAMS **/
       /*--E1--*/ -- Exams
