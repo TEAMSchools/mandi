@@ -4,14 +4,12 @@ GO
 ALTER VIEW PS$bus_tracker AS 
 
 WITH dismiss_change AS (
-  SELECT studentid
-        ,entry_date      
+  SELECT studentid        
   FROM OPENQUERY(PS_TEAM,'
-    SELECT studentid
-          ,entry_date
+    SELECT studentid          
     FROM log
     WHERE logtypeid = 3964
-      AND ENTRY_DATE = TRUNC(SYSDATE)
+      AND Discipline_IncidentDate = TRUNC(SYSDATE)
   ') oq
  )
 

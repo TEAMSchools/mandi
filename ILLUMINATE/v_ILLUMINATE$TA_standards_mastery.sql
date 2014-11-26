@@ -297,6 +297,7 @@ FROM
     ) sub
 LEFT OUTER JOIN GDOCS$TA_standards_clean obj WITH(NOLOCK)
   ON sub.grade_level = obj.grade_level
+ AND sub.schoolid = obj.schoolid
  AND sub.term = obj.term
  AND sub.standards_tested = obj.ccss_standard
  AND obj.dupe_audit = 1
