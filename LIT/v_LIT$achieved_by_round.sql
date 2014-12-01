@@ -5,6 +5,7 @@ ALTER VIEW LIT$achieved_by_round AS
 
 WITH roster AS (
   SELECT STUDENTID
+        ,student_number
         ,SCHOOLID
         ,GRADE_LEVEL
         ,YEAR
@@ -31,6 +32,7 @@ WITH roster AS (
  
 ,roster_scaffold AS (
   SELECT r.STUDENTID
+        ,r.student_number
         ,r.SCHOOLID
         ,r.GRADE_LEVEL
         ,r.year AS academic_year
@@ -45,6 +47,7 @@ WITH roster AS (
 -- highest acheived test per round for each student 
 ,tests AS (
   SELECT r.STUDENTID
+        ,r.student_number
         ,r.SCHOOLID
         ,r.GRADE_LEVEL
         ,r.academic_year
@@ -54,12 +57,12 @@ WITH roster AS (
         ,achv.read_lvl    
         ,achv.indep_lvl    
         ,achv.GLEQ
-        ,achv.goal_lvl
+        ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
+        ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num        
         ,achv.lvl_num
         ,achv.fp_wpmrate
-        ,achv.fp_keylever
-        ,achv.goal_num
-        ,achv.met_goal                
+        ,achv.fp_keylever        
+        ,CASE WHEN achv.lvl_num >= COALESCE(indiv.lvl_num, goals.lvl_num) THEN 1 ELSE 0 END AS met_goal                
         ,ROW_NUMBER() OVER(
             PARTITION BY r.studentid
                 ORDER BY r.academic_year, r.round_num) AS meta_achv_round
@@ -69,6 +72,12 @@ WITH roster AS (
    AND r.academic_year = achv.academic_year
    AND r.test_round = achv.test_round
    AND achv.achv_curr_round = 1
+  LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
+    ON r.grade_level = goals.grade_level
+   AND r.test_round = goals.test_round
+  LEFT OUTER JOIN LIT$individual_goals indiv WITH(NOLOCK)
+    ON r.STUDENT_NUMBER = indiv.student_number
+   AND r.test_round = indiv.test_round
  )
  
 -- falls back to most recently achieved reading level for each round, if NULL

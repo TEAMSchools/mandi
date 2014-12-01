@@ -37,13 +37,6 @@ WITH curterm AS (
    AND co.enroll_status = 0
  )
 
---,reporting_term AS (
---  SELECT schoolid
---        ,time_per_name
---        ,alt_name AS term                
---  FROM 
--- )
-
 ,attendance AS (
   SELECT studentid
         ,CONVERT(VARCHAR,[abs_all]) + ' (' + CONVERT(VARCHAR,([AD] + [AE])) + ')' AS absences
