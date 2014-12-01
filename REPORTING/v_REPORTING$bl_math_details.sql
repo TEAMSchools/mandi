@@ -26,6 +26,7 @@ WITH
         AND c.enroll_status = 0
 		AND c.grade_level >= 5
 		AND c.grade_level <= 8
+	  --AND c.student_number = 14080
 	)
 
 	,grades_math AS

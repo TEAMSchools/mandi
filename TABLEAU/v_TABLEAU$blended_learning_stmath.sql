@@ -20,7 +20,7 @@ WITH
       FROM COHORT$identifiers_long#static c  WITH (NOLOCK)        
 	  WHERE year = 2014
         AND c.enroll_status = 0
-  	 -- AND s.student_number = 14188      
+  	  --AND c.student_number = 13827      
 	 )
 
 
@@ -89,7 +89,7 @@ WITH
 	,st_math AS
 	(
 	  SELECT *
-	  FROM STMath..summary_by_enrollment WITH (NOLOCK)
+	  FROM REPORTING$st_math_summary_by_enrollment WITH (NOLOCK)
 	)
 	
 	--map math data
