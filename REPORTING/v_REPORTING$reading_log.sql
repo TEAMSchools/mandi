@@ -82,7 +82,7 @@ SELECT roster.*
       ,enr.course_name + '|' + enr.section_number AS enr_hash
       ,gr.course_number
       ,gr.course_name
-      ,gr.T1 AS cur_term_rdg_gr /*--UPDATE FIELD FOR CURRENT TERM--*/
+      ,gr.T2 AS cur_term_rdg_gr /*--UPDATE FIELD FOR CURRENT TERM--*/
       ,gr.Y1 AS y1_rdg_gr
       ,ele.grade_1 AS cur_term_rdg_hw_avg /*--UPDATE FIELD FOR CURRENT TERM--*/
       ,ele.simple_avg AS y1_rdg_hw_avg
