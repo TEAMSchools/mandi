@@ -20,8 +20,8 @@ WITH roster AS (
         ,co.city
         ,co.home_phone
         ,co.advisor
-        ,NULL AS advisor_email
-        ,NULL AS advisor_cell
+        ,co.advisor_email
+        ,co.advisor_cell
         ,co.mother_cell
         ,CASE WHEN co.mother_home is NULL THEN co.mother_day ELSE co.mother_home END AS mother_daytime
         ,co.father_cell
@@ -67,6 +67,7 @@ WITH roster AS (
    AND sec.course_number = comm.course_number
    AND sec.sectionid = comm.sectionid
    AND sec.term = comm.term  
+   AND sec.term IN (SELECT curterm FROM roster WITH(NOLOCK))
  )  
 
 SELECT roster.base_student_number
@@ -247,23 +248,23 @@ ATT_MEM$attendance_counts*/
       ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total      
 
     /*--Current--*/      
-      ,att_counts.CUR_ABS_ALL AS curterm_absences_total
-      ,att_counts.CUR_A AS curterm_absences_undoc
-      ,ROUND(att_pct.cur_att_pct_total,0) AS curterm_att_pct_total
-      ,ROUND(att_pct.cur_att_pct_undoc,0) AS curterm_att_pct_undoc      
-      ,att_counts.CUR_T_ALL AS curterm_tardies_total
-      ,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total  
+      --,att_counts.CUR_ABS_ALL AS curterm_absences_total
+      --,att_counts.CUR_A AS curterm_absences_undoc
+      --,ROUND(att_pct.cur_att_pct_total,0) AS curterm_att_pct_total
+      --,ROUND(att_pct.cur_att_pct_undoc,0) AS curterm_att_pct_undoc      
+      --,att_counts.CUR_T_ALL AS curterm_tardies_total
+      --,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total  
       
       /* BY TERM == IN CASE YOU NEED IT */
-      /*
-      T1--
-      ,att_counts.RT1_absences_total        AS curterm_absences_total
-      ,att_counts.RT1_absences_undoc        AS curterm_absences_undoc
+      --/*
+      --T1--
+      ,att_counts.RT1_abs_all        AS curterm_absences_total
+      ,att_counts.RT1_a        AS curterm_absences_undoc
       ,ROUND(att_pct.RT1_att_pct_total,0)   AS curterm_att_pct_total
       ,ROUND(att_pct.RT1_att_pct_undoc,0)   AS curterm_att_pct_undoc      
-      ,att_counts.RT1_tardies_total         AS curterm_tardies_total
+      ,att_counts.RT1_t_all         AS curterm_tardies_total
       ,ROUND(att_pct.RT1_tardy_pct_total,0) AS curterm_tardy_pct_total
-      */      
+      --*/      
       /*
       T2--
       ,att_counts.RT2_absences_total        AS curterm_absences_total

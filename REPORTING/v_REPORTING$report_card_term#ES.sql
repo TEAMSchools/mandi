@@ -4,12 +4,12 @@ GO
 ALTER VIEW REPORTING$report_card_term#ES AS
 
 WITH curterm AS (
-  SELECT DISTINCT 'RT' + CONVERT(VARCHAR,(RIGHT(time_per_name,1) - 1)) AS time_per_name                 
+  SELECT DISTINCT 'RT' + CONVERT(VARCHAR,(CONVERT(INT,RIGHT(time_per_name, 1)) - 1)) AS time_per_name                 
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND school_level = 'ES'
-    --AND start_date <= GETDATE()
-    --AND end_date >= GETDATE()
+    --AND start_date <= CONVERT(DATE,GETDATE())
+    --AND end_date >= CONVERT(DATE,GETDATE())
     AND start_date <= '2014-12-02' -- testing
     AND end_date >= '2014-12-02' -- testing
  )
@@ -555,10 +555,10 @@ SELECT r.studentid
       ,soc.soc_skill_T3_score_5
       ,soc.soc_skill_T3_score_6
 FROM roster r WITH(NOLOCK)
-JOIN curterm WITH(NOLOCK)
-  ON 1 = 1
+/*--JOIN curterm WITH(NOLOCK)
+--  ON 1 = 1
 --LEFT OUTER JOIN reporting_term rt WITH(NOLOCK)
---  ON r.schoolid = rt.schoolid
+--  ON r.schoolid = rt.schoolid*/
 LEFT OUTER JOIN attendance att WITH(NOLOCK)
   ON r.STUDENTID = att.studentid
 LEFT OUTER JOIN behavior bhv WITH(NOLOCK)
@@ -585,7 +585,8 @@ LEFT OUTER JOIN REPORTING$report_card_comments#ES comm WITH(NOLOCK)
  AND r.term = comm.term
 LEFT OUTER JOIN REPORTING$ARFR_reasons#ES arfr WITH(NOLOCK)
   ON r.student_number = arfr.student_number
- AND r.term = arfr.term
- AND arfr.academic_year = dbo.fn_Global_Academic_Year()
+ -- should be JOINed this way, but data entry is jacked up
+ --AND r.term = arfr.term
+ --AND arfr.academic_year = dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN social_skills soc WITH(NOLOCK)
   ON r.student_number = soc.student_number
