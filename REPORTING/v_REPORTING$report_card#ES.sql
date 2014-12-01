@@ -209,8 +209,8 @@ FROM COHORT$identifiers_long#static r WITH(NOLOCK)
 JOIN REPORTING$dates dt WITH(NOLOCK)
   ON r.schoolid = dt.schoolid
  AND dt.identifier = 'RT'    
- AND dt.start_date <= GETDATE()
- AND dt.end_date >= GETDATE()
+ AND dt.start_date <= CONVERT(DATE,GETDATE())
+ AND dt.end_date >= CONVERT(DATE,GETDATE())
 LEFT OUTER JOIN reporting_week rw WITH(NOLOCK)
   ON r.schoolid = rw.schoolid
 LEFT OUTER JOIN ATT_MEM$attendance_counts#static att WITH(NOLOCK)

@@ -263,13 +263,13 @@ FROM
            ,value
      FROM
          (
-          SELECT student_number      
+          SELECT student_number
                 ,schoolid
                 ,term
-                ,TA_subject                
-                ,CONVERT(VARCHAR,TA_obj) AS TA_obj
-                ,CONVERT(VARCHAR,CONVERT(VARCHAR,TA_score) + ' = ' + CONVERT(VARCHAR,TA_prof)) AS TA_prof
-                ,CONVERT(VARCHAR,ROUND((n_mastered / n_total) * 100,0)) AS pct_stds_mastered
+                ,TA_subject
+                ,CONVERT(VARCHAR(MAX),TA_obj) AS TA_obj
+                ,CONVERT(VARCHAR(MAX),CONVERT(VARCHAR(MAX),TA_score) + ' = ' + CONVERT(VARCHAR(MAX),TA_prof)) AS TA_prof
+                ,CONVERT(VARCHAR(MAX),ROUND((n_mastered / n_total) * 100,0)) AS pct_stds_mastered
                 ,ROW_NUMBER() OVER(
                    PARTITION BY student_number, academic_year, term, TA_subject
                      ORDER BY ta_standard) AS standard_rn

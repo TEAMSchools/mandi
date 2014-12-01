@@ -39,17 +39,13 @@ WITH roster AS (
   JOIN REPORTING$dates curterm WITH(NOLOCK)
     ON co.schoolid = curterm.schoolid
    AND curterm.identifier = 'RT'   
-   ----AND start_date <= CONVERT(DATE,GETDATE())
-   ----AND end_date >= CONVERT(DATE,GETDATE())
-   AND curterm.start_date <= '2014-12-01' -- testing
-   AND curterm.end_date >= '2014-12-01' -- testing
+   AND curterm.start_date <= CONVERT(DATE,GETDATE())
+   AND curterm.end_date >= CONVERT(DATE,GETDATE())   
   JOIN REPORTING$dates cur_hex WITH(NOLOCK)
     ON co.schoolid = cur_hex.schoolid
    AND cur_hex.identifier = 'HEX'   
-   ----AND start_date <= CONVERT(DATE,GETDATE())
-   ----AND end_date >= CONVERT(DATE,GETDATE())
-   AND cur_hex.start_date <= '2014-12-01' -- testing
-   AND cur_hex.end_date >= '2014-12-01' -- testing
+   AND cur_hex.start_date <= CONVERT(DATE,GETDATE())
+   AND cur_hex.end_date >= CONVERT(DATE,GETDATE())   
   WHERE co.year = dbo.fn_Global_Academic_Year()
     AND co.rn = 1        
     AND co.schoolid IN (73252, 133570965)
@@ -74,11 +70,8 @@ WITH roster AS (
  )  
 
 SELECT roster.base_student_number
-      ,roster.base_studentid
       ,roster.schoolid
-      ,roster.stu_lastfirst
-      ,roster.stu_firstname
-      ,roster.stu_lastname
+      ,roster.stu_lastfirst      
       ,roster.stu_grade_level
       ,roster.travel_group
       ,roster.web_id
@@ -98,6 +91,7 @@ SELECT roster.base_student_number
       ,roster.guardianemail
       ,roster.SPED
       ,roster.lunch_balance
+      ,roster.curterm
       ,roster.curterm_long
       ,roster.today_text
       
@@ -231,12 +225,14 @@ GRADES$wide_all*/
 /*GPA
 GPA$detail#MS*/
     /*--Year--*/      
-      ,gpa.GPA_y1_all AS gpa_Y1
+      ,gpa.GPA_y1_core AS gpa_Y1_core
+      ,gpa.GPA_y1_all AS gpa_y1_all
       ,gpa.rank_gr_y1_all AS GPA_Y1_Rank_G
       ,gpa.n_gr AS Y1_Dem
    
    /*--Current Term--*/
-      ,gpa_long.GPA_all AS gpa_curterm
+      ,gpa_long.GPA_all AS gpa_curterm_all
+      ,gpa_long.GPA_core AS gpa_curterm_core
 
 /*Attendance & Tardies
 ATT_MEM$attendance_percentages
