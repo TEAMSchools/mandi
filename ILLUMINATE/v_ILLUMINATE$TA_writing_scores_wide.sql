@@ -122,6 +122,7 @@ WITH writing AS (
  
 SELECT w.student_number      
       ,w.term            
+      --,w.rn_cur
       ,w.writing_obj_1 AS RHET_TA_obj_1
       ,w.writing_obj_2 AS RHET_TA_obj_2
       ,w.writing_obj_3 AS RHET_TA_obj_3
