@@ -123,7 +123,7 @@ FROM
            
            -- progress to goals
            ,rs.status
-           ,rs.step_ltr_level AS read_lvl           
+           ,gleq.read_lvl AS read_lvl           
            ,gleq.lvl_num
            ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
            ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num
@@ -140,8 +140,8 @@ FROM
            ,CASE WHEN rs.testid = 3273 THEN 1 ELSE 0 END AS is_fp
      FROM LIT$readingscores#static rs WITH(NOLOCK)
      JOIN LIT$GLEQ gleq WITH(NOLOCK)
-       ON rs.testid = gleq.testid
-      AND rs.step_ltr_level = gleq.read_lvl     
+       ON ((rs.testid = 3273 AND rs.step_ltr_level = gleq.read_lvl)
+           OR (rs.testid != 3273 AND rs.testid = gleq.testid))
      JOIN STUDENTS s WITH(NOLOCK)
        ON rs.studentid = s.id
      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)

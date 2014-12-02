@@ -8,10 +8,8 @@ WITH curterm AS (
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND school_level = 'ES'
-    --AND start_date <= CONVERT(DATE,GETDATE())
-    --AND end_date >= CONVERT(DATE,GETDATE())
-    AND start_date <= '2014-12-02' -- testing
-    AND end_date >= '2014-12-02' -- testing
+    AND start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())    
  )
 
 ,roster AS (
