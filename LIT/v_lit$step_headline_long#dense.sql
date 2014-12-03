@@ -28,7 +28,7 @@ WITH step_detail AS
            ,s.academic_year AS year
      FROM KIPP_NJ..LIT$test_events#identifiers s
      WHERE s.status = 'Achieved' 
-       AND s.achv_base_round = 1
+       AND s.achv_curr_round = 1
        AND s.is_fp = 0
      )
     ,stu_scaffold AS
