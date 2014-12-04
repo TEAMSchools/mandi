@@ -21,6 +21,18 @@ WITH valid_TAs AS (
     AND term IS NOT NULL
     AND scope = 'Interim Assessment'
     AND subject NOT IN ('Writing') -- summary assessment
+    AND standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
+                                ,'CCSS.LA.2.L.2.4.c'
+                                ,'CCSS.LA.2.L.2.4.d'
+                                ,'CCSS.LA.2.L.2.5.b'
+                                ,'CCSS.LA.3.L.3.5'
+                                ,'CCSS.LA.3.L.3.5.a'
+                                ,'CCSS.LA.3.L.3.6'
+                                ,'CCSS.LA.4.L.4.4'
+                                ,'CCSS.LA.4.L.4.4.a'
+                                ,'CCSS.LA.4.L.4.4.b'
+                                ,'CCSS.LA.4.L.4.5.a'
+                                ,'CCSS.LA.1.RF.1.3.g')
  )
 
 ,valid_FSAs AS (
@@ -63,7 +75,7 @@ WITH valid_TAs AS (
         ,fsa.title
         ,fsa.grade_level
         ,fsa.scope
-        ,fsa.subject
+        ,ta.subject
         ,fsa.standard_id
         ,fsa.standards_tested
         ,fsa.administered_at
@@ -73,6 +85,7 @@ WITH valid_TAs AS (
     ON fsa.academic_year = ta.academic_year
    AND fsa.schoolid = ta.schoolid
    AND fsa.grade_level = ta.grade_level
+   --AND fsa.subject = ta.subject      
    AND fsa.standard_id = ta.standard_id
  ) 
 
@@ -129,7 +142,7 @@ WITH valid_TAs AS (
          AND r.enroll_status = 0         
          AND r.rn = 1
       ) sub
-  WHERE has_tested = 1
+  WHERE has_tested = 1    
  )
 
 SELECT sub.student_number      
@@ -181,8 +194,8 @@ SELECT sub.student_number
                           WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct < 60 THEN 0
                           WHEN sub.total_weighted_pct_correct >= 80 THEN 1
                           WHEN sub.total_weighted_pct_correct < 80 THEN 0
-                         END) OVER(PARTITION BY sub.student_number, sub.term, sub.subject)) AS n_mastered
-      ,CONVERT(FLOAT,COUNT(sub.standards_tested) OVER(PARTITION BY sub.student_number, sub.term, sub.subject)) AS n_total
+                         END) OVER(PARTITION BY sub.student_number, sub.academic_year, sub.term, sub.subject)) AS n_mastered
+      ,CONVERT(FLOAT,COUNT(sub.standards_tested) OVER(PARTITION BY sub.student_number, sub.academic_year, sub.term, sub.subject)) AS n_total
 FROM
     (
      SELECT student_number
@@ -204,6 +217,7 @@ FROM
                 ,grade_level
                 ,SPEDLEP
                 ,term        
+                ,scope
                 ,subject
                 ,standards_tested
                 ,rn_cur
@@ -224,9 +238,8 @@ FROM
                   WHEN grade_level IN (0,1) 
                    AND subject = 'Phonics' 
                     THEN pct_correct
-                  -- K math, no FSAs, no weighting
-                  WHEN grade_level = 0 
-                   AND scope = 'Interim Assessment'
+                  -- K math, all tests, no weighting
+                  WHEN grade_level = 0                    
                    AND subject = 'Mathematics'
                     THEN pct_correct
                   -- K comp, all tests, no weighting
@@ -255,9 +268,8 @@ FROM
                   WHEN grade_level IN (0,1) 
                    AND subject = 'Phonics' 
                     THEN 100
-                  -- K math, no FSAs, no weighting
-                  WHEN grade_level = 0 
-                   AND scope = 'Interim Assessment'
+                  -- K math, all tests, no weighting
+                  WHEN grade_level = 0                    
                    AND subject = 'Mathematics'
                     THEN 100
                   -- K comp, all tests, no weighting

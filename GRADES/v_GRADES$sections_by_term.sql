@@ -3,7 +3,13 @@ GO
 
 ALTER VIEW GRADES$sections_by_term AS
 
-SELECT sub2.*
+SELECT sub2.schoolid
+      ,sub2.studentid
+      ,sub2.student_number
+      ,sub2.credittype
+      ,sub2.course_number
+      ,sub2.term
+      ,sub2.sectionid
       ,t.lastfirst AS teacher
 FROM
     (

@@ -348,9 +348,6 @@ SELECT r.studentid
       ,ta.MATH_TA_obj_10
       ,ta.MATH_TA_obj_11
       ,ta.MATH_TA_obj_12
-      ,ta.MATH_TA_obj_13
-      ,ta.MATH_TA_obj_14
-      ,ta.MATH_TA_obj_15
       -- reading comp
       ,ta.COMP_TA_obj_1
       ,ta.COMP_TA_obj_2
@@ -362,11 +359,6 @@ SELECT r.studentid
       ,ta.COMP_TA_obj_8
       ,ta.COMP_TA_obj_9
       ,ta.COMP_TA_obj_10
-      ,ta.COMP_TA_obj_11
-      ,ta.COMP_TA_obj_12
-      ,ta.COMP_TA_obj_13
-      ,ta.COMP_TA_obj_14
-      ,ta.COMP_TA_obj_15
       -- phonics
       ,ta.PHON_TA_obj_1
       ,ta.PHON_TA_obj_2
@@ -378,11 +370,6 @@ SELECT r.studentid
       ,ta.PHON_TA_obj_8
       ,ta.PHON_TA_obj_9
       ,ta.PHON_TA_obj_10
-      ,ta.PHON_TA_obj_11
-      ,ta.PHON_TA_obj_12
-      ,ta.PHON_TA_obj_13
-      ,ta.PHON_TA_obj_14
-      ,ta.PHON_TA_obj_15
       -- writing
       ,wr.RHET_TA_obj_1
       ,wr.RHET_TA_obj_2
@@ -403,11 +390,20 @@ SELECT r.studentid
       ,ta.PERF_TA_obj_3
       ,ta.PERF_TA_obj_4
       ,ta.PERF_TA_obj_5      
+      ,ta.PERF_TA_obj_6      
+      ,ta.PERF_TA_obj_7      
+      ,ta.PERF_TA_obj_8      
+      ,ta.PERF_TA_obj_9      
+      ,ta.PERF_TA_obj_10      
       ,ta.HUM_TA_obj_1
       ,ta.HUM_TA_obj_2
       ,ta.HUM_TA_obj_3
       ,ta.HUM_TA_obj_4
       ,ta.HUM_TA_obj_5          
+      ,ta.HUM_TA_obj_6          
+      ,ta.HUM_TA_obj_7          
+      ,ta.HUM_TA_obj_8          
+      ,ta.HUM_TA_obj_9          
       ,ta.SCI_TA_obj_1
       ,ta.SCI_TA_obj_2
       ,ta.SCI_TA_obj_3
@@ -423,6 +419,7 @@ SELECT r.studentid
       ,ta.VIZ_TA_obj_3
       ,ta.VIZ_TA_obj_4
       ,ta.VIZ_TA_obj_5      
+      ,ta.VIZ_TA_obj_6      
       -- TA proficiency
       -- math
       ,ta.MATH_TA_prof_1
@@ -437,9 +434,6 @@ SELECT r.studentid
       ,ta.MATH_TA_prof_10
       ,ta.MATH_TA_prof_11
       ,ta.MATH_TA_prof_12
-      ,ta.MATH_TA_prof_13
-      ,ta.MATH_TA_prof_14
-      ,ta.MATH_TA_prof_15
       -- reading comp
       ,ta.COMP_TA_prof_1
       ,ta.COMP_TA_prof_2
@@ -451,11 +445,6 @@ SELECT r.studentid
       ,ta.COMP_TA_prof_8
       ,ta.COMP_TA_prof_9
       ,ta.COMP_TA_prof_10
-      ,ta.COMP_TA_prof_11
-      ,ta.COMP_TA_prof_12
-      ,ta.COMP_TA_prof_13
-      ,ta.COMP_TA_prof_14
-      ,ta.COMP_TA_prof_15
       -- phonics
       ,ta.PHON_TA_prof_1
       ,ta.PHON_TA_prof_2
@@ -467,11 +456,6 @@ SELECT r.studentid
       ,ta.PHON_TA_prof_8
       ,ta.PHON_TA_prof_9
       ,ta.PHON_TA_prof_10
-      ,ta.PHON_TA_prof_11
-      ,ta.PHON_TA_prof_12
-      ,ta.PHON_TA_prof_13
-      ,ta.PHON_TA_prof_14
-      ,ta.PHON_TA_prof_15
       -- writing
       ,wr.RHET_TA_prof_1
       ,wr.RHET_TA_prof_2
@@ -492,11 +476,20 @@ SELECT r.studentid
       ,ta.PERF_TA_prof_3
       ,ta.PERF_TA_prof_4
       ,ta.PERF_TA_prof_5      
+      ,ta.PERF_TA_prof_6      
+      ,ta.PERF_TA_prof_7      
+      ,ta.PERF_TA_prof_8      
+      ,ta.PERF_TA_prof_9     
+      ,ta.PERF_TA_prof_10
       ,ta.HUM_TA_prof_1
       ,ta.HUM_TA_prof_2
       ,ta.HUM_TA_prof_3
       ,ta.HUM_TA_prof_4
       ,ta.HUM_TA_prof_5          
+      ,ta.HUM_TA_prof_6          
+      ,ta.HUM_TA_prof_7          
+      ,ta.HUM_TA_prof_8          
+      ,ta.HUM_TA_prof_9          
       ,ta.SCI_TA_prof_1
       ,ta.SCI_TA_prof_2
       ,ta.SCI_TA_prof_3
@@ -512,6 +505,7 @@ SELECT r.studentid
       ,ta.VIZ_TA_prof_3
       ,ta.VIZ_TA_prof_4
       ,ta.VIZ_TA_prof_5
+      ,ta.VIZ_TA_prof_6
       
       --comments
       ,comm.ela_comment

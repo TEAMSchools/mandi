@@ -22,7 +22,9 @@ SELECT studentid
       ,promo_grades_rise
       ,promo_grades_gpa_rise
       ,promo_att_rise
+      ,hw_avg
       ,promo_hw AS promo_hw_rise
+      ,GPA_y1_all
       ,CASE 
         WHEN promo_grades_gpa_rise + promo_att_rise + promo_hw LIKE '%Off Track%' THEN 'Off Track'
         WHEN promo_grades_gpa_rise + promo_att_rise + promo_hw LIKE '%Warning%' THEN 'Warning'
@@ -54,12 +56,14 @@ FROM
              WHEN y1_att_pts_pct >= 98 THEN 'Honors'
              ELSE 'Satisfactory' 
             END AS promo_att_rise
+           ,simple_avg AS hw_avg
            ,CASE 
              WHEN simple_avg < 65 THEN 'Off Track'
              WHEN simple_avg < 70 THEN 'Warning'
              WHEN simple_avg >= 90 THEN 'Honors'
              ELSE 'Satisfactory' 
             END AS promo_hw
+           ,GPA_y1_all
            ,CASE 
              WHEN gpa_y1_all >= 3.5 AND promo_grades_rise NOT LIKE '%Warning%' THEN 'High Honors'
              WHEN gpa_y1_all >= 3.0 AND promo_grades_rise NOT LIKE '%Warning%' THEN 'Honors'        
