@@ -25,7 +25,12 @@ SELECT CASE GROUPING(sub.grade_level) WHEN 1 THEN 'School' ELSE CONVERT(NVARCHAR
       ,ROUND(AVG(CONVERT(FLOAT,millionaire_test)) * 100,0) AS pct_millionaire
 FROM
     (
-     SELECT sub.*
+     SELECT sub.studentid
+           ,sub.grade_level
+           ,sub.school
+           ,sub.year
+           ,sub.date
+           ,sub.words
            ,CASE WHEN sub.words >= 1000000 THEN 1 ELSE 0 END AS millionaire_test
      FROM
          (
@@ -36,7 +41,7 @@ FROM
                 ,scaffold.date                
                 ,SUM(CASE WHEN det.tipassed = 1 THEN det.iwordcount ELSE 0 END) AS words
           FROM scaffold WITH(NOLOCK)
-          JOIN KIPP_NJ..AR$test_event_detail det WITH (NOLOCK)
+          JOIN KIPP_NJ..AR$test_event_detail#static det WITH (NOLOCK)
             ON scaffold.student_number = det.student_number
            AND det.dtTaken >= scaffold.start_date_ar
            AND det.dtTaken <  scaffold.date
