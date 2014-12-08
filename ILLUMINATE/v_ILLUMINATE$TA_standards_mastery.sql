@@ -54,11 +54,12 @@ WITH valid_TAs AS (
  )
 
 ,valid_assessments AS (
-  SELECT assessment_id
+  SELECT DISTINCT 
+         assessment_id
         ,academic_year
         ,schoolid
         ,title
-        ,grade_level
+        --,grade_level
         ,scope
         ,subject
         ,standard_id
@@ -69,11 +70,12 @@ WITH valid_TAs AS (
   
   UNION ALL
   
-  SELECT fsa.assessment_id
+  SELECT DISTINCT 
+         fsa.assessment_id
         ,fsa.academic_year
         ,fsa.schoolid
         ,fsa.title
-        ,fsa.grade_level
+        --,fsa.grade_level
         ,fsa.scope
         ,ta.subject
         ,fsa.standard_id
@@ -129,15 +131,15 @@ WITH valid_TAs AS (
              ,a.standards_tested            
              ,CONVERT(FLOAT,percent_correct) AS pct_correct
              ,CASE WHEN res.local_student_id IS NOT NULL THEN 1 ELSE 0 END AS has_tested
-       FROM COHORT$identifiers_long#static r WITH(NOLOCK)
-       JOIN valid_assessments a WITH(NOLOCK)
-         ON r.schoolid = a.schoolid        
-        AND r.grade_level = a.grade_level
-        AND r.year = a.academic_year
+       FROM COHORT$identifiers_long#static r WITH(NOLOCK)       
        JOIN ILLUMINATE$assessment_results_by_standard#static res WITH(NOLOCK)
-         ON r.student_number = res.local_student_id
-        AND a.assessment_id = res.assessment_id
+         ON r.student_number = res.local_student_id        
+       JOIN valid_assessments a WITH(NOLOCK)
+         ON a.assessment_id = res.assessment_id
         AND a.standard_id = res.standard_id
+        AND r.schoolid = a.schoolid        
+        AND r.year = a.academic_year
+        --AND r.grade_level = a.grade_level
        WHERE r.grade_level < 5         
          AND r.enroll_status = 0         
          AND r.rn = 1

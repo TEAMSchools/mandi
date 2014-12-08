@@ -10,15 +10,16 @@ WITH valid_assessments AS (
     AND subject = 'Comments'
  )
 
-,specialist_comments AS (
-  SELECT subject
-        ,code
-        ,dbo.fn_StripCharacters(REPLACE(REPLACE(REPLACE(CONVERT(NVARCHAR(512),comment), 'Êº', ''''), '€™', ''''), '€˜', ''''), '"Â') AS comment
-        ,ROW_NUMBER() OVER(
-           PARTITION BY subject, code
-             ORDER BY comment) AS rn
-  FROM [KIPP_NJ].[dbo].[AUTOLOAD$GDOCS_TA_Specialist_Comments] WITH(NOLOCK)
- )
+--,specialist_comments AS (
+--  SELECT REPLACE(subject, 'Humanities', 'Humanities (SSSL, Social Studies)') AS subject
+--        ,code        
+--        ,Comment
+--        ,dbo.fn_StripCharacters(REPLACE(REPLACE(REPLACE(comment, 'Êº', ''''), '€™', ''''), '€˜', ''''), '"Â') AS comment
+--        ,ROW_NUMBER() OVER(
+--           PARTITION BY subject, code
+--             ORDER BY comment) AS rn
+--  FROM [KIPP_NJ].[dbo].[AUTOLOAD$GDOCS_TA_Specialist_Comments] WITH(NOLOCK)
+-- )
 
 SELECT student_number
       ,repository_row_id
@@ -41,18 +42,17 @@ FROM
              WHEN fields.label = 'Humanities (SSSL, Social Studies)' THEN 'Humanities_comment'
              ELSE REPLACE(fields.label,' ','') + '_comment'
             END AS field
-           ,COALESCE(spec.comment, repo.value) AS value
+           ,repo.value
      FROM ILLUMINATE$summary_assessment_results_long#static repo WITH(NOLOCK)
      JOIN ILLUMINATE$repository_fields fields WITH(NOLOCK)
        ON repo.repository_id = fields.repository_id
       AND repo.field = fields.name 
-     LEFT OUTER JOIN specialist_comments spec WITH(NOLOCK)
-       ON fields.label = spec.subject
-      AND repo.value = spec.code
-      AND spec.rn = 1
+     --LEFT OUTER JOIN specialist_comments spec WITH(NOLOCK)
+     --  ON fields.label = spec.subject
+     -- AND repo.value = spec.code
+     -- AND spec.rn = 1
      WHERE repo.repository_id IN (SELECT repository_id FROM valid_assessments WITH(NOLOCK))
     ) sub
-
 PIVOT(
   MAX(value)
   FOR field IN ([ELA_comment]

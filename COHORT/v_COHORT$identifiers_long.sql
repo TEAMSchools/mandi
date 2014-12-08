@@ -3,6 +3,30 @@ GO
 
 ALTER VIEW COHORT$identifiers_long AS
 
+WITH hs_advisor AS (
+  SELECT STUDENTID
+        ,academic_year
+        ,advisor
+        ,ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year
+             ORDER BY dateleft DESC) AS rn
+  FROM
+      (
+       SELECT cc.STUDENTID           
+             ,cc.DATELEFT
+             ,dbo.fn_TermToYear(cc.TERMID) AS academic_year           
+             ,t.LASTFIRST AS advisor      
+       FROM cc WITH(NOLOCK)
+       JOIN SECTIONS sec WITH(NOLOCK)
+         ON cc.sectionid = sec.ID
+       JOIN TEACHERS t WITH(NOLOCK)
+         ON sec.TEACHER = t.ID
+       WHERE cc.SCHOOLID = 73253
+         AND cc.COURSE_NUMBER = 'HR'
+         AND cc.SECTIONID > 0
+      ) sub
+ )
+
 SELECT co.schoolid
       ,REPLACE(sch.abbreviation,'Rev','Revolution') AS school_name      
       ,co.studentid
@@ -20,7 +44,7 @@ SELECT co.schoolid
       ,co.exitdate
       ,blobs.EXITCOMMENT
       ,s.TEAM
-      ,cs.ADVISOR
+      ,COALESCE(hs_advisor.advisor, cs.ADVISOR) AS advisor
       ,s.GENDER
       ,s.ETHNICITY
       ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunch_status END AS lunchstatus
@@ -76,6 +100,10 @@ JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
   ON co.studentid = s.ID
 JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH(NOLOCK)
   ON co.studentid = cs.STUDENTID
+LEFT OUTER JOIN hs_advisor WITH(NOLOCK)
+  ON co.studentid = hs_advisor.STUDENTID
+ AND co.year = hs_advisor.academic_year
+ AND hs_advisor.rn = 1
 LEFT OUTER JOIN KIPP_NJ..COHORT$middle_school_attended ms WITH(NOLOCK)
   ON co.studentid = ms.studentid
 LEFT OUTER JOIN KIPP_NJ..COHORT$comprehensive_long#static gr WITH(NOLOCK)

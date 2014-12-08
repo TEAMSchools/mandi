@@ -5,7 +5,7 @@ ALTER VIEW AR$millionaires#long AS
 
 WITH scaffold AS (
   SELECT c.studentid
-        ,c.student_number
+        ,CONVERT(VARCHAR,c.student_number) AS student_number
         ,c.grade_level
         ,c.school_name AS school
         ,c.year

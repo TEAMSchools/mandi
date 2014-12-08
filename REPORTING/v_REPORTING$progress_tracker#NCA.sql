@@ -612,21 +612,15 @@ FROM
       --DISC$merits_demerits_count#NCA
             --Merits
             --year      
-            ,merits.total_merits_rt1 
-              + merits.total_merits_rt2 
-              + merits.total_merits_rt3 
-              + merits.total_merits_rt4 AS merits_yr      
+            ,merits.total_merits_y1 AS merits_yr      
             --current            
-            ,merits.total_merits_rt4    AS merits_curr /*--UPDATE FIELD FOR CURRENT TERM--*/
+            ,merits.total_merits_cur    AS merits_curr /*--UPDATE FIELD FOR CURRENT TERM--*/
             
             --Demerits
             --year
-            ,merits.total_demerits_rt1
-              + merits.total_demerits_rt2
-              + merits.total_demerits_rt3
-              + merits.total_demerits_rt4 AS demerits_yr
+            ,merits.total_demerits_y1 AS demerits_yr
             --current
-            ,merits.total_demerits_rt4    AS demerits_curr /*--UPDATE FIELD FOR CURRENT TERM--*/
+            ,merits.total_demerits_cur AS demerits_curr /*--UPDATE FIELD FOR CURRENT TERM--*/
             ,disc.subtype
             ,disc.entry_date
             ,merits.iss_y1 AS disc_ISS

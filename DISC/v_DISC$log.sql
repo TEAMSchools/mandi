@@ -6,13 +6,7 @@ ALTER VIEW DISC$log AS
 WITH disc_log AS (
   SELECT disc.schoolid
         ,CAST(disc.studentid AS INT) AS studentid        
-        ,disc.entry_author
-        ,dbo.fn_DateToSY(
-           CASE 
-            WHEN CONVERT(DATE,disc.discipline_incidentdate) = '1900-01-01' THEN CONVERT(DATE,disc.entry_date) 
-            WHEN disc.logtypeid IN (3023, 3223) OR schoolid = 73253 THEN CONVERT(DATE,disc.entry_date) 
-            ELSE CONVERT(DATE,disc.discipline_incidentdate) 
-           END) AS academic_year
+        ,disc.entry_author        
         ,CASE 
           WHEN CONVERT(DATE,disc.discipline_incidentdate) = '1900-01-01' THEN CONVERT(DATE,disc.entry_date) 
           WHEN disc.logtypeid IN (3023, 3223) OR schoolid = 73253 THEN CONVERT(DATE,disc.entry_date) 
@@ -65,8 +59,7 @@ WITH disc_log AS (
 ,tardy_demerits AS (
   SELECT att.schoolid
         ,att.studentid
-        ,t.LASTFIRST AS entry_author
-        ,dbo.fn_DateToSY(att_date) AS academic_year
+        ,t.LASTFIRST AS entry_author                
         ,CONVERT(DATE,att_date) AS entry_date
         ,NULL AS consequence_date
         ,3223 AS logtypeid
@@ -92,8 +85,7 @@ WITH disc_log AS (
 
   SELECT att.schoolid
         ,att.studentid
-        ,t.LASTFIRST AS entry_author
-        ,dbo.fn_DateToSY(att_date) AS academic_year
+        ,t.LASTFIRST AS entry_author        
         ,CONVERT(DATE,att_date) AS entry_date
         ,NULL AS consequence_date
         ,3223 AS logtypeid
@@ -122,9 +114,8 @@ WITH disc_log AS (
 ,TEAM_bench AS (
   SELECT 133570965 AS schoolid
         ,CONVERT(INT,[student_number]) AS studentid
-        ,CONVERT(VARCHAR,[Teacher]) AS entry_author
-        ,dbo.fn_DateToSY(CONVERT(DATE,[Date])) AS academic_year
-        ,CONVERT(DATE,[Date]) AS entry_date
+        ,CONVERT(VARCHAR,[Teacher]) AS entry_author        
+        ,CASE WHEN ISDATE([Date]) = 1 THEN CONVERT(DATE,[Date]) ELSE NULL END AS entry_date
         ,NULL AS consequence_date
         ,-100000 AS logtypeid
         ,CASE 
@@ -152,8 +143,7 @@ WITH disc_log AS (
 ,all_logs AS (
   SELECT schoolid
         ,studentid
-        ,entry_author
-        ,academic_year
+        ,entry_author        
         ,entry_date
         ,consequence_date
         ,logtypeid
@@ -171,8 +161,7 @@ WITH disc_log AS (
   UNION ALL
   SELECT schoolid
         ,studentid
-        ,entry_author
-        ,academic_year
+        ,entry_author        
         ,entry_date
         ,consequence_date
         ,logtypeid
@@ -190,7 +179,6 @@ WITH disc_log AS (
   SELECT schoolid
         ,studentid
         ,entry_author
-        ,academic_year
         ,entry_date
         ,consequence_date
         ,logtypeid
@@ -209,7 +197,7 @@ WITH disc_log AS (
 SELECT all_logs.schoolid
       ,all_logs.studentid
       ,all_logs.entry_author
-      ,all_logs.academic_year
+      ,dbo.fn_DateToSY(all_logs.entry_date) AS academic_year
       ,all_logs.entry_date
       ,all_logs.consequence_date
       ,all_logs.logtypeid
