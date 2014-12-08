@@ -148,20 +148,19 @@ SELECT w.student_number
       ,w.writing_prof_10 AS RHET_TA_prof_10
       ,narr.total_prof AS RHET_TA_narr_prof      
       ,inf.total_prof AS RHET_TA_info_prof
-      ,op.total_prof AS RHET_TA_op_prof            
+      ,op.total_prof AS RHET_TA_op_prof                  
       ,ROUND(
         (CONVERT(FLOAT,ISNULL(w.n_prof,0) 
-          + CASE WHEN narr.n_prof LIKE '3%' THEN 1.0 ELSE 0.0 END 
-          + CASE WHEN inf.n_prof LIKE '3%' THEN 1.0 ELSE 0.0 END 
-          + CASE WHEN op.n_prof LIKE '3%' THEN 1.0 ELSE 0.0 END)
+          + CASE WHEN narr.total_prof LIKE '3%' THEN 1.0 ELSE 0.0 END 
+          + CASE WHEN inf.total_prof LIKE '3%' THEN 1.0 ELSE 0.0 END 
+          + CASE WHEN op.total_prof LIKE '3%' THEN 1.0 ELSE 0.0 END)
           / 
          CONVERT(FLOAT,w.n_tested 
           + CASE WHEN narr.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END 
           + CASE WHEN inf.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END 
           + CASE WHEN op.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END)) 
           * 100
-        ,0) AS RHET_pct_stds_mastered
-      --,w.pct_prof AS RHET_pct_stds_mastered
+        ,0) AS RHET_pct_stds_mastered      
 FROM writing w WITH(NOLOCK)  
 LEFT OUTER JOIN writing narr WITH(NOLOCK)
   ON w.student_number = narr.student_number
