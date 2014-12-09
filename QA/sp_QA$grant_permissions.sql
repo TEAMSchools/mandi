@@ -31,6 +31,8 @@ GRANT SELECT ON SCHOOLS TO db_data_tool_reader
 GRANT SELECT ON TEACHERS TO db_data_tool_reader
 GRANT SELECT ON CC TO db_data_tool_reader
 GRANT SELECT ON SECTIONS TO db_data_tool_reader
+GRANT SELECT ON MEMBERSHIP TO db_data_tool_reader
+GRANT SELECT ON ATTENDANCE TO db_data_tool_reader
 
 --MAP
 GRANT SELECT ON MAP$cohort_performance_targets TO db_data_tool_reader

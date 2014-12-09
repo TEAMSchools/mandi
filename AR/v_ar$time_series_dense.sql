@@ -50,7 +50,7 @@ WITH reporting_weeks AS (
   FROM
       (
        SELECT c.studentid
-             ,s.student_number
+             ,CONVERT(VARCHAR,s.student_number) AS student_number
        FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
        JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
          ON c.studentid = s.id
