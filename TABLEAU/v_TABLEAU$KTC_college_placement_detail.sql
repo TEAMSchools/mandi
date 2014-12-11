@@ -11,6 +11,7 @@ WITH roster AS (
         ,co.cohort
         ,co.schoolid
         ,CASE WHEN s.counselor_name = 'NULL' THEN NULL ELSE s.counselor_name END AS counselor_name                
+        ,0 AS is_alum
   FROM COHORT$identifiers_long#static co WITH(NOLOCK)
   LEFT OUTER JOIN NAVIANCE$students_clean s WITH(NOLOCK)
     ON co.STUDENT_NUMBER = s.student_number
@@ -30,13 +31,14 @@ WITH roster AS (
         ,sub.cohort
         ,sub.schoolid
         ,CASE WHEN s.counselor_name = 'NULL' THEN NULL ELSE s.counselor_name END AS counselor_name                
+        ,CASE WHEN sub.schoolid = 73253 THEN 1 ELSE 2 END AS is_alum
   FROM
       (
        SELECT co.STUDENT_NUMBER
              ,co.lastfirst
              ,co.grade_level + (dbo.fn_Global_Academic_Year() - co.year) AS grade_level
              ,co.cohort
-             ,999999 AS schoolid
+             ,co.schoolid
              ,ROW_NUMBER() OVER(
                 PARTITION BY co.studentid
                   ORDER BY co.year DESC) AS last_yr
@@ -51,12 +53,25 @@ WITH roster AS (
   WHERE sub.last_yr = 1
  )
 
+,colleges AS (
+  SELECT coll.salesforce_id AS college_salesforce_id
+        ,coll.name AS college_name
+        ,coll.ceeb_code__c AS ceeb_code
+        ,coll.Adjusted_6_year_minority_graduation_rate__c AS minor_grad
+        ,ROW_NUMBER() OVER(
+          PARTITION BY ceeb_code__C
+          ORDER BY salesforce_id) AS dupe_ceeb
+  FROM [AlumniMirror].[dbo].[CollegeMatch$college_list] coll WITH(NOLOCK)
+  WHERE coll.ceeb_code__c IS NOT NULL
+ )
+
 ,apps AS (
-  SELECT r.STUDENT_NUMBER
+SELECT r.STUDENT_NUMBER
         ,r.lastfirst
         ,r.grade_level
         ,r.cohort
         ,r.schoolid
+        ,r.is_alum
         ,ISNULL(r.counselor_name, 'Unassigned') AS counselor_name
         ,apps.ceeb_code
         ,CASE WHEN apps.student_number IS NULL THEN 1.0 ELSE 0.0 END AS no_apply
@@ -68,30 +83,35 @@ WITH roster AS (
         ,apps.attending
         ,apps.waitlisted
         ,apps.comments
+        ,coll.minor_grad
   FROM roster r WITH(NOLOCK)
   LEFT OUTER JOIN NAVIANCE$college_apps_clean apps WITH(NOLOCK)
     ON r.student_number = apps.student_number      
-  WHERE cohort >= dbo.fn_Global_Academic_Year()
+  LEFT OUTER JOIN colleges coll WITH(NOLOCK)
+    ON apps.ceeb_code = coll.ceeb_code
+   AND coll.dupe_ceeb = 1
+  --WHERE cohort >= dbo.fn_Global_Academic_Year()
  )
 
 ,match AS (
-  SELECT sis_id AS student_number
-        ,coll.ceeb_code__c AS ceeb_code
-        ,college_name      
-        ,selec_rank
-        ,Adjusted_6_year_minority_graduation_rate__c AS minor_grad
-        ,admit_odds
-        ,application_bin        
+  SELECT odds.sis_id AS student_number
+        ,coll.ceeb_code
+        --,odds.college_name      
+        ,odds.selec_rank
+        --,coll.Adjusted_6_year_minority_graduation_rate__c AS minor_grad
+        ,odds.admit_odds
+        ,odds.application_bin        
   FROM [AlumniMirror].[dbo].[KTC$application_odds] odds WITH(NOLOCK)
-  LEFT OUTER JOIN [AlumniMirror].[dbo].[CollegeMatch$college_list] coll WITH(NOLOCK)
-    ON odds.college_id = coll.salesforce_id  
+  LEFT OUTER JOIN colleges coll WITH(NOLOCK)
+    ON odds.college_id = coll.college_salesforce_id
    --AND coll.CEEB_Code__c IS NOT NULL  
  )
 
 ,top_admit AS (
-  SELECT match.*
+  SELECT apps.ceeb_code
+        ,apps.student_number
         ,ROW_NUMBER()  OVER(
-           PARTITION BY match.student_number
+           PARTITION BY apps.student_number
              ORDER BY (CASE
                         WHEN selec_rank = 'Most Competitive+' THEN 7
                         WHEN selec_rank = 'Most Competitive' THEN 6
@@ -101,11 +121,11 @@ WITH roster AS (
                         WHEN selec_rank = 'Less Competitive' THEN 2
                         WHEN selec_rank = 'Noncompetitive' THEN 1
                        END) DESC, admit_odds ASC) AS comp_rank
-  FROM match WITH(NOLOCK)
-  JOIN apps WITH(NOLOCK)
-    ON match.student_number = apps.student_number
-   AND match.ceeb_code = apps.ceeb_code
-   AND apps.result_code IN ('accepted', 'jan. admit', 'cond. accept', 'summer admit')
+  FROM apps WITH(NOLOCK)  
+  LEFT OUTER JOIN match WITH(NOLOCK)
+    ON apps.student_number = match.student_number
+   AND apps.ceeb_code = match.ceeb_code
+  WHERE apps.result_code IN ('accepted', 'jan. admit', 'cond. accept', 'summer admit')
  )
  
 SELECT student_number
@@ -113,6 +133,7 @@ SELECT student_number
       ,grade_level
       ,cohort
       ,schoolid
+      ,is_alum
       ,counselor_name
       ,collegename
       ,ceeb_code
@@ -134,12 +155,13 @@ FROM
            ,apps.grade_level
            ,apps.cohort
            ,apps.schoolid
+           ,apps.is_alum
            ,apps.counselor_name
            ,ISNULL(apps.collegename, 'No app') AS collegename
            ,apps.ceeb_code
            ,LEFT(apps.level,1) AS degree_type
            ,match.selec_rank
-           ,match.minor_grad
+           ,apps.minor_grad
            ,match.admit_odds
            ,match.application_bin
            ,top_admit.ceeb_code AS top_admit_ceeb           
