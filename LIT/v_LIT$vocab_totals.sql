@@ -65,7 +65,11 @@ WITH valid_tests AS (
           ,r.STUDENT_NUMBER          
  )
  
-SELECT wk.*      
+SELECT wk.schoolid
+      ,wk.grade_level
+      ,wk.STUDENT_NUMBER
+      ,wk.listweek_num
+      ,wk.pct_correct_wk
       ,yr.pct_correct_yr      
       ,ROUND(AVG(yr.pct_correct_yr) OVER(PARTITION BY yr.schoolid, yr.grade_level),0) AS avg_pct_correct_yr
 FROM week_totals wk WITH(NOLOCK)

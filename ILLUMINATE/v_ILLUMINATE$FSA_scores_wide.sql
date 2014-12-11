@@ -4,7 +4,18 @@ GO
 ALTER VIEW ILLUMINATE$FSA_scores_wide AS
 
 WITH fsa_rn AS (
-  SELECT *
+  SELECT schoolid
+        ,grade_level
+        ,academic_year
+        ,assessment_id
+        ,fsa_week
+        ,administered_at
+        ,scope
+        ,subject
+        ,standards_tested
+        ,FSA_nxtstp_y
+        ,FSA_nxtstp_n
+        ,FSA_obj
         ,ROW_NUMBER() OVER(
            PARTITION BY schoolid, grade_level, scope, fsa_week
              ORDER BY subject, standards_tested) AS fsa_std_rn      
@@ -61,7 +72,100 @@ WITH fsa_rn AS (
    AND co.rn = 1  
  )
 
-SELECT *
+SELECT studentid
+      ,STUDENT_NUMBER
+      ,fsa_week
+      ,pct_mastered_wk
+      ,FSA_subject_1
+      ,FSA_subject_2
+      ,FSA_subject_3
+      ,FSA_subject_4
+      ,FSA_subject_5
+      ,FSA_subject_6
+      ,FSA_subject_7
+      ,FSA_subject_8
+      ,FSA_subject_9
+      ,FSA_subject_10
+      ,FSA_subject_11
+      ,FSA_subject_12
+      ,FSA_subject_13
+      ,FSA_subject_14
+      ,FSA_subject_15
+      ,FSA_standard_1
+      ,FSA_standard_2
+      ,FSA_standard_3
+      ,FSA_standard_4
+      ,FSA_standard_5
+      ,FSA_standard_6
+      ,FSA_standard_7
+      ,FSA_standard_8
+      ,FSA_standard_9
+      ,FSA_standard_10
+      ,FSA_standard_11
+      ,FSA_standard_12
+      ,FSA_standard_13
+      ,FSA_standard_14
+      ,FSA_standard_15
+      ,FSA_obj_1
+      ,FSA_obj_2
+      ,FSA_obj_3
+      ,FSA_obj_4
+      ,FSA_obj_5
+      ,FSA_obj_6
+      ,FSA_obj_7
+      ,FSA_obj_8
+      ,FSA_obj_9
+      ,FSA_obj_10
+      ,FSA_obj_11
+      ,FSA_obj_12
+      ,FSA_obj_13
+      ,FSA_obj_14
+      ,FSA_obj_15
+      ,FSA_score_1
+      ,FSA_score_2
+      ,FSA_score_3
+      ,FSA_score_4
+      ,FSA_score_5
+      ,FSA_score_6
+      ,FSA_score_7
+      ,FSA_score_8
+      ,FSA_score_9
+      ,FSA_score_10
+      ,FSA_score_11
+      ,FSA_score_12
+      ,FSA_score_13
+      ,FSA_score_14
+      ,FSA_score_15
+      ,FSA_prof_1
+      ,FSA_prof_2
+      ,FSA_prof_3
+      ,FSA_prof_4
+      ,FSA_prof_5
+      ,FSA_prof_6
+      ,FSA_prof_7
+      ,FSA_prof_8
+      ,FSA_prof_9
+      ,FSA_prof_10
+      ,FSA_prof_11
+      ,FSA_prof_12
+      ,FSA_prof_13
+      ,FSA_prof_14
+      ,FSA_prof_15
+      ,FSA_nxtstp_1
+      ,FSA_nxtstp_2
+      ,FSA_nxtstp_3
+      ,FSA_nxtstp_4
+      ,FSA_nxtstp_5
+      ,FSA_nxtstp_6
+      ,FSA_nxtstp_7
+      ,FSA_nxtstp_8
+      ,FSA_nxtstp_9
+      ,FSA_nxtstp_10
+      ,FSA_nxtstp_11
+      ,FSA_nxtstp_12
+      ,FSA_nxtstp_13
+      ,FSA_nxtstp_14
+      ,FSA_nxtstp_15
 FROM
     (
      SELECT studentid
@@ -115,8 +219,7 @@ FROM
             ON a.student_number = res.local_student_id           
            AND a.assessment_id = res.assessment_id
            AND res.custom_code = a.standards_tested
-         ) sub
-         
+         ) sub         
      UNPIVOT (
        value
        FOR identifier IN ([FSA_subject]
@@ -127,7 +230,6 @@ FROM
                          ,[FSA_obj])
       ) unpiv
     ) sub2  
-
 --/*
 PIVOT (
   MAX(value)

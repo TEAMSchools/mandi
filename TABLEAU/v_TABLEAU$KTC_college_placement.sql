@@ -4,6 +4,7 @@ GO
 ALTER VIEW TABLEAU$KTC_college_placement AS
 
 WITH roster AS (
+  /*current students*/
   SELECT co.STUDENT_NUMBER
         ,co.lastfirst
         ,co.grade_level
@@ -16,11 +17,13 @@ WITH roster AS (
    AND s.rn = 1  
   WHERE co.rn = 1
     AND co.year = dbo.fn_Global_Academic_Year()
-    AND co.grade_level >= 8    
+    AND co.grade_level >= 9
     AND co.grade_level <= 12
+    AND co.enroll_status = 0
   
   UNION ALL
 
+  /*alumni*/
   SELECT sub.STUDENT_NUMBER
         ,sub.lastfirst
         ,sub.grade_level
@@ -49,13 +52,13 @@ WITH roster AS (
  )
 
 ,apps AS (
-  SELECT CASE WHEN r.student_number IS NULL THEN NULL ELSE r.STUDENT_NUMBER END AS student_number
+  SELECT r.STUDENT_NUMBER
         ,r.lastfirst
         ,r.grade_level
         ,r.cohort
         ,r.schoolid
         ,ISNULL(r.counselor_name, 'Unassigned') AS counselor_name
-        ,CASE WHEN apps.ceeb_code IS NULL THEN NULL ELSE apps.ceeb_code END AS ceeb_code
+        ,apps.ceeb_code
         ,CASE WHEN apps.student_number IS NULL THEN 1.0 ELSE 0.0 END AS no_apply
         ,apps.collegename
         ,apps.inst_control
@@ -65,7 +68,7 @@ WITH roster AS (
         ,apps.attending
         ,apps.waitlisted
         ,apps.comments
-  FROM roster r
+  FROM roster r WITH(NOLOCK)
   LEFT OUTER JOIN NAVIANCE$college_apps_clean apps WITH(NOLOCK)
     ON r.student_number = apps.student_number      
   WHERE cohort >= dbo.fn_Global_Academic_Year()
@@ -76,7 +79,7 @@ WITH roster AS (
         ,coll.ceeb_code__c AS ceeb_code
         ,college_name      
         ,selec_rank
-        ,minor_grad
+        ,Adjusted_6_year_minority_graduation_rate__c AS minor_grad
         ,admit_odds
         ,application_bin        
   FROM [AlumniMirror].[dbo].[KTC$application_odds] odds WITH(NOLOCK)
@@ -98,36 +101,36 @@ WITH roster AS (
                         WHEN selec_rank = 'Less Competitive' THEN 2
                         WHEN selec_rank = 'Noncompetitive' THEN 1
                        END) DESC, admit_odds ASC) AS comp_rank
-  FROM match
+  FROM match WITH(NOLOCK)
   JOIN apps WITH(NOLOCK)
     ON match.student_number = apps.student_number
    AND match.ceeb_code = apps.ceeb_code
    AND apps.result_code IN ('accepted', 'jan. admit', 'cond. accept', 'summer admit')
  )
  
-SELECT counselor_name
-      ,cohort
-      --,schoolid
-      ,COUNT(student_number) AS caseload
-      --,NULL AS pct_full_wishlist
-      ,CONVERT(FLOAT,ROUND(AVG(is_submit_4yr) * 100,0)) AS pct_applied_4yr
-      ,CONVERT(FLOAT,ROUND(AVG(is_submit_2yr) * 100,0)) AS pct_applied_2yr
-      ,CONVERT(FLOAT,ROUND(AVG(no_apply) * 100,0)) AS pct_no_apply
-      ,CONVERT(FLOAT,ROUND(AVG(n_likely),0)) AS avg_n_apply_likely
-      ,CONVERT(FLOAT,ROUND(AVG(n_match),0)) AS avg_n_apply_match
-      ,CONVERT(FLOAT,ROUND(AVG(n_reach),0)) AS avg_n_applied_reach
-      ,CONVERT(FLOAT,ROUND(AVG(applied_3x3x3) * 100,0)) AS pct_applied_3x3x3
-      ,CONVERT(FLOAT,ROUND(AVG(is_matric_4yr) * 100,0)) AS pct_matric_4yr
-      ,CONVERT(FLOAT,ROUND(AVG(is_matric_2yr) * 100,0)) AS pct_matric_2yr
-      --,NULL AS pct_complete_finaid
-      ,CONVERT(FLOAT,ROUND(AVG(proj_grad_rate_top),0)) AS proj_grad_top
-      ,CONVERT(FLOAT,ROUND(AVG(proj_grade_rate_matric),0)) AS proj_grad_matric
-FROM
-    (
+--SELECT counselor_name
+--      ,cohort
+--      --,schoolid
+--      ,COUNT(student_number) AS caseload
+--      --,NULL AS pct_full_wishlist
+--      ,CONVERT(FLOAT,ROUND(AVG(is_submit_4yr) * 100,0)) AS pct_applied_4yr
+--      ,CONVERT(FLOAT,ROUND(AVG(is_submit_2yr) * 100,0)) AS pct_applied_2yr
+--      ,CONVERT(FLOAT,ROUND(AVG(no_apply) * 100,0)) AS pct_no_apply
+--      ,CONVERT(FLOAT,ROUND(AVG(n_likely),0)) AS avg_n_apply_likely
+--      ,CONVERT(FLOAT,ROUND(AVG(n_match),0)) AS avg_n_apply_match
+--      ,CONVERT(FLOAT,ROUND(AVG(n_reach),0)) AS avg_n_applied_reach
+--      ,CONVERT(FLOAT,ROUND(AVG(applied_3x3x3) * 100,0)) AS pct_applied_3x3x3
+--      ,CONVERT(FLOAT,ROUND(AVG(is_matric_4yr) * 100,0)) AS pct_matric_4yr
+--      ,CONVERT(FLOAT,ROUND(AVG(is_matric_2yr) * 100,0)) AS pct_matric_2yr
+--      --,NULL AS pct_complete_finaid
+--      ,CONVERT(FLOAT,ROUND(AVG(proj_grad_rate_top),0)) AS proj_grad_top
+--      ,CONVERT(FLOAT,ROUND(AVG(proj_grade_rate_matric),0)) AS proj_grad_matric
+--FROM
+--    (
      SELECT counselor_name
            ,cohort
            ,grade_level
-           --,schoolid
+           ,schoolid
            ,STUDENT_NUMBER
            ,lastfirst
            ,no_apply
@@ -137,7 +140,7 @@ FROM
            ,MAX(is_accepted_2yr) AS is_accepted_2yr
            ,MAX(is_matric_4yr) AS is_matric_4yr
            ,MAX(is_matric_2yr) AS is_matric_2yr
-           ,MAX(proj_grade_rate_matric) AS proj_grade_rate_matric
+           ,MAX(proj_grade_rate_matric) AS proj_grad_rate_matric
            ,MAX(proj_grad_rate_top) AS proj_grad_rate_top
            ,SUM(is_likely) AS n_likely
            ,SUM(is_match) AS n_match
@@ -153,6 +156,7 @@ FROM
                 ,ISNULL(apps.counselor_name, 'Unassigned') AS counselor_name                
                 ,apps.collegename
                 ,apps.ceeb_code
+                --,LEFT(apps.level,1) AS degree_duration
                 ,match.selec_rank
                 ,match.minor_grad
                 ,match.admit_odds
@@ -185,11 +189,11 @@ FROM
      GROUP BY counselor_name
              ,cohort
              ,grade_level
-             --,schoolid
+             ,schoolid
              ,STUDENT_NUMBER
              ,lastfirst
              ,no_apply
-    ) sub
-GROUP BY counselor_name
-        ,cohort
-        --,schoolid
+--    ) sub
+--GROUP BY counselor_name
+--        ,cohort
+--        --,schoolid

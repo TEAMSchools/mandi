@@ -85,7 +85,15 @@ WITH valid_tests AS (
           ,r.STUDENT_NUMBER          
  )
  
-SELECT wk.*
+SELECT wk.schoolid
+      ,wk.grade_level
+      ,wk.STUDENT_NUMBER
+      ,wk.listweek_num
+      ,wk.n_total
+      ,wk.n_correct
+      ,wk.n_missed
+      ,wk.pct_correct
+      ,wk.missed_words
       ,yr.n_total_yr
       ,yr.n_correct_yr
       ,yr.n_missed_yr
