@@ -57,16 +57,22 @@ WITH valid_TAs AS (
   SELECT DISTINCT 
          assessment_id
         ,academic_year
-        ,schoolid
-        ,title
-        --,grade_level
+        ,ta.schoolid
+        ,title        
         ,scope
-        ,subject
+        ,ta.subject
         ,standard_id
         ,standards_tested
         ,administered_at
-        ,term
-  FROM valid_TAs WITH(NOLOCK)
+        ,ta.term
+        ,obj.objective AS TA_obj
+  FROM valid_TAs ta WITH(NOLOCK)
+  LEFT OUTER JOIN GDOCS$TA_standards_clean obj WITH(NOLOCK)
+    ON ta.schoolid = obj.schoolid
+   AND ta.grade_level = obj.grade_level
+   AND ta.term = obj.term
+   AND ta.standards_tested = obj.ccss_standard
+   AND obj.dupe_audit = 1
   
   UNION ALL
   
@@ -74,21 +80,26 @@ WITH valid_TAs AS (
          fsa.assessment_id
         ,fsa.academic_year
         ,fsa.schoolid
-        ,fsa.title
-        --,fsa.grade_level
+        ,fsa.title        
         ,fsa.scope
         ,ta.subject
         ,fsa.standard_id
         ,fsa.standards_tested
         ,fsa.administered_at
         ,fsa.term
+        ,obj.objective AS TA_obj
   FROM valid_FSAs fsa WITH(NOLOCK)
   JOIN valid_TAs ta WITH(NOLOCK)
     ON fsa.academic_year = ta.academic_year
    AND fsa.schoolid = ta.schoolid
-   AND fsa.grade_level = ta.grade_level
-   --AND fsa.subject = ta.subject      
+   AND fsa.grade_level = ta.grade_level   
    AND fsa.standard_id = ta.standard_id
+  LEFT OUTER JOIN GDOCS$TA_standards_clean obj WITH(NOLOCK)
+    ON fsa.schoolid = obj.schoolid
+   AND fsa.grade_level = obj.grade_level 
+   AND fsa.term = obj.term
+   AND fsa.standards_tested = obj.ccss_standard
+   AND obj.dupe_audit = 1
  ) 
 
 -- the above combined, only those that students have been tested on
@@ -106,6 +117,7 @@ WITH valid_TAs AS (
         ,subject
         ,standard_id
         ,standards_tested            
+        ,TA_obj
         ,pct_correct
         ,ROW_NUMBER() OVER(
            PARTITION BY student_number, scope, standard_id, term
@@ -129,6 +141,7 @@ WITH valid_TAs AS (
              ,a.subject
              ,a.standard_id
              ,a.standards_tested            
+             ,a.TA_obj
              ,CONVERT(FLOAT,percent_correct) AS pct_correct
              ,CASE WHEN res.local_student_id IS NOT NULL THEN 1 ELSE 0 END AS has_tested
        FROM COHORT$identifiers_long#static r WITH(NOLOCK)       
@@ -166,7 +179,7 @@ SELECT sub.student_number
        END AS TA_subject
       ,sub.standards_tested AS TA_standard
       ,sub.total_weighted_pct_correct
-      ,obj.objective AS TA_obj
+      ,sub.TA_obj
       ,CONVERT(VARCHAR(250),
         CASE 
          WHEN sub.SPEDLEP = 'SPED' AND sub.total_weighted_pct_correct >= 60 THEN 3
@@ -208,6 +221,7 @@ FROM
            ,term
            ,subject
            ,standards_tested      
+           ,TA_obj
            ,SUM(weighted_pct_points) AS total_weighted_points
            ,SUM(weighted_points_poss) AS total_weighted_points_poss
            ,ROUND(SUM(weighted_pct_points) / SUM(weighted_points_poss) * 100,0) AS total_weighted_pct_correct
@@ -222,6 +236,7 @@ FROM
                 ,scope
                 ,subject
                 ,standards_tested
+                ,TA_obj
                 ,rn_cur
                 -- weighted points earned
                 ,CASE
@@ -293,10 +308,5 @@ FROM
              ,term
              ,subject
              ,standards_tested
+             ,TA_obj
     ) sub
-LEFT OUTER JOIN GDOCS$TA_standards_clean obj WITH(NOLOCK)
-  ON sub.schoolid = obj.schoolid
- AND sub.grade_level = obj.grade_level 
- AND sub.term = obj.term
- AND sub.standards_tested = obj.ccss_standard
- AND obj.dupe_audit = 1

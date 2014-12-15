@@ -23,13 +23,7 @@ WITH roster AS (
 ,reporting_week AS (
   SELECT date
         ,day_of_week
-  FROM REPORTING$Rise_weekly_dates#static WITH(NOLOCK)
-  -- in case of emergency
-  --SELECT date
-  --      ,DATENAME(WEEKDAY,date) AS day_of_week
-  --FROM UTIL$reporting_days WITH(NOLOCK)
-  --WHERE date >= '2014-10-23'
-  --  AND date <= '2014-10-29'
+  FROM REPORTING$Rise_weekly_dates#static WITH(NOLOCK)  
  )
 
 ,missing_days AS (

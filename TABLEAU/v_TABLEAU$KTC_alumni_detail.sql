@@ -18,59 +18,36 @@ WITH max_grade AS (
     AND co.rn = 1
  )
 
-,roster AS (
+,combined_roster AS (
   SELECT co.year AS academic_year
         ,co.STUDENT_NUMBER
         ,co.lastfirst
-        ,max_grade.grade_level + (dbo.fn_Global_Academic_Year() - co.year) AS grade_level
+        ,max_grade.grade_level + (co.year - max_grade.cohort) AS grade_level        
         ,max_grade.cohort
         ,max_grade.schoolid        
+        ,r.contact_id AS student_salesforce_id        
+        ,r.composite_status
+        ,u.id AS advisor_salesforce_id
+        ,ISNULL(r.ktc_contact,'Unassigned') AS advisor_name
+        ,r.last_advisor_activity
+        ,r.last_successful_contact        
+        ,r.school_id AS school_salesforce_id
+        ,r.school_name
+        ,r.school_type
+        ,r.school_enroll_date
+        ,r.school_exit_date
   FROM COHORT$identifiers_long#static co WITH(NOLOCK)
   JOIN max_grade WITH(NOLOCK)
     ON co.studentid = max_grade.studentid
    AND co.year >= max_grade.cohort
    AND max_grade.rn = 1
+  LEFT OUTER JOIN [AlumniMirror].[dbo].[vwRoster_Basic] r WITH(NOLOCK)
+    ON co.student_number = r.sis_id
+  LEFT OUTER JOIN AlumniMirror.dbo.User2 u WITH(NOLOCK)
+    ON r.ktc_contact = u.name
   WHERE co.rn = 1
     AND co.schoolid = 999999
     AND co.year = dbo.fn_Global_Academic_Year()
- )
-
-,alumni_roster AS (
-  SELECT contact_id AS salesforce_id
-        ,sis_id AS student_number        
-        ,cohort
-        ,composite_status
-        ,User2.id AS advisor_id
-        ,ktc_contact AS advisor_name
-        ,last_advisor_activity
-        ,last_successful_contact
-        ,school_enroll_date
-        ,school_exit_date
-        ,school_name
-        ,school_type
-        ,school_id      
-  FROM [AlumniMirror].[dbo].[vwRoster_Basic] r WITH(NOLOCK)
-  LEFT OUTER JOIN AlumniMirror.dbo.User2 WITH(NOLOCK)
-    ON r.ktc_contact = user2.name
- )
-
-,combined_roster AS (
-  SELECT r.STUDENT_NUMBER
-        ,r.lastfirst
-        ,r.grade_level
-        ,r.cohort
-        ,alum.salesforce_id
-        ,alum.composite_status        
-        ,alum.advisor_id
-        ,ISNULL(alum.advisor_name,'Unassigned') AS advisor_name
-        ,alum.last_advisor_activity
-        ,alum.last_successful_contact
-        ,alum.school_name
-        ,alum.school_type
-        ,alum.school_id
-  FROM roster r WITH(NOLOCK)
-  LEFT OUTER JOIN alumni_roster alum WITH(NOLOCK)
-    ON r.STUDENT_NUMBER = alum.student_number  
  )
 
 ,colleges AS (
@@ -108,7 +85,7 @@ WITH max_grade AS (
            PARTITION BY student__c
              ORDER BY start_date__c ASC) AS rn_base
   FROM [AlumniMirror].[dbo].[Enrollment__c] enr WITH(NOLOCK)
-  JOIN colleges c WITH(NOLOCK)
+  LEFT OUTER JOIN colleges c WITH(NOLOCK)
     ON enr.School__c = c.salesforce_id
   WHERE Type__c NOT IN ('Middle School','High School')
     AND IsDeleted = 0
@@ -141,9 +118,9 @@ SELECT r.student_number
       ,CASE WHEN r.school_type = 'Technical School' THEN 1.0 END AS is_trade      
 FROM combined_roster r WITH(NOLOCK)
 LEFT OUTER JOIN enrollments enr_cur WITH(NOLOCK)
-  ON r.salesforce_id = enr_cur.student_id
+  ON r.student_salesforce_id = enr_cur.student_id
  AND enr_cur.rn_cur = 1
 LEFT OUTER JOIN enrollments enr_base WITH(NOLOCK)
-  ON r.salesforce_id = enr_base.student_id
- AND r.school_id != enr_base.school_id
+  ON r.student_salesforce_id = enr_base.student_id
+ AND r.school_salesforce_id != enr_base.school_id
  AND enr_base.rn_base = 1

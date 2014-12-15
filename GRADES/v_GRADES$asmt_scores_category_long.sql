@@ -24,9 +24,8 @@ SELECT sec.SCHOOLID
 FROM SECTIONS sec WITH(NOLOCK)
 JOIN PS$category_weighting_setup#static cat WITH(NOLOCK)
   ON sec.DCID = cat.SECTIONSDCID
- AND cat.finalgradename NOT LIKE 'Q%'
- AND cat.finalgradename NOT LIKE 'T%'
- AND cat.finalgradename NOT LIKE 'E%'
+ AND ((sec.SCHOOLID = 73253 AND cat.finalgradename NOT LIKE 'Q%' AND cat.finalgradename NOT LIKE 'T%' AND cat.finalgradename NOT LIKE 'E%')
+       OR sec.SCHOOLID != 73253 AND cat.FINALGRADENAME LIKE 'T%')
 JOIN reporting_weeks rw WITH(NOLOCK)
   ON cat.STARTDATE <= rw.weekday_start
  AND cat.ENDDATE >= rw.weekday_start 
