@@ -21,6 +21,7 @@ WITH roster AS (
 ,curterm AS (
   SELECT schoolid
         ,REPLACE(time_per_name,'Hexameter ','RT') AS time_per_name
+        ,alt_name
         ,start_date
         ,end_date
   FROM REPORTING$dates WITH(NOLOCK)
@@ -48,7 +49,11 @@ WITH roster AS (
  )
   
 ,map_goals AS (
-  SELECT *
+  SELECT studentid
+        ,keep_up_goal
+        ,keep_up_rit
+        ,rutgers_ready_goal
+        ,rutgers_ready_rit
   FROM KIPP_NJ..MAP$rutgers_ready_student_goals g WITH(NOLOCK)
   WHERE g.measurementscale = 'Reading'
     AND g.year = dbo.fn_Global_Academic_Year()
@@ -71,18 +76,28 @@ WITH roster AS (
  )
 
 ,readlive AS (
-  SELECT *
+  SELECT studentid
+        ,wpm        
         ,ROW_NUMBER() OVER(
-           PARTITION BY studentid
-             ORDER BY yearid DESC, CASE WHEN season = 'Fall' THEN 1 WHEN season = 'Winter' THEN 2 WHEN season = 'Spring' THEN 3 ELSE NULL END DESC) AS rn
+           PARTITION BY studentid, yearid
+             ORDER BY yearid DESC, CASE WHEN season = 'Fall' THEN 1 WHEN season = 'Winter' THEN 2 WHEN season = 'Spring' THEN 3 ELSE NULL END ASC) AS rn_base
+        ,ROW_NUMBER() OVER(
+           PARTITION BY studentid, yearid
+             ORDER BY yearid DESC, CASE WHEN season = 'Fall' THEN 1 WHEN season = 'Winter' THEN 2 WHEN season = 'Spring' THEN 3 ELSE NULL END DESC) AS rn_cur
   FROM SRSLY_DIE_READLIVE WITH(NOLOCK)
  )
      
-SELECT roster.*
+SELECT roster.studentid
+      ,roster.student_number
+      ,roster.grade_level
+      ,roster.schoolid
+      ,roster.lastfirst
+      ,roster.name
+      ,roster.school
       ,enr.course_name + '|' + enr.section_number AS enr_hash
       ,gr.course_number
       ,gr.course_name
-      ,gr.T2 AS cur_term_rdg_gr /*--UPDATE FIELD FOR CURRENT TERM--*/
+      ,gr_cur.pct AS cur_term_rdg_gr
       ,gr.Y1 AS y1_rdg_gr
       ,ele.grade_1 AS cur_term_rdg_hw_avg /*--UPDATE FIELD FOR CURRENT TERM--*/
       ,ele.simple_avg AS y1_rdg_hw_avg
@@ -199,6 +214,7 @@ SELECT roster.*
       ,map_goals.rutgers_ready_rit
       
 FROM roster
+
 --ENR
 LEFT OUTER JOIN enrollments enr
   ON roster.studentid = enr.studentid
@@ -211,6 +227,10 @@ LEFT OUTER JOIN curterm
 LEFT OUTER JOIN KIPP_NJ..GRADES$DETAIL#MS gr WITH(NOLOCK)
   ON roster.studentid = gr.studentid
  AND gr.credittype LIKE '%ENG%'
+LEFT OUTER JOIN KIPP_NJ..GRADES$detail_long_term#MS gr_cur WITH(NOLOCK)
+  ON roster.studentid = gr_cur.studentid
+ AND curterm.alt_name = gr_cur.term
+ AND gr_cur.credittype LIKE '%ENG%'
 
 --HW
 LEFT OUTER JOIN KIPP_NJ..GRADES$elements ele WITH(NOLOCK)
@@ -259,12 +279,11 @@ LEFT OUTER JOIN cur_rit
   ON roster.studentid = cur_rit.ps_studentid 
 
 LEFT OUTER JOIN readlive rl_base WITH(NOLOCK)
-  ON CAST(roster.studentid AS NVARCHAR) = rl_base.studentid 
- AND rl_base.rn = 1
-LEFT OUTER JOIN KIPP_NJ..SRSLY_DIE_READLIVE rl_cur WITH(NOLOCK)
-  ON CAST(roster.studentid AS NVARCHAR) = rl_cur.studentid
- AND rl_cur.yearid = dbo.fn_Global_Term_Id()
- AND rl_cur.season = 'Winter'
+  ON roster.studentid = rl_base.studentid 
+ AND rl_base.rn_base = 1
+LEFT OUTER JOIN readlive rl_cur WITH(NOLOCK)
+  ON roster.studentid = rl_cur.studentid 
+ AND rl_cur.rn_cur = 1
 
 --AR
 --current

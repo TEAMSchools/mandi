@@ -135,6 +135,9 @@ WITH reenrollments AS (
              ,s.exitdate
        FROM students s WITH(NOLOCK)
        WHERE s.enroll_status = 3
+         AND s.id NOT IN (171, 141, 45) 
+         -- 3 students back in the Dark Ages graduated 8th, didn't go to NCA in 9th, but came back and graduated from NCA with a different student record
+         -- these are their stories
       ) s_3
   LEFT OUTER JOIN PS$terms#static terms WITH(NOLOCK)
     ON s_3.schoolid = terms.schoolid

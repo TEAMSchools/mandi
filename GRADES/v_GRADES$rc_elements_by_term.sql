@@ -291,72 +291,72 @@ FROM
           SELECT student_number
                 ,studentid
                 ,schoolid
-                ,NULL AS rc1_h1
-                ,NULL AS rc1_h2
-                ,NULL AS rc1_h3
+                ,rc1_h1
+                ,rc1_h2
+                ,rc1_h3
                 ,NULL AS rc1_q1
                 ,NULL AS rc1_q2
                 ,NULL AS rc1_q3
                 ,NULL AS rc1_s1
                 ,NULL AS rc1_s2
                 ,NULL AS rc1_s3
-                ,NULL AS rc2_h1
-                ,NULL AS rc2_h2
-                ,NULL AS rc2_h3
+                ,rc2_h1
+                ,rc2_h2
+                ,rc2_h3
                 ,NULL AS rc2_q1
                 ,NULL AS rc2_q2
                 ,NULL AS rc2_q3
                 ,NULL AS rc2_s1
                 ,NULL AS rc2_s2
                 ,NULL AS rc2_s3
-                ,NULL AS rc3_h1
-                ,NULL AS rc3_h2
-                ,NULL AS rc3_h3
+                ,rc3_h1
+                ,rc3_h2
+                ,rc3_h3
                 ,NULL AS rc3_q1
                 ,NULL AS rc3_q2
                 ,NULL AS rc3_q3
                 ,NULL AS rc3_s1
                 ,NULL AS rc3_s2
                 ,NULL AS rc3_s3
-                ,NULL AS rc4_h1
-                ,NULL AS rc4_h2
-                ,NULL AS rc4_h3
+                ,rc4_h1
+                ,rc4_h2
+                ,rc4_h3
                 ,NULL AS rc4_q1
                 ,NULL AS rc4_q2
                 ,NULL AS rc4_q3
                 ,NULL AS rc4_s1
                 ,NULL AS rc4_s2
                 ,NULL AS rc4_s3
-                ,NULL AS rc5_h1
-                ,NULL AS rc5_h2
-                ,NULL AS rc5_h3
+                ,rc5_h1
+                ,rc5_h2
+                ,rc5_h3
                 ,NULL AS rc5_q1
                 ,NULL AS rc5_q2
                 ,NULL AS rc5_q3
                 ,NULL AS rc5_s1
                 ,NULL AS rc5_s2
                 ,NULL AS rc5_s3
-                ,NULL AS rc6_h1
-                ,NULL AS rc6_h2
-                ,NULL AS rc6_h3
+                ,rc6_h1
+                ,rc6_h2
+                ,rc6_h3
                 ,NULL AS rc6_q1
                 ,NULL AS rc6_q2
                 ,NULL AS rc6_q3
                 ,NULL AS rc6_s1
                 ,NULL AS rc6_s2
                 ,NULL AS rc6_s3
-                ,NULL AS rc7_h1
-                ,NULL AS rc7_h2
-                ,NULL AS rc7_h3
+                ,rc7_h1
+                ,rc7_h2
+                ,rc7_h3
                 ,NULL AS rc7_q1
                 ,NULL AS rc7_q2
                 ,NULL AS rc7_q3
                 ,NULL AS rc7_s1
                 ,NULL AS rc7_s2
                 ,NULL AS rc7_s3
-                ,NULL AS rc8_h1
-                ,NULL AS rc8_h2
-                ,NULL AS rc8_h3
+                ,rc8_h1
+                ,rc8_h2
+                ,rc8_h3
                 ,NULL AS rc8_q1
                 ,NULL AS rc8_q2
                 ,NULL AS rc8_q3

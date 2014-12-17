@@ -159,7 +159,7 @@ FROM
            ,apps.counselor_name
            ,ISNULL(apps.collegename, 'No app') AS collegename
            ,apps.ceeb_code
-           ,LEFT(apps.level,1) AS degree_type
+           ,apps.level AS degree_type
            ,match.selec_rank
            ,apps.minor_grad
            ,match.admit_odds

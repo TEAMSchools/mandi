@@ -32,6 +32,9 @@ WITH max_grade AS (
         ,r.last_advisor_activity
         ,r.last_successful_contact        
         ,r.school_id AS school_salesforce_id
+        ,c.type AS track
+        ,c.[X6_yr_minority_completion_rate__c] AS minority_grad_rate
+        --,c.[Adjusted_6_year_minority_graduation_rate__c] AS adj_minority_grad_rate
         ,r.school_name
         ,r.school_type
         ,r.school_enroll_date
@@ -43,6 +46,8 @@ WITH max_grade AS (
    AND max_grade.rn = 1
   LEFT OUTER JOIN [AlumniMirror].[dbo].[vwRoster_Basic] r WITH(NOLOCK)
     ON co.student_number = r.sis_id
+  LEFT OUTER JOIN [AlumniMirror].[dbo].[Account] c WITH(NOLOCK)
+    ON r.school_id = c.id
   LEFT OUTER JOIN AlumniMirror.dbo.User2 u WITH(NOLOCK)
     ON r.ktc_contact = u.name
   WHERE co.rn = 1
@@ -99,8 +104,10 @@ SELECT scaff.academic_year
       ,r.schoolid
       ,r.salesforce_id
       ,r.composite_status
+      ,r.track
       ,r.school_name
       ,r.school_type
+      ,r.minority_grad_rate
       --,r.school_enroll_date
       --,r.school_exit_date
       ,r.last_advisor_activity

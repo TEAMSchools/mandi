@@ -50,20 +50,11 @@ WITH max_grade AS (
     AND co.year = dbo.fn_Global_Academic_Year()
  )
 
-,colleges AS (
-  SELECT [salesforce_id]
-        ,[Name]
-        ,[Type]                        
-        ,[X6_yr_minority_completion_rate__c] AS minority_grad_rate
-        ,[Adjusted_6_year_minority_graduation_rate__c] AS adj_minority_grad_rate
-  FROM [AlumniMirror].[dbo].[CollegeMatch$college_list] WITH(NOLOCK)
- )
-
 ,enrollments AS (
   SELECT c.[Name] AS school_name
         ,REPLACE(RIGHT(c.type, 4),' ','') AS track
-        ,c.minority_grad_rate
-        ,c.adj_minority_grad_rate
+        ,c.[X6_yr_minority_completion_rate__c] AS minority_grad_rate
+        ,c.[Adjusted_6_year_minority_graduation_rate__c] AS adj_minority_grad_rate
         ,[Student__c] AS student_id
         ,[School__c] AS school_id
         ,[Start_Date__c] AS start_date
@@ -72,7 +63,7 @@ WITH max_grade AS (
         ,[Date_Last_Verified__c]
         ,[Highest_SAT_Score__c]      
         ,[Notes__c]
-        ,[Pursuing_Degree_Type__c]  
+        ,[Pursuing_Degree_Type__c] AS degree_type
         ,[Status__c]
         ,[Transfer_Reason__c]      
         ,[Major_Area__c]            
@@ -84,12 +75,12 @@ WITH max_grade AS (
         ,ROW_NUMBER() OVER(
            PARTITION BY student__c
              ORDER BY start_date__c ASC) AS rn_base
-  FROM [AlumniMirror].[dbo].[Enrollment__c] enr WITH(NOLOCK)
-  LEFT OUTER JOIN colleges c WITH(NOLOCK)
-    ON enr.School__c = c.salesforce_id
-  WHERE Type__c NOT IN ('Middle School','High School')
-    AND IsDeleted = 0
-    AND status__c != 'Did Not Enroll'
+  FROM [AlumniMirror].[dbo].[Enrollment__c] enr WITH(NOLOCK)  
+  LEFT OUTER JOIN [AlumniMirror].[dbo].[Account] c WITH(NOLOCK)
+    ON enr.School__c = c.id
+  WHERE enr.Type__c NOT IN ('Middle School','High School')
+    AND enr.IsDeleted = 0
+    AND enr.status__c != 'Did Not Enroll'
  )
 
 SELECT r.student_number
@@ -100,6 +91,7 @@ SELECT r.student_number
       ,r.school_name
       ,r.school_type      
       ,enr_cur.track
+      ,enr_cur.degree_type
       ,enr_cur.minority_grad_rate
       ,enr_cur.start_date
       ,enr_cur.proj_grad_date
@@ -108,8 +100,8 @@ SELECT r.student_number
       ,enr_base.minority_grad_rate AS init_minority_grad_rate
       ,r.last_successful_contact
       ,CASE
-        WHEN r.composite_status = 'College Withdrawn' THEN 'Dropped out of ' + enr_cur.track
-        ELSE enr_base.track + ' to ' + enr_cur.track
+        WHEN r.composite_status = 'College Withdrawn' THEN 'Dropped out of ' + enr_cur.degree_type
+        ELSE enr_base.degree_type + ' to ' + enr_cur.degree_type
        END AS transfer
       ,CASE WHEN r.composite_status = 'College Persisting' AND enr_cur.track = '4yr' THEN 1.0 END AS is_4yr
       ,CASE WHEN r.composite_status = 'College Persisting' AND enr_cur.track = '2yr' THEN 1.0 END AS is_2yr

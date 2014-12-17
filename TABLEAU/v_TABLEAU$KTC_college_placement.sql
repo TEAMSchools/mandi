@@ -67,23 +67,23 @@ WITH roster AS (
 
 ,apps AS (
 SELECT r.STUDENT_NUMBER
-        ,r.lastfirst
-        ,r.grade_level
-        ,r.cohort
-        ,r.schoolid
-        ,r.is_alum
-        ,ISNULL(r.counselor_name, 'Unassigned') AS counselor_name
-        ,apps.ceeb_code
-        ,CASE WHEN apps.student_number IS NULL THEN 1.0 ELSE 0.0 END AS no_apply
-        ,apps.collegename
-        ,apps.inst_control
-        ,apps.level
-        ,apps.stage
-        ,apps.result_code
-        ,apps.attending
-        ,apps.waitlisted
-        ,apps.comments
-        ,coll.minor_grad
+      ,r.lastfirst
+      ,r.grade_level
+      ,r.cohort
+      ,r.schoolid
+      ,r.is_alum
+      ,ISNULL(r.counselor_name, 'Unassigned') AS counselor_name
+      ,apps.ceeb_code
+      ,CASE WHEN apps.student_number IS NULL THEN 1.0 ELSE 0.0 END AS no_apply
+      ,apps.collegename
+      ,apps.inst_control
+      ,apps.level
+      ,apps.stage
+      ,apps.result_code
+      ,apps.attending
+      ,apps.waitlisted
+      ,apps.comments
+      ,coll.minor_grad
   FROM roster r WITH(NOLOCK)
   LEFT OUTER JOIN NAVIANCE$college_apps_clean apps WITH(NOLOCK)
     ON r.student_number = apps.student_number      
@@ -178,14 +178,26 @@ FROM
            ,CASE WHEN apps.level = '4Year' AND apps.attending = 'yes' THEN 1.0 ELSE 0.0 END AS is_matric_4yr
            ,CASE WHEN apps.level = '2Year' AND apps.attending = 'yes' THEN 1.0 ELSE 0.0 END AS is_matric_2yr                
            ,CASE WHEN apps.attending = 'yes' THEN apps.minor_grad ELSE NULL END AS proj_grade_rate_matric
-           ,CASE WHEN apps.result_code IN ('accepted', 'jan. admit', 'cond. accept', 'summer admit') AND apps.ceeb_code = top_admit.ceeb_code THEN apps.minor_grad END AS proj_grad_rate_top
-           ,CASE WHEN match.application_bin = 'Likely' THEN 1.0 ELSE 0.0 END AS is_likely
-           ,CASE WHEN match.application_bin = 'Match' THEN 1.0 ELSE 0.0 END AS is_match
-           ,CASE WHEN match.application_bin = 'Reach' THEN 1.0 ELSE 0.0 END AS is_reach
+           ,CASE WHEN apps.result_code IN ('accepted', 'jan. admit', 'cond. accept', 'summer admit') AND apps.ceeb_code = top_admit.ceeb_code THEN apps.minor_grad END AS proj_grad_rate_top           
+           ,CASE 
+             WHEN match.application_bin IS NOT NULL AND match.application_bin = 'Likely' THEN 1.0 
+             WHEN match.application_bin IS NOT NULL AND match.application_bin != 'Likely' THEN 0.0 
+             ELSE NULL 
+            END AS is_likely
+           ,CASE 
+             WHEN match.application_bin IS NOT NULL AND match.application_bin = 'Match' THEN 1.0
+             WHEN match.application_bin IS NOT NULL AND match.application_bin != 'Match' THEN 0.0
+             ELSE NULL
+            END AS is_match
+           ,CASE  
+             WHEN match.application_bin IS NOT NULL AND match.application_bin IN ('Reach','Dream','Dragons') THEN 1.0 
+             WHEN match.application_bin IS NOT NULL AND match.application_bin NOT IN ('Reach','Dream','Dragons') THEN 0.0
+             ELSE NULL
+            END AS is_reach
      FROM apps WITH(NOLOCK)
      LEFT OUTER JOIN match WITH(NOLOCK)
        ON apps.STUDENT_NUMBER = match.student_number
-      AND apps.ceeb_code = match.CEEB_Code          
+      AND apps.ceeb_code = match.CEEB_Code                
      LEFT OUTER JOIN top_admit WITH(NOLOCK)
        ON apps.student_number = top_admit.student_number
       AND top_admit.comp_rank = 1

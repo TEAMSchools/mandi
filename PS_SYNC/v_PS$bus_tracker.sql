@@ -4,9 +4,11 @@ GO
 ALTER VIEW PS$bus_tracker AS 
 
 WITH dismiss_change AS (
-  SELECT studentid        
+  SELECT studentid
+        ,subtype        
   FROM OPENQUERY(PS_TEAM,'
-    SELECT studentid          
+    SELECT studentid      
+          ,subtype    
     FROM log
     WHERE logtypeid = 3964
       AND Discipline_IncidentDate = TRUNC(SYSDATE)
@@ -24,6 +26,7 @@ SELECT s.STUDENT_NUMBER
       ,bus.BUS_INFO_FRIDAYS
       ,bus.BUS_INFO_BGC_CLOSED
       ,CASE 
+        WHEN ch.studentid IS NOT NULL AND ch.subtype = '01' THEN 'School Event'
         WHEN ch.studentid IS NOT NULL THEN 'Parent Pickup'
         WHEN DATEPART(WEEKDAY,GETDATE()) = 6 THEN BUS_INFO_FRIDAYS 
         ELSE BUS_INFO_PM 
