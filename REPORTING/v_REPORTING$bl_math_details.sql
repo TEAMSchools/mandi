@@ -22,7 +22,7 @@ WITH
 			,c.gender      
 			,c.school_name		AS school
       FROM KIPP_NJ..COHORT$identifiers_long#static c  WITH (NOLOCK)        
-	  WHERE year = 2014
+	  WHERE year = dbo.fn_Global_Academic_Year()
         AND c.enroll_status = 0
 		AND c.grade_level >= 5
 		AND c.grade_level <= 8
@@ -35,7 +35,7 @@ WITH
 			,sections.section_number
       FROM KIPP_NJ..GRADES$DETAIL#MS grades_math  WITH (NOLOCK)
 	  JOIN KIPP_NJ..sections sections WITH (NOLOCK)
-	    ON grades_math.T1_ENR_SECTIONID = sections.id     
+	    ON grades_math.T2_ENR_SECTIONID = sections.id     
 	  WHERE grades_math.schoolid IN (73252,133570965) 
   	    AND grades_math.credittype = 'MATH'
 	)
@@ -46,7 +46,7 @@ WITH
 			,sections.section_number
       FROM KIPP_NJ..GRADES$DETAIL#MS grades_sci  WITH (NOLOCK)
 	  JOIN KIPP_NJ..sections sections WITH (NOLOCK)
-	    ON grades_sci.T1_ENR_SECTIONID = sections.id     
+	    ON grades_sci.T2_ENR_SECTIONID = sections.id     
 	  WHERE grades_sci.schoolid IN (73252,133570965) 
   	    AND grades_sci.credittype = 'SCI'
   	)
@@ -55,11 +55,18 @@ WITH
 
 	,map_math AS
 	(
-	SELECT map_math.*
-	FROM TABLEAU$MAP_tracker map_math WITH (NOLOCK)
+	 SELECT map_math.studentid
+		,map_math.testritscore
+		,map_math.testpercentile
+		,rr.keep_up_rit
+		,rr.rutgers_ready_rit
+	FROM MAP$best_baseline#static map_math WITH(NOLOCK)
+	LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
+		 ON map_math.studentid = rr.studentid
+		 AND map_math.year = rr.year
+		 AND map_math.measurementscale = rr.measurementscale
 	WHERE map_math.measurementscale LIKE 'Math%' 
-	 AND map_math.year IN (2014)
-	 AND map_math.fallwinterspring = 'Fall'
+		 AND map_math.year = dbo.fn_Global_Academic_Year()	
 	)
 
 
@@ -67,12 +74,18 @@ WITH
 
 	,map_sci AS
 	(
-	SELECT map_sci.*
-	FROM TABLEAU$MAP_tracker map_sci WITH (NOLOCK)
-
-	WHERE map_sci.measurementscale LIKE 'Sci%' 
-	 AND map_sci.year IN (2014)
-	 AND map_sci.fallwinterspring = 'Fall'
+	 SELECT map_math.studentid
+		,map_math.testritscore
+		,map_math.testpercentile
+		,rr.keep_up_rit
+		,rr.rutgers_ready_rit
+	FROM MAP$best_baseline#static map_math WITH(NOLOCK)
+	LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
+		 ON map_math.studentid = rr.studentid
+		 AND map_math.year = rr.year
+		 AND map_math.measurementscale = rr.measurementscale
+	WHERE map_math.measurementscale LIKE 'Sci%' 
+		 AND map_math.year = dbo.fn_Global_Academic_Year()	
 	)
 
 
@@ -80,24 +93,36 @@ WITH
 
 	,map_read AS
 	(
-	SELECT map_read.*
-	FROM TABLEAU$MAP_tracker map_read WITH (NOLOCK)
-
-	WHERE map_read.measurementscale LIKE 'Read%' 
-	 AND map_read.year IN (2014)
-	 AND map_read.fallwinterspring = 'Fall'
+	 SELECT map_math.studentid
+		,map_math.testritscore
+		,map_math.testpercentile
+		,rr.keep_up_rit
+		,rr.rutgers_ready_rit
+	FROM MAP$best_baseline#static map_math WITH(NOLOCK)
+	LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
+		 ON map_math.studentid = rr.studentid
+		 AND map_math.year = rr.year
+		 AND map_math.measurementscale = rr.measurementscale
+	WHERE map_math.measurementscale LIKE 'Read%' 
+		 AND map_math.year = dbo.fn_Global_Academic_Year()	
 	)
 
 	--map language data
 
 	,map_lang AS
 	(
-	SELECT map_lang.*
-	FROM TABLEAU$MAP_tracker map_lang WITH (NOLOCK)
-
-	WHERE map_lang.measurementscale LIKE 'lang%' 
-	 AND map_lang.year IN (2014)
-	 AND map_lang.fallwinterspring = 'Fall'
+	 SELECT map_math.studentid
+		,map_math.testritscore
+		,map_math.testpercentile
+		,rr.keep_up_rit
+		,rr.rutgers_ready_rit
+	FROM MAP$best_baseline#static map_math WITH(NOLOCK)
+	LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
+		 ON map_math.studentid = rr.studentid
+		 AND map_math.year = rr.year
+		 AND map_math.measurementscale = rr.measurementscale
+	WHERE map_math.measurementscale LIKE 'Lang%' 
+		 AND map_math.year = dbo.fn_Global_Academic_Year()	
 	)
 
 
@@ -118,23 +143,23 @@ SELECT
 
 	  ,roster.school			
 
-	  ,map_math.base_rit			AS  math_rit
-	  ,map_math.base_pct			AS	math_pctile
+	  ,map_math.testritscore		AS  math_rit
+	  ,map_math.testpercentile		AS	math_pctile
 	  ,map_math.keep_up_rit			AS	math_ku	
 	  ,map_math.rutgers_ready_rit	AS	math_rr
 
-	  ,map_sci.base_rit				AS  sci_rit
-	  ,map_sci.base_pct				AS	sci_pctile
+	  ,map_sci.testritscore			AS  sci_rit
+	  ,map_sci.testpercentile		AS	sci_pctile
 	  ,map_sci.keep_up_rit			AS	sci_ku
 	  ,map_sci.rutgers_ready_rit	AS	sci_rr
 
-	  ,map_read.base_rit			AS  read_rit
-	  ,map_read.base_pct			AS	read_pctile
+	  ,map_read.testritscore		AS  read_rit
+	  ,map_read.testpercentile		AS	read_pctile
 	  ,map_read.keep_up_rit			AS	read_ku
 	  ,map_read.rutgers_ready_rit	AS	read_rr
 
-	  ,map_lang.base_rit			AS  lang_rit
-	  ,map_lang.base_pct			AS	lang_pctile
+	  ,map_lang.testritscore		AS  lang_rit
+	  ,map_lang.testpercentile		AS	lang_pctile
 	  ,map_lang.keep_up_rit			AS	lang_ku	
 	  ,map_lang.rutgers_ready_rit	AS	lang_rr
 	
