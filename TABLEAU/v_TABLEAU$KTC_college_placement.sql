@@ -136,6 +136,7 @@ SELECT counselor_name
       ,STUDENT_NUMBER
       ,lastfirst
       ,no_apply
+      ,MAX(is_submitted) AS is_submitted
       ,MAX(is_submit_4yr) AS is_submit_4yr
       ,MAX(is_submit_2yr) AS is_submit_2yr          
       ,MAX(is_accepted_4yr) AS is_accepted_4yr
@@ -167,10 +168,10 @@ FROM
            ,match.application_bin
            ,top_admit.ceeb_code AS top_admit_ceeb
            ,CASE WHEN apps.level = '4Year' THEN 1.0 ELSE 0.0 END AS is_4yr
-           ,CASE WHEN apps.stage != 'cancelled' THEN 1 ELSE 0.0 END AS is_submitted           
+           ,CASE WHEN apps.stage NOT IN ('cancelled','pending') THEN 1.0 ELSE 0.0 END AS is_submitted
            ,CASE WHEN apps.result_code IN ('accepted', 'jan. admit', 'cond. accept', 'summer admit') THEN 1.0 ELSE 0.0 END AS is_accepted
            ,CASE WHEN apps.attending = 'yes' THEN 1.0 ELSE 0.0 END AS is_matriculating
-           ,apps.no_apply
+           ,apps.no_apply           
            ,CASE WHEN apps.level = '4Year' AND apps.stage != 'cancelled' THEN 1.0 ELSE 0.0 END AS is_submit_4yr
            ,CASE WHEN apps.level = '2Year' AND apps.stage != 'cancelled' THEN 1.0 ELSE 0.0 END AS is_submit_2yr           
            ,CASE WHEN apps.level = '4Year' AND apps.result_code IN ('accepted', 'jan. admit', 'cond. accept', 'summer admit') THEN 1.0 ELSE 0.0 END AS is_accepted_4yr
