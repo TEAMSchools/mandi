@@ -34,7 +34,8 @@ WITH
 			  ,grades.credittype
 			  ,grades.course_number
 			  ,grades.course_name
-			  ,grades.y1			AS pct
+			  ,NULL AS sectionid
+     ,grades.y1			AS pct
 			  ,grades.y1_letter		AS letter
 			  ,'Y1'				AS term
 			  ,grades.promo_test as failing_flag
@@ -49,6 +50,7 @@ WITH
 			  ,grades.credittype
 			  ,grades.course_number
 			  ,grades.course_name
+     ,grades.T1_ENR_SECTIONID AS sectionid
 			  ,grades.t1			AS pct
 			  ,grades.t1_letter		AS letter
 			  ,'T1'					AS term
@@ -64,6 +66,7 @@ WITH
 			  ,grades.credittype
 			  ,grades.course_number
 			  ,grades.course_name
+     ,grades.T2_ENR_SECTIONID AS sectionid
 			  ,grades.t2			AS pct
 			  ,grades.t2_letter		AS letter
 			  ,'T2'					AS term
@@ -79,6 +82,7 @@ WITH
 			  ,grades.credittype
 			  ,grades.course_number
 			  ,grades.course_name
+     ,grades.T3_ENR_SECTIONID AS sectionid
 			  ,grades.t3			AS pct
 			  ,grades.t3_letter		AS letter
 			  ,'T3'					AS term
@@ -98,6 +102,7 @@ SELECT roster.base_student_number	AS student_number
 	  ,grades.credittype
 	  ,grades.course_number
 	  ,grades.course_name
+   ,grades.sectionid
 	  ,grades.pct
 	  ,grades.letter
 	  ,grades.term

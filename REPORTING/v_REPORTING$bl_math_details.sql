@@ -3,183 +3,222 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW REPORTING$blended_learning_details AS
+ALTER VIEW REPORTING$blended_learning_details AS
 
-WITH
+WITH curterm AS (
+  SELECT schoolid
+        ,alt_name
+  FROM REPORTING$dates WITH(NOLOCK)
+  WHERE academic_year = dbo.fn_Global_Academic_Year()
+    AND identifier = 'RT'
+    AND start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())
+    AND school_level = 'MS'
+ )
 
-	--roster of students
- 
-	roster AS
-	(
-      SELECT c.student_number	AS base_student_number
-            ,c.studentid		AS base_studentid
-            ,c.lastfirst		AS stu_lastfirst
-            ,c.first_name		AS stu_firstname
-            ,c.last_name		AS stu_lastname
-            ,c.grade_level		AS stu_grade_level
-			,c.team				AS travel_group     
-			,c.spedlep			AS SPED
-			,c.gender      
-			,c.school_name		AS school
-      FROM KIPP_NJ..COHORT$identifiers_long#static c  WITH (NOLOCK)        
-	  WHERE year = dbo.fn_Global_Academic_Year()
-        AND c.enroll_status = 0
-		AND c.grade_level >= 5
-		AND c.grade_level <= 8
-	  --AND c.student_number = 14080
-	)
+,roster AS (
+  SELECT c.student_number	AS base_student_number
+        ,c.studentid AS base_studentid
+        ,c.lastfirst AS stu_lastfirst
+        ,c.first_name AS stu_firstname
+        ,c.last_name AS stu_lastname
+        ,c.grade_level AS stu_grade_level
+			     ,c.team AS travel_group     
+			     ,c.spedlep AS SPED
+			     ,c.gender			     
+        ,c.school_name	AS school
+  FROM KIPP_NJ..COHORT$identifiers_long#static c  WITH(NOLOCK)                       
+  WHERE c.year = dbo.fn_Global_Academic_Year()
+    AND c.rn = 1
+    AND c.enroll_status = 0
+    AND c.grade_level >= 5
+    AND c.grade_level <= 8
+ )
 
-	,grades_math AS
-	(
-      SELECT grades_math.*
-			,sections.section_number
-      FROM KIPP_NJ..GRADES$DETAIL#MS grades_math  WITH (NOLOCK)
-	  JOIN KIPP_NJ..sections sections WITH (NOLOCK)
-	    ON grades_math.T2_ENR_SECTIONID = sections.id     
-	  WHERE grades_math.schoolid IN (73252,133570965) 
-  	    AND grades_math.credittype = 'MATH'
-	)
+,data AS (
+  SELECT base_student_number
+        ,base_studentid
+        ,p.schoolid
+        ,term      
+        ,MATH_ku
+        ,MATH_pctile
+        ,MATH_rit
+        ,MATH_rr
+        ,MATH_sec
+        ,MATH_teacher
+        ,MATH_y1
+        ,READ_ku
+        ,READ_pctile
+        ,READ_rit
+        ,READ_rr
+        ,READ_sec
+        ,READ_teacher
+        ,READ_y1
+        ,lang_sec
+        ,lang_teacher
+        ,lang_y1
+        ,lang_rit
+        ,lang_pctile
+        ,lang_ku
+        ,lang_rr
+        ,SCI_ku
+        ,SCI_pctile
+        ,SCI_rit
+        ,SCI_rr
+        ,SCI_sec
+        ,SCI_teacher
+        ,SCI_y1
+  FROM
+      (
+       SELECT base_student_number
+             ,base_studentid             
+             ,schoolid
+             ,term
+             ,credittype + '_' + field AS pivot_hash
+             ,value
+       FROM
+           (
+            SELECT sub.base_student_number
+                  ,sub.base_studentid                  
+                  ,sub.schoolid 
+                  ,sub.credittype      
+                  ,sub.term                
+                  ,CONVERT(VARCHAR,sub.SECTION_NUMBER) AS sec
+                  ,CONVERT(VARCHAR,sub.teacher) AS teacher
+                  ,CONVERT(VARCHAR,sub.pct) AS y1
+                  ,CONVERT(VARCHAR,map.testritscore) AS rit
+                  ,CONVERT(VARCHAR,map.testpercentile) AS pctile
+                  ,CONVERT(VARCHAR,rr.keep_up_rit) AS ku
+                  ,CONVERT(VARCHAR,rr.rutgers_ready_rit) AS rr
+            FROM
+                ( 
+                 SELECT c.year
+                       ,c.student_number	AS base_student_number
+                       ,c.studentid AS base_studentid
+                       ,c.lastfirst AS stu_lastfirst
+                       ,c.first_name AS stu_firstname
+                       ,c.last_name AS stu_lastname
+                       ,c.grade_level AS stu_grade_level
+			                    ,c.team AS travel_group     
+			                    ,c.spedlep AS SPED
+			                    ,c.gender
+			                    ,c.schoolid
+                       ,c.school_name	AS school
+                       ,CASE
+                         WHEN sec.credittype = 'MATH' THEN 'Mathematics'
+                         WHEN sec.credittype IN ('ENG','READ') THEN 'Reading'
+                         WHEN sec.credittype = 'RHET' THEN 'Language Usage'
+                         WHEN sec.credittype = 'SCI' THEN 'Science - General Science'
+                        END AS measurementscale
+                       ,CASE 
+                         WHEN sec.credittype = 'ENG' THEN 'READ'
+                         WHEN sec.credittype = 'RHET' THEN 'LANG'
+                         ELSE sec.credittype 
+                        END AS credittype
+                       ,sec.course_number
+                       ,sec.term
+                       ,sn.SECTION_NUMBER
+                       ,sec.teacher
+                       ,gr.pct
+                 FROM KIPP_NJ..COHORT$identifiers_long#static c  WITH(NOLOCK)                       
+                 LEFT OUTER JOIN GRADES$sections_by_term#static sec WITH(NOLOCK)
+                   ON c.studentid = sec.studentid                                  
+                 LEFT OUTER JOIN SECTIONS sn WITH(NOLOCK)
+                   ON sec.sectionid = sn.id
+                 LEFT OUTER JOIN GRADES$detail_long_term#MS gr WITH(NOLOCK)
+                   ON c.studentid = gr.studentid
+                  AND sec.course_number = gr.course_number
+                  AND gr.sectionid IS NULL 
+                  AND gr.term = 'Y1'  
+                 WHERE c.year = dbo.fn_Global_Academic_Year()
+                   AND c.rn = 1
+                   AND c.enroll_status = 0
+     		            AND c.grade_level >= 5
+     		            AND c.grade_level <= 8
+                ) sub
+            LEFT OUTER JOIN MAP$best_baseline#static map WITH(NOLOCK)
+              ON sub.base_studentid = map.studentid
+	            AND sub.measurementscale = map.measurementscale
+             AND sub.year = map.year
+            LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
+	             ON map.studentid = rr.studentid
+	            AND map.year = rr.year
+	            AND REPLACE(map.measurementscale,' Usage', '') = rr.measurementscale
+           ) sub
+       UNPIVOT(
+         value
+         FOR field IN (sub.sec
+                      ,sub.teacher                    
+                      ,sub.y1
+                      ,sub.rit
+                      ,sub.pctile
+                      ,sub.ku
+                      ,sub.rr)
+        ) u
+      ) sub
+  PIVOT(
+    MAX(value)
+    FOR pivot_hash IN ([MATH_ku]
+                      ,[MATH_pctile]
+                      ,[MATH_rit]
+                      ,[MATH_rr]
+                      ,[MATH_sec]
+                      ,[MATH_teacher]
+                      ,[MATH_y1]
+                      ,[READ_ku]
+                      ,[READ_pctile]
+                      ,[READ_rit]
+                      ,[READ_rr]
+                      ,[READ_sec]
+                      ,[READ_teacher]
+                      ,[READ_y1]
+                      ,[lang_sec]
+                      ,[lang_teacher]
+                      ,[lang_y1]
+                      ,[lang_rit]
+                      ,[lang_pctile]
+                      ,[lang_ku]
+                      ,[lang_rr]
+                      ,[SCI_ku]
+                      ,[SCI_pctile]
+                      ,[SCI_rit]
+                      ,[SCI_rr]
+                      ,[SCI_sec]
+                      ,[SCI_teacher]
+                      ,[SCI_y1])
+   ) p
+  JOIN curterm
+    ON p.term = curterm.alt_name
+   AND p.schoolid = curterm.schoolid
+ )
 
-	,grades_sci AS
-	(
-      SELECT grades_sci.*
-			,sections.section_number
-      FROM KIPP_NJ..GRADES$DETAIL#MS grades_sci  WITH (NOLOCK)
-	  JOIN KIPP_NJ..sections sections WITH (NOLOCK)
-	    ON grades_sci.T2_ENR_SECTIONID = sections.id     
-	  WHERE grades_sci.schoolid IN (73252,133570965) 
-  	    AND grades_sci.credittype = 'SCI'
-  	)
-
-	--map math data
-
-	,map_math AS
-	(
-	 SELECT map_math.studentid
-		,map_math.testritscore
-		,map_math.testpercentile
-		,rr.keep_up_rit
-		,rr.rutgers_ready_rit
-	FROM MAP$best_baseline#static map_math WITH(NOLOCK)
-	LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
-		 ON map_math.studentid = rr.studentid
-		 AND map_math.year = rr.year
-		 AND map_math.measurementscale = rr.measurementscale
-	WHERE map_math.measurementscale LIKE 'Math%' 
-		 AND map_math.year = dbo.fn_Global_Academic_Year()	
-	)
-
-
-	--map science data
-
-	,map_sci AS
-	(
-	 SELECT map_math.studentid
-		,map_math.testritscore
-		,map_math.testpercentile
-		,rr.keep_up_rit
-		,rr.rutgers_ready_rit
-	FROM MAP$best_baseline#static map_math WITH(NOLOCK)
-	LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
-		 ON map_math.studentid = rr.studentid
-		 AND map_math.year = rr.year
-		 AND map_math.measurementscale = rr.measurementscale
-	WHERE map_math.measurementscale LIKE 'Sci%' 
-		 AND map_math.year = dbo.fn_Global_Academic_Year()	
-	)
-
-
-	--map reading data
-
-	,map_read AS
-	(
-	 SELECT map_math.studentid
-		,map_math.testritscore
-		,map_math.testpercentile
-		,rr.keep_up_rit
-		,rr.rutgers_ready_rit
-	FROM MAP$best_baseline#static map_math WITH(NOLOCK)
-	LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
-		 ON map_math.studentid = rr.studentid
-		 AND map_math.year = rr.year
-		 AND map_math.measurementscale = rr.measurementscale
-	WHERE map_math.measurementscale LIKE 'Read%' 
-		 AND map_math.year = dbo.fn_Global_Academic_Year()	
-	)
-
-	--map language data
-
-	,map_lang AS
-	(
-	 SELECT map_math.studentid
-		,map_math.testritscore
-		,map_math.testpercentile
-		,rr.keep_up_rit
-		,rr.rutgers_ready_rit
-	FROM MAP$best_baseline#static map_math WITH(NOLOCK)
-	LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
-		 ON map_math.studentid = rr.studentid
-		 AND map_math.year = rr.year
-		 AND map_math.measurementscale = rr.measurementscale
-	WHERE map_math.measurementscale LIKE 'Lang%' 
-		 AND map_math.year = dbo.fn_Global_Academic_Year()	
-	)
-
-
---select fields for view
-
-SELECT 
-	   roster.base_student_number	AS ID
-	  ,roster.stu_lastfirst			AS LastFirst
-	  ,roster.stu_grade_level		AS GR
-   	  ,roster.sped					AS SPED
-	  ,roster.travel_group			AS Travel
-	  ,roster.gender				AS MF
-
-	  ,grades_math.section_number	AS math_sec
-	  ,grades_math.Y1				AS math_y1
-	  ,grades_sci.section_number	AS sci_sec
-	  ,grades_sci.Y1				AS sci_y1
-
-	  ,roster.school			
-
-	  ,map_math.testritscore		AS  math_rit
-	  ,map_math.testpercentile		AS	math_pctile
-	  ,map_math.keep_up_rit			AS	math_ku	
-	  ,map_math.rutgers_ready_rit	AS	math_rr
-
-	  ,map_sci.testritscore			AS  sci_rit
-	  ,map_sci.testpercentile		AS	sci_pctile
-	  ,map_sci.keep_up_rit			AS	sci_ku
-	  ,map_sci.rutgers_ready_rit	AS	sci_rr
-
-	  ,map_read.testritscore		AS  read_rit
-	  ,map_read.testpercentile		AS	read_pctile
-	  ,map_read.keep_up_rit			AS	read_ku
-	  ,map_read.rutgers_ready_rit	AS	read_rr
-
-	  ,map_lang.testritscore		AS  lang_rit
-	  ,map_lang.testpercentile		AS	lang_pctile
-	  ,map_lang.keep_up_rit			AS	lang_ku	
-	  ,map_lang.rutgers_ready_rit	AS	lang_rr
-	
-	
-FROM roster 
-
-LEFT OUTER JOIN map_math
-  ON roster.base_studentid = map_math.studentid
-
-LEFT OUTER JOIN map_sci
-  ON roster.base_studentid = map_sci.studentid
-
-LEFT OUTER JOIN map_read
-  ON roster.base_studentid = map_read.studentid
-
-LEFT OUTER JOIN map_lang
-  ON roster.base_studentid = map_lang.studentid
-
-LEFT OUTER JOIN grades_math
-  ON roster.base_studentid = grades_math.studentid
-
-LEFT OUTER JOIN grades_sci
-  ON roster.base_studentid = grades_sci.studentid
+SELECT r.base_student_number AS ID
+      ,r.stu_lastfirst AS LastFirst
+      ,r.stu_grade_level AS GR
+      ,r.SPED
+      ,r.travel_group AS Travel
+      ,r.GENDER AS MF
+      ,math_sec
+      ,math_y1
+      ,sci_sec
+      ,sci_y1
+      ,school
+      ,math_rit
+      ,math_pctile
+      ,math_ku
+      ,math_rr
+      ,sci_rit
+      ,sci_pctile
+      ,sci_ku
+      ,sci_rr
+      ,read_rit
+      ,read_pctile
+      ,read_ku
+      ,read_rr
+      ,lang_rit
+      ,lang_pctile
+      ,lang_ku
+      ,lang_rr
+FROM roster r
+LEFT OUTER JOIN data
+  ON r.base_student_number = data.base_student_number
