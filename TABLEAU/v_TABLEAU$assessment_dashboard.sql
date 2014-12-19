@@ -3,23 +3,7 @@ GO
 
 ALTER VIEW TABLEAU$assessment_dashboard AS
 
-WITH distinct_assessments AS (
-  SELECT DISTINCT
-         assessment_id
-        ,standard_id
-        ,title
-        ,scope
-        ,subject
-        ,credittype
-        ,term
-        ,academic_year
-        ,administered_at
-        ,standards_tested        
-        ,standard_descr
-  FROM ILLUMINATE$assessments#static WITH(NOLOCK)  
- )
-
-,enrollments AS (
+WITH enrollments AS (
   SELECT cc.STUDENTID        
         ,cc.academic_year
         ,cou.CREDITTYPE        
@@ -29,6 +13,7 @@ WITH distinct_assessments AS (
           WHEN cc.SCHOOLID != 73253 THEN cc.section_number
           WHEN cc.schoolid = 73253 THEN cc.period
          END AS section
+        ,rti.tier AS rti_tier
         ,ROW_NUMBER() OVER(
            PARTITION BY cc.studentid, cou.credittype, cc.academic_year
              ORDER BY cc.termid DESC, cc.dateenrolled DESC) AS rn
@@ -39,6 +24,9 @@ WITH distinct_assessments AS (
    AND cou.CREDITTYPE NOT IN ('LOG', 'PHYSED', 'STUDY')   
   JOIN TEACHERS t WITH(NOLOCK)
     ON cc.teacherid = t.id
+  LEFT OUTER JOIN PS$rti_tiers#static rti WITH(NOLOCK)
+    ON cc.studentid = rti.studentid
+   AND cou.CREDITTYPE = rti.credittype
   WHERE cc.termid >= 2300 -- first year w/ Illuminate, OK to be hard-coded
     AND cc.SCHOOLID IN (73252,73253,133570965)
  )
@@ -66,21 +54,18 @@ SELECT co.schoolid
       ,enr.COURSE_NAME
       ,enr.teacher_name
       ,enr.section
+      ,enr.rti_tier
       ,a.term
       ,a.administered_at
       ,CONVERT(VARCHAR,a.standards_tested) AS standards_tested      
       ,a.standard_descr
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS percent_correct
-      ,CONVERT(FLOAT,res.mastered) AS mastered
-      --,ROUND(CONVERT(FLOAT,overall.percent_correct),1) AS overall_pct_correct
+      ,CONVERT(FLOAT,res.mastered) AS mastered      
       ,ROW_NUMBER() OVER(
          PARTITION BY co.studentid, a.scope, a.standards_tested
            ORDER BY a.administered_at DESC) AS rn_curr
 FROM ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOCK)
---JOIN ILLUMINATE$assessment_results_overall#static overall WITH(NOLOCK)
---  ON res.assessment_id = overall.assessment_id
--- AND res.local_student_id = overall.student_number
-JOIN distinct_assessments a WITH (NOLOCK)
+JOIN ILLUMINATE$distinct_assessments#static a WITH (NOLOCK)
   ON res.assessment_id = a.assessment_id
  AND res.standard_id = a.standard_id  
 JOIN COHORT$identifiers_long#static co WITH (NOLOCK)
