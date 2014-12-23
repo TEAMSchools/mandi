@@ -400,6 +400,7 @@ SELECT year
       ,CONVERT(FLOAT,[B2W_pct_change]) AS B2W_pct_change
       ,CONVERT(FLOAT,[B2S_pct_change]) AS B2S_pct_change                  
       ,CONVERT(VARCHAR,BOY_read_lvl) AS BOY_read_lvl
+      ,CONVERT(VARCHAR,[BOY_indep_lvl]) AS BOY_indep_lvl
       ,CONVERT(FLOAT,[BOY_GLEQ]) AS BOY_GLEQ
       ,CONVERT(FLOAT,[BOY_wpm]) AS BOY_wpm
       ,CONVERT(VARCHAR,[BOY_keylever]) AS BOY_keylever
@@ -567,6 +568,7 @@ PIVOT (
                 ,[B2W_pct_change]
                 ,[B2S_pct_change]                
                 ,[BOY_read_lvl]
+                ,[BOY_indep_lvl]
                 ,[BOY_GLEQ]
                 ,[BOY_wpm]
                 ,[BOY_keylever]
