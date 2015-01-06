@@ -3,7 +3,7 @@ GO
 
 ALTER VIEW MCS$lunch_info AS
 
-SELECT c.[StudentNumber]
+SELECT CONVERT(INT,c.[StudentNumber]) AS [StudentNumber]
       ,c.[ReimbursableOnlyBalance] + c.[UnallocatedBalance] AS [Balance]
       ,LEFT(cat.[ShortDesc], 1) AS [MealBenefitStatus] /* Returns F.R,P*/
       ,e.[Description]
@@ -19,3 +19,4 @@ INNER JOIN [RM9-RE\RE_ENTERPRISE].[Franklin].[dbo].[ELIGIBILITY] e
   ON s.[EligibilityID] = e.[ELIGIBILITY_RECID]
 WHERE c.[Inactive] = 0 /*Active*/
   AND cat.[IsStudent] = 1 /*Only Students*/
+  AND ISNUMERIC(c.[StudentNumber]) = 1

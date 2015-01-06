@@ -48,6 +48,7 @@ SELECT co.schoolid
       ,s.GENDER
       ,s.ETHNICITY
       ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunch_status END AS lunchstatus
+      --,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunch_status END AS lunchstatus
       ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE sped.SPEDLEP END AS SPEDLEP
       ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE ELSE sped.SPEDCODE END AS SPED_code
       ,cs.LEP_STATUS
@@ -114,6 +115,8 @@ LEFT OUTER JOIN KIPP_NJ..PS$student_BLObs#static blobs WITH(NOLOCK)
 LEFT OUTER JOIN PS$lunch_status_long#static lunch WITH(NOLOCK)
   ON co.studentid = lunch.studentid
  AND co.year = lunch.year
+LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info mcs WITH(NOLOCK)
+  ON co.STUDENT_NUMBER = mcs.StudentNumber
 LEFT OUTER JOIN PS$emerg_release_contact#static emerg WITH(NOLOCK)
   ON co.studentid = emerg.STUDENTID
 LEFT OUTER JOIN PS$SPED_archive#static sped WITH(NOLOCK)
