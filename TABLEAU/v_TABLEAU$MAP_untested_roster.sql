@@ -49,6 +49,15 @@ SELECT *
       ,COALESCE(rit, base_rit) AS current_rit
       ,COALESCE(percentile, base_percentile) AS current_percentile
       ,COALESCE(lexile, base_lexile) AS current_lexile
+      ,CASE
+        WHEN term = 'Fall' AND map_studentid IS NULL AND base_term IS NOT NULL THEN 'Missing test, has baseline'
+        WHEN term = 'Fall' AND map_studentid IS NULL AND base_term IS NULL THEN 'Missing test, no baseline'
+        WHEN term != 'Fall' AND n_tests > 1 THEN 'Multiple test events'
+        WHEN term = 'Fall' AND map_studentid IS NOT NULL AND base_term IS NOT NULL THEN 'Tested, has baseline'
+        WHEN term = 'Fall' AND map_studentid IS NOT NULL AND base_term IS NULL THEN 'Tested, no baseline'
+        WHEN term IN ('Winter','Spring') AND map_studentid IS NULL THEN 'Missing test'
+        ELSE NULL
+       END AS test_audit      
 FROM
     (
      SELECT r.studentid
@@ -59,6 +68,7 @@ FROM
            ,r.academic_year
            ,r.measurementscale
            ,r.term
+           ,map.ps_studentid AS map_studentid
            ,CONVERT(VARCHAR,map.teststartdate,101) AS test_date
            ,map.testritscore AS RIT
            ,map.percentile_2011_norms AS percentile
@@ -66,22 +76,15 @@ FROM
            ,base.termname AS base_term
            ,base.testritscore AS base_RIT
            ,base.testpercentile AS base_percentile
-           ,REPLACE(base.lexile_score, 'BR', 0) AS base_lexile      
-           ,CASE
-             WHEN r.term = 'Fall' AND map.ps_studentid IS NULL AND base.termname IS NOT NULL THEN 'Missing test, has baseline'
-             WHEN r.term = 'Fall' AND map.ps_studentid IS NULL AND base.termname IS NULL THEN 'Missing test, no baseline'
-             WHEN r.term = 'Fall' AND map.ps_studentid IS NOT NULL AND base.termname IS NOT NULL THEN 'Tested, has baseline'
-             WHEN r.term = 'Fall' AND map.ps_studentid IS NOT NULL AND base.termname IS NULL THEN 'Tested, no baseline'
-             WHEN r.term IN ('Winter','Spring') AND map.ps_studentid IS NULL THEN 'Missing Test'
-             ELSE NULL
-            END AS test_audit
+           ,REPLACE(base.lexile_score, 'BR', 0) AS base_lexile                
+           ,COUNT(map.ps_studentid) OVER(PARTITION BY map.ps_studentid, map.map_year_academic, map.measurementscale, map.fallwinterspring) AS n_tests
      FROM scaffold r WITH(NOLOCK)
      LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
        ON r.studentid = map.ps_studentid
       AND r.academic_year = map.map_year_academic
       AND r.measurementscale = map.measurementscale
       AND r.term = map.fallwinterspring
-      AND map.rn = 1
+      --AND map.rn = 1
      LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
        ON r.studentid = base.studentid
       AND r.academic_year = base.year
