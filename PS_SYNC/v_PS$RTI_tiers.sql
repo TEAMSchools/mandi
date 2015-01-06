@@ -6,7 +6,7 @@ ALTER VIEW PS$RTI_tiers AS
 SELECT studentid      
       ,RTI_TIER_BHV AS behavior_tier
       ,SUBSTRING(RTI_TIER_BHV,CHARINDEX(' ',RTI_TIER_BHV) + 1,1) AS behavior_tier_numeric
-      ,REVERSE(LEFT(REVERSE(field), CHARINDEX('_', REVERSE(field)) - 1)) AS credittype
+      ,CASE WHEN field = 'RTI_TIER_WL' THEN 'WLANG' ELSE REVERSE(LEFT(REVERSE(field), CHARINDEX('_', REVERSE(field)) - 1)) END AS credittype
       ,tier
       ,SUBSTRING(tier,CHARINDEX(' ',tier) + 1,1) AS tier_numeric
 FROM OPENQUERY(PS_TEAM,'

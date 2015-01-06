@@ -19,7 +19,13 @@ WITH roster AS (
  )
 
 ,enrollments AS (
-  SELECT *
+  SELECT STUDENTID
+        ,year
+        ,CREDITTYPE
+        ,COURSE_NUMBER
+        ,COURSE_NAME
+        ,teacher
+        ,period
         ,CASE 
           WHEN CREDITTYPE = 'ENG' THEN 'Reading'
           WHEN CREDITTYPE = 'MATH' THEN 'Mathematics'
@@ -28,7 +34,14 @@ WITH roster AS (
          END AS measurementscale
   FROM
       (
-       SELECT *
+       SELECT STUDENTID
+             ,TERMID
+             ,year
+             ,CREDITTYPE
+             ,COURSE_NUMBER
+             ,COURSE_NAME
+             ,teacher
+             ,period
              ,ROW_NUMBER() OVER (
                 PARTITION BY year, studentid, credittype
                     ORDER BY termid DESC) AS rn
@@ -42,13 +55,13 @@ WITH roster AS (
                   ,c.course_name                
                   ,t.LASTFIRST AS teacher
                   ,cc.period
-            FROM cc WITH(NOLOCK)
-            JOIN COURSES c WITH(NOLOCK)
+            FROM KIPP_NJ..cc WITH(NOLOCK)
+            JOIN KIPP_NJ..COURSES c WITH(NOLOCK)
               ON cc.course_number = c.course_number
              AND cc.SCHOOLID = c.SCHOOLID
              AND c.CREDITTYPE IN ('ENG','RHET','SCI','MATH')
              AND c.course_name NOT LIKE '% Lab%'
-            JOIN teachers t WITH(NOLOCK)
+            JOIN KIPP_NJ..teachers t WITH(NOLOCK)
               ON cc.teacherid = t.id
             WHERE cc.TERMID > 0
            ) sub
