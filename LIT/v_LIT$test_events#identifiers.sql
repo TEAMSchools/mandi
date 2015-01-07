@@ -141,7 +141,8 @@ FROM
      FROM LIT$readingscores#static rs WITH(NOLOCK)
      JOIN LIT$GLEQ gleq WITH(NOLOCK)
        ON ((rs.testid = 3273 AND rs.step_ltr_level = gleq.read_lvl)
-           OR (rs.testid != 3273 AND rs.testid = gleq.testid))
+            OR (rs.testid != 3273 AND rs.testid = gleq.testid))
+      AND gleq.lvl_num > -1
      JOIN STUDENTS s WITH(NOLOCK)
        ON rs.studentid = s.id
      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
