@@ -13,7 +13,7 @@ WITH scaffold AS (
     ON sch.school_number != 999999
    AND 1=1
   WHERE rd.date >= CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year()) + '-08-01'
-    AND rd.date <  GETDATE()
+    AND rd.date <  CONVERT(DATE,GETDATE())
     AND rd.day_of_week = 'Monday'    
  )
 
@@ -40,14 +40,14 @@ WITH scaffold AS (
         ,1 AS goal_number
         ,'EOY Benchmark' AS goal_title
         ,schools.abbreviation
-        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1),2) AS reporting_hash
+        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())),2) AS reporting_hash
         ,sub.pct_on_track AS value
         ,'FOOTBALL' AS direction
   FROM
       (
        SELECT rs.SCHOOLID
              --,rs.test_round
-             ,ROUND(AVG(CONVERT(FLOAT,rs.met_goal)) * 100,0) AS pct_on_track
+             ,ROUND(AVG(CONVERT(FLOAT,rs.met_goal)) * 100,1) AS pct_on_track
        FROM KIPP_NJ..LIT$achieved_by_round#static rs WITH(NOLOCK)
        JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
          ON rs.schoolid = d.schoolid
@@ -73,7 +73,7 @@ WITH scaffold AS (
         ,1 AS goal_number
         ,'% students meeting individual words goal' AS goal_title
         ,schools.abbreviation
-        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1),2) AS reporting_hash
+        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())),2) AS reporting_hash
         ,sub.pct_met_goal AS value
         ,'FOOTBALL' AS direction
   FROM
@@ -115,7 +115,7 @@ SELECT 2 AS strand_number
 FROM SPI..[ATTRITION$weekly_counts#static] attr WITH(NOLOCK)
 WHERE attr.grade_level = 'campus'
   AND attr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  AND attr.weekday_start <= GETDATE()
+  AND attr.weekday_start <= CONVERT(DATE,GETDATE())
  )          
 
 /* ATTENDANCE */
@@ -303,8 +303,8 @@ WHERE attr.grade_level = 'campus'
   FROM
       (
        SELECT scaffold.*
-               ,s.lastfirst
-               ,CASE WHEN LOWER(s.gender) = 'm' THEN 1 ELSE 0 END AS male_dummy  
+             ,s.lastfirst
+             ,CASE WHEN LOWER(s.gender) = 'm' THEN 1 ELSE 0 END AS male_dummy  
        FROM scaffold WITH(NOLOCK)
        JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
          ON s.ENTRYDATE <= scaffold.date
@@ -317,6 +317,30 @@ WHERE attr.grade_level = 'campus'
           ,sub.reporting_hash
           ,sub.school
           ,sub.schoolid
+ )
+
+,male_attr AS (
+  SELECT 4 AS strand_number
+        ,'Leadership, Values, and Impact' AS strand_name
+        ,1 AS indicator_number
+        ,'Stu who need us' As indicator_name
+        ,3 AS goal_number
+        ,'% Male Attrition' AS goal_title
+        ,sch.ABBREVIATION AS school
+        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())),2) AS reporting_hash
+        ,pct_transf AS value
+        ,'GOLF' AS direction
+  FROM
+      (
+       SELECT attr.d_schoolid AS schoolid
+             ,ROUND(AVG(CONVERT(FLOAT,attr.attr_flag)) * 100,1) AS pct_transf
+       FROM KIPP_NJ..DEVFIN$mobility_long#KIPP attr WITH(NOLOCK)
+       WHERE attr.YEAR = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND attr.GENDER = 'M'
+       GROUP BY d_schoolid  
+      ) sub
+  JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)  
+    ON sub.schoolid = sch.SCHOOL_NUMBER
  )
 
 ,unioned AS (
@@ -352,6 +376,9 @@ WHERE attr.grade_level = 'campus'
   UNION ALL
   SELECT *
   FROM pct_male WITH(NOLOCK)
+  UNION ALL
+  SELECT *
+  FROM male_attr WITH(NOLOCK)
  )
 
 SELECT unioned.*

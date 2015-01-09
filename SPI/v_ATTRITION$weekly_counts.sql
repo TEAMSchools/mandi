@@ -11,7 +11,7 @@ WITH week_scaffold AS (
         ,weekday_start
         ,weekday_sun AS weekday_end
   FROM KIPP_NJ..UTIL$reporting_weeks_days WITH(NOLOCK)
-  WHERE weekday_start >= '2002-10-015'
+  WHERE weekday_start >= '2002-10-15'
     AND weekday_start <= CONVERT(DATE,CONVERT(VARCHAR,(KIPP_NJ.dbo.fn_Global_Academic_Year() + 1)) + '-06-30')    
     AND (weekday_start < CONVERT(DATE,(CONVERT(VARCHAR,year) + '-07-01')) OR weekday_start >= CONVERT(DATE,(CONVERT(VARCHAR,year) + '-10-15'))) --exclude dates before 10-15 in each year
  )
@@ -50,7 +50,7 @@ FROM
            ,cht.schoolid
            ,schools.abbreviation AS school
            ,cht.grade_level
-           ,CASE WHEN cht.exitdate > wk.weekday_end THEN 0.00 ELSE 1.00 END AS attr_dummy
+           ,CASE WHEN cht.exitdate > wk.weekday_end THEN 0.0 ELSE 1.0 END AS attr_dummy
      FROM week_scaffold wk WITH(NOLOCK)
      JOIN scrubbed_cohort cht WITH(NOLOCK)
        ON cht.entrydate <= wk.weekday_start --join logic is *everyone* who STARTED before this week

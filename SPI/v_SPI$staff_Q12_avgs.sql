@@ -15,7 +15,7 @@ SELECT SCHOOL_YEAR
       ,pct_2s
       ,pct_1s
       ,season_code      
-      ,ROUND(AVG(q_avg) OVER(PARTITION BY campus, season_code),1) AS overall_avg
+      ,ROUND(AVG(q_avg) OVER(PARTITION BY campus, season_code),2) AS overall_avg
       ,campus + '_' + CONVERT(VARCHAR,rn) AS hash
 FROM
     (
