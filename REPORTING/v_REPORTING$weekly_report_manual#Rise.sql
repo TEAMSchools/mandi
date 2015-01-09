@@ -13,7 +13,7 @@ WITH roster AS (
   FROM COHORT$identifiers_long#static s WITH(NOLOCK)
   WHERE s.ENROLL_STATUS = 0
     AND s.SCHOOLID = 73252
-    AND s.GRADE_LEVEL >= 8
+    AND s.GRADE_LEVEL = 8
     AND s.year = dbo.fn_Global_Academic_Year()
     AND s.rn = 1
  )
@@ -35,7 +35,7 @@ WITH roster AS (
              --,DATENAME(WEEKDAY,date) AS day_of_week
              ,ROW_NUMBER() OVER(ORDER BY date ASC) AS rn
        FROM UTIL$reporting_days WITH(NOLOCK)
-       WHERE date IN ('2014-11-24','2014-11-25','2014-12-01','2014-12-02','2014-12-03')
+       WHERE date IN ('2015-01-07','2015-01-06','2014-12-22','2014-12-19','2014-12-18') -- UPDATE WITH EXACT DATES
       ) sub
  )
 

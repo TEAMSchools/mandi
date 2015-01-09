@@ -31,6 +31,38 @@ WITH scaffold AS (
   FROM [SPI].[dbo].[TIME_SERIES_GRADES$weekly_off_track_totals#static] WITH(NOLOCK)
   WHERE grade_level = 'campus'
  )
+
+,lit_ontrack AS (
+  SELECT 1 AS strand_number
+        ,'Student Achievement' AS strand_name
+        ,6 AS indicator_number
+        ,'Literacy (ES)' As indicator_name
+        ,1 AS goal_number
+        ,'EOY Benchmark' AS goal_title
+        ,schools.abbreviation
+        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1),2) AS reporting_hash
+        ,sub.pct_on_track AS value
+        ,'FOOTBALL' AS direction
+  FROM
+      (
+       SELECT rs.SCHOOLID
+             --,rs.test_round
+             ,ROUND(AVG(CONVERT(FLOAT,rs.met_goal)) * 100,0) AS pct_on_track
+       FROM KIPP_NJ..LIT$achieved_by_round#static rs WITH(NOLOCK)
+       JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
+         ON rs.schoolid = d.schoolid
+        AND rs.academic_year = d.academic_year
+        AND rs.test_round = d.time_per_name
+        AND d.identifier = 'LIT'
+        AND d.start_date <= CONVERT(DATE,GETDATE())
+        AND d.end_date >= CONVERT(DATE,GETDATE())
+       WHERE rs.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND GRADE_LEVEL < 5
+       GROUP BY rs.SCHOOLID
+      ) sub
+  JOIN KIPP_NJ..SCHOOLS WITH(NOLOCK)
+    ON sub.schoolid = schools.school_number
+ )
       
 ,ar_goals AS (
   --AR met goals
@@ -41,7 +73,7 @@ WITH scaffold AS (
         ,1 AS goal_number
         ,'% students meeting individual words goal' AS goal_title
         ,schools.abbreviation
-        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())) AS reporting_hash
+        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1),2) AS reporting_hash
         ,sub.pct_met_goal AS value
         ,'FOOTBALL' AS direction
   FROM
@@ -291,6 +323,9 @@ WHERE attr.grade_level = 'campus'
   SELECT *
   FROM off_track WITH(NOLOCK)
   UNION ALL
+  --SELECT *
+  --FROM lit_ontrack WITH(NOLOCK)
+  --UNION ALL
   SELECT *
   FROM ar_goals WITH(NOLOCK)
   UNION ALL

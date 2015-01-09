@@ -6,7 +6,7 @@ ALTER VIEW TIME_SERIES_GRADES$weekly_off_track_totals AS
 SELECT schools.abbreviation AS school
       ,ISNULL(CONVERT(VARCHAR,grade_level),'campus') AS grade_level
       ,date_value           
-      ,CONVERT(VARCHAR,DATEPART(YEAR,date_value)) + CONVERT(VARCHAR,DATEPART(WEEK,date_value)) AS reporting_hash
+      ,CONVERT(VARCHAR,DATEPART(YEAR,date_value)) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,date_value)),2) AS reporting_hash
       ,CONVERT(FLOAT,ROUND(AVG(off_track_1_flag) * 100, 1)) AS pct_off_track_1
       ,CONVERT(FLOAT,ROUND(AVG(off_track_2_flag) * 100, 1)) AS pct_off_track_2
       ,CONVERT(FLOAT,ROUND(AVG(off_track_3_flag) * 100, 1)) AS pct_off_track_3

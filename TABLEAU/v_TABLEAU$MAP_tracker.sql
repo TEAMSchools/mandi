@@ -27,9 +27,9 @@ WITH roster AS (
         ,teacher
         ,period
         ,CASE 
-          WHEN CREDITTYPE = 'ENG' THEN 'Reading'
+          WHEN CREDITTYPE IN ('ENG','READ') THEN 'Reading'
           WHEN CREDITTYPE = 'MATH' THEN 'Mathematics'
-          WHEN CREDITTYPE = 'RHT' THEN 'Language Usage'
+          WHEN CREDITTYPE = 'RHET' THEN 'Language Usage'
           WHEN CREDITTYPE = 'SCI' THEN 'Science - General Science'
          END AS measurementscale
   FROM
@@ -44,7 +44,7 @@ WITH roster AS (
              ,period
              ,ROW_NUMBER() OVER (
                 PARTITION BY year, studentid, credittype
-                    ORDER BY termid DESC) AS rn
+                    ORDER BY course_number DESC) AS rn
        FROM
            (
             SELECT cc.studentid                
@@ -59,7 +59,7 @@ WITH roster AS (
             JOIN KIPP_NJ..COURSES c WITH(NOLOCK)
               ON cc.course_number = c.course_number
              AND cc.SCHOOLID = c.SCHOOLID
-             AND c.CREDITTYPE IN ('ENG','RHET','SCI','MATH')
+             AND c.CREDITTYPE IN ('ENG','READ','RHET','SCI','MATH')
              AND c.course_name NOT LIKE '% Lab%'
             JOIN KIPP_NJ..teachers t WITH(NOLOCK)
               ON cc.teacherid = t.id

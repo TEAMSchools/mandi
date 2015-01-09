@@ -86,7 +86,11 @@ SELECT denom.YEAR
       ,CONVERT(DATE,denom.exitdate) AS exitdate
       ,CASE WHEN raw_numer.schoolid = 999999 THEN 1 ELSE 0 END AS grad_flag
       ,co.EXITCOMMENT
-      ,CASE WHEN raw_numer.studentid IS NULL THEN 1 ELSE 0 END AS attr_flag      
+      ,CASE 
+        WHEN denom.year < KIPP_NJ.dbo.fn_Global_Academic_Year() AND raw_numer.studentid IS NULL THEN 1 
+        WHEN denom.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND denom.exitdate <= CONVERT(DATE,GETDATE()) THEN 1 
+        ELSE 0 
+       END AS attr_flag      
 FROM denom WITH(NOLOCK)
 LEFT OUTER JOIN raw_numer WITH(NOLOCK)
   ON denom.STUDENTID = raw_numer.STUDENTID
