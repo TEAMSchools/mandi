@@ -177,6 +177,7 @@ SELECT sub.student_number
         WHEN sub.subject = 'Visual Arts' THEN 'VIZ'        
         ELSE NULL
        END AS TA_subject
+      ,sub.standard_id
       ,sub.standards_tested AS TA_standard
       ,sub.total_weighted_pct_correct
       ,sub.TA_obj
@@ -220,6 +221,7 @@ FROM
            ,SPEDLEP
            ,term
            ,subject
+           ,standard_id
            ,standards_tested      
            ,TA_obj
            ,SUM(weighted_pct_points) AS total_weighted_points
@@ -235,6 +237,7 @@ FROM
                 ,term        
                 ,scope
                 ,subject
+                ,standard_id
                 ,standards_tested
                 ,TA_obj
                 ,rn_cur
@@ -307,6 +310,7 @@ FROM
              ,SPEDLEP
              ,term
              ,subject
+             ,standard_id
              ,standards_tested
              ,TA_obj
     ) sub
