@@ -8,45 +8,79 @@ WITH grades_long AS (
         ,CREDITTYPE
         ,COURSE_NUMBER
         ,COURSE_NAME
-        ,UPPER(term) AS term
-        ,term_pct
-        ,Y1 AS y1_pct
-  FROM 
+        ,term
+        ,[PCT] AS term_pct
+        ,[LETTER] AS term_letter
+        ,y1_pct
+        ,y1_letter
+  FROM
       (
-       SELECT studentid             
-             ,credittype
-             ,course_number
-             ,course_name
-             ,t1
-             ,t2
-             ,t3
-             ,NULL AS q1
-             ,NULL AS q2
-             ,NULL AS q3
-             ,NULL AS q4
-             ,y1      
-       FROM KIPP_NJ..GRADES$DETAIL#MS WITH(NOLOCK)
+       SELECT STUDENTID
+             ,CREDITTYPE
+             ,COURSE_NUMBER
+             ,COURSE_NAME
+             ,LEFT(UPPER(field),2) AS term
+             ,SUBSTRING(UPPER(field),4,6) AS measure
+             ,value
+             ,y1_pct
+             ,y1_letter
+       FROM 
+           (
+            SELECT studentid             
+                  ,credittype
+                  ,course_number
+                  ,course_name
+                  ,CONVERT(VARCHAR,t1) AS t1_pct
+                  ,CONVERT(VARCHAR,t2) AS t2_pct
+                  ,CONVERT(VARCHAR,t3) AS t3_pct
+                  ,NULL AS q1_pct
+                  ,NULL AS q2_pct
+                  ,NULL AS q3_pct
+                  ,NULL AS q4_pct
+                  ,CONVERT(VARCHAR,y1) AS y1_pct
+                  ,CONVERT(VARCHAR,T1_LETTER) AS t1_letter
+                  ,CONVERT(VARCHAR,t2_LETTER) AS t2_letter
+                  ,CONVERT(VARCHAR,t3_LETTER) AS t3_letter
+                  ,NULL AS q1_LETTER
+                  ,NULL AS q2_LETTER
+                  ,NULL AS q3_LETTER
+                  ,NULL AS q4_LETTER
+                  ,CONVERT(VARCHAR,y1_LETTER) AS y1_letter
+            FROM KIPP_NJ..GRADES$DETAIL#MS WITH(NOLOCK)
 
-       UNION ALL
+            UNION ALL
 
-       SELECT studentid             
-             ,credittype
-             ,course_number
-             ,course_name
-             ,NULL AS t1
-             ,NULL AS t2
-             ,NULL AS t3
-             ,q1
-             ,q2
-             ,q3
-             ,q4
-             ,y1      
-       FROM KIPP_NJ..GRADES$DETAIL#NCA WITH(NOLOCK)
+            SELECT studentid             
+                  ,credittype
+                  ,course_number
+                  ,course_name
+                  ,NULL AS t1_pct
+                  ,NULL AS t2_pct
+                  ,NULL AS t3_pct
+                  ,CONVERT(VARCHAR,q1) AS q1_pct
+                  ,CONVERT(VARCHAR,q2) AS q2_pct
+                  ,CONVERT(VARCHAR,q3) AS q3_pct
+                  ,CONVERT(VARCHAR,q4) AS q4_pct
+                  ,CONVERT(VARCHAR,y1) AS y1_pct
+                  ,NULL AS t1_letter
+                  ,NULL AS t2_letter
+                  ,NULL AS t3_letter
+                  ,CONVERT(VARCHAR,q1_letter) AS q1_letter
+                  ,CONVERT(VARCHAR,q2_letter) AS q2_letter
+                  ,CONVERT(VARCHAR,q3_letter) AS q3_letter
+                  ,CONVERT(VARCHAR,q4_letter) AS q4_letter
+                  ,CONVERT(VARCHAR,y1_letter) AS y1_letter
+            FROM KIPP_NJ..GRADES$DETAIL#NCA WITH(NOLOCK)
+           ) sub
+       UNPIVOT(
+         value
+         FOR field IN (t1_pct, t2_pct, t3_pct, q1_pct, q2_pct, q3_pct, q4_pct, t1_letter, t2_letter, t3_letter, q1_letter, q2_letter, q3_letter, q4_letter)
+        ) u
       ) sub
-  UNPIVOT(
-    term_pct
-    FOR term IN (t1, t2, t3, q1, q2, q3, q4)
-   ) u
+  PIVOT(
+    MAX(value)
+    FOR measure IN ([PCT],[LETTER])
+   ) p
  )
 
 ,sections_long AS (
@@ -122,7 +156,9 @@ SELECT co.schoolid
       ,sec.section_number
       ,sec.teacher
       ,gr.term_pct
+      ,gr.term_letter
       ,gr.y1_pct
+      ,gr.y1_letter
 FROM COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN REPORTING$dates dts WITH(NOLOCK)
   ON co.schoolid = dts.schoolid

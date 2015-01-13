@@ -10,6 +10,7 @@ WITH roster AS (
         ,co.lastfirst      
         ,co.grade_level
         ,co.advisor
+        ,co.enroll_status
         ,terms.alt_name AS term 
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   JOIN KIPP_NJ..REPORTING$dates terms WITH(NOLOCK) 
@@ -77,8 +78,10 @@ WITH roster AS (
         ,r.grade_level
         ,r.advisor
         ,r.term
+        ,r.enroll_status
         ,lex.lexile_score      
-        ,CASE WHEN r.term IN ('Q3','Q4') THEN goal.points_goal ELSE gdoc.points_goal END AS points_goal
+        ,COALESCE(gdoc.points_goal, CASE WHEN r.enroll_status != 0 THEN -1 ELSE NULL END, goal.points_goal) AS points_goal
+        ,CASE WHEN goal.points_goal IS NULL THEN 1 ELSE NULL END AS missing_lexile_flag
   FROM roster r WITH(NOLOCK)
   JOIN lexile lex WITH(NOLOCK)
     ON r.studentid = lex.studentid
@@ -99,6 +102,7 @@ SELECT student_number
       ,term
       ,lexile_score
       ,points_goal
+      --,missing_lexile_flag
 FROM goals_long
 
 UNION ALL
@@ -109,9 +113,15 @@ SELECT student_number
       ,ADVISOR
       ,'Y1' AS term
       ,MAX(lexile_score) AS lexile_score
-      ,SUM(points_goal) AS points_goal
+      ,CASE 
+        WHEN enroll_status != 0 THEN -1
+        WHEN COUNT(points_goal) < 4 THEN NULL 
+        ELSE SUM(points_goal) 
+       END AS points_goal
+      --,CASE WHEN COUNT(points_goal) < 4 THEN 1 ELSE NULL END AS missing_lexile_flag
 FROM goals_long
 GROUP BY student_number
+        ,enroll_status
         ,lastfirst
         ,grade_level
         ,ADVISOR

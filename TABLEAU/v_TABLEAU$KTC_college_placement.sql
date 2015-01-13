@@ -56,7 +56,7 @@ WITH roster AS (
 ,colleges AS (
   SELECT coll.salesforce_id AS college_salesforce_id
         ,coll.name AS college_name
-        ,coll.ceeb_code__c AS ceeb_code
+        ,CONVERT(VARCHAR,coll.ceeb_code__c) AS ceeb_code
         ,coll.Adjusted_6_year_minority_graduation_rate__c AS minor_grad
         ,ROW_NUMBER() OVER(
           PARTITION BY ceeb_code__C
@@ -66,31 +66,31 @@ WITH roster AS (
  )
 
 ,apps AS (
-SELECT r.STUDENT_NUMBER
-      ,r.lastfirst
-      ,r.grade_level
-      ,r.cohort
-      ,r.schoolid
-      ,r.is_alum
-      ,ISNULL(r.counselor_name, 'Unassigned') AS counselor_name
-      ,apps.ceeb_code
-      ,CASE WHEN apps.student_number IS NULL THEN 1.0 ELSE 0.0 END AS no_apply
-      ,apps.collegename
-      ,apps.inst_control
-      ,apps.level
-      ,apps.stage
-      ,apps.result_code
-      ,apps.attending
-      ,apps.waitlisted
-      ,apps.comments
-      ,coll.minor_grad
+  SELECT r.STUDENT_NUMBER
+        ,r.lastfirst
+        ,r.grade_level
+        ,r.cohort
+        ,r.schoolid
+        ,r.is_alum
+        ,ISNULL(r.counselor_name, 'Unassigned') AS counselor_name
+        ,apps.ceeb_code
+        ,CASE WHEN apps.student_number IS NULL THEN 1.0 ELSE 0.0 END AS no_apply
+        ,apps.collegename
+        ,apps.inst_control
+        ,apps.level
+        ,apps.stage
+        ,apps.result_code
+        ,apps.attending
+        ,apps.waitlisted
+        ,apps.comments
+        ,coll.minor_grad
   FROM roster r WITH(NOLOCK)
   LEFT OUTER JOIN NAVIANCE$college_apps_clean apps WITH(NOLOCK)
     ON r.student_number = apps.student_number      
   LEFT OUTER JOIN colleges coll WITH(NOLOCK)
     ON apps.ceeb_code = coll.ceeb_code
    AND coll.dupe_ceeb = 1
-  --WHERE cohort >= dbo.fn_Global_Academic_Year()
+  WHERE cohort >= dbo.fn_Global_Academic_Year()
  )
 
 ,match AS (

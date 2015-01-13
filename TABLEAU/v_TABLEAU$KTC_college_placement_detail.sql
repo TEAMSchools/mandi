@@ -56,7 +56,7 @@ WITH roster AS (
 ,colleges AS (
   SELECT coll.salesforce_id AS college_salesforce_id
         ,coll.name AS college_name
-        ,coll.ceeb_code__c AS ceeb_code
+        ,CONVERT(VARCHAR,coll.ceeb_code__c) AS ceeb_code
         ,coll.Adjusted_6_year_minority_graduation_rate__c AS minor_grad
         ,ROW_NUMBER() OVER(
           PARTITION BY ceeb_code__C
@@ -66,7 +66,7 @@ WITH roster AS (
  )
 
 ,apps AS (
-SELECT r.STUDENT_NUMBER
+  SELECT r.STUDENT_NUMBER
         ,r.lastfirst
         ,r.grade_level
         ,r.cohort
@@ -95,7 +95,7 @@ SELECT r.STUDENT_NUMBER
 
 ,match AS (
   SELECT odds.sis_id AS student_number
-        ,coll.ceeb_code
+        ,CONVERT(VARCHAR,coll.ceeb_code) AS ceeb_code
         --,odds.college_name      
         ,odds.selec_rank
         --,coll.Adjusted_6_year_minority_graduation_rate__c AS minor_grad

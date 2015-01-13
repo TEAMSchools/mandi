@@ -4,7 +4,7 @@ GO
 ALTER VIEW NAVIANCE$college_apps_clean AS
 
 SELECT [hs_student_id] AS student_number
-      ,CASE WHEN [ceeb_code] = 'NULL' THEN NULL ELSE ceeb_code END AS ceeb_code
+      ,CASE WHEN [ceeb_code] = 'NULL' THEN NULL ELSE CONVERT(VARCHAR,ceeb_code) END AS ceeb_code
       ,CASE WHEN [act_code] = 'NULL' THEN NULL ELSE [act_code] END AS [act_code]
       ,[collegename]      
       ,[state]

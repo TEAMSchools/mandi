@@ -9,51 +9,20 @@ WITH completed_terms AS (
   WHERE identifier = 'RT'
     AND academic_year = dbo.fn_Global_Academic_Year()
     AND school_level != 'ES'
-    AND end_date <= GETDATE()
+    AND end_date < CONVERT(DATE,GETDATE())
  )
 
-,ms_stored AS (
-  SELECT SCHOOLID 
-        ,grade_level
-        ,LASTFIRST
+,stored AS (
+  SELECT SCHOOLID              
         ,STUDENT_NUMBER
         ,credittype
         ,COURSE_NUMBER        
         ,COURSE_NAME
-        ,finalgradename
-        ,pct
-  FROM GRADES$DETAIL#MS WITH(NOLOCK)
-  UNPIVOT (
-     pct
-     FOR finalgradename IN ([T1],[T2],[T3])
-   ) u
- )
-
-,hs_stored AS (
-  SELECT schoolid
-        ,grade_level
-        ,lastfirst
-        ,STUDENT_NUMBER
-        ,credittype
-        ,COURSE_NUMBER
-        ,course_name
-        ,finalgradename
-        ,pct AS pct
-  FROM GRADES$DETAIL#NCA WITH(NOLOCK)
-  UNPIVOT (
-     pct
-     FOR finalgradename IN ([Q1],[Q2],[Q3],[Q4],[E1],[E2])
-   ) u
- )
-
-,stored AS (
-  SELECT *
-  FROM ms_stored
-  WHERE finalgradename IN (SELECT alt_name FROM completed_terms WITH(NOLOCK))
-  UNION ALL
-  SELECT *
-  FROM hs_stored
-  WHERE finalgradename IN (SELECT alt_name FROM completed_terms WITH(NOLOCK))
+        ,term
+        ,term_letter
+        ,term_pct
+  FROM KIPP_NJ..GRADES$detail_long WITH(NOLOCK)
+  WHERE term IN (SELECT alt_name FROM completed_terms WITH(NOLOCK))
  )
 
 ,gradebooks AS (
@@ -94,53 +63,62 @@ WITH completed_terms AS (
   ') gb /* UPDATE TERMID YEARLY */
  )
 
-SELECT SCHOOLID
-      ,STUDENT_NUMBER
-      ,LASTFIRST
-      ,grade_level
-      ,COURSE_NUMBER
-      ,COURSE_NAME
-      ,CREDITTYPE
-      ,teacher
-      ,email_addr
-      ,UPPER(finalgradename) AS finalgradename
-      ,stored_pct
-      ,gradebook_pct
-      ,gradebook_letter
-      ,gradebook_gpa_points
-      ,spread      
+SELECT co.schoolid
+      ,co.student_number
+      ,co.lastfirst
+      ,co.grade_level
+      ,sub.COURSE_NUMBER
+      ,sub.COURSE_NAME
+      ,sub.CREDITTYPE
+      ,sub.teacher
+      ,sub.email_addr
+      ,sub.term
+      ,sub.stored_pct
+      ,sub.stored_letter
+      ,sub.stored_gpa_points
+      ,sub.gradebook_pct
+      ,sub.gradebook_letter
+      ,sub.gradebook_gpa_points
+      ,sub.spread      
 FROM 
     (
-     SELECT stored.schoolid
-           ,stored.LASTFIRST
-           ,stored.grade_level
-           ,stored.STUDENT_NUMBER
+     SELECT stored.STUDENT_NUMBER
            ,stored.COURSE_NUMBER
            ,stored.course_name
            ,stored.credittype
            ,gradebooks.teacher
            ,gradebooks.email_addr
-           ,stored.finalgradename           
-           ,stored.pct AS stored_pct
-           ,gradebooks.pct AS gradebook_pct      
-           ,scale.grade_points AS gradebook_gpa_points
+           ,stored.term
+           ,CONVERT(FLOAT,stored.term_pct) AS stored_pct
+           ,stored.term_letter AS stored_letter
+           ,CONVERT(FLOAT,stored_scale.grade_points) AS stored_gpa_points
+           ,CONVERT(FLOAT,gradebooks.pct) AS gradebook_pct                 
            ,scale.letter_grade AS gradebook_letter
-           ,gradebooks.pct - stored.pct AS spread
-           ,CASE
-             WHEN stored.SCHOOLID = 133570965 AND stored.pct >= 55 AND gradebooks.pct >= 55 AND gradebooks.pct != stored.pct THEN 1
-             WHEN stored.SCHOOLID = 73253 AND stored.pct >= 50 AND gradebooks.pct >= 50 AND gradebooks.pct != stored.pct THEN 1
-             WHEN stored.SCHOOLID = 73252 AND gradebooks.pct != stored.pct THEN 1
-             ELSE 0
-            END AS diff
-           
+           ,CONVERT(FLOAT,scale.grade_points) AS gradebook_gpa_points
+           ,gradebooks.pct - stored.term_pct AS spread
+           ,CASE             
+             WHEN stored.term_pct = gradebooks.pct THEN 0
+             WHEN stored.SCHOOLID = 133570965 AND (stored.term_pct = 55 AND gradebooks.pct < 55) THEN 0
+             WHEN stored.SCHOOLID = 73253 AND (stored.term_pct = 50 AND gradebooks.pct < 50) THEN 0             
+             ELSE 1
+            END AS diff           
      FROM gradebooks WITH(NOLOCK)
      JOIN stored WITH(NOLOCK)
        ON gradebooks.student_number = stored.STUDENT_NUMBER
       AND gradebooks.course_number = stored.COURSE_NUMBER
-      AND gradebooks.finalgradename = stored.finalgradename 
+      AND gradebooks.finalgradename = stored.term 
      JOIN GRADES$grade_scales#static scale WITH(NOLOCK)       
        ON gradebooks.gradescaleid = scale.scale_id
       AND gradebooks.pct >= scale.low_cut
       AND gradebooks.pct < scale.high_cut
+     JOIN GRADES$grade_scales#static stored_scale WITH(NOLOCK)       
+       ON gradebooks.gradescaleid = stored_scale.scale_id
+      AND gradebooks.pct >= stored_scale.low_cut
+      AND gradebooks.pct < stored_scale.high_cut
     ) sub
-WHERE diff = 1
+JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  ON sub.student_number = co.student_number
+ AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND co.rn = 1
+WHERE sub.diff = 1
+  AND (ABS(sub.spread) > 1 OR sub.stored_letter != sub.gradebook_letter OR sub.stored_gpa_points != sub.gradebook_gpa_points)
