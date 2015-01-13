@@ -35,8 +35,8 @@ FROM
              ,roster.stu_name
              ,roster.grade_level
              /*--UPDATE FOR CURRENT TERM--*/ 
-             ,CAST(ROUND(AVG(q.grade_1), 0) AS FLOAT) AS cur_q
-             ,CAST(ROUND(AVG(h.grade_1), 0) AS FLOAT) AS cur_h
+             ,CAST(ROUND(AVG(q.grade_2), 0) AS FLOAT) AS cur_q
+             ,CAST(ROUND(AVG(h.grade_2), 0) AS FLOAT) AS cur_h
              ,CAST(ROUND(AVG(q.simple_avg), 0) AS FLOAT) AS yr_q
              ,CAST(ROUND(AVG(h.simple_avg), 0) AS FLOAT) AS yr_h
              ,COUNT(*) AS n
