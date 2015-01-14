@@ -134,13 +134,14 @@ SELECT cohort.schoolid
                       ,map.teststarttime
                       ,map.percentcorrect
                       ,map.projectedproficiency                     
-                FROM KIPP_NJ..STUDENTS s WITH (NOLOCK)
-                JOIN NWEA..map$cdf map WITH (NOLOCK)
-                  ON CAST(s.student_number AS NVARCHAR) = map.studentid
+                FROM NWEA..map$cdf map WITH (NOLOCK)
+                JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
+                  ON s.student_number = map.studentid
+                WHERE map.StudentID != '11XXX'
                ) sq_1
           ) sq_2
 LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
-  ON CAST(cohort.studentid AS NVARCHAR) = sq_2.ps_studentid 
+  ON cohort.studentid = sq_2.ps_studentid 
  AND sq_2.map_year_academic = cohort.year
  AND cohort.rn = 1
 LEFT OUTER JOIN MAP$norm_table#2008 norms_2008 WITH(NOLOCK)

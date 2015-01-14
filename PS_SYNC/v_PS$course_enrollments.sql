@@ -18,7 +18,7 @@ SELECT cc.academic_year
       ,cou.COURSE_NAME      
       ,cc.SECTIONID
       ,cc.SECTION_NUMBER      
-      ,cc.period
+      ,CASE WHEN cc.schoolid = 73253 THEN cc.period ELSE NULL END AS period
       ,t.TEACHERNUMBER
       ,t.lastfirst AS teacher_name      
       ,CONVERT(DATE,cc.LASTGRADEUPDATE) AS lastgradeupdate

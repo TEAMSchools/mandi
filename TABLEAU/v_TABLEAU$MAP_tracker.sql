@@ -20,53 +20,19 @@ WITH roster AS (
 
 ,enrollments AS (
   SELECT STUDENTID
-        ,year
-        ,CREDITTYPE
-        ,COURSE_NUMBER
-        ,COURSE_NAME
-        ,teacher
-        ,period
-        ,CASE 
-          WHEN CREDITTYPE IN ('ENG','READ') THEN 'Reading'
-          WHEN CREDITTYPE = 'MATH' THEN 'Mathematics'
-          WHEN CREDITTYPE = 'RHET' THEN 'Language Usage'
-          WHEN CREDITTYPE = 'SCI' THEN 'Science - General Science'
-         END AS measurementscale
-  FROM
-      (
-       SELECT STUDENTID
-             ,TERMID
-             ,year
-             ,CREDITTYPE
-             ,COURSE_NUMBER
-             ,COURSE_NAME
-             ,teacher
-             ,period
-             ,ROW_NUMBER() OVER (
-                PARTITION BY year, studentid, credittype
-                    ORDER BY course_number DESC) AS rn
-       FROM
-           (
-            SELECT cc.studentid                
-                  ,cc.TERMID
-                  ,cc.academic_year AS year
-                  ,c.credittype
-                  ,cc.COURSE_NUMBER
-                  ,c.course_name                
-                  ,t.LASTFIRST AS teacher
-                  ,cc.period
-            FROM KIPP_NJ..cc WITH(NOLOCK)
-            JOIN KIPP_NJ..COURSES c WITH(NOLOCK)
-              ON cc.course_number = c.course_number
-             AND cc.SCHOOLID = c.SCHOOLID
-             AND c.CREDITTYPE IN ('ENG','READ','RHET','SCI','MATH')
-             AND c.course_name NOT LIKE '% Lab%'
-            JOIN KIPP_NJ..teachers t WITH(NOLOCK)
-              ON cc.teacherid = t.id
-            WHERE cc.TERMID > 0
-           ) sub
-      ) sub2
-  WHERE rn = 1
+        ,academic_year
+        ,credittype
+        ,measurementscale                
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT COURSE_NUMBER, ',') + ',' AS course_number
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT COURSE_NAME, ',') + ',' AS course_name
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT teacher_name, ',') + ',' AS teacher
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT period, ',') + ',' AS period
+  FROM KIPP_NJ..PS$course_enrollments#static WITH(NOLOCK)
+  WHERE measurementscale IS NOT NULL
+  GROUP BY STUDENTID
+          ,academic_year
+          ,credittype
+          ,measurementscale
  )
 
 ,map_long AS (
@@ -188,7 +154,7 @@ LEFT OUTER JOIN map_long
  AND r.year = map_long.year 
 LEFT OUTER JOIN enrollments enr
   ON r.studentid = enr.STUDENTID
- AND r.year = enr.year 
+ AND r.year = enr.academic_year
  AND map_long.measurementscale = enr.measurementscale
 LEFT OUTER JOIN map_curr
   ON r.studentid = map_curr.studentid
