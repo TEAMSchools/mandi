@@ -3,39 +3,7 @@ GO
 
 ALTER VIEW TABLEAU$MAP_tracker AS
 
-WITH roster AS (
-  SELECT co.year
-        ,co.studentid
-        ,co.student_number
-        ,co.lastfirst
-        ,co.schoolid
-        ,co.grade_level
-        ,co.cohort
-        ,co.team        
-        ,co.SPEDLEP        
-  FROM COHORT$identifiers_long#static co WITH(NOLOCK)    
-  WHERE co.rn = 1
-    AND co.grade_level < 99
- )
-
-,enrollments AS (
-  SELECT STUDENTID
-        ,academic_year
-        ,credittype
-        ,measurementscale                
-        ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT COURSE_NUMBER, ',') + ',' AS course_number
-        ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT COURSE_NAME, ',') + ',' AS course_name
-        ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT teacher_name, ',') + ',' AS teacher
-        ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT period, ',') + ',' AS period
-  FROM KIPP_NJ..PS$course_enrollments#static WITH(NOLOCK)
-  WHERE measurementscale IS NOT NULL
-  GROUP BY STUDENTID
-          ,academic_year
-          ,credittype
-          ,measurementscale
- )
-
-,map_long AS (
+WITH map_long AS (
   SELECT base.studentid
         ,base.year
         ,terms.fallwinterspring
@@ -145,14 +113,14 @@ SELECT r.year
       ,enr.CREDITTYPE
       ,enr.COURSE_NUMBER
       ,enr.COURSE_NAME
-      ,enr.teacher
+      ,enr.teacher_name AS teacher
       ,enr.period      
       ,rs.read_lvl
-FROM roster r
+FROM COHORT$identifiers_long#static r WITH(NOLOCK)
 LEFT OUTER JOIN map_long
   ON r.studentid = map_long.studentid
  AND r.year = map_long.year 
-LEFT OUTER JOIN enrollments enr
+LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
   ON r.studentid = enr.STUDENTID
  AND r.year = enr.academic_year
  AND map_long.measurementscale = enr.measurementscale
@@ -164,3 +132,5 @@ LEFT OUTER JOIN read_lvl rs
   ON r.studentid = rs.studentid
  AND r.year = rs.academic_year
  AND map_long.fallwinterspring = rs.fallwinterspring
+WHERE r.schoolid != 999999
+  AND r.rn = 1  
