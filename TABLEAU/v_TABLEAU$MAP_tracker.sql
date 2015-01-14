@@ -75,7 +75,7 @@ WITH roster AS (
     ON base.year = rr.year
    AND REPLACE(base.measurementscale,' Usage','') = rr.measurementscale
    AND base.studentid = rr.studentid
-  LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
+  LEFT OUTER JOIN MAP$comprehensive#identifiers#static map WITH(NOLOCK)
     ON base.studentid = map.ps_studentid
    AND base.year = map.map_year_academic
    AND base.measurementscale = map.measurementscale
@@ -91,7 +91,7 @@ WITH roster AS (
         ,CONVERT(INT,map.testritscore) AS rit
         ,CONVERT(INT,map.testpercentile) AS pct
         ,CONVERT(INT,REPLACE(map.rittoreadingscore, 'BR', 0)) AS lexile
-  FROM MAP$comprehensive#identifiers map WITH(NOLOCK)
+  FROM MAP$comprehensive#identifiers#static map WITH(NOLOCK)
   WHERE rn_curr = 1
  )
 

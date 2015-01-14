@@ -2,16 +2,15 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$best_baseline AS
+
 WITH roster AS (
   SELECT studentid
         ,grade_level
         ,schoolid
-        ,schools.ABBREVIATION AS school
+        ,cohort.school_name AS school
         ,cohort.year
         ,cohort.lastfirst
-  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)
-  JOIN KIPP_NJ..SCHOOLS WITH(NOLOCK)
-    ON cohort.SCHOOLID = schools.SCHOOL_NUMBER
+  FROM KIPP_NJ..COHORT$identifiers_long#static cohort WITH(NOLOCK)  
   WHERE schoolid != 999999
     AND rn = 1
     --AND cohort.studentid = 2877
@@ -61,14 +60,14 @@ FROM
      JOIN subj
        ON 1=1
     ) sub
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_fall WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_fall WITH(NOLOCK)
   ON sub.studentid = map_fall.ps_studentid
  AND sub.measurementscale = map_fall.MeasurementScale
  AND map_fall.rn = 1
  --THIS YEAR FALL
  AND map_fall.map_year = sub.year
  AND map_fall.fallwinterspring = 'Fall'
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_spr WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_spr WITH(NOLOCK)
   ON sub.studentid = map_spr.ps_studentid
  AND sub.measurementscale = map_spr.MeasurementScale
  AND map_spr.rn = 1

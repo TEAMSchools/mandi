@@ -158,7 +158,7 @@ JOIN COHORT$identifiers_long#static s WITH(NOLOCK)
  AND s.GRADE_LEVEL < 5
  AND s.year = dbo.fn_Global_Academic_Year()
  AND s.rn = 1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH (NOLOCK)
+LEFT OUTER JOIN MAP$comprehensive#identifiers#static map WITH (NOLOCK)
   ON scores.studentid = map.ps_studentid 
  AND scores.academic_year = map.map_year_academic
  AND map.measurementscale = 'Reading'
@@ -167,7 +167,7 @@ LEFT OUTER JOIN MAP$best_baseline#static base
   ON scores.STUDENTID = base.studentid
  AND scores.academic_year = base.year
  AND base.measurementscale = 'Reading'
-LEFT OUTER JOIN MAP$comprehensive#identifiers base_detail WITH(NOLOCK)
+LEFT OUTER JOIN MAP$comprehensive#identifiers#static base_detail WITH(NOLOCK)
   ON base.studentid = base_detail.ps_studentid 
  AND base.measurementscale = base_detail.measurementscale
  AND base.termname = base_detail.termname
@@ -278,7 +278,7 @@ JOIN COHORT$identifiers_long#static s WITH(NOLOCK)
  AND s.GRADE_LEVEL < 5
  AND s.year = dbo.fn_Global_Academic_Year()
  AND s.rn = 1
-LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH (NOLOCK)
+LEFT OUTER JOIN MAP$comprehensive#identifiers#static map WITH (NOLOCK)
   ON scores.studentid = map.ps_studentid 
  AND scores.academic_year = map.map_year_academic
  AND map.measurementscale = 'Reading'
@@ -287,7 +287,7 @@ LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
   ON scores.STUDENTID = base.studentid 
  AND scores.academic_year = base.year
  AND base.measurementscale = 'Reading'
-LEFT OUTER JOIN MAP$comprehensive#identifiers base_detail WITH(NOLOCK)
+LEFT OUTER JOIN MAP$comprehensive#identifiers#static base_detail WITH(NOLOCK)
   ON base.studentid = base_detail.ps_studentid 
  AND base.measurementscale = base_detail.measurementscale
  AND base.termname = base_detail.termname

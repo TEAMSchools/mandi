@@ -45,7 +45,7 @@ WITH roster AS (
           ELSE CONVERT(INT,REPLACE(base.lexile_score, 'BR', 0))
          END AS lexile_score
   FROM KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
-  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
     ON base.studentid = map.ps_studentid
    AND base.year = map.map_year_academic
    AND base.measurementscale = map.measurementscale
