@@ -25,7 +25,9 @@ WITH roster AS (
 ,lexile AS (
   SELECT lex.studentid
         ,terms.term
-        ,CONVERT(INT,REPLACE(lex.lexile_score, 'BR', 0)) AS lexile_score
+        ,lex.lexile_score AS base_lexile
+        ,lex.lexile_score AS term_lexile        
+        ,CONVERT(INT,REPLACE(lex.lexile_score, 'BR', 0)) AS lexile_for_goal
   FROM KIPP_NJ..MAP$best_baseline#static lex WITH(NOLOCK)
   JOIN (
         SELECT 'Q1' term
@@ -39,11 +41,13 @@ WITH roster AS (
   UNION ALL
 
   SELECT base.studentid
-        ,terms.term
+        ,terms.term        
+        ,base.lexile_score AS base_lexile
+        ,map.rittoreadingscore AS term_lexile
         ,CASE        
-          WHEN CONVERT(INT,REPLACE(map.rittoreadingscore, 'BR', 0)) > CONVERT(INT,REPLACE(base.lexile_score, 'BR', 0)) THEN CONVERT(INT,REPLACE(map.rittoreadingscore, 'BR', 0))
+          WHEN ISNULL(CONVERT(INT,REPLACE(map.rittoreadingscore, 'BR', 0)),0) > ISNULL(CONVERT(INT,REPLACE(base.lexile_score, 'BR', 0)),0) THEN CONVERT(INT,REPLACE(map.rittoreadingscore, 'BR', 0))
           ELSE CONVERT(INT,REPLACE(base.lexile_score, 'BR', 0))
-         END AS lexile_score
+         END AS lexile_for_goal
   FROM KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
   LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
     ON base.studentid = map.ps_studentid
@@ -62,14 +66,14 @@ WITH roster AS (
  )
 
 ,google_doc AS (  
-  SELECT student_number
-        ,CONVERT(INT,points_goal) AS points_goal
+  SELECT [SN] AS student_number
+        ,CONVERT(INT,[points goal]) AS points_goal
         ,term        
         ,ROW_NUMBER() OVER(
-           PARTITION BY student_number, term
+           PARTITION BY [SN], term
              ORDER BY term) AS dupe_check
   FROM [KIPP_NJ].[dbo].[AUTOLOAD$GDOCS_AR_NCA] WITH(NOLOCK)
-  WHERE student_number IS NOT NULL  
+  WHERE [SN] IS NOT NULL  
  )
 
 ,goals_long AS (
@@ -79,16 +83,18 @@ WITH roster AS (
         ,r.advisor
         ,r.term
         ,r.enroll_status
-        ,lex.lexile_score      
+        ,lex.base_lexile
+        ,lex.term_lexile
+        ,lex.lexile_for_goal      
         ,COALESCE(gdoc.points_goal, CASE WHEN r.enroll_status != 0 THEN -1 ELSE NULL END, goal.points_goal) AS points_goal
-        ,CASE WHEN goal.points_goal IS NULL THEN 1 ELSE NULL END AS missing_lexile_flag
+        --,CASE WHEN goal.points_goal IS NULL THEN 1 ELSE NULL END AS missing_lexile_flag
   FROM roster r WITH(NOLOCK)
   JOIN lexile lex WITH(NOLOCK)
     ON r.studentid = lex.studentid
    AND r.term = lex.term
   LEFT OUTER JOIN KIPP_NJ..AR$tier_goals#HS goal WITH(NOLOCK)
-    ON lex.lexile_score >= goal.lexile_min 
-   AND lex.lexile_score <= goal.lexile_max
+    ON lex.lexile_for_goal >= goal.lexile_min 
+   AND lex.lexile_for_goal <= goal.lexile_max
   LEFT OUTER JOIN google_doc gdoc WITH(NOLOCK)
     ON r.student_number = gdoc.student_number
    AND r.term = gdoc.term
@@ -100,9 +106,10 @@ SELECT student_number
       ,grade_level
       ,ADVISOR
       ,term
-      ,lexile_score
-      ,points_goal
-      --,missing_lexile_flag
+      ,base_lexile
+      ,term_lexile
+      ,lexile_for_goal
+      ,points_goal      
 FROM goals_long
 
 UNION ALL
@@ -112,7 +119,9 @@ SELECT student_number
       ,grade_level
       ,ADVISOR
       ,'Y1' AS term
-      ,MAX(lexile_score) AS lexile_score
+      ,MAX(base_lexile) AS base_lexile
+      ,MAX(term_lexile) AS term_lexile
+      ,MAX(lexile_for_goal) AS lexile_for_goal
       ,CASE 
         WHEN enroll_status != 0 THEN -1
         WHEN COUNT(points_goal) < 4 THEN NULL 

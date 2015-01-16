@@ -40,7 +40,7 @@ WITH disc_log AS (
     FROM log
     WHERE (log.entry_date >= TO_DATE(''2014-08-01'',''YYYY-MM-DD'') OR log.discipline_incidentdate >= TO_DATE(''2014-08-01'',''YYYY-MM-DD''))
       AND log.entry_date <= TRUNC(SYSDATE)
-      AND log.logtypeid NOT IN (1423, 2724, 3124, 3953, 3964, 4273)
+      AND log.logtypeid NOT IN (1423, 2724, 3124, 3964)
   ') disc /*-- UPDATE QUERY FOR CURRENT SCHOOL YEAR --*/
   LEFT OUTER JOIN DISC$logtypes#static subtype WITH(NOLOCK)
     ON disc.logtypeid = subtype.logtypeid
