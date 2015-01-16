@@ -37,7 +37,7 @@ WITH map_tests AS (
              ,goal5ritscore      
              ,goal5range
              ,goal5adjective             
-       FROM MAP$comprehensive#identifiers map WITH(NOLOCK)               
+       FROM MAP$comprehensive#identifiers#static map WITH(NOLOCK)               
        WHERE map.rn = 1
          AND map.fallwinterspring IN ('Winter', 'Spring')
 
@@ -68,7 +68,7 @@ WITH map_tests AS (
              ,map.goal5range
              ,map.goal5adjective  
        FROM MAP$best_baseline#static base WITH(NOLOCK)
-       JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
+       JOIN MAP$comprehensive#identifiers#static map WITH(NOLOCK)
          ON base.studentid = map.ps_studentid
         AND base.measurementscale = map.measurementscale
         AND base.termname = map.termname
@@ -112,7 +112,7 @@ WITH map_tests AS (
   FROM
       (
        SELECT *
-       FROM map_tests
+       FROM map_tests WITH(NOLOCK)
        WHERE field != 'name'
       ) sub
 
@@ -134,50 +134,12 @@ WITH map_tests AS (
 --  WHERE rn_curr = 1
 -- )
 
-,enrollments AS (
-  SELECT *
-        ,CASE 
-          WHEN CREDITTYPE = 'ENG' THEN 'Reading'
-          WHEN CREDITTYPE = 'MATH' THEN 'Mathematics'
-          WHEN CREDITTYPE = 'RHT' THEN 'Language Usage'
-          WHEN CREDITTYPE = 'SCI' THEN 'Science - General Science'
-         END AS measurementscale
-  FROM
-      (
-       SELECT *
-             ,ROW_NUMBER() OVER (
-                PARTITION BY year, studentid, credittype
-                    ORDER BY termid DESC) AS rn
-       FROM
-           (
-            SELECT cc.studentid                
-                  ,cc.TERMID
-                  ,(CONVERT(FLOAT,(LEFT(cc.TERMID, 2) + '00')) + CONVERT(FLOAT, '1.990000e+05')) / 100 AS year
-                  ,c.credittype
-                  ,cc.COURSE_NUMBER
-                  ,c.course_name                
-                  ,t.LASTFIRST AS teacher
-                  ,cc.EXPRESSION AS period
-            FROM cc WITH(NOLOCK)
-            JOIN COURSES c WITH(NOLOCK)
-              ON cc.course_number = c.course_number
-             AND cc.SCHOOLID = c.SCHOOLID
-             AND c.CREDITTYPE IN ('ENG','RHET','SCI','MATH')
-             AND c.course_name NOT LIKE '% Lab%'
-            JOIN teachers t WITH(NOLOCK)
-              ON cc.teacherid = t.id
-            WHERE cc.TERMID > 0
-           ) sub
-      ) sub2
-  WHERE rn = 1
- )
-
 SELECT domain.studentid      
       ,co.lastfirst
       ,co.schoolid
       ,co.grade_level
-      ,s.team
-      ,cs.spedlep
+      ,co.team
+      ,co.spedlep
       ,domain.year
       ,domain.fallwinterspring
       ,domain.measurementscale
@@ -189,18 +151,15 @@ SELECT domain.studentid
       --,map_curr.pct AS cur_pct
       --,map_curr.lexile AS cur_lex
       --,map_curr.fallwinterspring AS cur_term
+      ,enr.teacher_name
       ,enr.COURSE_NAME
       ,enr.COURSE_NUMBER
       ,enr.period
 FROM map_tests domain
-JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
   ON domain.studentid = co.studentid
  AND domain.year = co.year
  AND co.rn = 1
-JOIN STUDENTS s WITH(NOLOCK)
-  ON co.studentid = s.id
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON co.studentid = cs.STUDENTID
 LEFT OUTER JOIN domain_scores scores
   ON domain.studentid = scores.studentid
  AND domain.year = scores.year
@@ -211,8 +170,8 @@ LEFT OUTER JOIN domain_scores scores
 --  ON domain.studentid = map_curr.studentid
 -- AND domain.year = map_curr.year
 -- AND domain.measurementscale = map_curr.measurementscale
-LEFT OUTER JOIN enrollments enr
+LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr
   ON domain.studentid = enr.STUDENTID
- AND domain.year = enr.year
+ AND domain.year = enr.academic_year
  AND domain.measurementscale = enr.measurementscale
 WHERE field = 'name'

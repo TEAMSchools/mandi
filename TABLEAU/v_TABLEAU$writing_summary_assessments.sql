@@ -289,3 +289,7 @@ LEFT OUTER JOIN enrollments enr WITH(NOLOCK)
   ON w.studentid = enr.STUDENTID
  AND w.credittype = enr.CREDITTYPE
  AND enr.rn = 1
+--LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
+--  ON w.studentid = enr.STUDENTID
+-- AND w.academic_year = enr.academic_year
+-- AND w.credittype = enr.CREDITTYPE 
