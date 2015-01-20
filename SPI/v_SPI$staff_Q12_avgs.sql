@@ -28,7 +28,11 @@ FROM
           SELECT school_year
                 ,season_text 
                 ,season_numeric 
-                ,campus 
+                ,CASE
+                  WHEN campus LIKE 'Life%' THEN 'Life'
+                  WHEN campus = 'Revolution' THEN 'Rev'
+                  ELSE campus
+                 END AS campus
                 ,question_code 
                 ,ROUND(AVG(CONVERT(FLOAT,response)),2) AS q_avg 
                 ,CONVERT(FLOAT,ROUND(AVG(CASE
@@ -63,7 +67,11 @@ FROM
           GROUP BY school_year
                   ,season_text 
                   ,season_numeric 
-                  ,campus 
+                  ,CASE
+                    WHEN campus LIKE 'Life%' THEN 'Life'
+                    WHEN campus = 'Revolution' THEN 'Rev'
+                    ELSE campus
+                   END
                   ,question_code
          ) sub
     ) sub
