@@ -24,7 +24,7 @@ WITH roster AS (
         ,alt_name
         ,start_date
         ,end_date
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE GETDATE() >= start_date
     AND GETDATE() <= end_date
     AND identifier = 'HEX'

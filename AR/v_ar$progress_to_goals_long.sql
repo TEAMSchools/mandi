@@ -5,7 +5,7 @@ ALTER VIEW AR$progress_to_goals_long AS
 
 WITH long_goals AS (
   SELECT cohort.studentid
-        ,s.student_number
+        ,cohort.student_number
         ,cohort.grade_level
         ,cohort.schoolid
         ,goals.yearid
@@ -25,30 +25,20 @@ WITH long_goals AS (
         ,goals.time_period_start AS start_date_summer_bonus
         ,goals.time_period_start AS [start_date]
         ,goals.time_period_end AS end_date     
-  FROM COHORT$comprehensive_long#static cohort WITH (NOLOCK)
-  JOIN students s WITH (NOLOCK)
-    ON cohort.studentid = s.id
-     
-   --TESTING
-   --AND s.grade_level = 5
-   --AND s.schoolid = 73252
-   --AND s.ID = 4772
-   --AND s.student_number >= 12866
+  FROM COHORT$comprehensive_long#static cohort WITH (NOLOCK) 
 
   --year
   JOIN AR$goals_long_decode#static goals WITH (NOLOCK)
-     ON CAST(s.student_number AS VARCHAR) = goals.student_number
+     ON CAST(cohort.student_number AS VARCHAR) = goals.student_number
     AND goals.time_period_hierarchy = 1
     AND cohort.rn = 1
     AND ((cohort.year - 1990) * 100) = goals.yearid
-
-    --TESTING
-    --AND goals.yearid = 2400
+  
   --term
   UNION ALL
 
   SELECT cohort.studentid
-        ,s.student_number
+        ,cohort.student_number
         ,cohort.grade_level
         ,cohort.schoolid
         ,goals.yearid
@@ -85,16 +75,9 @@ WITH long_goals AS (
         ,goals.time_period_start AS start_date_summer_bonus
         ,goals.time_period_start AS start_date
         ,goals.time_period_end AS end_date
-  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH (NOLOCK)
-  JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
-    ON cohort.studentid = s.id
-   --TESTING
-   --AND s.grade_level = 5
-   --AND s.schoolid = 73252
-   --AND s.id = 4772
-   --AND s.student_number >= 12866
+  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH (NOLOCK)     
   JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
-     ON CAST(s.student_number AS VARCHAR) = goals.student_number
+     ON CAST(cohort.student_number AS VARCHAR) = goals.student_number
     AND goals.time_period_hierarchy = 2
     AND ((year - 1990) * 100) = goals.yearid
     AND cohort.year >= 2011
