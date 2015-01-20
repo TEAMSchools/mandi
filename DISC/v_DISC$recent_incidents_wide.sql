@@ -4,7 +4,7 @@ GO
 ALTER VIEW DISC$recent_incidents_wide AS
 
 SELECT s.id AS studentid
-      --this logtypeid determines what type of log goes into the rest of the row, see JOIN for the logic
+      --this logtypeid determines what type of log goes into the rest of the row, see JOIN for the logic      
       ,CASE
         WHEN dlog01.logtypeid = 3023 THEN 'Merit'
         WHEN dlog01.logtypeid = 3223 THEN 'Demerit'
@@ -49,6 +49,7 @@ SELECT s.id AS studentid
 FROM STUDENTS s WITH (NOLOCK)
 LEFT OUTER JOIN DISC$log#static dlog01 WITH (NOLOCK)
   ON s.id = dlog01.studentid
+ AND dlog01.logtypeid IN (-100000,3023,3223)
  AND dlog01.rn = 1
 LEFT OUTER JOIN DISC$log#static dlog02 WITH (NOLOCK)
   ON s.id = dlog02.studentid

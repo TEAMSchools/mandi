@@ -668,12 +668,14 @@ FROM
       --GRADES
       LEFT OUTER JOIN GRADES$wide_all#NCA#static gr_wide WITH (NOLOCK)
         ON roster.studentid = gr_wide.studentid
-      LEFT OUTER JOIN (SELECT studentid
+      LEFT OUTER JOIN (
+                       SELECT studentid
                              ,COUNT(fail.y1) AS num_failing
                              ,dbo.GROUP_CONCAT_DS(fail.course_name, CHAR(10), 1) AS courses
                        FROM GRADES$DETAIL#NCA fail WITH (NOLOCK)
                        WHERE fail.y1 < 70                         
-                       GROUP BY studentid) fail
+                       GROUP BY studentid
+                      ) fail
         ON roster.studentid = fail.studentid
       LEFT OUTER JOIN GRADES$elements ele_a WITH (NOLOCK)
         ON roster.studentid = ele_a.studentid
@@ -707,7 +709,8 @@ FROM
        AND ele_p.pgf_type = 'P'
       LEFT OUTER JOIN GRADES$rc_grades_by_term rc WITH(NOLOCK)
         ON roster.studentid = rc.studentid
-       AND rc.term IN (SELECT term FROM curterm WITH(NOLOCK))
+       --AND rc.term IN (SELECT term FROM curterm WITH(NOLOCK))
+       AND rc.term = 'Q2'
         
       --ED TECH
         --ACCELERATED READER
@@ -726,7 +729,7 @@ FROM
        AND ar_yr.time_hierarchy = 1 
        
       --MAP
-      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_read_cur WITH (NOLOCK)
+      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_read_cur WITH (NOLOCK)
         ON roster.studentid = map_read_cur.ps_studentid
        AND map_read_cur.measurementscale  = 'Reading'
        AND map_read_cur.map_year_academic = dbo.fn_Global_Academic_Year()
@@ -735,7 +738,7 @@ FROM
         ON roster.studentid = map_read_base.studentid
        AND map_read_base.measurementscale  = 'Reading'
        AND map_read_base.year = dbo.fn_Global_Academic_Year()       
-      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_math_cur WITH (NOLOCK)
+      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_math_cur WITH (NOLOCK)
         ON roster.studentid = map_math_cur.ps_studentid
        AND map_math_cur.measurementscale = 'Mathematics'
        AND map_math_cur.map_year_academic = dbo.fn_Global_Academic_Year()
@@ -744,7 +747,7 @@ FROM
         ON roster.studentid = map_math_base.studentid
        AND map_math_base.measurementscale  = 'Mathematics'
        AND map_math_base.year = dbo.fn_Global_Academic_Year()       
-      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_sci_cur WITH (NOLOCK)
+      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_sci_cur WITH (NOLOCK)
         ON roster.studentid = map_sci_cur.ps_studentid
        AND map_sci_cur.measurementscale = 'Science - General Science'
        AND map_sci_cur.map_year_academic = dbo.fn_Global_Academic_Year()

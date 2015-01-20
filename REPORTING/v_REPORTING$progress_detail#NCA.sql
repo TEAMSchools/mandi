@@ -60,7 +60,7 @@ SELECT roster.ID
       ,CASE
         WHEN Y1 <  70 THEN 'Failing'
         WHEN Y1 <= 75 THEN 'Warning'
-        ELSE NULL
+        ELSE 'Passing'
        END AS AT_RISK
       ,Q1
       ,Q2
