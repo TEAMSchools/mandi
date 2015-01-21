@@ -4,14 +4,12 @@ GO
 ALTER VIEW SPI$MAP_sgp AS
 
 WITH roster AS (
-  SELECT studentid
-        ,sch.ABBREVIATION AS school
-        ,grade_level
-        ,year
-        ,year_in_network                
-  FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH(NOLOCK)
-  JOIN KIPP_NJ..SCHOOLS sch
-    ON co.schoolid = sch.SCHOOL_NUMBER
+  SELECT co.studentid
+        ,co.school_name AS school
+        ,co.grade_level
+        ,co.year
+        ,co.year_in_network                
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
   WHERE co.rn = 1
     AND co.year >= 2009
     AND co.grade_level < 10
