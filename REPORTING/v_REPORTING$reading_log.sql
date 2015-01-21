@@ -30,23 +30,23 @@ WITH roster AS (
     AND identifier = 'HEX'
  )
  
-,enrollments AS (
-  SELECT cc.termid AS termid
-        ,cc.studentid
-        ,sections.id AS sectionid
-        ,sections.section_number
-        ,courses.course_number
-        ,courses.course_name
-  FROM cc WITH(NOLOCK)
-  JOIN sections WITH(NOLOCK)
-    ON cc.sectionid = sections.id
-   AND cc.termid >= dbo.fn_Global_Term_Id()
-  JOIN courses WITH(NOLOCK)
-    ON sections.course_number = courses.course_number
-   AND courses.credittype LIKE 'ENG'
-  WHERE cc.dateenrolled <= GETDATE()
-	   AND cc.dateleft >= GETDATE()
- )
+--,enrollments AS (
+--  SELECT cc.termid AS termid
+--        ,cc.studentid
+--        ,sections.id AS sectionid
+--        ,sections.section_number
+--        ,courses.course_number
+--        ,courses.course_name
+--  FROM cc WITH(NOLOCK)
+--  JOIN sections WITH(NOLOCK)
+--    ON cc.sectionid = sections.id
+--   AND cc.termid >= dbo.fn_Global_Term_Id()
+--  JOIN courses WITH(NOLOCK)
+--    ON sections.course_number = courses.course_number
+--   AND courses.credittype LIKE 'ENG'
+--  WHERE cc.dateenrolled <= GETDATE()
+--	   AND cc.dateleft >= GETDATE()
+-- )
   
 ,map_goals AS (
   SELECT studentid
@@ -78,11 +78,12 @@ WITH roster AS (
 ,readlive AS (
   SELECT studentid
         ,wpm        
+        ,yearid
         ,ROW_NUMBER() OVER(
            PARTITION BY studentid, yearid
-             ORDER BY yearid DESC, CASE WHEN season = 'Fall' THEN 1 WHEN season = 'Winter' THEN 2 WHEN season = 'Spring' THEN 3 ELSE NULL END ASC) AS rn_base
+             ORDER BY CASE WHEN season = 'Fall' THEN 1 WHEN season = 'Winter' THEN 2 WHEN season = 'Spring' THEN 3 ELSE NULL END ASC) AS rn_base
         ,ROW_NUMBER() OVER(
-           PARTITION BY studentid, yearid
+           PARTITION BY studentid
              ORDER BY yearid DESC, CASE WHEN season = 'Fall' THEN 1 WHEN season = 'Winter' THEN 2 WHEN season = 'Spring' THEN 3 ELSE NULL END DESC) AS rn_cur
   FROM SRSLY_DIE_READLIVE WITH(NOLOCK)
  )
@@ -216,8 +217,12 @@ SELECT roster.studentid
 FROM roster
 
 --ENR
-LEFT OUTER JOIN enrollments enr
+LEFT OUTER JOIN PS$course_enrollments#static enr
   ON roster.studentid = enr.studentid
+ AND enr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND enr.credittype IN ('ENG','READ')
+ AND enr.dateenrolled <= CONVERT(DATE,GETDATE())
+ AND enr.dateleft >= CONVERT(DATE,GETDATE()) 
 
 --CURTERM  
 LEFT OUTER JOIN curterm
@@ -257,19 +262,19 @@ LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
   ON roster.studentid = base.studentid
  AND base.year = dbo.fn_Global_Academic_Year()
  AND base.measurementscale = 'Reading'
-LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_fall WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_fall WITH(NOLOCK)
   ON roster.studentid = map_fall.ps_studentid
  AND map_fall.measurementscale = 'Reading'
  AND map_fall.map_year_academic = dbo.fn_Global_Academic_Year()
  AND map_fall.fallwinterspring = 'Fall'
  AND map_fall.rn = 1
-LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_winter WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_winter WITH(NOLOCK)
   ON roster.studentid = map_winter.ps_studentid
  AND map_winter.measurementscale = 'Reading'
  AND map_winter.map_year_academic = dbo.fn_Global_Academic_Year()
  AND map_winter.fallwinterspring = 'Winter'
  AND map_winter.rn = 1
-LEFT OUTER JOIN KIPP_NJ..[MAP$comprehensive#identifiers] map_spr WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_spr WITH(NOLOCK)
   ON roster.studentid = map_spr.ps_studentid
  AND map_spr.measurementscale = 'Reading'
  AND map_spr.map_year_academic = (dbo.fn_Global_Academic_Year() - 1)
@@ -281,6 +286,7 @@ LEFT OUTER JOIN cur_rit
 LEFT OUTER JOIN readlive rl_base WITH(NOLOCK)
   ON roster.studentid = rl_base.studentid 
  AND rl_base.rn_base = 1
+ AND rl_base.yearid = KIPP_NJ.dbo.fn_Global_Term_ID()
 LEFT OUTER JOIN readlive rl_cur WITH(NOLOCK)
   ON roster.studentid = rl_cur.studentid 
  AND rl_cur.rn_cur = 1
