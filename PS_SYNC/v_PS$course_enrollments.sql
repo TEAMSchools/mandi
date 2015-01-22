@@ -50,3 +50,4 @@ LEFT OUTER JOIN KIPP_NJ..PS$rti_tiers#static rti WITH(NOLOCK)
   ON cc.studentid = rti.studentid
  AND cou.CREDITTYPE = rti.credittype
 WHERE cc.termid > 0
+  AND cc.DATEENROLLED < cc.DATELEFT
