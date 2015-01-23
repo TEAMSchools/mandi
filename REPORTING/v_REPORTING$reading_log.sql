@@ -3,22 +3,7 @@ GO
 
 ALTER VIEW reporting$reading_log AS
 
-WITH roster AS (
-  SELECT c.studentid
-        ,c.student_number
-        ,c.grade_level
-        ,c.schoolid
-        ,c.lastfirst
-        ,c.full_name AS name
-        ,c.school_name AS school
-  FROM KIPP_NJ..COHORT$identifiers_long#static c WITH(NOLOCK)   
-  WHERE year = dbo.fn_Global_Academic_Year()
-    AND rn = 1    
-    AND c.schoolid IN (73252, 133570965)
-    AND c.enroll_status = 0    
- )
- 
-,curterm AS (
+WITH curhex AS (
   SELECT schoolid
         ,REPLACE(time_per_name,'Hexameter ','RT') AS time_per_name
         ,alt_name
@@ -29,25 +14,19 @@ WITH roster AS (
     AND GETDATE() <= end_date
     AND identifier = 'HEX'
  )
+
+,curterm AS (
+  SELECT schoolid        
+        ,alt_name
+        ,start_date
+        ,end_date
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
+  WHERE CONVERT(DATE,GETDATE()) >= start_date
+    AND CONVERT(DATE,GETDATE()) <= end_date
+    AND identifier = 'RT'
+    AND school_level = 'MS'
+ )
  
---,enrollments AS (
---  SELECT cc.termid AS termid
---        ,cc.studentid
---        ,sections.id AS sectionid
---        ,sections.section_number
---        ,courses.course_number
---        ,courses.course_name
---  FROM cc WITH(NOLOCK)
---  JOIN sections WITH(NOLOCK)
---    ON cc.sectionid = sections.id
---   AND cc.termid >= dbo.fn_Global_Term_Id()
---  JOIN courses WITH(NOLOCK)
---    ON sections.course_number = courses.course_number
---   AND courses.credittype LIKE 'ENG'
---  WHERE cc.dateenrolled <= GETDATE()
---	   AND cc.dateleft >= GETDATE()
--- )
-  
 ,map_goals AS (
   SELECT studentid
         ,keep_up_goal
@@ -87,18 +66,18 @@ WITH roster AS (
              ORDER BY yearid DESC, CASE WHEN season = 'Fall' THEN 1 WHEN season = 'Winter' THEN 2 WHEN season = 'Spring' THEN 3 ELSE NULL END DESC) AS rn_cur
   FROM SRSLY_DIE_READLIVE WITH(NOLOCK)
  )
-     
+
 SELECT roster.studentid
       ,roster.student_number
       ,roster.grade_level
       ,roster.schoolid
       ,roster.lastfirst
-      ,roster.name
-      ,roster.school
+      ,roster.full_name AS name
+      ,roster.school_name AS school     
       ,enr.course_name + '|' + enr.section_number AS enr_hash
       ,gr.course_number
       ,gr.course_name
-      ,gr_cur.pct AS cur_term_rdg_gr
+      ,gr_cur.term_pct AS cur_term_rdg_gr
       ,gr.Y1 AS y1_rdg_gr
       ,ele.grade_1 AS cur_term_rdg_hw_avg /*--UPDATE FIELD FOR CURRENT TERM--*/
       ,ele.simple_avg AS y1_rdg_hw_avg
@@ -214,7 +193,7 @@ SELECT roster.studentid
       ,map_goals.rutgers_ready_goal
       ,map_goals.rutgers_ready_rit
       
-FROM roster
+FROM KIPP_NJ..COHORT$identifiers_long#static roster WITH(NOLOCK)   
 
 --ENR
 LEFT OUTER JOIN PS$course_enrollments#static enr
@@ -224,7 +203,9 @@ LEFT OUTER JOIN PS$course_enrollments#static enr
  AND enr.dateenrolled <= CONVERT(DATE,GETDATE())
  AND enr.dateleft >= CONVERT(DATE,GETDATE()) 
 
---CURTERM  
+--curhex  
+LEFT OUTER JOIN curhex
+  ON roster.schoolid = curhex.schoolid  
 LEFT OUTER JOIN curterm
   ON roster.schoolid = curterm.schoolid  
 
@@ -232,7 +213,7 @@ LEFT OUTER JOIN curterm
 LEFT OUTER JOIN KIPP_NJ..GRADES$DETAIL#MS gr WITH(NOLOCK)
   ON roster.studentid = gr.studentid
  AND gr.credittype LIKE '%ENG%'
-LEFT OUTER JOIN KIPP_NJ..GRADES$detail_long_term#MS gr_cur WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$detail_long gr_cur WITH(NOLOCK)
   ON roster.studentid = gr_cur.studentid
  AND curterm.alt_name = gr_cur.term
  AND gr_cur.credittype LIKE '%ENG%'
@@ -295,7 +276,7 @@ LEFT OUTER JOIN readlive rl_cur WITH(NOLOCK)
 --current
 LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_cur WITH(NOLOCK)
   ON roster.studentid = ar_cur.studentid
- AND ar_cur.time_period_name = curterm.time_per_name
+ AND ar_cur.time_period_name = curhex.time_per_name
  AND ar_cur.yearid = dbo.fn_Global_Term_Id() 
 --year
 LEFT OUTER JOIN KIPP_NJ..[AR$progress_to_goals_long#static] ar_year WITH(NOLOCK)
@@ -336,3 +317,7 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_h6 WITH (NOLOCK)
 
 LEFT OUTER JOIN map_goals
   ON roster.studentid = map_goals.studentid
+WHERE roster.year = dbo.fn_Global_Academic_Year()
+  AND roster.rn = 1    
+  AND roster.schoolid IN (73252, 133570965)
+  AND roster.enroll_status = 0    

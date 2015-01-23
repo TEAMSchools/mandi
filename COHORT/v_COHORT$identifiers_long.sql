@@ -12,18 +12,14 @@ WITH hs_advisor AS (
              ORDER BY dateleft DESC) AS rn
   FROM
       (
-       SELECT cc.STUDENTID           
-             ,cc.DATELEFT
-             ,dbo.fn_TermToYear(cc.TERMID) AS academic_year           
-             ,t.LASTFIRST AS advisor      
-       FROM cc WITH(NOLOCK)
-       JOIN SECTIONS sec WITH(NOLOCK)
-         ON cc.sectionid = sec.ID
-       JOIN TEACHERS t WITH(NOLOCK)
-         ON sec.TEACHER = t.ID
-       WHERE cc.SCHOOLID = 73253
-         AND cc.COURSE_NUMBER = 'HR'
-         AND cc.SECTIONID > 0
+       SELECT enr.STUDENTID           
+             ,enr.DATELEFT
+             ,enr.academic_year           
+             ,enr.teacher_name AS advisor      
+       FROM KIPP_NJ..PS$course_enrollments#static enr
+       WHERE enr.SCHOOLID = 73253
+         AND enr.COURSE_NUMBER = 'HR'
+         AND enr.SECTIONID > 0
       ) sub
  )
 
@@ -49,8 +45,8 @@ SELECT co.schoolid
       ,s.ETHNICITY
       ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunch_status END AS lunchstatus
       --,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunch_status END AS lunchstatus
-      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE sped.SPEDLEP END AS SPEDLEP
-      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE ELSE sped.SPEDCODE END AS SPED_code
+      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE COALESCE(sped.SPEDLEP, cs.spedlep) END AS SPEDLEP
+      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE ELSE COALESCE(sped.SPEDCODE, cs.spedlep) END AS SPED_code
       ,cs.LEP_STATUS
       ,s.enroll_status
       ,co.rn

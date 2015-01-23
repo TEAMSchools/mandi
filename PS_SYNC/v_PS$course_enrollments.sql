@@ -4,7 +4,7 @@ GO
 ALTER VIEW PS$course_enrollments AS
 
 SELECT cc.academic_year
-      ,cc.TERMID
+      ,ABS(cc.TERMID) AS termid
       ,cc.SCHOOLID
       ,co.grade_level      
       ,cou.CREDITTYPE
@@ -16,7 +16,7 @@ SELECT cc.academic_year
        END AS measurementscale
       ,cc.COURSE_NUMBER
       ,cou.COURSE_NAME      
-      ,cc.SECTIONID
+      ,ABS(cc.SECTIONID) AS sectionid
       ,cc.SECTION_NUMBER      
       ,CASE WHEN cc.schoolid = 73253 THEN cc.period ELSE NULL END AS period
       ,t.TEACHERNUMBER
@@ -34,6 +34,7 @@ SELECT cc.academic_year
       ,cou.GRADESCALEID
       ,cou.EXCLUDEFROMGPA
       ,cou.EXCLUDEFROMSTOREDGRADES  
+      ,CASE WHEN cc.termid < 0 THEN 1 ELSE 0 END AS drop_flags
       ,ROW_NUMBER() OVER(
         PARTITION BY cc.studentid, cou.credittype, cc.academic_year
             ORDER BY cc.termid DESC, cc.dateenrolled DESC) AS rn_subject    
@@ -49,5 +50,4 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$rti_tiers#static rti WITH(NOLOCK)
   ON cc.studentid = rti.studentid
  AND cou.CREDITTYPE = rti.credittype
-WHERE cc.termid > 0
-  AND cc.DATEENROLLED < cc.DATELEFT
+WHERE cc.DATEENROLLED < cc.DATELEFT

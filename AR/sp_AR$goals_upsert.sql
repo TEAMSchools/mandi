@@ -32,7 +32,10 @@ AND target.time_period_name = source.time_period_name
 
 WHEN MATCHED THEN UPDATE  
   SET target.words_goal = source.words_goal
-     ,target.points_goal = source.points_goal
+     ,target.points_goal = source.points_goal     
+     ,target.time_period_start = source.time_period_start
+     ,target.time_period_end = source.time_period_end
+     ,target.time_period_hierarchy = source.time_period_hierarchy
 
 WHEN NOT MATCHED THEN INSERT
   (student_number

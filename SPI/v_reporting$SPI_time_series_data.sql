@@ -327,7 +327,7 @@ WHERE attr.grade_level = 'campus'
         ,3 AS goal_number
         ,'% Male Attrition' AS goal_title
         ,sch.ABBREVIATION AS school
-        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())),2) AS reporting_hash
+        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1),2) AS reporting_hash -- band-aid until time series
         ,pct_transf AS value
         ,'GOLF' AS direction
   FROM

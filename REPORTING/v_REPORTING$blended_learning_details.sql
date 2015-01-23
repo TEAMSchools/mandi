@@ -119,17 +119,17 @@ WITH curterm AS (
                        ,sec.term
                        ,sn.SECTION_NUMBER
                        ,sec.teacher
-                       ,gr.pct
+                       ,gr.y1_pct AS pct
                  FROM KIPP_NJ..COHORT$identifiers_long#static c  WITH(NOLOCK)                       
                  LEFT OUTER JOIN GRADES$sections_by_term#static sec WITH(NOLOCK)
                    ON c.studentid = sec.studentid                                  
                  LEFT OUTER JOIN SECTIONS sn WITH(NOLOCK)
                    ON sec.sectionid = sn.id
-                 LEFT OUTER JOIN GRADES$detail_long_term#MS gr WITH(NOLOCK)
+                 LEFT OUTER JOIN GRADES$detail_long gr WITH(NOLOCK)
                    ON c.studentid = gr.studentid
                   AND sec.course_number = gr.course_number
                   AND gr.sectionid IS NULL 
-                  AND gr.term = 'Y1'  
+                  AND gr.curterm_flag = 1
                  WHERE c.year = dbo.fn_Global_Academic_Year()
                    AND c.rn = 1
                    AND c.enroll_status = 0

@@ -153,12 +153,14 @@ SELECT co.schoolid
       ,sec.credittype
       ,sec.course_number      
       ,sec.course_name      
+      ,sec.sectionid
       ,sec.section_number
       ,sec.teacher
       ,gr.term_pct
       ,gr.term_letter
       ,gr.y1_pct
       ,gr.y1_letter
+      ,CASE WHEN dts.start_date <= CONVERT(DATE,GETDATE()) AND dts.end_date >= CONVERT(DATE,GETDATE()) THEN 1 ELSE 0 END AS curterm_flag
 FROM COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN REPORTING$dates dts WITH(NOLOCK)
   ON co.schoolid = dts.schoolid

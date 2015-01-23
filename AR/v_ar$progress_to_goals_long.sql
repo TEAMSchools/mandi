@@ -26,12 +26,11 @@ WITH long_goals AS (
         ,goals.time_period_start AS [start_date]
         ,goals.time_period_end AS end_date     
   FROM COHORT$comprehensive_long#static cohort WITH (NOLOCK) 
-
   --year
   JOIN AR$goals_long_decode#static goals WITH (NOLOCK)
-     ON CAST(cohort.student_number AS VARCHAR) = goals.student_number
-    AND goals.time_period_hierarchy = 1
-    AND cohort.rn = 1
+    ON CAST(cohort.student_number AS VARCHAR) = goals.student_number
+   AND goals.time_period_hierarchy = 1
+  WHERE cohort.rn = 1
     AND ((cohort.year - 1990) * 100) = goals.yearid
   
   --term
@@ -45,30 +44,30 @@ WITH long_goals AS (
         --standardize term names
         ,2 AS time_hierarchy
         ,CASE
-           --middle
-           WHEN time_period_name = 'Trimester 1' THEN 'RT1'
-           WHEN time_period_name = 'Trimester 2' THEN 'RT2'
-           WHEN time_period_name = 'Trimester 3' THEN 'RT3'
-           --TEAM
-           WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
-           WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
-           WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
-           WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
-           WHEN time_period_name = 'Reporting Term 5' THEN 'RT5'
-           WHEN time_period_name = 'Reporting Term 6' THEN 'RT6'
-           --high
-           WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
-           WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
-           WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
-           WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
-           --new middle school
-           WHEN time_period_name = 'Hexameter 1' THEN 'RT1'
-           WHEN time_period_name = 'Hexameter 2' THEN 'RT2'
-           WHEN time_period_name = 'Hexameter 3' THEN 'RT3'
-           WHEN time_period_name = 'Hexameter 4' THEN 'RT4'
-           WHEN time_period_name = 'Hexameter 5' THEN 'RT5'
-           WHEN time_period_name = 'Hexameter 6' THEN 'RT6'
-           --elementary? (CAPSTONE?)
+          --middle
+          WHEN time_period_name = 'Trimester 1' THEN 'RT1'
+          WHEN time_period_name = 'Trimester 2' THEN 'RT2'
+          WHEN time_period_name = 'Trimester 3' THEN 'RT3'
+          --TEAM
+          WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
+          WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
+          WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
+          WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
+          WHEN time_period_name = 'Reporting Term 5' THEN 'RT5'
+          WHEN time_period_name = 'Reporting Term 6' THEN 'RT6'
+          --high
+          WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
+          WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
+          WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
+          WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
+          --new middle school
+          WHEN time_period_name = 'Hexameter 1' THEN 'RT1'
+          WHEN time_period_name = 'Hexameter 2' THEN 'RT2'
+          WHEN time_period_name = 'Hexameter 3' THEN 'RT3'
+          WHEN time_period_name = 'Hexameter 4' THEN 'RT4'
+          WHEN time_period_name = 'Hexameter 5' THEN 'RT5'
+          WHEN time_period_name = 'Hexameter 6' THEN 'RT6'
+          --elementary? (CAPSTONE?)
          END AS time_period_name
         ,goals.words_goal
         ,goals.points_goal
@@ -79,7 +78,7 @@ WITH long_goals AS (
   JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
      ON CAST(cohort.student_number AS VARCHAR) = goals.student_number
     AND goals.time_period_hierarchy = 2
-    AND ((year - 1990) * 100) = goals.yearid
+  WHERE ((year - 1990) * 100) = goals.yearid
     AND cohort.year >= 2011
     AND cohort.rn = 1
     --TESTING

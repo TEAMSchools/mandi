@@ -5,92 +5,12 @@ import csv
 import json
 import gspread
 import pymssql
-import codecs
-import cStringIO
+import unicodewriter
 
-
-"""
-CONFIG
-"""
-# db config
-server_name = "WINSQL01\NARDO"
-
-# key files
-gdocs_secret = "C:\\data_robot\\logistical\\gdocs_secret.json"
-db_secret = "C:\\data_robot\\logistical\\nardo_secret.json"
-config_path = "C:\\data_robot\\gdocs\\gdocs.csv"
-
-# keys
-keys = json.load(file(gdocs_secret))
-gdocs_user = keys['GDOCS_USERNAME']
-gdocs_pass = keys['GDOCS_PASSWORD']
-
-keys = json.load(file(db_secret))
-db_user = keys['NARDO_USERNAME']
-db_pass = keys['NARDO_PASSWORD']
-
-
-"""
-A CSV writer which will write rows to CSV file "f",
-which is encoded in the given encoding.
-"""
-class UnicodeWriter:
-    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
-        # Redirect output to a queue
-        self.queue = cStringIO.StringIO()
-        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
-        self.stream = f
-        self.encoder = codecs.getincrementalencoder(encoding)()
-
-    def writerow(self, row):
-        self.writer.writerow([s.encode("utf-8") for s in row])
-        # Fetch UTF-8 output from the queue ...
-        data = self.queue.getvalue()
-        data = data.decode("utf-8")
-        # ... and reencode it into the target encoding
-        data = self.encoder.encode(data)
-        # write to the target stream
-        self.stream.write(data)
-        # empty queue
-        self.queue.truncate(0)
-
-    def writerows(self, rows):
-        for row in rows:
-            self.writerow(row)
-
-"""
-DOWNLOAD
-"""
-# open config file
-with open(config_path, 'rb') as f:
-    next(f)  # skip header
-    gdocs = csv.reader(f, delimiter=',')
-    wkbk_list = []
-    for record in gdocs:
-        print record
-        wkbk_list.append(record)
-    print
-
-client = gspread.login(gdocs_user, gdocs_pass)
-
-# iterate over urls in config csv
-for record in wkbk_list:
-    url = record[0]
-    tag = record[1]
-    db_name = record[2]
-    folder = record[3]
-    start_sheet = int(record[4])
-    end_sheet = int(record[5]) + 1  # range() will create a 0-indexed list of integers, so this adjusts for that
-    start_row = int(record[6])
-
-    # file paths
-    save_path = "C:\\data_robot\\gdocs\\" + folder + "\\"
-    
-
-    print 'Navigating to ' + url
-    try:
-        workbook = client.open_by_url(url)
-    except:
+def distress_signal(error_type):
+    conn = pymssql.connect(server_name, db_user, db_pass, db_name)
+    cursor = conn.cursor()
+    if error_type == "http":
         print '!!! ERROR NAVIGATING TO URL !!!'
         conn = pymssql.connect(server_name, db_user, db_pass, db_name)
         cursor = conn.cursor()
@@ -105,9 +25,75 @@ for record in wkbk_list:
                 @subject = '!!! WARNING - GDocs HTTP Error !!!',
                 @importance = 'High';
         """        
-        cursor.execute(warn_email)        
-        conn.commit()
-        conn.close()
+        cursor.execute(warn_email)                
+        conn.close()        
+    elif error_type == "load":
+        print '!!! ERROR LOADING FOLDER !!!'
+        warn_email = """
+            DECLARE @body VARCHAR(MAX);
+            SET @body = 'The database load failed for ' + '""" + save_path + ' (' + url + ')' + """' + '.  Check that the GDocs source still matches the destination table and reset if necessary.';
+
+            EXEC msdb..sp_send_dbmail
+                @profile_name = 'DataRobot',
+                @recipients = 'cbini@teamschools.org',
+                @body = @body,
+                @subject = '!!! WARNING - GDocs sp_LoadFolder fail !!!',
+                @importance = 'High';
+        """        
+        cursor.execute(warn_email)                
+        conn.close()        
+
+"""
+CONFIG
+"""
+# file locations
+secret_file = "../config/secret.json"
+config_file = "gdocs.csv"
+
+# keys
+keys = json.load(file(secret_file))
+gdocs_user = keys['GDOCS']['login']['USERNAME']
+gdocs_pass = keys['GDOCS']['login']['PASSWORD']
+server_name = keys['NARDO']['server_name']
+db_user = keys['NARDO']['login']['USERNAME']
+db_pass = keys['NARDO']['login']['PASSWORD']
+
+
+"""
+DOWNLOAD
+"""
+# open config file
+with open(config_file, 'rb') as f:
+    next(f)  # skip header
+    gdocs = csv.reader(f, delimiter=',')
+    wkbk_list = []
+    for record in gdocs:
+        print record
+        wkbk_list.append(record)
+    print
+
+# initialize GDocs client
+client = gspread.login(gdocs_user, gdocs_pass)
+
+# iterate over urls in config csv
+for record in wkbk_list:
+    url = record[0]
+    tag = record[1]
+    db_name = record[2]
+    folder = record[3]
+    start_sheet = int(record[4])
+    end_sheet = int(record[5]) + 1  # range() will create a 0-indexed list of integers, so the +1 adjusts for that
+    start_row = int(record[6])
+
+    # file paths
+    save_path = "C:\\data_robot\\gdocs\\" + folder + "\\"
+    
+
+    print 'Navigating to ' + url
+    try:
+        workbook = client.open_by_url(url)
+    except:
+        distress_signal("http")
         continue
     sheet_names = workbook.worksheets()
     print
@@ -135,7 +121,7 @@ for record in wkbk_list:
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         with open(filename, 'wb') as f:
-            writer = UnicodeWriter(f)
+            writer = unicodewriter.UnicodeWriter(f)
             writer.writerows(data)
 
         print 'Done!'
@@ -158,23 +144,9 @@ for record in wkbk_list:
         conn.commit()
         conn.close()
     except:
-        print '!!! ERROR LOADING FOLDER !!!'
-        warn_email = """
-            DECLARE @body VARCHAR(MAX);
-            SET @body = 'The database load failed for ' + '""" + save_path + """' + '.  Check that the GDocs source still matches the destination table and reset if necessary.';
-
-            EXEC msdb..sp_send_dbmail
-                @profile_name = 'DataRobot',
-                @recipients = 'cbini@teamschools.org',
-                @body = @body,
-                @subject = '!!! WARNING - GDocs sp_LoadFolder fail !!!',
-                @importance = 'High';
-        """        
-        cursor.execute(warn_email)        
-        conn.commit()
-        conn.close()
+        distress_signal("load")
         continue
-
+    
     print
     print 'Next workbook!'
     print

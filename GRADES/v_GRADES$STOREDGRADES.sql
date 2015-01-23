@@ -22,7 +22,7 @@ FROM
     (
      SELECT STUDENTID
            ,SECTIONID
-           ,COURSE_NUMBER
+           ,ISNULL(COURSE_NUMBER,'TRANSFER') AS course_number
            ,COURSE_NAME
            ,TERMID
            ,academic_year
@@ -35,9 +35,13 @@ FROM
            ,EXCLUDEFROMGPA
            ,EXCLUDEFROMTRANSCRIPTS
            ,EXCLUDEFROMGRADUATION
-           ,ROW_NUMBER() OVER(
-              PARTITION BY academic_year, storecode, studentid, course_name
-                ORDER BY pct DESC) AS dupe_audit
+           ,CASE 
+             WHEN course_number IS NOT NULL THEN 
+              ROW_NUMBER() OVER(
+                PARTITION BY academic_year, storecode, studentid, course_number
+                  ORDER BY EARNEDCRHRS DESC, pct DESC) 
+             ELSE 1
+            END AS dupe_audit
      FROM
          (
           SELECT oq.STUDENTID
@@ -71,7 +75,7 @@ FROM
                   ,excludefromtranscripts
                   ,excludefromgraduation        
             FROM storedgrades
-            WHERE (grade IS NOT NULL AND percent > 0)
+            WHERE (course_number IS NULL OR (course_number IS NOT NULL AND grade IS NOT NULL AND percent > 0)) -- exclude dirty data but keep transfer credits
           ') oq
           JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK) -- only records with matching student IDs returned, there's some really dirty data from 2008
             ON oq.studentid = s.id
