@@ -60,17 +60,15 @@ FROM
      JOIN subj
        ON 1=1
     ) sub
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_fall WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_fall WITH(NOLOCK) --THIS YEAR FALL
   ON sub.studentid = map_fall.ps_studentid
  AND sub.measurementscale = map_fall.MeasurementScale
  AND map_fall.rn = 1
- --THIS YEAR FALL
  AND map_fall.map_year = sub.year
  AND map_fall.fallwinterspring = 'Fall'
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_spr WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_spr WITH(NOLOCK) -- PREVIOUS YEAR SPRING
   ON sub.studentid = map_spr.ps_studentid
  AND sub.measurementscale = map_spr.MeasurementScale
- AND map_spr.rn = 1
- --PREVIOUS YEAR
+ AND map_spr.rn = 1 
  AND map_spr.map_year = sub.year
  AND map_spr.fallwinterspring = 'Spring'
