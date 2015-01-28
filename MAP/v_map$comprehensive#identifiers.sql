@@ -138,6 +138,7 @@ SELECT cohort.schoolid
                 JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
                   ON s.student_number = map.studentid
                 WHERE map.StudentID != '11XXX'
+                  AND (map.TestID IS NULL OR map.TestID NOT IN (SELECT TestID FROM KIPP_NJ..MAP$exclusion_audit#static WITH(NOLOCK) WHERE is_excluded = 1))
                ) sq_1
           ) sq_2
 LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)

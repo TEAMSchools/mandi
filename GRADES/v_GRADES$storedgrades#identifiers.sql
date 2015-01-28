@@ -4,8 +4,8 @@ GO
 ALTER VIEW GRADES$storedgrades#identifiers AS
 
 SELECT sg.academic_year
-      ,COALESCE(co.schoolid, 73253) AS schoolid
-      ,COALESCE(co.school_name, 'NCA') AS school_name
+      ,COALESCE(co.schoolid, sg.schoolid) AS schoolid
+      ,co.school_name
       ,sg.studentid
       ,COALESCE(co.student_number, transf.student_number) AS student_number
       ,COALESCE(co.lastfirst, transf.lastfirst) AS student_name
@@ -16,7 +16,7 @@ SELECT sg.academic_year
       ,sg.PCT AS grade_pct
       ,sg.GPA_POINTS AS grade_points
       ,scale.grade_points AS grade_points_nca_unweighted
-      ,NULL AS earned_crhrs
+      ,NULL AS earned_crhrs      
       ,enr.CREDIT_HOURS AS potential_crhrs
       
       -- student identifiers
@@ -65,8 +65,8 @@ UNION ALL
 
 SELECT DISTINCT
        sg.academic_year
-      ,COALESCE(co.schoolid, 73253) AS schoolid
-      ,COALESCE(co.school_name, 'NCA') AS school_name
+      ,COALESCE(co.schoolid, sg.schoolid) AS schoolid
+      ,co.school_name
       ,sg.studentid
       ,COALESCE(co.student_number, transf.student_number) AS student_number
       ,COALESCE(co.lastfirst, transf.lastfirst) AS student_name
@@ -76,9 +76,10 @@ SELECT DISTINCT
       ,sg.GRADE AS grade_letter
       ,sg.PCT AS grade_pct
       ,sg.GPA_POINTS AS grade_points
-      ,scale.grade_points AS grade_points_nca_unweighted
-      ,sg.EARNEDCRHRS
-      ,enr.CREDIT_HOURS
+      ,scale.grade_points AS grade_points_nca_unweighted      
+      ,sg.EARNEDCRHRS AS earned_crhrs
+      --,CASE WHEN sg.COURSE_NUMBER = 'TRANSFER' THEN NULL ELSE sg.potentialcrhrs END AS potential_crhrs
+      ,sg.potentialcrhrs AS potential_crhrs
       
       -- student identifiers
       ,COALESCE(co.ADVISOR, transf.advisor) AS advisor

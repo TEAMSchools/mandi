@@ -40,8 +40,8 @@ WITH roster AS (
         ,terms.round_num
   FROM roster r WITH(NOLOCK)
   JOIN terms WITH(NOLOCK)
-    ON r.year = terms.academic_year
-   AND r.schoolid = terms.schoolid
+    ON (r.year = terms.academic_year AND r.schoolid = terms.schoolid) 
+    OR (r.grade_level <= 4 AND terms.schoolid IS NULL AND r.year <= 2012 AND r.year = terms.academic_year) -- ES rounds for archive years
  )
 
 -- highest acheived test per round for each student 

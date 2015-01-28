@@ -4,6 +4,7 @@ GO
 ALTER VIEW GRADES$STOREDGRADES AS
 
 SELECT STUDENTID
+      ,SCHOOLID
       ,SECTIONID
       ,COURSE_NUMBER
       ,COURSE_NAME
@@ -13,6 +14,7 @@ SELECT STUDENTID
       ,GRADE
       ,PCT
       ,GPA_POINTS
+      ,POTENTIALCRHRS
       ,EARNEDCRHRS
       ,GRADESCALE_NAME
       ,EXCLUDEFROMGPA
@@ -21,6 +23,7 @@ SELECT STUDENTID
 FROM
     (
      SELECT STUDENTID
+           ,SCHOOLID
            ,SECTIONID
            ,ISNULL(COURSE_NUMBER,'TRANSFER') AS course_number
            ,COURSE_NAME
@@ -30,6 +33,7 @@ FROM
            ,GRADE
            ,PCT
            ,GPA_POINTS
+           ,POTENTIALCRHRS
            ,EARNEDCRHRS
            ,GRADESCALE_NAME
            ,EXCLUDEFROMGPA
@@ -39,12 +43,13 @@ FROM
              WHEN course_number IS NOT NULL THEN 
               ROW_NUMBER() OVER(
                 PARTITION BY academic_year, storecode, studentid, course_number
-                  ORDER BY EARNEDCRHRS DESC, pct DESC) 
+                  ORDER BY EARNEDCRHRS DESC, POTENTIALCRHRS DESC, pct DESC) 
              ELSE 1
             END AS dupe_audit
      FROM
          (
           SELECT oq.STUDENTID
+                ,oq.schoolid
                 ,oq.SECTIONID
                 ,oq.COURSE_NUMBER
                 ,oq.COURSE_NAME
@@ -54,6 +59,7 @@ FROM
                 ,oq.GRADE
                 ,oq.[PERCENT] AS PCT
                 ,oq.GPA_POINTS
+                ,oq.POTENTIALCRHRS
                 ,oq.EARNEDCRHRS
                 ,oq.GRADESCALE_NAME
                 ,oq.EXCLUDEFROMGPA
@@ -61,6 +67,7 @@ FROM
                 ,oq.EXCLUDEFROMGRADUATION
           FROM OPENQUERY(PS_TEAM,'
             SELECT studentid
+                  ,schoolid
                   ,sectionid
                   ,course_number
                   ,course_name
@@ -69,7 +76,8 @@ FROM
                   ,grade
                   ,percent
                   ,gpa_points
-                  ,earnedcrhrs        
+                  ,potentialcrhrs
+                  ,earnedcrhrs  
                   ,gradescale_name
                   ,excludefromgpa
                   ,excludefromtranscripts
