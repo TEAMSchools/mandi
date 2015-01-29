@@ -7,7 +7,7 @@ Data management, warehousing, and reporting in SQL Server.
 ['mandi' (mun-dHee) is Telugu for 'storehouse, warehouse, godown.']
 
 ## Naming Conventions
-These are important.
+*These are important. - Laszlo*
 + Always include the name of the 'product', and then a $. Otherwise things won't sort nicely and maintenance becomes a nightmare.  For example, if the view relates to MS grades, preface the name with `GRADES$`.
 
 + Generally speaking the 'product' name should match the subfolder that it lives in.
