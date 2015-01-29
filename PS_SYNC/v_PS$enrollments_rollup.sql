@@ -11,6 +11,7 @@ SELECT enr.STUDENTID
       ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT COURSE_NUMBER, ',') + ',' AS course_number
       ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT COURSE_NAME, ',') + ',' AS course_name
       ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT teacher_name, ',') + ',' AS teacher_name
+      ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT teacher_coach, ',') + ',' AS teacher_coach
       ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT period, ',') + ',' AS period
       ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT COALESCE(period, section_number), ',') + ',' AS section
       ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT tier, ',') + ',' AS rti_tier

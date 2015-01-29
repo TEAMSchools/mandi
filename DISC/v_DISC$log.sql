@@ -212,7 +212,7 @@ SELECT all_logs.schoolid
       ,dates.time_per_name AS RT
       ,ROW_NUMBER() OVER(
           PARTITION BY studentid, logtypeid
-              ORDER BY entry_date ASC) AS rn
+              ORDER BY entry_date DESC) AS rn
 FROM all_logs WITH(NOLOCK)
 LEFT OUTER JOIN REPORTING$dates dates WITH (NOLOCK)
   ON all_logs.entry_date >= dates.start_date

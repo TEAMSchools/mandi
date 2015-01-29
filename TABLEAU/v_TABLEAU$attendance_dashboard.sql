@@ -14,6 +14,7 @@ SELECT 'KIPP NJ' AS Network
         WHEN co.schoolid IN (73253) THEN 'HS'
        END AS school_level      
       ,co.schoolid
+      ,co.studentid
       ,co.lastfirst
       ,co.grade_level
       ,co.team
@@ -37,7 +38,7 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN att.att_code = 'ISS' THEN 1 ELSE 0 END AS ISS
       ,CASE WHEN att.att_code = 'OSS' THEN 1 ELSE 0 END AS OSS
       --other
-      ,CASE WHEN ed.subtype = '01' THEN 1 ELSE 0 END AS early_dismissal
+      ,CASE WHEN ed.subtype = 'Left Early' THEN 1 ELSE 0 END AS early_dismissal
       ,supp.[Behavior Tier ] AS behavior_tier
       ,supp.[Plan Owner ] AS plan_owner
       ,supp.[Admin Support] AS admin_support

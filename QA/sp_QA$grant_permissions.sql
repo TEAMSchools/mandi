@@ -7,6 +7,13 @@ ALTER PROCEDURE sp_QA$grant_permissions AS
 GRANT SELECT ON REPORTING$dates TO db_data_tool_reader
 GRANT SELECT ON UTIL$reporting_weeks_days TO db_data_tool_reader
 
+--DB functions
+GRANT EXECUTE ON fn_Global_Term_Id TO db_data_tool_reader
+GRANT EXECUTE ON fn_Global_Academic_Year TO db_data_tool_reader
+GRANT EXECUTE ON GROUP_CONCAT_D TO db_data_tool_reader
+GRANT EXECUTE ON GROUP_CONCAT TO db_data_tool_reader
+GRANT EXECUTE ON ASCII_CONVERT TO db_data_tool_reader
+
 --Lit
 GRANT SELECT ON LIT$test_events#identifiers TO db_data_tool_reader
 GRANT SELECT ON reporting$reading_log TO db_data_tool_reader
@@ -20,9 +27,6 @@ GRANT SELECT ON REPORTING$progress_tracker#TEAM#static TO db_data_tool_reader
 GRANT SELECT ON REPORTING$progress_tracker#NCA#static TO db_data_tool_reader
 GRANT SELECT ON REPORTING$quick_lookup#NCA#static TO db_data_tool_reader
 
---blended
-GRANT SELECT ON KIPP_NJ..REPORTING$st_math_tracker TO db_data_tool_reader
-
 --PS sync
 GRANT SELECT ON STUDENTS TO db_data_tool_reader
 GRANT SELECT ON CUSTOM_STUDENTS TO db_data_tool_reader
@@ -33,6 +37,8 @@ GRANT SELECT ON CC TO db_data_tool_reader
 GRANT SELECT ON SECTIONS TO db_data_tool_reader
 GRANT SELECT ON MEMBERSHIP TO db_data_tool_reader
 GRANT SELECT ON ATTENDANCE TO db_data_tool_reader
+GRANT SELECT ON PS$course_enrollments#static TO db_data_tool_reader
+GRANT SELECT ON PS$enrollments_rollup#static TO db_data_tool_reader
 
 --MAP
 GRANT SELECT ON MAP$cohort_performance_targets TO db_data_tool_reader
@@ -45,6 +51,7 @@ GRANT SELECT ON REPORTING$MAP_tracker#static TO db_data_tool_reader
 GRANT SELECT ON GRADES$DETAIL#MS TO db_data_tool_reader
 GRANT SELECT ON GPA$detail#MS TO db_data_tool_reader
 GRANT SELECT ON GRADES$elements TO db_data_tool_reader
+GRANT SELECT ON GRADES$detail_long_term#MS TO db_data_tool_reader
 
 --ES Reporting
 GRANT SELECT ON REPORTING$intervention_results_by_standard TO db_data_tool_reader
@@ -66,16 +73,10 @@ GRANT SELECT ON TABLEAU$course_enrollments TO db_data_tool_reader
 GRANT SELECT ON TABLEAU$attendance_dashboard TO db_data_tool_reader
 GRANT SELECT ON TABLEAU$assessment_dashboard TO db_data_tool_reader
 
---Khan
+--blended
+GRANT SELECT ON KIPP_NJ..REPORTING$st_math_tracker TO db_data_tool_reader
 GRANT SELECT ON REPORTING$khan_world_of_math_totals TO db_data_tool_reader
 GRANT SELECT ON REPORTING$khan_math_missions_totals TO db_data_tool_reader
 GRANT SELECT ON REPORTING$khan_world_of_math#long#static TO db_data_tool_reader
 GRANT SELECT ON REPORTING$khan_math_missions#long#static TO db_data_tool_reader
-
---DB functions
-GRANT EXECUTE ON fn_Global_Term_Id TO db_data_tool_reader
-GRANT EXECUTE ON fn_Global_Academic_Year TO db_data_tool_reader
-GRANT EXECUTE ON GROUP_CONCAT_D TO db_data_tool_reader
-GRANT EXECUTE ON GROUP_CONCAT TO db_data_tool_reader
-GRANT EXECUTE ON ASCII_CONVERT TO db_data_tool_reader
 

@@ -15,7 +15,7 @@ WITH stu_cal_frame AS (
               ,CONVERT(DATE,weekday_sun) AS week_of
               ,DATEPART(MONTH,weekday_sun) AS month
         FROM UTIL$reporting_weeks_days WITH(NOLOCK)
-        WHERE year = dbo.fn_Global_Academic_Year()
+        WHERE year >= dbo.fn_Global_Academic_Year()
           AND weekday_sun >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-11-23')
           AND weekday_sun <= GETDATE()
        ) cal

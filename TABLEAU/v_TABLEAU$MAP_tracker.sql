@@ -114,6 +114,7 @@ SELECT r.year
       ,enr.COURSE_NUMBER
       ,enr.COURSE_NAME
       ,enr.teacher_name AS teacher
+      ,enr.teacher_coach
       ,enr.period      
       ,rs.read_lvl
 FROM COHORT$identifiers_long#static r WITH(NOLOCK)

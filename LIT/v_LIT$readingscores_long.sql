@@ -176,7 +176,7 @@ FROM
      FROM long_scores rs
      JOIN LIT$gleq gleq WITH(NOLOCK)
        ON rs.testid = gleq.testid
-      AND rs.read_lvl = gleq.read_lvl
+      AND ((rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl) OR (rs.testid != 3273))
      JOIN LIT$prof_long prof WITH(NOLOCK)
        ON rs.testid = prof.testid
       AND rs.field = prof.field_name

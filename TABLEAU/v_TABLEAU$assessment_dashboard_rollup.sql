@@ -57,12 +57,12 @@ FROM
      JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK)
        ON res.local_student_id = co.student_number
       AND a.academic_year = co.year
+      AND co.schoolid IN (73253,73252,133570965)
       AND co.rn = 1     
      LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
        ON co.studentid = enr.studentid
       AND co.year = enr.academic_year
-      AND a.credittype = enr.credittype       
-     WHERE co.schoolid IN (73253,73252,133570965)
+      AND a.credittype = enr.credittype            
     ) sub
 GROUP BY schoolid
         ,academic_year        

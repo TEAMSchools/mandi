@@ -36,6 +36,24 @@ WITH attendance_long AS (
   WHERE att.att_code IS NOT NULL
     AND curterm.start_date <= GETDATE()
     AND curterm.end_date >= GETDATE()  
+
+  UNION ALL
+
+    --trip term
+  SELECT att.studentid
+        ,att.att_date
+        ,att.att_code                  
+        ,'TRIP' AS RT                  
+  FROM KIPP_NJ..ATTENDANCE att WITH (NOLOCK)
+  JOIN KIPP_NJ..REPORTING$dates trip WITH (NOLOCK)
+    ON att.schoolid = trip.schoolid         
+   AND att.ATT_DATE >= trip.start_date
+   AND att.ATT_DATE <= trip.end_date
+   AND trip.identifier = 'ATT'
+   AND trip.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE att.att_code IS NOT NULL
+    AND trip.start_date <= GETDATE()
+    AND trip.end_date >= GETDATE()  
  )
 
 -- early dismissals by date, both excused and unexcused
@@ -47,8 +65,8 @@ WITH attendance_long AS (
           WHEN disc.subtype = 'Left Early (Excused)' THEN 'LEX'
           ELSE NULL
          END AS att_code           
-  FROM DISC$log#static disc WITH(NOLOCK)
-  JOIN REPORTING$dates dates WITH(NOLOCK)
+  FROM KIPP_NJ..DISC$log#static disc WITH(NOLOCK)
+  JOIN KIPP_NJ..REPORTING$dates dates WITH(NOLOCK)
     ON disc.schoolid = dates.schoolid
    AND disc.entry_date >= dates.start_date
    AND disc.entry_date <= dates.end_date
@@ -74,6 +92,26 @@ WITH attendance_long AS (
     AND disc.subtype IS NOT NULL
     AND curterm.start_date <= GETDATE()
     AND curterm.end_date >= GETDATE()   
+
+  UNION ALL
+
+  SELECT disc.studentid      
+        ,'TRIP' AS RT                  
+        ,CASE 
+          WHEN disc.subtype = 'Left Early' THEN 'LE'
+          WHEN disc.subtype = 'Left Early (Excused)' THEN 'LEX'
+          ELSE NULL
+         END AS att_code
+  FROM DISC$log#static disc WITH(NOLOCK)
+  JOIN REPORTING$dates trip WITH(NOLOCK)
+    ON disc.schoolid = trip.schoolid
+   AND disc.entry_date >= trip.start_date
+   AND disc.entry_date <= trip.end_date
+   AND trip.identifier = 'ATT'
+  WHERE disc.logtypeid = 3953
+    AND disc.subtype IS NOT NULL
+    AND trip.start_date <= GETDATE()
+    AND trip.end_date >= GETDATE()   
  )
 
 -- uniform violations by date
@@ -103,6 +141,21 @@ WITH attendance_long AS (
   WHERE dt.has_uniform = 0
     AND curterm.start_date <= GETDATE()
     AND curterm.end_date >= GETDATE()       
+
+  UNION ALL
+
+  SELECT studentid
+        ,'TRIP' AS RT                  
+        ,dt.has_uniform
+  FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+  JOIN REPORTING$dates trip WITH (NOLOCK)
+    ON dt.schoolid = trip.schoolid
+   AND dt.att_date >= trip.start_date
+   AND dt.att_date <= trip.end_date
+   AND trip.identifier = 'ATT'
+  WHERE dt.has_uniform = 0
+    AND trip.start_date <= GETDATE()
+    AND trip.end_date >= GETDATE()       
  )
 
 SELECT studentid
@@ -153,6 +206,29 @@ SELECT studentid
          + ISNULL([CUR_T10],0)
          + ISNULL([CUR_TE],0) AS CUR_T_ALL
 
+      -- trip term codes
+      ,ISNULL([TRIP_A],0) AS TRIP_A
+      ,ISNULL([TRIP_AD],0) AS TRIP_AD
+      ,ISNULL([TRIP_AE],0) AS TRIP_AE
+      ,ISNULL([TRIP_CR],0) AS TRIP_CR
+      ,ISNULL([TRIP_CS],0) AS TRIP_CS
+      ,ISNULL([TRIP_EV],0) AS TRIP_EV
+      ,ISNULL([TRIP_ISS],0) AS TRIP_ISS
+      ,ISNULL([TRIP_OSS],0) AS TRIP_OSS
+      ,ISNULL([TRIP_T],0) AS TRIP_T
+      ,ISNULL([TRIP_T10],0) AS TRIP_T10
+      ,ISNULL([TRIP_TE],0) AS TRIP_TE
+      -- from logs/tracking
+      ,ISNULL([TRIP_LE],0) AS TRIP_LE
+      ,ISNULL([TRIP_LEX],0) AS TRIP_LEX
+      ,ISNULL([TRIP_UNI],0) AS TRIP_UNI
+      -- totals
+      ,ISNULL([TRIP_A],0)
+         + ISNULL([TRIP_AD],0) AS TRIP_ABS_ALL
+      ,ISNULL([TRIP_T],0)
+         + ISNULL([TRIP_T10],0)
+         + ISNULL([TRIP_TE],0) AS TRIP_T_ALL
+      
       -- rt1 codes
       ,ISNULL([RT1_A],0) AS RT1_A
       ,ISNULL([RT1_AD],0) AS RT1_AD
@@ -292,10 +368,10 @@ SELECT studentid
          + ISNULL([RT6_TE],0) AS RT6_T_ALL
      
       -- trip abs calculations
-      ,ROUND(ISNULL([CUR_A],0)
-              + ((ISNULL([CUR_T],0) + ISNULL([CUR_T10],0)) / 3)
-              + (ISNULL([CUR_LE],0) / 3)
-              + (ISNULL([CUR_UNI],0) / 6)
+      ,ROUND(ISNULL([TRIP_A],0)
+              + ((ISNULL([TRIP_T],0) + ISNULL([TRIP_T10],0)) / 3)
+              + (ISNULL([TRIP_LE],0) / 3)
+              + (ISNULL([TRIP_UNI],0) / 6)
              ,1) AS CUR_TRIP_ABS
       ,ROUND(ISNULL([RT1_A],0)
               + ((ISNULL([RT1_T],0) + ISNULL([RT1_T10],0)) / 3)
@@ -534,5 +610,19 @@ PIVOT (
                  ,[RT6_UNI]
                  ,[Y1_LE]
                  ,[Y1_LEX]
-                 ,[Y1_UNI])
+                 ,[Y1_UNI]
+                 ,[TRIP_LE]
+                 ,[TRIP_LEX]
+                 ,[TRIP_UNI]
+                 ,[TRIP_A]
+                 ,[TRIP_AD]
+                 ,[TRIP_AE]
+                 ,[TRIP_CR]
+                 ,[TRIP_CS]
+                 ,[TRIP_EV]
+                 ,[TRIP_ISS]
+                 ,[TRIP_OSS]
+                 ,[TRIP_T]
+                 ,[TRIP_T10]
+                 ,[TRIP_TE])
  ) p
