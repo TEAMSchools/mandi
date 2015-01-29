@@ -12,7 +12,7 @@ These are important.
 
 + Generally speaking the 'product' name should match the subfolder that it lives in.
 
-+ When picking a name, think about the class of __data__ in question, broadly.  There are a few notable exceptions to this rule, namely `EMAIL$` (all things notifications) and `PROG_TRACKER$` (views for the progress tracker).
++ When picking a name, think about the class of __data__ in question, broadly.  There are a few notable exceptions to this rule, namely `EMAIL$` (all things notifications) and `REPORTING$` (views for the progress trackers and others).
 
 + Views don't get a 'v_' prefix database side, but use the prefix on the file name [views should be functionally interchangeable with tables, so no prefix].
 
@@ -29,24 +29,21 @@ Jokes are fine but please be descriptive about what changed.
 
 ## Best Practices
 
-+ Use the flag `/*--UPDATE FIELD FOR CURRENT TERM--*/` for code that requires regular turnover (hex, trimester, etc.) to allow for easy Find/Replace action
++ Use the flag `/*--UPDATE FIELD FOR CURRENT TERM--*/` for code that requires regular turnover (hex, trimester, etc.) to allow for easy Find/Replace action.  Or better yet, make your `JOIN` dynamic.
 
-+ When creating or adjusting a cached refresh, use the following code to quickly replicate the table structure from your view:
++ When creating or adjusting a cached refresh, use the following procedure to quickly replicate a static table from your view:
  
-		SELECT *
-		INTO [TABLE]
-		FROM [VIEW]
-		WHERE 1 = 2
+		EXEC sp_CacheView '[DATABASE]', '[VIEW]', '[DROP/REBUILD? (1/0)]'
 
 + All users are granted `READ` permission through the `db_data_tool_reader` server role.  Any public-facing views __must__ be explicity given access through `GRANT SELECT`:
  
-		GRANT SELECT ON KIPP_NJ..[TABLE OR VIEW NAME] TO db_data_tool_reader
+		GRANT SELECT ON [DATABASE]..[TABLE OR VIEW NAME] TO db_data_tool_reader
 
-+ Avoid hard-coding dates.  If the date range is part of a regularly occuring reporting term, add an entry to the `REPORTING$dates` table.
++ Avoid hard-coding __dates__.  If the date range is part of a regularly occuring reporting term, add an entry to the `REPORTING$dates` table.
 
 + Avoid hard-coding __termid__ parameters.  Instead, use the scalar-valued function `dbo.fn_Global_Term_Id()`
 
 + Avoid hard-coding __academic year__ parameters.  Instead, use the scalar-valued function `dbo.fn_Global_Academic_Year()`
 
 ## Code Reviews
-Follow along at home on this <a href="https://app.asana.com/0/14863779903009/14863779903009">Asana Project</a>
+Follow along at home with this <a href="https://app.asana.com/0/14863779903009/14863779903009">Asana Project</a>
