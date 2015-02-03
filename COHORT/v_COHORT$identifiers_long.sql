@@ -16,11 +16,21 @@ WITH hs_advisor AS (
              ,enr.DATELEFT
              ,enr.academic_year           
              ,enr.teacher_name AS advisor      
-       FROM KIPP_NJ..PS$course_enrollments#static enr
+       FROM KIPP_NJ..PS$course_enrollments#static enr wITH(NOLOCK)
        WHERE enr.SCHOOLID = 73253
          AND enr.COURSE_NUMBER = 'HR'
          AND enr.SECTIONID > 0
       ) sub
+ )
+
+,promo AS (
+  SELECT year 
+        ,year - 1 AS past_year
+        ,year + 1 AS future_year
+        ,student_number      
+        ,grade_level
+  FROM KIPP_NJ..COHORT$comprehensive_long#static WITH(NOLOCK)
+  WHERE rn = 1
  )
 
 SELECT co.schoolid
@@ -89,7 +99,22 @@ SELECT co.schoolid
       ,emerg.Release_2_Phone
       ,emerg.Release_3_Phone
       ,emerg.Release_4_Phone
-      ,emerg.Release_5_Phone
+      ,emerg.Release_5_Phone      
+      ,CASE 
+        WHEN co.grade_level = 99 THEN 'Graduated'
+        WHEN past.grade_level < co.grade_level THEN 'Promoted'
+        WHEN past.grade_level = co.grade_level THEN 'Retained'
+        WHEN past.grade_level > co.grade_level THEN 'Demoted'        
+        WHEN past.grade_level IS NULL THEN 'New'
+       END AS BOY_status
+      ,CASE 
+        WHEN future.grade_level = 99 THEN 'Graduated'
+        WHEN future.grade_level > co.grade_level THEN 'Promoted'
+        WHEN future.grade_level = co.grade_level THEN 'Retained'
+        WHEN future.grade_level < co.grade_level THEN 'Demoted'        
+        WHEN future.grade_level IS NULL THEN 'Transferred'
+        WHEN co.year = dbo.fn_Global_Academic_Year() THEN NULL
+       END AS EOY_status
 FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH (NOLOCK)
 JOIN KIPP_NJ..SCHOOLS sch WITH (NOLOCK)
   ON co.schoolid = sch.school_number
@@ -118,3 +143,9 @@ LEFT OUTER JOIN PS$emerg_release_contact#static emerg WITH(NOLOCK)
 LEFT OUTER JOIN PS$SPED_archive#static sped WITH(NOLOCK)
   ON co.studentid = sped.studentid
  AND co.year  = sped.academic_year
+LEFT OUTER JOIN promo future WITH(NOLOCK)
+  ON co.STUDENT_NUMBER = future.student_number
+ AND co.year = future.past_year
+LEFT OUTER JOIN promo past WITH(NOLOCK)
+  ON co.STUDENT_NUMBER = past.student_number
+ AND co.year = past.future_year

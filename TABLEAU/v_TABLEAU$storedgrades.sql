@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW GRADES$storedgrades#identifiers AS
+ALTER VIEW TABLEAU$storedgrades AS
 
 SELECT sg.academic_year
       ,COALESCE(co.schoolid, sg.schoolid) AS schoolid

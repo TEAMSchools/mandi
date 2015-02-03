@@ -40,6 +40,7 @@ SELECT co.schoolid
       ,a.credittype      
       ,enr.COURSE_NAME
       ,enr.section
+      ,enr.teacher_name
       ,a.term
       ,a.administered_at            
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS percent_correct
