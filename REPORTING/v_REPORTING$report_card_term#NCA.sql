@@ -6,12 +6,12 @@ ALTER VIEW REPORTING$report_card_term#NCA AS
 WITH curterm AS (
   SELECT 'RT' + CONVERT(VARCHAR,(RIGHT(time_per_name,1) - 1)) AS time_per_name
         ,'Q' + CONVERT(VARCHAR,(RIGHT(alt_name,1) - 1)) AS term
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
-    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 73253
-    AND start_date <= GETDATE()
-    AND end_date >= GETDATE()
+    AND start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())
  )
 
 ,roster AS (
@@ -84,12 +84,13 @@ SELECT roster.*
 
     /*--Current--*/            
       --CUR--
-      ,att_counts.CUR_ABS_ALL AS curterm_absences_total
-      ,att_counts.CUR_A AS curterm_absences_undoc
-      ,ROUND(att_pct.cur_att_pct_total,0) AS curterm_att_pct_total
-      ,ROUND(att_pct.cur_att_pct_undoc,0) AS curterm_att_pct_undoc      
-      ,att_counts.CUR_T_ALL AS curterm_tardies_total
-      ,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total
+      -- HARD CODED TEMPORARILY, CURTERM IS ACTUAL CURTERM, NOT PREVIOUS TERM
+      ,att_counts.RT2_ABS_ALL AS curterm_absences_total
+      ,att_counts.RT2_A AS curterm_absences_undoc
+      ,ROUND(att_pct.RT2_att_pct_total,0) AS curterm_att_pct_total
+      ,ROUND(att_pct.RT2_att_pct_undoc,0) AS curterm_att_pct_undoc      
+      ,att_counts.RT2_T_ALL AS curterm_tardies_total
+      ,ROUND(att_pct.RT2_tardy_pct_total,0) AS curterm_tardy_pct_total
       
       
 --GPA
@@ -255,49 +256,49 @@ SELECT roster.*
 
     /*--Current component averages -- UPDATE TERM NUMBER (e.g. H1/H2/H3/H4) on FIELD to current term--*/
       /*--H--*/
-      ,gr_wide.rc1_h2 AS rc1_cur_hw_pct
-      ,gr_wide.rc2_h2 AS rc2_cur_hw_pct
-      ,gr_wide.rc3_H2 AS rc3_cur_hw_pct
-      ,gr_wide.rc4_h2 AS rc4_cur_hw_pct
-      ,gr_wide.rc5_h2 AS rc5_cur_hw_pct
-      ,gr_wide.rc6_h2 AS rc6_cur_hw_pct
-      ,gr_wide.rc7_h2 AS rc7_cur_hw_pct
-      ,gr_wide.rc8_h2 AS rc8_cur_hw_pct
-      ,gr_wide.rc9_h2 AS rc9_cur_hw_pct
-      ,gr_wide.rc10_h2 AS rc10_cur_hw_pct      
+      ,ele.rc1_h AS rc1_cur_hw_pct
+      ,ele.rc2_h AS rc2_cur_hw_pct
+      ,ele.rc3_H AS rc3_cur_hw_pct
+      ,ele.rc4_h AS rc4_cur_hw_pct
+      ,ele.rc5_h AS rc5_cur_hw_pct
+      ,ele.rc6_h AS rc6_cur_hw_pct
+      ,ele.rc7_h AS rc7_cur_hw_pct
+      ,ele.rc8_h AS rc8_cur_hw_pct
+      ,ele.rc9_h AS rc9_cur_hw_pct
+      ,ele.rc10_h AS rc10_cur_hw_pct      
       /*--A--*/
-      ,gr_wide.rc1_a2 AS rc1_cur_a_pct
-      ,gr_wide.rc2_a2 AS rc2_cur_a_pct
-      ,gr_wide.rc3_A2 AS rc3_cur_a_pct
-      ,gr_wide.rc4_a2 AS rc4_cur_a_pct
-      ,gr_wide.rc5_a2 AS rc5_cur_a_pct
-      ,gr_wide.rc6_a2 AS rc6_cur_a_pct
-      ,gr_wide.rc7_a2 AS rc7_cur_a_pct
-      ,gr_wide.rc8_a2 AS rc8_cur_a_pct
-      ,gr_wide.rc9_a2 AS rc9_cur_a_pct
-      ,gr_wide.rc10_a2 AS rc10_cur_a_pct
+      ,ele.rc1_a AS rc1_cur_a_pct
+      ,ele.rc2_a AS rc2_cur_a_pct
+      ,ele.rc3_A AS rc3_cur_a_pct
+      ,ele.rc4_a AS rc4_cur_a_pct
+      ,ele.rc5_a AS rc5_cur_a_pct
+      ,ele.rc6_a AS rc6_cur_a_pct
+      ,ele.rc7_a AS rc7_cur_a_pct
+      ,ele.rc8_a AS rc8_cur_a_pct
+      ,ele.rc9_a AS rc9_cur_a_pct
+      ,ele.rc10_a AS rc10_cur_a_pct
       /*--CW--*/
-      ,gr_wide.rc1_c2 AS rc1_cur_cw_pct
-      ,gr_wide.rc2_c2 AS rc2_cur_cw_pct
-      ,gr_wide.rc3_C2 AS rc3_cur_cw_pct
-      ,gr_wide.rc4_c2 AS rc4_cur_cw_pct
-      ,gr_wide.rc5_c2 AS rc5_cur_cw_pct
-      ,gr_wide.rc6_c2 AS rc6_cur_cw_pct
-      ,gr_wide.rc7_c2 AS rc7_cur_cw_pct
-      ,gr_wide.rc8_c2 AS rc8_cur_cw_pct
-      ,gr_wide.rc9_c2 AS rc9_cur_cw_pct
-      ,gr_wide.rc10_c2 AS rc10_cur_cw_pct
+      ,ele.rc1_c AS rc1_cur_cw_pct
+      ,ele.rc2_c AS rc2_cur_cw_pct
+      ,ele.rc3_C AS rc3_cur_cw_pct
+      ,ele.rc4_c AS rc4_cur_cw_pct
+      ,ele.rc5_c AS rc5_cur_cw_pct
+      ,ele.rc6_c AS rc6_cur_cw_pct
+      ,ele.rc7_c AS rc7_cur_cw_pct
+      ,ele.rc8_c AS rc8_cur_cw_pct
+      ,ele.rc9_c AS rc9_cur_cw_pct
+      ,ele.rc10_c AS rc10_cur_cw_pct
       /*--P--*/
-      ,gr_wide.rc1_p2 AS rc1_cur_p_pct
-      ,gr_wide.rc2_p2 AS rc2_cur_p_pct
-      ,gr_wide.rc3_P2 AS rc3_cur_p_pct
-      ,gr_wide.rc4_p2 AS rc4_cur_p_pct
-      ,gr_wide.rc5_p2 AS rc5_cur_p_pct
-      ,gr_wide.rc6_p2 AS rc6_cur_p_pct
-      ,gr_wide.rc7_p2 AS rc7_cur_p_pct
-      ,gr_wide.rc8_p2 AS rc8_cur_p_pct
-      ,gr_wide.rc9_p2 AS rc9_cur_p_pct
-      ,gr_wide.rc10_p2 AS rc10_cur_p_pct      
+      ,ele.rc1_p AS rc1_cur_p_pct
+      ,ele.rc2_p AS rc2_cur_p_pct
+      ,ele.rc3_P AS rc3_cur_p_pct
+      ,ele.rc4_p AS rc4_cur_p_pct
+      ,ele.rc5_p AS rc5_cur_p_pct
+      ,ele.rc6_p AS rc6_cur_p_pct
+      ,ele.rc7_p AS rc7_cur_p_pct
+      ,ele.rc8_p AS rc8_cur_p_pct
+      ,ele.rc9_p AS rc9_cur_p_pct
+      ,ele.rc10_p AS rc10_cur_p_pct      
       
       /*** EXAMS **/
       /*--E1--*/ -- Exams
@@ -394,15 +395,19 @@ SELECT roster.*
       ,merits.perfect_week_merits_y1 AS perfect_week_yr
       ,merits.total_merits_y1 AS total_merits_yr
        /*--Current--*/       
-      ,merits.teacher_merits_cur AS teacher_merits_curr
-      ,merits.perfect_week_merits_cur AS perfect_week_curr
-      ,merits.total_merits_cur AS total_merits_curr
+      ,merits.teacher_merits_rt2 AS teacher_merits_curr
+      ,merits.perfect_week_merits_rt2 AS perfect_week_curr
+      ,merits.total_merits_rt2 AS total_merits_curr
       
     /*--Demerits--*/
        /*--Year--*/
       ,merits.total_demerits_y1
        /*--Current--*/       
-      ,merits.total_demerits_cur
+      ,merits.total_demerits_rt2
+
+    /*-Perf Review-*/
+      ,pr.Q1 AS perf_rev_Q1
+      ,pr.Q3 AS perf_rev_Q3
 
 FROM roster WITH (NOLOCK)
 
@@ -423,6 +428,9 @@ LEFT OUTER JOIN GPA$cumulative gpa_cumulative WITH (NOLOCK)
 LEFT OUTER JOIN GPA$detail_long gpa_long WITH(NOLOCK)
   ON roster.base_studentid = gpa_long.studentid
  AND roster.curterm = gpa_long.term
+LEFT OUTER JOIN KIPP_NJ..GRADES$rc_elements_by_term ele WITH(NOLOCK)
+  ON roster.base_studentid = ele.studentid
+ AND roster.curterm = ele.term
 
 --MERITS & DEMERITS
 LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
@@ -500,3 +508,7 @@ LEFT OUTER JOIN PS$comments#static comment_adv WITH (NOLOCK)
   ON roster.base_studentid = comment_adv.studentid
  AND comment_adv.course_number = 'HR'
  AND comment_adv.term = roster.curterm
+
+-- Performance Review Grades
+LEFT OUTER JOIN [KIPP_NJ].[dbo].[AUTOLOAD$GDOCS_PR_Performance_Review] pr WITH(NOLOCK)
+  ON roster.base_student_number = pr.[SN]

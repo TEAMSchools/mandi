@@ -16,18 +16,15 @@ WITH map_long AS (
         ,rr.rutgers_ready_goal
         ,rr.rutgers_ready_rit      
         ,CASE  
-          WHEN terms.fallwinterspring = 'Fall' THEN base.testpercentile       
-          WHEN terms.fallwinterspring = 'Fall' AND base.testpercentile IS NULL THEN map.percentile_2011_norms
+          WHEN terms.fallwinterspring = 'Fall' THEN COALESCE(base.testpercentile, map.percentile_2011_norms)                 
           ELSE map.percentile_2011_norms 
          END AS pct
         ,CASE  
-          WHEN terms.fallwinterspring = 'Fall' THEN base.testritscore
-          WHEN terms.fallwinterspring = 'Fall' AND base.testritscore IS NULL THEN map.testritscore
+          WHEN terms.fallwinterspring = 'Fall' THEN COALESCE(base.testritscore, map.testritscore)
           ELSE map.testritscore
          END AS rit      
         ,CASE  
-          WHEN terms.fallwinterspring = 'Fall' THEN REPLACE(base.lexile_score, 'BR', 0)
-          WHEN terms.fallwinterspring = 'Fall' AND REPLACE(base.lexile_score, 'BR', 0) IS NULL THEN REPLACE(map.rittoreadingscore, 'BR', 0)
+          WHEN terms.fallwinterspring = 'Fall' THEN COALESCE(REPLACE(base.lexile_score, 'BR', 0), REPLACE(map.rittoreadingscore, 'BR', 0))
           ELSE REPLACE(map.rittoreadingscore, 'BR', 0)
          END AS lex      
   FROM MAP$best_baseline#static base WITH(NOLOCK)
@@ -57,9 +54,9 @@ WITH map_long AS (
         ,map.measurementscale
         ,map.fallwinterspring
         ,CONVERT(INT,map.testritscore) AS rit
-        ,CONVERT(INT,map.testpercentile) AS pct
+        ,CONVERT(INT,map.percentile_2011_norms) AS pct
         ,CONVERT(INT,REPLACE(map.rittoreadingscore, 'BR', 0)) AS lexile
-  FROM MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+  FROM KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
   WHERE rn_curr = 1
  )
 
@@ -98,6 +95,9 @@ SELECT r.year
       ,map_long.rit       
       ,map_long.pct       
       ,map_long.lex       
+      ,map_curr.rit AS cur_rit       
+      ,map_curr.pct AS cur_pct       
+      ,map_curr.lexile AS cur_lex
       ,CASE 
         WHEN map_long.pct >= 0 AND map_long.pct < 25 THEN 1
         WHEN map_long.pct >= 25 AND map_long.pct < 50 THEN 2
@@ -127,11 +127,11 @@ LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
  AND map_long.measurementscale = enr.measurementscale
 LEFT OUTER JOIN map_curr
   ON r.studentid = map_curr.studentid
- AND r.year = map_curr.year
+ AND r.year = map_curr.year 
  AND map_long.measurementscale = map_curr.measurementscale
 LEFT OUTER JOIN read_lvl rs
   ON r.studentid = rs.studentid
  AND r.year = rs.academic_year
  AND map_long.fallwinterspring = rs.fallwinterspring
 WHERE r.schoolid != 999999
-  AND r.rn = 1  
+  AND r.rn = 1    

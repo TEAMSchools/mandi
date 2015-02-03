@@ -28,7 +28,7 @@ FROM
            ,test_grade_level AS grade_level
            ,COUNT(studentid) AS n_tested
            ,ROUND(AVG(njask_scale_score),0) AS avg_scale           
-           ,CONVERT(FLOAT,SUM(CASE WHEN njask_proficiency = 'Below Proficient' THEN 1.0 ELSE 0.0 END)) AS part_prof
+           ,CONVERT(FLOAT,SUM(CASE WHEN njask_proficiency IN ('Below Proficient','Partially Proficient') THEN 1.0 ELSE 0.0 END)) AS part_prof
            ,CONVERT(FLOAT,SUM(CASE WHEN njask_proficiency = 'Proficient' THEN 1.0 ELSE 0.0 END)) AS prof
            ,CONVERT(FLOAT,SUM(CASE WHEN njask_proficiency = 'Advanced Proficient' THEN 1.0 ELSE 0.0 END)) AS adv_prof           
      FROM NJASK$detail  WITH(NOLOCK)     
@@ -50,7 +50,7 @@ FROM
            ,test_grade_level AS grade_level
            ,COUNT(studentid) AS n_tested
            ,ROUND(AVG(CONVERT(INT,scale_score)),0) AS avg_scale           
-           ,CONVERT(FLOAT,SUM(CASE WHEN proficiency = 'Below Proficient' THEN 1.0 ELSE 0.0 END)) AS part_prof
+           ,CONVERT(FLOAT,SUM(CASE WHEN proficiency IN ('Below Proficient','Partially Proficient') THEN 1.0 ELSE 0.0 END)) AS part_prof
            ,CONVERT(FLOAT,SUM(CASE WHEN proficiency = 'Proficient' THEN 1.0 ELSE 0.0 END)) AS prof
            ,CONVERT(FLOAT,SUM(CASE WHEN proficiency = 'Advanced Proficient' THEN 1.0 ELSE 0.0 END)) AS adv_prof           
      FROM HSPA$detail WITH(NOLOCK)

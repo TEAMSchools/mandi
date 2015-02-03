@@ -75,6 +75,7 @@ WITH max_grade AS (
         ,ROW_NUMBER() OVER(
            PARTITION BY student__c
              ORDER BY start_date__c ASC) AS rn_base
+        ,COUNT([School__c]) OVER(PARTITION BY [Student__c]) AS n_enrollments
   FROM [AlumniMirror].[dbo].[Enrollment__c] enr WITH(NOLOCK)  
   LEFT OUTER JOIN [AlumniMirror].[dbo].[Account] c WITH(NOLOCK)
     ON enr.School__c = c.id
@@ -92,16 +93,19 @@ SELECT r.student_number
       ,r.school_type      
       ,enr_cur.track
       ,enr_cur.degree_type
-      ,enr_cur.minority_grad_rate
+      ,enr_cur.minority_grad_rate      
       ,enr_cur.start_date
       ,enr_cur.proj_grad_date
       ,enr_cur.major      
       ,enr_base.school_name AS initial_school
       ,enr_base.minority_grad_rate AS init_minority_grad_rate
-      ,r.last_successful_contact
+      ,r.last_successful_contact      
+      ,enr_base.n_enrollments
       ,CASE
         WHEN r.composite_status = 'College Withdrawn' THEN 'Dropped out of ' + enr_cur.degree_type
-        ELSE enr_base.degree_type + ' to ' + enr_cur.degree_type
+        WHEN enr_base.n_enrollments > 1 AND enr_base.school_name = enr_cur.school_name THEN CONVERT(VARCHAR,DATEDIFF(MONTH,enr_base.start_date,enr_cur.start_date)) + ' month break'        
+        WHEN enr_base.n_enrollments > 1 THEN ISNULL(enr_base.degree_type,'Unknown') + ' to ' + ISNULL(enr_cur.degree_type,'Unknown')
+        ELSE NULL
        END AS transfer
       ,CASE WHEN r.composite_status = 'College Persisting' AND enr_cur.track = '4yr' THEN 1.0 END AS is_4yr
       ,CASE WHEN r.composite_status = 'College Persisting' AND enr_cur.track = '2yr' THEN 1.0 END AS is_2yr
@@ -114,5 +118,6 @@ LEFT OUTER JOIN enrollments enr_cur WITH(NOLOCK)
  AND enr_cur.rn_cur = 1
 LEFT OUTER JOIN enrollments enr_base WITH(NOLOCK)
   ON r.student_salesforce_id = enr_base.student_id
- AND r.school_salesforce_id != enr_base.school_id
+ --AND r.school_salesforce_id != enr_base.school_id
  AND enr_base.rn_base = 1
+ AND enr_base.n_enrollments > 1
