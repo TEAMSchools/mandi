@@ -115,6 +115,7 @@ SELECT co.schoolid
         WHEN future.grade_level IS NULL THEN 'Transferred'
         WHEN co.year = dbo.fn_Global_Academic_Year() THEN NULL
        END AS EOY_status
+      ,cs.NEWARK_ENROLLMENT_NUMBER
 FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH (NOLOCK)
 JOIN KIPP_NJ..SCHOOLS sch WITH (NOLOCK)
   ON co.schoolid = sch.school_number

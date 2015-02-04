@@ -45,6 +45,7 @@ BEGIN
           ,ps_customfields.getcf(''Students'',id,''DEFAULT_FAMILY_WEB_PASSWORD'') AS DEFAULT_FAMILY_WEB_PASSWORD
           ,ps_customfields.getcf(''Students'',id,''MIDDLE_NAME_CUSTOM'') AS MIDDLE_NAME_CUSTOM
           ,ps_customfields.getcf(''Students'',id,''lep_status'') AS LEP_STATUS
+          ,ps_customfields.getcf(''Students'',id,''newark_enrollment_number'') AS newark_enrollment_number
     FROM students s
   ');
          

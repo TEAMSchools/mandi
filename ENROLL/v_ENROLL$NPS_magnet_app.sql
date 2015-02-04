@@ -142,7 +142,8 @@ WITH njask AS (
    ) p
  )
 
-SELECT co.first_name
+SELECT co.NEWARK_ENROLLMENT_NUMBER
+      ,co.first_name
       ,co.last_name
       ,co.grade_level
       ,'TEAM Charter Schools' AS current_school

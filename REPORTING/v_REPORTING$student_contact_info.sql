@@ -35,6 +35,7 @@ SELECT co.schoolid
       ,co.family_web_id AS [Family Login]
       ,co.FAMILY_WEB_PASSWORD AS [Family PW]
       ,co.LUNCH_BALANCE AS [Lunch Balance]
+      ,co.NEWARK_ENROLLMENT_NUMBER
 FROM COHORT$identifiers_long#static co WITH(NOLOCK)
 WHERE co.enroll_status = 0
   AND co.year = dbo.fn_Global_Academic_Year()
