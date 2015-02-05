@@ -8,8 +8,10 @@ WITH curterm AS (
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND school_level = 'ES'
-    AND start_date <= CONVERT(DATE,GETDATE())
-    AND end_date >= CONVERT(DATE,GETDATE())    
+    AND start_date <= '2015-02-25'
+    AND end_date >= '2015-02-25'
+    --AND start_date <= CONVERT(DATE,GETDATE())
+    --AND end_date >= CONVERT(DATE,GETDATE())    
  )
 
 ,roster AS (
@@ -180,7 +182,8 @@ WITH curterm AS (
                                       WHERE identifier = 'LIT'
                                         AND academic_year = dbo.fn_Global_Academic_Year()
                                         AND school_level = 'ES'
-                                        AND start_date <= GETDATE()
+                                        --AND start_date <= GETDATE()
+                                        AND start_date <= '2015-02-25'
                                      )
                 ) sub
             UNPIVOT(

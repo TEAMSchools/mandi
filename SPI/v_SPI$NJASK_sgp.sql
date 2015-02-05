@@ -4,18 +4,16 @@ GO
 ALTER VIEW SPI$NJASK_sgp AS
 
 WITH sgp_query AS (
-  SELECT schools.abbreviation AS school
+  SELECT cohort.school_name AS school
         ,njask.year
         ,njask.grade
         ,njask.subject
         ,njask.growth_score AS sgp
   FROM KIPP_NJ..NJASK$sgp_detail njask WITH(NOLOCK)  
-  JOIN KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)
+  JOIN KIPP_NJ..COHORT$identifiers_long#static cohort WITH(NOLOCK)
     ON njask.STUDENT_NUMBER = cohort.STUDENT_NUMBER   
-   AND cohort.year = njask.year
-   AND cohort.rn = 1
-  JOIN KIPP_NJ..SCHOOLS WITH(NOLOCK)
-    ON cohort.schoolid = schools.school_number
+   AND njask.year = cohort.year
+   AND cohort.rn = 1  
  )
   
 ,medians AS (

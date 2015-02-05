@@ -5,7 +5,7 @@ ALTER VIEW SPI$MAP_sgp AS
 
 WITH roster AS (
   SELECT co.studentid
-        ,co.school_name AS school
+        ,REPLACE(co.school_name,'Revolution','Rev') AS school
         ,co.grade_level
         ,co.year
         ,co.year_in_network                
@@ -52,17 +52,66 @@ WITH roster AS (
   WHERE sgp_f2s.period_string = 'Fall to Spring'
  )
 
+,sgp_f2w AS(
+  SELECT sgp_f2w.studentid
+        ,sgp_f2w.year
+        ,sgp_f2w.measurementscale
+        ,sgp_f2w.period_string AS f2w_period
+        ,sgp_f2w.true_growth_projection AS f2w_growth_projection
+        ,sgp_f2w.rit_change AS f2w_change
+        ,sgp_f2w.growth_percentile AS f2w_sgp
+        ,sgp_f2w.met_typical_growth_target AS f2w_met_typ
+  FROM KIPP_NJ..MAP$growth_measures_long#static sgp_f2w WITH(NOLOCK)  
+  WHERE sgp_f2w.period_string = 'Fall to Winter'
+ )
+
+,sgp_s2h AS(
+  SELECT sgp_s2h.studentid
+        ,sgp_s2h.year
+        ,sgp_s2h.measurementscale
+        ,sgp_s2h.period_string AS s2h_period
+        ,sgp_s2h.true_growth_projection AS s2h_growth_projection
+        ,sgp_s2h.rit_change AS s2h_change
+        ,sgp_s2h.growth_percentile AS s2h_sgp
+        ,sgp_s2h.met_typical_growth_target AS s2h_met_typ
+  FROM KIPP_NJ..MAP$growth_measures_long#static sgp_s2h WITH(NOLOCK)  
+  WHERE sgp_s2h.period_string = 'Spring to half-of-Spring'
+ )
+
 ,scores_long AS (
   SELECT r.studentid
         ,r.school
         ,r.grade_level
         ,r.year
         ,scales.measurementscale
-        ,CASE WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_period ELSE s2s_period END AS period
-        ,CASE WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_growth_projection ELSE s2s_growth_projection END AS growth_projection
-        ,CASE WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_change ELSE s2s_change END AS rit_change
-        ,CASE WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_sgp ELSE s2s_sgp END AS sgp
-        ,CASE WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_met_typ ELSE s2s_met_typ END AS met_typ 
+        -- if it's the current year and there isn't spring-to-spring growth yet, use fall-to-winter/spring-to-half
+        -- if they're new or if spring-to-spring is null, use fall-to-spring        
+        -- otherwise, use spring-to-spring
+        ,CASE 
+          --WHEN r.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND s2s_change IS NULL THEN COALESCE(s2h_period, f2w_period)
+          WHEN ((year_in_network = 1) OR (f2s_sgp > 0 AND s2s_sgp IS NULL)) THEN f2s_period           
+          ELSE s2s_period
+         END AS period
+        ,CASE 
+          --WHEN r.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND s2s_change IS NULL THEN COALESCE(s2h_growth_projection, f2w_growth_projection)
+          WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_growth_projection           
+          ELSE s2s_growth_projection
+         END AS growth_projection
+        ,CASE 
+          --WHEN r.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND s2s_change IS NULL THEN COALESCE(s2h_change, f2w_change)
+          WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_change           
+          ELSE s2s_change
+         END AS rit_change
+        ,CASE           
+          --WHEN r.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND s2s_change IS NULL THEN COALESCE(s2h_sgp, f2w_sgp)
+          WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_sgp 
+          ELSE s2s_sgp
+         END AS sgp
+        ,CASE 
+          --WHEN r.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND s2s_change IS NULL THEN COALESCE(s2h_met_typ, f2w_met_typ)
+          WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_met_typ           
+          ELSE s2s_met_typ
+         END AS met_typ 
   FROM roster r WITH(NOLOCK)
   JOIN scales WITH(NOLOCK)
     ON 1 = 1
@@ -74,6 +123,14 @@ WITH roster AS (
     ON r.studentid = sgp_f2s.studentid
    AND r.year = sgp_f2s.year
    AND scales.measurementscale = sgp_f2s.measurementscale
+  LEFT OUTER JOIN sgp_f2w WITH(NOLOCK)
+    ON r.studentid = sgp_f2w.studentid
+   AND r.year = sgp_f2w.year
+   AND scales.measurementscale = sgp_f2w.measurementscale     
+  LEFT OUTER JOIN sgp_s2h WITH(NOLOCK)
+    ON r.studentid = sgp_s2h.studentid
+   AND r.year = sgp_s2h.year
+   AND scales.measurementscale = sgp_s2h.measurementscale     
  )
 
 ,averages AS (
