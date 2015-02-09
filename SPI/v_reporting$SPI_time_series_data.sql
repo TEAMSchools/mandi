@@ -40,13 +40,13 @@ WITH scaffold AS (
         ,1 AS goal_number
         ,'EOY Benchmark' AS goal_title
         ,schools.abbreviation
-        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())),2) AS reporting_hash
+        ,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1),2) AS reporting_hash
         ,sub.pct_on_track AS value
         ,'FOOTBALL' AS direction
   FROM
       (
        SELECT rs.SCHOOLID
-             --,rs.test_round
+             ,rs.test_round
              ,ROUND(AVG(CONVERT(FLOAT,rs.met_goal)) * 100,1) AS pct_on_track
        FROM KIPP_NJ..LIT$achieved_by_round#static rs WITH(NOLOCK)
        JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
@@ -58,7 +58,7 @@ WITH scaffold AS (
         AND d.end_date >= CONVERT(DATE,GETDATE())
        WHERE rs.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
          AND GRADE_LEVEL < 5
-       GROUP BY rs.SCHOOLID
+       GROUP BY rs.SCHOOLID, rs.test_round
       ) sub
   JOIN KIPP_NJ..SCHOOLS WITH(NOLOCK)
     ON sub.schoolid = schools.school_number
@@ -347,9 +347,9 @@ WHERE attr.grade_level = 'campus'
   SELECT *
   FROM off_track WITH(NOLOCK)
   UNION ALL
-  --SELECT *
-  --FROM lit_ontrack WITH(NOLOCK)
-  --UNION ALL
+  SELECT *
+  FROM lit_ontrack WITH(NOLOCK)
+  UNION ALL
   SELECT *
   FROM ar_goals WITH(NOLOCK)
   UNION ALL
