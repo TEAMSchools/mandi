@@ -337,8 +337,9 @@ SELECT r.studentid
       ,ta.SPAN_pct_stds_mastered
       ,ta.VIZ_pct_stds_mastered
       ,wr.RHET_pct_stds_mastered      
-      -- TA objectives
+            
       -- math
+       -- objectives
       ,ta.MATH_TA_obj_1
       ,ta.MATH_TA_obj_2
       ,ta.MATH_TA_obj_3
@@ -351,7 +352,26 @@ SELECT r.studentid
       ,ta.MATH_TA_obj_10
       ,ta.MATH_TA_obj_11
       ,ta.MATH_TA_obj_12
+      ,ta.MATH_TA_obj_13
+      ,ta.MATH_TA_obj_14
+       -- proficiency
+      ,ta.MATH_TA_prof_1
+      ,ta.MATH_TA_prof_2
+      ,ta.MATH_TA_prof_3
+      ,ta.MATH_TA_prof_4
+      ,ta.MATH_TA_prof_5
+      ,ta.MATH_TA_prof_6
+      ,ta.MATH_TA_prof_7
+      ,ta.MATH_TA_prof_8
+      ,ta.MATH_TA_prof_9
+      ,ta.MATH_TA_prof_10
+      ,ta.MATH_TA_prof_11
+      ,ta.MATH_TA_prof_12
+      ,ta.MATH_TA_prof_13
+      ,ta.MATH_TA_prof_14
+
       -- reading comp
+       -- objectives
       ,ta.COMP_TA_obj_1
       ,ta.COMP_TA_obj_2
       ,ta.COMP_TA_obj_3
@@ -362,18 +382,44 @@ SELECT r.studentid
       ,ta.COMP_TA_obj_8
       ,ta.COMP_TA_obj_9
       ,ta.COMP_TA_obj_10
+       -- proficiency
+      ,ta.COMP_TA_prof_1
+      ,ta.COMP_TA_prof_2
+      ,ta.COMP_TA_prof_3
+      ,ta.COMP_TA_prof_4
+      ,ta.COMP_TA_prof_5
+      ,ta.COMP_TA_prof_6
+      ,ta.COMP_TA_prof_7
+      ,ta.COMP_TA_prof_8
+      ,ta.COMP_TA_prof_9
+      ,ta.COMP_TA_prof_10
+      
       -- phonics
+       -- objectives
       ,ta.PHON_TA_obj_1
       ,ta.PHON_TA_obj_2
       ,ta.PHON_TA_obj_3
       ,ta.PHON_TA_obj_4
       ,ta.PHON_TA_obj_5
-      ,ta.PHON_TA_obj_6
-      ,ta.PHON_TA_obj_7
-      ,ta.PHON_TA_obj_8
-      ,ta.PHON_TA_obj_9
-      ,ta.PHON_TA_obj_10
+      --,ta.PHON_TA_obj_6
+      --,ta.PHON_TA_obj_7
+      --,ta.PHON_TA_obj_8
+      --,ta.PHON_TA_obj_9
+      --,ta.PHON_TA_obj_10
+       -- proficiency
+      ,ta.PHON_TA_prof_1
+      ,ta.PHON_TA_prof_2
+      ,ta.PHON_TA_prof_3
+      ,ta.PHON_TA_prof_4
+      ,ta.PHON_TA_prof_5
+      --,ta.PHON_TA_prof_6
+      --,ta.PHON_TA_prof_7
+      --,ta.PHON_TA_prof_8
+      --,ta.PHON_TA_prof_9
+      --,ta.PHON_TA_prof_10
+      
       -- writing
+       -- objectives
       ,wr.RHET_TA_obj_1
       ,wr.RHET_TA_obj_2
       ,wr.RHET_TA_obj_3
@@ -387,7 +433,23 @@ SELECT r.studentid
       ,wr.RHET_TA_narr_obj
       ,wr.RHET_TA_info_obj
       ,wr.RHET_TA_op_obj
+       -- proficiency
+      ,wr.RHET_TA_prof_1
+      ,wr.RHET_TA_prof_2
+      ,wr.RHET_TA_prof_3
+      ,wr.RHET_TA_prof_4
+      ,wr.RHET_TA_prof_5
+      ,wr.RHET_TA_prof_6
+      ,wr.RHET_TA_prof_7
+      ,wr.RHET_TA_prof_8
+      ,wr.RHET_TA_prof_9
+      ,wr.RHET_TA_prof_10
+      ,wr.RHET_TA_narr_prof
+      ,wr.RHET_TA_info_prof
+      ,wr.RHET_TA_op_prof
+      
       -- specials
+       -- objectives
       ,ta.PERF_TA_obj_1
       ,ta.PERF_TA_obj_2
       ,ta.PERF_TA_obj_3
@@ -398,15 +460,16 @@ SELECT r.studentid
       ,ta.PERF_TA_obj_8      
       ,ta.PERF_TA_obj_9      
       ,ta.PERF_TA_obj_10      
+      ,ta.PERF_TA_obj_11
       ,ta.HUM_TA_obj_1
       ,ta.HUM_TA_obj_2
       ,ta.HUM_TA_obj_3
       ,ta.HUM_TA_obj_4
       ,ta.HUM_TA_obj_5          
-      ,ta.HUM_TA_obj_6          
-      ,ta.HUM_TA_obj_7          
-      ,ta.HUM_TA_obj_8          
-      ,ta.HUM_TA_obj_9          
+      --,ta.HUM_TA_obj_6          
+      --,ta.HUM_TA_obj_7          
+      --,ta.HUM_TA_obj_8          
+      --,ta.HUM_TA_obj_9          
       ,ta.SCI_TA_obj_1
       ,ta.SCI_TA_obj_2
       ,ta.SCI_TA_obj_3
@@ -423,57 +486,8 @@ SELECT r.studentid
       ,ta.VIZ_TA_obj_4
       ,ta.VIZ_TA_obj_5      
       ,ta.VIZ_TA_obj_6      
-      -- TA proficiency
-      -- math
-      ,ta.MATH_TA_prof_1
-      ,ta.MATH_TA_prof_2
-      ,ta.MATH_TA_prof_3
-      ,ta.MATH_TA_prof_4
-      ,ta.MATH_TA_prof_5
-      ,ta.MATH_TA_prof_6
-      ,ta.MATH_TA_prof_7
-      ,ta.MATH_TA_prof_8
-      ,ta.MATH_TA_prof_9
-      ,ta.MATH_TA_prof_10
-      ,ta.MATH_TA_prof_11
-      ,ta.MATH_TA_prof_12
-      -- reading comp
-      ,ta.COMP_TA_prof_1
-      ,ta.COMP_TA_prof_2
-      ,ta.COMP_TA_prof_3
-      ,ta.COMP_TA_prof_4
-      ,ta.COMP_TA_prof_5
-      ,ta.COMP_TA_prof_6
-      ,ta.COMP_TA_prof_7
-      ,ta.COMP_TA_prof_8
-      ,ta.COMP_TA_prof_9
-      ,ta.COMP_TA_prof_10
-      -- phonics
-      ,ta.PHON_TA_prof_1
-      ,ta.PHON_TA_prof_2
-      ,ta.PHON_TA_prof_3
-      ,ta.PHON_TA_prof_4
-      ,ta.PHON_TA_prof_5
-      ,ta.PHON_TA_prof_6
-      ,ta.PHON_TA_prof_7
-      ,ta.PHON_TA_prof_8
-      ,ta.PHON_TA_prof_9
-      ,ta.PHON_TA_prof_10
-      -- writing
-      ,wr.RHET_TA_prof_1
-      ,wr.RHET_TA_prof_2
-      ,wr.RHET_TA_prof_3
-      ,wr.RHET_TA_prof_4
-      ,wr.RHET_TA_prof_5
-      ,wr.RHET_TA_prof_6
-      ,wr.RHET_TA_prof_7
-      ,wr.RHET_TA_prof_8
-      ,wr.RHET_TA_prof_9
-      ,wr.RHET_TA_prof_10
-      ,wr.RHET_TA_narr_prof
-      ,wr.RHET_TA_info_prof
-      ,wr.RHET_TA_op_prof
-      -- specials
+      ,ta.VIZ_TA_obj_7
+       -- proficiency
       ,ta.PERF_TA_prof_1
       ,ta.PERF_TA_prof_2
       ,ta.PERF_TA_prof_3
@@ -484,15 +498,16 @@ SELECT r.studentid
       ,ta.PERF_TA_prof_8      
       ,ta.PERF_TA_prof_9     
       ,ta.PERF_TA_prof_10
+      ,ta.PERF_TA_prof_11
       ,ta.HUM_TA_prof_1
       ,ta.HUM_TA_prof_2
       ,ta.HUM_TA_prof_3
       ,ta.HUM_TA_prof_4
       ,ta.HUM_TA_prof_5          
-      ,ta.HUM_TA_prof_6          
-      ,ta.HUM_TA_prof_7          
-      ,ta.HUM_TA_prof_8          
-      ,ta.HUM_TA_prof_9          
+      --,ta.HUM_TA_prof_6          
+      --,ta.HUM_TA_prof_7          
+      --,ta.HUM_TA_prof_8          
+      --,ta.HUM_TA_prof_9          
       ,ta.SCI_TA_prof_1
       ,ta.SCI_TA_prof_2
       ,ta.SCI_TA_prof_3
@@ -509,7 +524,8 @@ SELECT r.studentid
       ,ta.VIZ_TA_prof_4
       ,ta.VIZ_TA_prof_5
       ,ta.VIZ_TA_prof_6
-      
+      ,ta.VIZ_TA_prof_7
+            
       --comments
       ,comm.ela_comment
       ,comm.humanities_comment
@@ -580,8 +596,7 @@ LEFT OUTER JOIN REPORTING$report_card_comments#ES comm WITH(NOLOCK)
  AND r.term = comm.term
 LEFT OUTER JOIN REPORTING$ARFR_reasons#ES arfr WITH(NOLOCK)
   ON r.student_number = arfr.student_number
- -- should be JOINed this way, but data entry is jacked up
- --AND r.term = arfr.term
- --AND arfr.academic_year = dbo.fn_Global_Academic_Year()
+ AND r.term = arfr.term
+ AND arfr.academic_year = dbo.fn_Global_Academic_Year() 
 LEFT OUTER JOIN social_skills soc WITH(NOLOCK)
   ON r.student_number = soc.student_number

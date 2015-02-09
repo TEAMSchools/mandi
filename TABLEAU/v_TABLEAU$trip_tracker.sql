@@ -5,6 +5,7 @@ ALTER VIEW TABLEAU$trip_tracker AS
 
 SELECT s.student_number      
       ,s.lastfirst      
+      ,s.school_name
       ,s.grade_level
       ,s.team
       ,s.advisor      
