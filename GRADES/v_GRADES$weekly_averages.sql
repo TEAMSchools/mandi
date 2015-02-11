@@ -7,22 +7,17 @@ WITH enrollments AS (
   SELECT co.studentid
         ,co.student_number
         ,co.lastfirst
-        ,cc.sectionid
-        ,cc.section_number
-        ,cc.course_number        
-        ,cou.course_name
-        ,cou.credittype
+        ,enr.sectionid
+        ,enr.section_number
+        ,enr.course_number        
+        ,enr.course_name
+        ,enr.credittype
   FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  JOIN cc WITH(NOLOCK)
-    ON co.studentid = cc.studentid
-   AND co.schoolid = cc.SCHOOLID
-   AND cc.TERMID >= dbo.fn_Global_Term_id() 
-  JOIN courses cou WITH(NOLOCK)
-    ON cc.course_number = cou.course_number 
-   AND cou.credittype NOT IN ('COCUR', 'PHYSED')
-  WHERE co.year = dbo.fn_Global_Academic_Year()
-    --AND co.schoolid = 73252
-    --AND co.grade_level = 8
+  JOIN KIPP_NJ..PS$course_enrollments#static enr 
+    ON co.studentid = enr.studentid
+   AND co.year = enr.academic_year  
+   AND enr.credittype NOT IN ('COCUR', 'PHYSED')
+  WHERE co.year = dbo.fn_Global_Academic_Year()    
     AND co.rn = 1
  )
 
