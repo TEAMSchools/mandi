@@ -8,13 +8,13 @@ WITH observed_completion AS (
         ,SUM(K_5_Progress) AS total_completion
   FROM STMath..prep_blended_tracker_long WITH(NOLOCK)
   WHERE comp_type = 'Observed'
-    AND school_year = 2014
+    AND school_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY studentid
  )
 
 ,stu_enr AS (
   SELECT co.studentid
-        ,enr.course_number AS Course
+        ,enr.course_number AS course
         ,enr.section_number AS section
         ,enr.teacher_name AS teacher
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
@@ -30,7 +30,7 @@ WITH observed_completion AS (
 
 ,max_week AS (
   SELECT MAX(w.week_num) AS max_week
-  FROM STMath..completion_by_week w
+  FROM STMath..completion_by_week w WITH(NOLOCK)
  )
 
 ,prev_week_completion AS (
@@ -44,7 +44,7 @@ WITH observed_completion AS (
              ,CAST(MAX(K_5_Progress) AS NUMERIC(4,1)) AS progress
        FROM STMath..completion_by_week st WITH(NOLOCK)
        JOIN max_week WITH(NOLOCK)
-         ON st.week_num <= max_week.max_week - 1
+         ON st.week_num < max_week.max_week
         AND st.start_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
        GROUP BY st.studentid
                ,st.start_year
@@ -73,30 +73,24 @@ SELECT s.studentid
       ,cur_gcd.GCD AS cur_lib
       ,st.total_completion
       ,st.total_completion - prev_week_completion.total_completion AS [change]
-      ,ROW_NUMBER() OVER
-        (PARTITION BY s.schoolid, s.grade_level
-         ORDER BY st.total_completion DESC
-        ) AS sch_gr_completion_rank
-      ,ROW_NUMBER() OVER
-        (PARTITION BY s.schoolid
-         ORDER BY st.total_completion DESC
-        ) AS sch_completion_rank
-      ,ROW_NUMBER() OVER
-        (PARTITION BY s.grade_level
-         ORDER BY st.total_completion DESC
-        ) AS network_gr_completion_rank
-      ,ROW_NUMBER() OVER
-        (PARTITION BY s.schoolid, s.grade_level
-         ORDER BY st.total_completion - prev_week_completion.total_completion DESC
-        ) AS sch_gr_change_rank
-      ,ROW_NUMBER() OVER
-        (PARTITION BY s.schoolid
-         ORDER BY st.total_completion - prev_week_completion.total_completion DESC
-        ) AS sch_change_rank
-      ,ROW_NUMBER() OVER
-        (PARTITION BY s.grade_level
-         ORDER BY st.total_completion - prev_week_completion.total_completion DESC
-        ) AS network_gr_change_rank
+      ,ROW_NUMBER() OVER(
+         PARTITION BY s.schoolid, s.grade_level
+           ORDER BY st.total_completion DESC) AS sch_gr_completion_rank
+      ,ROW_NUMBER() OVER(
+         PARTITION BY s.schoolid
+           ORDER BY st.total_completion DESC) AS sch_completion_rank
+      ,ROW_NUMBER() OVER(
+         PARTITION BY s.grade_level
+           ORDER BY st.total_completion DESC) AS network_gr_completion_rank
+      ,ROW_NUMBER() OVER(
+         PARTITION BY s.schoolid, s.grade_level
+           ORDER BY st.total_completion - prev_week_completion.total_completion DESC) AS sch_gr_change_rank
+      ,ROW_NUMBER() OVER(
+         PARTITION BY s.schoolid
+           ORDER BY st.total_completion - prev_week_completion.total_completion DESC) AS sch_change_rank
+      ,ROW_NUMBER() OVER(
+         PARTITION BY s.grade_level
+           ORDER BY st.total_completion - prev_week_completion.total_completion DESC) AS network_gr_change_rank
 FROM KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
 LEFT OUTER JOIN observed_completion st WITH(NOLOCK)
   ON s.studentid = st.studentid

@@ -25,6 +25,7 @@ SELECT academic_year
       ,CONVERT(DATE,MIN(CALENDARDATE)) AS streak_start
       ,CONVERT(DATE,MAX(CALENDARDATE)) AS streak_end
       ,DATEDIFF(DAY,MIN(CALENDARDATE),MAX(CALENDARDATE)) + 1 AS streak_length
+      ,COUNT(CALENDARDATE) AS streak_length_membership
 FROM
     (
      SELECT co.year AS academic_year

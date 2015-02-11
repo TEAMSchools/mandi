@@ -4,133 +4,66 @@ GO
 ALTER VIEW SPI$MAP_sgp AS
 
 WITH roster AS (
-  SELECT co.studentid
+  SELECT base.studentid
+        ,base.year
+        ,base.measurementscale
         ,REPLACE(co.school_name,'Revolution','Rev') AS school
-        ,co.grade_level
-        ,co.year
-        ,co.year_in_network                
-  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
-  WHERE co.rn = 1
-    AND co.year >= 2009
-    AND co.grade_level < 10
-    AND co.schoolid != 999999
- ) 
- 
-,scales AS (
-  SELECT 'Mathematics' AS measurementscale
-  UNION ALL
-  SELECT 'Reading'
-  UNION ALL
-  SELECT 'Language Usage'
-  UNION ALL 
-  SELECT 'General Science'
- )
-
-,sgp_s2s AS (
-  SELECT sgp_s2s.studentid
-        ,sgp_s2s.year
-        ,sgp_s2s.measurementscale
-        ,sgp_s2s.period_string AS s2s_period
-        ,sgp_s2s.true_growth_projection AS s2s_growth_projection
-        ,sgp_s2s.rit_change AS s2s_change
-        ,sgp_s2s.growth_percentile AS s2s_sgp
-        ,sgp_s2s.met_typical_growth_target AS s2s_met_typ      
-  FROM KIPP_NJ..MAP$growth_measures_long#static sgp_s2s WITH(NOLOCK)
-  WHERE sgp_s2s.period_string = 'Spring to Spring'
- )
-
-,sgp_f2s AS (
-  SELECT sgp_f2s.studentid
-        ,sgp_f2s.year
-        ,sgp_f2s.measurementscale
-        ,sgp_f2s.period_string AS f2s_period
-        ,sgp_f2s.true_growth_projection AS f2s_growth_projection
-        ,sgp_f2s.rit_change AS f2s_change
-        ,sgp_f2s.growth_percentile AS f2s_sgp
-        ,sgp_f2s.met_typical_growth_target AS f2s_met_typ
-  FROM KIPP_NJ..MAP$growth_measures_long#static sgp_f2s WITH(NOLOCK)  
-  WHERE sgp_f2s.period_string = 'Fall to Spring'
- )
-
-,sgp_f2w AS(
-  SELECT sgp_f2w.studentid
-        ,sgp_f2w.year
-        ,sgp_f2w.measurementscale
-        ,sgp_f2w.period_string AS f2w_period
-        ,sgp_f2w.true_growth_projection AS f2w_growth_projection
-        ,sgp_f2w.rit_change AS f2w_change
-        ,sgp_f2w.growth_percentile AS f2w_sgp
-        ,sgp_f2w.met_typical_growth_target AS f2w_met_typ
-  FROM KIPP_NJ..MAP$growth_measures_long#static sgp_f2w WITH(NOLOCK)  
-  WHERE sgp_f2w.period_string = 'Fall to Winter'
- )
-
-,sgp_s2h AS(
-  SELECT sgp_s2h.studentid
-        ,sgp_s2h.year
-        ,sgp_s2h.measurementscale
-        ,sgp_s2h.period_string AS s2h_period
-        ,sgp_s2h.true_growth_projection AS s2h_growth_projection
-        ,sgp_s2h.rit_change AS s2h_change
-        ,sgp_s2h.growth_percentile AS s2h_sgp
-        ,sgp_s2h.met_typical_growth_target AS s2h_met_typ
-  FROM KIPP_NJ..MAP$growth_measures_long#static sgp_s2h WITH(NOLOCK)  
-  WHERE sgp_s2h.period_string = 'Spring to half-of-Spring'
+        ,co.grade_level                
+        ,LEFT(base.termname, (CHARINDEX(' ', termname) - 1)) AS base_term
+  FROM KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
+  JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
+    ON base.studentid = co.studentid
+   AND base.year = co.year
+   AND co.rn = 1
+   AND co.grade_level < 10
+   AND co.schoolid != 999999   
+   -- if it's the current year, only currently enrolled students
+   AND ((co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status = 0) OR (co.year < KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status IS NOT NULL))
+  WHERE base.year >= 2009    
+    AND base.termname IS NOT NULL -- exclude students w/o baseline
  )
 
 ,scores_long AS (
-  SELECT r.studentid
-        ,r.school
-        ,r.grade_level
-        ,r.year
-        ,scales.measurementscale
-        -- if it's the current year and there isn't spring-to-spring growth yet, use fall-to-winter/spring-to-half
-        -- if they're new or if spring-to-spring is null, use fall-to-spring        
-        -- otherwise, use spring-to-spring
+  SELECT base.studentid        
+        ,base.school
+        ,base.grade_level      
+        ,base.year            
+        ,base.measurementscale
+        -- for the current year, if spring is null, then use winter
+        -- are starting terms are from each student's best baseline
         ,CASE 
-          --WHEN r.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND s2s_change IS NULL THEN COALESCE(s2h_period, f2w_period)
-          WHEN ((year_in_network = 1) OR (f2s_sgp > 0 AND s2s_sgp IS NULL)) THEN f2s_period           
-          ELSE s2s_period
+          WHEN base.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND eoy.growth_percentile IS NULL THEN midyear.period_string 
+          ELSE eoy.period_string
          END AS period
-        ,CASE 
-          --WHEN r.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND s2s_change IS NULL THEN COALESCE(s2h_growth_projection, f2w_growth_projection)
-          WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_growth_projection           
-          ELSE s2s_growth_projection
+        ,CASE
+          WHEN base.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND eoy.growth_percentile IS NULL THEN midyear.true_growth_projection
+          ELSE eoy.true_growth_projection
          END AS growth_projection
-        ,CASE 
-          --WHEN r.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND s2s_change IS NULL THEN COALESCE(s2h_change, f2w_change)
-          WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_change           
-          ELSE s2s_change
+        ,CASE
+          WHEN base.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND eoy.growth_percentile IS NULL THEN midyear.rit_change
+          ELSE eoy.rit_change
          END AS rit_change
-        ,CASE           
-          --WHEN r.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND s2s_change IS NULL THEN COALESCE(s2h_sgp, f2w_sgp)
-          WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_sgp 
-          ELSE s2s_sgp
-         END AS sgp
-        ,CASE 
-          --WHEN r.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND s2s_change IS NULL THEN COALESCE(s2h_met_typ, f2w_met_typ)
-          WHEN year_in_network = 1 OR (f2s_sgp > 0 AND s2s_sgp IS NULL) THEN f2s_met_typ           
-          ELSE s2s_met_typ
-         END AS met_typ 
-  FROM roster r WITH(NOLOCK)
-  JOIN scales WITH(NOLOCK)
-    ON 1 = 1
-  LEFT OUTER JOIN sgp_s2s WITH(NOLOCK)
-    ON r.studentid = sgp_s2s.studentid
-   AND r.year = sgp_s2s.year
-   AND scales.measurementscale = sgp_s2s.measurementscale
-  LEFT OUTER JOIN sgp_f2s WITH(NOLOCK)
-    ON r.studentid = sgp_f2s.studentid
-   AND r.year = sgp_f2s.year
-   AND scales.measurementscale = sgp_f2s.measurementscale
-  LEFT OUTER JOIN sgp_f2w WITH(NOLOCK)
-    ON r.studentid = sgp_f2w.studentid
-   AND r.year = sgp_f2w.year
-   AND scales.measurementscale = sgp_f2w.measurementscale     
-  LEFT OUTER JOIN sgp_s2h WITH(NOLOCK)
-    ON r.studentid = sgp_s2h.studentid
-   AND r.year = sgp_s2h.year
-   AND scales.measurementscale = sgp_s2h.measurementscale     
+        ,CASE
+          WHEN base.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN COALESCE(eoy.growth_percentile, midyear.growth_percentile)
+          ELSE eoy.growth_percentile
+         END AS sgp      
+        ,CASE
+          WHEN base.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND eoy.growth_percentile IS NULL THEN midyear.met_typical_growth_target
+          ELSE eoy.met_typical_growth_target
+         END AS met_typ      
+  FROM roster base WITH(NOLOCK)
+  JOIN KIPP_NJ..MAP$growth_measures_long#static midyear WITH(NOLOCK)
+    ON base.studentid = midyear.studentid
+   AND base.measurementscale = midyear.measurementscale
+   AND base.year = midyear.year
+   AND base.base_term = midyear.start_term_string
+   AND midyear.end_term_string = 'Winter'
+  JOIN KIPP_NJ..MAP$growth_measures_long#static eoy WITH(NOLOCK)
+    ON base.studentid = eoy.studentid
+   AND base.measurementscale = eoy.measurementscale
+   AND base.year = eoy.year
+   AND base.base_term = eoy.start_term_string
+   AND eoy.end_term_string = 'Spring'
  )
 
 ,averages AS (
@@ -161,6 +94,7 @@ WITH roster AS (
            WITHIN GROUP (ORDER BY sgp) 
              OVER (PARTITION BY year, school, measurementscale) AS med_sgp
   FROM scores_long WITH(NOLOCK)
+  WHERE sgp IS NOT NULL
  )
 
 SELECT averages.school
