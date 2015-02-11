@@ -4,27 +4,22 @@ GO
 ALTER VIEW TABLEAU$710_dashboard AS
  
 WITH enrollments AS (
-  SELECT cc.SCHOOLID
-        ,cc.STUDENTID
-        ,cc.TERMID
-        ,cou.CREDITTYPE
-        ,cc.COURSE_NUMBER
-        ,cou.course_name
-        ,cc.SECTION_NUMBER
-        ,cc.SECTIONID
-        ,t.last_name AS teacher_name
-        ,cc.period AS nca_period
-  FROM CC WITH(NOLOCK)
-  JOIN COURSES cou WITH(NOLOCK)
-    ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
-   AND cou.CREDITTYPE IS NOT NULL
-   AND cou.CREDITTYPE NOT IN ('LOG')
-  JOIN TEACHERS t WITH(NOLOCK)
-    ON cc.TEACHERID = t.ID
-  WHERE cc.TERMID >= dbo.fn_Global_Term_Id()    
-    AND cc.STUDENTID IN (SELECT studentid 
-                         FROM COHORT$comprehensive_long#static co WITH(NOLOCK) 
-                         WHERE co.year = dbo.fn_Global_Academic_Year() AND co.grade_level >= 5 AND co.grade_level <= 12)
+  SELECT SCHOOLID
+        ,STUDENTID
+        ,TERMID
+        ,CREDITTYPE
+        ,COURSE_NUMBER
+        ,course_name
+        ,SECTION_NUMBER
+        ,SECTIONID
+        ,teacher_name
+        ,period AS nca_period
+  FROM KIPP_NJ..PS$course_enrollments#static WITH(NOLOCK)  
+  WHERE TERMID >= dbo.fn_Global_Term_Id()    
+    AND grade_level >= 5
+    AND grade_level <= 12
+    AND CREDITTYPE IS NOT NULL
+    AND CREDITTYPE NOT IN ('LOG')
  )
 
 ,reporting_weeks AS (
