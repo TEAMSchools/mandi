@@ -131,22 +131,16 @@ WITH assessments AS (
 
 ,enrollments AS (
   SELECT cc.studentid
-        ,c.COURSE_NAME
-        ,c.CREDITTYPE        
-        ,t.lastfirst AS teacher_name
+        ,cc.COURSE_NAME
+        ,cc.CREDITTYPE        
+        ,cc.teacher_name
         ,cc.period
-        ,ROW_NUMBER() OVER(
-           PARTITION BY cc.studentid, c.credittype
-             ORDER BY c.course_number DESC) AS rn
-  FROM CC WITH(NOLOCK)
-  JOIN COURSES c WITH(NOLOCK)
-    ON cc.course_number = c.course_number
-   AND c.CREDITTYPE IN ('RHET','ENG')
-  JOIN TEACHERS t WITH(NOLOCK)
-    ON cc.teacherid = t.id
+        ,cc.rn_subject AS rn
+  FROM PS$course_enrollments#static cc WITH(NOLOCK)
   WHERE cc.SCHOOLID = 73253
     AND cc.TERMID >= dbo.fn_Global_Term_Id()
     AND cc.SECTIONID > 0
+    AND cc.CREDITTYPE IN ('RHET','ENG')
  )
 
 SELECT w.SCHOOLID

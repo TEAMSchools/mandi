@@ -36,8 +36,9 @@ SELECT cc.academic_year
         WHEN cou.CREDITTYPE = 'SCI' THEN 'Science - General Science'
        END AS measurementscale
       ,cc.COURSE_NUMBER
-      ,cou.COURSE_NAME      
+      ,cou.COURSE_NAME            
       ,ABS(cc.SECTIONID) AS sectionid
+      ,sec.DCID AS sectionsDCID
       ,cc.SECTION_NUMBER      
       ,CASE WHEN cc.schoolid = 73253 THEN cc.period ELSE NULL END AS period
       ,t.TEACHERNUMBER
@@ -62,6 +63,8 @@ SELECT cc.academic_year
         PARTITION BY cc.studentid, cou.credittype, cc.academic_year
             ORDER BY cc.termid DESC, cc.dateenrolled DESC) AS rn_subject    
 FROM KIPP_NJ..CC WITH(NOLOCK)
+JOIN KIPP_NJ..SECTIONS sec WITH(NOLOCK)
+  ON cc.SECTIONID = sec.ID
 JOIN KIPP_NJ..COURSES cou WITH(NOLOCK)
   ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
 JOIN KIPP_NJ..TEACHERS t WITH(NOLOCK)
