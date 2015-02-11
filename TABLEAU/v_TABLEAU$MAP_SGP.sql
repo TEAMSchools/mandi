@@ -5,6 +5,7 @@ ALTER VIEW TABLEAU$MAP_SGP AS
 
 WITH base AS (
   SELECT base.studentid
+        ,co.lastfirst AS student_name
         ,base.schoolid
         ,co.school_name
         ,base.grade_level
@@ -14,14 +15,18 @@ WITH base AS (
         ,base.year
         ,base.measurementscale      
         ,LEFT(base.termname, (CHARINDEX(' ', termname) - 1)) AS base_term
+        ,base.testritscore AS base_rit
+        ,base.testpercentile AS base_percentile
   FROM KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
   JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
     ON base.studentid = co.studentid
-   AND base.year = co.year
+   AND base.year = co.year   
    AND co.rn = 1
+   AND ((co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status = 0) OR (co.year < KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status IS NOT NULL))
  )
 
 SELECT base.studentid        
+      ,base.student_name
       ,base.school_name
       ,base.grade_level
       ,base.team
@@ -32,6 +37,10 @@ SELECT base.studentid
       ,base.measurementscale
       ,midyear.period_string
       ,midyear.true_growth_projection
+      ,base.base_rit
+      ,base.base_percentile
+      ,midyear.end_rit AS term_rit
+      ,midyear.end_npr AS term_npr
       ,midyear.rit_change
       ,midyear.growth_percentile
       ,midyear.met_typical_growth_target
@@ -46,6 +55,7 @@ JOIN KIPP_NJ..MAP$growth_measures_long#static midyear WITH(NOLOCK)
 UNION ALL
 
 SELECT base.studentid        
+      ,base.student_name
       ,base.school_name
       ,base.grade_level
       ,base.team
@@ -56,6 +66,10 @@ SELECT base.studentid
       ,base.measurementscale        
       ,eoy.period_string
       ,eoy.true_growth_projection
+      ,base.base_rit
+      ,base.base_percentile
+      ,eoy.end_rit AS term_rit
+      ,eoy.end_npr AS term_npr
       ,eoy.rit_change
       ,eoy.growth_percentile
       ,eoy.met_typical_growth_target

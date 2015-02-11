@@ -2,103 +2,8 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$growth_measures_long AS
-WITH cohort AS (
-  SELECT cohort.studentid
-        ,cohort.grade_level
-        ,cohort.schoolid
-        ,cohort.year
-        ,cohort.cohort
-        ,cohort.year_in_network
-  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)
-  WHERE cohort.grade_level <= 12
-    AND cohort.rn = 1
- )
 
-,periods AS (
-  SELECT 4 AS start_term_numeric
-        ,2 AS end_term_numeric
-        ,42 AS period_numeric
-        ,0 AS lookback_modifier
-        ,'Fall' AS start_term_string
-        ,'Spring' AS end_term_string
-        ,'Fall to Spring' AS period_string
-        ,1 AS goal_prorater
-  UNION ALL
-  SELECT 2
-        ,2
-        ,22
-        ,-1
-        ,'Spring'
-        ,'Spring'
-        ,'Spring to Spring'
-        ,1
-  UNION ALL
-  SELECT 4
-        ,4
-        ,44
-        ,-1
-        ,'Fall'
-        ,'Fall'
-        ,'Fall to Fall'
-        ,1
-  UNION ALL
-  SELECT 4
-        ,1
-        ,41
-        ,0
-        ,'Fall'
-        ,'Winter'
-        ,'Fall to Winter'
-        ,1
-  UNION ALL
-  SELECT 1
-        ,2
-        ,12
-        ,0
-        ,'Winter'
-        ,'Spring'
-        ,'Winter to Spring'
-        ,1
-  UNION ALL
-  SELECT 2
-        ,1
-        ,22
-        ,-1
-        ,'Spring'
-        ,'Winter'
-        ,'Spring to half-of-Spring'
-        ,0.5
-  UNION ALL
-  SELECT 2
-        ,4
-        ,24
-        ,-1
-        ,'Spring'
-        ,'Fall'
-        ,'Spring to Fall'
-        ,1
-
-  /*
-  UNION ALL
-  SELECT 2
-        ,1
-        ,22
-        ,-1
-        ,'Spring'
-        ,'Winter'
-        ,'Spring to psuedo-Spring (Spring goal, Winter actual)'
-  UNION ALL
-  SELECT 4
-        ,1
-        ,42
-        ,0
-        ,'Fall'
-        ,'Winter'
-        ,'Fall to psuedo-Spring (Spring goal, Winter actual)'
-  */
- )
-
-,scales AS (
+WITH scales AS (
   SELECT 'Mathematics' AS measurementscale
   UNION ALL
   SELECT 'Reading'
@@ -112,97 +17,188 @@ WITH cohort AS (
 
 -- assembles scaffold
 ,base AS (
-  SELECT cohort.*
-        ,periods.*
-        ,scales.*
-  FROM cohort
-  JOIN periods
+  SELECT cohort.studentid
+        ,cohort.grade_level
+        ,cohort.schoolid
+        ,cohort.year
+        ,cohort.cohort
+        ,cohort.year_in_network
+        ,periods.start_term_numeric
+        ,periods.end_term_numeric
+        ,periods.period_numeric
+        ,periods.lookback_modifier
+        ,periods.start_term_string
+        ,periods.end_term_string
+        ,periods.period_string
+        ,periods.goal_prorater
+        ,scales.measurementscale  
+        ,cohort.year + periods.lookback_modifier AS period_start_year
+  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)    
+  JOIN KIPP_NJ..MAP$growth_terms#lookup periods WITH(NOLOCK)
     ON 1=1
   JOIN scales
     ON 1=1
+  WHERE cohort.grade_level <= 12
+    AND cohort.rn = 1
  )
 
-SELECT growth_index.*
+SELECT growth_index.studentid
+      ,growth_index.grade_level
+      ,growth_index.schoolid
+      ,growth_index.year
+      ,growth_index.cohort
+      ,growth_index.year_in_network
+      ,growth_index.start_term_numeric
+      ,growth_index.end_term_numeric
+      ,growth_index.period_numeric
+      ,growth_index.lookback_modifier
+      ,growth_index.start_term_string
+      ,growth_index.end_term_string
+      ,growth_index.period_string
+      ,growth_index.goal_prorater
+      ,growth_index.measurementscale
+      ,growth_index.start_rit
+      ,growth_index.end_rit
+      ,growth_index.start_npr
+      ,growth_index.end_npr
+      ,growth_index.start_lex
+      ,growth_index.end_lex
+      ,growth_index.rit_change
+      ,growth_index.lexile_change
+      ,growth_index.start_grade_verif
+      ,growth_index.end_grade_verif
+      ,growth_index.start_term_verif
+      ,growth_index.end_term_verif
+      ,growth_index.reported_growth_projection
+      ,growth_index.true_growth_projection
+      ,growth_index.std_dev_of_growth_projection
+      ,growth_index.valid_observation
+      ,growth_index.met_typical_growth_target
+      ,growth_index.met_typical_growth_target_str
+      ,growth_index.growth_index
+      ,growth_index.cgi      
       ,CASE
-         WHEN cgi < -3.99 THEN 0.001
-         WHEN cgi > 6 THEN 99.999
-         ELSE zscores.percentile 
+        WHEN cgi < -3.99 THEN 0.001
+        WHEN cgi > 6 THEN 99.999
+        ELSE zscores.percentile 
        END AS growth_percentile
 FROM
-      (SELECT with_map.*
-             ,CASE
-                WHEN rit_change IS NOT NULL THEN 1
-                ELSE 0
-              END AS valid_observation
-             ,CASE
-                WHEN rit_change IS NULL THEN NULL
-                WHEN rit_change >= reported_growth_projection THEN 1
-                WHEN rit_change < reported_growth_projection THEN 0
-              END AS met_typical_growth_target
-             ,CASE
-                WHEN rit_change IS NULL THEN NULL
-                WHEN rit_change >= reported_growth_projection THEN 'Yes'
-                WHEN rit_change < reported_growth_projection THEN 'No'
-              END AS met_typical_growth_target_str
-             ,rit_change - reported_growth_projection AS growth_index
-             ,ROUND((rit_change - true_growth_projection) / std_dev_of_growth_projection, 2) AS cgi
-       FROM
-             (SELECT base.*
-                    ,map_start.testritscore AS start_rit
-                    ,map_end.testritscore AS end_rit
-                    ,map_start.percentile_2011_norms AS start_npr
-                    ,map_end.percentile_2011_norms AS end_npr
-                    ,map_start.rittoreadingscore AS start_lex
-                    ,map_end.rittoreadingscore AS end_lex
-                    ,map_end.testritscore - map_start.testritscore AS rit_change
-                    ,CASE WHEN map_end.rittoreadingscore = 'BR' THEN 0 ELSE CONVERT(INT,map_end.rittoreadingscore) END - CASE WHEN map_start.rittoreadingscore = 'BR' THEN 0 ELSE CONVERT(INT,map_start.rittoreadingscore) END AS lexile_change
-                    ,map_start.grade_level AS start_grade_verif
-                    ,map_end.grade_level AS end_grade_verif
-                    ,map_start.termname AS start_term_verif
-                    ,map_end.termname AS end_term_verif
-                    --norm study data
-                    ,CASE
-                       WHEN base.period_numeric = 42 THEN norms.r42 * base.goal_prorater
-                       WHEN base.period_numeric = 22 THEN norms.r22 * base.goal_prorater
-                       WHEN base.period_numeric = 44 THEN norms.r44 * base.goal_prorater
-                       WHEN base.period_numeric = 41 THEN norms.r41 * base.goal_prorater
-                       WHEN base.period_numeric = 12 THEN norms.r12 * base.goal_prorater
-                     END AS reported_growth_projection
-                   ,CASE
-                       WHEN base.period_numeric = 42 THEN norms.t42 * base.goal_prorater
-                       WHEN base.period_numeric = 22 THEN norms.t22 * base.goal_prorater
-                       WHEN base.period_numeric = 44 THEN norms.t44 * base.goal_prorater
-                       WHEN base.period_numeric = 41 THEN norms.t41 * base.goal_prorater
-                       WHEN base.period_numeric = 12 THEN norms.t12 * base.goal_prorater
-                     END AS true_growth_projection
-                    ,CASE
-                       WHEN base.period_numeric = 42 THEN norms.s42
-                       WHEN base.period_numeric = 22 THEN norms.s22
-                       WHEN base.period_numeric = 44 THEN norms.s44
-                       WHEN base.period_numeric = 41 THEN norms.s41
-                       WHEN base.period_numeric = 12 THEN norms.s12
-                     END AS std_dev_of_growth_projection
-              FROM base
-              --data for START of target period
-              LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_start WITH(NOLOCK)
-                ON base.studentid = map_start.ps_studentid
-               AND base.measurementscale = map_start.measurementscale
-               AND (base.year + base.lookback_modifier) = map_start.map_year_academic
-               AND base.start_term_string = map_start.fallwinterspring
-               AND map_start.rn = 1
-              --data for END of target period
-              LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_end WITH(NOLOCK)
-                ON base.studentid = map_end.ps_studentid
-               AND base.measurementscale = map_end.measurementscale
-               AND base.year = map_end.map_year_academic
-               AND base.end_term_string = map_end.fallwinterspring
-               AND map_end.rn = 1
-              --norms data
-              LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norms WITH(NOLOCK)
-                ON base.measurementscale = norms.subject
-               AND map_start.testritscore = norms.startrit
-               AND map_start.grade_level = norms.startgrade              
-              ) with_map
-       ) growth_index
+    (
+     SELECT with_map.studentid
+           ,with_map.grade_level
+           ,with_map.schoolid
+           ,with_map.year
+           ,with_map.cohort
+           ,with_map.year_in_network
+           ,with_map.start_term_numeric
+           ,with_map.end_term_numeric
+           ,with_map.period_numeric
+           ,with_map.lookback_modifier
+           ,with_map.start_term_string
+           ,with_map.end_term_string
+           ,with_map.period_string
+           ,with_map.goal_prorater
+           ,with_map.measurementscale
+           ,with_map.start_rit
+           ,with_map.end_rit
+           ,with_map.start_npr
+           ,with_map.end_npr
+           ,with_map.start_lex
+           ,with_map.end_lex
+           ,with_map.rit_change
+           ,with_map.lexile_change
+           ,with_map.start_grade_verif
+           ,with_map.end_grade_verif
+           ,with_map.start_term_verif
+           ,with_map.end_term_verif
+           ,with_map.reported_growth_projection
+           ,with_map.true_growth_projection
+           ,with_map.std_dev_of_growth_projection
+           ,CASE WHEN rit_change IS NOT NULL THEN 1 ELSE 0 END AS valid_observation
+           ,CASE
+             WHEN rit_change IS NULL THEN NULL
+             WHEN rit_change >= reported_growth_projection THEN 1
+             WHEN rit_change < reported_growth_projection THEN 0
+            END AS met_typical_growth_target
+           ,CASE
+             WHEN rit_change IS NULL THEN NULL
+             WHEN rit_change >= reported_growth_projection THEN 'Yes'
+             WHEN rit_change < reported_growth_projection THEN 'No'
+            END AS met_typical_growth_target_str
+           ,rit_change - reported_growth_projection AS growth_index
+           ,ROUND((rit_change - true_growth_projection) / std_dev_of_growth_projection, 2) AS cgi
+     FROM
+         (
+          SELECT base.studentid
+                ,base.grade_level
+                ,base.schoolid
+                ,base.year
+                ,base.cohort
+                ,base.year_in_network
+                ,base.start_term_numeric
+                ,base.end_term_numeric
+                ,base.period_numeric
+                ,base.lookback_modifier
+                ,base.start_term_string
+                ,base.end_term_string
+                ,base.period_string
+                ,base.goal_prorater
+                ,base.measurementscale
+                ,map_start.testritscore AS start_rit
+                ,map_end.testritscore AS end_rit
+                ,map_start.percentile_2011_norms AS start_npr
+                ,map_end.percentile_2011_norms AS end_npr
+                ,map_start.rittoreadingscore AS start_lex
+                ,map_end.rittoreadingscore AS end_lex
+                ,map_end.testritscore - map_start.testritscore AS rit_change
+                ,CASE WHEN map_end.rittoreadingscore = 'BR' THEN 0 ELSE CONVERT(INT,map_end.rittoreadingscore) END - CASE WHEN map_start.rittoreadingscore = 'BR' THEN 0 ELSE CONVERT(INT,map_start.rittoreadingscore) END AS lexile_change
+                ,map_start.grade_level AS start_grade_verif
+                ,map_end.grade_level AS end_grade_verif
+                ,map_start.termname AS start_term_verif
+                ,map_end.termname AS end_term_verif
+                --norm study data
+                ,CASE
+                  WHEN base.period_numeric = 42 THEN norms.r42 * base.goal_prorater
+                  WHEN base.period_numeric = 22 THEN norms.r22 * base.goal_prorater
+                  WHEN base.period_numeric = 44 THEN norms.r44 * base.goal_prorater
+                  WHEN base.period_numeric = 41 THEN norms.r41 * base.goal_prorater
+                  WHEN base.period_numeric = 12 THEN norms.r12 * base.goal_prorater
+                 END AS reported_growth_projection
+                ,CASE
+                  WHEN base.period_numeric = 42 THEN norms.t42 * base.goal_prorater
+                  WHEN base.period_numeric = 22 THEN norms.t22 * base.goal_prorater
+                  WHEN base.period_numeric = 44 THEN norms.t44 * base.goal_prorater
+                  WHEN base.period_numeric = 41 THEN norms.t41 * base.goal_prorater
+                  WHEN base.period_numeric = 12 THEN norms.t12 * base.goal_prorater
+                 END AS true_growth_projection
+                ,CASE
+                  WHEN base.period_numeric = 42 THEN norms.s42
+                  WHEN base.period_numeric = 22 THEN norms.s22
+                  WHEN base.period_numeric = 44 THEN norms.s44
+                  WHEN base.period_numeric = 41 THEN norms.s41
+                  WHEN base.period_numeric = 12 THEN norms.s12
+                 END AS std_dev_of_growth_projection
+          FROM base
+          --data for START of target period
+          LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_start WITH(NOLOCK)
+            ON base.studentid = map_start.ps_studentid
+           AND base.measurementscale = map_start.measurementscale
+           AND base.period_start_year = map_start.map_year_academic
+           AND base.start_term_string = map_start.fallwinterspring
+           AND map_start.rn = 1
+          --data for END of target period
+          LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_end WITH(NOLOCK)
+            ON base.studentid = map_end.ps_studentid
+           AND base.measurementscale = map_end.measurementscale
+           AND base.year = map_end.map_year_academic
+           AND base.end_term_string = map_end.fallwinterspring
+           AND map_end.rn = 1
+          --norms data
+          LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norms WITH(NOLOCK)
+            ON base.measurementscale = norms.subject
+           AND map_start.testritscore = norms.startrit
+           AND map_start.grade_level = norms.startgrade              
+         ) with_map
+    ) growth_index
 LEFT OUTER JOIN KIPP_NJ..UTIL$zscores zscores WITH(NOLOCK)
   ON growth_index.cgi = zscores.zscore
