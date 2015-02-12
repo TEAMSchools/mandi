@@ -54,9 +54,9 @@ WITH meeting_att AS (
 
 ,dates AS (
   SELECT DISTINCT 
-    mem.CALENDARDATE
+    CONVERT(DATE,mem.CALENDARDATE) AS calendardate
    ,dt.alt_name
-  FROM MEMBERSHIP mem WITH(NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   JOIN REPORTING$dates dt WITH(NOLOCK)
     ON mem.schoolid = dt.schoolid
    AND mem.CALENDARDATE >= dt.start_date

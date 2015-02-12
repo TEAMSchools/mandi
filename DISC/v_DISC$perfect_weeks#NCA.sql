@@ -16,7 +16,7 @@ WITH roster AS (
 
 ,weeks AS (
   SELECT DISTINCT
-         mem.calendardate
+         CONVERT(DATE,mem.calendardate) AS calendardate
         ,DATEPART(WEEK,mem.calendardate) AS wk
         ,dt.time_per_name AS rt
         ,CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()))) AS cur_wkhash
@@ -25,7 +25,7 @@ WITH roster AS (
           WHEN CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()))) > CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,mem.calendardate)) + CONVERT(VARCHAR,DATEPART(WEEK,mem.calendardate))) THEN 1
           ELSE 0
          END AS is_past
-  FROM MEMBERSHIP mem WITH(NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   JOIN REPORTING$dates dt WITH(NOLOCK)
     ON mem.schoolid = dt.schoolid
    AND mem.calendardate >= dt.start_date
@@ -33,7 +33,7 @@ WITH roster AS (
    AND dt.identifier = 'RT'
    AND dt.academic_year = dbo.fn_Global_Academic_Year()
   WHERE mem.schoolid = 73253
-    AND mem.calendardate >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
+    AND mem.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
 ,curterm AS (

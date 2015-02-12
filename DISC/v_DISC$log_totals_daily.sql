@@ -60,7 +60,7 @@ WITH log_totals AS (
        WHERE co.year = dbo.fn_Global_Academic_Year()
          AND co.schoolid = 73253
          AND co.term IS NOT NULL
-         AND co.date IN (SELECT calendardate FROM MEMBERSHIP WITH(NOLOCK) WHERE schoolid = 73253 AND academic_year = dbo.fn_Global_Academic_Year() AND DATEPART(WEEKDAY,calendardate) NOT IN (1,7))
+         AND co.date IN (SELECT calendardate FROM KIPP_NJ..ATT_MEM$MEMBERSHIP WITH(NOLOCK) WHERE schoolid = 73253 AND academic_year = dbo.fn_Global_Academic_Year() AND DATEPART(WEEKDAY,calendardate) NOT IN (1,7))
          --AND co.date < CONVERT(DATE,GETDATE())         
       ) sub
   PIVOT(

@@ -74,7 +74,7 @@ WITH pt1_roster AS (
   SELECT r.*
         ,COUNT(mem.CALENDARDATE) AS abs_count
   FROM pt2_roster r WITH(NOLOCK)
-  LEFT OUTER JOIN MEMBERSHIP mem WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
     ON r.studentid = mem.STUDENTID
    AND mem.academic_year = 2013
    AND mem.MEMBERSHIPVALUE = 1

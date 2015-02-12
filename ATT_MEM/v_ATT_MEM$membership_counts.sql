@@ -8,13 +8,13 @@ WITH membership_long AS (
         ,CONVERT(DATE,calendardate) AS calendardate
         ,CONVERT(INT,membershipvalue) AS membershipvalue
         ,dates.time_per_name AS RT     
-  FROM MEMBERSHIP mem WITH (NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH (NOLOCK)
   JOIN REPORTING$dates dates WITH (NOLOCK)
     ON mem.calendardate >= dates.start_date
    AND mem.calendardate <= dates.end_date       
    AND mem.schoolid = dates.schoolid
    AND dates.identifier = 'RT'
-  WHERE mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
+  WHERE mem.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       
   UNION ALL
 
@@ -22,13 +22,13 @@ WITH membership_long AS (
         ,CONVERT(DATE,calendardate) AS calendardate
         ,CONVERT(INT,membershipvalue) AS membershipvalue
         ,'CUR' AS RT            
-  FROM MEMBERSHIP mem WITH (NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH (NOLOCK)
   JOIN REPORTING$dates curterm WITH (NOLOCK)
     ON mem.schoolid = curterm.schoolid      
    AND mem.CALENDARDATE >= curterm.start_date
    AND mem.CALENDARDATE <= curterm.end_date
    AND curterm.identifier = 'RT'
-  WHERE mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
+  WHERE mem.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND curterm.start_date <= GETDATE()
     AND curterm.end_date >= GETDATE()
  )

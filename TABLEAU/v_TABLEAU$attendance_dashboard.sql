@@ -43,7 +43,7 @@ SELECT 'KIPP NJ' AS Network
       ,supp.[Plan Owner ] AS plan_owner
       ,supp.[Admin Support] AS admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK)
-JOIN MEMBERSHIP mem WITH(NOLOCK)
+JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
  AND co.schoolid = mem.schoolid
  AND mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,co.year) + '-08-01')

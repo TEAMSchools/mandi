@@ -175,12 +175,12 @@ WITH enrollments AS (
              ,ABS(cc.SECTIONID) AS sectionid
              ,DATEPART(WEEK,mem.CALENDARDATE) AS week
              ,CONVERT(FLOAT,mem.MEMBERSHIPVALUE) AS membershipvalue
-       FROM MEMBERSHIP mem WITH(NOLOCK)
+       FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
        JOIN CC WITH(NOLOCK)
          ON mem.STUDENTID = cc.STUDENTID
         AND mem.CALENDARDATE >= cc.DATEENROLLED
         AND mem.CALENDARDATE <= cc.DATELEFT 
-       WHERE mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
+       WHERE mem.academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
          AND mem.SCHOOLID = 73253
       ) sub
   GROUP BY sectionid
@@ -207,7 +207,7 @@ WITH enrollments AS (
         ,NULL AS n_mem
         ,NULL AS n_absent
         ,ROUND(SUM(CONVERT(FLOAT,mem.attendancevalue)) / SUM(CONVERT(FLOAT,mem.membershipvalue)) * 100,0) AS butts_in_seats_pct
-  FROM MEMBERSHIP mem WITH(NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   JOIN CC WITH(NOLOCK)
     ON mem.STUDENTID = cc.STUDENTID
    AND cc.COURSE_NUMBER = 'HR' 
@@ -215,7 +215,7 @@ WITH enrollments AS (
    AND cc.DATELEFT >= GETDATE()
    AND cc.SECTIONID > 0
   WHERE mem.SCHOOLID IN (73252, 133570965)
-    AND mem.CALENDARDATE >= CONVERT(DATE,(CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01'))
+    AND mem.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY cc.SECTION_NUMBER
           ,DATEPART(WEEK,mem.CALENDARDATE)
  )

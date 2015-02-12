@@ -34,7 +34,7 @@ WITH calendar AS(
         ,CONVERT(DATE,mem.calendardate) AS date
         ,mem.membershipvalue
         ,mem.attendancevalue      
-  FROM MEMBERSHIP mem WITH(NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   WHERE mem.calendardate >= '2013-07-01'
     AND mem.calendardate <= GETDATE()
 )

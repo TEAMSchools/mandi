@@ -97,14 +97,14 @@ WITH roster AS (
              ,(DATEPART(YEAR,mem.CALENDARDATE) * 100) + DATEPART(WEEK,mem.CALENDARDATE) AS week_hash
              ,CONVERT(FLOAT,mem.ATTENDANCEVALUE) AS attendancevalue
              ,CASE WHEN att.ATT_CODE IS NOT NULL THEN 1 ELSE 0 END AS is_tardy
-       FROM MEMBERSHIP mem WITH(NOLOCK)
+       FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
        LEFT OUTER JOIN ATTENDANCE att WITH(NOLOCK)
          ON mem.studentid = att.STUDENTID
         AND mem.CALENDARDATE = att.ATT_DATE        
         AND att.ATT_CODE IN ('T','T10')
        WHERE mem.MEMBERSHIPVALUE = 1
          AND mem.SCHOOLID = 133570965
-         AND dbo.fn_DateToSY(mem.CALENDARDATE) = dbo.fn_Global_Academic_Year()
+         AND mem.academic_year = dbo.fn_Global_Academic_Year()
       ) sub
   GROUP BY STUDENTID
           ,week_hash

@@ -122,7 +122,7 @@ WITH njask AS (
                        ,academic_year           
                        ,SUM(CONVERT(INT,MEMBERSHIPVALUE)) AS n_mem
                        ,SUM(CASE WHEN ATTENDANCEVALUE = 0 THEN 1 ELSE 0 END) AS n_abs
-                 FROM MEMBERSHIP WITH(NOLOCK)
+                 FROM KIPP_NJ..ATT_MEM$MEMBERSHIP WITH(NOLOCK)
                  WHERE academic_year >= (KIPP_NJ.dbo.fn_Global_Academic_Year() - 1)
                  GROUP BY STUDENTID
                          ,academic_year

@@ -19,7 +19,7 @@ SELECT s.LASTFIRST AS Name
       ,disc.Subtype
       ,disc.rn AS [Count]
       ,s.schoolid
-      ,(SELECT DISTINCT DATEADD(DAY,-1,MAX(CALENDARDATE)) FROM MEMBERSHIP WITH(NOLOCK)) AS last_date
+      ,(SELECT DISTINCT DATEADD(DAY,-1,MAX(CONVERT(DATE,CALENDARDATE))) FROM KIPP_NJ..ATT_MEM$MEMBERSHIP WITH(NOLOCK)) AS last_date
 FROM COHORT$identifiers_long#static s WITH(NOLOCK)
 JOIN DISC$log#static disc WITH (NOLOCK)
   ON s.studentid = disc.studentid
