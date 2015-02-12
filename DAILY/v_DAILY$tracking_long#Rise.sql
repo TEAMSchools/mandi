@@ -3,13 +3,12 @@ GO
 
 ALTER VIEW DAILY$tracking_long#Rise AS
 
-SELECT DISTINCT 
-       studentid
+SELECT studentid
       ,schoolid
       ,att_date
       ,field AS class
       ,CASE WHEN GRADE_LEVEL = 7 AND value = 'S' THEN '$' ELSE value END AS ccr
-      ,CASE 
+      ,CASE
         -- 8th codes
         WHEN GRADE_LEVEL = 8 AND value = 'S' THEN 1
         WHEN value = 'E' THEN 3
@@ -43,27 +42,34 @@ FROM
            ,LTRIM(RTRIM(daily.history)) AS history
            ,LTRIM(RTRIM(daily.elec)) AS elec
            ,LTRIM(RTRIM(daily.other)) AS other
-     FROM OPENQUERY(PS_TEAM,'
-       SELECT user_defined_date AS att_date
-             ,foreignkey AS studentid
-             ,schoolid
-             ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field1'') AS adv_behavior
-             ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field2'') AS adv_logistic
-             ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field3'') AS math
-             ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field4'') AS science
-             ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field5'') AS reading
-             ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field6'') AS writing
-             ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field7'') AS history
-             ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field8'') AS elec
-             ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field9'') AS other
-             /*,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field10'') field10*/        
-       FROM virtualtablesdata2
-       WHERE related_to_table = ''dailytracking''
-         AND schoolid = 73252
-         AND user_defined_date >= ''2014-08-01''
-     ') daily /*-- UPDATE FOR CURRENT YEAR --*/
-     JOIN STUDENTS s WITH(NOLOCK)
-       ON daily.studentid = s.id
+     FROM 
+         (
+          SELECT KIPP_NJ.dbo.fn_DateToSY(att_date) AS academic_year
+                ,CONVERT(DATE,att_date) AS att_date
+                ,studentid
+                ,schoolid
+                ,field1 AS adv_behavior
+                ,field2 AS adv_logistic
+                ,field3 AS math
+                ,field4 AS science
+                ,field5 AS reading
+                ,field6 AS writing
+                ,field7 AS history
+                ,field8 AS elec
+                ,field9 AS other
+                ,field10
+                ,ROW_NUMBER() OVER(
+                   PARTITION BY studentid, att_date
+                     ORDER BY unique_id ASC) AS dupe_audit
+          FROM KIPP_NJ..DAILY$tracking_long#staging WITH(NOLOCK)
+          WHERE schoolid = 73252
+            AND KIPP_NJ.dbo.fn_DateToSY(att_date) = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         ) daily
+     JOIN KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
+       ON daily.studentid = s.studentid
+      AND daily.academic_year = s.year
+      AND s.rn = 1
+     WHERE daily.dupe_audit = 1
     ) sub
 
 UNPIVOT (

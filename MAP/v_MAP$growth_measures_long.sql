@@ -126,7 +126,9 @@ FROM
              WHEN rit_change < reported_growth_projection THEN 'No'
             END AS met_typical_growth_target_str
            ,rit_change - reported_growth_projection AS growth_index
-           ,ROUND((rit_change - true_growth_projection) / std_dev_of_growth_projection, 2) AS cgi
+           ,ROUND(
+             (CASE WHEN period_string = 'Spring to half-of-Spring' THEN rit_change * 2 ELSE rit_change END - true_growth_projection) / std_dev_of_growth_projection
+             ,2) AS cgi
      FROM
          (
           SELECT base.studentid
@@ -158,18 +160,18 @@ FROM
                 ,map_end.termname AS end_term_verif
                 --norm study data
                 ,CASE
-                  WHEN base.period_numeric = 42 THEN norms.r42 * base.goal_prorater
-                  WHEN base.period_numeric = 22 THEN norms.r22 * base.goal_prorater
-                  WHEN base.period_numeric = 44 THEN norms.r44 * base.goal_prorater
-                  WHEN base.period_numeric = 41 THEN norms.r41 * base.goal_prorater
-                  WHEN base.period_numeric = 12 THEN norms.r12 * base.goal_prorater
+                  WHEN base.period_numeric = 42 THEN norms.r42
+                  WHEN base.period_numeric = 22 THEN norms.r22
+                  WHEN base.period_numeric = 44 THEN norms.r44
+                  WHEN base.period_numeric = 41 THEN norms.r41
+                  WHEN base.period_numeric = 12 THEN norms.r12
                  END AS reported_growth_projection
                 ,CASE
-                  WHEN base.period_numeric = 42 THEN norms.t42 * base.goal_prorater
-                  WHEN base.period_numeric = 22 THEN norms.t22 * base.goal_prorater
-                  WHEN base.period_numeric = 44 THEN norms.t44 * base.goal_prorater
-                  WHEN base.period_numeric = 41 THEN norms.t41 * base.goal_prorater
-                  WHEN base.period_numeric = 12 THEN norms.t12 * base.goal_prorater
+                  WHEN base.period_numeric = 42 THEN norms.t42
+                  WHEN base.period_numeric = 22 THEN norms.t22
+                  WHEN base.period_numeric = 44 THEN norms.t44
+                  WHEN base.period_numeric = 41 THEN norms.t41
+                  WHEN base.period_numeric = 12 THEN norms.t12
                  END AS true_growth_projection
                 ,CASE
                   WHEN base.period_numeric = 42 THEN norms.s42

@@ -154,7 +154,11 @@ SELECT sub.unique_id
       ,sub.score
       ,sub.benchmark
       ,sub.is_prof
-      ,CASE WHEN sub.is_prof = 0 THEN sub.domain ELSE NULL END AS dna_reason
+      ,CASE
+        WHEN sub.label LIKE '%errors%' THEN sub.benchmark - sub.score
+        ELSE sub.score - sub.benchmark 
+       END AS margin
+      ,CASE WHEN sub.is_prof = 0 THEN sub.domain ELSE NULL END AS dna_reason      
 FROM 
     (
      SELECT rs.unique_id
