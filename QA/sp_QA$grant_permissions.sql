@@ -35,7 +35,7 @@ GRANT SELECT ON SCHOOLS TO db_data_tool_reader
 GRANT SELECT ON TEACHERS TO db_data_tool_reader
 GRANT SELECT ON CC TO db_data_tool_reader
 GRANT SELECT ON SECTIONS TO db_data_tool_reader
-GRANT SELECT ON MEMBERSHIP TO db_data_tool_reader
+GRANT SELECT ON ATT_MEM$MEMBERSHIP TO db_data_tool_reader
 GRANT SELECT ON ATTENDANCE TO db_data_tool_reader
 GRANT SELECT ON PS$course_enrollments#static TO db_data_tool_reader
 GRANT SELECT ON PS$enrollments_rollup#static TO db_data_tool_reader
@@ -56,6 +56,7 @@ GRANT SELECT ON GRADES$detail_long_term#MS TO db_data_tool_reader
 --ES Reporting
 GRANT SELECT ON REPORTING$intervention_results_by_standard TO db_data_tool_reader
 GRANT SELECT ON ES_DAILY$tracking_long#static TO db_data_tool_reader
+GRANT SELECT ON DAILY$tracking_long#staging TO db_data_tool_reader
 
 --Testing
 GRANT SELECT ON NAVIANCE$ID_key TO db_data_tool_reader

@@ -37,20 +37,16 @@ SELECT co.schoolid
       ,CONVERT(FLOAT,res.mastered) AS mastered      
       ,ovr.percent_correct AS overall_pct_correct
       ,ROW_NUMBER() OVER(
-         PARTITION BY res.local_student_id, res.assessment_id
-           ORDER BY res.local_student_id) AS overall_rn
+         PARTITION BY ovr.student_number, a.assessment_id
+           ORDER BY ovr.student_number) AS overall_rn
       ,ROW_NUMBER() OVER(
-         PARTITION BY res.local_student_id, a.scope, res.standard_id
+         PARTITION BY ovr.student_number, a.scope, a.standard_id
            ORDER BY a.administered_at DESC) AS rn_curr
-FROM ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOCK)
-LEFT OUTER JOIN ILLUMINATE$assessment_results_overall#static ovr WITH(NOLOCK)
-  ON res.assessment_id = ovr.assessment_id
- AND res.local_student_id = ovr.student_number
-JOIN ILLUMINATE$distinct_assessments#static a WITH (NOLOCK)
-  ON res.assessment_id = a.assessment_id
- AND res.standard_id = a.standard_id  
+FROM ILLUMINATE$distinct_assessments#static a WITH (NOLOCK)
+JOIN ILLUMINATE$assessment_results_overall#static ovr WITH(NOLOCK)
+  ON a.assessment_id = ovr.assessment_id 
 JOIN COHORT$identifiers_long#static co WITH (NOLOCK)
-  ON res.local_student_id = co.student_number
+  ON ovr.student_number = co.student_number
  AND a.academic_year = co.year
  AND co.rn = 1
 LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
@@ -61,3 +57,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
 LEFT OUTER JOIN groups WITH(NOLOCK)
   ON co.STUDENT_NUMBER = groups.student_number
  AND co.year = groups.academic_year
+LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOCK)
+  ON a.assessment_id = res.assessment_id
+ AND a.standard_id = res.standard_id  
+ AND ovr.student_number = res.local_student_id

@@ -3,9 +3,19 @@ GO
 
 ALTER VIEW ILLUMINATE$assessment_results_overall AS
 
-SELECT *
+SELECT CONVERT(INT,local_student_id) AS student_number
+      ,assessment_id
+      ,date_taken
+      ,performance_band_id
+      ,performance_band_level
+      ,mastered
+      ,points
+      ,points_possible
+      ,answered
+      ,percent_correct
+      ,number_of_questions
 FROM OPENQUERY(ILLUMINATE, '
- SELECT s.local_student_id AS student_number
+ SELECT s.local_student_id
        ,agg_resp.assessment_id
        ,agg_resp.date_taken
        ,agg_resp.performance_band_id
