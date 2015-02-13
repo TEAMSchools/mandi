@@ -27,22 +27,17 @@ WITH gpa_credittype AS (
                     WHEN SUM(CONVERT(FLOAT,potentialcrhrs)) = 0 THEN NULL
                     ELSE SUM(CONVERT(FLOAT,potentialcrhrs))
                    END AS credit_hours
-            FROM OPENQUERY(PS_TEAM,'
-              SELECT sg.studentid
-                    ,CASE WHEN TRIM(sg.credit_type) = ''WLAN'' THEN ''WLANG'' ELSE TRIM(sg.credit_type) END AS credit_type
-                    ,(sg.potentialcrhrs * sg.gpa_points) AS weighted_points
-                    ,sg.potentialcrhrs
-              FROM students s
-              JOIN storedgrades sg
-                ON s.id = sg.studentid
-               AND s.schoolid = sg.schoolid
-               AND sg.storecode = ''Y1''   
-               AND sg.excludefromgpa != 1
-               AND sg.credit_type IS NOT NULL -- no transfer classes!
-              WHERE s.enroll_status = 0
-                AND s.schoolid = 73253 -- NCA
-                AND s.grade_level = 12 -- seniors
-            ')                  
+            FROM 
+                (
+                 SELECT sg.studentid
+                       ,ISNULL(sg.credittype,'TRANSF') AS credit_type
+                       ,(sg.potential_crhrs * sg.grade_points) AS weighted_points
+                       ,sg.potential_crhrs AS potentialcrhrs
+                 FROM GRADES$storedgrades#identifiers sg
+                 WHERE sg.term = 'Y1'   
+                   AND sg.excludefromgpa != 1
+                    --AND sg.credit_type IS NOT NULL -- no transfer classes! UPDATE (2/13/15): this was wrong I think                                      
+                ) sub
             GROUP BY studentid, credit_type
            ) sub_1
       ) sub_2    

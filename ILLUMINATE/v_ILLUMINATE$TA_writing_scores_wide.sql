@@ -155,10 +155,16 @@ SELECT w.student_number
           + CASE WHEN inf.total_prof LIKE '3%' THEN 1.0 ELSE 0.0 END 
           + CASE WHEN op.total_prof LIKE '3%' THEN 1.0 ELSE 0.0 END)
           / 
-         CONVERT(FLOAT,w.n_tested 
-          + CASE WHEN narr.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END 
-          + CASE WHEN inf.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END 
-          + CASE WHEN op.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END)) 
+         CASE
+          WHEN CONVERT(FLOAT,w.n_tested 
+                + CASE WHEN narr.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END 
+                + CASE WHEN inf.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END 
+                + CASE WHEN op.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END) = 0 THEN NULL
+          ELSE CONVERT(FLOAT,w.n_tested 
+                + CASE WHEN narr.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END 
+                + CASE WHEN inf.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END 
+                + CASE WHEN op.n_tested IS NOT NULL THEN 1.0 ELSE 0.0 END)
+         END)
           * 100
         ,0) AS RHET_pct_stds_mastered      
 FROM writing w WITH(NOLOCK)  

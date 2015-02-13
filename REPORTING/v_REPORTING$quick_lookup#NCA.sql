@@ -104,7 +104,7 @@ LEFT OUTER JOIN GRADES$wide_all#NCA#static gr_wide WITH (NOLOCK)
   ON s.studentid = gr_wide.studentid
 LEFT OUTER JOIN GPA$detail#NCA nca_GPA WITH (NOLOCK)
   ON s.studentid = nca_GPA.studentid
-LEFT OUTER JOIN GPA$cumulative GPA_cum WITH (NOLOCK)
+LEFT OUTER JOIN GRADES$GPA_cumulative#static GPA_cum WITH (NOLOCK)
   ON s.studentid = GPA_cum.studentid
  AND s.schoolid = GPA_cum.schoolid                 
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)

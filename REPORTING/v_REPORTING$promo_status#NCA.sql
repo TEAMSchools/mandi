@@ -6,7 +6,7 @@ ALTER VIEW REPORTING$promo_status#NCA AS
 WITH cum_credits AS (
   SELECT studentid
         ,earned_credits_cum
-  FROM GPA$cumulative WITH(NOLOCK)
+  FROM GRADES$GPA_cumulative#static WITH(NOLOCK)
   WHERE schoolid = 73253
  )
  

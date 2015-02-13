@@ -54,7 +54,7 @@ SELECT roster.schoolid
       
 --GPA
 --GPA$detail#nca
---GPA$cumulative#NCA
+--GRADES$GPA_cumulative#static
     /*--Academic Year/Current Term--*/      
       ,gpa_long.GPA_all AS gpa_curterm
       ,nca_gpa.gpa_Y1
@@ -387,7 +387,7 @@ LEFT OUTER JOIN GRADES$rc_elements_by_term ele WITH(NOLOCK)
  AND curterm.alt_name = ele.term
 LEFT OUTER JOIN GPA$detail#NCA nca_gpa WITH (NOLOCK)
   ON roster.studentid = nca_gpa.studentid
-LEFT OUTER JOIN GPA$cumulative gpa_cumulative WITH (NOLOCK)
+LEFT OUTER JOIN GRADES$GPA_cumulative#static gpa_cumulative WITH (NOLOCK)
   ON roster.studentid = gpa_cumulative.studentid
  AND roster.schoolid = gpa_cumulative.schoolid
 LEFT OUTER JOIN GPA$detail_long gpa_long WITH(NOLOCK)

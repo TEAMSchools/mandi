@@ -1,5 +1,3 @@
---NCA Blue
-
 USE KIPP_NJ
 GO
 
@@ -471,7 +469,7 @@ FROM
            
       --GPA
       --GPA$detail#nca
-      --GPA$cumulative#NCA
+      --GRADES$GPA_cumulative#static
             --current SY
             ,nca_gpa.gpa_Y1 AS gpa_ytd      
             --cumulative (all years)
@@ -661,7 +659,7 @@ FROM
       --GPA
       LEFT OUTER JOIN GPA$detail#NCA nca_gpa WITH (NOLOCK)
         ON roster.studentid = nca_gpa.studentid      
-      LEFT OUTER JOIN GPA$cumulative gpa_cumulative WITH (NOLOCK)
+      LEFT OUTER JOIN GRADES$GPA_cumulative#static gpa_cumulative WITH (NOLOCK)
         ON roster.studentid = gpa_cumulative.studentid
        AND gpa_cumulative.schoolid = 73253
         
