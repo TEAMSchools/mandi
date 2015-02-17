@@ -30,6 +30,7 @@ SELECT co.schoolid
       ,enr.section
       ,enr.rti_tier
       ,a.term
+      ,a.fsa_week
       ,a.administered_at
       ,CONVERT(VARCHAR,a.standards_tested) AS standards_tested      
       ,a.standard_descr

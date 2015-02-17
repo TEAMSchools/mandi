@@ -11,8 +11,9 @@ SELECT DISTINCT
       ,subject
       ,credittype
       ,term
-      ,academic_year
+      ,academic_year      
       ,administered_at
+      ,fsa_week
       ,standards_tested        
       ,standard_descr
 FROM ILLUMINATE$assessments#static WITH(NOLOCK)  
