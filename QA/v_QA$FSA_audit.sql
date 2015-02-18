@@ -59,7 +59,7 @@ WITH cur_week AS (
   AND a.fsa_week = gdocs.week_num
   AND a.subject = gdocs.subject
   AND a.standards_tested = gdocs.ccss_standard
-  AND a.scope = 'FSA'
+  --AND a.scope = 'FSA'
  JOIN SCHOOLS sch WITH(NOLOCK)
    ON a.schoolid = sch.SCHOOL_NUMBER
   AND sch.HIGH_GRADE = 4

@@ -17,7 +17,7 @@ WITH valid_TAs AS (
         ,administered_at
         ,term
   FROM ILLUMINATE$assessments#static a WITH(NOLOCK)
-  WHERE schoolid IN (73254,73255,73256,73257,179901)    
+  WHERE schoolid IN (73254,73255,73256,73257,179901)
     AND term IS NOT NULL
     AND scope = 'Interim Assessment'
     AND subject NOT IN ('Writing') -- summary assessment
@@ -91,6 +91,7 @@ WITH valid_TAs AS (
   FROM valid_FSAs fsa WITH(NOLOCK)
   JOIN valid_TAs ta WITH(NOLOCK)
     ON fsa.academic_year = ta.academic_year
+   AND fsa.term = ta.term
    AND fsa.schoolid = ta.schoolid
    AND fsa.grade_level = ta.grade_level   
    AND fsa.standard_id = ta.standard_id
