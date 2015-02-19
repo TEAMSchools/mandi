@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ATTRITION$yearly_with_gender_and_MAP AS
+
 WITH base_roster AS
     (SELECT c.studentid
            ,c.schoolid
@@ -10,15 +11,15 @@ WITH base_roster AS
            ,c.year
            ,c.cohort
            ,c.exitcode
-     FROM KIPP_NJ..COHORT$comprehensive_long#static c
-     JOIN KIPP_NJ..STUDENTS s
+     FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
+     JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
        ON c.studentid = s.id
      WHERE c.exitdate >= CAST(CAST(c.year AS varchar) + '-' + CAST(10 AS varchar) + '-' + CAST(15 AS varchar) AS DATETIME)
       AND c.schoolid != 999999
       AND c.rn = 1
      )
 
-SELECT TOP 10000000 CASE GROUPING(schools.abbreviation)
+SELECT CASE GROUPING(schools.abbreviation)
 			      WHEN 1 THEN 'network'
 			      ELSE schools.abbreviation
 			    END AS school
@@ -93,32 +94,32 @@ FROM
                 WHEN c_next.grade_level IS NOT NULL THEN 1
                 WHEN c_next.grade_level IS NULL THEN 0
               END as attr_test
-       FROM base_roster
-       LEFT OUTER JOIN KIPP_NJ..COHORT$comprehensive_long#static c_next
+       FROM base_roster WITH(NOLOCK)
+       LEFT OUTER JOIN KIPP_NJ..COHORT$comprehensive_long#static c_next WITH(NOLOCK)
          ON base_roster.studentid = c_next.studentid
         AND base_roster.year + 1 = c_next.year
         AND c_next.rn = 1
        WHERE base_roster.year < 2014
        ) sub
-JOIN KIPP_NJ..SCHOOLS
+JOIN KIPP_NJ..SCHOOLS WITH(NOLOCK)
   ON sub.schoolid = schools.school_number
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers m_math
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static m_math WITH(NOLOCK)
   ON sub.studentid = m_math.ps_studentid
  AND sub.year = m_math.map_year_academic
  AND m_math.fallwinterspring = 'Spring'
  AND m_math.measurementscale = 'Mathematics'
  AND m_math.rn = 1
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers m_reading
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static m_reading WITH(NOLOCK)
   ON sub.studentid = m_reading.ps_studentid
  AND sub.year = m_reading.map_year_academic
  AND m_reading.fallwinterspring = 'Spring'
  AND m_reading.measurementscale = 'Reading'
  AND m_reading.rn = 1
-LEFT OUTER JOIN KIPP_NJ..aa_delete_after_2014_09_01_bride_of_frankenstein_unified_njask njask_math
+LEFT OUTER JOIN KIPP_NJ..aa_delete_after_2014_09_01_bride_of_frankenstein_unified_njask njask_math WITH(NOLOCK)
   ON sub.studentid = njask_math.studentid
  AND sub.year = njask_math.test_year
  AND njask_math.subject = 'Math'
-LEFT OUTER JOIN KIPP_NJ..aa_delete_after_2014_09_01_bride_of_frankenstein_unified_njask njask_ela
+LEFT OUTER JOIN KIPP_NJ..aa_delete_after_2014_09_01_bride_of_frankenstein_unified_njask njask_ela WITH(NOLOCK)
   ON sub.studentid = njask_ela.studentid
  AND sub.year = njask_ela.test_year
  AND njask_ela.subject = 'ELA'
@@ -126,25 +127,6 @@ GROUP BY ROLLUP(schools.abbreviation)
         ,ROLLUP(year)
         ,ROLLUP(sub.grade_level)
         ,ROLLUP(gender)
-ORDER BY year
-        ,schools.ABBREVIATION
-        ,sub.grade_level
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*
 
