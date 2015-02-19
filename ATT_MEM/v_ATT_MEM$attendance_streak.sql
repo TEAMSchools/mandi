@@ -4,7 +4,9 @@ GO
 ALTER VIEW ATT_MEM$attendance_streak AS
 
 WITH valid_dates AS (
-  SELECT *
+  SELECT schoolid
+        ,calendardate
+        ,academic_year
         ,ROW_NUMBER() OVER(
            PARTITION BY schoolid
              ORDER BY calendardate ASC) AS day_number
@@ -40,7 +42,7 @@ FROM
      JOIN valid_dates d WITH(NOLOCK)
        ON co.schoolid = d.SCHOOLID
       AND co.year = d.academic_year
-     LEFT OUTER JOIN ATTENDANCE att WITH(NOLOCK)
+     LEFT OUTER JOIN ATT_MEM$ATTENDANCE att WITH(NOLOCK)
        ON co.studentid = att.studentid
       AND d.CALENDARDATE = att.ATT_DATE          
     ) sub

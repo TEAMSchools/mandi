@@ -3,7 +3,7 @@ GO
 
 ALTER VIEW TIME_SERIES_GRADES$weekly_off_track_totals AS
 
-SELECT schools.abbreviation AS school
+SELECT school
       ,ISNULL(CONVERT(VARCHAR,grade_level),'campus') AS grade_level
       ,date_value           
       ,CONVERT(VARCHAR,DATEPART(YEAR,date_value)) + RIGHT('0' + CONVERT(VARCHAR,DATEPART(WEEK,date_value)),2) AS reporting_hash
@@ -13,32 +13,38 @@ SELECT schools.abbreviation AS school
       ,CONVERT(FLOAT,ROUND(AVG(num_off), 1)) AS avg_num_off
 FROM 
     (
-     SELECT s.schoolid
-           ,s.grade_level
-           ,counts.studentid
-           ,counts.date_value                
-           ,CONVERT(FLOAT,counts.num_off) AS num_off
-           ,CASE
-             WHEN counts.num_off >= 1 THEN 1.0
-             WHEN counts.num_off = 0 THEN 0.0
-            END AS off_track_1_flag
-           ,CASE
-             WHEN counts.num_off >= 2 THEN 1.0
-             WHEN counts.num_off < 2 THEN 0.0
-            END AS off_track_2_flag
-           ,CASE
-             WHEN counts.num_off >= 3 THEN 1.0
-             WHEN counts.num_off < 3 THEN 0.0
-            END AS off_track_3_flag
-     FROM SPI..GRADES$TIME_SERIES#COUNTS counts WITH(NOLOCK)
-     JOIN KIPP_NJ..COHORT$comprehensive_long#static s WITH(NOLOCK)
-       ON counts.studentid = s.studentid
-      AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-      AND s.rn = 1
-    ) sub1
-JOIN KIPP_NJ..schools WITH(NOLOCK)
-  ON sub1.schoolid = schools.school_number
---WHERE (DATEPART(DW,date_value) = 6 OR date_value = CONVERT(DATE,GETDATE()))
-GROUP BY schools.ABBREVIATION
+     SELECT school
+           ,grade_level
+           ,studentid
+           ,date_value
+           ,SUM(is_offtrack) AS num_off
+           ,CASE WHEN SUM(is_offtrack) >= 1 THEN 1.0 ELSE 0.0 END AS off_track_1_flag
+           ,CASE WHEN SUM(is_offtrack) >= 2 THEN 1.0 ELSE 0.0 END AS off_track_2_flag
+           ,CASE WHEN SUM(is_offtrack) >= 3 THEN 1.0 ELSE 0.0 END AS off_track_3_flag
+     FROM
+         (
+          SELECT s.school_name AS school
+                ,s.grade_level
+                ,s.studentid
+                ,counts.date AS date_value       
+                ,CASE
+                  WHEN counts.schoolid = 73253 AND moving_average < 70 THEN 1.0
+                  WHEN counts.schoolid != 73253 AND moving_average < 65 THEN 1.0
+                  ELSE 0.0
+                 END AS is_offtrack
+          FROM KIPP_NJ..GRADES$time_series#STAGING counts WITH(NOLOCK)
+          JOIN KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
+            ON counts.student_number = s.student_number
+           AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+           AND s.rn = 1
+          WHERE counts.finalgradename = 'Y1'
+            AND (DATEPART(DW,counts.date) = 7 OR counts.date = CONVERT(DATE,GETDATE()))
+         ) sub
+     GROUP BY school
+             ,grade_level
+             ,studentid
+             ,date_value        
+    ) sub
+GROUP BY school
         ,CUBE(grade_level)
         ,date_value

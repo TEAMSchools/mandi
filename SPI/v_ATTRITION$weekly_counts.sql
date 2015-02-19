@@ -19,11 +19,12 @@ WITH week_scaffold AS (
 ,scrubbed_cohort AS (
   SELECT cohort.studentid
         ,cohort.grade_level
-        ,cohort.schoolid
+        --,cohort.schoolid
+        ,cohort.school_name
         ,cohort.year
         ,cohort.entrydate
         ,cohort.exitdate
-  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)
+  FROM KIPP_NJ..COHORT$identifiers_long#static cohort WITH(NOLOCK)
   WHERE cohort.rn = 1
     AND cohort.schoolid != 999999
     --exitdate must be AFTER 10-15 in given year
@@ -39,7 +40,7 @@ SELECT reporting_hash
       ,CASE GROUPING(grade_level) WHEN 1 THEN 'campus' ELSE CAST(grade_level AS NVARCHAR) END AS grade_level 
       ,CAST(AVG(attr_dummy) * 100 AS NUMERIC (4,1)) AS pct_attr
       ,CAST(SUM(attr_dummy) AS INT) AS n_transf
-      ,COUNT(*) AS N		
+      ,COUNT(attr_dummy) AS N		
 FROM    
     (
      SELECT wk.reporting_hash
@@ -47,16 +48,14 @@ FROM
            ,wk.week
            ,wk.weekday_start
            ,wk.weekday_end      
-           ,cht.schoolid
-           ,schools.abbreviation AS school
+           --,cht.schoolid
+           ,cht.school_name AS school
            ,cht.grade_level
            ,CASE WHEN cht.exitdate > wk.weekday_end THEN 0.0 ELSE 1.0 END AS attr_dummy
      FROM week_scaffold wk WITH(NOLOCK)
      JOIN scrubbed_cohort cht WITH(NOLOCK)
-       ON cht.entrydate <= wk.weekday_start --join logic is *everyone* who STARTED before this week
-      AND wk.academic_year = cht.year
-     JOIN KIPP_NJ..schools WITH(NOLOCK)
-       ON cht.schoolid = schools.school_number
+       ON cht.entrydate <= wk.weekday_start -- join logic is *everyone* who STARTED before this week
+      AND wk.academic_year = cht.year    
     ) sub    
 GROUP BY reporting_hash
         ,academic_year

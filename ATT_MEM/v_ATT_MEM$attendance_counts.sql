@@ -10,7 +10,7 @@ WITH attendance_long AS (
         ,att.att_date
         ,att.att_code                  
         ,dates.time_per_name AS RT
-  FROM ATTENDANCE att WITH (NOLOCK)
+  FROM ATT_MEM$ATTENDANCE att WITH (NOLOCK)
   JOIN REPORTING$dates dates WITH (NOLOCK)
     ON att.att_date >= dates.start_date
    AND att.att_date <= dates.end_date
@@ -26,7 +26,7 @@ WITH attendance_long AS (
         ,att.att_date
         ,att.att_code                  
         ,'CUR' AS RT                  
-  FROM ATTENDANCE att WITH (NOLOCK)
+  FROM ATT_MEM$ATTENDANCE att WITH (NOLOCK)
   JOIN REPORTING$dates curterm WITH (NOLOCK)
     ON att.schoolid = curterm.schoolid         
    AND att.ATT_DATE >= curterm.start_date
@@ -34,8 +34,8 @@ WITH attendance_long AS (
    AND curterm.identifier = 'RT'
    AND curterm.academic_year = dbo.fn_Global_Academic_Year()
   WHERE att.att_code IS NOT NULL
-    AND curterm.start_date <= GETDATE()
-    AND curterm.end_date >= GETDATE()  
+    AND curterm.start_date <= CONVERT(DATE,GETDATE())
+    AND curterm.end_date >= CONVERT(DATE,GETDATE())
 
   UNION ALL
 
@@ -44,7 +44,7 @@ WITH attendance_long AS (
         ,att.att_date
         ,att.att_code                  
         ,'TRIP' AS RT                  
-  FROM KIPP_NJ..ATTENDANCE att WITH (NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$ATTENDANCE att WITH (NOLOCK)
   JOIN KIPP_NJ..REPORTING$dates trip WITH (NOLOCK)
     ON att.schoolid = trip.schoolid         
    AND att.ATT_DATE >= trip.start_date
@@ -52,8 +52,8 @@ WITH attendance_long AS (
    AND trip.identifier = 'ATT'
    AND trip.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   WHERE att.att_code IS NOT NULL
-    AND trip.start_date <= GETDATE()
-    AND trip.end_date >= GETDATE()  
+    AND trip.start_date <= CONVERT(DATE,GETDATE())
+    AND trip.end_date >= CONVERT(DATE,GETDATE())
  )
 
 -- early dismissals by date, both excused and unexcused
@@ -133,7 +133,7 @@ WITH attendance_long AS (
         ,curterm.time_per_name AS rt
         ,dt.has_uniform
   FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
-  JOIN REPORTING$dates curterm WITH (NOLOCK)
+  JOIN REPORTING$dates curterm WITH(NOLOCK)
     ON dt.schoolid = curterm.schoolid
    AND dt.att_date >= curterm.start_date
    AND dt.att_date <= curterm.end_date
@@ -154,8 +154,8 @@ WITH attendance_long AS (
    AND dt.att_date <= trip.end_date
    AND trip.identifier = 'ATT'
   WHERE dt.has_uniform = 0
-    AND trip.start_date <= GETDATE()
-    AND trip.end_date >= GETDATE()       
+    AND trip.start_date <= CONVERT(DATE,GETDATE())
+    AND trip.end_date >= CONVERT(DATE,GETDATE())
  )
 
 SELECT studentid

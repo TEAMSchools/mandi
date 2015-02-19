@@ -98,7 +98,7 @@ WITH roster AS (
              ,CONVERT(FLOAT,mem.ATTENDANCEVALUE) AS attendancevalue
              ,CASE WHEN att.ATT_CODE IS NOT NULL THEN 1 ELSE 0 END AS is_tardy
        FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
-       LEFT OUTER JOIN ATTENDANCE att WITH(NOLOCK)
+       LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
          ON mem.studentid = att.STUDENTID
         AND mem.CALENDARDATE = att.ATT_DATE        
         AND att.ATT_CODE IN ('T','T10')

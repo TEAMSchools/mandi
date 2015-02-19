@@ -95,7 +95,7 @@ WITH pt1_roster AS (
         ,SUM(CASE WHEN att.att_code = 'S' THEN 1 ELSE 0 END) AS ISS
         ,ISNULL(oss.OSS,0) AS OSS
   FROM pt2_roster r WITH(NOLOCK)
-  LEFT OUTER JOIN ATTENDANCE att WITH(NOLOCK)
+  LEFT OUTER JOIN ATT_MEM$ATTENDANCE att WITH(NOLOCK)
     ON r.studentid = att.STUDENTID
    AND att.academic_year = 2013
    AND att.att_code = 'S'

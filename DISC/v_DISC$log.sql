@@ -98,7 +98,7 @@ WITH disc_log AS (
         ,'Late to School' AS discipline_details
         ,NULL AS actiontaken
         ,NULL AS followup      
-  FROM ATTENDANCE att WITH(NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
   JOIN CC WITH(NOLOCK)
     ON att.STUDENTID = cc.STUDENTID
    AND att.ATT_DATE >= cc.DATEENROLLED
@@ -108,7 +108,7 @@ WITH disc_log AS (
     ON cc.TEACHERID = t.ID
   WHERE att.att_code IN ('T','T10')
     AND att.schoolid = 73253
-    AND att.ATT_DATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
+    AND att.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
 ,TEAM_bench AS (

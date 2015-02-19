@@ -21,18 +21,33 @@ WITH valid_TAs AS (
     AND term IS NOT NULL
     AND scope = 'Interim Assessment'
     AND subject NOT IN ('Writing') -- summary assessment
-    AND standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
-                                ,'CCSS.LA.2.L.2.4.c'
-                                ,'CCSS.LA.2.L.2.4.d'
-                                ,'CCSS.LA.2.L.2.5.b'
-                                ,'CCSS.LA.3.L.3.5'
-                                ,'CCSS.LA.3.L.3.5.a'
-                                ,'CCSS.LA.3.L.3.6'
-                                ,'CCSS.LA.4.L.4.4'
-                                ,'CCSS.LA.4.L.4.4.a'
-                                ,'CCSS.LA.4.L.4.4.b'
-                                ,'CCSS.LA.4.L.4.5.a'
-                                ,'CCSS.LA.1.RF.1.3.g')
+    AND ((term = 'T1' AND standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
+                                                  ,'CCSS.LA.2.L.2.4.c'
+                                                  ,'CCSS.LA.2.L.2.4.d'
+                                                  ,'CCSS.LA.2.L.2.5.b'
+                                                  ,'CCSS.LA.3.L.3.5'
+                                                  ,'CCSS.LA.3.L.3.5.a'
+                                                  ,'CCSS.LA.3.L.3.6'
+                                                  ,'CCSS.LA.4.L.4.4'
+                                                  ,'CCSS.LA.4.L.4.4.a'
+                                                  ,'CCSS.LA.4.L.4.4.b'
+                                                  ,'CCSS.LA.4.L.4.5.a'
+                                                  ,'CCSS.LA.1.RF.1.3.g'))
+         OR (term = 'T2' AND standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
+                                                     ,'CCSS.LA.2.L.2.4.c'
+                                                     ,'CCSS.LA.2.L.2.4.d'
+                                                     ,'CCSS.LA.2.L.2.5.b'
+                                                     ,'CCSS.LA.3.L.3.5'
+                                                     ,'CCSS.LA.3.L.3.5.a'
+                                                     ,'CCSS.LA.3.L.3.6'
+                                                     ,'CCSS.LA.4.L.4.4'
+                                                     ,'CCSS.LA.4.L.4.4.a'
+                                                     ,'CCSS.LA.4.L.4.4.b'
+                                                     ,'CCSS.LA.4.L.4.5.a'
+                                                     ,'CCSS.LA.1.RF.1.3.g'
+                                                     ,'CCSS.LA.4.L.4.5.b'
+                                                     ,'CCSS.LA.4.L.4.5.c'
+                                                     ,'CCSS.LA.4.L.4.6')))
  )
 
 ,valid_FSAs AS (

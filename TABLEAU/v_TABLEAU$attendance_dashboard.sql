@@ -47,7 +47,7 @@ JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
  AND co.schoolid = mem.schoolid
  AND mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,co.year) + '-08-01')
-LEFT OUTER JOIN ATTENDANCE att WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
   ON co.studentid = att.studentid
  AND mem.CALENDARDATE = att.ATT_DATE 
 LEFT OUTER JOIN DISC$log#static ed WITH(NOLOCK)

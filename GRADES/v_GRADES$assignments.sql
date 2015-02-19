@@ -14,7 +14,8 @@ FROM OPENQUERY(PS_TEAM,'
         ,asmt.name AS assign_name
         ,asmt.pointspossible
         ,asmt.weight        
-        ,cat.abbreviation AS category           
+        ,cat.abbreviation AS category  
+        ,asmt.isfinalscorecalculated         
   FROM psm_sectionassignment sectassign
   JOIN psm_assignment asmt
     ON sectassign.assignmentid = asmt.id  
