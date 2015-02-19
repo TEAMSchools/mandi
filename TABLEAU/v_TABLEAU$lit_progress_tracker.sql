@@ -27,12 +27,21 @@ SELECT co.school_name
       ,achv.lvl_num
       ,achv.goal_lvl
       ,achv.goal_num
+      ,achv.lvl_num - achv.goal_num AS distance_from_goal
       ,testid.instruct_lvl
       ,achv.indep_lvl
       ,achv.GLEQ      
       ,testid.color
       ,testid.genre
       ,CONVERT(FLOAT,achv.met_goal) AS met_goal      
+      ,CASE
+        WHEN achv.test_round = 'DR' THEN NULL
+        WHEN achv.test_round = 'T1' AND growth.t1_growth_lvl > 0 THEN 1.0
+        WHEN achv.test_round = 'T2' AND growth.T1T2_growth_lvl > 0 THEN 1.0
+        WHEN achv.test_round = 'T3' AND growth.T2T3_growth_lvl > 0 THEN 1.0
+        WHEN achv.test_round = 'EOY' AND growth.T3EOY_growth_lvl > 0 THEN 1.0
+        ELSE 0.0
+       END AS moved_lvl
       ,growth.t1_growth_lvl AS DRT1_growth_lvl
       ,growth.t1_growth_GLEQ AS DRT1_growth_GLEQ
       ,growth.T1T2_growth_lvl
@@ -41,6 +50,8 @@ SELECT co.school_name
       ,growth.T2T3_growth_GLEQ
       ,growth.T3EOY_growth_lvl
       ,growth.T3EOY_growth_GLEQ
+      ,growth.yr_growth_lvl
+      ,growth.yr_growth_GLEQ
       ,long.unique_id      
       ,long.domain AS component_domain
       ,long.label AS component_strand
@@ -67,7 +78,7 @@ FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
   ON co.studentid = enr.STUDENTID
  AND co.year = enr.academic_year 
- AND enr.measurementscale = 'Reading'
+ AND enr.course_number LIKE '%HR%'
 LEFT OUTER JOIN KIPP_NJ..[AUTOLOAD$GDOCS_LIT_GR_Group] gr WITH(NOLOCK)
   ON co.student_number = gr.student_number
 LEFT OUTER JOIN MAP$comprehensive#identifiers#static map WITH(NOLOCK)
@@ -113,12 +124,20 @@ SELECT co.school_name
       ,achv.lvl_num
       ,achv.goal_lvl
       ,achv.goal_num
+      ,achv.lvl_num - achv.goal_num AS distance_from_goal
       ,testid.instruct_lvl
       ,achv.indep_lvl
       ,achv.GLEQ      
       ,testid.color
       ,testid.genre
       ,CONVERT(FLOAT,achv.met_goal) AS met_goal      
+      ,CASE
+        WHEN achv.test_round = 'T1' AND growth.t1_growth_lvl > 0 THEN 1.0
+        WHEN achv.test_round = 'T2' AND growth.T1T2_growth_lvl > 0 THEN 1.0
+        WHEN achv.test_round = 'T3' AND growth.T2T3_growth_lvl > 0 THEN 1.0
+        WHEN achv.test_round = 'EOY' AND growth.T3EOY_growth_lvl > 0 THEN 1.0
+        ELSE 0.0
+       END AS moved_lvl
       ,growth.t1_growth_lvl AS DRT1_growth_lvl
       ,growth.t1_growth_GLEQ AS DRT1_growth_GLEQ
       ,growth.T1T2_growth_lvl
@@ -127,6 +146,8 @@ SELECT co.school_name
       ,growth.T2T3_growth_GLEQ
       ,growth.T3EOY_growth_lvl
       ,growth.T3EOY_growth_GLEQ
+      ,growth.yr_growth_lvl
+      ,growth.yr_growth_GLEQ
       ,long.unique_id      
       ,long.domain AS component_domain
       ,long.label AS component_strand
@@ -153,7 +174,7 @@ FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
   ON co.studentid = enr.STUDENTID
  AND co.year = enr.academic_year 
- AND enr.measurementscale = 'Reading'
+ AND enr.course_number LIKE '%HR%'
 LEFT OUTER JOIN KIPP_NJ..[AUTOLOAD$GDOCS_LIT_GR_Group] gr WITH(NOLOCK)
   ON co.student_number = gr.student_number
 LEFT OUTER JOIN MAP$comprehensive#identifiers#static map WITH(NOLOCK)
@@ -166,7 +187,7 @@ LEFT OUTER JOIN KIPP_NJ..LIT$growth_measures_wide#static growth WITH(NOLOCK)
  AND co.year = growth.YEAR
 JOIN KIPP_NJ..LIT$achieved_by_round#static achv WITH(NOLOCK)
   ON co.studentid = achv.STUDENTID
- AND co.year = achv.academic_year
+ AND co.year = achv.academic_year 
 JOIN KIPP_NJ..LIT$test_events#identifiers testid WITH(NOLOCK)
   ON co.studentid = testid.studentid
  AND co.year = testid.academic_year

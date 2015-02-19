@@ -46,7 +46,6 @@ GRANT SELECT ON MAP$cohort_performance_targets TO db_data_tool_reader
 GRANT SELECT ON MAP$rutgers_ready_student_goals TO db_data_tool_reader 
 GRANT SELECT ON MAP$comprehensive#identifiers TO db_data_tool_reader 
 GRANT SELECT ON MAP$best_baseline#static TO db_data_tool_reader
-GRANT SELECT ON REPORTING$MAP_tracker#static TO db_data_tool_reader
 
 --Gradebook
 GRANT SELECT ON GRADES$DETAIL#MS TO db_data_tool_reader

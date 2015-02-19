@@ -27,7 +27,7 @@ WITH roster AS (
            ORDER BY start_date ASC) AS round_num
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'LIT'      
-    --AND start_date <= GETDATE()
+    AND start_date <= GETDATE()
  )
  
 ,roster_scaffold AS (

@@ -118,7 +118,7 @@ BEGIN
       OR job_name LIKE ''PS%''
       OR job_name LIKE ''SPI%''
       OR job_name IN (''Khan | Load Data'', ''NWEA | Load Data''))
-   ORDER BY minutes_old DESC
+   ORDER BY run_time DESC
   '
 
   --use the return value to get the results from the QA table
@@ -139,6 +139,7 @@ BEGIN
           ) sub
     GROUP BY job_name'
 
+  --/*
   --run the view timing test
   --SET @return_value = 139 --testing
   EXEC	@return_value = [dbo].sp_QA$view_query_time
@@ -148,6 +149,7 @@ BEGIN
           ,CAST(CAST(refresh_time / 1000.0 AS NUMERIC(8,2)) AS NVARCHAR(MAX)) AS "seconds to refresh"
     FROM KIPP_NJ.dbo.QA$response_time_results WITH(NOLOCK)
     WHERE batch_id =' + CAST(@return_value AS VARCHAR)
+  --*/
 
   --sp_TableToHTML is a procedure that TAKES a SQL statement and returns HTML
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_demog_audits, @html_demog_audits OUTPUT  
@@ -160,8 +162,8 @@ BEGIN
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_views, @html_views OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_failed_jobs, @html_failed_jobs OUTPUT
   
-SET @email_body = 
-'<html>
+SET @email_body = '
+<html>
 <head>
 		<style type="text/css">
 			.med_text {
@@ -189,67 +191,94 @@ SET @email_body =
 		</style>
 </head>
 
-<body> 
-  
+<body>   
 		<br>
+'
+-- demographics audit
++ '
 		<br>
   <span style="med_text">Demographic Data Audits</span> 
 '
-+ @html_demog_audits +
-'
++ @html_demog_audits 
+
+-- ps config audit
++ '
 		<br>
   <span style="med_text">PowerSchool Configuration Audits</span> 
 '
-+ @html_psconfig_audits +
-'
++ @html_psconfig_audits 
+
+-- warehouse audit
++ '
 <br>
   <span style="med_text">Data Warehouse Config Audits</span> 
 '
-+ @html_warehouse_audits +
---'
---<br>
---  <span style="med_text">Illuminate Data Audits</span> 
---'
---+ @html_illuminate_audits +
-'
++ @html_warehouse_audits 
+
+-- illuminate audit OFF
+--+ '
+----<br>
+----  <span style="med_text">Illuminate Data Audits</span> 
+----'
+--+ @html_illuminate_audits 
+
+-- student accounts audit
+/* -- BROKEN at the moment, returning no results
++ '
 <br>
   <span style="med_text">Student Account Audits</span> 
 '
-+ @html_account_audits +
-'
++ @html_account_audits 
+*/
+
+-- integration audit
++ '
 		<br>
   <span style="med_text">Data Integration Audits</span> 
 '
-+ @html_integ_audits +
-'
++ @html_integ_audits 
+
+-- disk space
++ '
   <br>
   Disk Space: There are ' + replace(convert(varchar,convert(Money, @free_disk),1),'.00','') + ' megs free on WINSQL 01.
-  
+'
+-- last refresh
++ '  
   <br>
 		<br>
   <span style="med_text">Data Refresh Fresh-ness</span> 
 '
-+ @html_last_refresh +
-'
++ @html_last_refresh 
+
+-- # failed jobs
++ '
   <br>
   <span style="med_text">Failed SQL Server Agent Jobs (past 24 hours)</span>
 '
-+ @html_failed_jobs + 
-'
++ @html_failed_jobs 
+
+ -- non cached view refresh time
++ '
   <br>
   <span style="med_text">Refresh time for non-cached views</span>
 '
- --non cached view refresh time
- +  @html_views  + '
++  @html_views  
+
+-- footer
++ '
 </body>
 </html>
 '
+
+
+PRINT @email_body
 
 --.5 ship it!
 EXEC [msdb].[dbo].sp_send_dbmail @profile_name = 'DataRobot'
 								,@body = @email_body
 								,@body_format ='HTML'
-								--,@recipients = 'amartin@teamschools.org'
+								--,@recipients = 'cbini@kippnj.org'
         ,@recipients = 'amartin@teamschools.org;ldesimon@teamschools.org;nmadigan@teamschools.org;cbini@teamschools.org;smircovich@teamschools.org;plebre@teamschools.org;kswearingen@teamschools.org;amilun@teamschools.org'
 								,@subject = 'SQL Server: Audit/QA Results'
 END
