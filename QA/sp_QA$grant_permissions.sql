@@ -36,9 +36,10 @@ GRANT SELECT ON TEACHERS TO db_data_tool_reader
 GRANT SELECT ON CC TO db_data_tool_reader
 GRANT SELECT ON SECTIONS TO db_data_tool_reader
 GRANT SELECT ON ATT_MEM$MEMBERSHIP TO db_data_tool_reader
-GRANT SELECT ON ATTENDANCE TO db_data_tool_reader
+GRANT SELECT ON ATT_MEM$ATTENDANCE TO db_data_tool_reader
 GRANT SELECT ON PS$course_enrollments#static TO db_data_tool_reader
 GRANT SELECT ON PS$enrollments_rollup#static TO db_data_tool_reader
+GRANT SELECT ON KIPP_NJ..ATT_MEM$attendance_time_series TO db_data_tool_reader
 
 --MAP
 GRANT SELECT ON MAP$cohort_performance_targets TO db_data_tool_reader

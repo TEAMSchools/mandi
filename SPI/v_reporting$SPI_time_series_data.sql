@@ -101,21 +101,21 @@ WITH scaffold AS (
  
        
 ,attrition AS (      
---attrition -- time series way, mid year
-SELECT 2 AS strand_number
-      ,'Student Culture & Climate' AS strand_name
-      ,2 AS indicator_number
-      ,'Student Attrition' As indicator_name
-      ,1 AS goal_number
-      ,'% students leaving school' AS goal_title
-      ,attr.school
-      ,attr.reporting_hash
-      ,attr.pct_attr AS value
-      ,'GOLF' AS direction
-FROM SPI..[ATTRITION$weekly_counts#static] attr WITH(NOLOCK)
-WHERE attr.grade_level = 'campus'
-  AND attr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  AND attr.weekday_start <= CONVERT(DATE,GETDATE())
+  --attrition -- time series way, mid year
+  SELECT 2 AS strand_number
+        ,'Student Culture & Climate' AS strand_name
+        ,2 AS indicator_number
+        ,'Student Attrition' As indicator_name
+        ,1 AS goal_number
+        ,'% students leaving school' AS goal_title
+        ,attr.school
+        ,attr.reporting_hash
+        ,attr.pct_attr AS value
+        ,'GOLF' AS direction
+  FROM SPI..[ATTRITION$weekly_counts#static] attr WITH(NOLOCK)
+  WHERE attr.grade_level = 'campus'
+    AND attr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND attr.weekday_start <= CONVERT(DATE,GETDATE())
  )          
 
 /* ATTENDANCE */
@@ -128,16 +128,18 @@ WHERE attr.grade_level = 'campus'
         ,'Attendance' As indicator_name
         ,1 AS goal_number
         ,'Average attendance' AS goal_title
-        ,school
+        ,school        
         ,reporting_hash
-        ,CAST(ROUND((SUM(CONVERT(FLOAT,att)) / SUM(CONVERT(FLOAT,mem))) * 100, 1) AS NUMERIC(4,1)) AS value
+        ,CASE
+          WHEN SUM(CONVERT(FLOAT,n_mem)) = 0 THEN NULL
+          ELSE CAST(ROUND((SUM(CONVERT(FLOAT,n_att)) / SUM(CONVERT(FLOAT,n_mem))) * 100, 1) AS NUMERIC(4,1)) 
+         END AS value
         ,'FOOTBALL' AS direction
-  FROM SPI..ATT_MEM$attendance_by_week_unbounded#static WITH(NOLOCK)
-  WHERE studentid = 'campus'
-    AND yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
-    AND REPORTING_HASH <= (DATEPART(YEAR,GETDATE()) * 100) + DATEPART(WEEK,GETDATE())
+  FROM KIPP_NJ..ATT_MEM$attendance_time_series WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND REPORTING_HASH <= (DATEPART(YEAR,GETDATE()) * 100) + DATEPART(WEEK,GETDATE())  
   GROUP BY school
-          ,reporting_hash
+          ,reporting_hash  
   --*/
 
   /*
@@ -178,11 +180,10 @@ WHERE attr.grade_level = 'campus'
         ,'% habitually absent' AS goal_title
         ,school
         ,reporting_hash
-        ,CAST(ROUND((SUM(CONVERT(FLOAT,off_track)) / SUM(CONVERT(FLOAT,N))) * 100, 1) AS NUMERIC(4,1)) AS value
+        ,CAST(ROUND(AVG(is_offtrack_att) * 100, 1) AS NUMERIC(4,1)) AS value
         ,'GOLF' AS direction
-  FROM SPI..ATT_MEM$attendance_by_week_unbounded#static WITH(NOLOCK)
-  WHERE studentid = 'campus'
-    AND yearid = KIPP_NJ.dbo.fn_Global_Term_ID()
+  FROM KIPP_NJ..ATT_MEM$attendance_time_series WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND REPORTING_HASH <= (DATEPART(YEAR,GETDATE()) * 100) + DATEPART(WEEK,GETDATE())
   GROUP BY school
           ,reporting_hash      
@@ -198,11 +199,13 @@ WHERE attr.grade_level = 'campus'
         ,'Average Tardy' AS goal_title
         ,school
         ,reporting_hash
-        ,CAST(ROUND((SUM(CONVERT(FLOAT,tardy)) / SUM(CONVERT(FLOAT,mem))) * 100, 1) AS NUMERIC(4,1)) AS value
+        ,CASE 
+          WHEN SUM(CONVERT(FLOAT,n_mem)) = 0 THEN NULL
+          ELSE CAST(ROUND((SUM(CONVERT(FLOAT,n_tardy)) / SUM(CONVERT(FLOAT,n_mem))) * 100, 1) AS NUMERIC(4,1)) 
+         END AS value
         ,'GOLF' AS direction
-  FROM SPI..ATT_MEM$tardiness_by_week_unbounded#static WITH(NOLOCK)
-  WHERE studentid = 'campus'
-    AND yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
+  FROM KIPP_NJ..ATT_MEM$attendance_time_series WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND REPORTING_HASH <= (DATEPART(YEAR,GETDATE()) * 100) + DATEPART(WEEK,GETDATE())
   GROUP BY school
           ,reporting_hash
@@ -218,14 +221,13 @@ WHERE attr.grade_level = 'campus'
         ,'% habitually tardy' AS goal_title
         ,school
         ,reporting_hash
-        ,CAST(ROUND((SUM(CONVERT(FLOAT,off_track)) / SUM(CONVERT(FLOAT,N))) * 100, 1) AS NUMERIC(4,1)) AS value
+        ,CAST(ROUND(AVG(is_offtrack_tardy) * 100, 1) AS NUMERIC(4,1)) AS value
         ,'GOLF' AS direction
-  FROM SPI..ATT_MEM$tardiness_by_week_unbounded#static WITH(NOLOCK)
-  WHERE studentid = 'campus'
-    AND yearid = KIPP_NJ.dbo.fn_Global_Term_ID()
+  FROM KIPP_NJ..ATT_MEM$attendance_time_series WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND REPORTING_HASH <= (DATEPART(YEAR,GETDATE()) * 100) + DATEPART(WEEK,GETDATE())
   GROUP BY school
-          ,reporting_hash      
+          ,reporting_hash     
  )
 
 /* DEMOGRAPHICS */
