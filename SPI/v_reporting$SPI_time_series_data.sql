@@ -108,7 +108,7 @@ WITH scaffold AS (
         ,'Student Attrition' As indicator_name
         ,1 AS goal_number
         ,'% students leaving school' AS goal_title
-        ,attr.school
+        ,REPLACE(attr.school,'Revolution','Rev') AS school
         ,attr.reporting_hash
         ,attr.pct_attr AS value
         ,'GOLF' AS direction
@@ -128,7 +128,7 @@ WITH scaffold AS (
         ,'Attendance' As indicator_name
         ,1 AS goal_number
         ,'Average attendance' AS goal_title
-        ,school        
+        ,REPLACE(school,'Revolution','Rev') AS school        
         ,reporting_hash
         ,CASE
           WHEN SUM(CONVERT(FLOAT,n_mem)) = 0 THEN NULL
@@ -178,7 +178,7 @@ WITH scaffold AS (
         ,'Attendance' As indicator_name
         ,2 AS goal_number
         ,'% habitually absent' AS goal_title
-        ,school
+        ,REPLACE(school,'Revolution','Rev') AS school
         ,reporting_hash
         ,CAST(ROUND(AVG(is_offtrack_att) * 100, 1) AS NUMERIC(4,1)) AS value
         ,'GOLF' AS direction
@@ -197,7 +197,7 @@ WITH scaffold AS (
         ,'Tardiness' As indicator_name
         ,1 AS goal_number
         ,'Average Tardy' AS goal_title
-        ,school
+        ,REPLACE(school,'Revolution','Rev') AS school
         ,reporting_hash
         ,CASE 
           WHEN SUM(CONVERT(FLOAT,n_mem)) = 0 THEN NULL
@@ -219,7 +219,7 @@ WITH scaffold AS (
         ,'Tardiness' As indicator_name
         ,2 AS goal_number
         ,'% habitually tardy' AS goal_title
-        ,school
+        ,REPLACE(school,'Revolution','Rev') AS school
         ,reporting_hash
         ,CAST(ROUND(AVG(is_offtrack_tardy) * 100, 1) AS NUMERIC(4,1)) AS value
         ,'GOLF' AS direction
