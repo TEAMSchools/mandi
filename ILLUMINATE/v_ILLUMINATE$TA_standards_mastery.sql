@@ -5,49 +5,56 @@ ALTER VIEW ILLUMINATE$TA_standards_mastery AS
 
 -- only IA and FSA tests
 WITH valid_TAs AS (
-  SELECT assessment_id
-        ,academic_year
-        ,schoolid
-        ,title
-        ,grade_level
-        ,scope
-        ,subject        
-        ,standard_id
-        ,standards_tested
-        ,administered_at
-        ,term
+  SELECT a.assessment_id
+        ,a.academic_year
+        ,a.schoolid
+        ,a.title
+        ,a.grade_level
+        ,a.scope
+        ,a.subject        
+        ,a.standard_id
+        ,a.standards_tested
+        ,a.administered_at
+        ,a.term
+        ,obj.objective AS TA_obj
   FROM ILLUMINATE$assessments#static a WITH(NOLOCK)
-  WHERE schoolid IN (73254,73255,73256,73257,179901)
-    AND term IS NOT NULL
-    AND scope = 'Interim Assessment'
-    AND subject NOT IN ('Writing') -- summary assessment
-    AND ((term = 'T1' AND standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
-                                                  ,'CCSS.LA.2.L.2.4.c'
-                                                  ,'CCSS.LA.2.L.2.4.d'
-                                                  ,'CCSS.LA.2.L.2.5.b'
-                                                  ,'CCSS.LA.3.L.3.5'
-                                                  ,'CCSS.LA.3.L.3.5.a'
-                                                  ,'CCSS.LA.3.L.3.6'
-                                                  ,'CCSS.LA.4.L.4.4'
-                                                  ,'CCSS.LA.4.L.4.4.a'
-                                                  ,'CCSS.LA.4.L.4.4.b'
-                                                  ,'CCSS.LA.4.L.4.5.a'
-                                                  ,'CCSS.LA.1.RF.1.3.g'))
-         OR (term = 'T2' AND standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
-                                                     ,'CCSS.LA.2.L.2.4.c'
-                                                     ,'CCSS.LA.2.L.2.4.d'
-                                                     ,'CCSS.LA.2.L.2.5.b'
-                                                     ,'CCSS.LA.3.L.3.5'
-                                                     ,'CCSS.LA.3.L.3.5.a'
-                                                     ,'CCSS.LA.3.L.3.6'
-                                                     ,'CCSS.LA.4.L.4.4'
-                                                     ,'CCSS.LA.4.L.4.4.a'
-                                                     ,'CCSS.LA.4.L.4.4.b'
-                                                     ,'CCSS.LA.4.L.4.5.a'
-                                                     ,'CCSS.LA.1.RF.1.3.g'
-                                                     ,'CCSS.LA.4.L.4.5.b'
-                                                     ,'CCSS.LA.4.L.4.5.c'
-                                                     ,'CCSS.LA.4.L.4.6')))
+  LEFT OUTER JOIN GDOCS$TA_standards_clean#static obj WITH(NOLOCK)
+    ON a.schoolid = obj.schoolid
+   AND a.grade_level = obj.grade_level
+   AND a.term = obj.term
+   AND a.standards_tested = obj.ccss_standard
+   AND obj.dupe_audit = 1
+  WHERE a.schoolid IN (73254,73255,73256,73257,179901)
+    AND a.term IS NOT NULL
+    AND a.scope = 'Interim Assessment'
+    AND a.subject NOT IN ('Writing') -- summary assessment
+    AND ((a.term = 'T1' AND a.standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
+                                                      ,'CCSS.LA.2.L.2.4.c'
+                                                      ,'CCSS.LA.2.L.2.4.d'
+                                                      ,'CCSS.LA.2.L.2.5.b'
+                                                      ,'CCSS.LA.3.L.3.5'
+                                                      ,'CCSS.LA.3.L.3.5.a'
+                                                      ,'CCSS.LA.3.L.3.6'
+                                                      ,'CCSS.LA.4.L.4.4'
+                                                      ,'CCSS.LA.4.L.4.4.a'
+                                                      ,'CCSS.LA.4.L.4.4.b'
+                                                      ,'CCSS.LA.4.L.4.5.a'
+                                                      ,'CCSS.LA.1.RF.1.3.g'))
+      OR (a.term = 'T2' AND a.standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
+                                                      ,'CCSS.LA.2.L.2.4.c'
+                                                      ,'CCSS.LA.2.L.2.4.d'
+                                                      ,'CCSS.LA.2.L.2.5.b'
+                                                      ,'CCSS.LA.3.L.3.5'
+                                                      ,'CCSS.LA.3.L.3.5.a'
+                                                      ,'CCSS.LA.3.L.3.6'
+                                                      ,'CCSS.LA.4.L.4.4'
+                                                      ,'CCSS.LA.4.L.4.4.a'
+                                                      ,'CCSS.LA.4.L.4.4.b'
+                                                      ,'CCSS.LA.4.L.4.5.a'
+                                                      ,'CCSS.LA.1.RF.1.3.g'
+                                                      ,'CCSS.LA.4.L.4.5.b'
+                                                      ,'CCSS.LA.4.L.4.5.c'
+                                                      ,'CCSS.LA.4.L.4.6')))
  )
 
 ,valid_FSAs AS (
@@ -80,29 +87,23 @@ WITH valid_TAs AS (
         ,standards_tested
         ,administered_at
         ,ta.term
-        ,obj.objective AS TA_obj
+        ,ta.TA_obj
   FROM valid_TAs ta WITH(NOLOCK)
-  LEFT OUTER JOIN GDOCS$TA_standards_clean obj WITH(NOLOCK)
-    ON ta.schoolid = obj.schoolid
-   AND ta.grade_level = obj.grade_level
-   AND ta.term = obj.term
-   AND ta.standards_tested = obj.ccss_standard
-   AND obj.dupe_audit = 1
   
   UNION ALL
   
   SELECT DISTINCT 
          fsa.assessment_id
-        ,fsa.academic_year
-        ,fsa.schoolid
+        ,ta.academic_year
+        ,ta.schoolid
         ,fsa.title        
         ,fsa.scope
         ,ta.subject
-        ,fsa.standard_id
-        ,fsa.standards_tested
+        ,ta.standard_id
+        ,ta.standards_tested
         ,fsa.administered_at
-        ,fsa.term
-        ,obj.objective AS TA_obj
+        ,ta.term
+        ,ta.TA_obj        
   FROM valid_FSAs fsa WITH(NOLOCK)
   JOIN valid_TAs ta WITH(NOLOCK)
     ON fsa.academic_year = ta.academic_year
@@ -110,12 +111,6 @@ WITH valid_TAs AS (
    AND fsa.schoolid = ta.schoolid
    AND fsa.grade_level = ta.grade_level   
    AND fsa.standard_id = ta.standard_id
-  LEFT OUTER JOIN GDOCS$TA_standards_clean obj WITH(NOLOCK)
-    ON fsa.schoolid = obj.schoolid
-   AND fsa.grade_level = obj.grade_level 
-   AND fsa.term = obj.term
-   AND fsa.standards_tested = obj.ccss_standard
-   AND obj.dupe_audit = 1
  ) 
 
 -- the above combined, only those that students have been tested on
