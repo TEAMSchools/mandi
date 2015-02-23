@@ -176,7 +176,7 @@ FROM
               PARTITION BY ar_detail.student_number
                           ,ar_detail.iQuizNumber
                 ORDER BY ar_detail.school_progression ASC) AS rn
-     FROM ar_detail
+     FROM ar_detail WITH(NOLOCK)
     ) sub
 --JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
 --  ON sub.student_number = CAST(s.student_number AS varchar)
