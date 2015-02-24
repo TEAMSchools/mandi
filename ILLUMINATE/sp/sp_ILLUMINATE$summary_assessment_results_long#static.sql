@@ -10,7 +10,15 @@ BEGIN
 -- 1.) Drop and recreate the temp table --
   IF OBJECT_ID(N'tempdb..#ILLUMINATE$summary_assessment_results_long#static|refresh') IS NOT NULL
     DROP TABLE [#ILLUMINATE$summary_assessment_results_long#static|refresh]
-    CREATE TABLE [#ILLUMINATE$summary_assessment_results_long#static|refresh] (repository_id INT, repository_row_id INT, student_id INT, field NVARCHAR(MAX), value NVARCHAR(MAX))
+    CREATE TABLE [#ILLUMINATE$summary_assessment_results_long#static|refresh] (
+      repository_id INT
+     ,repository_row_id INT
+     ,student_id INT
+     ,field NVARCHAR(MAX)
+     ,value NVARCHAR(MAX)
+     ,ID INT
+     ,is_deleted BIT
+     )
 
 
 -- 2.) Declare variables --
@@ -75,30 +83,32 @@ BEGIN
       -- here's the beef, the query that the cursor is going to iterate over
       -- for each repo, SELECT the columns, CONVERT them to TEXT, and then UNPIVOT into a normalized form
       -- then INSERT INTO the temp table      
-SET @query = N'INSERT INTO [#ILLUMINATE$summary_assessment_results_long#static|refresh]
-  SELECT ' + @repository_id + ' AS repository_id
-         ,repository_row_id
-         ,student_id
-         ,field
-         ,value
-  FROM 
-      (
-       SELECT local_student_id AS student_id
-             ,repository_row_id
-             ,' + @converted_cols + '
-       FROM OPENQUERY(ILLUMINATE,''
-         SELECT s.local_student_id          
-               ,repo.*
-         FROM dna_repositories.repository_' + @repository_id + ' repo 
-         JOIN public.students s 
-           ON repo.student_id = s.student_id
-       '')
-      ) sub
-  UNPIVOT (
-    value
-    FOR field IN (' + @cols + ')
-   ) unpiv
-'        
+      SET @query = N'INSERT INTO [#ILLUMINATE$summary_assessment_results_long#static|refresh]
+        SELECT ' + @repository_id + ' AS repository_id
+               ,repository_row_id
+               ,student_id
+               ,field
+               ,value
+               ,NULL AS ID
+               ,0 AS is_deleted
+        FROM 
+            (
+             SELECT local_student_id AS student_id
+                   ,repository_row_id
+                   ,' + @converted_cols + '
+             FROM OPENQUERY(ILLUMINATE,''
+               SELECT s.local_student_id          
+                     ,repo.*
+               FROM dna_repositories.repository_' + @repository_id + ' repo 
+               JOIN public.students s 
+                 ON repo.student_id = s.student_id
+             '')
+            ) sub
+        UNPIVOT (
+          value
+          FOR field IN (' + @cols + ')
+         ) unpiv
+      '        
       
       -- print the query that has just been prepared (for debugging)
       RAISERROR(@query, 0, 1)
@@ -134,7 +144,18 @@ SET @query = N'INSERT INTO [#ILLUMINATE$summary_assessment_results_long#static|r
 
  -- step 6: insert into final destination
  INSERT INTO [dbo].[ILLUMINATE$summary_assessment_results_long#static]
- SELECT *
+   (repository_id
+   ,repository_row_id
+   ,student_id
+   ,field
+   ,value         
+   ,is_deleted)
+ SELECT repository_id
+       ,repository_row_id
+       ,student_id
+       ,field
+       ,value         
+       ,is_deleted
  FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh];
  
 

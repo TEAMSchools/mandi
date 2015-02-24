@@ -54,7 +54,12 @@ WITH valid_TAs AS (
                                                       ,'CCSS.LA.1.RF.1.3.g'
                                                       ,'CCSS.LA.4.L.4.5.b'
                                                       ,'CCSS.LA.4.L.4.5.c'
-                                                      ,'CCSS.LA.4.L.4.6')))
+                                                      ,'CCSS.LA.4.L.4.6'
+                                                      ,'CCSS.LA.1.RL.1.1'
+                                                      ,'CCSS.LA.2.L.2.4'
+                                                      ,'CCSS.LA.2.L.2.4.b'
+                                                      ,'CCSS.LA.3.L.3.4.d'
+                                                      )))
  )
 
 ,valid_FSAs AS (
