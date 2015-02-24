@@ -35,7 +35,7 @@ WITH roster AS (
              --,DATENAME(WEEKDAY,date) AS day_of_week
              ,ROW_NUMBER() OVER(ORDER BY date ASC) AS rn
        FROM UTIL$reporting_days WITH(NOLOCK)
-       WHERE date IN ('2015-01-07','2015-01-06','2014-12-22','2014-12-19','2014-12-18') -- UPDATE WITH EXACT DATES
+       WHERE date IN ('2015-02-12','2015-02-24','2015-02-25') -- UPDATE WITH EXACT DATES
       ) sub
  )
 
