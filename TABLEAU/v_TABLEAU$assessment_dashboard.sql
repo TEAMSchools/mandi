@@ -19,7 +19,8 @@ SELECT co.schoolid
       ,groups.groups
       ,co.student_number
       ,co.lastfirst
-      ,co.spedlep      
+      ,co.spedlep  
+      ,co.enroll_status    
       ,a.assessment_id
       ,a.title
       ,a.scope            

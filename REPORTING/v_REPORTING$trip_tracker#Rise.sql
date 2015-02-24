@@ -4,79 +4,71 @@ GO
 ALTER VIEW REPORTING$trip_tracker#Rise AS
 
 WITH stu_cal_frame AS (
-  SELECT id AS studentid
-        ,lastfirst
-        ,grade_level
-        ,team
-        ,cal.*
-  FROM STUDENTS s WITH(NOLOCK)
-  JOIN (
-        SELECT (CONVERT(INT,week)) AS week_number
-              ,CONVERT(DATE,weekday_sun) AS week_of
-              ,DATEPART(MONTH,weekday_sun) AS month
-        FROM UTIL$reporting_weeks_days WITH(NOLOCK)
-        WHERE year >= dbo.fn_Global_Academic_Year()
-          AND weekday_sun >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-11-23')
-          AND weekday_sun <= GETDATE()
-       ) cal
-    ON 1 = 1
-  WHERE s.enroll_status = 0
-    AND s.schoolid = 73252
-    AND s.grade_level = 5
+  SELECT co.studentid
+        ,co.student_number
+        ,co.lastfirst
+        ,co.grade_level
+        ,co.team
+        ,co.date
+        ,DATEPART(WEEK,co.date) AS week_number
+        ,DATEPART(MONTH,co.date) AS month        
+        ,DATEPART(WEEKDAY,co.date) AS day_of_week
+  FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)
+  WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND co.schoolid = 73252
+    AND co.grade_level = 5
+    AND co.enroll_status = 0
+    AND DATEPART(WEEKDAY,co.date) = 1
+    AND co.date <= CONVERT(DATE,GETDATE())
+    AND co.date >= '2015-02-22'
  )
 
 ,hw_points AS (
-  SELECT studentid
+  SELECT student_number
         ,month        
         ,ISNULL([H],0) AS [H]
         --,ISNULL([Q],0) AS [Q]
   FROM
       (
-       SELECT oq.studentid
-             ,LEFT(oq.rt_name,1) AS category
-             --,CONVERT(VARCHAR,oq.week_of,1) AS week_of
-             ,CONVERT(VARCHAR,DATEPART(MONTH, date_value)) AS month
-             --,ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) AS hw_avg
+       SELECT sub.student_number
+             ,sub.category
+             ,sub.month             
              ,CASE
-               WHEN oq.rt_name LIKE 'H%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 70.0 THEN 5
-               WHEN oq.rt_name LIKE 'H%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 80.0 THEN 2 
-               --WHEN oq.rt_name LIKE 'H%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 90.0 THEN 2
-               --WHEN oq.rt_name LIKE 'Q%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 70.0 THEN 10
-               --WHEN oq.rt_name LIKE 'Q%' AND ROUND(AVG(CONVERT(FLOAT,oq.synthetic_percent)),1) < 80.0 THEN 2                
+               WHEN sub.category = 'H' AND ROUND(AVG(CONVERT(FLOAT,sub.moving_average)), 1) < 70.0 THEN 5
+               WHEN sub.category = 'H' AND ROUND(AVG(CONVERT(FLOAT,sub.moving_average)), 1) < 80.0 THEN 2                
                ELSE 0
               END AS hw_pts             
-       FROM OPENQUERY(KIPP_NWK,'
-         SELECT gr.studentid
-               ,gr.date_value               
-               ,gr.synthetic_percent
-               ,gr.rt_name
-         FROM students@PS_TEAM s
-         JOIN grades$time_series_detail gr
-           ON s.id = gr.studentid
-          AND gr.rt_name LIKE ''H%''
-          AND gr.date_value >= TO_DATE(''2014-08-01'', ''YYYY-MM-DD'')
-          AND gr.synthetic_percent IS NOT NULL
-         WHERE s.enroll_status = 0
-           AND s.grade_level = 5
-       ') oq       
-       GROUP BY oq.studentid
-               ,oq.rt_name               
-               ,DATEPART(MONTH, date_value)
-      ) sub
-  
+       FROM 
+           (
+            SELECT gr.student_number                  
+                  ,s.month          
+                  ,LEFT(gr.finalgradename, 1) AS category
+                  ,gr.moving_average
+                  ,gr.finalgradename
+            FROM stu_cal_frame s WITH(NOLOCK)
+            LEFT OUTER JOIN KIPP_NJ..GRADES$time_series#STAGING gr WITH(NOLOCK)
+              ON s.student_number = gr.student_number
+             AND s.date = gr.date
+             AND gr.finalgradename LIKE 'H%'
+             AND gr.moving_average IS NOT NULL            
+           ) sub       
+       GROUP BY sub.student_number
+               ,sub.category               
+               ,sub.month
+      ) sub  
   PIVOT (
     MAX(hw_pts)
     FOR category IN ([H])
     --FOR category IN ([H],[Q])
    ) p
-)
+ )
 
 ,hw_totals AS (
-  SELECT studentid
+  SELECT student_number
         ,SUM(H) AS H
         --,SUM(Q) AS Q
-  FROM hw_points
-  GROUP BY studentid
+  FROM hw_points WITH(NOLOCK)
+  GROUP BY student_number
  )
 
 ,disc_points AS ( 
@@ -114,17 +106,10 @@ WITH stu_cal_frame AS (
                     WHEN log.subtype = 'Paycheck' AND log.discipline_details IN ('Paycheck Below $80','Paycheck Below $70') THEN 5
                     ELSE 0
                    END AS disc_points        
-            FROM STUDENTS s WITH(NOLOCK)
-            JOIN DISC$log#static log WITH(NOLOCK)
-              ON s.ID = log.studentid
-             AND log.entry_date >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
-            WHERE s.ENROLL_STATUS = 0
-              AND s.SCHOOLID = 73252
-              AND s.GRADE_LEVEL = 5  
+            FROM DISC$log#static log WITH(NOLOCK)            
            ) sub
        GROUP BY studentid, week_number, subtype
       ) sub
-
   PIVOT (
     MAX(disc_points)
     FOR subtype IN ([Bench]
@@ -141,7 +126,7 @@ SELECT s.LASTFIRST AS Name
       ,ROW_NUMBER() OVER(
           PARTITION BY s.studentid
               ORDER BY s.week_number) AS Week_Number
-      ,CONVERT(VARCHAR,s.week_of) AS Week_of
+      ,CONVERT(VARCHAR,s.date) AS Week_of
       ,hw.H
       --,hw.Q
       ,ISNULL(disc.Bench,0) AS Bench
@@ -157,13 +142,14 @@ SELECT s.LASTFIRST AS Name
         --+ ISNULL(disc.[HW Detention],0)
         + ISNULL(disc.Paycheck,0)
         AS TOTAL
-FROM stu_cal_frame s
-JOIN hw_points hw
-  ON s.studentid = hw.studentid
+FROM stu_cal_frame s WITH(NOLOCK)
+JOIN hw_points hw WITH(NOLOCK)
+  ON s.student_number = hw.student_number
  AND s.month = hw.month
-LEFT OUTER JOIN disc_points disc
+LEFT OUTER JOIN disc_points disc WITH(NOLOCK)
   ON s.studentid = disc.studentid
  AND s.week_number = disc.week_number
+WHERE s.day_of_week = 1
 
 UNION ALL
 
@@ -187,12 +173,13 @@ SELECT s.LASTFIRST AS Name
          + ISNULL(hw.H,0)
          --+ ISNULL(hw.Q,0)
          AS TOTAL
-FROM stu_cal_frame s
-LEFT OUTER JOIN hw_totals hw
-  ON s.studentid = hw.studentid
-LEFT OUTER JOIN disc_points disc
+FROM stu_cal_frame s WITH(NOLOCK)
+LEFT OUTER JOIN hw_totals hw WITH(NOLOCK)
+  ON s.student_number = hw.student_number
+LEFT OUTER JOIN disc_points disc WITH(NOLOCK)
   ON s.studentid = disc.studentid
  AND s.week_number = disc.week_number
+WHERE s.day_of_week = 1
 GROUP BY s.LASTFIRST
         ,s.GRADE_LEVEL
         ,s.TEAM

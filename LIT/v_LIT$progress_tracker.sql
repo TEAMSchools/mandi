@@ -81,7 +81,11 @@ SELECT
       ,scores.grade_level AS test_grade_level      
       ,s.team
       ,s.advisor
-      ,s.SPEDLEP
+      ,CASE
+        WHEN s.LEP_STATUS = 1 AND s.SPEDLEP != 'No IEP' THEN 'ELL & ' + s.SPEDLEP
+        WHEN s.lep_status = 1 THEN 'ELL'
+        ELSE s.SPEDLEP
+       END AS SPEDLEP
       ,grteacher.t1_teach AS read_teacher_t1
       ,grteacher.t2_teach AS read_teacher_t2
       ,grteacher.t3_teach AS read_teacher_t3

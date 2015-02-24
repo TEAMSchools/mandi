@@ -23,13 +23,16 @@ BEGIN
 
 -- 3.) Declare the cursor FOR the set of records it will loop over --
   -- cursor name MUST be unique within schema
+  -- TODO: MERGE only repos created or updated in the past day
+  -- TODO: find a way to remove DELETED records
   DECLARE illuminate_cursor CURSOR FOR
     SELECT repository_id        
     FROM OPENQUERY(ILLUMINATE,'
       SELECT repository_id          
       FROM dna_repositories.repositories    
       WHERE deleted_at IS NULL      
-        AND repository_id <= 105
+        --AND (created_at >= (current_date - interval ''1 day'') OR updated_at >= (current_date - interval ''1 day''))
+        AND repository_id <= 110
       ORDER BY repository_id DESC
     ')
 

@@ -7,7 +7,7 @@ SELECT schoolid
       ,academic_year
       --,grade_level
       --,team      
-      ,spedlep
+      ,spedlep      
       ,assessment_id
       ,title
       ,scope
@@ -34,7 +34,7 @@ FROM
            ,co.team           
            ,co.student_number
            ,co.lastfirst
-           ,co.spedlep      
+           ,co.spedlep                 
            ,a.assessment_id
            ,a.title
            ,a.scope            

@@ -3,12 +3,32 @@ GO
 
 ALTER VIEW TABLEAU$trip_tracker AS
 
+WITH disc_count AS (
+  SELECT studentid
+        ,entry_date        
+        ,SUM(CASE WHEN subtype = 'Detention' THEN 1 ELSE 0 END) detentions
+        ,SUM(CASE 
+              WHEN subtype = 'Silent Lunch' THEN 1
+              WHEN subtype = 'Silent Lunch (5 Day)' THEN 5
+              ELSE 0 
+             END) AS silent_lunches
+        ,SUM(CASE WHEN subtype LIKE '%Choices%' OR subtype LIKE 'Bench%' THEN 1 ELSE 0 END) bench_choices
+        ,SUM(CASE WHEN subtype = 'ISS' THEN 1 ELSE 0 END) ISS
+        ,SUM(CASE WHEN subtype = 'OSS' THEN 1 ELSE 0 END) OSS
+  FROM KIPP_NJ..DISC$log#static WITH(NOLOCK)
+  WHERE schoolid IN (73252,133570965)
+    AND entry_date BETWEEN CONVERT(DATE,CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year()) + '-08-01') AND CONVERT(DATE,GETDATE())    
+  GROUP BY studentid
+          ,entry_date
+ )
+
 SELECT s.student_number      
       ,s.lastfirst      
       ,s.school_name
       ,s.grade_level
       ,s.team
       ,s.advisor      
+      ,s.date
       ,promo.promo_overall_rise AS promo_status_overall
       ,CASE
         WHEN s.schoolid = 73252 THEN promo.promo_grades_gpa_rise
@@ -29,10 +49,10 @@ SELECT s.student_number
       ,rise_hwq.simple_avg AS hwq_y1
       ,ISNULL(disc_count.silent_lunches,0) AS silent_lunches
       ,ISNULL(disc_count.detentions,0) AS detentions
-      ,CASE WHEN s.grade_level <= 6 THEN ISNULL(disc_count.bench,0) ELSE ISNULL(disc_count.choices,0) END AS bench_choices_yr
+      ,ISNULL(disc_count.bench_choices,0) AS bench_choices_yr
       ,ISNULL(disc_count.ISS,0) AS ISS
       ,ISNULL(disc_count.OSS,0) AS OSS
-FROM KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_scaffold#static s WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH(NOLOCK)
   ON s.studentid = promo.studentid
 LEFT OUTER JOIN KIPP_NJ..GPA$detail#MS rise_gpa WITH(NOLOCK)
@@ -49,8 +69,9 @@ AND s.schoolid = rise_hwq.schoolid
 AND rise_hwq.pgf_type = 'Q'
 AND rise_hwq.yearid >= REPLACE(KIPP_NJ.dbo.fn_Global_Term_Id(),'00','')
 AND rise_hwq.course_number = 'all_courses'
-LEFT OUTER JOIN KIPP_NJ..DISC$counts_wide disc_count WITH(NOLOCK)
+LEFT OUTER JOIN disc_count WITH(NOLOCK)
   ON s.studentid = disc_count.studentid
+ AND s.date = disc_count.entry_date
 WHERE s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
   AND s.enroll_status = 0
   AND s.schoolid IN (73252,133570965)

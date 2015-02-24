@@ -18,11 +18,11 @@ WITH test_roster AS (
              ,f.label
              ,res.repository_row_id
              ,res.value AS field_value           
-       FROM ILLUMINATE$summary_assessments#static a WITH(NOLOCK)
-       JOIN ILLUMINATE$repository_fields f WITH(NOLOCK)
+       FROM KIPP_NJ..ILLUMINATE$summary_assessments#static a WITH(NOLOCK)
+       JOIN KIPP_NJ..ILLUMINATE$repository_fields f WITH(NOLOCK)
          ON a.repository_id = f.repository_id      
         AND f.label IN ('Year','Interim','Quarter')
-       JOIN ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
+       JOIN KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
          ON a.repository_id = res.repository_id
         AND f.name = res.field
        WHERE a.title IN ('Writing - Interim - TEAM MS', 'English OE - Quarterly Assessments')
@@ -44,15 +44,16 @@ WITH test_roster AS (
          END AS strand
         ,f.label AS field_name
         ,res.repository_row_id
+        ,res.value
         ,CONVERT(FLOAT,res.value) AS field_value           
-  FROM ILLUMINATE$summary_assessments#static a WITH(NOLOCK)
-  JOIN ILLUMINATE$repository_fields f WITH(NOLOCK)
+  FROM KIPP_NJ..ILLUMINATE$summary_assessments#static a WITH(NOLOCK)
+  JOIN KIPP_NJ..ILLUMINATE$repository_fields f WITH(NOLOCK)
     ON a.repository_id = f.repository_id      
-   AND f.label NOT IN ('Year','Interim','Quarter')
-  JOIN ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
+   AND f.label NOT IN ('Year','Interim','Quarter','Test Type')
+  JOIN KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
     ON a.repository_id = res.repository_id
    AND f.name = res.field
-  WHERE a.title IN ('Writing - Interim - TEAM MS', 'English OE - Quarterly Assessments')  
+  WHERE a.title IN ('Writing - Interim - TEAM MS', 'English OE - Quarterly Assessments')
  )
 
 SELECT t.student_number

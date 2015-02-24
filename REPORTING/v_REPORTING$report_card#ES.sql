@@ -5,16 +5,28 @@ ALTER VIEW REPORTING$report_card#ES AS
 
 WITH reporting_week AS (
   SELECT schoolid
-        ,time_per_name AS week_num        
+        ,week_num
         ,start_date
         ,end_date
-        ,DATENAME(MONTH,start_date) AS month
-        ,REPLACE(time_per_name,'_',' ') + ': ' + LEFT(CONVERT(VARCHAR,start_date,101),5) + ' - ' + LEFT(CONVERT(VARCHAR,end_date,101),5) AS week_title
-  FROM REPORTING$dates WITH(NOLOCK)    
-  WHERE DATEPART(WEEK,GETDATE()) - 1 >= DATEPART(WEEK,start_date)
-    AND DATEPART(WEEK,GETDATE()) - 1 <= DATEPART(WEEK,end_date)
-    AND identifier = 'REP'    
-    AND school_level = 'ES'
+        ,month
+        ,week_title      
+  FROM
+      (
+       SELECT schoolid
+             ,time_per_name AS week_num        
+             ,start_date
+             ,end_date
+             ,DATENAME(MONTH,start_date) AS month
+             ,REPLACE(time_per_name,'_',' ') + ': ' + LEFT(CONVERT(VARCHAR,start_date,101),5) + ' - ' + LEFT(CONVERT(VARCHAR,end_date,101),5) AS week_title
+             ,ROW_NUMBER() OVER(
+               PARTITION BY academic_year, schoolid
+                 ORDER BY start_date DESC) AS rn
+       FROM REPORTING$dates WITH(NOLOCK)    
+       WHERE identifier = 'REP'    
+         AND school_level = 'ES'  
+         AND end_date <= CONVERT(DATE,GETDATE())
+      ) sub
+  WHERE rn = 1
  )
 
 SELECT r.studentid

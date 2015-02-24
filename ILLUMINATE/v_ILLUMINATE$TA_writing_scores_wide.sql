@@ -81,9 +81,9 @@ WITH writing AS (
                   ,pivot_hash_prof
                   ,writing_obj
                   ,proficiency      
-                  ,CASE WHEN prof_numeric >= 3 THEN 1 ELSE 0 END AS is_prof
+                  ,CASE WHEN CONVERT(FLOAT,prof_numeric) >= 3 THEN 1 ELSE 0 END AS is_prof
                   ,COUNT(prof_numeric) OVER(PARTITION BY student_number, repository_row_id, writing_type) AS n_tested
-            FROM ILLUMINATE$writing_scores_long#ES WITH(NOLOCK)                        
+            FROM KIPP_NJ..ILLUMINATE$writing_scores_long#ES WITH(NOLOCK)                        
            ) sub
        PIVOT(
          MAX(writing_obj)

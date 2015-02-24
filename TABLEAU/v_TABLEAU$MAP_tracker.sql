@@ -83,6 +83,7 @@ SELECT r.year
       ,r.cohort
       ,r.team        
       ,r.SPEDLEP
+      ,r.enroll_status
       ,map_long.measurementscale
       ,map_long.base_rit
       ,map_long.base_pct
