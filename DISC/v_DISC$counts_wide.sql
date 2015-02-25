@@ -130,4 +130,5 @@ SELECT log.studentid
 FROM DISC$log#static log WITH(NOLOCK)
 JOIN curterm WITH(NOLOCK)
   ON 1 = 1
+WHERE log.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 GROUP BY log.studentid

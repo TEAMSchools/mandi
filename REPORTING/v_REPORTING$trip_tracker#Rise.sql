@@ -106,7 +106,8 @@ WITH stu_cal_frame AS (
                     WHEN log.subtype = 'Paycheck' AND log.discipline_details IN ('Paycheck Below $80','Paycheck Below $70') THEN 5
                     ELSE 0
                    END AS disc_points        
-            FROM DISC$log#static log WITH(NOLOCK)            
+            FROM DISC$log#static log WITH(NOLOCK)   
+            WHERE log.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()         
            ) sub
        GROUP BY studentid, week_number, subtype
       ) sub

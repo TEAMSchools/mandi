@@ -36,3 +36,4 @@ LEFT OUTER JOIN AUTOLOAD$GDOCS_SUPPORT_Master_List supp WITH(NOLOCK)
   ON co.student_number = supp.SN
 WHERE co.grade_level < 5  
   AND co.rn = 1
+  AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()

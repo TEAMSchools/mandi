@@ -52,6 +52,7 @@ WITH roster AS (
   FROM DISC$log#static demerits WITH(NOLOCK)
   WHERE demerits.logtypeid = 3223
     AND demerits.schoolid = 73253
+    AND demerits.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY demerits.studentid
           ,DATEPART(WEEK,demerits.entry_date)
  )

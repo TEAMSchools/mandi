@@ -72,6 +72,7 @@ WITH attendance_long AS (
    AND disc.entry_date <= dates.end_date
    AND dates.identifier = 'RT'
   WHERE disc.logtypeid = 3953
+    AND disc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
   UNION ALL
 
@@ -92,6 +93,7 @@ WITH attendance_long AS (
     AND disc.subtype IS NOT NULL
     AND curterm.start_date <= GETDATE()
     AND curterm.end_date >= GETDATE()   
+    AND disc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
   UNION ALL
 
@@ -112,6 +114,7 @@ WITH attendance_long AS (
     AND disc.subtype IS NOT NULL
     AND trip.start_date <= GETDATE()
     AND trip.end_date >= GETDATE()   
+    AND disc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
 -- uniform violations by date

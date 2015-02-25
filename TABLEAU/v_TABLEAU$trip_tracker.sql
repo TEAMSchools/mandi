@@ -17,7 +17,7 @@ WITH disc_count AS (
         ,SUM(CASE WHEN subtype = 'OSS' THEN 1 ELSE 0 END) OSS
   FROM KIPP_NJ..DISC$log#static WITH(NOLOCK)
   WHERE schoolid IN (73252,133570965)
-    AND entry_date BETWEEN CONVERT(DATE,CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year()) + '-08-01') AND CONVERT(DATE,GETDATE())    
+    AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY studentid
           ,entry_date
  )

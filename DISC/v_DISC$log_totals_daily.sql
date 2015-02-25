@@ -22,6 +22,7 @@ WITH log_totals AS (
        FROM DISC$log#static disc WITH(NOLOCK)
        WHERE (disc.logtypeid IN (3023, 3223) OR disc.logtypeid = -100000 AND subtype IN ('ISS','OSS','Detention'))
          AND disc.schoolid = 73253
+         AND disc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       ) sub
   GROUP BY studentid
           ,entry_date
