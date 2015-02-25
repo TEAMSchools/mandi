@@ -525,6 +525,9 @@ SELECT r.studentid
       ,ta.VIZ_TA_prof_5
       ,ta.VIZ_TA_prof_6
       ,ta.VIZ_TA_prof_7
+      ,ta.DANCE_TA_obj_1
+      ,ta.DANCE_TA_prof_1      
+      ,ta.DANCE_pct_stds_mastered
             
       --comments
       ,comm.ela_comment
@@ -536,6 +539,7 @@ SELECT r.studentid
       ,comm.span_comment
       ,comm.viz_comment
       ,comm.writing_comment      
+      ,comm.dance_comment
       
       --ARFR
       ,arfr.ARFR_reason

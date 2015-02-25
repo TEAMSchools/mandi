@@ -26,7 +26,7 @@ WITH valid_TAs AS (
    AND obj.dupe_audit = 1
   WHERE a.schoolid IN (73254,73255,73256,73257,179901)
     AND a.term IS NOT NULL
-    AND a.scope = 'Interim Assessment'
+    AND a.scope = 'Interim Assessment'    
     AND a.subject NOT IN ('Writing') -- summary assessment
     AND ((a.term = 'T1' AND a.standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
                                                       ,'CCSS.LA.2.L.2.4.c'
@@ -190,8 +190,8 @@ SELECT sub.student_number
         WHEN sub.subject = 'Phonics' THEN 'PHON'
         WHEN sub.subject = 'Science' THEN 'SCI'
         WHEN sub.subject = 'Spanish' THEN 'SPAN'
-        WHEN sub.subject = 'Visual Arts' THEN 'VIZ'        
-        ELSE NULL
+        WHEN sub.subject = 'Visual Arts' THEN 'VIZ'
+        ELSE UPPER(REPLACE(sub.subject,' ',''))
        END AS TA_subject
       ,sub.standard_id
       ,sub.standards_tested AS TA_standard
@@ -285,7 +285,7 @@ FROM
                   -- All grades specials, all tests, no weighting
                   WHEN subject NOT IN ('Writing','Comprehension','Mathematics','Phonics')
                    THEN pct_correct
-                  ELSE NULL
+                  ELSE pct_correct
                  END AS weighted_pct_points
                 -- weighted points possible (depending on IA/FSA)
                 ,CASE
@@ -315,7 +315,7 @@ FROM
                   -- All grades specials, all tests, no weighting
                   WHEN subject NOT IN ('Writing','Comprehension','Mathematics','Phonics')
                    THEN 100
-                  ELSE NULL
+                  ELSE 100
                  END AS weighted_points_poss
           FROM scores_long WITH(NOLOCK)
          ) sub

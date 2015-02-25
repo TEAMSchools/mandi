@@ -125,7 +125,7 @@ SELECT student_number
       ,[VIZ_TA_obj_12]
       ,[VIZ_TA_obj_13]
       ,[VIZ_TA_obj_14]
-      ,[VIZ_TA_obj_15]        
+      ,[VIZ_TA_obj_15]              
       ,[COMP_TA_prof_1]
       ,[COMP_TA_prof_2]
       ,[COMP_TA_prof_3]
@@ -254,6 +254,13 @@ SELECT student_number
       ,[SCI_pct_stds_mastered_1] AS [SCI_pct_stds_mastered]
       ,[SPAN_pct_stds_mastered_1] AS [SPAN_pct_stds_mastered]
       ,[VIZ_pct_stds_mastered_1] AS [VIZ_pct_stds_mastered]        
+      ,[DANCE_TA_obj_1]
+      ,[DANCE_TA_obj_2]
+      ,[DANCE_TA_obj_3] 
+      ,[DANCE_TA_prof_1]
+      ,[DANCE_TA_prof_2]
+      ,[DANCE_TA_prof_3]                    
+      ,[DANCE_pct_stds_mastered_1] AS [DANCE_pct_stds_mastered]        
 FROM
     (
      SELECT student_number
@@ -404,7 +411,7 @@ PIVOT(
                     ,[VIZ_TA_obj_12]
                     ,[VIZ_TA_obj_13]
                     ,[VIZ_TA_obj_14]
-                    ,[VIZ_TA_obj_15]                    
+                    ,[VIZ_TA_obj_15]                                        
                     ,[COMP_TA_prof_1]
                     ,[COMP_TA_prof_2]
                     ,[COMP_TA_prof_3]
@@ -524,7 +531,7 @@ PIVOT(
                     ,[VIZ_TA_prof_12]
                     ,[VIZ_TA_prof_13]
                     ,[VIZ_TA_prof_14]
-                    ,[VIZ_TA_prof_15]                    
+                    ,[VIZ_TA_prof_15]                                        
                     ,[COMP_pct_stds_mastered_1]
                     ,[MATH_pct_stds_mastered_1]                      
                     ,[PERF_pct_stds_mastered_1]
@@ -532,5 +539,12 @@ PIVOT(
                     ,[HUM_pct_stds_mastered_1]
                     ,[SCI_pct_stds_mastered_1]
                     ,[SPAN_pct_stds_mastered_1]
-                    ,[VIZ_pct_stds_mastered_1])
+                    ,[VIZ_pct_stds_mastered_1]
+                    ,[DANCE_TA_obj_1]
+                    ,[DANCE_TA_obj_2]
+                    ,[DANCE_TA_obj_3] 
+                    ,[DANCE_TA_prof_1]
+                    ,[DANCE_TA_prof_2]
+                    ,[DANCE_TA_prof_3]
+                    ,[DANCE_pct_stds_mastered_1])
  ) p

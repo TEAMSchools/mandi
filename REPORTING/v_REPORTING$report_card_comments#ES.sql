@@ -4,8 +4,8 @@ GO
 ALTER VIEW REPORTING$report_card_comments#ES AS
 
 WITH valid_assessments AS (
-  SELECT repository_id
-  FROM ILLUMINATE$summary_assessments#static WITH(NOLOCK)
+  SELECT DISTINCT repository_id
+  FROM KIPP_NJ..ILLUMINATE$summary_assessments#static WITH(NOLOCK)
   WHERE scope = 'Reporting'
     AND subject = 'Comments'
  )
@@ -34,6 +34,7 @@ SELECT student_number
       ,'Spanish: ' + [Spanish_comment] AS span_comment
       ,'Visual Arts: ' + [VisualArts_comment] AS viz_comment
       ,'Writing: ' + [Writing_comment] AS writing_comment
+      ,'Dance: ' + [Dance_comment] AS dance_comment
 FROM 
     (
      SELECT repo.student_id AS student_number
@@ -43,8 +44,8 @@ FROM
              ELSE REPLACE(fields.label,' ','') + '_comment'
             END AS field
            ,repo.value
-     FROM ILLUMINATE$summary_assessment_results_long#static repo WITH(NOLOCK)
-     JOIN ILLUMINATE$repository_fields fields WITH(NOLOCK)
+     FROM KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static repo WITH(NOLOCK)
+     JOIN KIPP_NJ..ILLUMINATE$repository_fields fields WITH(NOLOCK)
        ON repo.repository_id = fields.repository_id
       AND repo.field = fields.name 
      --LEFT OUTER JOIN specialist_comments spec WITH(NOLOCK)
@@ -65,5 +66,6 @@ PIVOT(
                ,[Term_comment]
                ,[VisualArts_comment]
                ,[Writing_comment]
+               ,[Dance_comment]
                ,[Year_comment])
  ) p
