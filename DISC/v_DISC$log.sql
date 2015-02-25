@@ -7,53 +7,40 @@ WITH disc_log AS (
   SELECT disc.schoolid
         ,CAST(disc.studentid AS INT) AS studentid        
         ,disc.entry_author        
-        ,CASE 
+        ,CASE
+          WHEN disc.entry_date = '0000-00-00' THEN CONVERT(DATE,disc.discipline_incidentdate)
           WHEN CONVERT(DATE,disc.discipline_incidentdate) = '1900-01-01' THEN CONVERT(DATE,disc.entry_date) 
-          WHEN disc.logtypeid IN (3023, 3223) OR schoolid = 73253 THEN CONVERT(DATE,disc.entry_date) 
+          WHEN disc.logtypeid IN (3023, 3223) OR disc.schoolid = 73253 THEN CONVERT(DATE,disc.entry_date) 
           ELSE CONVERT(DATE,disc.discipline_incidentdate) 
          END AS entry_date
-        ,CONVERT(DATE,disc.entry_date) AS consequence_date
+        ,CASE 
+          WHEN disc.entry_date = '0000-00-00' THEN NULL
+          ELSE CONVERT(DATE,disc.entry_date) 
+         END AS consequence_date
         ,disc.logtypeid      
         ,disc.subtype AS subtypeid
         ,consequence AS n_days
         ,subtype.logtype
         ,subtype.subtype
         ,disc.subject
-        ,disc.entry
+        ,NULL AS [entry] -- for real, bro? this field adds on average 7 minutes to the query
         ,details.detail AS discipline_details
         ,action.detail AS actiontaken
-        ,follow.detail AS followup
-  FROM OPENQUERY(PS_TEAM,'
-    SELECT studentid
-          ,schoolid
-          ,entry_author
-          ,entry_date
-          ,discipline_incidentdate
-          ,logtypeid
-          ,subtype
-          ,subject
-          ,entry
-          ,discipline_incidenttype
-          ,Discipline_ActionTaken
-          ,Discipline_ActionTakendetail
-          ,consequence
-    FROM log
-    WHERE (log.entry_date >= TO_DATE(''2014-08-01'',''YYYY-MM-DD'') OR log.discipline_incidentdate >= TO_DATE(''2014-08-01'',''YYYY-MM-DD''))
-      AND log.entry_date <= TRUNC(SYSDATE)
-      AND log.logtypeid NOT IN (1423, 2724, 3124, 3964)
-  ') disc /*-- UPDATE QUERY FOR CURRENT SCHOOL YEAR --*/
-  LEFT OUTER JOIN DISC$logtypes#static subtype WITH(NOLOCK)
+        ,follow.detail AS followup  
+  FROM KIPP_NJ..DISC$log#STAGING disc WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..DISC$logtypes#static subtype WITH(NOLOCK)
     ON disc.logtypeid = subtype.logtypeid
    AND disc.subtype = subtype.subtypeid
-  LEFT OUTER JOIN DISC$entrycodes#static details WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..DISC$entrycodes#static details WITH(NOLOCK)
     ON disc.discipline_incidenttype = details.code
    AND details.field = 'discipline_incidenttype'
-  LEFT OUTER JOIN DISC$entrycodes#static action WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..DISC$entrycodes#static action WITH(NOLOCK)
     ON disc.discipline_incidenttype = action.code
    AND action.field = 'discipline_actiontaken'
-  LEFT OUTER JOIN DISC$entrycodes#static follow WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..DISC$entrycodes#static follow WITH(NOLOCK)
     ON disc.discipline_incidenttype = follow.code
    AND follow.field = 'discipline_actiontakendetail'
+  WHERE (ISDATE(disc.ENTRY_DATE) = 1 OR ISDATE(disc.discipline_incidentdate) = 1)       
  )
 
 ,tardy_demerits AS (
@@ -157,7 +144,9 @@ WITH disc_log AS (
         ,actiontaken
         ,followup
   FROM disc_log WITH(NOLOCK)  
+
   UNION ALL
+  
   SELECT schoolid
         ,studentid
         ,entry_author        
@@ -174,7 +163,9 @@ WITH disc_log AS (
         ,actiontaken
         ,followup
   FROM tardy_demerits WITH(NOLOCK)
+  
   UNION ALL
+  
   SELECT schoolid
         ,studentid
         ,entry_author
