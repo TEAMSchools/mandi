@@ -3,21 +3,24 @@ GO
 
 ALTER VIEW AR$time_series_dense AS
 
+/* !! CTEs HERE !! */
+
 WITH reporting_weeks AS (
   SELECT reporting_hash
-        ,weekday_sun AS week_start
-        ,weekday_sat AS week_end
+        ,weekday_start AS week_start
+        ,weekday_sun AS week_end
         ,ROW_NUMBER() OVER(
            ORDER BY reporting_hash ASC) AS rn
   FROM KIPP_NJ..UTIL$reporting_weeks_days WITH (NOLOCK)
-  WHERE reporting_hash >= CONVERT(INT,(CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year()) + '25'))
-    AND reporting_hash <= CONVERT(INT,(CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year() + 1) + '26'))
+  WHERE reporting_hash >= 201425
+    AND reporting_hash <= 201526
  )
     
 ,goal_stuff AS (
   SELECT s.ID AS studentid
         ,s.student_number
-        --takes student enroll date for the year as goal start *if* after goal start date
+        --takes student enroll date for the year as 
+        --goal start *if* after goal start date
         ,CASE WHEN s.entrydate > goals.time_period_start THEN s.entrydate ELSE goals.time_period_start END AS stu_start_date
         ,goals.time_period_start AS goal_start_date
         ,goals.time_period_end AS goal_end_date
@@ -33,8 +36,7 @@ WITH reporting_weeks AS (
  )
 
 ,ar_activity AS (
-  SELECT c.studentid
-        ,CONVERT(VARCHAR,c.student_number) AS student_number
+  SELECT sq_1.*
         ,arsp.dtTaken
         ,CASE WHEN arsp.tiPassed = 1 THEN CAST(arsp.iWordCount AS BIGINT) ELSE 0 END AS words_passed
         ,CASE WHEN arsp.tiPassed = 1 THEN arsp.dPointsEarned ELSE 0 END AS points_earned         
@@ -45,15 +47,21 @@ WITH reporting_weeks AS (
         ,arsp.ialternatebooklevel_2 AS book_lexile
         ,arsp.tipassed
         ,1 AS dummy
-  FROM KIPP_NJ..COHORT$identifiers_long#static c WITH (NOLOCK)
+  FROM
+      (
+       SELECT c.studentid
+             ,CONVERT(VARCHAR,s.student_number) AS student_number
+       FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
+       JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
+         ON c.studentid = s.id
+        AND s.enroll_status = 0
+       WHERE c.year = dbo.fn_Global_Academic_Year()
+         AND c.rn = 1        
+      ) sq_1
   LEFT OUTER JOIN KIPP_NJ..AR$test_event_detail#static arsp WITH (NOLOCK)
-    ON c.student_number = arsp.student_number
-   AND KIPP_NJ.dbo.fn_DateToSY(arsp.dtTaken) = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    ON sq_1.student_number = arsp.student_number
+   AND arsp.dtTaken >= '15-JUN-13'
    AND arsp.dtTaken IS NOT NULL
-   AND arsp.student_number NOT IN ('joyke','Mr.Pa','STU1','STU6','STUa','STUb','STUc','STUd','STUe','STUg','STUh','STUj','STUk','STUl','STUm','STUn','STUp','STUr','STUs','STUt','STUw')
-  WHERE c.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-    AND c.rn = 1        
-    AND c.enroll_status = 0
  )
 
 SELECT CAST(studentid AS INT) AS studentid
@@ -92,30 +100,7 @@ SELECT CAST(studentid AS INT) AS studentid
       ,goal_index AS year_goal_index
 FROM
     (
-     SELECT sub.studentid
-           ,sub.student_number
-           ,sub.time_period_name
-           ,sub.time_period_hierarchy
-           ,sub.words_goal
-           ,sub.points_goal
-           ,sub.stu_start_date
-           ,sub.goal_start_date
-           ,sub.goal_end_date
-           ,sub.reporting_hash
-           ,sub.week_start
-           ,sub.week_end
-           ,sub.rn
-           ,sub.words
-           ,sub.points
-           ,sub.mastery
-           ,sub.fiction_pct
-           ,sub.lexile_avg
-           ,sub.books_passed
-           ,sub.books_attempted
-           ,sub.min_valid_week
-           ,sub.valid_for_goal
-           ,sub.goal_index
-           ,sub.goal_numerator
+     SELECT sub.*
            ,CASE 
              WHEN goal_index IS NULL THEN NULL
              WHEN goal_index = 0 THEN NULL
@@ -182,11 +167,11 @@ FROM
             FROM goal_stuff WITH(NOLOCK)
             JOIN reporting_weeks WITH(NOLOCK)
               ON goal_stuff.stu_start_date <= reporting_weeks.week_end
-             AND goal_stuff.goal_end_date >= reporting_weeks.week_start              
+             AND goal_stuff.goal_end_date >= reporting_weeks.week_start
             LEFT OUTER JOIN ar_activity WITH(NOLOCK)
               ON goal_stuff.studentid = ar_activity.studentid
-             AND goal_stuff.stu_start_date <= ar_activity.dtTaken
-             AND reporting_weeks.week_end >= ar_activity.dtTaken
+             AND ar_activity.dtTaken >= goal_stuff.stu_start_date
+             AND ar_activity.dtTaken <= reporting_weeks.week_end
             GROUP BY goal_stuff.studentid
                     ,goal_stuff.student_number
                     ,goal_stuff.time_period_name
