@@ -3,69 +3,19 @@ GO
 
 ALTER VIEW AR$time_series_dense AS
 
-/* !! CTEs HERE !! */
-
 WITH reporting_weeks AS (
-  SELECT reporting_hash
-        ,weekday_start AS week_start
-        ,weekday_sun AS week_end
+  SELECT weekday_sun AS week_start
+        ,weekday_sat AS week_end
+        ,reporting_hash
         ,ROW_NUMBER() OVER(
-           ORDER BY reporting_hash ASC) AS rn
-  FROM KIPP_NJ..UTIL$reporting_weeks_days WITH (NOLOCK)
-  WHERE reporting_hash >= 201425
-    AND reporting_hash <= 201526
- )
-    
-,goal_stuff AS (
-  SELECT s.ID AS studentid
-        ,s.student_number
-        --takes student enroll date for the year as 
-        --goal start *if* after goal start date
-        ,CASE WHEN s.entrydate > goals.time_period_start THEN s.entrydate ELSE goals.time_period_start END AS stu_start_date
-        ,goals.time_period_start AS goal_start_date
-        ,goals.time_period_end AS goal_end_date
-        ,goals.time_period_hierarchy
-        ,goals.time_period_name
-        ,goals.words_goal
-        ,goals.points_goal
-  FROM KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
-  JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
-    ON goals.student_number = s.STUDENT_NUMBER
-   AND s.enroll_status = 0
-  WHERE goals.yearid = dbo.fn_Global_Term_Id()
+           ORDER BY reporting_hash) AS rn         
+  FROM UTIL$reporting_weeks_days#static WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND weekday_sun <= CONVERT(DATE,GETDATE())
  )
 
-,ar_activity AS (
-  SELECT sq_1.*
-        ,arsp.dtTaken
-        ,CASE WHEN arsp.tiPassed = 1 THEN CAST(arsp.iWordCount AS BIGINT) ELSE 0 END AS words_passed
-        ,CASE WHEN arsp.tiPassed = 1 THEN arsp.dPointsEarned ELSE 0 END AS points_earned         
-        ,arsp.iQuestionsCorrect
-        ,arsp.iQuestionsPresented
-        ,CASE WHEN arsp.chFictionNonFiction = 'F' THEN arsp.iWordCount ELSE 0 END AS fiction_words
-        ,CAST(arsp.iwordcount AS BIGINT) AS words_attempted
-        ,arsp.ialternatebooklevel_2 AS book_lexile
-        ,arsp.tipassed
-        ,1 AS dummy
-  FROM
-      (
-       SELECT c.studentid
-             ,CONVERT(VARCHAR,s.student_number) AS student_number
-       FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
-       JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
-         ON c.studentid = s.id
-        AND s.enroll_status = 0
-       WHERE c.year = dbo.fn_Global_Academic_Year()
-         AND c.rn = 1        
-      ) sq_1
-  LEFT OUTER JOIN KIPP_NJ..AR$test_event_detail#static arsp WITH (NOLOCK)
-    ON sq_1.student_number = arsp.student_number
-   AND arsp.dtTaken >= '15-JUN-13'
-   AND arsp.dtTaken IS NOT NULL
- )
-
-SELECT CAST(studentid AS INT) AS studentid
-      ,CAST(reporting_hash AS INT) AS reporting_hash
+SELECT CONVERT(INT,studentid) AS studentid
+      ,CONVERT(INT,reporting_hash) AS reporting_hash
       ,week_start
       ,week_end
       ,time_period_hierarchy
@@ -100,90 +50,150 @@ SELECT CAST(studentid AS INT) AS studentid
       ,goal_index AS year_goal_index
 FROM
     (
-     SELECT sub.*
+     SELECT studentid
+           ,time_period_name
+           ,time_period_hierarchy
+           ,words_goal
+           ,points_goal
+           ,goal_start_date
+           ,goal_end_date
+           ,week_start
+           ,week_end
+           ,reporting_hash
+           ,words
+           ,points
+           ,mastery
+           ,fiction_pct
+           ,lexile_avg
+           ,books_passed
+           ,books_attempted           
+           ,goal_index           
            ,CASE 
              WHEN goal_index IS NULL THEN NULL
              WHEN goal_index = 0 THEN NULL
              WHEN words_goal = 0 THEN NULL
              --fraction of term used x words
-             ELSE CAST(ROUND(((goal_numerator + 0.0) / goal_index) * words_goal, 0) AS FLOAT)
+             ELSE ROUND((CONVERT(FLOAT,goal_numerator) / CONVERT(FLOAT,goal_index)) * words_goal,0)
             END AS target_words
            ,CASE 
              WHEN goal_index IS NULL THEN NULL
              WHEN goal_index = 0 THEN NULL
              WHEN points_goal = 0 THEN NULL
              --fraction of term used x points
-             ELSE CAST(ROUND(((goal_numerator + 0.0) / goal_index) * points_goal, 0) AS FLOAT)
+             ELSE ROUND((CONVERT(FLOAT,goal_numerator) / CONVERT(FLOAT,goal_index)) * points_goal,0)
             END AS target_points
        FROM
            (
-            SELECT goal_stuff.studentid
-                  ,goal_stuff.student_number
-                  ,goal_stuff.time_period_name
-                  ,goal_stuff.time_period_hierarchy
-                  ,goal_stuff.words_goal
-                  ,goal_stuff.points_goal
-                  ,CAST(goal_stuff.stu_start_date AS DATE) AS stu_start_date
-                  ,CAST(goal_stuff.goal_start_date AS DATE) AS goal_start_date
-                  ,CAST(goal_stuff.goal_end_date AS DATE) AS goal_end_date
-                  ,reporting_weeks.reporting_hash
-                  ,CAST(reporting_weeks.week_start AS DATE) AS week_start
-                  ,CAST(reporting_weeks.week_end AS DATE) AS week_end
-                  ,reporting_weeks.rn
-                  ,CASE WHEN CAST(GETDATE() AS DATE) < reporting_weeks.week_start THEN NULL ELSE SUM(ISNULL(ar_activity.words_passed,0)) END AS words
-                  ,CASE WHEN CAST(GETDATE() AS DATE) < reporting_weeks.week_start THEN NULL ELSE SUM(ISNULL(ar_activity.points_earned,0)) END AS points
+            SELECT studentid                  
+                  ,time_period_name
+                  ,time_period_hierarchy
+                  ,words_goal
+                  ,points_goal                  
+                  ,CONVERT(DATE,time_period_start) AS goal_start_date
+                  ,CONVERT(DATE,time_period_end) AS goal_end_date                  
+                  ,CONVERT(DATE,week_start) AS week_start
+                  ,CONVERT(DATE,week_end) AS week_end
+                  ,reporting_hash
+                  --,rn
+                  ,SUM(ISNULL(words_passed,0)) AS words
+                  ,SUM(ISNULL(points_earned,0)) AS points
                    --mastery
-                  ,CASE
-                    WHEN CAST(GETDATE() AS DATE) < reporting_weeks.week_start THEN NULL
-                    WHEN SUM(ar_activity.iQuestionsPresented) = 0 THEN NULL
-                    ELSE CAST(ROUND((SUM(ar_activity.iQuestionsCorrect + 0.0) / SUM(ar_activity.iQuestionsPresented)) * 100, 0) AS FLOAT)
+                  ,CASE                    
+                    WHEN SUM(iQuestionsPresented) = 0 THEN NULL
+                    ELSE ROUND((SUM(CONVERT(FLOAT,iQuestionsCorrect)) / SUM(CONVERT(FLOAT,iQuestionsPresented))) * 100,0)
                    END AS mastery
                    --genre
-                  ,CASE
-                    WHEN CAST(GETDATE() AS DATE) < reporting_weeks.week_start THEN NULL
-                    WHEN SUM(ISNULL(ar_activity.words_attempted,0)) = 0 THEN NULL
-                    ELSE CAST(ROUND((SUM(ar_activity.fiction_words + 0.0) / SUM(ar_activity.words_attempted)) * 100, 0) AS FLOAT)
+                  ,CASE                    
+                    WHEN SUM(ISNULL(words_attempted,0)) = 0 THEN NULL
+                    ELSE ROUND((SUM(CONVERT(FLOAT,fiction_words)) / SUM(CONVERT(FLOAT,words_attempted))) * 100,0)
                    END AS fiction_pct
                    --text difficulty
                    --divide by raw_words_attempted to get lexile weighted by word count
-                  ,CASE
-                    WHEN CAST(GETDATE() AS DATE) < reporting_weeks.week_start THEN NULL
-                    WHEN SUM(ISNULL(ar_activity.words_attempted,0)) = 0 THEN NULL
-                    ELSE ROUND(CAST(SUM(ar_activity.book_lexile * ar_activity.words_attempted) AS BIGINT) / SUM(ar_activity.words_attempted), 0) 
+                  ,CASE                    
+                    WHEN SUM(ISNULL(words_attempted,0)) = 0 THEN NULL
+                    ELSE ROUND(CONVERT(BIGINT,SUM(book_lexile * words_attempted)) / SUM(CONVERT(FLOAT,words_attempted)),0)
                    END AS lexile_avg
                    --count of books
-                  ,CASE WHEN CAST(GETDATE() AS DATE) < reporting_weeks.week_start THEN NULL ELSE SUM(ar_activity.tipassed) END AS books_passed
-                  ,CASE WHEN CAST(GETDATE() AS DATE) < reporting_weeks.week_start THEN NULL ELSE SUM(ar_activity.dummy) END AS books_attempted
-                  ,MIN(reporting_weeks.rn) OVER(
-                     PARTITION BY goal_stuff.studentid, time_period_name) AS min_valid_week
-                  ,MAX(reporting_weeks.rn) OVER(
-                     PARTITION BY goal_stuff.studentid, time_period_name) AS valid_for_goal
-                  ,MAX(reporting_weeks.rn) OVER(PARTITION BY goal_stuff.studentid, time_period_name) 
-                    - MIN(reporting_weeks.rn) OVER(PARTITION BY goal_stuff.studentid,time_period_name) 
-                    + 1 AS goal_index
+                  ,SUM(tipassed) AS books_passed
+                  ,SUM(dummy) AS books_attempted
+                  --,MIN(rn) OVER(PARTITION BY studentid, time_period_name) AS min_valid_week
+                  --,MAX(rn) OVER(PARTITION BY studentid, time_period_name) AS valid_for_goal
+                  ,MAX(rn) OVER(PARTITION BY studentid, time_period_name) - MIN(rn) OVER(PARTITION BY studentid,time_period_name) + 1 AS goal_index
                   ,ROW_NUMBER() OVER(
-                     PARTITION BY goal_stuff.studentid, time_period_name
-                       ORDER BY reporting_weeks.rn ASC) AS goal_numerator
-            FROM goal_stuff WITH(NOLOCK)
-            JOIN reporting_weeks WITH(NOLOCK)
-              ON goal_stuff.stu_start_date <= reporting_weeks.week_end
-             AND goal_stuff.goal_end_date >= reporting_weeks.week_start
-            LEFT OUTER JOIN ar_activity WITH(NOLOCK)
-              ON goal_stuff.studentid = ar_activity.studentid
-             AND ar_activity.dtTaken >= goal_stuff.stu_start_date
-             AND ar_activity.dtTaken <= reporting_weeks.week_end
-            GROUP BY goal_stuff.studentid
-                    ,goal_stuff.student_number
-                    ,goal_stuff.time_period_name
-                    ,goal_stuff.time_period_hierarchy
-                    ,goal_stuff.words_goal
-                    ,goal_stuff.points_goal
-                    ,goal_stuff.stu_start_date
-                    ,goal_stuff.goal_start_date
-                    ,goal_stuff.goal_end_date
-                    ,reporting_weeks.reporting_hash
-                    ,reporting_weeks.week_start
-                    ,reporting_weeks.week_end
-                    ,reporting_weeks.rn
+                     PARTITION BY studentid, time_period_name
+                       ORDER BY rn ASC) AS goal_numerator
+            FROM 
+                (
+                 SELECT sub.studentid
+                       ,sub.student_number
+                       ,sub.entrydate        
+                       ,sub.reporting_hash
+                       ,sub.week_start
+                       ,sub.week_end
+                       ,sub.time_period_start
+                       ,sub.time_period_end
+                       ,sub.time_period_hierarchy
+                       ,sub.time_period_name
+                       ,sub.words_goal
+                       ,sub.points_goal
+                       ,sub.dummy
+                       ,sub.rn
+                       ,ar.dtTaken
+                       ,CASE WHEN ar.tiPassed = 1 THEN CAST(ar.iWordCount AS BIGINT) ELSE 0 END AS words_passed
+                       ,CASE WHEN ar.tiPassed = 1 THEN ar.dPointsEarned ELSE 0 END AS points_earned         
+                       ,ar.iQuestionsCorrect
+                       ,ar.iQuestionsPresented
+                       ,CASE WHEN ar.chFictionNonFiction = 'F' THEN ar.iWordCount ELSE 0 END AS fiction_words
+                       ,CAST(ar.iwordcount AS BIGINT) AS words_attempted
+                       ,ar.ialternatebooklevel_2 AS book_lexile
+                       ,ar.tipassed
+                 FROM
+                     (
+                      SELECT co.studentid
+                            ,co.student_number
+                            ,co.entrydate
+                            ,co.year
+                            ,wk.reporting_hash      
+                            ,wk.week_start
+                            ,wk.week_end
+                            ,goals.time_period_start
+                            ,goals.time_period_end
+                            ,goals.time_period_hierarchy
+                            ,goals.time_period_name
+                            ,goals.words_goal
+                            ,goals.points_goal              
+                            ,1 AS dummy
+                            ,wk.rn
+                      FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+                      JOIN reporting_weeks wk WITH(NOLOCK)
+                        ON co.entrydate <= wk.week_start
+                      LEFT OUTER JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
+                        ON co.student_number = goals.student_number  
+                       AND wk.week_start BETWEEN goals.time_period_start AND goals.time_period_end  
+                      WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
+                        AND co.enroll_status = 0
+                        AND co.rn = 1         
+                        --AND co.studentid = 2307 -- testing                
+                     ) sub
+                 LEFT OUTER JOIN AR$test_event_detail#static ar WITH(NOLOCK)
+                   ON sub.student_number = ar.student_number 
+                  AND sub.year = ar.academic_year
+                  AND sub.week_start >= ar.dttaken
+                  AND ar.dttaken BETWEEN sub.time_period_start AND sub.time_period_end 
+                 WHERE ar.student_number NOT IN ('joyke','Mr.Pa','STU1','STU6','STUa','STUb','STUc','STUd','STUe','STUg','STUh','STUj','STUk','STUl','STUm','STUn','STUp','STUr','STUs','STUt','STUw') -- dirty AR data
+                ) sub
+            GROUP BY studentid
+                    ,student_number
+                    ,time_period_name
+                    ,time_period_hierarchy
+                    ,words_goal
+                    ,points_goal
+                    ,entrydate
+                    ,time_period_start
+                    ,time_period_end
+                    ,reporting_hash
+                    ,week_start
+                    ,week_end
+                    ,rn
            ) sub
     ) sub
