@@ -13,13 +13,11 @@ WITH roster AS (
   FROM COHORT$identifiers_long#static s WITH(NOLOCK)
   WHERE s.ENROLL_STATUS = 0
     AND s.SCHOOLID = 73252
-    AND s.GRADE_LEVEL = 8
+    AND s.GRADE_LEVEL >= 7
     AND s.year = dbo.fn_Global_Academic_Year()
     AND s.rn = 1
  )
 
--- most recently ACTIVE Thurs - Wed timespan
--- can span multiple weeks in case of vacation
 ,reporting_week AS (  
   SELECT date
         ,CASE
@@ -35,7 +33,7 @@ WITH roster AS (
              --,DATENAME(WEEKDAY,date) AS day_of_week
              ,ROW_NUMBER() OVER(ORDER BY date ASC) AS rn
        FROM UTIL$reporting_days WITH(NOLOCK)
-       WHERE date IN ('2015-02-12','2015-02-24','2015-02-25') -- UPDATE WITH EXACT DATES
+       WHERE date IN ('2015-02-12','2015-02-13','2015-02-23','2015-02-24','2015-02-25') -- UPDATE WITH EXACT DATES
       ) sub
  )
 

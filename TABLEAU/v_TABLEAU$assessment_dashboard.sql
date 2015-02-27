@@ -3,15 +3,6 @@ GO
 
 ALTER VIEW TABLEAU$assessment_dashboard AS
 
-WITH groups AS (
-  SELECT DISTINCT 
-         student_number
-        ,academic_year
-        ,illuminate_group AS groups
-  FROM PS$enrollments_rollup#static WITH(NOLOCK)  
-  WHERE academic_year >= 2013 -- first year w/ Illuminate, so we can hard code this 
- )
-
 SELECT co.schoolid
       ,co.year AS academic_year
       ,co.grade_level
@@ -54,9 +45,15 @@ JOIN COHORT$identifiers_long#static co WITH (NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
  AND co.year = enr.academic_year
- AND a.credittype = enr.credittype 
- AND enr.academic_year >= 2013 -- first year w/ Illuminate, so we can hard code this 
-LEFT OUTER JOIN groups WITH(NOLOCK)
+ AND a.credittype = enr.credittype  
+LEFT OUTER JOIN (
+                 SELECT DISTINCT 
+                        student_number
+                       ,academic_year
+                       ,illuminate_group AS groups
+                 FROM PS$enrollments_rollup#static WITH(NOLOCK)  
+                 WHERE academic_year >= 2013 -- first year w/ Illuminate, so we can hard code this 
+                ) groups
   ON co.STUDENT_NUMBER = groups.student_number
  AND co.year = groups.academic_year
 LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOCK)

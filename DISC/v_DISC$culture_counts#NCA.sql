@@ -1,19 +1,3 @@
-/*
-PURPOSE:
-  Sum counts of merits and demerits (NCA feedback to students for positive/negative actions) for each student
-  
-MAINTENANCE:
-  Dependent on DISC$log
-  
-MAJOR STRUCTURAL REVISIONS OR CHANGES:
-  Changed perfect week to +3 (previously 2) 2013-09-12
-  JOINED with demerits
-  
-CREATED BY: AM2
-  
-ORIGIN DATE: Fall 2011
-*/
-
 USE KIPP_NJ
 GO
 
@@ -23,13 +7,14 @@ WITH curterm AS (
   SELECT time_per_name
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT' 
-    AND start_date <= GETDATE()
-    AND end_date >= GETDATE()
+    AND start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())
     AND schoolid = 73253
  )
 
 ,teacher_merits AS (
   SELECT merits.studentid             
+        ,merits.academic_year
         --teacher merits
         ,COUNT(merits.rn) AS teacher_merits_y1
         ,SUM(CASE WHEN merits.rt = 'RT1' THEN 1 ELSE 0 END) AS teacher_merits_rt1
@@ -41,12 +26,13 @@ WITH curterm AS (
   JOIN curterm
     ON 1 = 1
   WHERE logtypeid = 3023
-  GROUP BY merits.studentid
+  GROUP BY merits.studentid, merits.academic_year
  )
 
 ,perfect_wks AS (
   SELECT studentid
         ,student_number
+        ,perfect.academic_year        
         ,(perfect.perfect_wks_y1 * 3) AS perfect_week_merits_y1
         ,(perfect.perfect_wks_rt1 * 3) AS perfect_week_merits_rt1
         ,(perfect.perfect_wks_rt2 * 3) AS perfect_week_merits_rt2
@@ -58,6 +44,7 @@ WITH curterm AS (
 
 ,demerits AS (
   SELECT studentid                       
+        ,demerits.academic_year
         ,COUNT(demerits.rn) AS total_demerits_y1
         ,SUM(CASE when demerits.rt = 'RT1' THEN 1 ELSE 0 END) AS total_demerits_rt1
         ,SUM(CASE when demerits.rt = 'RT2' THEN 1 ELSE 0 END) AS total_demerits_rt2
@@ -68,11 +55,12 @@ WITH curterm AS (
   JOIN curterm
     ON 1 = 1
   WHERE logtypeid = 3223
-  GROUP BY studentid
+  GROUP BY studentid, demerits.academic_year
  )
 
 ,discipline AS (
   SELECT studentid 
+        ,academic_year
         ,ISNULL([Detention_rt1],0) AS Detention_rt1
         ,ISNULL([Detention_rt2],0) AS Detention_rt2
         ,ISNULL([Detention_rt3],0) AS Detention_rt3
@@ -100,16 +88,18 @@ WITH curterm AS (
   FROM
       (
        SELECT studentid             
+             ,academic_year
              ,subtype + '_' + RT AS hash
              ,COUNT(subtype) AS n
        FROM DISC$log#static disc WITH(NOLOCK)
        WHERE logtypeid = -100000
          AND subtype IN ('Detention', 'ISS', 'OSS')
-       GROUP BY studentid, subtype, rt
+       GROUP BY studentid, subtype, rt, academic_year
 
        UNION ALL
 
        SELECT studentid             
+             ,academic_year
              ,subtype + '_cur' AS hash
              ,COUNT(subtype) AS n
        FROM DISC$log#static disc WITH(NOLOCK)
@@ -117,17 +107,18 @@ WITH curterm AS (
          ON disc.RT = curterm.time_per_name
        WHERE logtypeid = -100000
          AND subtype IN ('Detention', 'ISS', 'OSS')
-       GROUP BY studentid, subtype, rt
+       GROUP BY studentid, subtype, rt, academic_year
 
        UNION ALL
 
        SELECT studentid             
+             ,academic_year
              ,subtype + '_y1' AS hash
              ,COUNT(subtype) AS n
        FROM DISC$log#static disc WITH(NOLOCK)
        WHERE logtypeid = -100000
          AND subtype IN ('Detention', 'ISS', 'OSS')
-       GROUP BY studentid, subtype
+       GROUP BY studentid, subtype, academic_year
       ) sub
   
   PIVOT (
@@ -154,7 +145,8 @@ WITH curterm AS (
  )
 
 SELECT co.studentid
-      ,co.student_number      
+      ,co.student_number   
+      ,co.year AS academic_year   
       ,ISNULL(tm.teacher_merits_y1,0) AS teacher_merits_y1
       ,ISNULL(tm.teacher_merits_rt1,0) AS teacher_merits_rt1
       ,ISNULL(tm.teacher_merits_rt2,0) AS teacher_merits_rt2
@@ -206,12 +198,16 @@ SELECT co.studentid
 FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN teacher_merits tm
   ON co.studentid = tm.studentid
+ AND co.year = tm.academic_year
 LEFT OUTER JOIN perfect_wks pw
   ON co.studentid = pw.studentid
+ AND co.year = pw.academic_year
 LEFT OUTER JOIN demerits d 
   ON co.studentid = d.studentid
+ AND co.year = d.academic_year
 LEFT OUTER JOIN discipline disc
   ON co.studentid = disc.studentid
+ AND co.year = disc.academic_year
 WHERE co.year = dbo.fn_Global_Academic_Year()
   AND co.schoolid = 73253
   AND co.rn = 1

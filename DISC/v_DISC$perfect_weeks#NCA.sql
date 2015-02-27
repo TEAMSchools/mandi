@@ -8,6 +8,7 @@ WITH roster AS (
         ,co.studentid        
         ,co.entrydate        
         ,co.exitdate        
+        ,co.year AS academic_year
   FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
   WHERE co.schoolid = 73253
     AND co.rn = 1
@@ -59,6 +60,7 @@ WITH roster AS (
 
 SELECT sub.studentid
       ,sub.student_number
+      ,sub.academic_year
       ,SUM(is_perfect) AS perfect_wks_y1
       ,SUM(is_perfect_rt1) AS perfect_wks_rt1
       ,SUM(is_perfect_rt2) AS perfect_wks_rt2
@@ -70,6 +72,7 @@ FROM
      SELECT DISTINCT
             r.student_number
            ,r.studentid
+           ,r.academic_year
            ,w.wk                      
            ,CASE WHEN w.is_past = 1 THEN ISNULL(d.is_perfect, 1) ELSE NULL END AS is_perfect
            ,CASE WHEN w.rt = 'RT1' AND w.is_past = 1 THEN ISNULL(d.is_perfect, 1) ELSE NULL END AS is_perfect_rt1
@@ -89,3 +92,4 @@ FROM
     ) sub
 GROUP BY sub.studentid
         ,sub.student_number
+        ,sub.academic_year
