@@ -634,7 +634,7 @@ LEFT OUTER JOIN MAP$best_baseline#static lex_base WITH(NOLOCK)
   ON roster.base_studentid = lex_base.studentid
  AND lex_base.MeasurementScale = 'Reading' 
  AND lex_base.year = dbo.fn_Global_Academic_Year()
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_cur WITH(NOLOCK)
+LEFT OUTER JOIN MAP$comprehensive#identifiers#static lex_cur WITH(NOLOCK)
   ON roster.base_student_number = lex_cur.studentid
  AND lex_cur.MeasurementScale = 'Reading'
  AND lex_cur.rn_curr = 1
@@ -673,9 +673,9 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH(NOLOCK)
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
 /*Rise XC*/
-LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..XC$activities_wide#static xc WITH(NOLOCK)
   ON roster.base_student_number = xc.student_number
- AND xc.yearid = dbo.fn_Global_Term_Id()
+ AND xc.academic_year = dbo.fn_Global_Academic_Year()
 
 /*GRADEBOOK COMMMENTS*/
 LEFT OUTER JOIN comments comment_rc1 WITH(NOLOCK)

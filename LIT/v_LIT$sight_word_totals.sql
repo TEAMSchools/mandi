@@ -5,7 +5,7 @@ ALTER VIEW LIT$sight_word_totals AS
 
 WITH valid_tests AS (
   SELECT DISTINCT a.repository_id        
-  FROM ILLUMINATE$summary_assessments#static a WITH(NOLOCK)    
+  FROM KIPP_NJ..ILLUMINATE$summary_assessments#static a WITH(NOLOCK)    
   WHERE a.scope = 'Reporting' 
     AND a.subject = 'Word Work'
  )
@@ -22,8 +22,8 @@ WITH valid_tests AS (
            THEN SUBSTRING(label, CHARINDEX('_',label,CHARINDEX('_',label) + 1) + 1, LEN(label) - CHARINDEX('_',label,CHARINDEX('_',label) + 1))
           ELSE NULL
          END AS missed_word 
-  FROM ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
-  JOIN ILLUMINATE$repository_fields f WITH(NOLOCK)
+  FROM KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
+  JOIN KIPP_NJ..ILLUMINATE$repository_fields f WITH(NOLOCK)
     ON res.repository_id = f.repository_id
    AND res.field = f.name
    AND f.rn = 1
@@ -35,8 +35,8 @@ WITH valid_tests AS (
         ,grade_level
         ,STUDENT_NUMBER
         ,dt.time_per_name
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  JOIN REPORTING$dates dt WITH(NOLOCK)
+  FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH(NOLOCK)
+  JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
     ON co.schoolid = dt.schoolid 
     AND dt.academic_year = dbo.fn_Global_Academic_Year()
     AND dt.start_date <= GETDATE()

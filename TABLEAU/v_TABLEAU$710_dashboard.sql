@@ -15,7 +15,7 @@ WITH enrollments AS (
         ,teacher_name
         ,period AS nca_period
   FROM KIPP_NJ..PS$course_enrollments#static WITH(NOLOCK)  
-  WHERE TERMID >= dbo.fn_Global_Term_Id()    
+  WHERE TERMID >= KIPP_NJ.dbo.fn_Global_Term_Id()    
     AND grade_level >= 5
     AND grade_level <= 12
     AND CREDITTYPE IS NOT NULL
@@ -29,15 +29,15 @@ WITH enrollments AS (
         ,dt.alt_name
         ,dt.termid
         ,dt.schoolid
-  FROM UTIL$reporting_weeks_days rw WITH(NOLOCK)
-  JOIN REPORTING$dates dt WITH(NOLOCK)
+  FROM KIPP_NJ..UTIL$reporting_weeks_days#static rw WITH(NOLOCK)
+  JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
     ON ((DATEPART(YEAR,rw.weekday_start) * 100) + DATEPART(WEEK,rw.weekday_start)) >= ((DATEPART(YEAR,dt.start_date) * 100) + DATEPART(WEEK,dt.start_date))
    AND ((DATEPART(YEAR,rw.weekday_start) * 100) + DATEPART(WEEK,rw.weekday_start)) <= ((DATEPART(YEAR,dt.end_date) * 100) + DATEPART(WEEK,dt.end_date))
    AND rw.academic_year = dt.academic_year
    AND dt.identifier = 'RT'
    AND dt.school_level != 'ES'
-  WHERE rw.academic_year = dbo.fn_Global_Academic_Year()
-    AND rw.weekday_start <= GETDATE()
+  WHERE rw.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND rw.weekday_start <= CONVERT(DATE,GETDATE())
  )
 
 ,course_scaffold AS (

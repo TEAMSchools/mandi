@@ -4,7 +4,7 @@ GO
 ALTER VIEW XC$activities_wide AS
 
 SELECT student_number
-      ,yearid
+      ,academic_year
       ,[Fall_1]
       ,[Fall_2]
       ,[Fall_3]
@@ -43,21 +43,20 @@ SELECT student_number
          + ISNULL([Year-Round_3],'') AS activity_hash
 FROM
     (
-     SELECT [student number] AS student_number
-           ,[yearid]           
-           ,program AS activity
+     SELECT student_number
+           ,academic_year           
+           ,program AS activity           
            ,CASE 
-             WHEN [Start Season] = 'Fall' AND [End Season] = 'Spring' THEN 'Year-Round'
-             WHEN [Start Season] = 'Year-Round' THEN [Start Season]
-             WHEN [Start Season] = [End Season] THEN [Start Season]
-             ELSE [Start Season] + '-' + [End Season]
+             WHEN start_term = 'Fall' AND end_term = 'Spring' THEN 'Year-Round'
+             WHEN start_term = 'Year-Round' THEN start_term
+             WHEN start_term = end_term THEN start_term
+             ELSE start_term + '-' + end_term
             END
              + '_' 
              + CONVERT(VARCHAR,ROW_NUMBER() OVER(
-                                 PARTITION BY yearid, [student number],CASE WHEN [Start Season] = [End Season] THEN [Start Season] ELSE [Start Season] + '-to-' + [End Season] END
-                                     ORDER BY CASE WHEN [Start Season] = [End Season] THEN [Start Season] ELSE [Start Season] + '-to-' + [End Season] END, program)) AS season_hash
-     FROM [dbo].[AUTOLOAD$GDOCS_XC_Rise_Roster] WITH(NOLOCK)
-     WHERE [Student Name] IS NOT NULL
+                                 PARTITION BY academic_year, student_number,CASE WHEN start_term = end_term THEN start_term ELSE start_term + '-to-' + end_term END
+                                     ORDER BY CASE WHEN start_term = end_term THEN start_term ELSE start_term + '-to-' + end_term END, program)) AS season_hash
+     FROM KIPP_NJ..XC$roster_clean WITH(NOLOCK)     
     ) sub
 
 PIVOT(

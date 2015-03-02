@@ -10,7 +10,7 @@ WITH scaffold AS (
         ,c.school_name AS school
         ,c.year
         ,CONVERT(DATE,CONVERT(VARCHAR,c.year) + '-07-01') AS start_date_ar        
-        ,c.date AS date        
+        ,c.date
   FROM KIPP_NJ..COHORT$identifiers_scaffold#static c WITH (NOLOCK)
   WHERE c.schoolid IN (73252, 133570965, 73253)
     AND c.year >= 2010

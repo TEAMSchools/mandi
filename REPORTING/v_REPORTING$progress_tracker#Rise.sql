@@ -10,8 +10,8 @@ WITH curterm AS (
   WHERE identifier = 'RT'
     AND academic_year = dbo.fn_Global_Academic_Year()
     AND schoolid = 73252
-    AND start_date <= GETDATE()
-    AND end_date >= GETDATE()
+    AND start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())
  )
 
 ,roster AS (
@@ -52,8 +52,8 @@ WITH curterm AS (
   WHERE academic_year = dbo.fn_Global_Academic_Year()
     AND schoolid = 73252
     AND identifier = 'HEX'
-    AND start_date <= GETDATE()
-    AND end_date >= GETDATE()
+    AND start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())
  )
        
 SELECT ROW_NUMBER() OVER(
@@ -742,4 +742,4 @@ LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)
 --XC
 LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON roster.STUDENT_NUMBER = xc.student_number
- AND xc.yearid = dbo.fn_Global_Term_Id()
+ AND xc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()

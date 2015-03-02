@@ -8,10 +8,10 @@ WITH curterm AS (
         ,alt_name AS term
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
-    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 133570965
-    AND start_date <= GETDATE()
-    AND end_date >= GETDATE()
+    AND start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())
  )
 
 ,roster AS (
@@ -35,7 +35,7 @@ WITH curterm AS (
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   WHERE co.schoolid = 133570965
     AND co.enroll_status = 0
-    AND co.year = dbo.fn_Global_Academic_Year()
+    AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND co.rn = 1    
  )
 
@@ -49,11 +49,11 @@ WITH curterm AS (
           ELSE 'RT' + RIGHT(time_per_name, 1)
          END AS hex_b
   FROM KIPP_NJ..REPORTING$dates
-  WHERE academic_year = dbo.fn_Global_Academic_Year()
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 133570965
     AND identifier = 'HEX'
-    AND start_date <= GETDATE()
-    AND end_date >= GETDATE()
+    AND start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())
  )
        
 SELECT ROW_NUMBER() OVER(
@@ -661,6 +661,9 @@ SELECT ROW_NUMBER() OVER(
       --,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt1_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T1_bench_choices
       --,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt2_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T2_bench_choices
       --,CASE WHEN roster.grade_level <= 6 THEN ISNULL(disc_count.rt3_bench,0) ELSE ISNULL(disc_count.rt1_choices,0) END AS T3_bench_choices
+
+      -- XC
+      ,ISNULL(xc.activity_hash, 'None') AS activity_hash
       
 FROM roster WITH (NOLOCK)
 
@@ -736,3 +739,8 @@ LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
   ON roster.id = disc_recent.studentid
 LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)
   ON roster.id = disc_count.studentid
+
+--XC
+LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
+  ON roster.STUDENT_NUMBER = xc.student_number
+ AND xc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()

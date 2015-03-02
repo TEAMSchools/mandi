@@ -85,60 +85,60 @@ WITH long_scores AS (
   UNPIVOT (
     score
     FOR field IN (name_ass
-                       ,ltr_nameid
-                       ,ltr_soundid
-                       ,pa_rhymingwds
-                       ,pa_mfs
-                       ,pa_segmentation
-                       ,cp_orient
-                       ,cp_121match
-                       ,cp_slw
-                       ,devsp_first
-                       ,devsp_svs
-                       ,devsp_final                       
-                       ,devsp_ifbd
-                       ,devsp_longvowel
-                       ,devsp_rcontrol                       
-                       ,devsp_vowldig
-                       ,devsp_cmplxb
-                       ,devsp_eding
-                       ,devsp_doubsylj                       
-                       ,rr_121match
-                       ,rr_holdspattern
-                       ,rr_understanding                       
-                       ,accuracy_1a
-                       ,accuracy_2b
-                       ,ra_errors
-                       ,cc_factual
-                       ,cc_infer
-                       ,cc_other
-                       ,cc_ct
-                       ,ocomp_factual
-                       ,ocomp_ct
-                       ,ocomp_infer
-                       ,scomp_factual
-                       ,scomp_infer
-                       ,scomp_ct
-                       ,wcomp_fact
-                       ,wcomp_infer
-                       ,wcomp_ct
-                       ,retelling                       
-                       ,reading_rate                       
-                       ,fluency
-                       ,fp_wpmrate
-                       ,fp_fluency
-                       ,fp_accuracy
-                       ,fp_comp_within
-                       ,fp_comp_beyond
-                       ,fp_comp_about                     
-                       ,cc_prof
-                       ,ocomp_prof
-                       ,scomp_prof
-                       ,wcomp_prof
-                       ,fp_comp_prof
-                       ,cp_prof
-                       ,rr_prof
-                       ,devsp_prof)
+                 ,ltr_nameid
+                 ,ltr_soundid
+                 ,pa_rhymingwds
+                 ,pa_mfs
+                 ,pa_segmentation
+                 ,cp_orient
+                 ,cp_121match
+                 ,cp_slw
+                 ,devsp_first
+                 ,devsp_svs
+                 ,devsp_final                       
+                 ,devsp_ifbd
+                 ,devsp_longvowel
+                 ,devsp_rcontrol                       
+                 ,devsp_vowldig
+                 ,devsp_cmplxb
+                 ,devsp_eding
+                 ,devsp_doubsylj                       
+                 ,rr_121match
+                 ,rr_holdspattern
+                 ,rr_understanding                       
+                 ,accuracy_1a
+                 ,accuracy_2b
+                 ,ra_errors
+                 ,cc_factual
+                 ,cc_infer
+                 ,cc_other
+                 ,cc_ct
+                 ,ocomp_factual
+                 ,ocomp_ct
+                 ,ocomp_infer
+                 ,scomp_factual
+                 ,scomp_infer
+                 ,scomp_ct
+                 ,wcomp_fact
+                 ,wcomp_infer
+                 ,wcomp_ct
+                 ,retelling                       
+                 ,reading_rate                       
+                 ,fluency
+                 ,fp_wpmrate
+                 ,fp_fluency
+                 ,fp_accuracy
+                 ,fp_comp_within
+                 ,fp_comp_beyond
+                 ,fp_comp_about                     
+                 ,cc_prof
+                 ,ocomp_prof
+                 ,scomp_prof
+                 ,wcomp_prof
+                 ,fp_comp_prof
+                 ,cp_prof
+                 ,rr_prof
+                 ,devsp_prof)
    ) unpiv
  )
 
@@ -173,6 +173,7 @@ FROM
            ,rs.score
            ,prof.score AS benchmark
            ,CASE 
+             WHEN prof.score IS NULL THEN NULL
              WHEN prof.field_name NOT IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score >= prof.score THEN 1
              WHEN prof.field_name IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score <= prof.score THEN 1
              ELSE 0

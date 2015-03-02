@@ -16,8 +16,8 @@ WITH cur_hex AS (
   WHERE academic_year = dbo.fn_Global_Academic_Year()
     AND schoolid = 73252
     AND identifier = 'HEX'
-    AND start_date <= GETDATE()
-    AND end_date >= GETDATE()
+    AND start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())
  )
 
 SELECT roster.student_number AS base_student_number
@@ -479,7 +479,7 @@ SELECT roster.student_number AS base_student_number
         ELSE ISNULL(disc_count.cur_choices,0)
        END AS bench_choices_cur      
 
---Extracurriculars
+----Extracurriculars
 --from the RutgersReady DB (RutgersReady..XC$activities_wide)      
       ,xc.Fall_1 
       ,xc.Fall_2
@@ -543,7 +543,7 @@ LEFT OUTER JOIN MAP$best_baseline#static lex_base WITH (NOLOCK)
   ON roster.studentid = lex_base.studentid
  AND lex_base.MeasurementScale = 'Reading' 
  AND lex_base.year = dbo.fn_Global_Academic_Year()
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
+LEFT OUTER JOIN MAP$comprehensive#identifiers#static lex_cur WITH (NOLOCK)
   ON roster.student_number = lex_cur.studentid
  AND lex_cur.MeasurementScale = 'Reading'
  AND lex_cur.rn_curr = 1
@@ -561,30 +561,30 @@ LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
 
 --DISCIPLINE
 LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)
-  ON roster.studentid = disc_count.studentid
+  ON roster.studentid = disc_count.studentid 
 LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
   ON roster.studentid = disc_recent.studentid
  AND disc_recent.log_type = 'Discipline'
 
 --ED TECH
   --ACCELERATED READER
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH(NOLOCK)
   ON roster.studentid = ar_yr.studentid 
  AND ar_yr.time_period_name = 'Year'
  AND ar_yr.yearid = dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH(NOLOCK)
   ON roster.studentid = ar_curr.studentid 
  AND ar_curr.time_period_name = (SELECT hex_a FROM cur_hex WITH(NOLOCK))
  AND ar_curr.yearid = dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH(NOLOCK)
   ON roster.studentid = ar_curr2.studentid 
  AND ar_curr2.time_period_name = (SELECT hex_b FROM cur_hex WITH(NOLOCK))
  AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
 
 --Rise XC
-LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..XC$activities_wide#static xc WITH(NOLOCK)
   ON roster.student_number = xc.student_number
- AND xc.yearid = dbo.fn_Global_Term_Id()
+ AND xc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
 WHERE roster.year = dbo.fn_Global_Academic_Year()
   AND roster.rn = 1        
