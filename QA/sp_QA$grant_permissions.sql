@@ -40,6 +40,7 @@ GRANT SELECT ON ATT_MEM$ATTENDANCE TO db_data_tool_reader
 GRANT SELECT ON PS$course_enrollments#static TO db_data_tool_reader
 GRANT SELECT ON PS$enrollments_rollup#static TO db_data_tool_reader
 GRANT SELECT ON KIPP_NJ..ATT_MEM$attendance_time_series TO db_data_tool_reader
+GRANT SELECT ON KIPP_NJ..COHORT$identifiers_long#static TO db_data_tool_reader
 
 --MAP
 GRANT SELECT ON MAP$cohort_performance_targets TO db_data_tool_reader
@@ -52,6 +53,8 @@ GRANT SELECT ON GRADES$DETAIL#MS TO db_data_tool_reader
 GRANT SELECT ON GPA$detail#MS TO db_data_tool_reader
 GRANT SELECT ON GRADES$elements TO db_data_tool_reader
 GRANT SELECT ON GRADES$detail_long_term#MS TO db_data_tool_reader
+GRANT SELECT ON GRADES$assignment_scores#STAGING TO db_data_tool_reader
+GRANT SELECT ON KIPP_NJ..GRADES$assignments#STAGING TO db_data_tool_reader
 
 --ES Reporting
 GRANT SELECT ON REPORTING$intervention_results_by_standard TO db_data_tool_reader

@@ -3,7 +3,7 @@ GO
 
 ALTER VIEW DISC$log_totals_daily AS
 
-WITH log_totals AS (
+WITH logtypes AS (
   SELECT studentid
         ,entry_date
         ,logtype
@@ -11,18 +11,71 @@ WITH log_totals AS (
   FROM
       (
        SELECT studentid
-             ,entry_date
-             ,logtypeid             
+             ,entry_date             
              ,CASE
                WHEN logtypeid = 3023 THEN 'merits'
                WHEN logtypeid = 3223 THEN 'demerits'
                WHEN logtypeid = -100000 THEN subtype
                ELSE NULL
               END AS logtype
-       FROM DISC$log#static disc WITH(NOLOCK)
+       FROM KIPP_NJ..DISC$log#static disc WITH(NOLOCK)       
        WHERE (disc.logtypeid IN (3023, 3223) OR disc.logtypeid = -100000 AND subtype IN ('ISS','OSS','Detention'))
          AND disc.schoolid = 73253
          AND disc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+      ) sub
+  GROUP BY studentid
+          ,entry_date
+          ,logtype
+ )
+
+,perfect_weeks AS (
+  SELECT studentid
+        ,dt.start_date AS entry_date
+        ,'merits' AS logtype
+        ,perfect_weeks * 3 AS n_logs
+  FROM
+      (
+       SELECT studentid
+             ,academic_year
+             ,perfect_wks_rt1
+             ,perfect_wks_rt2
+             ,perfect_wks_rt3
+             ,perfect_wks_rt4
+       FROM KIPP_NJ..DISC$perfect_weeks#NCA WITH(NOLOCK)
+       WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+      ) sub
+  UNPIVOT(
+    perfect_weeks
+    FOR field IN (perfect_wks_rt1
+                 ,perfect_wks_rt2
+                 ,perfect_wks_rt3
+                 ,perfect_wks_rt4)
+   ) u
+  JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+    ON RIGHT(field,3) = dt.time_per_name
+   AND u.academic_year = dt.academic_year
+   AND dt.identifier = 'RT'
+   AND dt.schoolid = 73253
+ )
+
+,log_totals AS (
+  SELECT studentid
+        ,entry_date
+        ,logtype
+        ,SUM(n_logs) AS n_logs
+  FROM
+      (
+       SELECT studentid
+             ,entry_date
+             ,logtype
+             ,n_logs
+       FROM logtypes WITH(NOLOCK)
+       UNION ALL 
+       SELECT studentid
+             ,entry_date
+             ,logtype
+             ,n_logs
+       FROM perfect_weeks WITH(NOLOCK)
       ) sub
   GROUP BY studentid
           ,entry_date

@@ -154,6 +154,7 @@ SELECT sub.unique_id
       ,sub.score
       ,sub.benchmark
       ,sub.is_prof
+      ,sub.is_dna
       ,CASE
         WHEN sub.label LIKE '%errors%' THEN sub.benchmark - sub.score
         ELSE sub.score - sub.benchmark 
@@ -169,15 +170,24 @@ FROM
            ,rs.status
            ,prof.domain
            ,rs.field
-           ,prof.label
+           ,CASE
+             WHEN prof.strand LIKE '%overall%' THEN ISNULL(prof.domain + ': ', '') + prof.strand
+             ELSE ISNULL(prof.subdomain + ': ', '') + prof.strand 
+            END AS label
            ,rs.score
-           ,prof.score AS benchmark
+           ,CONVERT(FLOAT,prof.score) AS benchmark
            ,CASE 
              WHEN prof.score IS NULL THEN NULL
              WHEN prof.field_name NOT IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score >= prof.score THEN 1
              WHEN prof.field_name IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score <= prof.score THEN 1
              ELSE 0
             END AS is_prof
+           ,CASE 
+             WHEN prof.score IS NULL THEN NULL
+             WHEN prof.field_name NOT IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score < prof.score THEN 1
+             WHEN prof.field_name IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score < prof.score THEN 1
+             ELSE 0
+            END AS is_dna
      FROM long_scores rs
      JOIN LIT$gleq gleq WITH(NOLOCK)
        ON rs.testid = gleq.testid

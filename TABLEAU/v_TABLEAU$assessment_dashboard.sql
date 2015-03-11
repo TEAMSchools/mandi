@@ -29,6 +29,8 @@ SELECT co.schoolid
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS percent_correct
       ,CONVERT(FLOAT,res.mastered) AS mastered      
       ,ovr.percent_correct AS overall_pct_correct
+      ,comm.comment
+      ,comm.date AS comment_date
       ,ROW_NUMBER() OVER(
          PARTITION BY ovr.student_number, a.assessment_id
            ORDER BY ovr.student_number) AS overall_rn
@@ -60,3 +62,7 @@ LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOC
   ON a.assessment_id = res.assessment_id
  AND a.standard_id = res.standard_id  
  AND ovr.student_number = res.local_student_id
+LEFT OUTER JOIN ILLUMINATE$SPED_comments#static comm WITH(NOLOCK)
+  ON ovr.student_number = comm.student_number
+ AND a.subject = comm.subject
+ AND comm.rn = 1

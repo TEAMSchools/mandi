@@ -256,7 +256,7 @@ ATT_MEM$attendance_counts*/
       --,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total  
       
       /* BY TERM == IN CASE YOU NEED IT */
-      --/*
+      /*
       --T1--
       ,att_counts.RT1_abs_all        AS curterm_absences_total
       ,att_counts.RT1_a        AS curterm_absences_undoc
@@ -265,15 +265,15 @@ ATT_MEM$attendance_counts*/
       ,att_counts.RT1_t_all         AS curterm_tardies_total
       ,ROUND(att_pct.RT1_tardy_pct_total,0) AS curterm_tardy_pct_total
       --*/      
-      /*
-      T2--
-      ,att_counts.RT2_absences_total        AS curterm_absences_total
-      ,att_counts.RT2_absences_undoc        AS curterm_absences_undoc
+      --/*
+      --T2--
+      ,att_counts.RT2_abs_all AS curterm_absences_total
+      ,att_counts.RT2_a AS curterm_absences_undoc
       ,ROUND(att_pct.RT2_att_pct_total,0)   AS curterm_att_pct_total
       ,ROUND(att_pct.RT2_att_pct_undoc,0)   AS curterm_att_pct_undoc      
-      ,att_counts.RT2_tardies_total         AS curterm_tardies_total
+      ,att_counts.RT2_t_all AS curterm_tardies_total
       ,ROUND(att_pct.RT2_tardy_pct_total,0) AS curterm_tardy_pct_total
-      */      
+      --*/      
       /*
       T3--
       ,att_counts.RT3_abs_all AS curterm_absences_total
@@ -463,38 +463,43 @@ DISC$recent_incidents_wide*/
 /*Recent Incidents*/
       ,CAST(disc_recent.disc_01_date_reported AS DATE) AS disc_01_date_reported
       ,disc_recent.disc_01_given_by
-      ,CASE
-        WHEN disc_recent.disc_01_subject IS NULL THEN disc_recent.disc_01_incident 
-        ELSE disc_recent.disc_01_subject
-       END AS disc_01_incident
-            
+      --,CASE
+      --  WHEN disc_recent.disc_01_subject IS NULL THEN disc_recent.disc_01_incident 
+      --  ELSE disc_recent.disc_01_subject
+      -- END AS disc_01_incident
+      ,disc_recent.disc_01_subtype AS disc_01_incident
+
       ,CAST(disc_recent.disc_02_date_reported AS DATE) AS disc_02_date_reported
       ,disc_recent.disc_02_given_by
-      ,CASE
-        WHEN disc_recent.disc_02_subject IS NULL THEN disc_recent.disc_02_incident 
-        ELSE disc_recent.disc_02_subject
-       END AS disc_02_incident
+      --,CASE
+      --  WHEN disc_recent.disc_02_subject IS NULL THEN disc_recent.disc_02_incident 
+      --  ELSE disc_recent.disc_02_subject
+      -- END AS disc_02_incident
+      ,disc_recent.disc_02_subtype AS disc_02_incident
             
       ,CAST(disc_recent.disc_03_date_reported AS DATE) AS disc_03_date_reported
       ,disc_recent.disc_03_given_by
-      ,CASE 
-        WHEN disc_recent.disc_03_subject IS NULL THEN disc_recent.disc_03_incident 
-        ELSE disc_recent.disc_03_subject
-       END AS disc_03_incident
+      --,CASE 
+      --  WHEN disc_recent.disc_03_subject IS NULL THEN disc_recent.disc_03_incident 
+      --  ELSE disc_recent.disc_03_subject
+      -- END AS disc_03_incident
+      ,disc_recent.disc_03_subtype AS disc_03_incident
             
       ,CAST(disc_recent.disc_04_date_reported AS DATE) AS disc_04_date_reported
       ,disc_recent.disc_04_given_by
-      ,CASE
-        WHEN disc_recent.disc_04_subject IS NULL THEN disc_recent.disc_04_incident 
-        ELSE disc_recent.disc_04_subject
-       END AS disc_04_incident
+      --,CASE
+      --  WHEN disc_recent.disc_04_subject IS NULL THEN disc_recent.disc_04_incident 
+      --  ELSE disc_recent.disc_04_subject
+      -- END AS disc_04_incident
+      ,disc_recent.disc_04_subtype AS disc_04_incident
             
       ,CAST(disc_recent.disc_05_date_reported AS DATE) AS disc_05_date_reported
       ,disc_recent.disc_05_given_by
-      ,CASE
-        WHEN disc_recent.disc_05_subject IS NULL THEN disc_recent.disc_05_incident 
-        ELSE disc_recent.disc_05_subject
-       END AS disc_05_incident
+      --,CASE
+      --  WHEN disc_recent.disc_05_subject IS NULL THEN disc_recent.disc_05_incident 
+      --  ELSE disc_recent.disc_05_subject
+      -- END AS disc_05_incident
+      ,disc_recent.disc_05_subtype AS disc_05_incident
       
 /*Discipline Counts*/
       ,ISNULL(disc_count.silent_lunches,0) AS silent_lunches

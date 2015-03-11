@@ -168,6 +168,7 @@ WITH curterm AS (
                  SELECT studentid
                        ,test_round
                        ,CASE
+                         WHEN schoolid = 73255 THEN CONVERT(VARCHAR,read_lvl)
                          WHEN read_lvl = indep_lvl THEN CONVERT(VARCHAR,read_lvl)
                          ELSE CONVERT(VARCHAR,read_lvl + ' (' + indep_lvl + ')') 
                         END AS lvl_hash

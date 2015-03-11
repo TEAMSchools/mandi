@@ -11,11 +11,11 @@ BEGIN
           ,CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 'Total' ELSE gr.category END AS category -- ensure TotalPoints gradebooks aren't weighted strangely
           ,cat.course_number
           ,sco.STUDENT_NUMBER
-          ,(CONVERT(FLOAT,sco.SCORE) + ISNULL(CONVERT(FLOAT,sco.EXTRACREDITPOINTS),0.0)) * gr.[weight] AS weighted_score -- add any extra credit points and multiply by assignment weight
+          ,(CONVERT(FLOAT,sco.SCORE) + ISNULL(CONVERT(FLOAT,gr.EXTRACREDITPOINTS),0.0)) * gr.[weight] AS weighted_score -- add any extra credit points and multiply by assignment weight
           ,CASE WHEN sco.score IS NULL THEN NULL ELSE gr.POINTSPOSSIBLE END * gr.[weight] AS weighted_points_possible -- multiply by assignment weight, if socre is exempt or empty, NULL
           ,CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 1 ELSE cat.WEIGHTING END AS weighting -- even weight to all assignments for TotalPoints setups
-    FROM KIPP_NJ..GRADES$assignments#static gr WITH(NOLOCK)    
-    JOIN KIPP_NJ..GRADES$assignment_scores#static sco WITH(NOLOCK)
+    FROM KIPP_NJ..GRADES$assignments#STAGING gr WITH(NOLOCK)    
+    JOIN KIPP_NJ..GRADES$assignment_scores#STAGING sco WITH(NOLOCK)
       ON gr.ASSIGNMENTID = sco.ASSIGNMENTID   
      AND sco.EXEMPT = 0 -- exclude exempted assignments
     JOIN KIPP_NJ..PS$category_weighting_setup#static cat WITH(NOLOCK) 

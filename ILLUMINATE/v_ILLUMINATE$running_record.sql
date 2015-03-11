@@ -8,6 +8,7 @@ WITH running_record AS (
         ,CONVERT(DATE,[field_date_administered]) AS date_administered
         ,[field_administrator_1] AS administrator      
         ,[field_level_tested] AS level_tested
+        ,RIGHT(LTRIM(RTRIM([field_level_tested])), 1) AS level_tested_JOIN
         ,[field_fiction_nonfiction] AS fiction_nonfiction
         ,[field_pass_fall] AS pass_fall
         ,CONVERT(FLOAT,[field_accuracy_1]) AS accuracy
@@ -69,17 +70,37 @@ WITH running_record AS (
 SELECT s.LASTFIRST
       ,s.SCHOOLID
       ,s.GRADE_LEVEL
-      ,cs.SPEDLEP
-      ,rr.*
+      ,s.SPEDLEP
+      ,rr.student_number
+      ,rr.date_administered
+      ,rr.administrator
+      ,rr.level_tested
+      ,rr.fiction_nonfiction
+      ,rr.pass_fall
+      ,rr.accuracy
+      ,rr.fluency
+      ,rr.reading_rate_wpm
+      ,rr.about_the_text
+      ,rr.within_the_text
+      ,rr.beyond_the_text
+      ,rr.fp_accuracy
+      ,rr.fp_comp_prof
       ,gleq.lvl_num
       ,CASE WHEN rr.fp_comp_prof < prof_wide.fp_comp_prof THEN 1 ELSE 0 END AS dna_comp
       ,CASE WHEN rr.fp_accuracy < prof_wide.fp_accuracy THEN 1 ELSE 0 END AS dna_accuracy
+      ,lli.subject AS comment_subject
+      ,lli.comment
+      ,lli.date AS comment_date
 FROM running_record rr WITH(NOLOCK)
 JOIN LIT$GLEQ gleq WITH(NOLOCK)
-  ON RIGHT(LTRIM(RTRIM(rr.level_tested)), 1) = gleq.read_lvl
+  ON rr.level_tested_join = gleq.read_lvl
 JOIN prof_wide WITH(NOLOCK)
   ON gleq.lvl_num = prof_wide.lvl_num
-JOIN STUDENTS s WITH(NOLOCK)
+JOIN COHORT$identifiers_long#static s WITH(NOLOCK)
   ON rr.student_number = s.STUDENT_NUMBER
-JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON s.id = cs.STUDENTID
+ AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND s.rn = 1
+LEFT OUTER JOIN ILLUMINATE$SPED_comments#static lli WITH(NOLOCK)
+  ON rr.student_number = lli.student_number
+ AND lli.subject = 'LLI'
+ AND lli.rn = 1

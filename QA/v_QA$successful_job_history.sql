@@ -2,6 +2,7 @@ USE master
 GO
 
 ALTER VIEW QA$successful_job_history AS
+
 SELECT j.name AS job_name
       ,msdb.dbo.agent_datetime(h.run_date, h.run_time) AS run_date_format
       ,DateDiff(minute, msdb.dbo.agent_datetime(h.run_date, h.run_time), CURRENT_TIMESTAMP) AS minutes_old

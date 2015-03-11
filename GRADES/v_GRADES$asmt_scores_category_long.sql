@@ -29,14 +29,14 @@ JOIN PS$category_weighting_setup#static cat WITH(NOLOCK)
 JOIN reporting_weeks rw WITH(NOLOCK)
   ON cat.STARTDATE <= rw.weekday_start
  AND cat.ENDDATE >= rw.weekday_start 
-LEFT OUTER JOIN GRADES$assignments#static asmt WITH(NOLOCK)
+LEFT OUTER JOIN GRADES$assignments#STAGING asmt WITH(NOLOCK)
   ON cat.psm_sectionid = asmt.psm_sectionid
  AND cat.abbreviation = asmt.category
  AND rw.week = DATEPART(WEEK,asmt.assign_date)
  AND asmt.pointspossible > 0
  --AND cat.startdate <= asmt.assign_date
  --AND cat.enddate >= asmt.assign_date 
-LEFT OUTER JOIN GRADES$assignment_scores#static scores WITH(NOLOCK)
+LEFT OUTER JOIN GRADES$assignment_scores#STAGING scores WITH(NOLOCK)
   ON asmt.assignmentid = scores.assignmentid
  AND scores.exempt != 1
 WHERE sec.TERMID >= dbo.fn_Global_Term_Id()

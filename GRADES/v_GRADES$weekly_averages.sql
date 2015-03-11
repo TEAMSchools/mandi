@@ -39,11 +39,11 @@ SELECT enr.student_number
       ,dbo.GROUP_CONCAT_D(asmt.assign_name, '  |  ') AS assign_names
       ,ROUND(AVG(CONVERT(FLOAT,scores.score) / CONVERT(FLOAT,asmt.pointspossible)) * 100,0) AS score
 FROM enrollments enr
-JOIN GRADES$assignments#static asmt WITH(NOLOCK)
+JOIN GRADES$assignments#STAGING asmt WITH(NOLOCK)
   ON enr.sectionid = asmt.sectionid
  AND asmt.pointspossible != 0
  --AND asmt.category LIKE 'H%'
-JOIN GRADES$assignment_scores#static scores WITH(NOLOCK)
+JOIN GRADES$assignment_scores#STAGING scores WITH(NOLOCK)
   ON enr.student_number = scores.student_number
  AND asmt.assignmentid = scores.assignmentid
  AND scores.exempt = 0

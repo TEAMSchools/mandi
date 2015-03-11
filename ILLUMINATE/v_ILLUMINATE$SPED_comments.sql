@@ -4,10 +4,14 @@ GO
 ALTER VIEW ILLUMINATE$SPED_comments AS
 
 SELECT CONVERT(INT,student_id) AS student_number
-      ,[field_subject] AS subject
+      ,CASE
+        WHEN [field_subject] = 'Math' THEN 'Mathematics'
+        WHEN [field_subject] = 'ELA' THEN 'Comprehension'
+        ELSE [field_subject] 
+       END AS subject
       ,[field_comment] AS comment
       ,CONVERT(DATE,[field_date]) AS date
-      ,ROW_NUMBER() OVER (
+      ,ROW_NUMBER() OVER(
           PARTITION BY student_id, field_subject
               ORDER BY field_date DESC) AS rn
 FROM (

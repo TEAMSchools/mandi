@@ -250,7 +250,7 @@ WITH roster AS (
           WHEN asmt.CATEGORY IN ('HC','HW C','HWC','Homework Completion','HW Completion','HW Comp') THEN 'HWC'
           ELSE NULL
          END AS category
-  FROM GRADES$assignments#static asmt WITH(NOLOCK)
+  FROM GRADES$assignments#STAGING asmt WITH(NOLOCK)
   JOIN sections sec WITH(NOLOCK)
     ON asmt.sectionid = sec.id
    AND sec.SCHOOLID = 73252
@@ -270,7 +270,7 @@ WITH roster AS (
         ,credittype
         ,CASE WHEN EXEMPT = 1 THEN NULL ELSE CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0)) END AS score_numeric        
         ,CASE WHEN EXEMPT = 1 THEN 'Ex' ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0))) END AS score_text
-  FROM GRADES$assignment_scores#static s WITH(NOLOCK)
+  FROM GRADES$assignment_scores#STAGING s WITH(NOLOCK)
   JOIN weekly_assignments a WITH(NOLOCK)
     ON s.ASSIGNMENTID = a.ASSIGNMENTID
   WHERE s.ASSIGNMENTID IN (SELECT ASSIGNMENTID FROM weekly_assignments WITH(NOLOCK))
