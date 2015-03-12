@@ -12,9 +12,10 @@ WITH disc_count AS (
               WHEN subtype = 'Silent Lunch (5 Day)' THEN 5
               ELSE 0 
              END) AS silent_lunches
-        ,SUM(CASE WHEN subtype LIKE '%Choices%' OR subtype LIKE 'Bench%' THEN 1 ELSE 0 END) bench_choices
-        ,SUM(CASE WHEN subtype = 'ISS' THEN 1 ELSE 0 END) ISS
-        ,SUM(CASE WHEN subtype = 'OSS' THEN 1 ELSE 0 END) OSS
+        ,SUM(CASE WHEN subtype LIKE '%Choices%' OR subtype LIKE 'Bench%' THEN 1 ELSE 0 END) AS bench_choices
+        ,SUM(CASE WHEN subtype = 'ISS' THEN 1 ELSE 0 END) AS ISS
+        ,SUM(CASE WHEN subtype = 'Class Removal' THEN 1 ELSE 0 END) AS class_removal
+        ,SUM(CASE WHEN subtype = 'OSS' THEN 1 ELSE 0 END) AS OSS
   FROM KIPP_NJ..DISC$log#static WITH(NOLOCK)
   WHERE schoolid IN (73252,133570965)
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
@@ -49,9 +50,10 @@ SELECT s.student_number
       ,rise_hwq.simple_avg AS hwq_y1
       ,ISNULL(disc_count.silent_lunches,0) AS silent_lunches
       ,ISNULL(disc_count.detentions,0) AS detentions
-      ,ISNULL(disc_count.bench_choices,0) AS bench_choices_yr
+      ,ISNULL(disc_count.bench_choices,0) AS bench_choices
       ,ISNULL(disc_count.ISS,0) AS ISS
       ,ISNULL(disc_count.OSS,0) AS OSS
+      ,ISNULL(disc_count.class_removal,0) AS class_removal
 FROM KIPP_NJ..COHORT$identifiers_scaffold#static s WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH(NOLOCK)
   ON s.studentid = promo.studentid

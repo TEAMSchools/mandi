@@ -109,7 +109,7 @@ FROM
        FROM dna_assessments.assessments a
        LEFT OUTER JOIN dna_assessments.assessments_tags tag_index
          ON a.assessment_id = tag_index.assessment_id
-       JOIN dna_assessments.tags tags
+       LEFT OUTER JOIN dna_assessments.tags tags
          ON tags.tag_id = tag_index.tag_id                    
         AND tags.tag IN (''1'',''2'',''3'',''4'',''5'',''6'',''7'',''8'',''9'',''10'',''11'',''12'',''k'')
        LEFT OUTER JOIN codes.dna_subject_areas subj
