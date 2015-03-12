@@ -51,8 +51,10 @@ WITH week_numbers AS (
           WHEN p.GCD = 'Fourth Grade' THEN 4
           WHEN p.GCD = 'Fifth Grade' THEN 5
           WHEN p.GCD = 'Sixth Grade' THEN 6
-          WHEN p.GCD = 'Seventh Grade MSS' THEN 7
-         END AS gcd_sort        
+		  WHEN p.GCD = 'Sixth Grade MSS' THEN 7
+		  WHEN p.GCD = 'Seventh Grade MSS' THEN 8
+          WHEN p.GCD = 'Eighth Grade MSS' THEN 9
+		 END AS gcd_sort        
         ,w.week_num
         ,w.week_num + 1 AS next_week_num
   FROM STMath..progress_completion p WITH(NOLOCK)  

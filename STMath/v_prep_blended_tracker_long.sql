@@ -32,9 +32,17 @@ WITH st_libraries AS (
         ,6
         ,'lib_6th'
   UNION
-  SELECT 'Seventh Grade MSS'
+  SELECT 'Sixth Grade MSS'
         ,7
-        ,'lib_7th'
+        ,'lib_6th_MSS'
+  UNION
+  SELECT 'Seventh Grade MSS'
+        ,8
+        ,'lib_7th_MSS'
+  UNION
+  SELECT 'Eighth Grade MSS'
+        ,9
+        ,'lib_8th_MSS'
  )
     
 ,min_lib AS (
