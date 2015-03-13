@@ -62,6 +62,7 @@ WITH disc_log AS (
   FROM ATT_MEM$meeting_attendance#static att WITH(NOLOCK)
   JOIN sections sec WITH(NOLOCK)
     ON att.sectionid = sec.ID
+   AND att.schoolid = sec.SCHOOLID
   JOIN teachers t WITH(NOLOCK)
     ON sec.TEACHER = t.ID
   WHERE att.att_code IN ('T','T10')
@@ -88,6 +89,7 @@ WITH disc_log AS (
   FROM KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
   JOIN CC WITH(NOLOCK)
     ON att.STUDENTID = cc.STUDENTID
+   AND att.SCHOOLID = cc.SCHOOLID
    AND att.ATT_DATE >= cc.DATEENROLLED
    AND att.ATT_DATE <= cc.DATELEFT
    AND cc.COURSE_NUMBER = 'HR' 
