@@ -188,7 +188,9 @@ FROM
                   WHEN res.percent_correct >= 80 THEN a.FSA_nxtstp_y
                   WHEN res.percent_correct < 80 THEN a.FSA_nxtstp_n
                  END AS FSA_nxtstp
-                ,a.FSA_std_rn
+                ,ROW_NUMBER() OVER(
+                   PARTITION BY student_number, schoolid, grade_level, fsa_week
+                     ORDER BY FSA_subject, standards_tested) AS fsa_std_rn
                 ,CONVERT(VARCHAR(250),
                   CASE 
                    WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 60 THEN 3
@@ -215,7 +217,7 @@ FROM
                                    END) OVER(PARTITION BY a.studentid, a.fsa_week)) AS n_mastered
                 ,CONVERT(FLOAT,COUNT(a.FSA_standard) OVER(PARTITION BY a.studentid, a.fsa_week)) AS n_total
           FROM fsa_scaffold a WITH(NOLOCK)
-          LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static res WITH(NOLOCK)  
+          JOIN ILLUMINATE$assessment_results_by_standard#static res WITH(NOLOCK)  
             ON a.student_number = res.local_student_id           
            AND a.assessment_id = res.assessment_id
            AND res.custom_code = a.standards_tested
