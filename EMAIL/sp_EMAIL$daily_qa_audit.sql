@@ -105,7 +105,7 @@ BEGIN
     '                
 
   SET @sql_last_refresh = '
-    SELECT TOP (100) PERCENT job_name
+    SELECT job_name
          ,run_date_format AS last_run
          ,CAST(CAST(ROUND((minutes_old + 0.0) / 60, 1) AS NUMERIC(5,1)) AS NVARCHAR) AS hours_old
          ,CASE 
@@ -126,18 +126,23 @@ BEGIN
     SELECT job_name
           ,COUNT(*) AS failure_count
     FROM
-          (SELECT j.name AS job_name
-                ,msdb.dbo.agent_datetime(run_date, run_time) AS run_date_format
-                ,h.*
-          FROM msdb.dbo.sysjobs j WITH(NOLOCK)
-          JOIN msdb.dbo.sysjobhistory h WITH(NOLOCK)
-           ON j.job_id = h.job_id 
-          WHERE j.enabled = 1 
-            AND msdb.dbo.agent_datetime(run_date, run_time) >= DATEADD(day, -1, GETDATE())
-            AND h.step_id = 0
-            AND h.run_status = 0 
-          ) sub
-    GROUP BY job_name'
+        (
+         SELECT j.name AS job_name
+               ,msdb.dbo.agent_datetime(run_date, run_time) AS run_date_format
+               ,h.*
+         FROM msdb.dbo.sysjobs j WITH(NOLOCK)
+         JOIN msdb.dbo.sysjobhistory h WITH(NOLOCK)
+          ON j.job_id = h.job_id 
+         WHERE j.enabled = 1 
+           AND msdb.dbo.agent_datetime(run_date, run_time) >= DATEADD(day, -1, GETDATE())
+           AND h.step_id = 0
+           AND h.run_status = 0     
+        ) sub
+    GROUP BY job_name
+    UNION ALL
+    SELECT ''All jobs''
+          ,0
+    '
 
   --/*
   --run the view timing test
@@ -278,7 +283,7 @@ PRINT @email_body
 EXEC [msdb].[dbo].sp_send_dbmail @profile_name = 'DataRobot'
 								,@body = @email_body
 								,@body_format ='HTML'
-								--,@recipients = 'cbini@kippnj.org'
-        ,@recipients = 'amartin@teamschools.org;ldesimon@teamschools.org;nmadigan@teamschools.org;cbini@teamschools.org;smircovich@teamschools.org;plebre@teamschools.org;kswearingen@teamschools.org;amilun@teamschools.org'
+								,@recipients = 'cbini@kippnj.org' -- troubleshooting
+        --,@recipients = 'amartin@teamschools.org;ldesimon@teamschools.org;nmadigan@teamschools.org;cbini@teamschools.org;smircovich@teamschools.org;plebre@teamschools.org;kswearingen@teamschools.org;amilun@teamschools.org'        
 								,@subject = 'SQL Server: Audit/QA Results'
 END
