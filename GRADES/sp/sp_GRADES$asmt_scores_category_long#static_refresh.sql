@@ -61,4 +61,4 @@ BEGIN
     AND sys.objects.name = 'GRADES$asmt_scores_category_long#static';
   EXEC (@sql);
   
-END                  
+END                

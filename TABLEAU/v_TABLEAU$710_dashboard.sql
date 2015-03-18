@@ -68,83 +68,16 @@ WITH enrollments AS (
 ,finalgrades_long AS ( 
   SELECT sectionid
         ,term
-        ,ROUND(AVG(termgrade),0) AS termgrade
-  FROM
-      (
-       SELECT DISTINCT 
-              STUDENT_NUMBER             
-             ,sectionid
-             ,T1
-             ,T2
-             ,T3
-             ,Q1
-             ,Q2
-             ,Q3
-             ,Q4
-             ,E1
-             ,E2
-             ,Y1
-       FROM
-           (
-            SELECT STUDENT_NUMBER
-                  ,T1
-                  ,T2
-                  ,T3             
-                  ,NULL AS Q1
-                  ,NULL AS Q2
-                  ,NULL AS Q3
-                  ,NULL AS Q4
-                  ,NULL AS E1
-                  ,NULL AS E2
-                  ,Y1
-                  ,T1_ENR_SECTIONID AS rt1_sectionid
-                  ,T2_ENR_SECTIONID AS rt2_sectionid
-                  ,T3_ENR_SECTIONID AS rt3_sectionid
-                  ,NULL AS rt4_sectionid
-            FROM GRADES$DETAIL#MS WITH(NOLOCK)
-
-            UNION ALL
-
-            SELECT STUDENT_NUMBER
-                  ,NULL AS T1
-                  ,NULL AS T2
-                  ,NULL AS T3
-                  ,q1
-                  ,q2
-                  ,q3
-                  ,q4
-                  ,e1
-                  ,e2
-                  ,Y1
-                  ,q1_enr_sectionid AS rt1_sectionid
-                  ,q2_enr_sectionid AS rt2_sectionid
-                  ,q3_enr_sectionid AS rt3_sectionid
-                  ,q4_enr_sectionid AS rt4_sectionid
-            FROM GRADES$DETAIL#NCA WITH(NOLOCK)
-           ) sub
-
-       UNPIVOT (
-         sectionid
-         FOR term IN (rt1_sectionid, rt2_sectionid, rt3_sectionid, rt4_sectionid)
-        ) u
-      ) sub
-
-  UNPIVOT (
-    termgrade
-    FOR term IN (T1
-                ,T2
-                ,T3
-                ,Q1
-                ,Q2
-                ,Q3
-                ,Q4
-                ,Y1
-                ,E1
-                ,E2)
-   ) u2
-
+        ,ROUND(AVG(CONVERT(FLOAT,term_pct)),0) AS termgrade
+  FROM KIPP_NJ..GRADES$detail_long#static
   GROUP BY sectionid
           ,term
+  UNION ALL
+  SELECT sectionid
+        ,'Y1' AS term
+        ,ROUND(AVG(CONVERT(FLOAT,y1_pct)),0) AS termgrade
+  FROM KIPP_NJ..GRADES$detail_long#static
+  GROUP BY sectionid
  )
 
 ,attendance_weekly AS (
@@ -238,7 +171,18 @@ SELECT schoolid
       ,ISNULL(COUNT(DISTINCT assign_name),0) AS n_assign
 FROM
     (
-     SELECT enr.*            
+     SELECT enr.schoolid
+           ,enr.week
+           ,enr.week_of
+           ,enr.reporting_hash
+           ,enr.CREDITTYPE
+           ,enr.COURSE_NUMBER
+           ,enr.COURSE_NAME
+           ,enr.SECTIONID
+           ,enr.SECTION_NUMBER
+           ,enr.section
+           ,enr.teacher_name
+           ,enr.term
            ,gr.ASSIGNMENTID
            ,gr.assign_name
            ,gr.finalgrade
@@ -253,7 +197,7 @@ FROM
            --,cs.spedlep
            --,co.year_in_network
      FROM course_scaffold enr WITH(NOLOCK)
-     JOIN GRADES$asmt_scores_category_long gr WITH(NOLOCK)
+     JOIN GRADES$asmt_scores_category_long#static gr WITH(NOLOCK)
        ON enr.SECTIONID = gr.sectionid
       AND enr.week = gr.week
      --JOIN STUDENTS s WITH(NOLOCK)
@@ -282,7 +226,18 @@ GROUP BY schoolid
 
 UNION ALL
 
-SELECT enr.*            
+SELECT enr.schoolid
+      ,enr.week
+      ,enr.week_of
+      ,enr.reporting_hash
+      ,enr.CREDITTYPE
+      ,enr.COURSE_NUMBER
+      ,enr.COURSE_NAME
+      ,enr.SECTIONID
+      ,enr.SECTION_NUMBER
+      ,enr.section
+      ,enr.teacher_name
+      ,enr.term
       --,NULL AS ASSIGNMENTID
       --,'Term Grade' AS assign_name
       ,'Term Grade' AS finalgrade
@@ -312,7 +267,18 @@ JOIN finalgrades_long fg WITH(NOLOCK)
 
 UNION ALL
 
-SELECT enr.*            
+SELECT enr.schoolid
+      ,enr.week
+      ,enr.week_of
+      ,enr.reporting_hash
+      ,enr.CREDITTYPE
+      ,enr.COURSE_NUMBER
+      ,enr.COURSE_NAME
+      ,enr.SECTIONID
+      ,enr.SECTION_NUMBER
+      ,enr.section
+      ,enr.teacher_name
+      ,enr.term
       --,NULL AS ASSIGNMENTID
       --,'Term Grade' AS assign_name
       ,fg.term AS finalgrade
@@ -342,7 +308,18 @@ JOIN finalgrades_long fg WITH(NOLOCK)
 
 UNION ALL
 
-SELECT enr.*            
+SELECT enr.schoolid
+      ,enr.week
+      ,enr.week_of
+      ,enr.reporting_hash
+      ,enr.CREDITTYPE
+      ,enr.COURSE_NUMBER
+      ,enr.COURSE_NAME
+      ,enr.SECTIONID
+      ,enr.SECTION_NUMBER
+      ,enr.section
+      ,enr.teacher_name
+      ,enr.term
       --,NULL AS ASSIGNMENTID
       --,'Attendance %' AS assign_name
       ,'Att %' AS finalgrade
