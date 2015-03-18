@@ -4,23 +4,23 @@ GO
 ALTER VIEW REPORTING$promo_in_doubt#MS AS
 
 WITH roster AS (
-  SELECT s.id AS studentid
+  SELECT s.studentid
         ,s.student_number
         ,s.lastfirst
         ,s.grade_level
         ,s.team
-        ,cs.advisor
-        ,cs.advisor_cell
-        ,cs.advisor_email
+        ,s.advisor
+        ,s.advisor_cell
+        ,s.advisor_email
         ,s.last_name
         ,s.first_name
-        ,CASE WHEN s.gender = 'm' THEN 'his' ELSE 'her' END AS pronoun
+        ,CASE WHEN s.gender = 'M' THEN 'his' ELSE 'her' END AS pronoun
         ,s.schoolid
-  FROM students s WITH(NOLOCK)
-  LEFT OUTER JOIN custom_students cs WITH(NOLOCK)
-    ON s.id = cs.studentid
+  FROM KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
   WHERE s.enroll_status = 0
+    AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND s.schoolid in (133570965,73252)
+    AND s.rn = 1
  )
 
 ,gr_wide AS (
@@ -46,63 +46,53 @@ WITH roster AS (
         ,rc3_T3 AS mathT3
         ,rc4_T3 AS scienceT3
         ,rc5_T3 AS socialT3
-        ,CASE WHEN schoolid = 133570965 AND rc1_Y1 < 70 THEN 1 WHEN schoolid = 73252 AND rc1_Y1 < 65 THEN 1 ELSE 0 END
-          + CASE WHEN schoolid = 133570965 AND rc2_y1 < 70 THEN 1 WHEN schoolid = 73252 AND rc2_y1 < 65 THEN 1 ELSE 0 END
-          + CASE WHEN schoolid = 133570965 AND rc3_y1 < 70 THEN 1 WHEN schoolid = 73252 AND rc3_y1 < 65 THEN 1 ELSE 0 END
-          + CASE WHEN schoolid = 133570965 AND rc4_y1 < 70 THEN 1 WHEN schoolid = 73252 AND rc4_y1 < 65 THEN 1 ELSE 0 END
-          + CASE WHEN schoolid = 133570965 AND rc5_y1 < 70 THEN 1 WHEN schoolid = 73252 AND rc5_y1 < 65 THEN 1 ELSE 0 END
+        ,CASE WHEN rc1_Y1 < 65 THEN 1 ELSE 0 END
+          + CASE WHEN rc2_y1 < 65 THEN 1 ELSE 0 END
+          + CASE WHEN rc3_y1 < 65 THEN 1 ELSE 0 END
+          + CASE WHEN rc4_y1 < 65 THEN 1 ELSE 0 END
+          + CASE WHEN rc5_y1 < 65 THEN 1 ELSE 0 END
           AS n_failing
-        ,CASE 
-          WHEN schoolid = 133570965 AND (CASE WHEN rc1_Y1 < 70 THEN 1 ELSE 0 END
-                                          + CASE WHEN rc2_Y1 < 70 THEN 1 ELSE 0 END
-                                          + CASE WHEN rc3_Y1 < 70 THEN 1 ELSE 0 END
-                                          + CASE WHEN rc4_Y1 < 70 THEN 1 ELSE 0 END
-                                          + CASE WHEN rc5_Y1 < 70 THEN 1 ELSE 0 END) > 0 THEN 1 
-          WHEN schoolid = 73252 AND (CASE WHEN rc1_Y1 < 65 THEN 1 ELSE 0 END
-                                      + CASE WHEN rc2_Y1 < 65 THEN 1 ELSE 0 END
-                                      + CASE WHEN rc3_Y1 < 65 THEN 1 ELSE 0 END
-                                      + CASE WHEN rc4_Y1 < 65 THEN 1 ELSE 0 END
-                                      + CASE WHEN rc5_Y1 < 65 THEN 1 ELSE 0 END) > 0 THEN 1 
+        ,CASE
+          WHEN (rc1_Y1 < 65
+                OR rc2_Y1 < 65
+                OR rc3_Y1 < 65 
+                OR rc4_Y1 < 65
+                OR rc5_Y1 < 65) THEN 1 
           ELSE 0 
          END AS is_failing         
-  FROM grades$wide_credit_core#ms#static WITH(NOLOCK)
+  FROM GRADES$wide_credit_core#MS#static WITH(NOLOCK)
  )
 
 ,att_status AS (
   SELECT student_number
         ,Y1_att_pts_pct
-        ,COALESCE(promo_att_rise, promo_att_team) AS promo_status_att
+        ,promo_att_rise
+        ,promo_att_team
         ,days_to_90
   FROM REPORTING$promo_status#MS WITH(NOLOCK)
  )
 
 ,Y1_avg AS (
-  SELECT *
+  SELECT student_number
+        ,ROUND(AVG(Y1),0) AS yaverage
+        ,SUM(CASE WHEN Y1 < 70 THEN 1 ELSE 0 END) AS n_failing
   FROM
       (
        SELECT student_number
-             ,ROUND(AVG(Y1),0) AS yaverage
-             ,SUM(CASE WHEN Y1 < 70 THEN 1 ELSE 0 END) AS n_failing
-       FROM
-           (
-            SELECT student_number
-                  ,course_number
-                  ,Y1
-            FROM grades$detail#ms WITH(NOLOCK)
-            WHERE credittype in ('math','eng','sci','soc','rhet')
-           ) sub
-       GROUP BY student_number
+             ,course_number
+             ,Y1
+       FROM GRADES$DETAIL#MS WITH(NOLOCK)
+       WHERE credittype IN ('MATH','ENG','SCI','SOC','RHET')
       ) sub
+  GROUP BY student_number
  )
 
 ,homework AS (  
   SELECT studentid
         ,simple_avg AS H_avg        
         ,CASE
-          WHEN schoolid = 73252 AND ((65 * 3) - (ISNULL(grade_1,65) + ISNULL(grade_2,65))) < 65 THEN 65
-          WHEN schoolid = 73252 AND ((65 * 3) - (ISNULL(grade_1,65) + ISNULL(grade_2,65))) >= 65 THEN ((65 * 3) - (ISNULL(grade_1,65) + ISNULL(grade_2,65)))
-          WHEN schoolid = 133570965 AND ((70 * 3) - (ISNULL(grade_1,70) + ISNULL(grade_2,70))) < 70 THEN 70
-          WHEN schoolid = 133570965 AND ((70 * 3) - (ISNULL(grade_1,70) + ISNULL(grade_2,70))) >= 70 THEN ((70 * 3) - (ISNULL(grade_1,70) + ISNULL(grade_2,70)))
+          WHEN ((65 * 3) - (ISNULL(grade_1,65) + ISNULL(grade_2,65))) < 65 THEN 65
+          WHEN ((65 * 3) - (ISNULL(grade_1,65) + ISNULL(grade_2,65))) >= 65 THEN ((65 * 3) - (ISNULL(grade_1,65) + ISNULL(grade_2,65)))          
          END AS hw_need_c
   FROM GRADES$elements WITH(NOLOCK)
   WHERE schoolid IN (73252, 133570965)
@@ -122,12 +112,9 @@ WITH roster AS (
        SELECT student_number
              ,credittype + 'need' AS credittype
              ,CASE
-               WHEN schoolid = 73252 AND ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) < 65 THEN 65
-               WHEN schoolid = 73252 AND ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) > 100 THEN 100
-               WHEN schoolid = 73252 AND ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) >= 65 THEN ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1)
-               WHEN schoolid = 133570965 AND ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1) < 70 THEN 70
-               WHEN schoolid = 133570965 AND ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1) > 100 THEN 100
-               WHEN schoolid = 133570965 AND ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1) >= 70 THEN ROUND((((used_year + 1) * 70) - (in_the_books * used_year)) / 1,1)
+               WHEN ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) < 65 THEN 65
+               WHEN ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) > 100 THEN 100
+               WHEN ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1) >= 65 THEN ROUND((((used_year + 1) * 65) - (in_the_books * used_year)) / 1,1)               
                ELSE NULL
               END AS need_c
        FROM
@@ -135,18 +122,18 @@ WITH roster AS (
             SELECT student_number
                   ,schoolid
                   ,CASE
-                    WHEN credittype = 'eng' THEN 'read'
-                    WHEN credittype = 'rhet' THEN 'writing'
-                    WHEN credittype = 'sci' THEN 'science'
-                    WHEN credittype = 'soc' THEN 'social'
-                    WHEN credittype = 'math' THEN 'math'
+                    WHEN CREDITTYPE = 'ENG' THEN 'READ'
+                    WHEN CREDITTYPE = 'RHET' THEN 'WRITING'
+                    WHEN CREDITTYPE = 'SCI' THEN 'SCIENCE'
+                    WHEN CREDITTYPE = 'SOC' THEN 'SOCIAL'
+                    WHEN CREDITTYPE = 'MATH' THEN 'MATH'
                    END AS credittype
-                  ,CASE WHEN T1 is NULL THEN 0 ELSE 1 END
-                    + CASE WHEN T2 is NULL THEN 0 ELSE 1 END
+                  ,CASE WHEN T1 IS NULL THEN 0 ELSE 1 END
+                    + CASE WHEN T2 IS NULL THEN 0 ELSE 1 END
                     AS used_year
                   ,ROUND((T1 + T2) / 2,0) AS in_the_books
-            FROM grades$detail#ms WITH(NOLOCK)
-            WHERE credittype in ('math','eng','sci','soc','rhet')
+            FROM GRADES$DETAIL#MS WITH(NOLOCK)
+            WHERE credittype IN ('MATH','ENG','SCI','SOC','RHET')
            ) sub
       ) sub2
    
@@ -162,19 +149,24 @@ WITH roster AS (
 
 ,fp AS (
   SELECT student_number
-        ,letter_level AS fp
+        ,read_lvl AS fp
         ,gleq AS fp_gleq
-  FROM lit$fp_test_events_long#identifiers#static WITH(NOLOCK)
+        ,met_goal
+  FROM LIT$test_events#identifiers WITH(NOLOCK)
   WHERE achv_curr_all = 1
     AND schoolid in (133570965, 73252)
  )
 
 SELECT roster.*
       ,att_status.Y1_att_pts_pct
-      ,att_status.promo_status_att
-      ,att_status.days_to_perfect
+      ,CASE
+        WHEN roster.schoolid = 73252 THEN att_status.promo_att_rise
+        WHEN roster.schoolid = 133570965 THEN att_status.promo_att_team
+       END AS promo_status_att
+      ,att_status.days_to_90 AS days_to_perfect
       ,fp.fp
       ,fp.fp_gleq
+      ,fp.met_goal AS fp_met_goal
       ,Y1_avg.yaverage
       ,Y1_avg.n_failing
       ,gr_wide.is_failing

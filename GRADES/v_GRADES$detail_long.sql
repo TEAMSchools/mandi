@@ -37,6 +37,8 @@ WITH grades_long AS (
                   ,NULL AS q2_pct
                   ,NULL AS q3_pct
                   ,NULL AS q4_pct
+                  ,NULL AS e1_pct
+                  ,NULL AS e2_pct
                   ,CONVERT(VARCHAR,y1) AS y1_pct
                   ,CONVERT(VARCHAR,T1_LETTER) AS t1_letter
                   ,CONVERT(VARCHAR,t2_LETTER) AS t2_letter
@@ -45,6 +47,8 @@ WITH grades_long AS (
                   ,NULL AS q2_LETTER
                   ,NULL AS q3_LETTER
                   ,NULL AS q4_LETTER
+                  ,NULL AS e1_LETTER
+                  ,NULL AS e2_LETTER
                   ,CONVERT(VARCHAR,y1_LETTER) AS y1_letter
             FROM KIPP_NJ..GRADES$DETAIL#MS WITH(NOLOCK)
 
@@ -61,6 +65,8 @@ WITH grades_long AS (
                   ,CONVERT(VARCHAR,q2) AS q2_pct
                   ,CONVERT(VARCHAR,q3) AS q3_pct
                   ,CONVERT(VARCHAR,q4) AS q4_pct
+                  ,CONVERT(VARCHAR,e1) AS e1_pct
+                  ,CONVERT(VARCHAR,e2) AS e2_pct
                   ,CONVERT(VARCHAR,y1) AS y1_pct
                   ,NULL AS t1_letter
                   ,NULL AS t2_letter
@@ -69,6 +75,8 @@ WITH grades_long AS (
                   ,CONVERT(VARCHAR,q2_letter) AS q2_letter
                   ,CONVERT(VARCHAR,q3_letter) AS q3_letter
                   ,CONVERT(VARCHAR,q4_letter) AS q4_letter
+                  ,CONVERT(VARCHAR,e1_letter) AS e1_letter
+                  ,CONVERT(VARCHAR,e2_letter) AS e2_letter
                   ,CONVERT(VARCHAR,y1_letter) AS y1_letter
             FROM KIPP_NJ..GRADES$DETAIL#NCA WITH(NOLOCK)
            ) sub
