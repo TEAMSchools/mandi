@@ -10,21 +10,27 @@ WITH map_long AS (
         ,base.measurementscale
         ,base.testritscore AS base_rit
         ,base.testpercentile AS base_pct
-        ,CASE WHEN base.lexile_score = 'BR' THEN 0 ELSE base.lexile_score END AS base_lex
+        ,REPLACE(base.lexile_score,'BR',0) AS base_lex
+        ,prevspr.testritscore AS prevspr_rit
+        ,prevspr.testpercentile AS prevspr_pct
+        ,CASE WHEN prevspr.rittoreadingscore = 'BR' THEN 0 ELSE prevspr.rittoreadingscore END AS prevspr_lex
         ,rr.keep_up_goal
         ,rr.keep_up_rit
         ,rr.rutgers_ready_goal
         ,rr.rutgers_ready_rit      
         ,CASE  
           WHEN terms.fallwinterspring = 'Fall' THEN COALESCE(base.testpercentile, map.percentile_2011_norms)                 
+          WHEN terms.fallwinterspring = 'Previous Spring' THEN prevspr.percentile_2011_norms
           ELSE map.percentile_2011_norms 
          END AS pct
         ,CASE  
           WHEN terms.fallwinterspring = 'Fall' THEN COALESCE(base.testritscore, map.testritscore)
+          WHEN terms.fallwinterspring = 'Previous Spring' THEN prevspr.testritscore
           ELSE map.testritscore
          END AS rit      
         ,CASE  
           WHEN terms.fallwinterspring = 'Fall' THEN COALESCE(REPLACE(base.lexile_score, 'BR', 0), REPLACE(map.rittoreadingscore, 'BR', 0))
+          WHEN terms.fallwinterspring = 'Previous Spring' THEN REPLACE(prevspr.rittoreadingscore, 'BR', 0)
           ELSE REPLACE(map.rittoreadingscore, 'BR', 0)
          END AS lex      
   FROM MAP$best_baseline#static base WITH(NOLOCK)
@@ -34,6 +40,8 @@ WITH map_long AS (
         SELECT 'Winter'
         UNION
         SELECT 'Spring'
+        UNION
+        SELECT 'Previous Spring'
        ) terms
     ON 1 = 1
   LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
@@ -46,6 +54,12 @@ WITH map_long AS (
    AND base.measurementscale = map.measurementscale
    AND terms.fallwinterspring = map.fallwinterspring
    AND map.rn = 1
+  LEFT OUTER JOIN MAP$comprehensive#identifiers#static prevspr WITH(NOLOCK)
+    ON base.studentid = prevspr.ps_studentid
+   AND base.year = (prevspr.map_year_academic + 1)
+   AND base.measurementscale = prevspr.measurementscale
+   AND prevspr.fallwinterspring = 'Spring'
+   AND prevspr.rn = 1
  )
 
 ,map_curr AS (
@@ -88,6 +102,9 @@ SELECT r.year
       ,map_long.base_rit
       ,map_long.base_pct
       ,map_long.base_lex
+      ,map_long.prevspr_rit
+      ,map_long.prevspr_pct
+      ,map_long.prevspr_lex
       ,map_long.keep_up_goal
       ,map_long.keep_up_rit
       ,map_long.rutgers_ready_goal
@@ -103,7 +120,7 @@ SELECT r.year
         WHEN map_long.pct >= 0 AND map_long.pct < 25 THEN 1
         WHEN map_long.pct >= 25 AND map_long.pct < 50 THEN 2
         WHEN map_long.pct >= 50 AND map_long.pct < 75 THEN 3
-        WHEN map_long.pct >= 75 AND map_long.pct < 100 THEN 4
+        WHEN map_long.pct >= 75 THEN 4
         ELSE NULL
        END AS quartile
       ,CASE WHEN map_curr.fallwinterspring = 'Fall' THEN NULL ELSE map_curr.rit - map_long.base_rit END AS ytd_rit_growth
