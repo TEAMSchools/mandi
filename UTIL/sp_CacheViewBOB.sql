@@ -134,12 +134,12 @@ END
                   PRINT 'Running the new stored procedure.  When done, copy and save this code as: ' + CHAR(13) + CHAR(10) + 'sp_' + @view + '#static_refresh';
                   PRINT CHAR(13) + CHAR(10);
                   PRINT 'USE [' + @db + ']' + CHAR(13) + CHAR(10)
-                          + 'GO'  + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10)
-                          + 'SET ANSI_NULLS ON' + CHAR(13) + CHAR(10)
-                          + 'GO' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10)
-                          + 'SET QUOTED_IDENTIFIER ON' + CHAR(13) + CHAR(10)
-                          + 'GO' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10)
-                          + REPLACE(@sql,'CREATE','ALTER'); -- changes it to ALTER for you
+                            + 'GO'  + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10)
+                            + 'SET ANSI_NULLS ON' + CHAR(13) + CHAR(10)
+                            + 'GO' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10)
+                            + 'SET QUOTED_IDENTIFIER ON' + CHAR(13) + CHAR(10)
+                            + 'GO' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10);
+                  PRINT REPLACE(@sql,'CREATE','ALTER'); -- changes it to ALTER for you
 
                   -- finally, execute the newly created procedure
                   SET @sql = '
@@ -286,8 +286,8 @@ END
                             + 'SET ANSI_NULLS ON' + CHAR(13) + CHAR(10)
                             + 'GO' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10)
                             + 'SET QUOTED_IDENTIFIER ON' + CHAR(13) + CHAR(10)
-                            + 'GO' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10)
-                            + REPLACE(@sql,'CREATE','ALTER'); -- changes it to ALTER for you
+                            + 'GO' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10);
+                    PRINT REPLACE(@sql,'CREATE','ALTER'); -- changes it to ALTER for you
 
                     -- finally, execute the newly created procedure
                     SET @sql = '

@@ -7,7 +7,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-ALTER PROCEDURE [dbo].[sp_GRADES$NCA|refresh] AS
+--ALTER PROCEDURE [dbo].[sp_GRADES$NCA|refresh] AS
 
 BEGIN
  
@@ -269,7 +269,7 @@ BEGIN
        ,c.course_name
        ,c.credit_hours
  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
- JOIN STUDENTS s WITH(NOLOCK)
+ JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
    ON co.STUDENTID = s.ID
  JOIN cc WITH(NOLOCK)
    ON co.studentid = cc.studentid
