@@ -29,4 +29,5 @@ FROM OPENQUERY(ILLUMINATE, '
  FROM dna_assessments.agg_student_responses agg_resp    
  JOIN public.students s
    ON s.student_id = agg_resp.student_id
+ LIMIT 100
 ')

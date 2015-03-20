@@ -7,13 +7,15 @@
 USE KIPP_NJ
 GO
 
-CREATE PROCEDURE sp_CacheView
+ALTER PROCEDURE sp_CacheView
   @db NVARCHAR(256), -- name of the destination DB
   @view NVARCHAR(256), -- name of the view you want to cache
-  @rebuild BIT = 0 -- 1 = drop and rebuild table if it already exists, 0 = don't (defualt)
+  @rebuild BIT = 0 -- 1 = drop and rebuild table if it already exists, 0 = don't (defualt)  
 AS
 
 BEGIN  
+
+DECLARE @cols NVARCHAR(MAX) -- column names
 
 -- clean up inputs
 SET @db = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@db,']',''),'[',''),'.',''),'dbo.',''),' ','')
@@ -39,13 +41,7 @@ SET @view = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@view,']',''),'[',''),'.',''
                   SELECT *
                   INTO [' + @view + '#static]
                   FROM ' + @db + '..' + @view + '
-                  WHERE 1 = 2;
-
-                  ALTER TABLE ' + @db + '..[' + @view + '#static]
-                  ADD BINI_ID INT IDENTITY(1,1);
-        
-                  ALTER TABLE ' + @db + '..[' + @view + '#static]
-                  ADD CONSTRAINT PK_' + @view + ' PRIMARY KEY(BINI_ID);
+                  WHERE 1 = 2;                  
                 ';
                 EXEC(@sql);
                 PRINT 'Table ' + @db + '..' + @view + ' created'; 
@@ -60,9 +56,18 @@ SET @view = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@view,']',''),'[',''),'.',''
                 ';
                 EXEC(@sql);
 
+                -- store column names into variable                
+                SELECT @cols = STUFF((SELECT ',' + COLUMN_NAME
+                                      FROM INFORMATION_SCHEMA.COLUMNS
+                                      WHERE TABLE_NAME = @view
+                                      ORDER BY ORDINAL_POSITION ASC
+                                      FOR XML PATH(''))
+                                     , 1, 1, '')
+
                 -- actual procedure code starts here
                 SET @sql = '                  
 CREATE PROCEDURE [sp_' + @view + '#static|refresh] AS
+
 BEGIN
 
   DECLARE @sql AS VARCHAR(MAX)='''';
@@ -81,7 +86,7 @@ BEGIN
          
 
   -- STEP 3: truncate destination table
-  EXEC(''TRUNCATE TABLE ' + @db + '..' + @view + '#static'');
+  EXEC(''DELETE FROM ' + @db + '..' + @view + '#static'');
 
 
   -- STEP 4: disable all nonclustered indexes on table
@@ -99,7 +104,8 @@ BEGIN
 
   -- STEP 5: insert into final destination
   INSERT INTO [' + @view + '#static]
-  SELECT *
+   (' + @cols + ')
+  SELECT ' + @cols + '
   FROM [#' + @view + '#static|refresh];
  
 
@@ -183,12 +189,6 @@ END
                       INTO [' + @view + '#static]
                       FROM ' + @db + '..' + @view + '
                       WHERE 1 = 2;
-
-                      ALTER TABLE ' + @db + '..[' + @view + '#static]
-                      ADD BINI_ID INT IDENTITY(1,1);
-
-                      ALTER TABLE ' + @db + '..[' + @view + '#static]
-                      ADD CONSTRAINT PK_' + @view + ' PRIMARY KEY(BINI_ID);
                     ';
                     EXEC(@sql);
                     
@@ -204,9 +204,18 @@ END
                   ';
                   EXEC(@sql);
 
+                  -- store column names into variable                
+                  SELECT @cols = STUFF((SELECT ',' + COLUMN_NAME
+                                        FROM INFORMATION_SCHEMA.COLUMNS
+                                        WHERE TABLE_NAME = @view
+                                        ORDER BY ORDINAL_POSITION ASC
+                                        FOR XML PATH(''))
+                                       , 1, 1, '')
+
                   -- actual procedure code starts here
                   SET @sql = '                  
 CREATE PROCEDURE [sp_' + @view + '#static|refresh] AS
+
 BEGIN
 
   DECLARE @sql AS VARCHAR(MAX)='''';
@@ -225,7 +234,7 @@ BEGIN
          
 
   -- STEP 3: truncate destination table
-  EXEC(''TRUNCATE TABLE ' + @db + '..' + @view + '#static'');
+  EXEC(''DELETE FROM ' + @db + '..' + @view + '#static'');
 
 
   -- STEP 4: disable all nonclustered indexes on table
@@ -243,7 +252,8 @@ BEGIN
 
   -- STEP 5: insert into final destination
   INSERT INTO [' + @view + '#static]
-  SELECT *
+   (' + @cols + ')
+  SELECT ' + @cols + '
   FROM [#' + @view + '#static|refresh];
  
 
@@ -269,7 +279,7 @@ END
                     PRINT CHAR(13) + CHAR(10);
                     -- prints the generated code to console and then execute the creation
                     -- SAVE THIS TO mandi!
-                    PRINT 'Running the new procedure.  When done, copy and save this code as sp_' + @view + '#static_refresh:';
+                    PRINT 'Running the new procedure.  When done, copy and save this code as: ' + CHAR(13) + CHAR(10) + 'sp_' + @view + '#static_refresh:';
                     PRINT CHAR(13) + CHAR(10);
                     PRINT 'USE [' + @db + ']' + CHAR(13) + CHAR(10)
                             + 'GO'  + CHAR(13) + CHAR(10)  + CHAR(13) + CHAR(10)

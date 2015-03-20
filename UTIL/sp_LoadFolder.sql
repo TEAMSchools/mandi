@@ -5,7 +5,7 @@
 USE KIPP_NJ
 GO
 
-ALTER PROCEDURE sp_LoadFolder
+CREATE PROCEDURE sp_LoadFolder
   @dbname NVARCHAR(256),
   @dir VARCHAR(8000)
 AS

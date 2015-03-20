@@ -117,15 +117,34 @@ SELECT r.year
       ,map_curr.pct AS cur_pct       
       ,map_curr.lexile AS cur_lex
       ,CASE 
-        WHEN map_long.pct >= 0 AND map_long.pct < 25 THEN 1
-        WHEN map_long.pct >= 25 AND map_long.pct < 50 THEN 2
-        WHEN map_long.pct >= 50 AND map_long.pct < 75 THEN 3
-        WHEN map_long.pct >= 75 THEN 4
+        WHEN r.grade_level > 0 AND map_long.prevspr_pct >= 0 AND map_long.prevspr_pct < 25 THEN 1
+        WHEN r.grade_level > 0 AND map_long.prevspr_pct >= 25 AND map_long.prevspr_pct < 50 THEN 2
+        WHEN r.grade_level > 0 AND map_long.prevspr_pct >= 50 AND map_long.prevspr_pct < 75 THEN 3
+        WHEN r.grade_level > 0 AND map_long.prevspr_pct >= 75 THEN 4
+        WHEN r.grade_level = 0 AND map_long.base_pct >= 0 AND map_long.base_pct < 25 THEN 1
+        WHEN r.grade_level = 0 AND map_long.base_pct >= 25 AND map_long.base_pct < 50 THEN 2
+        WHEN r.grade_level = 0 AND map_long.base_pct >= 50 AND map_long.base_pct < 75 THEN 3
+        WHEN r.grade_level = 0 AND map_long.base_pct >= 75 THEN 4
         ELSE NULL
        END AS quartile
       ,CASE WHEN map_curr.fallwinterspring = 'Fall' THEN NULL ELSE map_curr.rit - map_long.base_rit END AS ytd_rit_growth
       ,CASE WHEN map_curr.fallwinterspring = 'Fall' THEN NULL ELSE map_curr.pct - map_long.base_pct END AS ytd_pct_growth
       ,CASE WHEN map_curr.fallwinterspring = 'Fall' THEN NULL ELSE map_curr.lexile - map_long.base_lex END AS ytd_lex_growth
+      ,CASE 
+        WHEN map_curr.fallwinterspring IN ('Fall','Previous Spring') THEN NULL 
+        WHEN r.grade_level = 0 THEN map_curr.rit - map_long.base_rit
+        ELSE map_curr.rit - map_long.prevspr_rit         
+       END AS ytd_rit_growth_prevspr
+      ,CASE 
+        WHEN map_curr.fallwinterspring IN ('Fall','Previous Spring') THEN NULL 
+        WHEN r.grade_level = 0 THEN map_curr.pct - map_long.base_pct
+        ELSE map_curr.pct - map_long.prevspr_pct         
+       END AS ytd_pct_growth_prevspr
+      ,CASE 
+        WHEN map_curr.fallwinterspring IN ('Fall','Previous Spring') THEN NULL 
+        WHEN r.grade_level = 0 THEN map_curr.lexile - map_long.base_lex
+        ELSE map_curr.lexile - map_long.prevspr_lex
+       END AS ytd_lex_growth_prevspr
       ,map_curr.pct - 75 AS dist_from_75
       ,CASE WHEN map_long.fallwinterspring = map_curr.fallwinterspring THEN 1 ELSE 0 END AS is_current
       ,enr.CREDITTYPE

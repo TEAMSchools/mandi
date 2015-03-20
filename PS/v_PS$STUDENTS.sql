@@ -1,0 +1,84 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW PS$STUDENTS AS
+
+SELECT DCID
+      ,ID
+      ,LASTFIRST
+      ,FIRST_NAME
+      ,MIDDLE_NAME
+      ,LAST_NAME
+      ,STUDENT_NUMBER
+      ,ENROLL_STATUS
+      ,GRADE_LEVEL
+      ,SCHOOLID
+      ,GENDER
+      ,DOB
+      ,LUNCHSTATUS
+      ,ETHNICITY
+      ,ENTRYDATE
+      ,EXITDATE
+      ,ENTRYCODE
+      ,EXITCODE
+      ,FTEID
+      ,TEAM
+      ,STATE_STUDENTNUMBER
+      ,WEB_ID
+      ,WEB_PASSWORD
+      ,ALLOWWEBACCESS
+      ,STUDENT_WEB_ID
+      ,STUDENT_WEB_PASSWORD
+      ,STUDENT_ALLOWWEBACCESS
+      ,STREET
+      ,CITY
+      ,STATE
+      ,ZIP
+      ,MOTHER
+      ,FATHER
+      ,HOME_PHONE
+      ,EMERG_CONTACT_1
+      ,EMERG_CONTACT_2
+      ,EMERG_PHONE_1
+      ,EMERG_PHONE_2
+FROM OPENQUERY(PS_TEAM,'
+  SELECT DCID
+        ,ID
+        ,LASTFIRST
+        ,FIRST_NAME
+        ,MIDDLE_NAME
+        ,LAST_NAME
+        ,STUDENT_NUMBER
+        ,ENROLL_STATUS
+        ,GRADE_LEVEL
+        ,SCHOOLID
+        ,GENDER
+        ,DOB
+        ,LUNCHSTATUS
+        ,ETHNICITY
+        ,ENTRYDATE
+        ,EXITDATE
+        ,ENTRYCODE
+        ,EXITCODE
+        ,FTEID
+        ,TEAM
+        ,STATE_STUDENTNUMBER
+        ,WEB_ID
+        ,WEB_PASSWORD
+        ,ALLOWWEBACCESS
+        ,STUDENT_WEB_ID
+        ,STUDENT_WEB_PASSWORD
+        ,STUDENT_ALLOWWEBACCESS
+        ,STREET
+        ,CITY
+        ,STATE
+        ,ZIP
+        ,MOTHER
+        ,FATHER
+        ,HOME_PHONE
+        ,EMERG_CONTACT_1
+        ,EMERG_CONTACT_2
+        ,EMERG_PHONE_1
+        ,EMERG_PHONE_2
+  FROM STUDENTS
+')
