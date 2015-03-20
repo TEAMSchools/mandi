@@ -65,7 +65,7 @@ WITH reenrollments AS (
              ,s.exitdate
              ,s.entrycode
              ,s.exitcode
-       FROM students s WITH(NOLOCK)
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 2
          AND s.schoolid != 999999
          AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1
@@ -99,7 +99,7 @@ WITH reenrollments AS (
              ,s.entrydate
              ,s.entrycode
              ,s.exitdate           
-       FROM students s WITH(NOLOCK)
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 0 
          AND s.schoolid != 999999
          AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1
@@ -133,7 +133,7 @@ WITH reenrollments AS (
              ,s.grade_level AS grade_level
              ,s.entrydate
              ,s.exitdate
-       FROM students s WITH(NOLOCK)
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 3
          AND s.id NOT IN (171, 141, 45) 
          -- 3 students back in the Dark Ages graduated 8th, didn't go to NCA in 9th, but came back and graduated from NCA with a different student record
@@ -180,5 +180,5 @@ SELECT unioned_tables.studentid
           PARTITION BY unioned_tables.studentid
               ORDER BY unioned_tables.yearid ASC) AS year_in_network
 FROM unioned_tables
-LEFT OUTER JOIN students s
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s
   ON unioned_tables.studentid = s.id
