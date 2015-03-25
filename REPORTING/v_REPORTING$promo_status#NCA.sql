@@ -59,14 +59,14 @@ FROM
            ,cs.SPEDLEP
            ,cum.earned_credits_cum
            ,proj.proj_credits
-           ,ISNULL(cum.earned_credits_cum,0) AS eoy_proj_credits
-           --,ISNULL(cum.earned_credits_cum,0) + proj.proj_credits AS eoy_proj_credits
+           --,ISNULL(cum.earned_credits_cum,0) AS eoy_proj_credits -- after grades are stored at EOY
+           ,ISNULL(cum.earned_credits_cum,0) + proj.proj_credits AS eoy_proj_credits
            ,CASE
-             WHEN ISNULL(cum.earned_credits_cum,0) >= 120 THEN 99
-             WHEN ISNULL(cum.earned_credits_cum,0) >= 85 THEN 12
-             WHEN ISNULL(cum.earned_credits_cum,0) >= 50 THEN 11
-             WHEN ISNULL(cum.earned_credits_cum,0) >= 25 THEN 10
-             WHEN ISNULL(cum.earned_credits_cum,0) < 25 THEN 9
+             WHEN ISNULL(cum.earned_credits_cum,0) + ISNULL(proj.proj_credits,0) >= 120 THEN 99
+             WHEN ISNULL(cum.earned_credits_cum,0) + ISNULL(proj.proj_credits,0) >= 85 THEN 12
+             WHEN ISNULL(cum.earned_credits_cum,0) + ISNULL(proj.proj_credits,0) >= 50 THEN 11
+             WHEN ISNULL(cum.earned_credits_cum,0) + ISNULL(proj.proj_credits,0) >= 25 THEN 10
+             WHEN ISNULL(cum.earned_credits_cum,0) + ISNULL(proj.proj_credits,0) < 25 THEN 9
             END AS proj_gr
            ,proj.audit_string
      FROM STUDENTS s WITH(NOLOCK)

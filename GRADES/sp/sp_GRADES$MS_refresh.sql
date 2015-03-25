@@ -166,8 +166,8 @@ BEGIN
       ON pgf.sectionid = cc.sectionid
      AND pgf.studentid = cc.studentid
      AND cc.termid >= ' + CONVERT(VARCHAR,  @v_termid) + '
-     AND cc.schoolid IN (73252, 133570965)
-    WHERE pgf.finalgradename IN (''''' + @v_grade_1 + ''''','''''+ @v_grade_2 +''''','''''+ @v_grade_3 +''''')
+     AND cc.schoolid IN (73252, 133570965)         
+    WHERE pgf.finalgradename IN (''''' + @v_grade_1 + ''''','''''+ @v_grade_2 +''''','''''+ @v_grade_3 +''''')      
   '');
 ';
 
@@ -226,6 +226,7 @@ BEGIN
      ON co.STUDENTID = s.ID
    JOIN cc WITH(NOLOCK)
      ON co.STUDENTID = cc.studentid
+    AND cc.sectionid > 0
     AND cc.termid >= @v_termid
     --exclude a bunch of courses that will never count towards GPA
     AND cc.course_number != @v_course_ex_advisory

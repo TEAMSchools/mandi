@@ -60,7 +60,7 @@ WITH roster AS (
                 OR rc5_Y1 < 65) THEN 1 
           ELSE 0 
          END AS is_failing         
-  FROM GRADES$wide_credit_core#MS#static WITH(NOLOCK)
+  FROM KIPP_NJ..GRADES$wide_credit_core#MS#static WITH(NOLOCK)
  )
 
 ,att_status AS (
@@ -75,7 +75,8 @@ WITH roster AS (
 ,Y1_avg AS (
   SELECT student_number
         ,ROUND(AVG(Y1),0) AS yaverage
-        ,SUM(CASE WHEN Y1 < 70 THEN 1 ELSE 0 END) AS n_failing
+        ,SUM(CASE WHEN Y1 < 65 THEN 1 ELSE 0 END) AS n_failing
+        ,CASE WHEN SUM(CASE WHEN Y1 < 65 THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS is_failing
   FROM
       (
        SELECT student_number
@@ -168,8 +169,8 @@ SELECT roster.*
       ,fp.fp_gleq
       ,fp.met_goal AS fp_met_goal
       ,Y1_avg.yaverage
-      ,Y1_avg.n_failing
-      ,gr_wide.is_failing
+      ,y1_avg.n_failing
+      ,y1_avg.is_failing
       ,gr_wide.readingY1
       ,gr_wide.writingY1
       ,gr_wide.mathY1

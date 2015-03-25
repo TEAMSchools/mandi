@@ -55,6 +55,7 @@ SELECT co.school_name
       ,long.unique_id      
       ,long.domain AS component_domain
       ,long.label AS component_strand
+      ,long.specific_label AS component_strand_specific
       ,long.score AS component_score
       ,long.benchmark AS component_benchmark
       ,long.is_prof AS component_prof
@@ -120,17 +121,17 @@ SELECT co.school_name
       ,gr.t3_teach
       ,achv.test_round
       ,testid.status      
-      ,achv.read_lvl
-      ,achv.lvl_num
+      ,testid.read_lvl
+      ,testid.lvl_num
       ,achv.goal_lvl
       ,achv.goal_num
-      ,achv.lvl_num - achv.goal_num AS distance_from_goal
+      ,testid.lvl_num - achv.goal_num AS distance_from_goal
       ,testid.instruct_lvl
-      ,achv.indep_lvl
-      ,achv.GLEQ      
+      ,testid.indep_lvl
+      ,testid.GLEQ      
       ,testid.color
       ,testid.genre
-      ,CONVERT(FLOAT,achv.met_goal) AS met_goal      
+      ,CONVERT(FLOAT,testid.met_goal) AS met_goal      
       ,CASE
         WHEN achv.test_round = 'T1' AND growth.t1_growth_lvl > 0 THEN 1.0
         WHEN achv.test_round = 'T2' AND growth.T1T2_growth_lvl > 0 THEN 1.0
@@ -151,6 +152,7 @@ SELECT co.school_name
       ,long.unique_id      
       ,long.domain AS component_domain
       ,long.label AS component_strand
+      ,long.specific_label AS component_strand_specific
       ,long.score AS component_score
       ,long.benchmark AS component_benchmark
       ,long.is_prof AS component_prof

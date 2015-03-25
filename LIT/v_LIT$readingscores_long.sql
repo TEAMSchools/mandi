@@ -149,7 +149,10 @@ SELECT sub.unique_id
       ,sub.lvl_num
       ,sub.status
       ,sub.domain
+      ,sub.subdomain
+      ,sub.strand
       ,sub.label
+      ,sub.specific_label
       ,sub.field
       ,sub.score
       ,sub.benchmark
@@ -169,11 +172,18 @@ FROM
            ,gleq.lvl_num
            ,rs.status
            ,prof.domain
+           ,prof.subdomain
+           ,prof.strand
            ,rs.field
            ,CASE
              WHEN prof.strand LIKE '%overall%' THEN ISNULL(prof.domain + ': ', '') + prof.strand
              ELSE ISNULL(prof.subdomain + ': ', '') + prof.strand 
             END AS label
+           ,CASE
+             WHEN prof.strand LIKE '%overall%' AND prof.subdomain IS NOT NULL THEN ISNULL(prof.domain + ' (', '') + ISNULL(prof.subdomain + '): ', '') + prof.strand
+             WHEN prof.strand LIKE '%overall%' AND prof.subdomain IS NULL THEN ISNULL(prof.domain + ': ', '') + prof.strand
+             ELSE ISNULL(prof.subdomain + ': ', '') + prof.strand 
+            END AS specific_label
            ,rs.score
            ,CONVERT(FLOAT,prof.score) AS benchmark
            ,CASE 
@@ -195,5 +205,5 @@ FROM
      JOIN LIT$prof_long prof WITH(NOLOCK)
        ON rs.testid = prof.testid
       AND rs.field = prof.field_name
-      AND gleq.lvl_num = prof.lvl_num
+      AND gleq.lvl_num = prof.lvl_num     
     ) sub
