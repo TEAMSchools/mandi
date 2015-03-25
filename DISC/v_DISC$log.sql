@@ -11,6 +11,7 @@ WITH disc_log AS (
           WHEN disc.entry_date = '0000-00-00' THEN CONVERT(DATE,disc.discipline_incidentdate)
           WHEN CONVERT(DATE,disc.discipline_incidentdate) = '1900-01-01' THEN CONVERT(DATE,disc.entry_date) 
           WHEN disc.logtypeid IN (3023, 3223) OR disc.schoolid = 73253 THEN CONVERT(DATE,disc.entry_date) 
+          WHEN CONVERT(DATE,disc.discipline_incidentdate) >= CONVERT(DATE,GETDATE()) THEN CONVERT(DATE,disc.entry_date)
           ELSE CONVERT(DATE,disc.discipline_incidentdate) 
          END AS entry_date
         ,CASE 
