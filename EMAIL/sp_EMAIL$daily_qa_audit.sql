@@ -7,10 +7,6 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
---IF OBJECT_ID('sp_EMAIL$daily_qa_audit', 'P') IS NOT NULL
---    DROP PROCEDURE sp_EMAIL$daily_qa_audit;
---GO
-
 ALTER PROCEDURE sp_EMAIL$daily_qa_audit AS 
 
 BEGIN
@@ -105,20 +101,21 @@ BEGIN
     '                
 
   SET @sql_last_refresh = '
-    SELECT job_name
-         ,run_date_format AS last_run
-         ,CAST(CAST(ROUND((minutes_old + 0.0) / 60, 1) AS NUMERIC(5,1)) AS NVARCHAR) AS hours_old
-         ,CASE 
-            WHEN SUBSTRING(run_duration, 1, 2) = ''00'' THEN STUFF(SUBSTRING(run_duration, 3, 8),3,0,'':'')
-            ELSE STUFF(STUFF(run_duration,3,0,'':''),6,0,'':'') 
-          END AS run_time
-   FROM master..QA$successful_job_history WITH(NOLOCK)
-   WHERE rn = 1
-     AND (job_name LIKE ''KIPP_NJ%''
-      OR job_name LIKE ''PS%''
-      OR job_name LIKE ''SPI%''
-      OR job_name IN (''Khan | Load Data'', ''NWEA | Load Data''))
-   ORDER BY run_time DESC
+    SELECT TOP 100 PERCENT
+           job_name
+          ,run_date_format AS last_run
+          ,CAST(CAST(ROUND((minutes_old + 0.0) / 60, 1) AS NUMERIC(5,1)) AS NVARCHAR) AS hours_old          
+          ,CASE 
+             WHEN SUBSTRING(run_duration, 1, 2) = ''00'' THEN STUFF(SUBSTRING(run_duration, 3, 8),3,0,'':'')
+             ELSE STUFF(STUFF(run_duration,3,0,'':''),6,0,'':'') 
+           END AS run_time
+    FROM master..QA$successful_job_history WITH(NOLOCK)
+    WHERE rn = 1
+      AND (job_name LIKE ''KIPP_NJ%''
+       OR job_name LIKE ''PS%''
+       OR job_name LIKE ''SPI%''
+       OR job_name IN (''Khan | Load Data'', ''NWEA | Load Data''))
+    ORDER BY run_duration DESC
   '
 
   --use the return value to get the results from the QA table
@@ -138,23 +135,38 @@ BEGIN
            AND h.step_id = 0
            AND h.run_status = 0     
         ) sub
-    GROUP BY job_name
+    GROUP BY job_name    
+    
     UNION ALL
-    SELECT ''All jobs''
-          ,0
-    '
+    
+    SELECT ''Total''
+          ,COUNT(*) AS failure_count
+    FROM
+        (
+         SELECT j.name AS job_name
+               ,msdb.dbo.agent_datetime(run_date, run_time) AS run_date_format
+               ,h.*
+         FROM msdb.dbo.sysjobs j WITH(NOLOCK)
+         JOIN msdb.dbo.sysjobhistory h WITH(NOLOCK)
+          ON j.job_id = h.job_id 
+         WHERE j.enabled = 1 
+           AND msdb.dbo.agent_datetime(run_date, run_time) >= DATEADD(day, -1, GETDATE())
+           AND h.step_id = 0
+           AND h.run_status = 0     
+        ) sub    
+  '
 
-  --/*
+  /*
   --run the view timing test
   --SET @return_value = 139 --testing
-  EXEC	@return_value = [dbo].sp_QA$view_query_time
+  EXEC	@return_value = [dbo].sp_QA$view_query_time  
 
   SET @sql_views = '
     SELECT object_name AS "non-cached views"
           ,CAST(CAST(refresh_time / 1000.0 AS NUMERIC(8,2)) AS NVARCHAR(MAX)) AS "seconds to refresh"
     FROM KIPP_NJ.dbo.QA$response_time_results WITH(NOLOCK)
-    WHERE batch_id =' + CAST(@return_value AS VARCHAR)
-  --*/
+    WHERE batch_id =' + CAST(@return_value AS VARCHAR)  
+  */
 
   --sp_TableToHTML is a procedure that TAKES a SQL statement and returns HTML
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_demog_audits, @html_demog_audits OUTPUT  
@@ -164,7 +176,7 @@ BEGIN
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_account_audits, @html_account_audits OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_warehouse_audits, @html_warehouse_audits OUTPUT  
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_last_refresh, @html_last_refresh OUTPUT
-  EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_views, @html_views OUTPUT
+  --EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_views, @html_views OUTPUT
   EXECUTE AlumniMirror.dbo.sp_TableToHTML @sql_failed_jobs, @html_failed_jobs OUTPUT
   
 SET @email_body = '
@@ -263,12 +275,14 @@ SET @email_body = '
 '
 + @html_failed_jobs 
 
+/*
  -- non cached view refresh time
 + '
   <br>
   <span style="med_text">Refresh time for non-cached views</span>
 '
 +  @html_views  
+*/
 
 -- footer
 + '
@@ -283,7 +297,7 @@ PRINT @email_body
 EXEC [msdb].[dbo].sp_send_dbmail @profile_name = 'DataRobot'
 								,@body = @email_body
 								,@body_format ='HTML'
-								,@recipients = 'cbini@kippnj.org' -- troubleshooting
-        --,@recipients = 'amartin@teamschools.org;ldesimon@teamschools.org;nmadigan@teamschools.org;cbini@teamschools.org;smircovich@teamschools.org;plebre@teamschools.org;kswearingen@teamschools.org;amilun@teamschools.org'        
+								--,@recipients = 'cbini@kippnj.org' -- troubleshooting
+        ,@recipients = 'amartin@teamschools.org;ldesimon@teamschools.org;nmadigan@teamschools.org;cbini@teamschools.org;smircovich@teamschools.org;plebre@teamschools.org;kswearingen@teamschools.org;amilun@teamschools.org'        
 								,@subject = 'SQL Server: Audit/QA Results'
 END

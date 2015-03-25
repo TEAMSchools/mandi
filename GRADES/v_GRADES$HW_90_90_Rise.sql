@@ -2,20 +2,59 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW GRADES$HW_90_90#Rise AS
-WITH roster AS
-    (
-     SELECT s.id AS studentid
-           ,s.lastfirst
-           ,s.first_name + ' ' + s.last_name AS stu_name
-           ,s.grade_level
-           ,cc.course_number
-     FROM KIPP_NJ..STUDENTS s
-     JOIN KIPP_NJ..CC cc
-       ON s.id = cc.studentid
-      AND cc.dateenrolled <= CAST(GETDATE() AS date)
-      AND cc.dateleft >= CAST(GETDATE() AS date)
-     WHERE s.schoolid = 73252
-       AND s.enroll_status = 0)
+
+WITH roster AS (
+  SELECT s.id AS studentid
+        ,s.lastfirst
+        ,s.first_name + ' ' + s.last_name AS stu_name
+        ,s.grade_level
+        --,cc.course_number
+  FROM KIPP_NJ..STUDENTS s WITH(NOLOCK) 
+  WHERE s.schoolid = 73252
+    AND s.enroll_status = 0
+ )
+
+,curterm AS (
+  SELECT time_per_name
+        ,alt_name
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
+  WHERE start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())
+    AND identifier = 'RT'
+    AND schoolid = 73252
+ )
+
+,ele_wide AS (
+  SELECT studentid        
+        ,[yr_h]
+        ,[yr_q]
+        ,[cur_h]
+        ,[cur_q]
+  FROM
+      (
+       SELECT studentid
+             ,CASE 
+               WHEN term = 'Y1' AND pgf_type = 'H' THEN 'yr_h'
+               WHEN term != 'Y1' AND pgf_type = 'H' THEN 'cur_h'
+               WHEN term = 'Y1' AND pgf_type = 'Q' THEN 'yr_q'
+               WHEN term != 'Y1' AND pgf_type = 'Q' THEN 'cur_q'
+              END AS pivot_hash
+             ,ROUND(AVG(grade),0) AS grade
+             --,COUNT(studentid) AS n
+       FROM KIPP_NJ..GRADES$elements_long WITH(NOLOCK)
+       WHERE yearid = LEFT(KIPP_NJ.dbo.fn_Global_Term_Id(),2)
+         AND pgf_type IN ('H','Q')
+         AND term IN ((SELECT alt_name FROM curterm), 'Y1')
+       GROUP BY studentid, term, pgf_type
+      ) sub
+  PIVOT(
+    MAX(grade)
+    FOR pivot_hash IN ([yr_h]
+                      ,[yr_q]
+                      ,[cur_h]
+                      ,[cur_q])
+   ) p
+ )
 
 SELECT sub.*
       ,CASE
@@ -29,32 +68,17 @@ SELECT sub.*
          WHEN yr_q >= 70 AND yr_h >= 70 THEN 'Middle'
        END AS yr_ninety_ninety_status
 FROM
-      (
-       SELECT roster.studentid
-             ,roster.lastfirst
-             ,roster.stu_name
-             ,roster.grade_level
-             /*--UPDATE FOR CURRENT TERM--*/ 
-             ,CAST(ROUND(AVG(q.grade_2), 0) AS FLOAT) AS cur_q
-             ,CAST(ROUND(AVG(h.grade_2), 0) AS FLOAT) AS cur_h
-             ,CAST(ROUND(AVG(q.simple_avg), 0) AS FLOAT) AS yr_q
-             ,CAST(ROUND(AVG(h.simple_avg), 0) AS FLOAT) AS yr_h
-             ,COUNT(*) AS n
-       FROM roster
-       JOIN KIPP_NJ..GRADES$elements q
-         ON roster.studentid = q.studentid
-        AND roster.course_number = q.course_number
-        AND q.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
-        AND q.pgf_type = 'Q'
-
-       JOIN KIPP_NJ..GRADES$elements h
-         ON roster.studentid = h.studentid
-        AND roster.course_number = h.course_number
-        AND h.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
-        AND h.pgf_type = 'H'
-
-       GROUP BY roster.studentid
-               ,roster.lastfirst
-               ,roster.stu_name
-               ,roster.grade_level
-       ) sub
+    (
+     SELECT roster.studentid
+           ,roster.lastfirst
+           ,roster.stu_name
+           ,roster.grade_level           
+           ,e.cur_q
+           ,e.cur_h
+           ,e.yr_q
+           ,e.yr_h
+           --,e.n
+     FROM roster
+     LEFT OUTER JOIN ele_wide e
+       ON roster.studentid = e.studentid     
+    ) sub
