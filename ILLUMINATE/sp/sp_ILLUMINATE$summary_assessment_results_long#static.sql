@@ -17,8 +17,7 @@ BEGIN
      ,field NVARCHAR(MAX)
      ,value NVARCHAR(MAX)
      ,ID INT
-     ,is_deleted BIT
-     )
+     ,is_deleted BIT)
 
 
 -- 2.) Declare variables --
@@ -31,15 +30,14 @@ BEGIN
 
 -- 3.) Declare the cursor FOR the set of records it will loop over --
   -- cursor name MUST be unique within schema
-  -- TODO: MERGE only repos created or updated in the past day
-  -- TODO: find a way to remove DELETED records
+  -- TODO: MERGE only repos created or updated in the past day  
   DECLARE illuminate_cursor CURSOR FOR
     SELECT repository_id        
     FROM OPENQUERY(ILLUMINATE,'
       SELECT repository_id          
       FROM dna_repositories.repositories    
       WHERE deleted_at IS NULL      
-        --AND (created_at >= (current_date - interval ''1 day'') OR updated_at >= (current_date - interval ''1 day''))
+        AND (created_at >= (current_date - interval ''1 day'') OR updated_at >= (current_date - interval ''1 day''))
         AND repository_id <= 110
       ORDER BY repository_id DESC
     ')
@@ -124,6 +122,52 @@ BEGIN
   DEALLOCATE illuminate_cursor;
 
 
+-- 5.) UPSERT: matching on repo, row number, studentid, and field name.  DELETE if on TARGET but not MATCHED by SOURCE
+  MERGE ILLUMINATE$summary_assessment_results_long#static AS TARGET
+  USING (
+         SELECT repository_id
+               ,repository_row_id
+               ,student_id
+               ,field
+               ,value
+         FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh]
+        ) AS SOURCE  
+        (
+         repository_id
+        ,repository_row_id
+        ,student_id
+        ,field
+        ,value
+        )
+   ON TARGET.repository_id = SOURCE.repository_id
+  AND TARGET.repository_row_id = SOURCE.repository_row_id
+  AND TARGET.student_id = SOURCE.student_id
+  AND TARGET.field = SOURCE.field           
+  WHEN MATCHED THEN UPDATE
+   SET TARGET.value = SOURCE.value          
+  WHEN NOT MATCHED BY TARGET THEN INSERT
+    (repository_id
+    ,repository_row_id
+    ,student_id
+    ,field
+    ,value)
+   VALUES 
+    (SOURCE.repository_id
+    ,SOURCE.repository_row_id
+    ,SOURCE.student_id
+    ,SOURCE.field
+    ,SOURCE.value)
+  WHEN NOT MATCHED BY SOURCE 
+   AND TARGET.repository_id IN (SELECT repository_id FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh])
+   THEN DELETE
+  OUTPUT $ACTION, deleted.*;
+
+END
+
+GO
+
+
+/* -- IN CASE OF EMERGENCY, OLD TRUNCATE/INSERT CODE
   --STEP 4: truncate 
   EXEC('TRUNCATE TABLE KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static');
 
@@ -171,49 +215,4 @@ BEGIN
   AND sys.objects.type_desc = 'USER_TABLE'
   AND sys.objects.name = 'ILLUMINATE$summary_assessment_results_long#static';
  EXEC (@sql);
-
-
--- TURNED OFF -- If a value on a table was deleted on the source table, there would be no way to match it on the target table after the UNPIVOT
----- 5.) UPSERT: matching on repo, row number, studentid, and field name
---  MERGE ILLUMINATE$summary_assessment_results_long#static AS TARGET
---  USING (
---         SELECT repository_id
---               ,repository_row_id
---               ,student_id
---               ,field
---               ,value
---         FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh]
---        ) AS SOURCE  
---        (
---         repository_id
---        ,repository_row_id
---        ,student_id
---        ,field
---        ,value
---        )
---   ON target.repository_id = source.repository_id
---  AND target.repository_row_id = source.repository_row_id
---  AND target.student_id = source.student_id
---  AND target.field = source.field           
---  WHEN MATCHED THEN
---    UPDATE
---    SET target.value = source.value          
---  WHEN NOT MATCHED THEN
---    INSERT (
---            repository_id
---           ,repository_row_id
---           ,student_id
---           ,field
---           ,value
---           )
---    VALUES (
---            source.repository_id
---           ,source.repository_row_id
---           ,source.student_id
---           ,source.field
---           ,source.value
---           );
-
-END
-
-GO
+*/

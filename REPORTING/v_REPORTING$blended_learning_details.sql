@@ -105,30 +105,38 @@ WITH curterm AS (
 			                    ,c.schoolid
                        ,c.school_name	AS school
                        ,CASE
-                         WHEN sec.credittype = 'MATH' THEN 'Mathematics'
-                         WHEN sec.credittype IN ('ENG','READ') THEN 'Reading'
-                         WHEN sec.credittype = 'RHET' THEN 'Language Usage'
-                         WHEN sec.credittype = 'SCI' THEN 'Science - General Science'
+                         WHEN enr.credittype = 'MATH' THEN 'Mathematics'
+                         WHEN enr.credittype IN ('ENG','READ') THEN 'Reading'
+                         WHEN enr.credittype = 'RHET' THEN 'Language Usage'
+                         WHEN enr.credittype = 'SCI' THEN 'Science - General Science'
                         END AS measurementscale
                        ,CASE 
-                         WHEN sec.credittype = 'ENG' THEN 'READ'
-                         WHEN sec.credittype = 'RHET' THEN 'LANG'
-                         ELSE sec.credittype 
+                         WHEN enr.credittype = 'ENG' THEN 'READ'
+                         WHEN enr.credittype = 'RHET' THEN 'LANG'
+                         ELSE enr.credittype 
                         END AS credittype
-                       ,sec.course_number
-                       ,sec.term
-                       ,sn.SECTION_NUMBER
-                       ,sec.teacher
+                       ,enr.course_number
+                       ,ISNULL(sec.term,curterm.alt_name) AS term
+                       ,enr.SECTION_NUMBER
+                       ,enr.teacher_name AS teacher
                        ,gr.y1_pct AS pct
-                 FROM KIPP_NJ..COHORT$identifiers_long#static c  WITH(NOLOCK)                       
+                 FROM KIPP_NJ..COHORT$identifiers_long#static c WITH(NOLOCK)                       
+                 JOIN curterm
+                   ON c.schoolid = curterm.schoolid
+                 JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
+                   ON c.studentid = enr.STUDENTID
+                  AND c.year = enr.academic_year
+                  AND enr.credittype IN ('MATH','ENG','SCI','RHET')                
                  LEFT OUTER JOIN GRADES$sections_by_term#static sec WITH(NOLOCK)
-                   ON c.studentid = sec.studentid                                  
+                   ON c.studentid = sec.studentid
+                  AND enr.sectionid = sec.sectionid
                  LEFT OUTER JOIN SECTIONS sn WITH(NOLOCK)
                    ON sec.sectionid = sn.id
                  LEFT OUTER JOIN GRADES$detail_long gr WITH(NOLOCK)
                    ON c.studentid = gr.studentid
                   AND sec.course_number = gr.course_number
-                  AND gr.sectionid IS NULL 
+                  AND sec.sectionid = gr.sectionid                
+                  AND sec.term = gr.term
                   AND gr.curterm_flag = 1
                  WHERE c.year = dbo.fn_Global_Academic_Year()
                    AND c.rn = 1
