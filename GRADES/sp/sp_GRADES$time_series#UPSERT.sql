@@ -60,7 +60,7 @@ BEGIN
               LEFT OUTER JOIN assignment_scores asmt WITH(NOLOCK)
                 ON co.student_number = asmt.STUDENT_NUMBER           
                AND co.date >= asmt.ASSIGN_DATE -- join to all assignments to date
-              WHERE co.year = 2014              
+              WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()              
                 AND co.date = CONVERT(DATE,GETDATE())
                 --AND co.date <= CONVERT(DATE,GETDATE()) -- for backfilling data, could be any date range
                 AND co.schoolid IN (73252,73253,133570965)                          

@@ -56,6 +56,10 @@ GRANT SELECT ON GRADES$detail_long_term#MS TO db_data_tool_reader
 GRANT SELECT ON GRADES$assignment_scores#STAGING TO db_data_tool_reader
 GRANT SELECT ON KIPP_NJ..GRADES$assignments#STAGING TO db_data_tool_reader
 
+--GDocs
+GRANT SELECT ON KIPP_NJ..[AUTOLOAD$GDOCS_XC_TEAM_Roster] TO db_data_tool_reader
+GRANT SELECT ON KIPP_NJ..[AUTOLOAD$GDOCS_XC_Rise_Roster] TO db_data_tool_reader
+
 --ES Reporting
 GRANT SELECT ON REPORTING$intervention_results_by_standard TO db_data_tool_reader
 GRANT SELECT ON ES_DAILY$tracking_long#static TO db_data_tool_reader

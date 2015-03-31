@@ -4,8 +4,10 @@ GO
 ALTER VIEW PS$category_weighting_setup AS 
 
 SELECT *
+      ,KIPP_NJ.dbo.fn_DateToSY(startdate) AS academic_year
 FROM OPENQUERY(PS_TEAM,'
-  SELECT term.description AS term
+  SELECT DISTINCT 
+         term.description AS term
         ,s.course_number
         ,sec.id AS psm_sectionid
         ,sync.sectionsDCID
@@ -14,10 +16,11 @@ FROM OPENQUERY(PS_TEAM,'
         ,rt.startdate
         ,rt.enddate
         ,fgsetup.finalgradesetuptype
-        ,cat.name
+        ,NVL(cat.name, rt.name || NVL(TO_CHAR(gfw.weighting), ''TP'')) AS name
         ,cat.abbreviation
         ,cat.includeinfinalgrades
         ,gfw.weighting        
+        ,NVL(gfw.lowscorestodiscard,0) AS lowscorestodiscard
   FROM PSM_Term term
   JOIN PSM_Section sec
     ON term.id = sec.termid     
@@ -29,11 +32,10 @@ FROM OPENQUERY(PS_TEAM,'
     ON sync.sectionsdcid = s.dcid
   JOIN PSM_ReportingTerm rt
     ON fgsetup.reportingtermid = rt.id
-  LEFT OUTER JOIN PSM_GradingFormula grf
-    ON fgsetup.gradingformulaid = grf.id
-  LEFT OUTER JOIN PSM_GradingFormulaweighting gfw
-    ON grf.id = gfw.parentgradingformulaid
+   AND rt.name != ''Y1''
+  LEFT OUTER JOIN PSM_GradingFormulaWeighting gfw
+    ON fgsetup.gradingformulaid = gfw.parentgradingformulaid
   LEFT OUTER JOIN PSM_AssignmentCategory cat
     ON gfw.assignmentcategoryid = cat.id     
-  WHERE term.schoolyear = 2015
+  --WHERE term.schoolyear = 2015
 ') /*-- UPDATE schoolyear ANNUALLY --*/

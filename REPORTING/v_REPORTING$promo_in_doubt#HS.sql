@@ -4,18 +4,18 @@ GO
 ALTER VIEW REPORTING$promo_in_doubt#HS AS
 
 WITH roster AS (
-  SELECT s.ID
-        ,s.lastfirst
-        ,cs.ADVISOR
-        ,s.GRADE_LEVEL
+  SELECT co.studentid AS ID
+        ,co.lastfirst
+        ,co.ADVISOR
+        ,co.GRADE_LEVEL
         ,gpa.GPA_Y1
-  FROM students s WITH(NOLOCK)
-  LEFT OUTER JOIN custom_students cs WITH(NOLOCK)
-    ON s.id = cs.studentid
-  LEFT OUTER JOIN GPA$detail#NCA gpa WITH(NOLOCK)
-    ON s.id = gpa.studentid  
-  WHERE s.ENROLL_STATUS = 0
-    AND s.SCHOOLID = 73253
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
+  LEFT OUTER JOIN KIPP_NJ..GPA$detail#NCA gpa WITH(NOLOCK)
+    ON co.studentid = gpa.studentid  
+  WHERE co.ENROLL_STATUS = 0
+    AND co.SCHOOLID = 73253
+    AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND co.rn = 1
  )    
 
 ,grades AS (
