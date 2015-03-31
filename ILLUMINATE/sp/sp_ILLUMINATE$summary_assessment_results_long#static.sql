@@ -124,28 +124,31 @@ BEGIN
 
 -- 5.) UPSERT: matching on repo, row number, studentid, and field name.  DELETE if on TARGET but not MATCHED by SOURCE
   MERGE ILLUMINATE$summary_assessment_results_long#static AS TARGET
-  USING (
-         SELECT repository_id
-               ,repository_row_id
-               ,student_id
-               ,field
-               ,value
-         FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh]
-        ) AS SOURCE  
-        (
-         repository_id
-        ,repository_row_id
-        ,student_id
-        ,field
-        ,value
-        )
-   ON TARGET.repository_id = SOURCE.repository_id
-  AND TARGET.repository_row_id = SOURCE.repository_row_id
-  AND TARGET.student_id = SOURCE.student_id
-  AND TARGET.field = SOURCE.field           
-  WHEN MATCHED THEN UPDATE
-   SET TARGET.value = SOURCE.value          
-  WHEN NOT MATCHED BY TARGET THEN INSERT
+  USING 
+       (
+        SELECT repository_id
+              ,repository_row_id
+              ,student_id
+              ,field
+              ,value
+        FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh]
+       ) AS SOURCE  
+       (
+        repository_id
+       ,repository_row_id
+       ,student_id
+       ,field
+       ,value
+       )
+     ON TARGET.repository_id = SOURCE.repository_id
+    AND TARGET.repository_row_id = SOURCE.repository_row_id
+    AND TARGET.student_id = SOURCE.student_id
+    AND TARGET.field = SOURCE.field           
+  WHEN MATCHED THEN 
+   UPDATE
+    SET TARGET.value = SOURCE.value          
+  WHEN NOT MATCHED BY TARGET THEN 
+   INSERT
     (repository_id
     ,repository_row_id
     ,student_id
@@ -157,9 +160,8 @@ BEGIN
     ,SOURCE.student_id
     ,SOURCE.field
     ,SOURCE.value)
-  WHEN NOT MATCHED BY SOURCE 
-   AND TARGET.repository_id IN (SELECT repository_id FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh])
-   THEN DELETE
+  WHEN NOT MATCHED BY SOURCE AND TARGET.repository_id IN (SELECT repository_id FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh]) THEN 
+   DELETE
   OUTPUT $ACTION, deleted.*;
 
 END

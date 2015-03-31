@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---CREATE VIEW COHORT$identifiers_long AS
+ALTER VIEW COHORT$identifiers_long AS
 
 WITH hs_advisor AS (
   SELECT STUDENTID

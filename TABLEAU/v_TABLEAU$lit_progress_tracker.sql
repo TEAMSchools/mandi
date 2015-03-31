@@ -1,10 +1,26 @@
 USE KIPP_NJ
 GO
 
-USE KIPP_NJ
-GO
-
 ALTER VIEW TABLEAU$lit_progress_tracker AS
+
+WITH gr_curr AS (
+  SELECT student_number
+        ,UPPER(LEFT(term,2)) AS term
+        ,gr_teacher
+  FROM [AUTOLOAD$GDOCS_LIT_GR_Group] WITH(NOLOCK)
+  UNPIVOT(
+    gr_teacher
+    FOR term IN (t1_teach, t2_teach, t3_teach)
+   ) u
+
+  UNION ALL
+
+  SELECT student_number
+        ,'EOY' AS term
+        ,t3_teach AS gr_teacher
+  FROM [AUTOLOAD$GDOCS_LIT_GR_Group] WITH(NOLOCK)
+  WHERE student_number IS NOT NULL
+ )
 
 SELECT co.school_name
       ,co.student_number
@@ -16,17 +32,21 @@ SELECT co.school_name
       ,co.year AS academic_year      
       ,co.GENDER
       ,co.SPEDLEP AS IEP_status
+      ,co.LEP_STATUS
       ,co.enroll_status
       ,enr.illuminate_group
       ,gr.t1_teach
       ,gr.t2_teach
       ,gr.t3_teach
+      ,gr_curr.gr_teacher AS curr_gr_teach
       ,achv.test_round
       ,testid.status      
       ,achv.read_lvl
       ,achv.lvl_num
       ,achv.goal_lvl
       ,achv.goal_num
+      ,NULL AS last_achieved_lvl
+      ,NULL AS last_achieved_num
       ,achv.lvl_num - achv.goal_num AS distance_from_goal
       ,testid.instruct_lvl
       ,achv.indep_lvl
@@ -82,7 +102,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
  AND enr.course_number LIKE '%HR%'
 LEFT OUTER JOIN KIPP_NJ..[AUTOLOAD$GDOCS_LIT_GR_Group] gr WITH(NOLOCK)
   ON co.student_number = gr.student_number
-LEFT OUTER JOIN MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
   ON co.studentid = map.ps_studentid
  AND co.year = map.map_year_academic
  AND map.measurementscale = 'Reading'
@@ -93,9 +113,13 @@ LEFT OUTER JOIN KIPP_NJ..LIT$growth_measures_wide#static growth WITH(NOLOCK)
 JOIN KIPP_NJ..LIT$achieved_by_round#static achv WITH(NOLOCK)
   ON co.studentid = achv.STUDENTID
  AND co.year = achv.academic_year
+LEFT OUTER JOIN gr_curr
+  ON co.student_number = gr_curr.student_number
+ AND achv.test_round = gr_curr.term
 JOIN KIPP_NJ..LIT$test_events#identifiers testid WITH(NOLOCK)
   ON co.studentid = testid.studentid
  AND achv.unique_id = testid.unique_id
+ AND testid.status = 'Achieved'
 JOIN KIPP_NJ..LIT$readingscores_long long WITH(NOLOCK)
   ON co.studentid = long.studentid
  AND achv.unique_id = long.unique_id
@@ -114,17 +138,21 @@ SELECT co.school_name
       ,co.year AS academic_year      
       ,co.GENDER
       ,co.SPEDLEP AS IEP_status
+      ,co.LEP_STATUS
       ,co.enroll_status
       ,enr.illuminate_group
       ,gr.t1_teach
       ,gr.t2_teach
       ,gr.t3_teach
+      ,gr_curr.gr_teacher AS curr_gr_teach
       ,achv.test_round
       ,testid.status      
       ,testid.read_lvl
       ,testid.lvl_num
       ,achv.goal_lvl
       ,achv.goal_num
+      ,achv.read_lvl AS last_achieved_lvl
+      ,achv.lvl_num AS last_achieved_num
       ,testid.lvl_num - achv.goal_num AS distance_from_goal
       ,testid.instruct_lvl
       ,testid.indep_lvl
@@ -179,7 +207,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
  AND enr.course_number LIKE '%HR%'
 LEFT OUTER JOIN KIPP_NJ..[AUTOLOAD$GDOCS_LIT_GR_Group] gr WITH(NOLOCK)
   ON co.student_number = gr.student_number
-LEFT OUTER JOIN MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
   ON co.studentid = map.ps_studentid
  AND co.year = map.map_year_academic
  AND map.measurementscale = 'Reading'
@@ -190,6 +218,9 @@ LEFT OUTER JOIN KIPP_NJ..LIT$growth_measures_wide#static growth WITH(NOLOCK)
 JOIN KIPP_NJ..LIT$achieved_by_round#static achv WITH(NOLOCK)
   ON co.studentid = achv.STUDENTID
  AND co.year = achv.academic_year 
+LEFT OUTER JOIN gr_curr
+  ON co.student_number = gr_curr.student_number
+ AND achv.test_round = gr_curr.term 
 JOIN KIPP_NJ..LIT$test_events#identifiers testid WITH(NOLOCK)
   ON co.studentid = testid.studentid
  AND co.year = testid.academic_year

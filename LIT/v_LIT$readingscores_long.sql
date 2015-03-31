@@ -188,14 +188,14 @@ FROM
            ,CONVERT(FLOAT,prof.score) AS benchmark
            ,CASE 
              WHEN prof.score IS NULL THEN NULL
-             WHEN prof.field_name NOT IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score >= prof.score THEN 1
-             WHEN prof.field_name IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score <= prof.score THEN 1
+             WHEN prof.field_name NOT IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score >= CONVERT(FLOAT,prof.score) THEN 1
+             WHEN prof.field_name IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score <= CONVERT(FLOAT,prof.score) THEN 1
              ELSE 0
             END AS is_prof
            ,CASE 
              WHEN prof.score IS NULL THEN NULL
-             WHEN prof.field_name NOT IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score < prof.score THEN 1
-             WHEN prof.field_name IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score < prof.score THEN 1
+             WHEN prof.field_name NOT IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score < CONVERT(FLOAT,prof.score) THEN 1
+             WHEN prof.field_name IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score > CONVERT(FLOAT,prof.score) THEN 1
              ELSE 0
             END AS is_dna
      FROM long_scores rs
@@ -205,5 +205,5 @@ FROM
      JOIN LIT$prof_long prof WITH(NOLOCK)
        ON rs.testid = prof.testid
       AND rs.field = prof.field_name
-      AND gleq.lvl_num = prof.lvl_num     
+      AND gleq.lvl_num = prof.lvl_num          
     ) sub

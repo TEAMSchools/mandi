@@ -11,6 +11,7 @@ SELECT local_student_id AS student_number
       ,end_date
       ,eligibility_start_date
       ,eligibility_end_date
+      ,s.SCHOOLID
 FROM OPENQUERY(ILLUMINATE,'
   SELECT s.local_student_id
         ,g.group_id
@@ -24,4 +25,6 @@ FROM OPENQUERY(ILLUMINATE,'
     ON g.group_id = aff.group_id
   JOIN public.students s
     ON aff.student_id = s.student_id
-')
+') oq
+JOIN STUDENTS s WITH(NOLOCK)
+  ON oq.local_student_id = s.STUDENT_NUMBER

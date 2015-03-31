@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW PS$course_enrollments AS
+ALTER VIEW PS$course_enrollments AS
 
 WITH coaches AS (
   SELECT [Teacher Name] AS teacher_name

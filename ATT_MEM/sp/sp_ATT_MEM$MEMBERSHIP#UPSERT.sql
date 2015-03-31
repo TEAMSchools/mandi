@@ -30,7 +30,7 @@ BEGIN
     SET TARGET.attendancevalue = SOURCE.attendancevalue
        ,TARGET.membershipvalue = SOURCE.membershipvalue
        ,TARGET.potential_attendancevalue = SOURCE.potential_attendancevalue       
-  WHEN NOT MATCHED THEN
+  WHEN NOT MATCHED BY TARGET THEN
    INSERT
     (STUDENTID
     ,SCHOOLID
@@ -46,7 +46,10 @@ BEGIN
     ,SOURCE.ATTENDANCEVALUE
     ,SOURCE.MEMBERSHIPVALUE
     ,SOURCE.POTENTIAL_ATTENDANCEVALUE
-    ,SOURCE.academic_year);
+    ,SOURCE.academic_year)
+  WHEN NOT MATCHED BY SOURCE AND TARGET.CALENDARDATE >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(), '-08-01')) THEN
+   DELETE;
+  --OUTPUT $ACTION, deleted.*;
 
 END
 
