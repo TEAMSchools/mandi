@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER PROCEDURE sp_GRADES$time_series#UPSERT AS
+--ALTER PROCEDURE sp_GRADES$time_series#UPSERT AS
 
 BEGIN
 
@@ -10,10 +10,14 @@ BEGIN
           ,cat.FINALGRADENAME
           ,CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 'Total' ELSE gr.category END AS category -- ensure TotalPoints gradebooks aren't weighted strangely
           ,cat.course_number
+          ,cat.LOWSCORESTODISCARD
           ,sco.STUDENT_NUMBER
           ,(CONVERT(FLOAT,sco.SCORE) + ISNULL(CONVERT(FLOAT,gr.EXTRACREDITPOINTS),0.0)) * gr.[weight] AS weighted_score -- add any extra credit points and multiply by assignment weight
           ,CASE WHEN sco.score IS NULL THEN NULL ELSE gr.POINTSPOSSIBLE END * gr.[weight] AS weighted_points_possible -- multiply by assignment weight, if socre is exempt or empty, NULL
           ,CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 1 ELSE cat.WEIGHTING END AS weighting -- even weight to all assignments for TotalPoints setups
+          ,ROW_NUMBER() OVER(
+            PARTITION BY sco.student_number, cat.FINALGRADENAME, CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 'Total' ELSE gr.category END
+              ORDER BY ((CONVERT(FLOAT,sco.SCORE) + ISNULL(CONVERT(FLOAT,gr.EXTRACREDITPOINTS),0.0)) * gr.[weight]) ASC) AS score_rank -- order scores by fg/category for gradebooks where low scores get dropped
     FROM KIPP_NJ..GRADES$assignments#STAGING gr WITH(NOLOCK)    
     JOIN KIPP_NJ..GRADES$assignment_scores#STAGING sco WITH(NOLOCK)
       ON gr.ASSIGNMENTID = sco.ASSIGNMENTID   
@@ -25,6 +29,7 @@ BEGIN
      AND (gr.ASSIGN_DATE >= cat.STARTDATE AND gr.ASSIGN_DATE <= cat.ENDDATE) -- avoid dupes
      AND (gr.CATEGORY = cat.ABBREVIATION OR cat.ABBREVIATION IS NULL) -- avoids killing TotalPoints setups
     WHERE gr.ISFINALSCORECALCULATED = 1 -- specific assignments can be excluded from final grades
+      AND gr.assign_date >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(), '-08-01'))            
    )
 
   ,grades_long AS (
@@ -55,15 +60,17 @@ BEGIN
                     ,asmt.FINALGRADENAME
                     ,asmt.CATEGORY                   
                     ,MAX(asmt.WEIGHTING) AS weighting
-                    ,((SUM(asmt.weighted_score) / CASE WHEN SUM(asmt.weighted_points_possible) = 0 THEN NULL ELSE SUM(asmt.weighted_points_possible) END)) AS weighted_pct
+                    ,MAX(asmt.LOWSCORESTODISCARD) AS lowscorestodiscard
+                    ,((SUM(asmt.weighted_score) / CASE WHEN SUM(asmt.weighted_points_possible) = 0 THEN NULL ELSE SUM(asmt.weighted_points_possible) END)) AS weighted_pct                    
               FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)
               LEFT OUTER JOIN assignment_scores asmt WITH(NOLOCK)
                 ON co.student_number = asmt.STUDENT_NUMBER           
                AND co.date >= asmt.ASSIGN_DATE -- join to all assignments to date
               WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()              
-                AND co.date = CONVERT(DATE,GETDATE())
-                --AND co.date <= CONVERT(DATE,GETDATE()) -- for backfilling data, could be any date range
-                AND co.schoolid IN (73252,73253,133570965)                          
+                --AND co.date = CONVERT(DATE,GETDATE())
+                AND co.date <= CONVERT(DATE,GETDATE()) -- for backfilling data, could be any date range
+                AND co.schoolid IN (73252,73253,133570965)                       
+                AND asmt.score_rank > asmt.LOWSCORESTODISCARD -- drop scores below threshold                   
               GROUP BY co.student_number
                       ,co.schoolid
                       ,co.date                        
