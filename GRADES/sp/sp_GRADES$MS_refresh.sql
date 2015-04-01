@@ -8,6 +8,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 ALTER PROCEDURE [dbo].[sp_GRADES$MS|refresh] AS
+
 BEGIN
  -- SET NOCOUNT ON added to prevent extra result sets from
  -- interfering with SELECT statements
@@ -158,8 +159,8 @@ BEGIN
     SELECT TO_CHAR(pgf.sectionid) AS sectionid
           ,TO_CHAR(pgf.studentid) AS studentid
           ,pgf.finalgradename
-          ,pgf.percent
-          ,pgf.grade
+          ,CASE WHEN pgf.grade = ''''--'''' THEN NULL ELSE pgf.percent END AS percent
+          ,CASE WHEN pgf.grade = ''''--'''' THEN NULL ELSE pgf.grade END AS grade
           ,cc.course_number
     FROM pgfinalgrades pgf
     JOIN cc
@@ -279,8 +280,7 @@ BEGIN
    LEFT OUTER JOIN #TEMP_GRADES$MS#PGF pgf
      ON level_1.studentid     = pgf.studentid
     AND level_1.course_number = pgf.course_number
-    AND pgf.finalgradename IN (@v_grade_1, @v_grade_2, @v_grade_3)
-    AND pgf.[percent] > 0
+    AND pgf.finalgradename IN (@v_grade_1, @v_grade_2, @v_grade_3)    
    GROUP BY level_1.studentid
            ,level_1.student_number
            ,level_1.schoolid
