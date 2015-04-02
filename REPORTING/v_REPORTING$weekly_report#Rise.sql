@@ -265,7 +265,7 @@ WITH roster AS (
 
 ,assignment_scores AS (
   SELECT s.ASSIGNMENTID
-        ,STUDENT_NUMBER
+        ,studentidentifier AS STUDENT_NUMBER
         ,category
         ,credittype
         ,CASE WHEN EXEMPT = 1 THEN NULL ELSE CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0)) END AS score_numeric        

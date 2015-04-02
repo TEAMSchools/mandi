@@ -7,6 +7,8 @@ BEGIN
 
   WITH assign_update AS (
     SELECT *
+          ,KIPP_NJ.dbo.fn_DateToSY(assign_date) AS academic_year
+          ,COALESCE(whenmodified, whencreated) AS lastmodified
     FROM OPENQUERY(PS_TEAM,'
       SELECT sec.schoolid
             ,sec.id AS sectionid
@@ -20,6 +22,8 @@ BEGIN
             ,asmt.extracreditpoints
             ,cat.abbreviation AS category  
             ,asmt.isfinalscorecalculated         
+            ,asmt.whencreated
+            ,asmt.whenmodified
       FROM psm_sectionassignment sectassign
       JOIN psm_assignment asmt
         ON sectassign.assignmentid = asmt.id  
@@ -29,8 +33,8 @@ BEGIN
         ON map.sectionsDCID = sec.dcid
       JOIN psm_assignmentcategory cat
         ON asmt.assignmentcategoryid = cat.id  
-      WHERE (asmt.whencreated >= (SYSDATE - INTERVAL ''24'' HOUR) OR asmt.whenmodified >= (SYSDATE - INTERVAL ''24'' HOUR))
-    ')
+      WHERE (asmt.whencreated >= TRUNC(SYSDATE - INTERVAL ''24'' HOUR) OR asmt.whenmodified >= TRUNC(SYSDATE - INTERVAL ''24'' HOUR))
+    ') 
    )
 
     MERGE KIPP_NJ..GRADES$assignments#STAGING AS TARGET
@@ -49,7 +53,9 @@ BEGIN
          ,TARGET.EXTRACREDITPOINTS = SOURCE.EXTRACREDITPOINTS
          ,TARGET.CATEGORY = SOURCE.CATEGORY
          ,TARGET.ISFINALSCORECALCULATED = SOURCE.ISFINALSCORECALCULATED
-    WHEN NOT MATCHED THEN
+         ,TARGET.academic_year = SOURCE.academic_year
+         ,TARGET.lastmodified = SOURCE.lastmodified
+    WHEN NOT MATCHED BY TARGET THEN
      INSERT
       (SCHOOLID
       ,SECTIONID
@@ -62,7 +68,9 @@ BEGIN
       ,WEIGHT
       ,EXTRACREDITPOINTS
       ,CATEGORY
-      ,ISFINALSCORECALCULATED)
+      ,ISFINALSCORECALCULATED
+      ,academic_year
+      ,lastmodified)
      VALUES
       (SOURCE.SCHOOLID
       ,SOURCE.SECTIONID
@@ -75,7 +83,11 @@ BEGIN
       ,SOURCE.WEIGHT
       ,SOURCE.EXTRACREDITPOINTS
       ,SOURCE.CATEGORY
-      ,SOURCE.ISFINALSCORECALCULATED);
+      ,SOURCE.ISFINALSCORECALCULATED
+      ,SOURCE.academic_year
+      ,SOURCE.lastmodified)
+    WHEN NOT MATCHED BY SOURCE AND TARGET.lastmodified >= DATEADD(DAY,-1,CONVERT(DATE,GETDATE())) THEN
+     DELETE;
 
 END
 

@@ -7,21 +7,23 @@ BEGIN
 
   WITH assignment_scores AS (
     SELECT gr.ASSIGN_DATE                        
+          ,gr.assignmentid
           ,cat.FINALGRADENAME
-          ,CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 'Total' ELSE gr.category END AS category -- ensure TotalPoints gradebooks aren't weighted strangely
+          ,CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 'Total' ELSE gr.category END AS category -- ensures that TotalPoints gradebooks aren't weighted strangely
           ,cat.course_number
           ,cat.LOWSCORESTODISCARD
-          ,sco.STUDENT_NUMBER
-          ,(CONVERT(FLOAT,sco.SCORE) + ISNULL(CONVERT(FLOAT,gr.EXTRACREDITPOINTS),0.0)) * gr.[weight] AS weighted_score -- add any extra credit points and multiply by assignment weight
-          ,CASE WHEN sco.score IS NULL THEN NULL ELSE gr.POINTSPOSSIBLE END * gr.[weight] AS weighted_points_possible -- multiply by assignment weight, if socre is exempt or empty, NULL
-          ,CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 1 ELSE cat.WEIGHTING END AS weighting -- even weight to all assignments for TotalPoints setups
+          ,sco.STUDENTIDENTIFIER AS STUDENT_NUMBER                    
+          ,(CONVERT(FLOAT,sco.SCORE) * gr.[weight]) AS weighted_score -- multiply by assignment weight
+          ,CASE WHEN sco.score IS NULL THEN NULL ELSE gr.POINTSPOSSIBLE END * gr.[weight] AS weighted_points_possible -- multiply by assignment weight, if score is empty then NULL
+          ,CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 1 ELSE cat.WEIGHTING END AS weighting -- evenly "weight" all assignments for TotalPoints setups
           ,ROW_NUMBER() OVER(
-            PARTITION BY sco.student_number, cat.FINALGRADENAME, CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 'Total' ELSE gr.category END
+            PARTITION BY sco.STUDENTIDENTIFIER, cat.FINALGRADENAME, CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 'Total' ELSE gr.category END
               ORDER BY ((CONVERT(FLOAT,sco.SCORE) + ISNULL(CONVERT(FLOAT,gr.EXTRACREDITPOINTS),0.0)) * gr.[weight]) ASC) AS score_rank -- order scores by fg/category for gradebooks where low scores get dropped
     FROM KIPP_NJ..GRADES$assignments#STAGING gr WITH(NOLOCK)    
     JOIN KIPP_NJ..GRADES$assignment_scores#STAGING sco WITH(NOLOCK)
       ON gr.ASSIGNMENTID = sco.ASSIGNMENTID   
      AND sco.EXEMPT = 0 -- exclude exempted assignments
+     AND sco.sectionenrollmentstatus = 0 -- calculate scores from currently enrolled sections only
     JOIN KIPP_NJ..PS$category_weighting_setup#static cat WITH(NOLOCK) 
       ON gr.psm_sectionid = cat.PSM_SECTIONID
      AND ((cat.FINALGRADESETUPTYPE = 'WeightedFGSetup' AND cat.INCLUDEINFINALGRADES = 1) -- if weighted, only include categories that factor into final grades
@@ -29,7 +31,7 @@ BEGIN
      AND (gr.ASSIGN_DATE >= cat.STARTDATE AND gr.ASSIGN_DATE <= cat.ENDDATE) -- avoid dupes
      AND (gr.CATEGORY = cat.ABBREVIATION OR cat.ABBREVIATION IS NULL) -- avoids killing TotalPoints setups
     WHERE gr.ISFINALSCORECALCULATED = 1 -- specific assignments can be excluded from final grades
-      AND gr.assign_date >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(), '-08-01'))            
+      AND gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()      
    )
 
   ,grades_long AS (

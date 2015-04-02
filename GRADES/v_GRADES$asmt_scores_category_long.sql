@@ -19,7 +19,7 @@ SELECT sec.SCHOOLID
       ,asmt.ASSIGNMENTID
       ,CONVERT(DATE,asmt.assign_date) AS assign_date      
       ,asmt.assign_name      
-      ,scores.student_number      
+      ,scores.STUDENTIDENTIFIER AS student_number      
       ,CONVERT(FLOAT,ROUND((scores.score / asmt.pointspossible) * 100,0)) AS pct      
 FROM SECTIONS sec WITH(NOLOCK)
 JOIN PS$category_weighting_setup#static cat WITH(NOLOCK)
