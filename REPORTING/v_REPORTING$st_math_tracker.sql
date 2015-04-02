@@ -3,6 +3,7 @@ GO
 
 ALTER VIEW REPORTING$st_math_tracker AS
 
+
 WITH observed_completion AS (
   SELECT studentid
         ,SUM(K_5_Progress) AS total_completion
