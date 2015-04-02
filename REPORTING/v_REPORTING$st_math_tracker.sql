@@ -51,7 +51,10 @@ SELECT sub.studentid
       ,sub.lib_3rd
       ,sub.lib_4th
       ,sub.lib_5th
-      ,sub.lib_6th 
+      ,sub.lib_6th
+	  ,lib_6th_MSS
+	  ,lib_7th_MSS
+	  ,lib_8th_MSS 
 FROM
     (
      SELECT *
@@ -64,7 +67,7 @@ FROM
          ) sub
      PIVOT(
        MAX(K_5_Progress)
-       FOR short_code IN (lib_K, lib_1st, lib_2nd, lib_3rd, lib_4th, lib_5th, lib_6th)
+       FOR short_code IN (lib_K, lib_1st, lib_2nd, lib_3rd, lib_4th, lib_5th, lib_6th,lib_6th_MSS,lib_7th_MSS,lib_8th_MSS)
       ) AS st_wide
     ) sub
 JOIN observed_completion WITH(NOLOCK)
