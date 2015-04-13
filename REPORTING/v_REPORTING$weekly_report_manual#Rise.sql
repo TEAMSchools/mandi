@@ -33,7 +33,7 @@ WITH roster AS (
              --,DATENAME(WEEKDAY,date) AS day_of_week
              ,ROW_NUMBER() OVER(ORDER BY date ASC) AS rn
        FROM UTIL$reporting_days WITH(NOLOCK)
-       WHERE date IN ('2015-02-12','2015-02-13','2015-02-23','2015-02-24','2015-02-25') -- UPDATE WITH EXACT DATES
+       WHERE date IN ('2015-04-02','2015-04-13','2015-04-14','2015-04-15') -- UPDATE WITH EXACT DATES
       ) sub
  )
 
@@ -276,7 +276,7 @@ WITH roster AS (
 
 ,assignment_scores AS (
   SELECT s.ASSIGNMENTID
-        ,STUDENT_NUMBER
+        ,STUDENTIDENTIFIER AS STUDENT_NUMBER
         ,category
         ,credittype
         ,CASE WHEN EXEMPT = 1 THEN NULL ELSE CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0)) END AS score_numeric        

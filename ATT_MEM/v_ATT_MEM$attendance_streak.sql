@@ -21,6 +21,7 @@ WITH valid_dates AS (
  )
 
 SELECT academic_year
+      ,schoolid
       ,studentid
       ,att_code
       ,streak_id
@@ -32,6 +33,7 @@ FROM
     (
      SELECT co.year AS academic_year
            ,co.STUDENTID
+           ,co.schoolid
            ,d.CALENDARDATE
            ,ISNULL(att.ATT_CODE, 'P') AS att_code
            ,d.day_number - ROW_NUMBER() OVER(
@@ -48,5 +50,6 @@ FROM
     ) sub
 GROUP BY academic_year
         ,studentid
+        ,schoolid
         ,att_code
         ,streak_id

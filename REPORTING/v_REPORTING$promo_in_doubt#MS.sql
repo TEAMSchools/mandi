@@ -46,18 +46,32 @@ WITH roster AS (
         ,rc3_T3 AS mathT3
         ,rc4_T3 AS scienceT3
         ,rc5_T3 AS socialT3
-        ,CASE WHEN rc1_Y1 < 65 THEN 1 ELSE 0 END
-          + CASE WHEN rc2_y1 < 65 THEN 1 ELSE 0 END
-          + CASE WHEN rc3_y1 < 65 THEN 1 ELSE 0 END
-          + CASE WHEN rc4_y1 < 65 THEN 1 ELSE 0 END
-          + CASE WHEN rc5_y1 < 65 THEN 1 ELSE 0 END
-          AS n_failing
+        ,CASE 
+          WHEN schoolid = 133570965 THEN
+           CASE WHEN rc1_Y1 < 68 THEN 1 ELSE 0 END
+            + CASE WHEN rc2_y1 < 68 THEN 1 ELSE 0 END
+            + CASE WHEN rc3_y1 < 68 THEN 1 ELSE 0 END
+            + CASE WHEN rc4_y1 < 68 THEN 1 ELSE 0 END
+            + CASE WHEN rc5_y1 < 68 THEN 1 ELSE 0 END
+          WHEN schoolid = 73252 THEN 
+           CASE WHEN rc1_Y1 < 65 THEN 1 ELSE 0 END
+            + CASE WHEN rc2_y1 < 65 THEN 1 ELSE 0 END
+            + CASE WHEN rc3_y1 < 65 THEN 1 ELSE 0 END
+            + CASE WHEN rc4_y1 < 65 THEN 1 ELSE 0 END
+            + CASE WHEN rc5_y1 < 65 THEN 1 ELSE 0 END
+         END AS n_failing
         ,CASE
-          WHEN (rc1_Y1 < 65
-                OR rc2_Y1 < 65
-                OR rc3_Y1 < 65 
-                OR rc4_Y1 < 65
-                OR rc5_Y1 < 65) THEN 1 
+          WHEN schoolid = 73252 AND (rc1_Y1 < 65
+                                     OR rc2_Y1 < 65
+                                     OR rc3_Y1 < 65 
+                                     OR rc4_Y1 < 65
+                                     OR rc5_Y1 < 65) THEN 1 
+          
+          WHEN schoolid = 133570965 AND (rc1_Y1 < 68
+                                         OR rc2_Y1 < 68
+                                         OR rc3_Y1 < 68
+                                         OR rc4_Y1 < 68
+                                         OR rc5_Y1 < 68) THEN 1 
           ELSE 0 
          END AS is_failing         
   FROM KIPP_NJ..GRADES$wide_credit_core#MS#static WITH(NOLOCK)
