@@ -5,21 +5,24 @@ ALTER VIEW TABLEAU$lit_progress_tracker AS
 
 WITH gr_curr AS (
   SELECT student_number
-        ,UPPER(LEFT(term,2)) AS term
+        ,CASE 
+          WHEN term = 'eoy_teach' THEN 'EOY'
+          ELSE UPPER(LEFT(term,2)) 
+         END AS term
         ,gr_teacher
-  FROM [AUTOLOAD$GDOCS_LIT_GR_Group] WITH(NOLOCK)
+  FROM
+      ( 
+       SELECT student_number
+             ,t1_teach
+             ,t2_teach
+             ,t3_teach
+             ,COALESCE(eoy_teach, t3_teach) AS eoy_teach
+       FROM [AUTOLOAD$GDOCS_LIT_GR_Group] WITH(NOLOCK)
+      ) sub
   UNPIVOT(
     gr_teacher
-    FOR term IN (t1_teach, t2_teach, t3_teach)
+    FOR term IN (t1_teach, t2_teach, t3_teach, eoy_teach)
    ) u
-
-  UNION ALL
-
-  SELECT student_number
-        ,'EOY' AS term
-        ,t3_teach AS gr_teacher
-  FROM [AUTOLOAD$GDOCS_LIT_GR_Group] WITH(NOLOCK)
-  WHERE student_number IS NOT NULL
  )
 
 SELECT co.school_name

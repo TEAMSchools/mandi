@@ -22,14 +22,48 @@ WITH schools_assessed AS (
    AND dbo.fn_DateToSY(oq.administered_at) = co.YEAR
  )
 
-SELECT sub.*
+SELECT sub.assessment_id
+      ,sub.schoolid
+      ,sub.title
+      ,sub.test_descr
+      ,sub.grade_level
+      ,sub.subject
+      ,sub.credittype
+      ,sub.scope
+      ,sub.standards_tested
+      ,sub.parent_standard
+      ,sub.standard_type
+      ,sub.standard_descr
+      ,sub.user_id
+      ,sub.teachernumber
+      ,sub.created_by
+      ,sub.fsa_week
+      ,sub.academic_year
+      ,sub.administered_at
+      ,sub.created_at
+      ,sub.updated_at
+      ,sub.deleted_at
+      ,sub.code_scope_id
+      ,sub.code_subject_area_id
+      ,sub.standard_id
+      ,sub.parent_standard_id
+      ,sub.reports_db_virtual_table_id
+      ,sub.local_assessment_id
+      ,sub.performance_band_set_id
+      ,sub.itembank_assessment_id
+      ,sub.locked
+      ,sub.raw_score_performance_band_set_id
+      ,sub.tags
       ,rt.alt_name AS term
       ,ROW_NUMBER() OVER (
-          PARTITION BY fsa_week, sub.schoolid, grade_level, sub.scope, sub.performance_band_set_id
+          PARTITION BY sub.academic_year, fsa_week, sub.schoolid, grade_level, sub.scope, sub.performance_band_set_id
               ORDER BY sub.performance_band_set_id, subject, standards_tested) AS fsa_std_rn
       ,ROW_NUMBER() OVER (
-          PARTITION BY sub.scope, sub.schoolid, standards_tested
+          PARTITION BY sub.academic_year, sub.scope, sub.schoolid, standards_tested
               ORDER BY administered_at) AS std_freq_rn                    
+      ,ROW_NUMBER() OVER (
+          PARTITION BY sub.academic_year, sub.schoolid, sub.grade_level, standards_tested
+              ORDER BY administered_at) AS std_attempt_rn
 FROM
     (
      SELECT oq.assessment_id                          
@@ -76,7 +110,7 @@ FROM
            ,oq.state_id AS teachernumber
            ,oq.last_name + ', ' + oq.first_name AS created_by                          
            ,fsa_dates.time_per_name AS fsa_week -- to get clean row number for FSA standard by week
-           ,CASE WHEN DATEPART(MONTH,oq.administered_at) < 7 THEN (DATEPART(YEAR,oq.administered_at) - 1) ELSE DATEPART(YEAR,oq.administered_at) END AS academic_year
+           ,KIPP_NJ.dbo.fn_DateToSY(oq.administered_at) AS academic_year
            ,CONVERT(DATE,oq.administered_at) AS administered_at
            ,CONVERT(DATE,oq.created_at) AS created_at
            ,CONVERT(DATE,oq.updated_at) AS updated_at             

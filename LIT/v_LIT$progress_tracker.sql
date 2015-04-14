@@ -89,6 +89,7 @@ SELECT
       ,grteacher.t1_teach AS read_teacher_t1
       ,grteacher.t2_teach AS read_teacher_t2
       ,grteacher.t3_teach AS read_teacher_t3
+      ,COALESCE(grteacher.eoy_teach, grteacher.t3_teach) AS read_teacher_eoy
             
 --TEST IDENTIFIERS      
       ,details.testid
@@ -210,6 +211,7 @@ SELECT
       ,grteacher.t1_teach AS read_teacher_t1
       ,grteacher.t2_teach AS read_teacher_t2
       ,grteacher.t3_teach AS read_teacher_t3
+      ,COALESCE(grteacher.eoy_teach, grteacher.t3_teach) AS read_teacher_eoy
             
 --TEST IDENTIFIERS      
       ,scores.testid
