@@ -6,18 +6,25 @@ ALTER PROCEDURE sp_GRADES$time_series#UPSERT AS
 BEGIN
 
   WITH assignment_scores AS (
-       SELECT gr.ASSIGN_DATE                        
+    SELECT gr.ASSIGN_DATE                        
           ,gr.assignmentid
           ,cat.FINALGRADENAME
           ,CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 'Total' ELSE gr.category END AS category -- ensures that TotalPoints gradebooks aren't weighted strangely
           ,cat.course_number
-          ,gr.SECTIONID
+          ,gr.SECTIONID        
           ,cat.LOWSCORESTODISCARD
           ,sco.STUDENTIDENTIFIER AS STUDENT_NUMBER  
           ,sco.sectionenrollmentstatus                  
           ,(CONVERT(FLOAT,sco.SCORE) * gr.[weight]) AS weighted_score -- multiply by assignment weight
-          ,CASE WHEN sco.score IS NULL THEN NULL ELSE gr.POINTSPOSSIBLE END * gr.[weight] AS weighted_points_possible -- multiply by assignment weight, if score is empty then NULL
-          ,CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 1 ELSE cat.WEIGHTING END AS weighting -- evenly "weight" all assignments for TotalPoints setups
+          ,CASE 
+            WHEN sco.score IS NULL THEN NULL 
+            ELSE gr.POINTSPOSSIBLE 
+           END * gr.[weight] AS weighted_points_possible -- multiply by assignment weight, if score is empty then NULL
+          ,CASE 
+            WHEN sco.score IS NULL THEN NULL 
+            WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 1 
+            ELSE cat.WEIGHTING 
+           END AS weighting -- evenly "weight" all assignments for TotalPoints setups
           ,ROW_NUMBER() OVER(
             PARTITION BY sco.STUDENTIDENTIFIER, cat.FINALGRADENAME, CASE WHEN cat.FINALGRADESETUPTYPE = 'TotalPoints' THEN 'Total' ELSE gr.category END
               ORDER BY ((CONVERT(FLOAT,sco.SCORE) + ISNULL(CONVERT(FLOAT,gr.EXTRACREDITPOINTS),0.0)) * gr.[weight]) ASC) AS score_rank -- order scores by fg/category for gradebooks where low scores get dropped
@@ -25,15 +32,15 @@ BEGIN
     JOIN KIPP_NJ..GRADES$assignment_scores#STAGING sco WITH(NOLOCK)
       ON gr.ASSIGNMENTID = sco.ASSIGNMENTID   
      AND sco.EXEMPT = 0 -- exclude exempted assignments   
-     AND sco.ISMISSING = 0 -- exclude assignments marked as missing
+     --AND sco.ISMISSING = 0 -- exclude assignments marked as missing, thought this was necessary but it isn't
     JOIN KIPP_NJ..PS$category_weighting_setup#static cat WITH(NOLOCK) 
       ON gr.psm_sectionid = cat.PSM_SECTIONID
      AND ((cat.FINALGRADESETUPTYPE = 'WeightedFGSetup' AND (cat.INCLUDEINFINALGRADES = 1 OR gr.ISFINALSCORECALCULATED = 1)) -- if weighted, only include categories or specific assignments that factor into final grades
-          OR (cat.FINALGRADESETUPTYPE = 'TotalPoints'))  -- avoids killing TotalPoints setups
+           OR (cat.FINALGRADESETUPTYPE = 'TotalPoints'))  -- avoids killing TotalPoints setups   
+     AND ((gr.assignmentcategoryid = cat.ASSIGNMENTCATEGORYID) OR (cat.ABBREVIATION IS NULL)) -- avoids killing TotalPoints setups    
      AND (gr.ASSIGN_DATE >= cat.STARTDATE AND gr.ASSIGN_DATE <= cat.ENDDATE) -- avoid dupes
-     AND ((gr.CATEGORY = cat.ABBREVIATION) OR (cat.ABBREVIATION IS NULL)) -- avoids killing TotalPoints setups    
     WHERE gr.ISFINALSCORECALCULATED = 1 -- specific assignments can be excluded from final grades
-      AND gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()    
+      AND gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()      
    )
 
   ,grades_long AS (
@@ -85,7 +92,7 @@ BEGIN
                    FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)                   
                    LEFT OUTER JOIN assignment_scores asmt WITH(NOLOCK)
                      ON co.student_number = asmt.STUDENT_NUMBER           
-                    AND co.date >= asmt.ASSIGN_DATE -- join to all assignments to date
+                    AND co.date >= asmt.ASSIGN_DATE -- join to all assignments to date, sometimes teachers post-date assignments, nothing we can do abot that
                    LEFT OUTER JOIN KIPP_NJ..GRADES$STOREDGRADES#static sg WITH(NOLOCK)
                      ON co.studentid = sg.STUDENTID
                     AND co.year = sg.academic_year
@@ -94,8 +101,8 @@ BEGIN
                     AND asmt.SECTIONID = sg.SECTIONID
                    WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()              
                      AND co.date = CONVERT(DATE,GETDATE())
-                     AND co.date <= CONVERT(DATE,GETDATE()) -- for backfilling data, could be any date range
-                     AND co.schoolid IN (73252,73253,133570965)                       
+                     --AND co.date <= CONVERT(DATE,GETDATE()) -- for backfilling data, could be any date range
+                     AND co.schoolid IN (73252, 73253, 133570965)                       
                      AND asmt.score_rank > asmt.LOWSCORESTODISCARD -- drop scores below threshold                         
                   ) sub
               WHERE sub.section_valid = 1 -- calculate scores from currently enrolled sections only, unless they completed the term
@@ -114,6 +121,7 @@ BEGIN
             ,finalgradename
    )
 
+  --/*
   ,ts_update AS (
     SELECT student_number
           ,schoolid
@@ -140,13 +148,13 @@ BEGIN
                ,date
                ,course_number
                ,FINALGRADENAME      
-               ,CASE WHEN moving_average < 50 THEN 50 ELSE moving_average END AS unweighted_average
+               --,CASE WHEN moving_average < 50 THEN 50 ELSE moving_average END AS unweighted_average               
                ,CASE 
                  WHEN (schoolid = 73253 AND FINALGRADENAME LIKE 'Q%') THEN (CASE WHEN moving_average < 50 THEN 50 ELSE moving_average END) * 0.225
                  WHEN (schoolid = 73253 AND FINALGRADENAME LIKE 'E%') THEN (CASE WHEN moving_average < 50 THEN 50 ELSE moving_average END) * 0.05
                  WHEN (schoolid = 133570965 AND FINALGRADENAME LIKE 'T%') THEN (CASE WHEN moving_average < 55 THEN 55 ELSE moving_average END)
                  ELSE moving_average
-                END AS weighted_average
+                END AS weighted_average               
                ,CASE
                  WHEN FINALGRADENAME LIKE 'Q%' THEN 22.5
                  WHEN FINALGRADENAME LIKE 'E%' THEN 5.0

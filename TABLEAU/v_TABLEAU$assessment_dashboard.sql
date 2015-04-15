@@ -13,6 +13,8 @@ SELECT co.schoolid
       ,co.spedlep  
       ,co.enroll_status    
       ,co.gender
+      ,co.retained_yr_flag
+      ,co.retained_ever_flag
       ,a.assessment_id
       ,a.title
       ,a.scope            

@@ -33,6 +33,26 @@ WITH hs_advisor AS (
   WHERE rn = 1
  )
 
+,retention_flags AS (
+  SELECT sub.studentid
+        ,sub.year
+        ,retained_yr_flag
+        ,MAX(retained_yr_flag) OVER(PARTITION BY sub.studentid) AS retained_ever_flag
+  FROM
+      (
+       SELECT co.studentid      
+             ,co.year
+             --,co.grade_level
+             --,LAG(co.grade_level, 1) OVER(PARTITION BY co.studentid ORDER BY co.year ASC) AS prev_grade
+             ,CASE 
+               WHEN co.grade_level != 99 AND co.grade_level <= LAG(co.grade_level, 1) OVER(PARTITION BY co.studentid ORDER BY co.year ASC) THEN 1 
+               ELSE 0 
+              END AS retained_yr_flag
+       FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH(NOLOCK)
+       WHERE co.rn = 1       
+      ) sub
+ )
+
 SELECT co.schoolid
       ,REPLACE(sch.abbreviation,'Rev','Revolution') AS school_name      
       ,co.studentid
@@ -53,10 +73,10 @@ SELECT co.schoolid
       ,COALESCE(hs_advisor.advisor, cs.ADVISOR) AS advisor
       ,s.GENDER
       ,s.ETHNICITY
-      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunch_status END AS lunchstatus
+      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunch_status END AS lunchstatus
       --,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunch_status END AS lunchstatus
-      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE COALESCE(sped.SPEDLEP, cs.spedlep) END AS SPEDLEP
-      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE ELSE COALESCE(sped.SPEDCODE, cs.spedlep) END AS SPED_code
+      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE COALESCE(sped.SPEDLEP, cs.spedlep) END AS SPEDLEP
+      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE ELSE COALESCE(sped.SPEDCODE, cs.spedlep) END AS SPED_code
       ,cs.LEP_STATUS
       ,s.enroll_status
       ,co.rn
@@ -113,9 +133,11 @@ SELECT co.schoolid
         WHEN future.grade_level = co.grade_level THEN 'Retained'
         WHEN future.grade_level < co.grade_level THEN 'Demoted'        
         WHEN future.grade_level IS NULL THEN 'Transferred'
-        WHEN co.year = dbo.fn_Global_Academic_Year() THEN NULL
+        WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN NULL
        END AS EOY_status
       ,cs.NEWARK_ENROLLMENT_NUMBER
+      ,ret.retained_yr_flag
+      ,ret.retained_ever_flag
 FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH (NOLOCK)
 JOIN KIPP_NJ..SCHOOLS sch WITH (NOLOCK)
   ON co.schoolid = sch.school_number
@@ -134,14 +156,14 @@ LEFT OUTER JOIN KIPP_NJ..COHORT$comprehensive_long#static gr WITH(NOLOCK)
  AND gr.year_in_network = 1
 LEFT OUTER JOIN KIPP_NJ..PS$student_BLObs#static blobs WITH(NOLOCK)
   ON co.studentid = blobs.STUDENTID
-LEFT OUTER JOIN PS$lunch_status_long#static lunch WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$lunch_status_long#static lunch WITH(NOLOCK)
   ON co.studentid = lunch.studentid
  AND co.year = lunch.year
-LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info mcs WITH(NOLOCK)
-  ON co.STUDENT_NUMBER = mcs.StudentNumber
-LEFT OUTER JOIN PS$emerg_release_contact#static emerg WITH(NOLOCK)
+--LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info mcs WITH(NOLOCK)
+--  ON co.STUDENT_NUMBER = mcs.StudentNumber
+LEFT OUTER JOIN KIPP_NJ..PS$emerg_release_contact#static emerg WITH(NOLOCK)
   ON co.studentid = emerg.STUDENTID
-LEFT OUTER JOIN PS$SPED_archive#static sped WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$SPED_archive#static sped WITH(NOLOCK)
   ON co.studentid = sped.studentid
  AND co.year  = sped.academic_year
 LEFT OUTER JOIN promo future WITH(NOLOCK)
@@ -150,3 +172,6 @@ LEFT OUTER JOIN promo future WITH(NOLOCK)
 LEFT OUTER JOIN promo past WITH(NOLOCK)
   ON co.STUDENT_NUMBER = past.student_number
  AND co.year = past.future_year
+LEFT OUTER JOIN retention_flags ret WITH(NOLOCK)
+  ON co.studentid = ret.studentid
+ AND co.year = ret.year

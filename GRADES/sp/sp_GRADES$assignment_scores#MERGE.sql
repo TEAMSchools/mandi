@@ -4,48 +4,52 @@ GO
 ALTER PROCEDURE sp_GRADES$assignment_scores#MERGE AS 
 
 BEGIN
+  
+  IF OBJECT_ID(N'tempdb..#assign_update') IS NOT NULL
+		BEGIN
+		  DROP TABLE #assign_update
+		END;
 
-  WITH assign_update AS (
-    SELECT assignmentid      
-          ,studentidentifier
-          ,score      
-          ,turnedinlate
-          ,exempt
-          ,ismissing      
-          ,lastupdated
-          ,sectionenrollmentstatus
-    FROM OPENQUERY(PS_TEAM,'
-      SELECT DISTINCT
-             s.assignmentid        
+  SELECT assignmentid      
+        ,studentidentifier
+        ,score      
+        ,turnedinlate
+        ,exempt
+        ,ismissing      
+        ,lastupdated
+        ,sectionenrollmentstatus
+  INTO #assign_update
+  FROM OPENQUERY(PS_TEAM,'
+    SELECT DISTINCT
+           s.assignmentid        
+          ,stu.studentidentifier
+          ,a.score
+          ,a.turnedinlate
+          ,a.exempt
+          ,a.ismissing
+          ,MAX(f.lastupdated) AS lastupdated
+          ,e.sectionenrollmentstatus
+    FROM PSM_FINALSCORE f
+    JOIN PSM_SECTIONENROLLMENT e
+      ON f.sectionenrollmentid = e.id
+    JOIN PSM_ASSIGNMENTSCORE a  
+      ON e.id = a.sectionenrollmentid      
+    JOIN PSM_SECTIONASSIGNMENT s
+      ON a.sectionassignmentid = s.id      
+    JOIN PSM_STUDENT stu
+      ON e.studentid = stu.id
+    GROUP BY s.assignmentid        
             ,stu.studentidentifier
             ,a.score
             ,a.turnedinlate
             ,a.exempt
             ,a.ismissing
-            ,MAX(f.lastupdated) AS lastupdated
-            ,e.sectionenrollmentstatus
-      FROM PSM_FINALSCORE f
-      JOIN PSM_SECTIONENROLLMENT e
-        ON f.sectionenrollmentid = e.id
-      JOIN PSM_ASSIGNMENTSCORE a  
-        ON e.id = a.sectionenrollmentid      
-      JOIN PSM_SECTIONASSIGNMENT s
-        ON a.sectionassignmentid = s.id      
-      JOIN PSM_STUDENT stu
-        ON e.studentid = stu.id
-      GROUP BY s.assignmentid        
-              ,stu.studentidentifier
-              ,a.score
-              ,a.turnedinlate
-              ,a.exempt
-              ,a.ismissing
-		            ,e.sectionenrollmentstatus
-      HAVING MAX(f.lastupdated) >= TRUNC(SYSDATE - INTERVAL ''24'' HOUR)        
-    ') 
-   )
+		          ,e.sectionenrollmentstatus
+    HAVING MAX(f.lastupdated) >= TRUNC(SYSDATE - INTERVAL ''24'' HOUR)        
+  ');
 
   MERGE KIPP_NJ..GRADES$assignment_scores#STAGING AS TARGET
-  USING assign_update AS SOURCE
+  USING #assign_update AS SOURCE
      ON TARGET.assignmentid = SOURCE.assignmentid
     AND TARGET.studentidentifier = SOURCE.studentidentifier
   WHEN MATCHED THEN

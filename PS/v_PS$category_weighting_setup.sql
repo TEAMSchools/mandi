@@ -17,6 +17,7 @@ FROM OPENQUERY(PS_TEAM,'
         ,rt.enddate
         ,fgsetup.finalgradesetuptype
         ,NVL(cat.name, rt.name || NVL(TO_CHAR(gfw.weighting), ''TP'')) AS name
+        ,gfw.assignmentcategoryid
         ,cat.abbreviation
         ,cat.includeinfinalgrades
         ,gfw.weighting        

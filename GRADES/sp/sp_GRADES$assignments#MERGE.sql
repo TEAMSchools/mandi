@@ -20,6 +20,7 @@ BEGIN
             ,asmt.pointspossible
             ,asmt.weight        
             ,asmt.extracreditpoints
+            ,asmt.assignmentcategoryid
             ,cat.abbreviation AS category  
             ,asmt.isfinalscorecalculated         
             ,asmt.whencreated
@@ -32,7 +33,7 @@ BEGIN
       JOIN sections sec
         ON map.sectionsDCID = sec.dcid
       JOIN psm_assignmentcategory cat
-        ON asmt.assignmentcategoryid = cat.id  
+        ON asmt.assignmentcategoryid = cat.id        
       WHERE (asmt.whencreated >= TRUNC(SYSDATE - INTERVAL ''24'' HOUR) OR asmt.whenmodified >= TRUNC(SYSDATE - INTERVAL ''24'' HOUR))
     ') 
    )
@@ -52,6 +53,7 @@ BEGIN
          ,TARGET.WEIGHT = SOURCE.WEIGHT
          ,TARGET.EXTRACREDITPOINTS = SOURCE.EXTRACREDITPOINTS
          ,TARGET.CATEGORY = SOURCE.CATEGORY
+         ,TARGET.ASSIGNMENTCATEGORYID = SOURCE.ASSIGNMENTCATEGORYID
          ,TARGET.ISFINALSCORECALCULATED = SOURCE.ISFINALSCORECALCULATED
          ,TARGET.academic_year = SOURCE.academic_year
          ,TARGET.lastmodified = SOURCE.lastmodified
@@ -68,6 +70,7 @@ BEGIN
       ,WEIGHT
       ,EXTRACREDITPOINTS
       ,CATEGORY
+      ,ASSIGNMENTCATEGORYID
       ,ISFINALSCORECALCULATED
       ,academic_year
       ,lastmodified)
@@ -83,6 +86,7 @@ BEGIN
       ,SOURCE.WEIGHT
       ,SOURCE.EXTRACREDITPOINTS
       ,SOURCE.CATEGORY
+      ,SOURCE.ASSIGNMENTCATEGORYID
       ,SOURCE.ISFINALSCORECALCULATED
       ,SOURCE.academic_year
       ,SOURCE.lastmodified)
