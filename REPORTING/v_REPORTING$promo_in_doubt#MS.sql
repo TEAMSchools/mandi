@@ -16,6 +16,10 @@ WITH roster AS (
         ,s.first_name
         ,CASE WHEN s.gender = 'M' THEN 'his' ELSE 'her' END AS pronoun
         ,s.schoolid
+        ,CASE
+          WHEN CHARINDEX(',', s.guardianemail) > 0 THEN LEFT(CONVERT(NVARCHAR,s.guardianemail), (CHARINDEX(',', s.guardianemail) - 1))
+          ELSE s.guardianemail
+         END AS guardianemail
   FROM KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
   WHERE s.enroll_status = 0
     AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()

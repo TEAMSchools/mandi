@@ -18,8 +18,10 @@ BEGIN
             ,rt.name AS finalgradename
             ,rt.startdate
             ,rt.enddate
-            ,fgsetup.finalgradesetuptype
+            ,fgsetup.id AS finalgradesetupid
+            ,fgsetup.finalgradesetuptype            
             ,NVL(cat.name, rt.name || NVL(TO_CHAR(gfw.weighting), ''TP'')) AS name
+            ,gfw.assignmentcategoryid
             ,cat.abbreviation
             ,cat.includeinfinalgrades
             ,gfw.weighting        
@@ -47,10 +49,10 @@ BEGIN
   MERGE KIPP_NJ..PS$category_weighting_setup#static AS TARGET
   USING cat_update AS SOURCE
      ON TARGET.PSM_SECTIONID = SOURCE.PSM_SECTIONID
-    AND TARGET.FINALGRADENAME = SOURCE.FINALGRADENAME
-    AND TARGET.FINALGRADESETUPTYPE = SOURCE.FINALGRADESETUPTYPE
-    AND TARGET.NAME = SOURCE.NAME
-    --AND ((TARGET.FINALGRADESETUPTYPE = 'WeightedFGSetup' AND TARGET.NAME = SOURCE.NAME) OR (TARGET.FINALGRADESETUPTYPE = 'TotalPoints' AND TARGET.NAME IS NULL))
+    AND TARGET.FINALGRADENAME = SOURCE.FINALGRADENAME    
+    AND TARGET.finalgradesetupid = SOURCE.finalgradesetupid
+    AND ((SOURCE.FINALGRADESETUPTYPE = 'WeightedFGSetup' AND TARGET.ASSIGNMENTCATEGORYID = SOURCE.ASSIGNMENTCATEGORYID) 
+          OR (SOURCE.FINALGRADESETUPTYPE = 'TotalPoints'))
     WHEN MATCHED THEN
      UPDATE
       SET TARGET.TERM = SOURCE.TERM
@@ -60,6 +62,7 @@ BEGIN
          ,TARGET.STARTDATE = SOURCE.STARTDATE
          ,TARGET.ENDDATE = SOURCE.ENDDATE              
          ,TARGET.ABBREVIATION = SOURCE.ABBREVIATION
+         ,TARGET.FINALGRADESETUPTYPE = SOURCE.FINALGRADESETUPTYPE
          ,TARGET.INCLUDEINFINALGRADES = SOURCE.INCLUDEINFINALGRADES
          ,TARGET.WEIGHTING = SOURCE.WEIGHTING
          ,TARGET.LOWSCORESTODISCARD = SOURCE.LOWSCORESTODISCARD
@@ -74,12 +77,14 @@ BEGIN
       ,FINALGRADENAME
       ,STARTDATE
       ,ENDDATE
+      ,FINALGRADESETUPID
       ,FINALGRADESETUPTYPE
       ,NAME
       ,ABBREVIATION
       ,INCLUDEINFINALGRADES
       ,WEIGHTING
       ,LOWSCORESTODISCARD
+      ,ASSIGNMENTCATEGORYID
       ,academic_year)
      VALUES
       (SOURCE.TERM
@@ -90,16 +95,19 @@ BEGIN
       ,SOURCE.FINALGRADENAME
       ,SOURCE.STARTDATE
       ,SOURCE.ENDDATE
+      ,SOURCE.FINALGRADESETUPID
       ,SOURCE.FINALGRADESETUPTYPE
       ,SOURCE.NAME
       ,SOURCE.ABBREVIATION
       ,SOURCE.INCLUDEINFINALGRADES
       ,SOURCE.WEIGHTING
       ,SOURCE.LOWSCORESTODISCARD
+      ,SOURCE.ASSIGNMENTCATEGORYID
       ,SOURCE.academic_year)
-    WHEN NOT MATCHED BY SOURCE AND TARGET.STARTDATE >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(), '-08-01')) THEN
-     DELETE;
-    --OUTPUT $ACTION, deleted.*;
+    WHEN NOT MATCHED BY SOURCE AND TARGET.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+     THEN DELETE
+    --OUTPUT $ACTION, deleted.*
+   ;
 
 END
 
