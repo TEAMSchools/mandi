@@ -20,6 +20,7 @@ WITH roster AS (
 
 ,reporting_week AS (  
   SELECT date
+        ,rn
         ,CASE
           WHEN rn = 1 THEN 'Monday'
           WHEN rn = 2 THEN 'Tuesday'
@@ -32,24 +33,27 @@ WITH roster AS (
        SELECT date
              --,DATENAME(WEEKDAY,date) AS day_of_week
              ,ROW_NUMBER() OVER(ORDER BY date ASC) AS rn
-       FROM UTIL$reporting_days WITH(NOLOCK)
+       FROM KIPP_NJ..UTIL$reporting_days WITH(NOLOCK)
        WHERE date IN ('2015-04-02','2015-04-13','2015-04-14','2015-04-15') -- UPDATE WITH EXACT DATES
       ) sub
  )
 
+--/*
 ,missing_days AS (
   SELECT COUNT(*) * 45 AS free_points
   FROM
-      (
+      (       
        SELECT date
              ,DATENAME(WEEKDAY,date) AS day_of_week
+             ,ROW_NUMBER() OVER(ORDER BY date ASC) AS rn
        FROM UTIL$reporting_days#static days WITH(NOLOCK)
        WHERE CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) >= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1) + '5')
          AND CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) <= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())) + '4')
-         AND DATEPART(WEEKDAY,date) NOT IN (1,7)
-         AND date NOT IN (SELECT date FROM reporting_week)
+         AND DATEPART(WEEKDAY,date) NOT IN (1,7)         
       ) sub
-)
+  WHERE rn NOT IN (SELECT rn FROM reporting_week)
+ )
+--*/
 
 -- start and end days
 ,date_strings AS (
@@ -85,10 +89,13 @@ WITH roster AS (
   SELECT s.id AS studentid      
         ,s.grade_level
         ,rw.date AS att_date
+        ,ROW_NUMBER() OVER(
+          PARTITION BY s.id, cl.class
+            ORDER BY rw.date) AS rn
         ,cl.class
         ,CASE 
           WHEN s.GRADE_LEVEL = 8 AND dt.class = 'other' AND dt.ccr = 'S' THEN NULL 
-          WHEN s.GRADE_LEVEL = 7 AND dt.ccr IS NULL THEN 'S'
+          WHEN s.GRADE_LEVEL = 7 AND dt.ccr IS NULL THEN '$'
           ELSE dt.ccr 
          END AS ccr
         ,CASE 
@@ -97,10 +104,8 @@ WITH roster AS (
           ELSE dt.ccr_score
          END AS ccr_score        
   FROM STUDENTS s WITH(NOLOCK)
-  JOIN reporting_week rw WITH(NOLOCK)
-    ON 1 = 1
-  JOIN classes cl WITH(NOLOCK)
-    ON 1 = 1
+  CROSS JOIN reporting_week rw WITH(NOLOCK)    
+  CROSS JOIN classes cl WITH(NOLOCK)    
   LEFT OUTER JOIN DAILY$tracking_long#Rise#static dt WITH(NOLOCK)
     ON s.id = dt.studentid
    AND rw.date = dt.att_date
@@ -166,7 +171,7 @@ WITH roster AS (
              ,ccr_long.ccr                   
        FROM ccr_long WITH(NOLOCK)
        JOIN reporting_week wk WITH(NOLOCK)
-         ON wk.date = ccr_long.att_date       
+         ON wk.rn = ccr_long.rn
       ) sub
 
   PIVOT (
@@ -228,7 +233,7 @@ WITH roster AS (
           ELSE SUM(ccr_score)
          END AS ccr_total
         ,CASE 
-          WHEN ccr_long.GRADE_LEVEL = 7 THEN COUNT(ccr_score) + (SELECT free_points FROM missing_days) 
+          WHEN ccr_long.GRADE_LEVEL = 7 THEN (COUNT(ccr_score) * 5) + (SELECT free_points FROM missing_days) 
           ELSE COUNT(ccr_score)
          END AS ccr_poss
         ,ROUND(
@@ -240,7 +245,7 @@ WITH roster AS (
             / 
           CONVERT(FLOAT,
            CASE 
-            WHEN ccr_long.GRADE_LEVEL = 7 THEN COUNT(ccr_score) + (SELECT free_points FROM missing_days) 
+            WHEN ccr_long.GRADE_LEVEL = 7 THEN (COUNT(ccr_score) * 5) + (SELECT free_points FROM missing_days) 
             ELSE COUNT(ccr_score)
            END)
            * 100, 0) AS ccr_pct

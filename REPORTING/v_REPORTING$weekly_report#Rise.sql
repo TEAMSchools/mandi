@@ -217,7 +217,7 @@ WITH roster AS (
           ELSE SUM(ccr_score)
          END AS ccr_total
         ,CASE 
-          WHEN ccr_long.GRADE_LEVEL = 7 THEN COUNT(ccr_score) + (SELECT free_points FROM missing_days) 
+          WHEN ccr_long.GRADE_LEVEL = 7 THEN (COUNT(ccr_score) * 5) + (SELECT free_points FROM missing_days) 
           ELSE COUNT(ccr_score)
          END AS ccr_poss
         ,ROUND(
@@ -229,7 +229,7 @@ WITH roster AS (
             / 
           CONVERT(FLOAT,
            CASE 
-            WHEN ccr_long.GRADE_LEVEL = 7 THEN COUNT(ccr_score) + (SELECT free_points FROM missing_days) 
+            WHEN ccr_long.GRADE_LEVEL = 7 THEN (COUNT(ccr_score) * 5) + (SELECT free_points FROM missing_days) 
             ELSE COUNT(ccr_score)
            END)
            * 100, 0) AS ccr_pct
