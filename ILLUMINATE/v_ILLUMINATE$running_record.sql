@@ -27,7 +27,7 @@ WITH running_record AS (
              ,repository_row_id
              ,field
              ,value
-       FROM ILLUMINATE$summary_assessment_results_long#static WITH(NOLOCK)
+       FROM KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static WITH(NOLOCK)
        WHERE repository_id = 54
       ) sub
 
@@ -56,7 +56,7 @@ WITH running_record AS (
        SELECT lvl_num
              ,field_name
              ,score
-       FROM LIT$prof_long WITH(NOLOCK)
+       FROM KIPP_NJ..LIT$prof_long WITH(NOLOCK)
        WHERE testid = 3273
          AND field_name IN ('fp_accuracy','fp_comp_prof')
       ) sub

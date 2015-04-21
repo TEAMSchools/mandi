@@ -42,14 +42,14 @@ SELECT co.schoolid
       ,ROW_NUMBER() OVER(
          PARTITION BY ovr.student_number, a.scope, a.standard_id
            ORDER BY a.administered_at DESC) AS rn_curr
-FROM ILLUMINATE$assessments#static a WITH (NOLOCK)
-JOIN COHORT$identifiers_long#static co WITH (NOLOCK) 
+FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH (NOLOCK)
+JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK) 
   ON a.academic_year = co.year
  AND a.grade_level = co.grade_level
  AND a.schoolid= co.schoolid
  AND co.rn = 1
-JOIN ILLUMINATE$assessment_results_overall#static ovr WITH(NOLOCK)
-  ON ovr.student_number = co.student_number
+JOIN KIPP_NJ..ILLUMINATE$assessment_results_overall#static ovr WITH(NOLOCK)
+  ON co.student_number = ovr.student_number
  AND a.assessment_id = ovr.assessment_id 
 LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
@@ -60,16 +60,56 @@ LEFT OUTER JOIN (
                         student_number
                        ,academic_year
                        ,illuminate_group AS groups
-                 FROM PS$enrollments_rollup#static WITH(NOLOCK)  
-                 WHERE academic_year >= 2013 -- first year w/ Illuminate, so we can hard code this 
+                 FROM KIPP_NJ..PS$enrollments_rollup#static WITH(NOLOCK)  
+                 WHERE academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year() -- first year w/ Illuminate, so we can hard code this 
                 ) groups
   ON co.STUDENT_NUMBER = groups.student_number
  AND co.year = groups.academic_year
-LEFT OUTER JOIN ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOCK)
   ON a.assessment_id = res.assessment_id
  AND a.standard_id = res.standard_id  
  AND ovr.student_number = res.local_student_id
-LEFT OUTER JOIN ILLUMINATE$SPED_comments#static comm WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$SPED_comments#static comm WITH(NOLOCK)
   ON ovr.student_number = comm.student_number
  AND a.subject = comm.subject
  AND comm.rn = 1
+WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year() 
+
+UNION ALL
+
+SELECT schoolid
+      ,academic_year
+      ,grade_level
+      ,team
+      ,groups
+      ,student_number
+      ,lastfirst
+      ,spedlep
+      ,enroll_status
+      ,gender
+      ,retained_yr_flag
+      ,retained_ever_flag
+      ,assessment_id
+      ,title
+      ,scope
+      ,subject
+      ,credittype
+      ,COURSE_NAME
+      ,teacher_name
+      ,section
+      ,rti_tier
+      ,term
+      ,fsa_week
+      ,administered_at
+      ,standards_tested
+      ,standard_descr
+      ,parent_standard
+      ,percent_correct
+      ,mastered
+      ,overall_pct_correct
+      ,comment
+      ,comment_date
+      ,std_attempt_rn
+      ,overall_rn
+      ,rn_curr
+FROM KIPP_NJ..TABLEAU$assessment_dashboard#ARCHIVE WITH(NOLOCK)

@@ -4,10 +4,10 @@ GO
 ALTER VIEW TABLEAU$course_enrollments AS
 
 SELECT cc.STUDENTID
-      ,s.STUDENT_NUMBER
-      ,s.SCHOOLID
-      ,s.GRADE_LEVEL
-      ,s.TEAM
+      ,cc.STUDENT_NUMBER
+      ,cc.SCHOOLID
+      ,cc.GRADE_LEVEL
+      ,co.TEAM
       ,CONVERT(DATE,cc.DATEENROLLED) AS dateenrolled
       ,CONVERT(DATE,cc.DATELEFT) AS dateleft      
       ,CASE
@@ -19,19 +19,17 @@ SELECT cc.STUDENTID
         WHEN cc.SCHOOLID = 73253 AND cc.TERMID = 2302 THEN 'S2'        
        END AS term
       ,cc.SECTION_NUMBER      
-      ,cou.CREDITTYPE
+      ,cc.CREDITTYPE
       ,cc.COURSE_NUMBER
-      ,cou.COURSE_NAME
-      ,sch.ABBREVIATION + ' - ' 
-        + CONVERT(VARCHAR,s.grade_level) + ' - ' 
-        + cou.COURSE_NUMBER + ' - '
+      ,cc.COURSE_NAME
+      ,co.school_name + ' - ' 
+        + CONVERT(VARCHAR,cc.grade_level) + ' - ' 
+        + cc.COURSE_NUMBER + ' - '
         + CC.SECTION_NUMBER AS synth_course
-FROM cc WITH(NOLOCK)
-JOIN STUDENTS s WITH(NOLOCK)
-  ON cc.STUDENTID = s.ID
-JOIN SCHOOLS sch WITH(NOLOCK)
-  ON s.SCHOOLID = sch.SCHOOL_NUMBER
-JOIN COURSES cou WITH(NOLOCK)
-  ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
-WHERE cc.TERMID >= dbo.fn_Global_Term_Id()
+FROM KIPP_NJ..PS$course_enrollments#static cc WITH(NOLOCK)
+JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  ON cc.student_number = co.student_number
+ AND cc.academic_year = co.year
+ AND co.rn = 1
+WHERE cc.TERMID >= KIPP_NJ.dbo.fn_Global_Term_Id()
   AND cc.SCHOOLID IN (73252,73253,133570965)
