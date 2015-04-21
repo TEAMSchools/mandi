@@ -6,8 +6,9 @@ import json
 import gspread
 import pymssql
 import unicodewriter
+from oauth2client.client import SignedJwtAssertionCredentials
 
-def distress_signal(error_type):
+def distress_signal(error_type, server_name, db_user, db_pass, db_name, save_path, url):
     conn = pymssql.connect(server_name, db_user, db_pass, db_name)
     cursor = conn.cursor()
     if error_type == "http":
@@ -26,6 +27,7 @@ def distress_signal(error_type):
                 @importance = 'High';
         """        
         cursor.execute(warn_email)                
+        conn.commit()
         conn.close()        
     elif error_type == "load":
         print '!!! ERROR LOADING FOLDER !!!'
@@ -41,6 +43,7 @@ def distress_signal(error_type):
                 @importance = 'High';
         """        
         cursor.execute(warn_email)                
+        conn.commit()
         conn.close()        
 
 """
@@ -48,12 +51,15 @@ CONFIG
 """
 # file locations
 secret_file = "../config/secret.json"
+oauth_file = '../config/gspread-efdc9f69f2c3.json'
 config_file = "gdocs.csv"
 
 # keys
+scope = ['https://spreadsheets.google.com/feeds']
+oauth_key = json.load(open(oauth_file))
+gdocs_credentials = SignedJwtAssertionCredentials(oauth_key['client_email'], oauth_key['private_key'], scope)
+
 keys = json.load(file(secret_file))
-gdocs_user = keys['GDOCS']['login']['USERNAME']
-gdocs_pass = keys['GDOCS']['login']['PASSWORD']
 server_name = keys['NARDO']['server_name']
 db_user = keys['NARDO']['login']['USERNAME']
 db_pass = keys['NARDO']['login']['PASSWORD']
@@ -73,7 +79,7 @@ with open(config_file, 'rb') as f:
     print
 
 # initialize GDocs client
-client = gspread.login(gdocs_user, gdocs_pass)
+client = gspread.authorize(gdocs_credentials)
 
 # iterate over urls in config csv
 for record in wkbk_list:
@@ -93,7 +99,7 @@ for record in wkbk_list:
     try:
         workbook = client.open_by_url(url)
     except:
-        distress_signal("http")
+        distress_signal("http", server_name, db_user, db_pass, db_name, save_path, url)
         continue
     sheet_names = workbook.worksheets()
     print
@@ -144,7 +150,7 @@ for record in wkbk_list:
         conn.commit()
         conn.close()
     except:
-        distress_signal("load")
+        distress_signal("load", server_name, db_user, db_pass, db_name, save_path, url)
         continue
     
     print
