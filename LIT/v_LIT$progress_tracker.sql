@@ -54,7 +54,7 @@ WITH goals_wide AS (
   WHERE identifier = 'LIT'      
     AND schoolid = 73254 -- peg it to SPARK's date, always peg it to SPARK's date
     AND academic_year = dbo.fn_Global_Academic_Year()
-    AND start_date <= GETDATE()
+    AND start_date <= CONVERT(DATE,GETDATE())
  )
 
 SELECT
@@ -182,7 +182,7 @@ LEFT OUTER JOIN [AUTOLOAD$GDOCS_LIT_GR_Group] grteacher WITH(NOLOCK)
 LEFT OUTER JOIN goals_wide
   ON scores.STUDENTID = goals_wide.studentid
 WHERE scores.academic_year >= dbo.fn_Global_Academic_Year()
-  AND scores.test_round IN (SELECT test_round FROM terms WITH(NOLOCK))
+  AND scores.start_date <= CONVERT(DATE,GETDATE())
 
 UNION ALL
 

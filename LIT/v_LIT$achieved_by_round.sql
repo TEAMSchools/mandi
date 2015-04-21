@@ -22,12 +22,13 @@ WITH roster AS (
           WHEN school_level = 'MS' AND time_per_name = 'DR' THEN 'BOY' 
           ELSE REPLACE(time_per_name, 'Diagnostic', 'DR')
          END AS test_round
+        ,start_date
         ,ROW_NUMBER() OVER (
            PARTITION BY academic_year, schoolid
            ORDER BY start_date ASC) AS round_num
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'LIT'      
-    AND start_date <= GETDATE()
+    --AND start_date <= GETDATE()
  )
  
 ,roster_scaffold AS (
@@ -38,6 +39,7 @@ WITH roster AS (
         ,r.year AS academic_year
         ,terms.test_round
         ,terms.round_num
+        ,terms.start_date
   FROM roster r WITH(NOLOCK)
   JOIN terms WITH(NOLOCK)
     ON (r.year = terms.academic_year AND r.schoolid = terms.schoolid) 
@@ -53,6 +55,7 @@ WITH roster AS (
         ,r.academic_year
         ,r.test_round
         ,r.round_num
+        ,r.start_date
         ,achv.unique_id
         ,achv.read_lvl    
         ,achv.lvl_num
@@ -85,6 +88,7 @@ SELECT academic_year
       ,GRADE_LEVEL
       ,STUDENTID
       ,test_round
+      ,start_date
       ,read_lvl
       ,indep_lvl
       ,GLEQ
@@ -102,6 +106,7 @@ FROM
            ,sub.GRADE_LEVEL
            ,sub.STUDENTID
            ,sub.test_round
+           ,sub.start_date
            ,sub.read_lvl
            ,sub.indep_lvl
            ,sub.GLEQ
@@ -123,6 +128,7 @@ FROM
                 ,tests.STUDENTID      
                 ,tests.student_number
                 ,tests.test_round      
+                ,tests.start_date
                 ,COALESCE(tests.read_lvl, achv_prev1.read_lvl, achv_prev2.read_lvl, achv_prev3.read_lvl, achv_prev4.read_lvl, achv_prev5.read_lvl) AS read_lvl
                 ,COALESCE(tests.indep_lvl, achv_prev1.indep_lvl, achv_prev2.indep_lvl, achv_prev3.indep_lvl, achv_prev4.indep_lvl, achv_prev5.indep_lvl) AS indep_lvl
                 ,COALESCE(tests.gleq, achv_prev1.gleq, achv_prev2.gleq, achv_prev3.gleq, achv_prev4.gleq, achv_prev5.gleq) AS GLEQ

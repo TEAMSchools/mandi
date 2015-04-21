@@ -78,7 +78,7 @@ WITH long_goals AS (
   JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
      ON CAST(cohort.student_number AS VARCHAR) = goals.student_number
     AND goals.time_period_hierarchy = 2
-  WHERE ((year - 1990) * 100) = goals.yearid
+  WHERE ((cohort.year - 1990) * 100) = goals.yearid
     AND cohort.year >= 2011
     AND cohort.rn = 1
     --TESTING
@@ -87,7 +87,14 @@ WITH long_goals AS (
  )
  
 ,last_book AS (
-  SELECT sub.*
+  SELECT sub.student_number
+        ,sub.yearid
+        ,sub.time_period_hierarchy
+        ,sub.time_period_start
+        ,sub.time_period_end
+        ,sub.last_book_date
+        ,sub.title_string
+        ,sub.rn_desc
   FROM
       (
        SELECT goals.student_number
@@ -113,8 +120,8 @@ WITH long_goals AS (
                              ,goals.time_period_start
                              ,goals.time_period_end
                      ORDER BY detail.dttaken DESC) AS rn_desc
-       FROM AR$goals_long_decode#static goals WITH (NOLOCK)
-       JOIN AR$test_event_detail#static detail WITH (NOLOCK)
+       FROM KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
+       JOIN KIPP_NJ..AR$test_event_detail#static detail WITH (NOLOCK)
          ON goals.student_number = detail.student_number
         AND CAST(detail.dtTaken AS DATE) >= CAST(goals.time_period_start AS DATE)
         AND CAST(detail.dtTaken AS DATE) <= CAST(goals.time_period_end AS DATE)
@@ -356,17 +363,17 @@ FROM
        AND CAST(ar_all.dttaken AS date) >= CAST(long_goals.start_date_summer_bonus AS date)
        AND CAST(ar_all.dttaken AS date) <= CAST(long_goals.end_date AS date)
        AND ar_all.tiRowStatus = 1
-       GROUP BY long_goals.studentid
-               ,long_goals.student_number
-               ,long_goals.grade_level
-               ,long_goals.schoolid
-               ,long_goals.yearid
-               ,long_goals.time_hierarchy
-               ,long_goals.time_period_name
-               ,long_goals.words_goal
-               ,long_goals.points_goal
-               ,long_goals.start_date
-               ,long_goals.end_date
+      GROUP BY long_goals.studentid
+              ,long_goals.student_number
+              ,long_goals.grade_level
+              ,long_goals.schoolid
+              ,long_goals.yearid
+              ,long_goals.time_hierarchy
+              ,long_goals.time_period_name
+              ,long_goals.words_goal
+              ,long_goals.points_goal
+              ,long_goals.start_date
+              ,long_goals.end_date
      ) totals
 LEFT OUTER JOIN last_book
   ON totals.student_number = last_book.student_number
