@@ -37,7 +37,7 @@ BEGIN
       SELECT repository_id          
       FROM dna_repositories.repositories    
       WHERE deleted_at IS NULL      
-        AND (created_at >= (current_date - interval ''1 day'') OR updated_at >= (current_date - interval ''1 day''))
+        --AND (created_at >= (current_date - interval ''1 day'') OR updated_at >= (current_date - interval ''1 day''))
         AND repository_id <= 110
       ORDER BY repository_id DESC
     ')
@@ -162,7 +162,8 @@ BEGIN
     ,SOURCE.value)
   WHEN NOT MATCHED BY SOURCE AND TARGET.repository_id IN (SELECT repository_id FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh]) THEN 
    DELETE
-  OUTPUT $ACTION, deleted.*;
+  --OUTPUT $ACTION, deleted.*
+  ;
 
 END
 

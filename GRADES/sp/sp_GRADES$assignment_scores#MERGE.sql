@@ -79,8 +79,8 @@ BEGIN
     ,SOURCE.ismissing
     ,SOURCE.lastupdated
     ,SOURCE.sectionenrollmentstatus)
-  WHEN NOT MATCHED BY SOURCE AND TARGET.lastupdated >= DATEADD(DAY,-1,CONVERT(DATE,GETDATE())) THEN
-   DELETE;
+  WHEN NOT MATCHED BY SOURCE AND TARGET.lastupdated >= DATEADD(DAY,-1,CONVERT(DATE,GETDATE()))
+   THEN DELETE;
 
 END
 

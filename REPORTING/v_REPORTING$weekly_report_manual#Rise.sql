@@ -22,11 +22,11 @@ WITH roster AS (
   SELECT date
         ,rn
         ,CASE
-          WHEN rn = 1 THEN 'Monday'
-          WHEN rn = 2 THEN 'Tuesday'
-          WHEN rn = 3 THEN 'Wednesday'
-          WHEN rn = 4 THEN 'Thursday'
-          WHEN rn = 5 THEN 'Friday'
+          WHEN rn = 1 THEN 'Thursday'
+          WHEN rn = 2 THEN 'Friday'
+          WHEN rn = 3 THEN 'Monday'
+          WHEN rn = 4 THEN 'Tuesday'
+          WHEN rn = 5 THEN 'Wednesday'
          END AS day_of_week
   FROM
       (

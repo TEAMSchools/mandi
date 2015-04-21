@@ -24,6 +24,7 @@ BEGIN
             ,gfw.assignmentcategoryid
             ,cat.abbreviation
             ,cat.includeinfinalgrades
+            ,cat.defaultscoretype
             ,gfw.weighting        
             ,NVL(gfw.lowscorestodiscard,0) AS lowscorestodiscard
       FROM PSM_Term term
@@ -64,6 +65,7 @@ BEGIN
          ,TARGET.ABBREVIATION = SOURCE.ABBREVIATION
          ,TARGET.FINALGRADESETUPTYPE = SOURCE.FINALGRADESETUPTYPE
          ,TARGET.INCLUDEINFINALGRADES = SOURCE.INCLUDEINFINALGRADES
+         ,TARGET.DEFAULTSCORETYPE= SOURCE.DEFAULTSCORETYPE
          ,TARGET.WEIGHTING = SOURCE.WEIGHTING
          ,TARGET.LOWSCORESTODISCARD = SOURCE.LOWSCORESTODISCARD
          ,TARGET.academic_year = SOURCE.academic_year
@@ -82,6 +84,7 @@ BEGIN
       ,NAME
       ,ABBREVIATION
       ,INCLUDEINFINALGRADES
+      ,DEFAULTSCORETYPE
       ,WEIGHTING
       ,LOWSCORESTODISCARD
       ,ASSIGNMENTCATEGORYID
@@ -100,6 +103,7 @@ BEGIN
       ,SOURCE.NAME
       ,SOURCE.ABBREVIATION
       ,SOURCE.INCLUDEINFINALGRADES
+      ,SOURCE.DEFAULTSCORETYPE
       ,SOURCE.WEIGHTING
       ,SOURCE.LOWSCORESTODISCARD
       ,SOURCE.ASSIGNMENTCATEGORYID
