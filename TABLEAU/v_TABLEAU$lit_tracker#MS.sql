@@ -90,8 +90,8 @@ WITH term_scaffold AS (
        SELECT DISTINCT identifier
              ,time_per_name
        FROM REPORTING$dates WITH(NOLOCK)
-       WHERE start_date <= '2014-05-15' -- replace with GETDATE
-         AND end_date >= '2014-05-15'   -- replace with GETDATE      
+       WHERE start_date <= CONVERT(DATE,GETDATE())
+         AND end_date >= CONVERT(DATE,GETDATE())
          AND identifier IN ('HEX','LIT','MAP')
          AND schoolid IN (73252,133570965)
       ) sub
@@ -152,54 +152,53 @@ WITH term_scaffold AS (
 
 -- long map data, long by term
 ,map_scores AS (
--- MAP
-SELECT co.studentid
-      ,co.year
-      ,map_terms.hash AS fallwinterspring
-      ,map.testritscore AS rit
-      ,map.testpercentile AS percentile
-      ,map.rittoreadingscore AS lexile
-      ,map.goal1name
-      ,map.goal1ritscore
-      ,map.goal1adjective
-      ,map.goal2name
-      ,map.goal2ritscore
-      ,map.goal2adjective
-      ,map.goal3name
-      ,map.goal3ritscore
-      ,map.goal3adjective
-      ,map.goal4name
-      ,map.goal4ritscore
-      ,map.goal4adjective
-      ,map.goal5name
-      ,map.goal5ritscore
-      ,map.goal5adjective
-      ,domain.goal1name AS base_goal1name
-      ,domain.goal1ritscore AS base_goal1ritscore
-      ,domain.goal1adjective AS base_goal1adjective
-      ,domain.goal2name AS base_goal2name
-      ,domain.goal2ritscore AS base_goal2ritscore
-      ,domain.goal2adjective AS base_goal2adjective
-      ,domain.goal3name AS base_goal3name
-      ,domain.goal3ritscore AS base_goal3ritscore
-      ,domain.goal3adjective AS base_goal3adjective
-      ,domain.goal4name AS base_goal4name
-      ,domain.goal4ritscore AS base_goal4ritscore
-      ,domain.goal4adjective AS base_goal4adjective
-      ,domain.goal5name AS base_goal5name
-      ,domain.goal5ritscore AS base_goal5ritscore
-      ,domain.goal5adjective AS base_goal5adjective
-      ,base.testritscore AS base_rit
-      ,base.testpercentile AS base_percentile        
-      ,base.lexile_score AS base_lexile
-      ,rr.keep_up_goal
-      ,rr.keep_up_rit
-      ,rr.rutgers_ready_goal
-      ,rr.rutgers_ready_rit
-      ,map.rn_curr        
+  -- MAP
+  SELECT co.studentid
+        ,co.year
+        ,map_terms.hash AS fallwinterspring
+        ,map.testritscore AS rit
+        ,map.testpercentile AS percentile
+        ,map.rittoreadingscore AS lexile
+        ,map.goal1name
+        ,map.goal1ritscore
+        ,map.goal1adjective
+        ,map.goal2name
+        ,map.goal2ritscore
+        ,map.goal2adjective
+        ,map.goal3name
+        ,map.goal3ritscore
+        ,map.goal3adjective
+        ,map.goal4name
+        ,map.goal4ritscore
+        ,map.goal4adjective
+        ,map.goal5name
+        ,map.goal5ritscore
+        ,map.goal5adjective
+        ,domain.goal1name AS base_goal1name
+        ,domain.goal1ritscore AS base_goal1ritscore
+        ,domain.goal1adjective AS base_goal1adjective
+        ,domain.goal2name AS base_goal2name
+        ,domain.goal2ritscore AS base_goal2ritscore
+        ,domain.goal2adjective AS base_goal2adjective
+        ,domain.goal3name AS base_goal3name
+        ,domain.goal3ritscore AS base_goal3ritscore
+        ,domain.goal3adjective AS base_goal3adjective
+        ,domain.goal4name AS base_goal4name
+        ,domain.goal4ritscore AS base_goal4ritscore
+        ,domain.goal4adjective AS base_goal4adjective
+        ,domain.goal5name AS base_goal5name
+        ,domain.goal5ritscore AS base_goal5ritscore
+        ,domain.goal5adjective AS base_goal5adjective
+        ,base.testritscore AS base_rit
+        ,base.testpercentile AS base_percentile        
+        ,base.lexile_score AS base_lexile
+        ,rr.keep_up_goal
+        ,rr.keep_up_rit
+        ,rr.rutgers_ready_goal
+        ,rr.rutgers_ready_rit
+        ,map.rn_curr        
   FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  JOIN map map_terms
-    ON 1 = 1
+  CROSS JOIN map map_terms    
   LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
     ON co.studentid = base.studentid
    AND co.year = base.year
@@ -552,8 +551,7 @@ SELECT -- student identifiers
       ,t2t3_growth_GLEQ
       ,t3EOY_growth_GLEQ
 FROM roster r
-JOIN term_map term
-  ON 1 = 1
+CROSS JOIN term_map term
 LEFT OUTER JOIN ar_data ar
   ON r.STUDENT_NUMBER = ar.student_number
  AND r.year = ar.year
