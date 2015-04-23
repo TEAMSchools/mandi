@@ -7,7 +7,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
---ALTER PROCEDURE [dbo].[sp_GRADES$NCA|refresh] AS
+ALTER PROCEDURE [dbo].[sp_GRADES$NCA|refresh] AS
 
 BEGIN
  
@@ -16,7 +16,7 @@ BEGIN
  SET NOCOUNT ON;
 
  DECLARE
-   @v_termid               INT      = dbo.fn_Global_Term_Id(),
+   @v_termid               INT      = KIPP_NJ.dbo.fn_Global_Term_Id(),
    @v_grade_1              VARCHAR(2) = 'Q1',   
    @v_grade_2              VARCHAR(2) = 'Q2',  
    /* 
@@ -26,10 +26,10 @@ BEGIN
    v_grade_4              VARCHAR2(2) := 'FOO'   ;
    */
    @v_grade_3              VARCHAR(2) = 'Q3',
-   @v_grade_4              VARCHAR(2) = 'Q4',
+   @v_grade_4              VARCHAR(2) = 'FOO',
    @v_grade_5              VARCHAR(2) = 'E1',
-   @v_grade_6              VARCHAR(2) = 'E2',
-   @v_grade_yr             VARCHAR(2) = 'Y1',
+   @v_grade_6              VARCHAR(2) = 'FOO',
+   @v_grade_yr             VARCHAR(2) = 'BAR',
    @v_schoolly_d           INT     = 73253,
    
    --other variables
@@ -269,7 +269,7 @@ BEGIN
        ,c.course_name
        ,c.credit_hours
  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
- JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+ JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
    ON co.STUDENTID = s.ID
  JOIN cc WITH(NOLOCK)
    ON co.studentid = cc.studentid
