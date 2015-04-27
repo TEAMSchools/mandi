@@ -37,8 +37,11 @@ WITH curterm AS (
         ,term
         ,sectionid
         ,teacher
-  FROM GRADES$sections_by_term WITH(NOLOCK)
-  WHERE term IN (SELECT term FROM curterm)
+        ,ROW_NUMBER() OVER(
+          PARTITION BY studentid, course_number, sectionid
+            ORDER BY term DESC) AS rn
+  FROM KIPP_NJ..GRADES$sections_by_term WITH(NOLOCK)
+  --WHERE term IN (SELECT term FROM curterm)
  )
 
 SELECT roster.ID
@@ -177,8 +180,8 @@ SELECT roster.ID
        END AS ay_label      
       ,roster.entry_grade      
       ,rti.behavior_tier
-FROM roster WITH (NOLOCK)
-LEFT OUTER JOIN GRADES$DETAIL#NCA gr WITH (NOLOCK)
+FROM roster WITH(NOLOCK)
+LEFT OUTER JOIN GRADES$DETAIL#NCA gr WITH(NOLOCK)
   ON roster.joinid = gr.studentid 
 LEFT OUTER JOIN PS$rti_tiers#static rti WITH(NOLOCK)
   ON roster.joinid = rti.studentid
@@ -186,6 +189,7 @@ LEFT OUTER JOIN PS$rti_tiers#static rti WITH(NOLOCK)
 LEFT OUTER JOIN cur_section sec
   ON roster.joinid = sec.studentid
  AND gr.course_number = sec.course_number
+ AND sec.rn = 1
 LEFT OUTER JOIN CC cc WITH (NOLOCK)
   ON roster.joinid = cc.studentid
  AND sec.sectionid = cc.sectionid

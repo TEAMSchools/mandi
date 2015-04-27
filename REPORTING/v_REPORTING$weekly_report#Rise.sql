@@ -86,10 +86,8 @@ WITH roster AS (
           ELSE dt.ccr_score
          END AS ccr_score        
   FROM STUDENTS s WITH(NOLOCK)
-  JOIN reporting_week rw WITH(NOLOCK)
-    ON 1 = 1
-  JOIN classes cl WITH(NOLOCK)
-    ON 1 = 1
+  CROSS JOIN reporting_week rw WITH(NOLOCK)    
+  CROSS JOIN classes cl WITH(NOLOCK)    
   LEFT OUTER JOIN DAILY$tracking_long#Rise#static dt WITH(NOLOCK)
     ON s.id = dt.studentid
    AND rw.date = dt.att_date

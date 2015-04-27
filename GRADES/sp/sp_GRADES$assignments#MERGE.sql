@@ -34,9 +34,9 @@ BEGIN
         ON map.sectionsDCID = sec.dcid
       JOIN psm_assignmentcategory cat
         ON asmt.assignmentcategoryid = cat.id              
-      WHERE (asmt.whencreated >= TRUNC(SYSDATE - INTERVAL ''24'' HOUR) OR asmt.whenmodified >= TRUNC(SYSDATE - INTERVAL ''24'' HOUR))
+      WHERE (asmt.whencreated >= TRUNC(SYSDATE - INTERVAL ''7'' DAY) OR asmt.whenmodified >= TRUNC(SYSDATE - INTERVAL ''7'' DAY))
     ') 
-   )
+   ) 
 
     MERGE KIPP_NJ..GRADES$assignments#STAGING AS TARGET
     USING assign_update AS SOURCE
@@ -90,9 +90,9 @@ BEGIN
       ,SOURCE.ISFINALSCORECALCULATED
       ,SOURCE.academic_year
       ,SOURCE.lastmodified)
-    WHEN NOT MATCHED BY SOURCE AND TARGET.lastmodified >= DATEADD(DAY,-1,CONVERT(DATE,GETDATE()))
+    WHEN NOT MATCHED BY SOURCE AND CONVERT(DATE,TARGET.lastmodified) >= DATEADD(DAY,-7,CONVERT(DATE,GETDATE()))
      THEN DELETE
-    --OUTPUT $ACTION, DELETED.*
+    OUTPUT $ACTION, DELETED.*
    ;
 
 END

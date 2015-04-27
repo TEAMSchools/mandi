@@ -10,8 +10,8 @@ WITH curhex AS (
         ,start_date
         ,end_date
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
-  WHERE GETDATE() >= start_date
-    AND GETDATE() <= end_date
+  WHERE CONVERT(DATE,GETDATE()) >= start_date
+    AND CONVERT(DATE,GETDATE()) <= end_date
     AND identifier = 'HEX'
  )
 
@@ -48,7 +48,7 @@ WITH curhex AS (
         ,[TestRITScore]
         ,TestPercentile
         ,[RITtoReadingScore]        
-    FROM KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
+    FROM KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
     WHERE map.MeasurementScale = 'Reading'
       AND map.map_year_academic = dbo.fn_Global_Academic_Year()
       AND map.rn_curr = 1
