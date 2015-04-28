@@ -5,11 +5,11 @@ ALTER VIEW REPORTING$report_card_term#ES AS
 
 WITH curterm AS (
   SELECT DISTINCT 'RT' + CONVERT(VARCHAR,(CONVERT(INT,RIGHT(time_per_name, 1)) - 1)) AS time_per_name                 
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND school_level = 'ES'
-    AND start_date <= '2015-02-25'
-    AND end_date >= '2015-02-25'
+    AND start_date <= '2015-05-18'
+    AND end_date >= '2015-05-18'
     --AND start_date <= CONVERT(DATE,GETDATE())
     --AND end_date >= CONVERT(DATE,GETDATE())    
  )
