@@ -23,8 +23,7 @@ WITH curterm AS (
         ,SUM(CASE WHEN merits.rt = 'RT4' THEN 1 ELSE 0 END) AS teacher_merits_rt4        
         ,SUM(CASE WHEN merits.rt = curterm.time_per_name THEN 1 ELSE 0 END) AS teacher_merits_cur
   FROM DISC$log#static merits WITH(NOLOCK)
-  JOIN curterm
-    ON 1 = 1
+  CROSS JOIN curterm    
   WHERE logtypeid = 3023
   GROUP BY merits.studentid, merits.academic_year
  )

@@ -185,6 +185,26 @@ WITH disc_log AS (
         ,actiontaken
         ,followup
   FROM TEAM_bench WITH(NOLOCK)
+
+  UNION ALL
+
+  SELECT 73253 AS schoolid
+        ,studentid
+        ,'Data Robot' AS entry_author
+        ,week_of AS entry_date
+        ,week_of AS consequence_date
+        ,3023 AS logtypeid
+        ,99 AS subtypeid
+        ,NULL AS n_days
+        ,'Merits' AS logtype
+        ,'Perfect Week' AS subtype
+        ,'No Demerits' AS subject
+        ,NULL AS entry
+        ,NULL AS discipline_details
+        ,NULL AS actiontaken
+        ,NULL AS followup
+  FROM KIPP_NJ..DISC$perfect_weeks#static WITH(NOLOCK)
+  WHERE is_perfect = 1
  )
 
 SELECT all_logs.schoolid
