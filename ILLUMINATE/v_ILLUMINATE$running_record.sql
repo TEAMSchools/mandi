@@ -60,7 +60,6 @@ WITH running_record AS (
        WHERE testid = 3273
          AND field_name IN ('fp_accuracy','fp_comp_prof')
       ) sub
-
   PIVOT (
      MAX(score)
      FOR field_name IN ([fp_accuracy],[fp_comp_prof])

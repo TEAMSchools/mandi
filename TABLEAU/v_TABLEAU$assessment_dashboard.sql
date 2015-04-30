@@ -22,8 +22,8 @@ SELECT co.schoolid
       ,a.credittype      
       ,enr.COURSE_NAME
       ,enr.teacher_name
-      ,enr.section
-      ,enr.rti_tier
+      ,COALESCE(enr.period, enr.section_number) AS section
+      ,enr.behavior_tier AS rti_tier
       ,a.term
       ,a.fsa_week
       ,a.administered_at
@@ -36,6 +36,7 @@ SELECT co.schoolid
       ,comm.comment
       ,comm.date AS comment_date
       ,a.std_attempt_rn
+      ,a.std_attempt_curr
       ,ROW_NUMBER() OVER(
          PARTITION BY ovr.student_number, a.assessment_id
            ORDER BY ovr.student_number) AS overall_rn
@@ -51,10 +52,10 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK)
 JOIN KIPP_NJ..ILLUMINATE$assessment_results_overall#static ovr WITH(NOLOCK)
   ON co.student_number = ovr.student_number
  AND a.assessment_id = ovr.assessment_id 
-LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
  AND co.year = enr.academic_year
- AND a.credittype = enr.credittype  
+ AND a.subject = enr.illuminate_subject
 LEFT OUTER JOIN (
                  SELECT DISTINCT 
                         student_number
@@ -110,6 +111,7 @@ SELECT schoolid
       ,comment
       ,comment_date
       ,std_attempt_rn
+      ,NULL AS std_attempt_curr
       ,overall_rn
       ,rn_curr
 FROM KIPP_NJ..TABLEAU$assessment_dashboard#ARCHIVE WITH(NOLOCK)

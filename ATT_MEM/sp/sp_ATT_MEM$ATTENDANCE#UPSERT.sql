@@ -112,7 +112,8 @@ BEGIN
     ,SOURCE.academic_year)
   WHEN NOT MATCHED BY SOURCE AND TARGET.ATT_DATE >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(), '-08-01')) THEN
    DELETE
-  OUTPUT $ACTION, deleted.*;
+  --OUTPUT $ACTION, deleted.*
+  ;
 
 END
 

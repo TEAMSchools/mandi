@@ -63,7 +63,10 @@ SELECT sub.assessment_id
               ORDER BY administered_at) AS std_freq_rn                    
       ,ROW_NUMBER() OVER (
           PARTITION BY sub.academic_year, sub.schoolid, sub.grade_level, standards_tested
-              ORDER BY administered_at) AS std_attempt_rn
+              ORDER BY administered_at ASC) AS std_attempt_rn
+      ,ROW_NUMBER() OVER (
+          PARTITION BY sub.academic_year, sub.schoolid, sub.grade_level, standards_tested
+              ORDER BY administered_at DESC) AS std_attempt_curr
 FROM
     (
      SELECT oq.assessment_id                          
@@ -99,7 +102,7 @@ FROM
              WHEN oq.subject = 'Spanish' THEN 'WLANG'
              WHEN oq.subject = 'Word Work' THEN 'ENG'
              WHEN oq.subject = 'Writing' THEN 'RHET'
-             ELSE NULL
+             ELSE oq.subject
             END AS credittype
            ,oq.scope
            ,oq.custom_code AS standards_tested -- I regret using the plaural form #cringe

@@ -29,7 +29,38 @@ SELECT cc.academic_year
       ,cc.SCHOOLID
       ,co.grade_level      
       ,cou.CREDITTYPE
-      ,CASE 
+      ,CASE
+        WHEN cc.schoolid != 73253 THEN cou.CREDITTYPE
+        WHEN cc.course_number IN ('ENG10') THEN 'Eng I'
+        WHEN cc.course_number IN ('ENG20', 'ENG25') THEN 'Eng II'
+        WHEN cc.course_number IN ('ENG30', 'ENG35') THEN 'Eng III'
+        WHEN cc.course_number IN ('ENG40', 'ENG45') THEN 'Eng IV'
+        WHEN cc.course_number IN ('ENG75', 'ENG78') THEN 'Eng Foundations'
+        WHEN cc.course_number IN ('MATH10') THEN 'Algebra'
+        WHEN cc.course_number IN ('MATH20', 'MATH22', 'MATH25', 'MATH73') THEN 'Geometry'
+        WHEN cc.course_number IN ('MATH70') THEN 'Number Sense'
+        WHEN cc.course_number IN ('MATH13') THEN 'Pre-Algebra'
+        WHEN cc.course_number IN ('MATH32', 'MATH35') THEN 'Algebra II'
+        WHEN cc.course_number IN ('MATH40') THEN 'Pre Calculus'
+        WHEN cc.course_number IN ('MATH33') THEN 'Discrete Math'
+        WHEN cc.course_number IN ('MATH45') THEN 'Statistics AP'
+        WHEN cc.course_number IN ('MATH34') THEN 'Financial Algebra'
+        WHEN cc.course_number IN ('SCI20', 'SCI25') THEN 'Biology'
+        WHEN cc.course_number IN ('SCI10') THEN 'Intro to Engineering'
+        WHEN cc.course_number IN ('SCI70') THEN 'Lab Skills'
+        WHEN cc.course_number IN ('SCI30', 'SCI32', 'SCI35') THEN 'Chemistry'
+        WHEN cc.course_number IN ('SCI31', 'SCI36') THEN 'Physics'
+        WHEN cc.course_number IN ('SCI41') THEN 'Anatomy and Physiology'
+        WHEN cc.course_number IN ('HIST10', 'HIST11', 'HIST70') THEN 'Global Studies/ AWH'
+        WHEN cc.course_number IN ('HIST20', 'HIST25') THEN 'Modern World History'
+        WHEN cc.course_number IN ('HIST71', 'HIST30', 'HIST35') THEN 'US History'
+        WHEN cc.course_number IN ('HIST40', 'HIST45') THEN 'Comparative Government'
+        WHEN cc.course_number IN ('HIST41') THEN 'Sociology'
+        WHEN cc.course_number IN ('FREN10', 'FREN11', 'FREN12', 'FREN20', 'FREN30') THEN 'French'
+        WHEN cc.course_number IN ('SPAN10', 'SPAN11', 'SPAN20', 'SPAN30', 'SPAN12', 'SPAN40') THEN 'Spanish'
+        WHEN cc.course_number IN ('ARAB20') THEN 'Arabic'
+       END AS illuminate_subject
+      ,CASE
         WHEN cou.CREDITTYPE IN ('ENG','READ') THEN 'Reading'
         WHEN cou.CREDITTYPE = 'MATH' THEN 'Mathematics'
         WHEN cou.CREDITTYPE = 'RHET' THEN 'Language Usage'
