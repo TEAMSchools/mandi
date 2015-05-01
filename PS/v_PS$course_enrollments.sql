@@ -30,21 +30,20 @@ SELECT cc.academic_year
       ,co.grade_level      
       ,cou.CREDITTYPE
       ,CASE
-        WHEN cc.schoolid != 73253 THEN cou.CREDITTYPE
-        WHEN cc.course_number IN ('ENG10') THEN 'Eng I'
-        WHEN cc.course_number IN ('ENG20', 'ENG25') THEN 'Eng II'
-        WHEN cc.course_number IN ('ENG30', 'ENG35') THEN 'Eng III'
-        WHEN cc.course_number IN ('ENG40', 'ENG45') THEN 'Eng IV'
-        WHEN cc.course_number IN ('ENG75', 'ENG78') THEN 'Eng Foundations'
+        WHEN cc.course_number IN ('ENG10') THEN 'English 100'
+        WHEN cc.course_number IN ('ENG20', 'ENG25') THEN 'English 200'
+        WHEN cc.course_number IN ('ENG30', 'ENG35') THEN 'English 300'
+        WHEN cc.course_number IN ('ENG40', 'ENG45') THEN 'English 400 / 450'
+        WHEN cc.course_number IN ('ENG75', 'ENG78') THEN 'English Foundations'
         WHEN cc.course_number IN ('MATH10') THEN 'Algebra'
         WHEN cc.course_number IN ('MATH20', 'MATH22', 'MATH25', 'MATH73') THEN 'Geometry'
-        WHEN cc.course_number IN ('MATH70') THEN 'Number Sense'
         WHEN cc.course_number IN ('MATH13') THEN 'Pre-Algebra'
         WHEN cc.course_number IN ('MATH32', 'MATH35') THEN 'Algebra II'
         WHEN cc.course_number IN ('MATH40') THEN 'Pre Calculus'
         WHEN cc.course_number IN ('MATH33') THEN 'Discrete Math'
         WHEN cc.course_number IN ('MATH45') THEN 'Statistics AP'
-        WHEN cc.course_number IN ('MATH34') THEN 'Financial Algebra'
+        WHEN cc.course_number IN ('SCI75') THEN 'Life Science'
+        WHEN cc.course_number IN ('SCI40') THEN 'Environmental Science'
         WHEN cc.course_number IN ('SCI20', 'SCI25') THEN 'Biology'
         WHEN cc.course_number IN ('SCI10') THEN 'Intro to Engineering'
         WHEN cc.course_number IN ('SCI70') THEN 'Lab Skills'
