@@ -43,8 +43,7 @@ WITH curterm AS (
         ,curterm.time_per_name AS rt
         ,CONVERT(VARCHAR,DATENAME(MONTH,GETDATE())) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,GETDATE())) + ', ' + CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) AS today_words
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK)
-  JOIN curterm
-    ON 1 = 1  
+  CROSS JOIN curterm    
   WHERE year = dbo.fn_Global_Academic_Year()
     AND co.rn = 1
     AND co.schoolid = 73253    
@@ -395,15 +394,15 @@ SELECT roster.*
       ,merits.perfect_week_merits_y1 AS perfect_week_yr
       ,merits.total_merits_y1 AS total_merits_yr
        /*--Current--*/       
-      ,merits.teacher_merits_rt2 AS teacher_merits_curr
-      ,merits.perfect_week_merits_rt2 AS perfect_week_curr
-      ,merits.total_merits_rt2 AS total_merits_curr
+      ,merits.teacher_merits_cur
+      ,merits.perfect_week_merits_cur
+      ,merits.total_merits_cur
       
     /*--Demerits--*/
        /*--Year--*/
       ,merits.total_demerits_y1
        /*--Current--*/       
-      ,merits.total_demerits_rt2
+      ,merits.total_demerits_cur
 
     /*-Perf Review-*/
       ,pr.Q1 AS perf_rev_Q1
