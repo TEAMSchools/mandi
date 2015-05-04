@@ -50,6 +50,7 @@ SELECT cc.academic_year
         WHEN cc.course_number IN ('SCI30', 'SCI32', 'SCI35') THEN 'Chemistry'
         WHEN cc.course_number IN ('SCI31', 'SCI36') THEN 'Physics'
         WHEN cc.course_number IN ('SCI41') THEN 'Anatomy and Physiology'
+        WHEN cc.course_number IN ('SCI43') THEN 'Electronics and Magnetism'
         WHEN cc.course_number IN ('HIST10', 'HIST11', 'HIST70') THEN 'Global Studies/ AWH'
         WHEN cc.course_number IN ('HIST20', 'HIST25') THEN 'Modern World History'
         WHEN cc.course_number IN ('HIST71', 'HIST30', 'HIST35') THEN 'US History'
