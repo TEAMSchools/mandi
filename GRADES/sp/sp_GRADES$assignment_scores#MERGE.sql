@@ -43,8 +43,8 @@ BEGIN
             ,a.score
             ,a.turnedinlate
             ,a.exempt
-            ,a.ismissing
-		          ,e.sectionenrollmentstatus
+            ,a.ismissing		          
+            ,e.sectionenrollmentstatus
     HAVING MAX(f.lastupdated) >= TRUNC(SYSDATE - INTERVAL ''24'' HOUR)        
   ');
 

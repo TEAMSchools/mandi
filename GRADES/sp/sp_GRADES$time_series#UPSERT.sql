@@ -43,9 +43,9 @@ BEGIN
     WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()      
       AND gr.ISFINALSCORECALCULATED = 1 -- only assignments that factor into final grades
       /* vvv testing, delete vvv */      
-      --AND cat.course_number = 'R200'  
-      --AND sco.STUDENTIDENTIFIER = 12092
-      --AND cat.FINALGRADENAME LIKE 'T3'
+      --AND cat.course_number = 'R400'  
+      --AND sco.STUDENTIDENTIFIER = 11789
+      --AND cat.FINALGRADENAME = 'T3'
       /* ^^^ testing, delete */
    )
 
@@ -109,7 +109,7 @@ BEGIN
                     AND asmt.SECTIONID = sg.SECTIONID
                    WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()              
                      AND co.date = CONVERT(DATE,GETDATE())
-                     --AND co.date <= CONVERT(DATE,GETDATE()) -- for backfilling data, could be any date range
+                     /* AND co.date <= CONVERT(DATE,GETDATE()) */ -- for backfilling data, could be any date range
                      AND co.schoolid IN (73252, 73253, 133570965)                       
                      AND asmt.score_rank > asmt.LOWSCORESTODISCARD -- drop scores below threshold                                          
                   ) sub
@@ -121,6 +121,7 @@ BEGIN
                       ,sub.CATEGORY 
                       ,sub.FINALGRADENAME
              ) sub
+         WHERE weighted_pct IS NOT NULL -- sometimes there are grades but no points possible, this throws off the calculation... I don't get it either.
         ) sub
     GROUP BY student_number
             ,schoolid
