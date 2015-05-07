@@ -17,9 +17,10 @@ WITH schools_assessed AS (
     JOIN dna_assessments.assessments a
       ON agg.assessment_id = a.assessment_id
   ') oq 
-  JOIN COHORT$comprehensive_long#static co WITH (NOLOCK)
+  JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
     ON oq.local_student_id = co.student_number   
    AND dbo.fn_DateToSY(oq.administered_at) = co.YEAR
+   AND co.rn = 1
  )
 
 SELECT sub.assessment_id
@@ -61,12 +62,26 @@ SELECT sub.assessment_id
       ,ROW_NUMBER() OVER (
           PARTITION BY sub.academic_year, sub.scope, sub.schoolid, standards_tested
               ORDER BY administered_at) AS std_freq_rn                    
-      ,ROW_NUMBER() OVER (
+      ,CASE
+        WHEN sub.schoolid = 73253 THEN
+          ROW_NUMBER() OVER (
+             PARTITION BY sub.academic_year, sub.schoolid, sub.subject, standards_tested
+                 ORDER BY administered_at ASC) 
+        ELSE
+          ROW_NUMBER() OVER (
           PARTITION BY sub.academic_year, sub.schoolid, sub.grade_level, standards_tested
-              ORDER BY administered_at ASC) AS std_attempt_rn
-      ,ROW_NUMBER() OVER (
+              ORDER BY administered_at ASC) 
+       END AS std_attempt_rn
+      ,CASE
+        WHEN sub.schoolid = 73253 THEN
+          ROW_NUMBER() OVER (
+             PARTITION BY sub.academic_year, sub.schoolid, sub.subject, standards_tested
+                 ORDER BY administered_at DESC) 
+        ELSE
+          ROW_NUMBER() OVER (
           PARTITION BY sub.academic_year, sub.schoolid, sub.grade_level, standards_tested
-              ORDER BY administered_at DESC) AS std_attempt_curr
+              ORDER BY administered_at DESC) 
+       END AS std_attempt_curr
 FROM
     (
      SELECT oq.assessment_id                          
