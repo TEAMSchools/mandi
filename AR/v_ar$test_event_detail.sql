@@ -58,8 +58,8 @@ WITH ar_detail AS (
         ,arsp.[DeviceUniqueID]
         ,arsp.[iUserActionID]
         ,1 AS school_progression
-  FROM [RM9-DSCHEDULER\SQLEXPRESS].[RL_DISTRICT].[dbo].[ar_StudentPractice] arsp
-  LEFT OUTER JOIN [RM9-DSCHEDULER\SQLEXPRESS].[RL_DISTRICT].[dbo].[rl_User]  rluser
+  FROM [RL_DISTRICT].[dbo].[ar_StudentPractice] arsp
+  LEFT OUTER JOIN [RL_DISTRICT].[dbo].[rl_User]  rluser
     ON arsp.iUserID = rluser.iUserID
   WHERE arsp.[iContentTypeID] = 31
     AND arsp.chStatus != 'U'
@@ -179,6 +179,4 @@ FROM
                 ORDER BY ar_detail.school_progression ASC) AS rn
      FROM ar_detail WITH(NOLOCK)
     ) sub
---JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
---  ON sub.student_number = CAST(s.student_number AS varchar)
 WHERE rn = 1

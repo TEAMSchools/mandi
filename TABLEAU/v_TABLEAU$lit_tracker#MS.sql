@@ -3,81 +3,12 @@ GO
 
 ALTER VIEW TABLEAU$lit_tracker#MS AS
 
--- this one is pretty crazy
--- in order to align terms, we need to place them in relation to one another
--- and make the term name JOIN friendly for the actual data tables
-WITH term_scaffold AS (
-  SELECT n
-  FROM UTIL$row_generator WITH(NOLOCK)
-  WHERE n >= 1
-    AND n <= 8
-)
-
--- AR
-,hexes AS (
-  SELECT 'HEX' AS time_per
-        ,n
-        ,'RT' + CONVERT(VARCHAR,n) AS hash
-  FROM UTIL$row_generator WITH(NOLOCK)
-  WHERE n >= 1
-    AND n <= 6
-)
-
--- LIT
-,lit AS (
-  SELECT 'LIT' AS time_per
-        ,n
-        ,'LIT' + CONVERT(VARCHAR,n) AS hash
-  FROM UTIL$row_generator WITH(NOLOCK)
-  WHERE n >= 1
-    AND n <= 4
-)
-
--- MAP
-,map AS (
-  SELECT time_per
-        ,n
-        ,CASE
-          WHEN hash LIKE '%1%' THEN 'Fall'
-          WHEN hash LIKE '%2%' THEN 'Winter'
-          WHEN hash LIKE '%3%' THEN 'Spring'
-         END AS hash
-  FROM
-      (
-       SELECT 'MAP' AS time_per
-             ,n
-             ,'MAP' + CONVERT(VARCHAR,n) AS hash
-       FROM UTIL$row_generator WITH(NOLOCK)
-       WHERE n >= 1
-         AND n <= 3
-      ) sub  
-)
-
--- all together now
-,term_map AS (
-  SELECT hexes.hash AS hex
-        ,CASE 
-          WHEN lit.hash LIKE '%1%' THEN 'BOY'
-          WHEN lit.hash LIKE '%2%' THEN 'T1'
-          WHEN lit.hash LIKE '%3%' THEN 'T2'
-          WHEN lit.hash LIKE '%4%' THEN 'T3'
-         END AS lit
-        ,map.hash AS map
-        ,0 AS is_curterm
-  FROM term_scaffold
-  LEFT OUTER JOIN lit
-    ON ((term_scaffold.n + 1) / 2) = lit.n
-  LEFT OUTER JOIN hexes
-    ON term_scaffold.n = (hexes.n + 2)
-  LEFT OUTER JOIN map
-    ON ((term_scaffold.n - 1) / 2) = map.n
-
-  UNION ALL
-
-  SELECT 'Year' AS hex
-        ,'Year' AS lit
-        ,'Year' AS map
-        ,0 AS is_curterm
+WITH term_map AS (
+  SELECT hex
+        ,lit
+        ,map
+        ,is_curterm
+  FROM KIPP_NJ..REPORTING$term_map WITH(NOLOCK)
 
   UNION ALL
 
@@ -89,7 +20,7 @@ WITH term_scaffold AS (
       (
        SELECT DISTINCT identifier
              ,time_per_name
-       FROM REPORTING$dates WITH(NOLOCK)
+       FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
        WHERE start_date <= CONVERT(DATE,GETDATE())
          AND end_date >= CONVERT(DATE,GETDATE())
          AND identifier IN ('HEX','LIT','MAP')
@@ -109,15 +40,12 @@ WITH term_scaffold AS (
         ,co.lastfirst
         ,co.schoolid
         ,co.grade_level
-        ,cs.SPEDLEP
-        ,s.team
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
-    ON co.studentid = s.id
-  LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-    ON co.studentid = cs.studentid
+        ,co.SPEDLEP
+        ,co.team
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
   WHERE co.rn = 1
     AND co.schoolid IN (73252,133570965)
+    AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 )
 
 -- AR data, long by term (including year)
@@ -147,7 +75,7 @@ WITH term_scaffold AS (
         ,rank_words_overall_in_school
         ,rank_words_grade_in_network
         ,rank_words_overall_in_network        
-  FROM AR$progress_to_goals_long#static WITH(NOLOCK)  
+  FROM KIPP_NJ..AR$progress_to_goals_long#static WITH(NOLOCK)  
  )
 
 -- long map data, long by term
@@ -155,7 +83,7 @@ WITH term_scaffold AS (
   -- MAP
   SELECT co.studentid
         ,co.year
-        ,map_terms.hash AS fallwinterspring
+        ,map_terms.map AS fallwinterspring
         ,map.testritscore AS rit
         ,map.testpercentile AS percentile
         ,map.rittoreadingscore AS lexile
@@ -197,23 +125,27 @@ WITH term_scaffold AS (
         ,rr.rutgers_ready_goal
         ,rr.rutgers_ready_rit
         ,map.rn_curr        
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  CROSS JOIN map map_terms    
-  LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  CROSS JOIN (
+              SELECT DISTINCT map
+              FROM term_map 
+              WHERE map != 'Year'
+             ) map_terms    
+  LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
     ON co.studentid = base.studentid
    AND co.year = base.year
    AND base.measurementscale = 'Reading' 
-  LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
     ON base.studentid = rr.studentid
    AND base.year = rr.year
    AND base.measurementscale = rr.measurementscale
-  LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
     ON base.studentid = map.ps_studentid
    AND base.year = map.map_year_academic
    AND base.measurementscale = map.measurementscale
-   AND map_terms.hash = map.fallwinterspring
+   AND map_terms.map = map.fallwinterspring
    AND map.rn = 1
-  LEFT OUTER JOIN MAP$comprehensive#identifiers domain WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static domain WITH(NOLOCK)
     ON base.studentid = domain.ps_studentid   
    AND base.measurementscale = domain.measurementscale
    AND base.termname = domain.termname
@@ -278,8 +210,8 @@ WITH term_scaffold AS (
                                                                    ELSE CONVERT(INT,REPLACE(growth.start_lex,'BR', 0))
                                                                   END AS lexile_change
                   ,growth.met_typical_growth_target AS met
-            FROM MAP$growth_measures_long#static growth
-            LEFT OUTER JOIN MAP$best_baseline#static base
+            FROM KIPP_NJ..MAP$growth_measures_long#static growth WITH(NOLOCK)
+            LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
               ON growth.studentid = base.studentid
              AND growth.year = base.year
              AND growth.measurementscale = base.measurementscale
@@ -307,8 +239,8 @@ WITH term_scaffold AS (
                                                                    ELSE CONVERT(INT,REPLACE(growth.start_lex,'BR', 0))
                                                                   END AS lexile_change
                   ,growth.met_typical_growth_target AS met
-            FROM MAP$growth_measures_long#static growth
-            LEFT OUTER JOIN MAP$best_baseline#static base
+            FROM KIPP_NJ..MAP$growth_measures_long#static growth WITH(NOLOCK)
+            LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
               ON growth.studentid = base.studentid
              AND growth.year = base.year
              AND growth.measurementscale = base.measurementscale
@@ -356,7 +288,7 @@ WITH term_scaffold AS (
         ,GLEQ
         ,fp_wpmrate
         ,fp_keylever
-  FROM LIT$achieved_by_round fp WITH(NOLOCK)      
+  FROM KIPP_NJ..LIT$achieved_by_round#static fp WITH(NOLOCK)      
  )
 
 ,lit_growth AS (
@@ -369,7 +301,7 @@ WITH term_scaffold AS (
         ,t1t2_growth_GLEQ
         ,t2t3_growth_GLEQ
         ,t3EOY_growth_GLEQ
-  FROM LIT$growth_measures_wide WITH(NOLOCK)  
+  FROM KIPP_NJ..LIT$growth_measures_wide#static WITH(NOLOCK)  
  )
 
 SELECT -- student identifiers
