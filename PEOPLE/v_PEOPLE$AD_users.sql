@@ -22,16 +22,18 @@ SELECT employeenumber
       ,useraccountcontrol
       ,distinguishedname
       /* might be useful in the future */
-      --,telephoneNumber
-      --,homePhone      
-      --,mobile             
-      --,homePostalAddress
-      --,manager                 
-      --,name
-      --,userPrincipalName
-      --,cn
-      --,textEncodedORAddress            
-      --,objectCategory      
+      ,telephoneNumber
+      ,homePhone      
+      ,mobile             
+      ,homePostalAddress
+      ,manager                 
+      ,name
+      ,userPrincipalName
+      ,cn
+      ,textEncodedORAddress            
+      ,objectCategory      
+      ,CASE WHEN useraccountcontrol & 2 = 0 THEN 1 ELSE 0 END AS is_active
+      ,CASE WHEN distinguishedname LIKE '%OU=Student%' THEN 1 ELSE 0 END AS is_student
 FROM OPENQUERY(ADSI,'
   SELECT useraccountcontrol
         ,distinguishedname
@@ -64,5 +66,3 @@ FROM OPENQUERY(ADSI,'
         ,userPrincipalName
   FROM ''LDAP://RM9DC-TS-1.teamschools.kipp.org/OU=Users,OU=TEAM,DC=teamschools,DC=kipp,DC=org''    
 ')
-WHERE distinguishedname NOT LIKE '%OU=Student%'
-  AND useraccountcontrol & 2 = 0
