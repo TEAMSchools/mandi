@@ -57,7 +57,7 @@ BEGIN
          FROM pgfinalgrades pgf  
          WHERE pgf.startdate >= TO_DATE(''2014-08-01'',''YYYY-MM-DD'')
            AND pgf.startdate <= TRUNC(SYSDATE)    
-           AND pgf.percent != 0
+           AND pgf.grade != ''--''
            AND SUBSTR(pgf.finalgradename, 0, 1) != ''T''
        ') oq
        JOIN CC WITH(NOLOCK)

@@ -30,7 +30,7 @@ WITH roster AS (
   WHERE identifier = 'LIT'      
     AND school_level = 'MS'
     AND academic_year = dbo.fn_Global_Academic_Year()
-    AND start_date <= GETDATE()
+    AND start_date <= CONVERT(DATE,GETDATE())
  )
 
 -- AR data, long by term (including year)
@@ -96,14 +96,13 @@ WITH roster AS (
          ON co.studentid = base.studentid
         AND co.year = base.year
         AND base.measurementscale = 'Reading'
-       LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
+       LEFT OUTER JOIN MAP$comprehensive#identifiers#static map WITH(NOLOCK)
          ON co.studentid = map.ps_studentid
         AND co.year = map.map_year_academic
         AND base.measurementscale = map.measurementscale   
         AND map.rn = 1
        WHERE co.rn = 1         
-      ) sub
-   
+      ) sub   
   UNPIVOT (
     value
     FOR field IN (pct, rit, lexile)
@@ -148,7 +147,6 @@ WITH roster AS (
          AND measurementscale = 'Reading'              
          AND period_string = 'Winter to Spring'
       ) sub
-
   UNPIVOT (
     value
     FOR field IN (pct_change)
@@ -192,9 +190,9 @@ WITH roster AS (
              WHEN fp.test_round = 'T3' THEN 'Winter'
              WHEN fp.test_round = 'EOY' THEN 'Spring'
             END = rl.season       
-       WHERE ((fp.academic_year < dbo.fn_Global_Academic_Year()) OR (fp.academic_year = dbo.fn_Global_Academic_Year() AND fp.test_round IN (SELECT test_round FROM terms WITH(NOLOCK))))
-      ) sub
-  
+       WHERE ((fp.academic_year < dbo.fn_Global_Academic_Year()) 
+               OR (fp.academic_year = dbo.fn_Global_Academic_Year() AND fp.test_round IN (SELECT test_round FROM terms WITH(NOLOCK))))
+      ) sub  
   UNPIVOT (
     value
     FOR field IN (read_lvl, indep_lvl, gleq, wpm, keylever, yrs_behind)
@@ -218,8 +216,7 @@ WITH roster AS (
              ,t2t3_growth_GLEQ
              ,t3EOY_growth_GLEQ
        FROM LIT$growth_measures_wide#static WITH(NOLOCK)
-      ) sub
-  
+      ) sub  
   UNPIVOT (
     value
     FOR field IN (yr_growth_GLEQ
@@ -285,11 +282,10 @@ WITH roster AS (
              ,ROW_NUMBER() OVER(
                 PARTITION BY map_year_academic, studentid
                   ORDER BY teststartdate DESC) AS rn_curr
-       FROM MAP$comprehensive#identifiers WITH(NOLOCK)
+       FROM MAP$comprehensive#identifiers#static WITH(NOLOCK)
        WHERE rn = 1
          AND measurementscale = 'Reading'
       ) sub
-
   UNPIVOT(
     value
     FOR field IN (goal1name
@@ -333,7 +329,6 @@ WITH roster AS (
                  ,goal8range
                  ,goal8adjective)
    ) u
-
   WHERE rn_curr = 1
  )
 

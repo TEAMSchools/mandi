@@ -3,7 +3,32 @@ GO
 
 ALTER VIEW LIT$test_events#identifiers AS
 
-SELECT sub.*
+SELECT sub.unique_id
+      ,sub.testid
+      ,sub.academic_year
+      ,sub.test_round
+      ,sub.round_num
+      ,sub.test_date
+      ,sub.schoolid
+      ,sub.grade_level
+      ,sub.COHORT
+      ,sub.studentid
+      ,sub.student_number
+      ,sub.LASTFIRST
+      ,sub.status
+      ,sub.read_lvl
+      ,sub.lvl_num
+      ,sub.goal_lvl
+      ,sub.goal_num
+      ,sub.GLEQ
+      ,sub.levels_behind
+      ,sub.color
+      ,sub.genre
+      ,sub.fp_keylever
+      ,sub.fp_wpmrate
+      ,sub.instruct_lvl
+      ,sub.indep_lvl
+      ,sub.is_fp
       ,CASE 
         WHEN status IS NOT NULL AND lvl_num >= goal_num THEN 1 
         WHEN status IS NOT NULL AND lvl_num < goal_num THEN 0

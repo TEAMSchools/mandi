@@ -17,8 +17,8 @@ WITH valid_TAs AS (
         ,a.administered_at
         ,a.term
         ,obj.objective AS TA_obj
-  FROM ILLUMINATE$assessments#static a WITH(NOLOCK)
-  LEFT OUTER JOIN GDOCS$TA_standards_clean#static obj WITH(NOLOCK)
+  FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..GDOCS$TA_standards_clean#static obj WITH(NOLOCK)
     ON a.schoolid = obj.schoolid
    AND a.grade_level = obj.grade_level
    AND a.term = obj.term
@@ -40,26 +40,28 @@ WITH valid_TAs AS (
                                                       ,'CCSS.LA.4.L.4.4.b'
                                                       ,'CCSS.LA.4.L.4.5.a'
                                                       ,'CCSS.LA.1.RF.1.3.g'))
-      OR (a.term = 'T2' AND a.standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
-                                                      ,'CCSS.LA.2.L.2.4.c'
-                                                      ,'CCSS.LA.2.L.2.4.d'
-                                                      ,'CCSS.LA.2.L.2.5.b'
-                                                      ,'CCSS.LA.3.L.3.5'
-                                                      ,'CCSS.LA.3.L.3.5.a'
-                                                      ,'CCSS.LA.3.L.3.6'
-                                                      ,'CCSS.LA.4.L.4.4'
-                                                      ,'CCSS.LA.4.L.4.4.a'
-                                                      ,'CCSS.LA.4.L.4.4.b'
-                                                      ,'CCSS.LA.4.L.4.5.a'
-                                                      ,'CCSS.LA.1.RF.1.3.g'
-                                                      ,'CCSS.LA.4.L.4.5.b'
-                                                      ,'CCSS.LA.4.L.4.5.c'
-                                                      ,'CCSS.LA.4.L.4.6'
-                                                      ,'CCSS.LA.1.RL.1.1'
-                                                      ,'CCSS.LA.2.L.2.4'
-                                                      ,'CCSS.LA.2.L.2.4.b'
-                                                      ,'CCSS.LA.3.L.3.4.d'
-                                                      )))
+          OR (a.term = 'T2' AND a.standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
+                                                          ,'CCSS.LA.2.L.2.4.c'
+                                                          ,'CCSS.LA.2.L.2.4.d'
+                                                          ,'CCSS.LA.2.L.2.5.b'
+                                                          ,'CCSS.LA.3.L.3.5'
+                                                          ,'CCSS.LA.3.L.3.5.a'
+                                                          ,'CCSS.LA.3.L.3.6'
+                                                          ,'CCSS.LA.4.L.4.4'
+                                                          ,'CCSS.LA.4.L.4.4.a'
+                                                          ,'CCSS.LA.4.L.4.4.b'
+                                                          ,'CCSS.LA.4.L.4.5.a'
+                                                          ,'CCSS.LA.1.RF.1.3.g'
+                                                          ,'CCSS.LA.4.L.4.5.b'
+                                                          ,'CCSS.LA.4.L.4.5.c'
+                                                          ,'CCSS.LA.4.L.4.6'
+                                                          ,'CCSS.LA.1.RL.1.1'
+                                                          ,'CCSS.LA.2.L.2.4'
+                                                          ,'CCSS.LA.2.L.2.4.b'
+                                                          ,'CCSS.LA.3.L.3.4.d'
+                                                          )
+          OR (a.term = 'T3')
+        ))
  )
 
 ,valid_FSAs AS (
