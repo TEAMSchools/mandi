@@ -59,7 +59,11 @@ SELECT r.studentid
       ,att.cur_le AS cur_early_dismiss
       ,att.cur_lex AS cur_early_dismiss_exc
       ,ROUND(att.cur_trip_abs,1) AS trip_absences
-      ,CASE WHEN att.cur_trip_abs >= 5 THEN 'Off Track' ELSE 'On Track' END AS trip_status      
+      ,CASE 
+        WHEN r.schoolid = 73255 AND att.cur_trip_abs >= 10 THEN 'Off Track' 
+        WHEN r.schoolid != 73255 AND att.cur_trip_abs >= 5 THEN 'Off Track' 
+        ELSE 'On Track' 
+       END AS trip_status      
       ,fsa.pct_mastered_wk
       ,fsa.FSA_subject_1
       ,fsa.FSA_subject_2

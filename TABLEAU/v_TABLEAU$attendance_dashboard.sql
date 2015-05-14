@@ -38,7 +38,7 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN att.att_code = 'ISS' THEN 1 ELSE 0 END AS ISS
       ,CASE WHEN att.att_code = 'OSS' THEN 1 ELSE 0 END AS OSS
       --other
-      ,CASE WHEN ed.subtype = 'Left Early' THEN 1 ELSE 0 END AS early_dismissal
+      ,CASE WHEN ed.logtypeid IS NOT NULL THEN 1 ELSE 0 END AS early_dismissal
       ,supp.[Behavior Tier ] AS behavior_tier
       ,supp.[Plan Owner ] AS plan_owner
       ,supp.[Admin Support] AS admin_support
@@ -46,7 +46,7 @@ FROM COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
  AND co.schoolid = mem.schoolid
- AND mem.CALENDARDATE >= CONVERT(DATE,CONVERT(VARCHAR,co.year) + '-08-01')
+ AND co.year = mem.academic_year
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
   ON co.studentid = att.studentid
  AND mem.CALENDARDATE = att.ATT_DATE 

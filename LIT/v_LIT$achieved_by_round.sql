@@ -91,13 +91,19 @@ SELECT academic_year
       ,start_date
       ,read_lvl
       ,indep_lvl
-      ,GLEQ
-      ,goal_lvl
+      ,GLEQ      
       ,lvl_num      
       ,fp_wpmrate
       ,fp_keylever
+      ,goal_lvl      
       ,goal_num   
       ,CASE WHEN lvl_num >= goal_num THEN 1 ELSE 0 END AS met_goal
+      ,default_goal_lvl      
+      ,default_goal_num   
+      ,CASE WHEN lvl_num >= default_goal_num THEN 1 ELSE 0 END AS met_default_goal
+      ,natl_goal_lvl
+      ,natl_goal_num      
+      ,CASE WHEN lvl_num >= natl_goal_num THEN 1 ELSE 0 END AS met_natl_goal
       ,unique_id
 FROM
     (
@@ -117,6 +123,8 @@ FROM
            ,goals.lvl_num AS default_goal_num
            ,indiv.goal AS indiv_goal_lvl
            ,indiv.lvl_num AS indiv_lvl_num
+           ,goals.natl_read_lvl AS natl_goal_lvl         
+           ,goals.natl_lvl_num AS natl_goal_num
            ,sub.fp_wpmrate
            ,sub.fp_keylever
            ,sub.unique_id      

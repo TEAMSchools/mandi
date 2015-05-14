@@ -10,13 +10,13 @@ WITH attendance_long AS (
         ,att.att_date
         ,att.att_code                  
         ,dates.time_per_name AS RT
-  FROM ATT_MEM$ATTENDANCE att WITH (NOLOCK)
-  JOIN REPORTING$dates dates WITH (NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$ATTENDANCE att WITH (NOLOCK)
+  JOIN KIPP_NJ..REPORTING$dates dates WITH (NOLOCK)
     ON att.att_date >= dates.start_date
    AND att.att_date <= dates.end_date
    AND att.schoolid = dates.schoolid
    AND dates.identifier = 'RT'
-   AND dates.academic_year = dbo.fn_Global_Academic_Year()
+   AND dates.academic_year = KIPP_NJ..dbo.fn_Global_Academic_Year()
   WHERE att.att_code IS NOT NULL 
 
   UNION ALL

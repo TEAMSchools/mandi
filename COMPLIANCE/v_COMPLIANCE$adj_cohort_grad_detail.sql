@@ -7,6 +7,7 @@ ALTER VIEW COMPLIANCE$adj_cohort_grad_detail AS
 WITH baseline AS ( 
   SELECT studentid
         ,student_number        
+        ,entry_school_name
         ,grade_level
         ,year
         ,year + (12 - grade_level) + 1 AS DOE_cohort
@@ -15,13 +16,14 @@ WITH baseline AS (
        SELECT studentid
              ,STUDENT_NUMBER
              ,lastfirst
+             ,entry_school_name
              ,grade_level
              ,year
              ,cohort
              ,ROW_NUMBER() OVER(
                 PARTITION BY studentid
                   ORDER BY year ASC) AS first_hs_yr
-       FROM COHORT$comprehensive_long#static WITH(NOLOCK)
+       FROM COHORT$identifiers_long#static WITH(NOLOCK)
        WHERE schoolid = 73253
          AND rn = 1
       ) sub
@@ -65,6 +67,7 @@ FROM
            ,f.STUDENT_NUMBER
            ,u.lastfirst
            ,f.DOE_cohort
+           ,f.entry_school_name
            ,f.year AS first_year
            ,u.year AS final_year      
            ,u.year - f.year + 1 + (f.grade_level - 9) AS yrs_in_hs -- adjusts for transfers in

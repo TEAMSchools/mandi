@@ -381,8 +381,8 @@ SELECT r.studentid
       ,ta.COMP_TA_obj_6
       ,ta.COMP_TA_obj_7
       ,ta.COMP_TA_obj_8
-      ,ta.COMP_TA_obj_9
-      ,ta.COMP_TA_obj_10
+      ,ta.COMP_TA_obj_9      
+      --,ta.COMP_TA_obj_10
        -- proficiency
       ,ta.COMP_TA_prof_1
       ,ta.COMP_TA_prof_2
@@ -392,8 +392,8 @@ SELECT r.studentid
       ,ta.COMP_TA_prof_6
       ,ta.COMP_TA_prof_7
       ,ta.COMP_TA_prof_8
-      ,ta.COMP_TA_prof_9
-      ,ta.COMP_TA_prof_10
+      ,ta.COMP_TA_prof_9      
+      --,ta.COMP_TA_prof_10
       
       -- phonics
        -- objectives
@@ -402,7 +402,7 @@ SELECT r.studentid
       ,ta.PHON_TA_obj_3
       ,ta.PHON_TA_obj_4
       ,ta.PHON_TA_obj_5
-      --,ta.PHON_TA_obj_6
+      ,ta.PHON_TA_obj_6
       --,ta.PHON_TA_obj_7
       --,ta.PHON_TA_obj_8
       --,ta.PHON_TA_obj_9
@@ -413,7 +413,7 @@ SELECT r.studentid
       ,ta.PHON_TA_prof_3
       ,ta.PHON_TA_prof_4
       ,ta.PHON_TA_prof_5
-      --,ta.PHON_TA_prof_6
+      ,ta.PHON_TA_prof_6
       --,ta.PHON_TA_prof_7
       --,ta.PHON_TA_prof_8
       --,ta.PHON_TA_prof_9
@@ -449,86 +449,81 @@ SELECT r.studentid
       ,wr.RHET_TA_info_prof
       ,wr.RHET_TA_op_prof
       
-      -- specials
+      -- performing arts
        -- objectives
       ,ta.PERF_TA_obj_1
       ,ta.PERF_TA_obj_2
       ,ta.PERF_TA_obj_3
       ,ta.PERF_TA_obj_4
-      ,ta.PERF_TA_obj_5      
-      ,ta.PERF_TA_obj_6      
-      ,ta.PERF_TA_obj_7      
-      ,ta.PERF_TA_obj_8      
-      ,ta.PERF_TA_obj_9      
-      ,ta.PERF_TA_obj_10      
-      ,ta.PERF_TA_obj_11
-      ,ta.HUM_TA_obj_1
-      ,ta.HUM_TA_obj_2
-      ,ta.HUM_TA_obj_3
-      ,ta.HUM_TA_obj_4
-      ,ta.HUM_TA_obj_5          
-      --,ta.HUM_TA_obj_6          
-      --,ta.HUM_TA_obj_7          
-      --,ta.HUM_TA_obj_8          
-      --,ta.HUM_TA_obj_9          
-      ,ta.SCI_TA_obj_1
-      ,ta.SCI_TA_obj_2
-      ,ta.SCI_TA_obj_3
-      ,ta.SCI_TA_obj_4
-      ,ta.SCI_TA_obj_5      
-      ,ta.SPAN_TA_obj_1
-      ,ta.SPAN_TA_obj_2
-      ,ta.SPAN_TA_obj_3
-      ,ta.SPAN_TA_obj_4
-      ,ta.SPAN_TA_obj_5      
-      ,ta.VIZ_TA_obj_1
-      ,ta.VIZ_TA_obj_2
-      ,ta.VIZ_TA_obj_3
-      ,ta.VIZ_TA_obj_4
-      ,ta.VIZ_TA_obj_5      
-      ,ta.VIZ_TA_obj_6      
-      ,ta.VIZ_TA_obj_7
+      ,ta.PERF_TA_obj_5                
        -- proficiency
       ,ta.PERF_TA_prof_1
       ,ta.PERF_TA_prof_2
       ,ta.PERF_TA_prof_3
       ,ta.PERF_TA_prof_4
-      ,ta.PERF_TA_prof_5      
-      ,ta.PERF_TA_prof_6      
-      ,ta.PERF_TA_prof_7      
-      ,ta.PERF_TA_prof_8      
-      ,ta.PERF_TA_prof_9     
-      ,ta.PERF_TA_prof_10
-      ,ta.PERF_TA_prof_11
+      ,ta.PERF_TA_prof_5            
+
+      -- humanities (history, social studies...)
+        -- objectives
+      ,ta.HUM_TA_obj_1
+      ,ta.HUM_TA_obj_2
+      ,ta.HUM_TA_obj_3
+      --,ta.HUM_TA_obj_4
+      --,ta.HUM_TA_obj_5                
+        -- proficiency
       ,ta.HUM_TA_prof_1
       ,ta.HUM_TA_prof_2
       ,ta.HUM_TA_prof_3
-      ,ta.HUM_TA_prof_4
-      ,ta.HUM_TA_prof_5          
-      --,ta.HUM_TA_prof_6          
-      --,ta.HUM_TA_prof_7          
-      --,ta.HUM_TA_prof_8          
-      --,ta.HUM_TA_prof_9          
+      --,ta.HUM_TA_prof_4
+      --,ta.HUM_TA_prof_5          
+      
+      -- science
+      -- objectives
+      ,ta.SCI_TA_obj_1
+      ,ta.SCI_TA_obj_2
+      ,ta.SCI_TA_obj_3
+      ,ta.SCI_TA_obj_4
+      ,ta.SCI_TA_obj_5      
+      ,ta.SCI_TA_obj_6
+      ,ta.SCI_TA_obj_7
+      -- prof
       ,ta.SCI_TA_prof_1
       ,ta.SCI_TA_prof_2
       ,ta.SCI_TA_prof_3
       ,ta.SCI_TA_prof_4
       ,ta.SCI_TA_prof_5      
+      ,ta.SCI_TA_prof_6      
+      ,ta.SCI_TA_prof_7
+      
+      -- spanish
+      -- objectives
+      ,ta.SPAN_TA_obj_1
+      ,ta.SPAN_TA_obj_2
+      ,ta.SPAN_TA_obj_3
+      ,ta.SPAN_TA_obj_4
+      ,ta.SPAN_TA_obj_5      
+      -- prof
       ,ta.SPAN_TA_prof_1
       ,ta.SPAN_TA_prof_2
       ,ta.SPAN_TA_prof_3
       ,ta.SPAN_TA_prof_4
       ,ta.SPAN_TA_prof_5      
+      
+      -- visual arts
+      -- objectives
+      ,ta.VIZ_TA_obj_1
+      ,ta.VIZ_TA_obj_2
+      ,ta.VIZ_TA_obj_3
+      ,ta.VIZ_TA_obj_4
+      ,ta.VIZ_TA_obj_5      
+      ,ta.VIZ_TA_obj_6            
+      -- prof
       ,ta.VIZ_TA_prof_1
       ,ta.VIZ_TA_prof_2
       ,ta.VIZ_TA_prof_3
       ,ta.VIZ_TA_prof_4
       ,ta.VIZ_TA_prof_5
-      ,ta.VIZ_TA_prof_6
-      ,ta.VIZ_TA_prof_7
-      ,ta.DANCE_TA_obj_1
-      ,ta.DANCE_TA_prof_1      
-      ,ta.DANCE_pct_stds_mastered
+      ,ta.VIZ_TA_prof_6      
             
       --comments
       ,comm.ela_comment

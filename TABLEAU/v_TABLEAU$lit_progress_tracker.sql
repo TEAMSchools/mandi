@@ -48,6 +48,10 @@ SELECT co.school_name
       ,achv.lvl_num
       ,achv.goal_lvl
       ,achv.goal_num
+      ,achv.natl_goal_lvl
+      ,achv.natl_goal_num
+      ,achv.default_goal_lvl
+      ,achv.default_goal_num
       ,NULL AS last_achieved_lvl
       ,NULL AS last_achieved_num
       ,achv.lvl_num - achv.goal_num AS distance_from_goal
@@ -56,7 +60,9 @@ SELECT co.school_name
       ,achv.GLEQ      
       ,testid.color
       ,testid.genre
-      ,CONVERT(FLOAT,achv.met_goal) AS met_goal      
+      ,CONVERT(FLOAT,achv.met_goal) AS met_goal
+      ,CONVERT(FLOAT,achv.met_natl_goal) AS met_natl_goal
+      ,CONVERT(FLOAT,achv.met_default_goal) AS met_default_goal  
       ,CASE
         WHEN achv.test_round = 'DR' THEN NULL
         WHEN achv.test_round = 'T1' AND growth.t1_growth_lvl > 0 THEN 1.0
@@ -154,6 +160,10 @@ SELECT co.school_name
       ,testid.lvl_num
       ,achv.goal_lvl
       ,achv.goal_num
+      ,achv.natl_goal_lvl
+      ,achv.natl_goal_num
+      ,achv.default_goal_lvl
+      ,achv.default_goal_num
       ,achv.read_lvl AS last_achieved_lvl
       ,achv.lvl_num AS last_achieved_num
       ,testid.lvl_num - achv.goal_num AS distance_from_goal
@@ -162,7 +172,9 @@ SELECT co.school_name
       ,testid.GLEQ      
       ,testid.color
       ,testid.genre
-      ,CONVERT(FLOAT,testid.met_goal) AS met_goal      
+      ,CONVERT(FLOAT,achv.met_goal) AS met_goal
+      ,CONVERT(FLOAT,achv.met_natl_goal) AS met_natl_goal
+      ,CONVERT(FLOAT,achv.met_default_goal) AS met_default_goal
       ,CASE
         WHEN achv.test_round = 'T1' AND growth.t1_growth_lvl > 0 THEN 1.0
         WHEN achv.test_round = 'T2' AND growth.T1T2_growth_lvl > 0 THEN 1.0

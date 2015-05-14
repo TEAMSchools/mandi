@@ -251,7 +251,7 @@ FROM
            ,rs.fp_wpmrate
            ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
            ,COALESCE(rs.indep_lvl, rs.step_ltr_level) AS indep_lvl
-           ,CASE WHEN rs.testid = 3273 THEN 1 ELSE 0 END AS is_fp
+           ,0 AS is_fp
      FROM LIT$readingscores#static rs WITH(NOLOCK)
      JOIN LIT$GLEQ gleq WITH(NOLOCK)
        ON gleq.read_lvl = 'Pre DNA'
