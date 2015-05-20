@@ -16,7 +16,7 @@ WITH attendance_long AS (
    AND att.att_date <= dates.end_date
    AND att.schoolid = dates.schoolid
    AND dates.identifier = 'RT'
-   AND dates.academic_year = KIPP_NJ..dbo.fn_Global_Academic_Year()
+   AND dates.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   WHERE att.att_code IS NOT NULL 
 
   UNION ALL
@@ -26,13 +26,13 @@ WITH attendance_long AS (
         ,att.att_date
         ,att.att_code                  
         ,'CUR' AS RT                  
-  FROM ATT_MEM$ATTENDANCE att WITH (NOLOCK)
-  JOIN REPORTING$dates curterm WITH (NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$ATTENDANCE att WITH (NOLOCK)
+  JOIN KIPP_NJ..REPORTING$dates curterm WITH (NOLOCK)
     ON att.schoolid = curterm.schoolid         
    AND att.ATT_DATE >= curterm.start_date
    AND att.ATT_DATE <= curterm.end_date
    AND curterm.identifier = 'RT'
-   AND curterm.academic_year = dbo.fn_Global_Academic_Year()
+   AND curterm.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   WHERE att.att_code IS NOT NULL
     AND curterm.start_date <= CONVERT(DATE,GETDATE())
     AND curterm.end_date >= CONVERT(DATE,GETDATE())
@@ -91,8 +91,8 @@ WITH attendance_long AS (
    AND curterm.identifier = 'RT'
   WHERE disc.logtypeid = 3953
     AND disc.subtype IS NOT NULL
-    AND curterm.start_date <= GETDATE()
-    AND curterm.end_date >= GETDATE()   
+    AND curterm.start_date <= CONVERT(DATE,GETDATE())
+    AND curterm.end_date >= CONVERT(DATE,GETDATE())
     AND disc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
   UNION ALL
@@ -112,8 +112,8 @@ WITH attendance_long AS (
    AND trip.identifier = 'ATT'
   WHERE disc.logtypeid = 3953
     AND disc.subtype IS NOT NULL
-    AND trip.start_date <= GETDATE()
-    AND trip.end_date >= GETDATE()   
+    AND trip.start_date <= CONVERT(DATE,GETDATE())
+    AND trip.end_date >= CONVERT(DATE,GETDATE())
     AND disc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
@@ -142,8 +142,8 @@ WITH attendance_long AS (
    AND dt.att_date <= curterm.end_date
    AND curterm.identifier = 'RT'
   WHERE dt.has_uniform = 0
-    AND curterm.start_date <= GETDATE()
-    AND curterm.end_date >= GETDATE()       
+    AND curterm.start_date <= CONVERT(DATE,GETDATE())
+    AND curterm.end_date >= CONVERT(DATE,GETDATE())
 
   UNION ALL
 
@@ -436,7 +436,7 @@ FROM
      FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
      LEFT OUTER JOIN attendance_long att WITH(NOLOCK)
        ON co.studentid = att.STUDENTID
-      AND rt != 'CUR' 
+      AND rt NOT IN ('CUR','TRIP')
      WHERE co.year = dbo.fn_Global_Academic_Year()
        AND co.rn = 1     
        AND co.schoolid != 999999
@@ -466,6 +466,7 @@ FROM
      FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
      LEFT OUTER JOIN early_dis ed WITH(NOLOCK)
        ON co.studentid = ed.studentid
+      AND rt NOT IN ('CUR','TRIP')
      WHERE co.year = dbo.fn_Global_Academic_Year()
        AND co.rn = 1
        AND co.schoolid != 999999
@@ -494,6 +495,7 @@ FROM
      FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
      LEFT OUTER JOIN uniform uni WITH(NOLOCK)
        ON co.studentid = uni.studentid
+      AND rt NOT IN ('CUR','TRIP')
      WHERE co.year = dbo.fn_Global_Academic_Year()
        AND co.rn = 1
        AND co.schoolid != 999999

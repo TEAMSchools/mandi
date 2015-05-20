@@ -17,7 +17,8 @@ def distress_signal(error_type, server_name, db_user, db_pass, db_name, save_pat
         cursor = conn.cursor()
         warn_email = """
             DECLARE @body VARCHAR(MAX);
-            SET @body = 'Navigation failed for ' + '""" + save_path + """' + '.  Check that the GDocs URL is correct.';
+            SET @body = 'Navigation failed for:' + '""" + http_errors + """' + '
+Check that the GDocs URL is correct.';
 
             EXEC msdb..sp_send_dbmail
                 @profile_name = 'DataRobot',
@@ -80,6 +81,7 @@ with open(config_file, 'rb') as f:
 
 # initialize GDocs client
 client = gspread.authorize(gdocs_credentials)
+http_errors = ''
 
 # iterate over urls in config csv
 for record in wkbk_list:
@@ -95,12 +97,12 @@ for record in wkbk_list:
     save_path = "C:\\data_robot\\gdocs\\" + folder + "\\"
     
 
-    print 'Navigating to ' + url
+    print 'Navigating to ' + url    
     try:
         workbook = client.open_by_url(url)
     except:
-        distress_signal("http", server_name, db_user, db_pass, db_name, save_path, url)
-        continue
+        http_errors = http_errors + '\n' + url
+        continue    
     sheet_names = workbook.worksheets()
     print
     
@@ -142,7 +144,7 @@ for record in wkbk_list:
     conn = pymssql.connect(server_name, db_user, db_pass, db_name)
     cursor = conn.cursor()
 
-    query = "sp_LoadFolder '" + db_name + "', '" + save_path + "'"
+    query = "sp_LoadFolder '" + db_name + "', '" + save_path + "'"   
     print 'Running "EXEC ' + query + '"'
     try:
         cursor.execute(query)
@@ -156,6 +158,10 @@ for record in wkbk_list:
     print
     print 'Next workbook!'
     print
+
+if len(http_errors) > 0:
+    print http_errors    
+    distress_signal("http", server_name, db_user, db_pass, db_name, save_path, url)
 
 print
 print 'All done!'

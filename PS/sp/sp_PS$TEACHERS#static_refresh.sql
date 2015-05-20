@@ -40,7 +40,7 @@ BEGIN
           ,CLASSPUA
           ,NOOFCURCLASSES
           ,GROUPVALUE
-          ,CAST(TEACHERNUMBER AS INT) AS TEACHERNUMBER
+          ,TEACHERNUMBER
           ,HOME_PHONE
           ,SCHOOL_PHONE
           ,STREET

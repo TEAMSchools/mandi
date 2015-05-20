@@ -52,12 +52,30 @@ SELECT r.studentid
       ,rw.week_title
       ,dt.alt_name AS term_name
       ,DATENAME(MONTH,dt.end_date) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,dt.end_date)) AS term_end      
-      ,att.CUR_ABS_ALL AS cur_absences_total
-      ,att.CUR_AD + att.CUR_AE AS excused_absences
-      ,att.cur_t_all AS cur_tardies_total
-      ,att.CUR_TE AS cur_tardies_exc
-      ,att.cur_le AS cur_early_dismiss
-      ,att.cur_lex AS cur_early_dismiss_exc
+      ,CASE
+        WHEN r.schoolid != 73255 THEN att.CUR_ABS_ALL
+        ELSE att.Y1_ABS_ALL
+       END AS cur_absences_total
+      ,CASE
+        WHEN r.schoolid != 73255 THEN att.CUR_AD + att.CUR_AE 
+        ELSE att.Y1_AD + att.Y1_AE 
+       END AS excused_absences
+      ,CASE
+        WHEN r.schoolid != 73255 THEN att.cur_t_all 
+        ELSE att.Y1_T_ALL
+       END AS cur_tardies_total
+      ,CASE
+        WHEN r.schoolid != 73255 THEN att.CUR_TE 
+        ELSE att.Y1_TE
+       END AS cur_tardies_exc
+      ,CASE
+        WHEN r.schoolid != 73255 THEN att.cur_le 
+        ELSE att.Y1_LE
+       END AS cur_early_dismiss
+      ,CASE
+        WHEN r.schoolid != 73255 THEN att.cur_lex 
+        ELSE att.Y1_LEX
+       END AS cur_early_dismiss_exc
       ,ROUND(att.cur_trip_abs,1) AS trip_absences
       ,CASE 
         WHEN r.schoolid = 73255 AND att.cur_trip_abs >= 10 THEN 'Off Track' 
