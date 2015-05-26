@@ -60,7 +60,9 @@ WITH valid_TAs AS (
                                                           ,'CCSS.LA.2.L.2.4.b'
                                                           ,'CCSS.LA.3.L.3.4.d'
                                                           )
-          OR (a.term = 'T3')
+          OR (a.term = 'T3' AND a.standards_tested NOT IN ('CCSS.LA.K.RL.K.8'
+                                                          ,'CCSS.LA.K.RI.K.2'
+                                                          ,'CCSS.LA.K.RI.1.2'))
         ))
  )
 
@@ -87,6 +89,7 @@ WITH valid_TAs AS (
          assessment_id
         ,academic_year
         ,ta.schoolid
+        ,ta.grade_level
         ,title        
         ,scope
         ,ta.subject
@@ -103,6 +106,7 @@ WITH valid_TAs AS (
          fsa.assessment_id
         ,ta.academic_year
         ,ta.schoolid
+        ,ta.grade_level
         ,fsa.title        
         ,fsa.scope
         ,ta.subject
@@ -170,7 +174,7 @@ WITH valid_TAs AS (
         AND a.standard_id = res.standard_id
         AND r.schoolid = a.schoolid        
         AND r.year = a.academic_year
-        --AND r.grade_level = a.grade_level
+        AND r.grade_level = a.grade_level
        WHERE r.grade_level < 5         
          AND r.enroll_status = 0         
          AND r.rn = 1
