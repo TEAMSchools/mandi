@@ -143,7 +143,7 @@ FROM
            ,ISNULL(cohort.grade_level, s.grade_level) AS grade_level
            ,cohort.COHORT 
            ,rs.studentid
-           ,s.student_number
+           ,cohort.student_number
            ,cohort.LASTFIRST
            
            -- progress to goals
@@ -168,12 +168,13 @@ FROM
        ON ((rs.testid = 3273 AND rs.step_ltr_level = gleq.read_lvl)
             OR (rs.testid != 3273 AND rs.testid = gleq.testid))
       AND gleq.lvl_num > -1
+     LEFT OUTER JOIN LIT$GLEQ ind WITH(NOLOCK)
+       ON rs.indep_lvl = ind.read_lvl      
      JOIN STUDENTS s WITH(NOLOCK)
        ON rs.studentid = s.id
      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
        ON rs.studentid = cohort.studentid
-      AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
-      AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+      AND rs.academic_year = cohort.year
       AND cohort.rn = 1          
      LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
        ON ((rs.test_date > '2013-06-30' AND rs.schoolid = dates.schoolid) OR (rs.test_date <= '2013-06-30' AND dates.schoolid IS NULL))
@@ -232,7 +233,7 @@ FROM
            ,ISNULL(cohort.grade_level, s.grade_level) AS grade_level
            ,cohort.COHORT 
            ,rs.studentid
-           ,s.student_number
+           ,cohort.student_number
            ,cohort.LASTFIRST
            
            -- progress to goals
@@ -255,12 +256,13 @@ FROM
      FROM LIT$readingscores#static rs WITH(NOLOCK)
      JOIN LIT$GLEQ gleq WITH(NOLOCK)
        ON gleq.read_lvl = 'Pre DNA'
+     LEFT OUTER JOIN LIT$GLEQ ind WITH(NOLOCK)
+       ON rs.indep_lvl = ind.read_lvl  
      JOIN STUDENTS s WITH(NOLOCK)
        ON rs.studentid = s.id
      LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
        ON rs.studentid = cohort.studentid
-      AND rs.test_date >= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.entrydate)) + '-07-01')
-      AND rs.test_date <= CONVERT(DATE,CONVERT(VARCHAR,DATEPART(YYYY,cohort.exitdate)) + '-06-30')
+      AND rs.academic_year = cohort.year
       AND cohort.rn = 1          
      LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
        ON ((rs.test_date > '2013-06-30' AND rs.schoolid = dates.schoolid) OR (rs.test_date <= '2013-06-30' AND dates.schoolid IS NULL))

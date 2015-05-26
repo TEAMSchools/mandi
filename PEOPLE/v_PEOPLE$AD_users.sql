@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW PEOPLE$AD_users AS
+--ALTER VIEW PEOPLE$AD_users AS
 
 SELECT employeenumber
       ,employeeID      
@@ -12,13 +12,17 @@ SELECT employeenumber
       ,middleName
       ,sn                  
       ,company           
-      ,department
+      ,department      
       ,title
       ,mail
       ,l
       ,physicalDeliveryOfficeName                        
       ,createTimeStamp
-      ,modifyTimeStamp        
+      ,modifyTimeStamp  
+      ,DATEADD(MINUTE
+              ,(CONVERT(BIGINT,pwdlastset) / 600000000) + DATEDIFF(MINUTE,GETUTCDATE(),GETDATE()) -- number of 10 minute intervals (in microseconds) since last reset, offset by time zone...holy shit
+              ,CAST('1/1/1601' AS DATETIME2) -- origin date for DATETIME2
+              ) AS pwdlastset
       ,useraccountcontrol
       ,distinguishedname
       /* might be useful in the future */
@@ -57,12 +61,13 @@ FROM OPENQUERY(ADSI,'
         ,modifyTimeStamp        
         ,name
         ,objectCategory                
-        ,physicalDeliveryOfficeName        
+        ,physicalDeliveryOfficeName  
+        ,pwdLastSet       
         ,sAMAccountName        
         ,sn        
         ,telephoneNumber
         ,textEncodedORAddress        
         ,title        
-        ,userPrincipalName
+        ,userPrincipalName        
   FROM ''LDAP://RM9DC-TS-1.teamschools.kipp.org/OU=Users,OU=TEAM,DC=teamschools,DC=kipp,DC=org''    
 ')

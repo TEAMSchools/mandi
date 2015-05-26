@@ -104,6 +104,7 @@ SELECT academic_year
       ,natl_goal_lvl
       ,natl_goal_num      
       ,CASE WHEN lvl_num >= natl_goal_num THEN 1 ELSE 0 END AS met_natl_goal
+      ,levels_behind
       ,unique_id
 FROM
     (
@@ -127,6 +128,7 @@ FROM
            ,goals.natl_lvl_num AS natl_goal_num
            ,sub.fp_wpmrate
            ,sub.fp_keylever
+           ,sub.lvl_num - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind
            ,sub.unique_id      
      FROM
          (

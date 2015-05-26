@@ -245,6 +245,7 @@ FROM
            ,SUM(weighted_pct_points) AS total_weighted_points
            ,SUM(weighted_points_poss) AS total_weighted_points_poss
            ,ROUND(SUM(weighted_pct_points) / SUM(weighted_points_poss) * 100,0) AS total_weighted_pct_correct
+           ,CASE WHEN KIPP_NJ.dbo.GROUP_CONCAT(DISTINCT scope) LIKE '%Interim Assessment%' THEN 1 ELSE 0 END AS is_valid
      FROM 
          (
           SELECT student_number
@@ -332,3 +333,4 @@ FROM
              ,standards_tested
              ,TA_obj
     ) sub
+WHERE is_valid = 1

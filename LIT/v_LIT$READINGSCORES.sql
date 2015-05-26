@@ -10,13 +10,11 @@ SELECT unique_id
       -- prior to SY14, academic_year and test_round were derived
       -- from the test_date, which caused a lot of problems
       -- so now they're entered directly with the test 
-      ,CASE
-        WHEN LEN(academic_year) < 4 THEN KIPP_NJ.dbo.fn_DateToSY(test_date)
+      ,CASE        
         WHEN academic_year IS NULL THEN KIPP_NJ.dbo.fn_DateToSY(test_date)
         ELSE CONVERT(INT,academic_year) 
        END AS academic_year              
-      ,CASE
-        WHEN LEN(test_round) < 2 THEN NULL
+      ,CASE        
         WHEN test_round = 'Diagnostic' THEN 'DR'
         WHEN test_round = 'BOY' THEN 'DR'
         ELSE CONVERT(VARCHAR(8),LTRIM(RTRIM(test_round)))

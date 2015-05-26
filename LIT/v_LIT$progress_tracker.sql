@@ -110,7 +110,7 @@ SELECT
         WHEN scores.met_goal = 0 THEN 'Off Track'
         ELSE NULL
        END AS met_goal
-      ,details.levels_behind
+      ,scores.levels_behind
       ,goals_wide.goal_dr
       ,goals_wide.goal_t1
       ,goals_wide.goal_t2
