@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER PROCEDURE [sp_ILLUMINATE$summary_assessment_results_long#static|refresh] AS
+ALTER PROCEDURE [sp_ILLUMINATE$summary_assessment_results_long#static|refresh] AS
 
 BEGIN
   
@@ -146,7 +146,7 @@ BEGIN
   WHEN MATCHED THEN 
    UPDATE
     SET TARGET.value = SOURCE.value          
-       ,TARGET.student_id = SOURCE.student_id
+       --,TARGET.student_id = SOURCE.student_id
   WHEN NOT MATCHED BY TARGET THEN 
    INSERT
     (repository_id
@@ -160,8 +160,8 @@ BEGIN
     ,SOURCE.student_id
     ,SOURCE.field
     ,SOURCE.value)
-  WHEN NOT MATCHED BY SOURCE AND TARGET.repository_id IN (SELECT repository_id FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh]) THEN 
-   DELETE
+  WHEN NOT MATCHED BY SOURCE --AND TARGET.repository_id IN (SELECT repository_id FROM [#ILLUMINATE$summary_assessment_results_long#static|refresh]) THEN 
+   THEN DELETE
   --OUTPUT $ACTION, deleted.*
   ;
 
@@ -218,4 +218,4 @@ GO
   AND sys.objects.type_desc = 'USER_TABLE'
   AND sys.objects.name = 'ILLUMINATE$summary_assessment_results_long#static';
  EXEC (@sql);
-*/
+--*/
