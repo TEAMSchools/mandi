@@ -28,42 +28,20 @@ WITH valid_TAs AS (
     AND a.term IS NOT NULL
     AND a.scope = 'Interim Assessment'    
     AND a.subject NOT IN ('Writing') -- summary assessment
-    AND ((a.term = 'T1' AND a.standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
-                                                      ,'CCSS.LA.2.L.2.4.c'
-                                                      ,'CCSS.LA.2.L.2.4.d'
-                                                      ,'CCSS.LA.2.L.2.5.b'
-                                                      ,'CCSS.LA.3.L.3.5'
-                                                      ,'CCSS.LA.3.L.3.5.a'
-                                                      ,'CCSS.LA.3.L.3.6'
-                                                      ,'CCSS.LA.4.L.4.4'
-                                                      ,'CCSS.LA.4.L.4.4.a'
-                                                      ,'CCSS.LA.4.L.4.4.b'
-                                                      ,'CCSS.LA.4.L.4.5.a'
-                                                      ,'CCSS.LA.1.RF.1.3.g'))
-          OR (a.term = 'T2' AND a.standards_tested NOT IN ('CCSS.LA.2.L.2.4.a'
-                                                          ,'CCSS.LA.2.L.2.4.c'
-                                                          ,'CCSS.LA.2.L.2.4.d'
-                                                          ,'CCSS.LA.2.L.2.5.b'
-                                                          ,'CCSS.LA.3.L.3.5'
-                                                          ,'CCSS.LA.3.L.3.5.a'
-                                                          ,'CCSS.LA.3.L.3.6'
-                                                          ,'CCSS.LA.4.L.4.4'
-                                                          ,'CCSS.LA.4.L.4.4.a'
-                                                          ,'CCSS.LA.4.L.4.4.b'
-                                                          ,'CCSS.LA.4.L.4.5.a'
-                                                          ,'CCSS.LA.1.RF.1.3.g'
-                                                          ,'CCSS.LA.4.L.4.5.b'
-                                                          ,'CCSS.LA.4.L.4.5.c'
-                                                          ,'CCSS.LA.4.L.4.6'
-                                                          ,'CCSS.LA.1.RL.1.1'
-                                                          ,'CCSS.LA.2.L.2.4'
-                                                          ,'CCSS.LA.2.L.2.4.b'
-                                                          ,'CCSS.LA.3.L.3.4.d'
-                                                          )
-          OR (a.term = 'T3' AND a.standards_tested NOT IN ('CCSS.LA.K.RL.K.8'
-                                                          ,'CCSS.LA.K.RI.K.2'
-                                                          ,'CCSS.LA.K.RI.1.2'))
-        ))
+    AND a.standards_tested NOT LIKE 'CCSS.LA.%.L.%'
+    AND (
+         (a.term = 'T1' AND a.standards_tested NOT IN ('CCSS.LA.1.RF.1.3.g'))
+          OR 
+         (a.term = 'T2' AND a.standards_tested NOT IN ('CCSS.LA.1.RF.1.3.g'                                                          
+                                                      ,'CCSS.LA.1.RL.1.1'))
+          OR 
+         (a.term = 'T3' AND a.standards_tested NOT IN ('CCSS.LA.K.RL.K.8'
+                                                      ,'CCSS.LA.K.RL.K.2'
+                                                      ,'CCSS.LA.K.RI.K.1'
+                                                      ,'CCSS.LA.K.RI.K.2'
+                                                      ,'CCSS.LA.K.RI.1.2'
+                                                      ,'CCSS.LA.1.RI.1.2'))
+        )
  )
 
 ,valid_FSAs AS (

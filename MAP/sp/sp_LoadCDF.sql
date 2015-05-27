@@ -32,7 +32,7 @@ BEGIN
        SELECT * 
 					  FROM OPENROWSET(
 							  'MSDASQL'
-						  ,'Driver={Microsoft Access Text Driver (*.txt, *.csv)};DefaultDir=c:\data_robot\diy\data;'
+						  ,'Driver={Microsoft Access Text Driver (*.txt, *.csv)};'
 						  ,'select * from c:\data_robot\nwea\AssessmentResults.csv'
        )
 					 ) sub;

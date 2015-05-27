@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER PROCEDURE [sp_ILLUMINATE$summary_assessment_results_long#static|refresh] AS
+--ALTER PROCEDURE [sp_ILLUMINATE$summary_assessment_results_long#static|refresh] AS
 
 BEGIN
   
@@ -141,12 +141,12 @@ BEGIN
        ,value
        )
      ON TARGET.repository_id = SOURCE.repository_id
-    AND TARGET.repository_row_id = SOURCE.repository_row_id
-    AND TARGET.student_id = SOURCE.student_id
+    AND TARGET.repository_row_id = SOURCE.repository_row_id    
     AND TARGET.field = SOURCE.field           
   WHEN MATCHED THEN 
    UPDATE
     SET TARGET.value = SOURCE.value          
+       ,TARGET.student_id = SOURCE.student_id
   WHEN NOT MATCHED BY TARGET THEN 
    INSERT
     (repository_id
