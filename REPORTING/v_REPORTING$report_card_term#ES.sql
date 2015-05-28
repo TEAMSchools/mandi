@@ -456,12 +456,16 @@ SELECT r.studentid
       ,ta.PERF_TA_obj_3
       ,ta.PERF_TA_obj_4
       ,ta.PERF_TA_obj_5                
+      ,ta.PERF_TA_obj_6
+      ,ta.PERF_TA_obj_7                
        -- proficiency
       ,ta.PERF_TA_prof_1
       ,ta.PERF_TA_prof_2
       ,ta.PERF_TA_prof_3
       ,ta.PERF_TA_prof_4
       ,ta.PERF_TA_prof_5            
+      ,ta.PERF_TA_prof_6
+      ,ta.PERF_TA_prof_7
 
       -- humanities (history, social studies...)
         -- objectives

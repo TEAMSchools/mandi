@@ -19,18 +19,21 @@ SELECT @LongestRunningTransaction = MAX(DATEDIFF(n, dtat.transaction_begin_time,
 FROM sys.dm_tran_active_transactions dtat 
 INNER JOIN sys.dm_tran_session_transactions dtst 
   ON dtat.transaction_id = dtst.transaction_id
+WHERE is_user_transaction = 0
   
 SELECT @LongSessions = dbo.GROUP_CONCAT_D(session_id, ', ')
 FROM sys.dm_tran_active_transactions dtat 
 INNER JOIN sys.dm_tran_session_transactions dtst 
   ON dtat.transaction_id = dtst.transaction_id
 WHERE DATEDIFF(n, dtat.transaction_begin_time, GETDATE()) >= @AlertingThresholdMinutes
+  AND is_user_transaction = 0
 
 SELECT @LongSessionTime = MAX(DATEDIFF(n, dtat.transaction_begin_time, GETDATE()))
 FROM sys.dm_tran_active_transactions dtat 
 INNER JOIN sys.dm_tran_session_transactions dtst 
   ON dtat.transaction_id = dtst.transaction_id
-WHERE DATEDIFF(n, dtat.transaction_begin_time, GETDATE()) >= @AlertingThresholdMinutes;
+WHERE DATEDIFF(n, dtat.transaction_begin_time, GETDATE()) >= @AlertingThresholdMinutes
+  AND is_user_transaction = 0;
 
 IF ISNULL(@LongestRunningTransaction,0) >= @AlertingThresholdMinutes BEGIN 
 
