@@ -111,7 +111,13 @@ WITH map_tests AS (
         ,[adjective]
   FROM
       (
-       SELECT *
+       SELECT studentid
+             ,year
+             ,fallwinterspring
+             ,measurementscale
+             ,field
+             ,n
+             ,value
        FROM map_tests WITH(NOLOCK)
        WHERE field != 'name'
       ) sub
@@ -140,6 +146,9 @@ SELECT domain.studentid
       ,co.grade_level
       ,co.team
       ,co.spedlep
+      ,co.enroll_status
+      ,co.retained_yr_flag
+      ,co.retained_ever_flag
       ,domain.year
       ,domain.fallwinterspring
       ,domain.measurementscale
