@@ -506,12 +506,14 @@ SELECT r.studentid
       ,ta.SPAN_TA_obj_3
       ,ta.SPAN_TA_obj_4
       ,ta.SPAN_TA_obj_5      
+      ,ta.SPAN_TA_obj_6
       -- prof
       ,ta.SPAN_TA_prof_1
       ,ta.SPAN_TA_prof_2
       ,ta.SPAN_TA_prof_3
       ,ta.SPAN_TA_prof_4
       ,ta.SPAN_TA_prof_5      
+      ,ta.SPAN_TA_prof_6
       
       -- visual arts
       -- objectives

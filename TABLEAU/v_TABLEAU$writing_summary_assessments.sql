@@ -22,12 +22,7 @@ WITH assessments AS (
  )
 
 ,results_wide AS (
-  SELECT [SCHOOLID]
-        ,[grade_level]
-        ,[studentid]
-        ,[STUDENT_NUMBER]
-        ,[lastfirst]
-        ,[team]
+  SELECT [STUDENT_NUMBER]        
         ,[repository_id]
         ,[title]
         ,[credittype]
@@ -67,12 +62,7 @@ WITH assessments AS (
         ,[Prompt 4 - Justification]
   FROM
       (
-       SELECT s.SCHOOLID
-             ,s.grade_level      
-             ,s.id AS studentid
-             ,s.STUDENT_NUMBER
-             ,s.lastfirst      
-             ,s.team
+       SELECT res.student_id AS STUDENT_NUMBER             
              ,a.repository_id
              ,a.title
              --,a.scope
@@ -81,13 +71,9 @@ WITH assessments AS (
              ,a.field_label
              ,res.repository_row_id
              ,res.value AS field_value           
-       FROM STUDENTS s WITH(NOLOCK)        
-       JOIN assessments a WITH(NOLOCK)
-         ON s.schoolid = a.SCHOOLID
-        AND s.grade_level = a.GRADE_LEVEL 
+       FROM assessments a WITH(NOLOCK)         
        JOIN ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
-         ON s.student_number = res.student_id
-        AND a.repository_id = res.repository_id
+         ON a.repository_id = res.repository_id
         AND a.field_name = res.field     
       ) sub
 
@@ -131,24 +117,27 @@ WITH assessments AS (
 
 ,enrollments AS (
   SELECT cc.studentid
+        ,cc.academic_year        
+        ,cc.COURSE_NUMBER
         ,cc.COURSE_NAME
         ,cc.CREDITTYPE        
         ,cc.teacher_name
         ,cc.period
-        ,cc.rn_subject AS rn
+        ,ROW_NUMBER() OVER(
+          PARTITION BY cc.studentid, cc.academic_year, cc.credittype
+            ORDER BY cc.course_number DESC, cc.dateenrolled DESC) AS rn
   FROM PS$course_enrollments#static cc WITH(NOLOCK)
-  WHERE cc.SCHOOLID = 73253
-    AND cc.TERMID >= dbo.fn_Global_Term_Id()
-    AND cc.SECTIONID > 0
-    AND cc.CREDITTYPE IN ('RHET','ENG')
+  WHERE cc.SCHOOLID = 73253        
+    AND cc.SECTIONID > 0    
+    AND cc.CREDITTYPE = 'ENG'    
  )
 
-SELECT w.SCHOOLID
-      ,w.GRADE_LEVEL
-      ,w.studentid
-      ,w.student_number
-      ,w.lastfirst
-      ,w.team
+SELECT co.SCHOOLID
+      ,co.GRADE_LEVEL
+      ,co.studentid
+      ,co.student_number
+      ,co.lastfirst
+      ,co.team
       ,w.title
       ,w.academic_year AS year
       ,COALESCE(w.Interim, w.Quarter) AS interim
@@ -280,7 +269,8 @@ JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
  AND w.academic_year = co.year
  AND co.rn = 1
 LEFT OUTER JOIN enrollments enr WITH(NOLOCK)
-  ON w.studentid = enr.STUDENTID
+  ON co.studentid = enr.STUDENTID
+ AND co.year = enr.academic_year
  AND w.credittype = enr.CREDITTYPE
  AND enr.rn = 1
 --LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
