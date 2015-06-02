@@ -103,7 +103,7 @@ WITH disc_log AS (
 
 ,TEAM_bench AS (
   SELECT 133570965 AS schoolid
-        ,CONVERT(INT,[student_number]) AS studentid
+        ,CONVERT(INT,CONVERT(FLOAT,[student_number])) AS studentid
         ,CONVERT(VARCHAR,[Teacher]) AS entry_author        
         ,CASE WHEN ISDATE([Date]) = 1 THEN CONVERT(DATE,[Date]) ELSE NULL END AS entry_date
         ,NULL AS consequence_date

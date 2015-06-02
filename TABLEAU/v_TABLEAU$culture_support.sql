@@ -18,6 +18,6 @@ JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
   ON r.SN = co.student_number
  AND co.year = dbo.fn_Global_Academic_Year()
  AND co.rn = 1
-LEFT OUTER JOIN [AUTOLOAD$GDOCS_SUPPORT_Data_Entry_] supp WITH(NOLOCK)
+LEFT OUTER JOIN [AUTOLOAD$GDOCS_SUPPORT_Data_Entry] supp WITH(NOLOCK)
   ON r.SN = supp.SN
 WHERE r.[Behavior Tier ] IS NOT NULL
