@@ -27,6 +27,7 @@ SELECT CONVERT(VARCHAR,ar_default.student_number) AS student_number
       ,COALESCE(ar_explicit.words_goal, ar_default.words_goal) AS words_goal
       ,COALESCE(ar_explicit.points_goal, ar_default.points_goal) AS points_goal
       ,ar_default.yearid
+      ,KIPP_NJ.dbo.fn_TermToYear(ar_default.yearid) AS academic_year
       ,ar_default.time_period_name
       ,COALESCE(ar_explicit.time_period_start, ar_default.time_period_start) AS time_period_start
       ,COALESCE(ar_explicit.time_period_end, ar_default.time_period_end) AS time_period_end

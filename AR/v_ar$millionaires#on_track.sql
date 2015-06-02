@@ -55,7 +55,7 @@ FROM
           FROM KIPP_NJ..COHORT$identifiers_long#static c WITH (NOLOCK)
           JOIN KIPP_NJ..AR$progress_to_goals_long#static prog WITH(NOLOCK)
             ON c.studentid = prog.studentid
-           AND prog.yearid = dbo.fn_Global_Term_Id()
+           AND c.year = prog.academic_year
            AND prog.time_hierarchy = 1
           WHERE c.schoolid IN (73252, 133570965, 73253)
             AND c.year = KIPP_NJ.dbo.fn_Global_Academic_Year()

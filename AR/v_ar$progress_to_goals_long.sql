@@ -8,6 +8,7 @@ WITH long_goals AS (
         ,cohort.student_number
         ,cohort.grade_level
         ,cohort.schoolid
+        ,cohort.year AS academic_year
         ,goals.yearid
         ,1 AS time_hierarchy
         ,goals.time_period_name
@@ -28,10 +29,10 @@ WITH long_goals AS (
   FROM COHORT$comprehensive_long#static cohort WITH (NOLOCK) 
   --year
   JOIN AR$goals_long_decode#static goals WITH (NOLOCK)
-    ON CAST(cohort.student_number AS VARCHAR) = goals.student_number
+    ON cohort.student_number = goals.student_number   
+   AND cohort.year = goals.academic_year
    AND goals.time_period_hierarchy = 1
-  WHERE cohort.rn = 1
-    AND ((cohort.year - 1990) * 100) = goals.yearid
+  WHERE cohort.rn = 1    
   
   --term
   UNION ALL
@@ -40,6 +41,7 @@ WITH long_goals AS (
         ,cohort.student_number
         ,cohort.grade_level
         ,cohort.schoolid
+        ,cohort.year AS academic_year
         ,goals.yearid
         --standardize term names
         ,2 AS time_hierarchy
@@ -76,10 +78,9 @@ WITH long_goals AS (
         ,goals.time_period_end AS end_date
   FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH (NOLOCK)     
   JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
-     ON CAST(cohort.student_number AS VARCHAR) = goals.student_number
+     ON cohort.student_number = goals.student_number
     AND goals.time_period_hierarchy = 2
-  WHERE ((cohort.year - 1990) * 100) = goals.yearid
-    AND cohort.year >= 2011
+  WHERE cohort.year = goals.academic_year    
     AND cohort.rn = 1
     --TESTING
     --AND goals.yearid = dbo.fn_Global_Term_Id()
@@ -123,250 +124,237 @@ WITH long_goals AS (
        FROM KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
        JOIN KIPP_NJ..AR$test_event_detail#static detail WITH (NOLOCK)
          ON goals.student_number = detail.student_number
-        AND CAST(detail.dtTaken AS DATE) >= CAST(goals.time_period_start AS DATE)
-        AND CAST(detail.dtTaken AS DATE) <= CAST(goals.time_period_end AS DATE)
+        AND detail.dtTaken >= goals.time_period_start
+        AND detail.dtTaken <= goals.time_period_end
       ) sub
   WHERE rn_desc = 1  
  )
 
---query starts here
-SELECT totals.*
+SELECT totals.studentid
+      ,totals.student_number
+      ,totals.grade_level
+      ,totals.schoolid
+      ,totals.academic_year
+      ,totals.yearid
+      ,totals.time_hierarchy
+      ,totals.time_period_name
+      ,totals.words_goal
+      ,totals.points_goal
+      ,totals.start_date
+      ,totals.end_date
+      ,totals.words
+      ,totals.points
+      ,totals.mastery
+      ,totals.mastery_fiction
+      ,totals.mastery_nonfiction
+      ,totals.pct_fiction
+      ,totals.n_fiction
+      ,totals.n_nonfic
+      ,totals.avg_lexile
+      ,totals.avg_rating
+      ,totals.last_quiz
+      ,totals.N_passed
+      ,totals.N_total
       ,last_book.last_book_date
       ,last_book.title_string AS last_book
       ,CASE
         --time period over
         WHEN CONVERT(DATE,GETDATE()) > end_date THEN words_goal
         --during time period
-        WHEN CONVERT(DATE,GETDATE()) < end_date AND CONVERT(DATE,GETDATE()) >= [start_date] 
-             THEN CASE
-                   WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-                   ELSE (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
-                  END
+        WHEN CONVERT(DATE,GETDATE()) < end_date AND CONVERT(DATE,GETDATE()) >= [start_date] THEN 
+               CASE
+                WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
+                ELSE ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0)
+               END
        END AS ontrack_words
       ,CASE
-      --time period over
-         WHEN CONVERT(DATE,GETDATE()) > end_date THEN points_goal
-       --during time period
-         WHEN CONVERT(DATE,GETDATE()) < end_date AND
-           CONVERT(DATE,GETDATE()) >= start_date THEN
-           CASE
-             WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-             ELSE (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
-           END
+        --time period over
+        WHEN CONVERT(DATE,GETDATE()) > end_date THEN points_goal
+        --during time period
+        WHEN CONVERT(DATE,GETDATE()) < end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN
+               CASE
+                WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
+                ELSE ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0)
+               END
        END AS ontrack_points
       ,CASE
-      --time period over
-         WHEN CAST(CONVERT(DATE,GETDATE()) AS date) > end_date THEN
-           CASE
-             WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-             WHEN words >= words_goal THEN 'Met Goal'
-             WHEN words < words_goal  THEN 'Missed Goal'
-         END
-       --during time period
-         WHEN CAST(CONVERT(DATE,GETDATE()) AS date) <= end_date AND
-           CAST(CONVERT(DATE,GETDATE()) AS date) >= start_date THEN
-           CASE
-             WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-             WHEN words >= (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
-               THEN 'On Track'
-             WHEN words < (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
-               THEN 'Off Track'
-           END
+        --time period over
+        WHEN CONVERT(DATE,GETDATE()) > end_date THEN
+               CASE
+                WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
+                WHEN words >= words_goal THEN 'Met Goal'
+                WHEN words < words_goal  THEN 'Missed Goal'
+               END
+        --during time period
+        WHEN CONVERT(DATE,GETDATE()) <= end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN
+               CASE
+                WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
+                WHEN words >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 'On Track'
+                WHEN words < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 'Off Track'
+               END
        END AS stu_status_words
       ,CASE
-      --time period over
-         WHEN CAST(CONVERT(DATE,GETDATE()) AS date) > end_date THEN
-           CASE
-             WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-             WHEN points >= points_goal THEN 'Met Goal'
-             WHEN points < points_goal  THEN 'Missed Goal'
-         END
-       --during time period
-         WHEN CAST(CONVERT(DATE,GETDATE()) AS date) <= end_date AND
-           CAST(CONVERT(DATE,GETDATE()) AS date) >= start_date THEN
-           CASE
-             WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-             WHEN points >= (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
-               THEN 'On Track'
-             WHEN points < (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
-               THEN 'Off Track'
-           END
-       END AS stu_status_points
-      
+        --time period over
+        WHEN CONVERT(DATE,GETDATE()) > end_date THEN
+               CASE
+                WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
+                WHEN points >= points_goal THEN 'Met Goal'
+                WHEN points < points_goal  THEN 'Missed Goal'
+               END
+        --during time period
+        WHEN CONVERT(DATE,GETDATE()) <= end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN
+               CASE
+                WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
+                WHEN points >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 'On Track'
+                WHEN points < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 'Off Track'
+               END
+       END AS stu_status_points      
       ,CASE
-      --time period over
-         WHEN CAST(CONVERT(DATE,GETDATE()) AS date) > end_date THEN
-           CASE
-             WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-             WHEN words >= words_goal THEN 1
-             WHEN words < words_goal  THEN 0
-         END
-       --during time period
-         WHEN CAST(CONVERT(DATE,GETDATE()) AS date) <= end_date AND
-           CAST(CONVERT(DATE,GETDATE()) AS date) >= start_date THEN
-           CASE
-             WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-             WHEN words >= (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal) 
-               THEN 1
-             WHEN words < (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
-               THEN 0
-           END
-       END AS stu_status_words_numeric
-      
+       --time period over
+        WHEN CONVERT(DATE,GETDATE()) > end_date THEN
+               CASE
+                WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
+                WHEN words >= words_goal THEN 1
+                WHEN words < words_goal  THEN 0
+               END
+        --during time period
+        WHEN CONVERT(DATE,GETDATE()) <= end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN
+               CASE
+                WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
+                WHEN words >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 1
+                WHEN words < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 0
+               END
+       END AS stu_status_words_numeric      
       ,CASE
-      --time period over
-         WHEN CAST(CONVERT(DATE,GETDATE()) AS date) > end_date THEN
-           CASE
-             WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-             WHEN points >= points_goal THEN 1
-             WHEN points < points_goal  THEN 0
-         END
-       --during time period
-         WHEN CAST(CONVERT(DATE,GETDATE()) AS date) <= end_date AND
-           CAST(CONVERT(DATE,GETDATE()) AS date) >= start_date THEN
-           CASE
-             WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-             WHEN points >= (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
-               THEN 1
-             WHEN points < (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal)
-               THEN 0
-           END
+        --time period over
+        WHEN CONVERT(DATE,GETDATE()) > end_date THEN
+               CASE
+                WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
+                WHEN points >= points_goal THEN 1
+                WHEN points < points_goal  THEN 0
+               END
+        --during time period
+        WHEN CONVERT(DATE,GETDATE()) <= end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN
+               CASE
+                WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
+                WHEN points >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 1
+                WHEN points < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 0
+               END      
        END AS stu_status_points_numeric      
       ,CASE
         --time period over
-        WHEN CAST(CONVERT(DATE,GETDATE()) AS date) > end_date THEN NULL
+        WHEN CONVERT(DATE,GETDATE()) > end_date THEN NULL
         --during time period
-        WHEN CAST(CONVERT(DATE,GETDATE()) AS date) <= end_date AND CAST(CONVERT(DATE,GETDATE()) AS date) >= start_date 
-             THEN CASE
-                   WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-                   WHEN words >= (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal) THEN NULL
-                   WHEN words < (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal)
-                        THEN (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * words_goal) - words
-                  END
+        WHEN CONVERT(DATE,GETDATE()) <= end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN 
+               CASE
+                WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
+                WHEN words >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN NULL
+                WHEN words < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0)
+                     THEN ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) - words
+               END
        END AS words_needed      
       ,CASE
-      --time period over
-         WHEN CAST(CONVERT(DATE,GETDATE()) AS date) > end_date THEN NULL
-       --during time period
-         WHEN CAST(CONVERT(DATE,GETDATE()) AS date) <= end_date AND
-           CAST(CONVERT(DATE,GETDATE()) AS date) >= start_date THEN
-           CASE
-             WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-             WHEN points >= (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal) 
-               THEN NULL
-             WHEN points < (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal) 
-               THEN (((DATEDIFF(d, [start_date], CONVERT(DATE,GETDATE()))+0.0) / DATEDIFF(d, [start_date], end_date)) * points_goal) - points
-           END
+        --time period over
+        WHEN CONVERT(DATE,GETDATE()) > end_date THEN NULL
+        --during time period
+        WHEN CONVERT(DATE,GETDATE()) <= end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN
+               CASE
+                WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
+                WHEN points >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN NULL
+                WHEN points < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0)
+                     THEN ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) - points
+               END
        END AS points_needed
-
        --RANKS
       ,RANK () OVER (PARTITION BY totals.schoolid
                                  ,totals.grade_level
                                  ,totals.yearid
                                  ,totals.time_hierarchy
                                  ,totals.time_period_name
-                     ORDER BY words DESC) AS rank_words_grade_in_school
+                         ORDER BY words DESC) AS rank_words_grade_in_school
       ,RANK () OVER (PARTITION BY totals.grade_level
                                  ,totals.yearid
                                  ,totals.time_hierarchy
                                  ,totals.time_period_name
-                     ORDER BY words DESC) AS rank_words_grade_in_network
+                         ORDER BY words DESC) AS rank_words_grade_in_network
       ,RANK () OVER (PARTITION BY totals.schoolid
                                  ,totals.yearid
                                  ,totals.time_hierarchy
                                  ,totals.time_period_name
-                     ORDER BY words DESC) AS rank_words_overall_in_school
+                         ORDER BY words DESC) AS rank_words_overall_in_school
       ,RANK () OVER (PARTITION BY totals.yearid
                                  ,totals.time_hierarchy
                                  ,totals.time_period_name
-                     ORDER BY words DESC) AS rank_words_overall_in_network
-       --RANKS
+                         ORDER BY words DESC) AS rank_words_overall_in_network       
       ,RANK () OVER (PARTITION BY totals.schoolid
                                  ,totals.grade_level
                                  ,totals.yearid
                                  ,totals.time_hierarchy
                                  ,totals.time_period_name
-                     ORDER BY points DESC) AS rank_points_grade_in_school
+                         ORDER BY points DESC) AS rank_points_grade_in_school
       ,RANK () OVER (PARTITION BY totals.grade_level
                                  ,totals.yearid
                                  ,totals.time_hierarchy
                                  ,totals.time_period_name
-                     ORDER BY points DESC) AS rank_points_grade_in_network
+                         ORDER BY points DESC) AS rank_points_grade_in_network
       ,RANK () OVER (PARTITION BY totals.schoolid
                                  ,totals.yearid
                                  ,totals.time_hierarchy
                                  ,totals.time_period_name
-                     ORDER BY points DESC) AS rank_points_overall_in_school
+                         ORDER BY points DESC) AS rank_points_overall_in_school
       ,RANK () OVER (PARTITION BY totals.yearid
                                  ,totals.time_hierarchy
                                  ,totals.time_period_name
-                     ORDER BY points DESC) AS rank_points_overall_in_network      
+                         ORDER BY points DESC) AS rank_points_overall_in_network      
 FROM    
      (
       SELECT long_goals.studentid
             ,long_goals.student_number
             ,long_goals.grade_level
             ,long_goals.schoolid
+            ,long_goals.academic_year
             ,long_goals.yearid
             ,long_goals.time_hierarchy
             ,long_goals.time_period_name
             ,long_goals.words_goal
             ,long_goals.points_goal
-            ,CAST(long_goals.start_date AS date) AS start_date
-            ,CAST(long_goals.end_date AS date) AS end_date
-
-            ,SUM(CASE
-                   WHEN ar_all.tipassed = 1 THEN CAST(ar_all.iwordcount AS BIGINT)
-                   ELSE 0
-                 END) AS words
-            ,SUM(CASE
-                   WHEN ar_all.tipassed = 1 THEN ar_all.dpointsearned
-                   ELSE 0
-                 END) AS points
-            ,CAST(ROUND((SUM(ar_all.iquestionscorrect + 0.0) / SUM(ar_all.iquestionspresented + 0.0)) * 100,0) AS INT) AS mastery
+            ,long_goals.start_date
+            ,long_goals.end_date
+            ,SUM(CASE WHEN ar_all.tipassed = 1 THEN ar_all.iwordcount ELSE 0 END) AS words
+            ,CONVERT(INT,SUM(CASE WHEN ar_all.tipassed = 1 THEN ar_all.dpointsearned ELSE 0 END)) AS points
+            ,ROUND((SUM(ar_all.iquestionscorrect) / SUM(ar_all.iquestionspresented)) * 100,0) AS mastery
             --per new RLog
-            ,CAST(ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iquestionscorrect ELSE NULL END + 0.0) / 
-               SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iquestionspresented ELSE NULL END + 0.0)) * 100,0) AS INT) AS mastery_fiction
-            ,CAST(ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction != 'F' THEN ar_all.iquestionscorrect ELSE NULL END + 0.0) / 
-               SUM(CASE WHEN ar_all.chfictionnonfiction != 'F' THEN ar_all.iquestionspresented ELSE NULL END + 0.0)) * 100,0) AS INT) AS mastery_nonfiction
-
-            ,CAST(ROUND(
-                    ((SUM(
-                     CASE
-                       WHEN ar_all.chfictionnonfiction IS NULL THEN NULL
-                       WHEN ar_all.chfictionnonfiction = 'F' THEN CAST(ar_all.iwordcount AS BIGINT)
-                       ELSE 0
-                     END) + 0.0) /
-                     (SUM(CAST(ar_all.iwordcount AS BIGINT)) + 0.0)
-                     ) * 100, 0
-                   ) AS INT) AS pct_fiction
-            ,SUM(
-              CASE
-               WHEN ar_all.chfictionnonfiction = 'F' THEN 1
-               ELSE NULL
-              END) AS n_fiction
-            ,SUM(
-              CASE
-               WHEN ar_all.chfictionnonfiction = 'NF' THEN 1
-               ELSE NULL
-              END) AS n_nonfic            
-            ,ROUND(SUM(CAST(ar_all.ialternatebooklevel_2 * ar_all.iwordcount AS BIGINT))/SUM(CAST(ar_all.iwordcount AS BIGINT)),0) AS avg_lexile
-            ,CONVERT(DECIMAL(3,2),ROUND(AVG(ar_all.tibookrating + 0.00),2)) AS avg_rating
-            ,MAX(ar_all.dttaken) AS last_quiz
-            
+            ,ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iquestionscorrect ELSE NULL END)
+                     / 
+                    SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iquestionspresented ELSE NULL END))
+                     * 100,0) AS mastery_fiction
+            ,ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction != 'F' THEN ar_all.iquestionscorrect ELSE NULL END) 
+                     / 
+                    SUM(CASE WHEN ar_all.chfictionnonfiction != 'F' THEN ar_all.iquestionspresented ELSE NULL END))
+                     * 100,0) AS mastery_nonfiction
+            ,ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iwordcount ELSE 0 END) 
+                     /
+                    SUM(ar_all.iwordcount)) 
+                     * 100, 0) AS pct_fiction
+            ,SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN 1 ELSE NULL END) AS n_fiction
+            ,SUM(CASE WHEN ar_all.chfictionnonfiction = 'NF' THEN 1 ELSE NULL END) AS n_nonfic
+            ,ROUND(SUM(ar_all.ialternatebooklevel_2 * ar_all.iwordcount)
+                    /
+                   SUM(ar_all.iwordcount),0) AS avg_lexile
+            ,ROUND(AVG(ar_all.tibookrating),2) AS avg_rating
+            ,MAX(ar_all.dttaken) AS last_quiz            
             --SQL doesn't support KEEP; refactored LAST BOOK
             ,SUM(ar_all.tipassed) AS N_passed
-            ,COUNT(ar_all.iuserid) AS N_total      
+            ,COUNT(ar_all.iuserid) AS N_total                     
       FROM long_goals
       LEFT OUTER JOIN AR$test_event_detail#static ar_all WITH (NOLOCK)
-        ON CAST(long_goals.student_number AS VARCHAR) = ar_all.student_number
-       AND CAST(ar_all.dttaken AS date) >= CAST(long_goals.start_date_summer_bonus AS date)
-       AND CAST(ar_all.dttaken AS date) <= CAST(long_goals.end_date AS date)
-       AND ar_all.tiRowStatus = 1
+        ON long_goals.student_number = ar_all.student_number
+       AND ar_all.dttaken BETWEEN long_goals.start_date_summer_bonus AND long_goals.end_date
       GROUP BY long_goals.studentid
               ,long_goals.student_number
               ,long_goals.grade_level
               ,long_goals.schoolid
+              ,long_goals.academic_year
               ,long_goals.yearid
               ,long_goals.time_hierarchy
               ,long_goals.time_period_name
@@ -382,9 +370,3 @@ LEFT OUTER JOIN last_book
  AND totals.time_hierarchy = last_book.time_period_hierarchy
  AND totals.start_date = last_book.time_period_start
  AND totals.end_date = last_book.time_period_end
-
-/*
-ORDER BY time_hierarchy DESC
-        ,time_period_name ASC
-        ,student_number
-*/

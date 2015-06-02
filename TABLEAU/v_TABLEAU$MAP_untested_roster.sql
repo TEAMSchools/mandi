@@ -10,11 +10,11 @@ WITH roster AS (
         ,co.schoolid
         ,co.grade_level
         ,co.year AS academic_year
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   WHERE co.rn = 1
     AND co.grade_level < 99
-    AND co.year = dbo.fn_Global_Academic_Year()
-    AND co.exitdate >= GETDATE()
+    AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND co.enroll_status = 0
  )
 
 ,subjects AS (
@@ -38,13 +38,28 @@ WITH roster AS (
 ,scaffold AS (
   SELECT *
   FROM roster WITH(NOLOCK)
-  JOIN subjects WITH(NOLOCK)
-    ON 1 = 1
-  JOIN terms WITH(NOLOCK)
-    ON 1 = 1
+  CROSS JOIN subjects WITH(NOLOCK)    
+  CROSS JOIN terms WITH(NOLOCK)    
  )
 
-SELECT *
+SELECT studentid
+      ,STUDENT_NUMBER
+      ,lastfirst
+      ,schoolid
+      ,grade_level
+      ,academic_year
+      ,measurementscale
+      ,term
+      ,map_studentid
+      ,test_date
+      ,RIT
+      ,percentile
+      ,lexile
+      ,base_term
+      ,base_RIT
+      ,base_percentile
+      ,base_lexile
+      ,n_tests      
       ,COALESCE(test_date, base_term) AS tested_on
       ,COALESCE(rit, base_rit) AS current_rit
       ,COALESCE(percentile, base_percentile) AS current_percentile

@@ -179,8 +179,7 @@ FROM
                    ON sub.student_number = ar.student_number 
                   AND sub.year = ar.academic_year
                   AND sub.week_start >= ar.dttaken
-                  AND ar.dttaken BETWEEN sub.time_period_start AND sub.time_period_end 
-                 WHERE ar.student_number NOT IN ('joyke','Mr.Pa','STU1','STU6','STUa','STUb','STUc','STUd','STUe','STUg','STUh','STUj','STUk','STUl','STUm','STUn','STUp','STUr','STUs','STUt','STUw') -- dirty AR data
+                  AND ar.dttaken BETWEEN sub.time_period_start AND sub.time_period_end                  
                 ) sub
             GROUP BY studentid
                     ,student_number
