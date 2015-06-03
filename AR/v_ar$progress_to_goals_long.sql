@@ -26,9 +26,9 @@ WITH long_goals AS (
         ,goals.time_period_start AS start_date_summer_bonus
         ,goals.time_period_start AS [start_date]
         ,goals.time_period_end AS end_date     
-  FROM COHORT$comprehensive_long#static cohort WITH (NOLOCK) 
+  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH (NOLOCK) 
   --year
-  JOIN AR$goals_long_decode#static goals WITH (NOLOCK)
+  JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
     ON cohort.student_number = goals.student_number   
    AND cohort.year = goals.academic_year
    AND goals.time_period_hierarchy = 1
@@ -321,7 +321,7 @@ FROM
             ,long_goals.start_date
             ,long_goals.end_date
             ,SUM(CASE WHEN ar_all.tipassed = 1 THEN ar_all.iwordcount ELSE 0 END) AS words
-            ,CONVERT(INT,SUM(CASE WHEN ar_all.tipassed = 1 THEN ar_all.dpointsearned ELSE 0 END)) AS points
+            ,ROUND(SUM(CASE WHEN ar_all.tipassed = 1 THEN ar_all.dpointsearned ELSE 0 END),0) AS points
             ,ROUND((SUM(ar_all.iquestionscorrect) / SUM(ar_all.iquestionspresented)) * 100,0) AS mastery
             --per new RLog
             ,ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iquestionscorrect ELSE NULL END)

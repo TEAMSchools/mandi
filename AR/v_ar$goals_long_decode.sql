@@ -7,7 +7,7 @@ WITH default_scaffold AS (
   SELECT co.STUDENT_NUMBER
         ,co.schoolid
         ,ar_default.words_goal
-        ,ar_default.points_goal
+        ,CONVERT(INT,ar_default.points_goal) AS points_goal
         ,ar_default.yearid
         ,ar_default.time_period_name
         ,ar_default.time_period_start
@@ -25,7 +25,7 @@ WITH default_scaffold AS (
 SELECT CONVERT(VARCHAR,ar_default.student_number) AS student_number
       ,ar_default.schoolid
       ,COALESCE(ar_explicit.words_goal, ar_default.words_goal) AS words_goal
-      ,COALESCE(ar_explicit.points_goal, ar_default.points_goal) AS points_goal
+      ,CONVERT(INT,COALESCE(ar_explicit.points_goal, ar_default.points_goal)) AS points_goal
       ,ar_default.yearid
       ,KIPP_NJ.dbo.fn_TermToYear(ar_default.yearid) AS academic_year
       ,ar_default.time_period_name

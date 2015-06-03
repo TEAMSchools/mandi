@@ -14,10 +14,10 @@ with open('gspread.log', 'a+') as f:
     ## if log is empty (e.g. first time), set it to a basic date (1900-01-01)        
     if len(logs) == 0:
         lastrun = '1900-01-01 00:00:00'
-        lastrun = time_parser.parse(lastrun).replace(tzinfo=LOCAL_TZ)
+        lastrun = LOCAL_TZ.localize(time_parser.parse(lastrun))
     else:
         lastrun = logs[-1].strip()
-        lastrun = time_parser.parse(lastrun).replace(tzinfo=LOCAL_TZ)
+        lastrun = LOCAL_TZ.localize(time_parser.parse(lastrun))
 #print lastrun
 
 ## authenticate to GDocs
