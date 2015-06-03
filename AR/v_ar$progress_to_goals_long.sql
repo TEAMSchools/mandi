@@ -321,7 +321,7 @@ FROM
             ,long_goals.start_date
             ,long_goals.end_date
             ,SUM(CASE WHEN ar_all.tipassed = 1 THEN ar_all.iwordcount ELSE 0 END) AS words
-            ,ROUND(SUM(CASE WHEN ar_all.tipassed = 1 THEN ar_all.dpointsearned ELSE 0 END),0) AS points
+            ,SUM(CASE WHEN ar_all.tipassed = 1 THEN ar_all.dpointsearned ELSE 0 END) AS points
             ,ROUND((SUM(ar_all.iquestionscorrect) / SUM(ar_all.iquestionspresented)) * 100,0) AS mastery
             --per new RLog
             ,ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iquestionscorrect ELSE NULL END)
