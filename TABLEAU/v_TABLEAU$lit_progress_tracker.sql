@@ -89,6 +89,8 @@ SELECT co.school_name
       ,long.benchmark AS component_benchmark
       ,long.is_prof AS component_prof
       ,long.margin AS component_margin      
+      ,long.dna_reason
+      ,long.dna_filter
       ,map.goal1name
       ,map.goal1ritscore
       ,map.goal1adjective
@@ -200,6 +202,8 @@ SELECT co.school_name
       ,long.benchmark AS component_benchmark
       ,long.is_prof AS component_prof
       ,long.margin AS component_margin      
+      ,long.dna_reason
+      ,long.dna_filter
       ,map.goal1name
       ,map.goal1ritscore
       ,map.goal1adjective

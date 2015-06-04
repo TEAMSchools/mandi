@@ -124,10 +124,15 @@ SELECT r.year
         WHEN r.grade_level > 0 AND map_long.prevspr_pct >= 25 AND map_long.prevspr_pct < 50 THEN 2
         WHEN r.grade_level > 0 AND map_long.prevspr_pct >= 50 AND map_long.prevspr_pct < 75 THEN 3
         WHEN r.grade_level > 0 AND map_long.prevspr_pct >= 75 THEN 4
-        WHEN r.grade_level = 0 AND map_long.base_pct >= 0 AND map_long.base_pct < 25 THEN 1
-        WHEN r.grade_level = 0 AND map_long.base_pct >= 25 AND map_long.base_pct < 50 THEN 2
-        WHEN r.grade_level = 0 AND map_long.base_pct >= 50 AND map_long.base_pct < 75 THEN 3
-        WHEN r.grade_level = 0 AND map_long.base_pct >= 75 THEN 4
+        -- temp fixes for Life Upper
+        WHEN ((r.grade_level = 0) OR (r.schoolid = 73257 AND r.grade_level >= 0) OR (r.schoolid = 73252 AND r.grade_level = 5))
+               AND map_long.base_pct >= 0 AND map_long.base_pct < 25 THEN 1
+        WHEN ((r.grade_level = 0) OR (r.schoolid = 73257 AND r.grade_level >= 0) OR (r.schoolid = 73252 AND r.grade_level = 5)) 
+             AND map_long.base_pct >= 25 AND map_long.base_pct < 50 THEN 2
+        WHEN ((r.grade_level = 0) OR (r.schoolid = 73257 AND r.grade_level >= 0) OR (r.schoolid = 73252 AND r.grade_level = 5)) 
+             AND map_long.base_pct >= 50 AND map_long.base_pct < 75 THEN 3
+        WHEN ((r.grade_level = 0) OR (r.schoolid = 73257 AND r.grade_level >= 0) OR (r.schoolid = 73252 AND r.grade_level = 5)) 
+             AND map_long.base_pct >= 75 THEN 4
         ELSE NULL
        END AS quartile
       ,CASE WHEN map_curr.fallwinterspring = 'Fall' THEN NULL ELSE map_curr.rit - map_long.base_rit END AS ytd_rit_growth
@@ -136,16 +141,19 @@ SELECT r.year
       ,CASE 
         WHEN map_curr.fallwinterspring IN ('Fall','Previous Spring') THEN NULL 
         WHEN r.grade_level = 0 THEN map_curr.rit - map_long.base_rit
+        WHEN (r.schoolid = 73257 AND r.grade_level >= 0) OR (r.schoolid = 73252 AND r.grade_level = 5) THEN map_curr.rit - map_long.base_rit -- temp fix for Life
         ELSE map_curr.rit - map_long.prevspr_rit         
        END AS ytd_rit_growth_prevspr
       ,CASE 
         WHEN map_curr.fallwinterspring IN ('Fall','Previous Spring') THEN NULL 
         WHEN r.grade_level = 0 THEN map_curr.pct - map_long.base_pct
+        WHEN (r.schoolid = 73257 AND r.grade_level >= 0) OR (r.schoolid = 73252 AND r.grade_level = 5) THEN map_curr.pct - map_long.base_pct -- temp fix for Life
         ELSE map_curr.pct - map_long.prevspr_pct         
        END AS ytd_pct_growth_prevspr
       ,CASE 
         WHEN map_curr.fallwinterspring IN ('Fall','Previous Spring') THEN NULL 
-        WHEN r.grade_level = 0 THEN map_curr.lexile - map_long.base_lex
+        WHEN r.grade_level = 0 OR r.schoolid = 73257 THEN map_curr.lexile - map_long.base_lex
+        WHEN (r.schoolid = 73257 AND r.grade_level >= 0) OR (r.schoolid = 73252 AND r.grade_level = 5) THEN map_curr.lexile - map_long.base_lex
         ELSE map_curr.lexile - map_long.prevspr_lex
        END AS ytd_lex_growth_prevspr
       ,map_curr.pct - 75 AS dist_from_75

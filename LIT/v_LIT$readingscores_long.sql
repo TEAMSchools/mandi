@@ -161,8 +161,23 @@ SELECT sub.unique_id
       ,CASE
         WHEN sub.label LIKE '%errors%' THEN sub.benchmark - sub.score
         ELSE sub.score - sub.benchmark 
-       END AS margin
-      ,CASE WHEN sub.is_prof = 0 THEN sub.domain ELSE NULL END AS dna_reason      
+       END AS margin      
+      ,CASE 
+        WHEN sub.testid != 3273 AND sub.is_prof = 0 THEN 1
+        WHEN sub.testid = 3273 AND sub.domain != 'Comprehension' AND sub.is_prof = 0 THEN 1
+        WHEN sub.testid = 3273 AND sub.domain = 'Comprehension'
+         AND MIN(sub.is_prof) OVER(PARTITION BY sub.unique_id, sub.domain) = 0 
+         AND sub.score_order = 1 THEN 1
+        ELSE 0
+       END AS dna_filter
+      ,CASE 
+        WHEN sub.testid != 3273 AND sub.is_prof = 0 THEN sub.domain 
+        WHEN sub.testid = 3273 AND sub.domain != 'Comprehension' AND sub.is_prof = 0 THEN sub.domain
+        WHEN sub.testid = 3273 AND sub.domain = 'Comprehension'
+         AND MIN(sub.is_prof) OVER(PARTITION BY sub.unique_id, sub.domain) = 0 
+         AND sub.score_order = 1 THEN sub.strand
+        ELSE NULL 
+       END AS dna_reason
 FROM 
     (
      SELECT rs.unique_id
@@ -198,6 +213,9 @@ FROM
              WHEN prof.field_name IN ('ra_errors','accuracy_1a','accuracy_2b') AND rs.score > CONVERT(FLOAT,prof.score) THEN 1
              ELSE 0
             END AS is_dna
+           ,ROW_NUMBER() OVER(
+              PARTITION BY rs.unique_id, prof.domain
+                ORDER BY rs.score ASC, prof.strand DESC) AS score_order
      FROM long_scores rs
      JOIN LIT$gleq gleq WITH(NOLOCK)
        ON rs.testid = gleq.testid

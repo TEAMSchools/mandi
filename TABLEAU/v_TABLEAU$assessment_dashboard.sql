@@ -56,6 +56,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
  AND co.year = enr.academic_year
  AND a.subject = enr.illuminate_subject
+ AND enr.drop_flags = 0
 LEFT OUTER JOIN (
                  SELECT DISTINCT 
                         student_number
