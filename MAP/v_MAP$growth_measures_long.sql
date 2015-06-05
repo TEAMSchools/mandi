@@ -196,8 +196,8 @@ FROM
            AND base.end_term_string = map_end.fallwinterspring
            AND map_end.rn = 1
           --norms data
-          LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data#2011 norms WITH(NOLOCK)
-            ON base.measurementscale = norms.subject
+          LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norms WITH(NOLOCK)
+            ON base.measurementscale = CASE WHEN norms.subject IN ('General Science', 'Concepts and Processes') THEN 'Science - ' + norms.subject ELSE norms.SUBJECT END 
            AND map_start.testritscore = norms.startrit
            AND map_start.grade_level = norms.startgrade              
          ) with_map
