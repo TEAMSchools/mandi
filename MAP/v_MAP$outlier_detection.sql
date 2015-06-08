@@ -57,7 +57,7 @@ FROM
       AND c.end_rit = spring_id.testritscore
       AND c.year = spring_id.map_year_academic
       AND spring_id.fallwinterspring = 'Spring'
-     WHERE c.year = 2014 
+     WHERE c.year = KIPP_NJ.dbo.fn_Global_Academic_Year() 
        AND c.valid_observation = 1
        AND ((c.period_string = 'Spring to Spring' AND c.year_in_network > 1) 
              OR (c.period_string = 'Fall to Spring' AND c.year_in_network = 1))

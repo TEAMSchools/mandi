@@ -2,10 +2,12 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$growth_norms_data_extended#2011 AS
-WITH master_growth_norms AS
-    (SELECT *
-     FROM KIPP_NJ..MAP$growth_norms_data#2011
-    )
+
+WITH master_growth_norms AS (
+  SELECT *
+  FROM KIPP_NJ..MAP$growth_norms_data#2011 WITH(NOLOCK)
+ )
+
 --stuff in the table
 SELECT *
 FROM master_growth_norms
@@ -14,6 +16,7 @@ WHERE startgrade < 10
 --slightly massage the 10th grade existing data
 --(because they report NULL for spring to spring)
 UNION ALL
+
 SELECT m.subject
       ,m.startgrade
       ,m.startrit
@@ -31,6 +34,7 @@ WHERE m.startgrade = 10
 
 --grade 11
 UNION ALL
+
 SELECT m.subject
       ,11 AS startgrade
       ,m.startrit
@@ -43,8 +47,10 @@ JOIN master_growth_norms back_1
  AND m.startrit = back_1.startrit
  AND m.startgrade - 1 = back_1.startgrade
 WHERE m.startgrade = 10
+
 --grade 12
 UNION ALL
+
 SELECT m.subject
       ,12 AS startgrade
       ,m.startrit

@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$rutgers_ready_student_goals AS
+
 WITH stu_roster AS( 
   SELECT c.studentid
         ,c.schoolid
@@ -56,8 +57,7 @@ FROM
              ELSE NULL
             END AS rutgers_ready_goal                 
      FROM stu_roster
-     JOIN math_read
-       ON 1=1      
+     CROSS JOIN math_read       
      --baseline (composite of Spring and Fall; pick best)
      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH(NOLOCK)
        ON stu_roster.studentid = map_base.studentid 
@@ -124,8 +124,7 @@ FROM
              WHEN CAST(status_norms.percentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100 THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)
             END AS rutgers_ready_goal       
      FROM stu_roster
-     JOIN sci_lang
-       ON 1=1            
+     CROSS JOIN sci_lang       
      --baseline (composite of Spring and Fall; pick best)
      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH(NOLOCK)
        ON stu_roster.studentid = map_base.studentid 
@@ -199,8 +198,7 @@ FROM
               THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.25, 0)
             END AS rutgers_ready_goal
      FROM stu_roster
-     JOIN sci_lang
-       ON 1=1      
+     CROSS JOIN sci_lang       
      --baseline (composite of Spring and Fall; pick best)
      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH(NOLOCK)
        ON stu_roster.studentid = map_base.studentid 
@@ -278,8 +276,7 @@ FROM
               THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.25, 0)
             END AS rutgers_ready_goal  
      FROM stu_roster
-     JOIN math_read
-       ON 1=1     
+     CROSS JOIN math_read       
      --baseline (composite of Spring and Fall; pick best)
      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH(NOLOCK)
        ON stu_roster.studentid = map_base.studentid 
@@ -329,8 +326,7 @@ FROM
              WHEN CAST(status_norms.percentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100 THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)
             END AS rutgers_ready_goal  
      FROM stu_roster
-     JOIN math_read
-       ON 1=1      
+     CROSS JOIN math_read       
      --baseline (composite of Spring and Fall; pick best)
      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH(NOLOCK)
        ON stu_roster.studentid = map_base.studentid 

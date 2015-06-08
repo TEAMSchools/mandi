@@ -7,7 +7,8 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE PROCEDURE [dbo].[sp_MAP$best_baseline#static|refresh] AS
+ALTER PROCEDURE [dbo].[sp_MAP$best_baseline#static|refresh] AS
+
 BEGIN
 
  DECLARE @sql AS VARCHAR(MAX)='';

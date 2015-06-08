@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$cohort_performance_goals#feed1 AS
+
 SELECT *
 FROM     
       (SELECT cpt.school
@@ -16,7 +17,7 @@ FROM
              ,'p' + CAST(cpt.cohort_growth_percentile AS varchar) AS cohort_growth_percentile
              --,CAST(cpt.target_rit_change AS NUMERIC(3,1)) AS target_rit_change
              ,CAST(cpt.avg_baseline_rit + cpt.target_rit_change AS NUMERIC(4,1)) AS target_end_rit
-       FROM KIPP_NJ..MAP$cohort_performance_targets#static cpt
+       FROM KIPP_NJ..MAP$cohort_performance_targets#static cpt WITH(NOLOCK)
        WHERE cpt.year = 2014
          AND cpt.roster_match_method = 'loose'
          AND cpt.measurementscale IN ('Reading', 'Mathematics', 'Language Usage')
@@ -49,7 +50,7 @@ FROM
              ,'p' + CAST(cpt.cohort_growth_percentile AS varchar) AS cohort_growth_percentile
              --,CAST(cpt.target_npr_change AS NUMERIC (3,1)) AS target_npr_change
              ,CAST(cpt.avg_baseline_percentile + cpt.target_npr_change AS NUMERIC(4,1)) AS target_end_npr
-       FROM KIPP_NJ..MAP$cohort_performance_targets#static cpt
+       FROM KIPP_NJ..MAP$cohort_performance_targets#static cpt WITH(NOLOCK)
        WHERE cpt.year = 2014
          AND cpt.roster_match_method = 'loose'
          AND (

@@ -34,10 +34,8 @@ WITH scales AS (
         ,scales.measurementscale  
         ,cohort.year + periods.lookback_modifier AS period_start_year
   FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)    
-  JOIN KIPP_NJ..MAP$growth_terms#lookup periods WITH(NOLOCK)
-    ON 1=1
-  JOIN scales
-    ON 1=1
+  CROSS JOIN KIPP_NJ..MAP$growth_terms#lookup periods WITH(NOLOCK)    
+  CROSS JOIN scales    
   WHERE cohort.grade_level <= 12
     AND cohort.rn = 1
  )

@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$cohort_growth_scores AS
+
 WITH zscore AS
     (SELECT *
      FROM OPENQUERY(KIPP_NWK,
@@ -32,7 +33,7 @@ WITH zscore AS
              END AS iep_status
             ,sch.abbreviation AS school
       FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH (NOLOCK)
-      JOIN KIPP_NJ..SCHOOLS sch
+      JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
         ON c.schoolid = sch.school_number
       JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH (NOLOCK)
         ON c.studentid = cust.studentid
@@ -60,7 +61,7 @@ WITH zscore AS
                             ,m.measurementscale
                 ORDER BY m.period_numeric ASC
                ) AS rn
-       FROM KIPP_NJ..MAP$growth_measures_long#static m
+       FROM KIPP_NJ..MAP$growth_measures_long#static m WITH(NOLOCK)
        WHERE m.period_string IN ('Fall to Spring', 'Spring to Spring')
          AND m.valid_observation = 1
        )

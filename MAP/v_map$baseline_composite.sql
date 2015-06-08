@@ -52,8 +52,7 @@ FROM
      SELECT roster.*
            ,subj.*
      FROM roster WITH(NOLOCK)
-     JOIN subj WITH(NOLOCK)
-       ON 1=1
+     CROSS JOIN subj WITH(NOLOCK)       
     ) sub
 LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_fall WITH(NOLOCK)
   ON sub.studentid = map_fall.ps_studentid
