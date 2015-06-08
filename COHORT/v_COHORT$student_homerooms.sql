@@ -13,7 +13,7 @@ WITH hr_rost AS
     JOIN KIPP_NJ..SCHOOLS sch
       ON sect.schoolid = sch.school_number
     JOIN KIPP_NJ..CC
-      ON sect.id = cc.sectionid
+      ON sect.id = ABS(cc.sectionid)
     JOIN KIPP_NJ..TEACHERS t
       ON sect.teacher = t.id
     WHERE sect.course_number = 'HR'
