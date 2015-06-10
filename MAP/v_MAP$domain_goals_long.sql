@@ -8,6 +8,7 @@ WITH map_tests AS (
         ,year
         ,fallwinterspring
         ,measurementscale           
+        ,testritscore
         ,SUBSTRING(field, 6, LEN(field)) AS field
         ,SUBSTRING(field, 5, 1) AS n
         ,value
@@ -17,6 +18,7 @@ WITH map_tests AS (
              ,map_year_academic AS year
              ,fallwinterspring
              ,map.measurementscale             
+             ,testritscore
              ,goal1name
              ,goal1ritscore      
              ,goal1range
@@ -37,7 +39,7 @@ WITH map_tests AS (
              ,goal5ritscore      
              ,goal5range
              ,goal5adjective             
-       FROM MAP$comprehensive#identifiers#static map WITH(NOLOCK)               
+       FROM KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)               
        WHERE map.rn = 1
          AND map.fallwinterspring IN ('Winter', 'Spring')
 
@@ -47,6 +49,7 @@ WITH map_tests AS (
              ,base.year
              ,'Fall' AS fallwinterspring
              ,base.measurementscale
+             ,base.testritscore
              ,map.goal1name
              ,map.goal1ritscore      
              ,map.goal1range
@@ -67,8 +70,8 @@ WITH map_tests AS (
              ,map.goal5ritscore      
              ,map.goal5range
              ,map.goal5adjective  
-       FROM MAP$best_baseline#static base WITH(NOLOCK)
-       JOIN MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+       FROM KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
+       JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
          ON base.studentid = map.ps_studentid
         AND base.measurementscale = map.measurementscale
         AND base.termname = map.termname
@@ -152,6 +155,7 @@ SELECT domain.studentid
       ,domain.year
       ,domain.fallwinterspring
       ,domain.measurementscale
+      ,domain.testritscore
       ,domain.value AS domain
       ,scores.ritscore
       ,scores.range
