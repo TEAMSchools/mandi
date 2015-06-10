@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW PEOPLE$AD_users AS
+ALTER VIEW PEOPLE$AD_users AS
 
 SELECT employeenumber
       ,employeeID      
