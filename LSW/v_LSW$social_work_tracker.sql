@@ -13,7 +13,8 @@ SELECT sw.[SN] AS student_number
       ,sw.[Group]
       ,sw.[Environment] AS environment
       ,sw.[Goal Category] AS goal_cat
-      ,sw.[Goal Description] AS goal_descr
+      ,sw.[Goal #] AS goal_num
+      ,sw.[Skill Description] AS skill_descr
       ,sw.[Rating] AS rating
       ,sw.[Narrative] AS narrative
 FROM [KIPP_NJ].[dbo].[AUTOLOAD$GDOCS_LSW_Data_Entry] sw WITH(NOLOCK)
