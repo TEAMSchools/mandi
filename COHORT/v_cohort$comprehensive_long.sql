@@ -1,11 +1,26 @@
-USE KIPP_NJ
+USE [KIPP_NJ]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
 GO
 
 ALTER VIEW COHORT$comprehensive_long AS
 
 -- RE-ENROLLMENTS
 WITH reenrollments AS (  
-  SELECT reenrollments.*
+  SELECT reenrollments.studentid
+        ,reenrollments.grade_level
+        ,reenrollments.schoolid
+        ,reenrollments.entrycode
+        ,reenrollments.exitcode
+        ,reenrollments.entrydate
+        ,reenrollments.exitdate
+        ,reenrollments.abbreviation
+        ,reenrollments.yearid
+        ,reenrollments.rn
   FROM
       --reenrollments (ALL completed school years -- majority of the query)
       (
@@ -65,7 +80,7 @@ WITH reenrollments AS (
              ,s.exitdate
              ,s.entrycode
              ,s.exitcode
-       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+       FROM STUDENTS s WITH(NOLOCK)
        WHERE s.enroll_status = 2
          AND s.schoolid != 999999
          AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1
@@ -99,7 +114,7 @@ WITH reenrollments AS (
              ,s.entrydate
              ,s.entrycode
              ,s.exitdate           
-       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+       FROM students s WITH(NOLOCK)
        WHERE s.enroll_status = 0 
          AND s.schoolid != 999999
          AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1
@@ -133,7 +148,7 @@ WITH reenrollments AS (
              ,s.grade_level AS grade_level
              ,s.entrydate
              ,s.exitdate
-       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+       FROM STUDENTS s WITH(NOLOCK)
        WHERE s.enroll_status = 3
          AND s.id NOT IN (171, 141, 45) 
          -- 3 students back in the Dark Ages graduated 8th, didn't go to NCA in 9th, but came back and graduated from NCA with a different student record
@@ -146,13 +161,53 @@ WITH reenrollments AS (
  )
 
 ,unioned_tables AS (
-  SELECT * FROM reenrollments
+  SELECT studentid
+        ,grade_level
+        ,schoolid
+        ,entrycode
+        ,exitcode
+        ,entrydate
+        ,exitdate
+        ,abbreviation
+        ,yearid
+        ,rn
+  FROM reenrollments
   UNION ALL
-  SELECT * FROM transfers_out
+  SELECT studentid
+        ,grade_level
+        ,schoolid
+        ,entrycode
+        ,exitcode
+        ,entrydate
+        ,exitdate
+        ,abbreviation
+        ,yearid
+        ,rn
+  FROM transfers_out
   UNION ALL
-  SELECT * FROM current_enroll
+  SELECT studentid
+        ,grade_level
+        ,schoolid
+        ,entrycode
+        ,exitcode
+        ,entrydate
+        ,exitdate
+        ,abbreviation
+        ,yearid
+        ,rn
+  FROM current_enroll
   UNION ALL
-  SELECT * FROM graduates
+  SELECT studentid
+        ,grade_level
+        ,schoolid
+        ,entrycode
+        ,exitcode
+        ,entrydate
+        ,exitdate
+        ,abbreviation
+        ,yearid
+        ,rn
+  FROM graduates
  )
 
 SELECT unioned_tables.studentid
@@ -165,9 +220,7 @@ SELECT unioned_tables.studentid
       ,(unioned_tables.yearid + 1990) AS year
       ,CASE 
         WHEN unioned_tables.grade_level > 12 THEN NULL
-        ELSE unioned_tables.yearid
-              + 2003
-              + (-1 * unioned_tables.grade_level)
+        ELSE unioned_tables.yearid + 2003 + (-1 * unioned_tables.grade_level)
        END AS cohort
       ,unioned_tables.entrycode
       ,unioned_tables.exitcode
@@ -180,5 +233,5 @@ SELECT unioned_tables.studentid
           PARTITION BY unioned_tables.studentid
               ORDER BY unioned_tables.yearid ASC) AS year_in_network
 FROM unioned_tables
-LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s
+LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
   ON unioned_tables.studentid = s.id

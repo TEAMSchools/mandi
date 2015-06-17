@@ -57,8 +57,7 @@ FROM
      SELECT roster.*
            ,subj.*
      FROM roster
-     JOIN subj
-       ON 1=1
+     CROSS JOIN subj       
     ) sub
 LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_fall WITH(NOLOCK) --THIS YEAR FALL
   ON sub.studentid = map_fall.ps_studentid

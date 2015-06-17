@@ -1,17 +1,21 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW MAP$norm_table_extended#2011 AS
-WITH master_norms AS
-    (SELECT *
-     FROM KIPP_NJ..MAP$norm_table#2011
-    )
+ALTER VIEW MAP$norm_table_extended#2011 AS
+
+WITH master_norms AS (
+  SELECT *
+  FROM KIPP_NJ..MAP$norm_table#2011 WITH(NOLOCK)
+ )
+
 --regular norm table
 SELECT *
 FROM master_norms
+
+UNION ALL
+
 --not covered areas:
 --reading 12
-UNION ALL
 SELECT measurementscale
       ,fallwinterspring
       ,12 AS grade
@@ -20,8 +24,10 @@ SELECT measurementscale
 FROM master_norms
 WHERE measurementscale = 'Reading'
   AND grade = 11
---math 12
+
 UNION ALL
+
+--math 12
 SELECT measurementscale
       ,fallwinterspring
       ,12 AS grade
@@ -30,8 +36,10 @@ SELECT measurementscale
 FROM master_norms
 WHERE measurementscale = 'Mathematics'
   AND grade = 11
---language 12
+
 UNION ALL
+
+--language 12
 SELECT measurementscale
       ,fallwinterspring
       ,12 AS grade
@@ -40,8 +48,10 @@ SELECT measurementscale
 FROM master_norms
 WHERE measurementscale = 'Language Usage'
   AND grade = 11
---general science 11, 12
+
 UNION ALL
+
+--general science 11, 12
 SELECT measurementscale
       ,fallwinterspring
       ,11 AS grade
@@ -50,7 +60,9 @@ SELECT measurementscale
 FROM master_norms
 WHERE measurementscale = 'General Science'
   AND grade = 10
+
 UNION ALL
+
 SELECT measurementscale
       ,fallwinterspring
       ,12 AS grade

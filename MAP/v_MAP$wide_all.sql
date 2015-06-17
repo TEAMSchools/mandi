@@ -2,6 +2,15 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$wide_all AS
+
+WITH terms AS (
+  SELECT 'Fall' AS term
+  UNION
+  SELECT 'Winter'
+  UNION
+  SELECT 'Spring'
+ )
+
 --/*
 SELECT studentid      
       /*--WINTER--*/
@@ -204,14 +213,7 @@ FROM
              + '_RIT' AS pivot_on
            ,CASE WHEN fallwinterspring = 'Fall' OR fallwinterspring IS NULL THEN COALESCE(base.testritscore, map.testritscore) ELSE map.testritscore END AS value              
      FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-     JOIN (
-           SELECT 'Fall' AS term
-           UNION
-           SELECT 'Winter'
-           UNION
-           SELECT 'Spring'
-          ) terms
-       ON 1 = 1
+     CROSS JOIN terms       
      JOIN MAP$best_baseline#static base WITH(NOLOCK)
        ON co.studentid = base.studentid
       AND co.year = base.year 
@@ -248,14 +250,7 @@ FROM
              + '_pctle' AS pivot_on
            ,CASE WHEN fallwinterspring = 'Fall' OR fallwinterspring IS NULL THEN COALESCE(base.testpercentile, map.percentile_2011_norms) ELSE map.percentile_2011_norms END AS value                
      FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-     JOIN (
-           SELECT 'Fall' AS term
-           UNION
-           SELECT 'Winter'
-           UNION
-           SELECT 'Spring'
-          ) terms
-       ON 1 = 1
+     CROSS JOIN terms       
      JOIN MAP$best_baseline#static base WITH(NOLOCK)
        ON co.studentid = base.studentid
       AND co.year = base.year 

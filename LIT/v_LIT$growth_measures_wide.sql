@@ -3,19 +3,7 @@ GO
 
 ALTER VIEW LIT$growth_measures_wide AS
 
-WITH roster AS (
-  SELECT STUDENTID
-        ,lastfirst
-        ,SCHOOLID
-        ,GRADE_LEVEL
-        ,COHORT
-        ,YEAR
-  FROM COHORT$comprehensive_long#static WITH(NOLOCK)
-  WHERE grade_level < 9
-    AND rn = 1  
- )
-
-,term_cur AS (
+WITH term_cur AS (
   SELECT academic_year      
         ,studentid
         ,[DR_cur_read_lvl]
@@ -161,7 +149,7 @@ WITH roster AS (
                   ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,dna.dna_reason) AS reason
             FROM LIT$test_events#identifiers rs WITH(NOLOCK)
-            JOIN LIT$dna_reasons dna WITH(NOLOCK)
+            JOIN LIT$dna_reasons#static dna WITH(NOLOCK)
               ON rs.unique_id = dna.unique_id
             WHERE dna_round = 1
            ) sub
@@ -207,7 +195,7 @@ WITH roster AS (
                   ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,dna.dna_reason) AS reason
             FROM LIT$test_events#identifiers rs WITH(NOLOCK)
-            JOIN LIT$dna_reasons dna WITH(NOLOCK)
+            JOIN LIT$dna_reasons#static dna WITH(NOLOCK)
               ON rs.unique_id = dna.unique_id
             WHERE dna_yr = 1
            ) sub
@@ -225,11 +213,11 @@ WITH roster AS (
                       ,[yr_dna_reason])
    ) piv
  )
- 
-SELECT YEAR
-      ,COHORT            
-      ,GRADE_LEVEL
-      ,SCHOOLID
+
+SELECT r.YEAR
+      ,r.COHORT            
+      ,r.GRADE_LEVEL
+      ,r.SCHOOLID
       ,r.STUDENTID
       ,yr_cur_GLEQ
       ,yr_cur_lvl_num
@@ -279,16 +267,18 @@ SELECT YEAR
       ,CONVERT(INT,t3_cur_lvl_num) - CONVERT(INT,T2_cur_lvl_num) AS t2t3_growth_lvl
       ,CONVERT(FLOAT,EOY_cur_GLEQ) - CONVERT(FLOAT,T3_cur_GLEQ) AS t3EOY_growth_GLEQ
       ,CONVERT(INT,EOY_cur_lvl_num) - CONVERT(INT,T3_cur_lvl_num) AS t3EOY_growth_lvl
-FROM roster r
-LEFT OUTER JOIN year_cur yc
+FROM COHORT$identifiers_long#static r WITH(NOLOCK)
+LEFT OUTER JOIN year_cur yc WITH(NOLOCK)
   ON r.STUDENTID = yc.studentid
  AND r.YEAR = yc.academic_year
-LEFT OUTER JOIN term_cur tc
+LEFT OUTER JOIN term_cur tc WITH(NOLOCK)
   ON r.STUDENTID = tc.studentid
  AND r.YEAR = tc.academic_year
-LEFT OUTER JOIN term_dna td
+LEFT OUTER JOIN term_dna td WITH(NOLOCK)
   ON r.STUDENTID = td.studentid
  AND r.YEAR = td.academic_year
-LEFT OUTER JOIN yr_dna yd
+LEFT OUTER JOIN yr_dna yd WITH(NOLOCK)
   ON r.STUDENTID = yd.studentid
  AND r.YEAR = yd.academic_year
+WHERE r.grade_level < 9
+  AND r.rn = 1   

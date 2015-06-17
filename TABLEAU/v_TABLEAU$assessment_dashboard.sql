@@ -77,6 +77,7 @@ LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$SPED_comments#static comm WITH(NOLOCK)
  AND comm.rn = 1
 WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year() 
 
+/*
 UNION ALL
 
 SELECT schoolid
@@ -116,3 +117,4 @@ SELECT schoolid
       ,overall_rn
       ,rn_curr
 FROM KIPP_NJ..TABLEAU$assessment_dashboard#ARCHIVE WITH(NOLOCK)
+*/

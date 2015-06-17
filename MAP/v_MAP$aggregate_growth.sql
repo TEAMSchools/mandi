@@ -2,9 +2,10 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$aggregate_growth AS
+
 WITH map_base AS 
     (SELECT m.*
-     FROM KIPP_NJ..MAP$growth_measures_long#static m
+     FROM KIPP_NJ..MAP$growth_measures_long#static m WITH(NOLOCK)
      WHERE m.year >= 2011 AND (
          (m.year_in_network=1 AND m.period_string = 'Fall to Spring') OR
          (m.year_in_network>1 AND m.period_string = 'Spring to Spring')
@@ -12,6 +13,7 @@ WITH map_base AS
      --AND m.measurementscale IN ('Mathematics', 'Reading')
      AND m.valid_observation = 1
     )
+
 SELECT sub.year
       ,sub.grade_level
       ,sub.cohort
@@ -58,7 +60,7 @@ FROM
                 ELSE NULL
               END AS end_proj_ACT
        FROM map_base
-       LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals rr
+       LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
          ON map_base.studentid = rr.studentid
         AND map_base.measurementscale = rr.measurementscale
         AND map_base.year = rr.year

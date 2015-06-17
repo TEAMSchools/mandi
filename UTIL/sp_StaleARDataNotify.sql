@@ -15,8 +15,8 @@ SELECT @MostRecentQuiz = MAX(dtTakenOriginal)
 FROM KIPP_NJ..AR$test_event_detail#static;
 
 IF ((DATEPART(DW,GETDATE()) NOT IN (1,2) AND DATEDIFF(HOUR,@MostRecentQuiz,GETDATE()) > 24) 
-     OR (DATEPART(DW,GETDATE()) = 1 AND DATEDIFF(HOUR,@MostRecentQuiz,GETDATE()) > 48)
-     OR (DATEPART(DW,GETDATE()) = 2 AND DATEDIFF(HOUR,@MostRecentQuiz,GETDATE()) > 72))
+     OR (DATEPART(DW,GETDATE()) = 1 AND DATEDIFF(HOUR,@MostRecentQuiz,GETDATE()) > 54)
+     OR (DATEPART(DW,GETDATE()) = 2 AND DATEDIFF(HOUR,@MostRecentQuiz,GETDATE()) > 78))
 BEGIN 
 
   DECLARE @subject NVARCHAR(100);

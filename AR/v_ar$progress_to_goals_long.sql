@@ -349,7 +349,7 @@ FROM
       FROM long_goals
       LEFT OUTER JOIN AR$test_event_detail#static ar_all WITH (NOLOCK)
         ON long_goals.student_number = ar_all.student_number
-       AND ar_all.dttaken BETWEEN long_goals.start_date_summer_bonus AND long_goals.end_date
+       AND CONVERT(DATE,ar_all.dttaken) BETWEEN long_goals.start_date_summer_bonus AND long_goals.end_date
       GROUP BY long_goals.studentid
               ,long_goals.student_number
               ,long_goals.grade_level

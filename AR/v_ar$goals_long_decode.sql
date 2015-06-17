@@ -6,6 +6,8 @@ ALTER VIEW AR$goals_long_decode AS
 WITH default_scaffold AS (
   SELECT co.STUDENT_NUMBER
         ,co.schoolid
+        ,co.year AS academic_year
+        ,co.grade_level
         ,ar_default.words_goal
         ,CONVERT(INT,ar_default.points_goal) AS points_goal
         ,ar_default.yearid
@@ -13,8 +15,8 @@ WITH default_scaffold AS (
         ,ar_default.time_period_start
         ,ar_default.time_period_end
         ,ar_default.time_period_hierarchy
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  JOIN AR$goals ar_default WITH(NOLOCK)
+  FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH(NOLOCK)
+  JOIN KIPP_NJ..AR$goals ar_default WITH(NOLOCK)
     ON co.schoolid = ar_default.schoolid
    AND ('Default_Gr' + CONVERT(VARCHAR,co.grade_level)) = CONVERT(VARCHAR,ar_default.student_number)
    AND ((co.year - 1990) * 100) = ar_default.yearid
@@ -27,10 +29,14 @@ SELECT CONVERT(VARCHAR,ar_default.student_number) AS student_number
       ,COALESCE(ar_explicit.words_goal, ar_default.words_goal) AS words_goal
       ,CONVERT(INT,COALESCE(ar_explicit.points_goal, ar_default.points_goal)) AS points_goal
       ,ar_default.yearid
-      ,KIPP_NJ.dbo.fn_TermToYear(ar_default.yearid) AS academic_year
+      ,ar_default.academic_year
       ,ar_default.time_period_name
       ,COALESCE(ar_explicit.time_period_start, ar_default.time_period_start) AS time_period_start
-      ,COALESCE(ar_explicit.time_period_end, ar_default.time_period_end) AS time_period_end
+      -- fuuuuuuuuuuuuuuuuckk delete this after the year is over
+      ,CASE
+        WHEN ar_default.academic_year = 2014 AND ar_default.schoolid = 73253 AND ar_default.grade_level = 12 AND ar_default.time_period_name = 'Reporting Term 4' THEN '2015-06-04'
+        ELSE COALESCE(ar_explicit.time_period_end, ar_default.time_period_end) 
+       END AS time_period_end
       ,COALESCE(ar_explicit.time_period_hierarchy, ar_default.time_period_hierarchy) AS time_period_hierarchy      
 FROM default_scaffold ar_default WITH(NOLOCK)
 LEFT OUTER JOIN AR$goals ar_explicit WITH(NOLOCK)

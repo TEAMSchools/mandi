@@ -29,24 +29,32 @@ WITH roster AS (
         ,co.guardianemail           
         ,co.SPEDLEP AS SPED
         ,co.lunch_balance AS lunch_balance
-        ,'RT' + CONVERT(VARCHAR,(RIGHT(curterm.time_per_name, 1) - 1)) AS time_per_name
-        ,'T' + CONVERT(VARCHAR,(RIGHT(curterm.alt_name, 1) - 1)) AS curterm
-        ,'Trimester ' + CONVERT(VARCHAR,(RIGHT(curterm.alt_name, 1) - 1)) AS curterm_long
+        ,CASE WHEN curterm.time_per_name LIKE '%3' THEN curterm.time_per_name ELSE 'RT' + CONVERT(VARCHAR,(RIGHT(curterm.time_per_name, 1) - 1)) END AS time_per_name        
+        ,CASE WHEN curterm.alt_name LIKE '%3' THEN curterm.alt_name ELSE 'T' + CONVERT(VARCHAR,(RIGHT(curterm.alt_name, 1) - 1)) END AS curterm
+        ,CASE WHEN curterm.alt_name LIKE '%3' THEN 'End of Year' ELSE 'Trimester ' + CONVERT(VARCHAR,(RIGHT(curterm.alt_name, 1) - 1)) END AS curterm_long
         ,DATENAME(MONTH,GETDATE()) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,GETDATE())) + ', ' + CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) AS today_text
-        ,'RT' + CONVERT(VARCHAR,(RIGHT(cur_hex.time_per_name, 1) - 2)) AS hex_a
-        ,'RT' + CONVERT(VARCHAR,(RIGHT(cur_hex.time_per_name, 1) - 1)) AS hex_b
-  FROM COHORT$identifiers_long#static co WITH (NOLOCK)    
-  JOIN REPORTING$dates curterm WITH(NOLOCK)
+        ,'RT' + CASE 
+                 WHEN cur_hex.time_per_name LIKE '%6' THEN CONVERT(VARCHAR,(RIGHT(cur_hex.time_per_name, 1) - 1)) 
+                 ELSE CONVERT(VARCHAR,(RIGHT(cur_hex.time_per_name, 1) - 2)) 
+                END AS hex_a
+        ,'RT' + CASE 
+                 WHEN cur_hex.time_per_name LIKE '%6' THEN CONVERT(VARCHAR,(RIGHT(cur_hex.time_per_name, 1))) 
+                 ELSE CONVERT(VARCHAR,(RIGHT(cur_hex.time_per_name, 1) - 1)) 
+                END AS hex_b
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK)    
+  JOIN KIPP_NJ..REPORTING$dates curterm WITH(NOLOCK)
     ON co.schoolid = curterm.schoolid
    AND curterm.identifier = 'RT'   
    AND curterm.start_date <= CONVERT(DATE,GETDATE())
-   AND curterm.end_date >= CONVERT(DATE,GETDATE())   
-  JOIN REPORTING$dates cur_hex WITH(NOLOCK)
+   AND curterm.end_date >= CONVERT(DATE,GETDATE())  
+   AND ISNUMERIC(RIGHT(curterm.alt_name, 1)) = 1
+  JOIN KIPP_NJ..REPORTING$dates cur_hex WITH(NOLOCK)
     ON co.schoolid = cur_hex.schoolid
    AND cur_hex.identifier = 'HEX'   
    AND cur_hex.start_date <= CONVERT(DATE,GETDATE())
-   AND cur_hex.end_date >= CONVERT(DATE,GETDATE())   
-  WHERE co.year = dbo.fn_Global_Academic_Year()
+   AND cur_hex.end_date >= CONVERT(DATE,GETDATE())  
+   AND ISNUMERIC(RIGHT(curterm.alt_name, 1)) = 1 
+  WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND co.rn = 1        
     AND co.schoolid IN (73252, 133570965)
     AND co.enroll_status = 0
@@ -304,6 +312,7 @@ REPORTING$promo_status#MS*/
         WHEN roster.schoolid = 73252 THEN promo.promo_hw_rise 
         WHEN roster.schoolid = 133570965 THEN promo.promo_hw_team
        END AS promo_status_hw
+      ,final.promo_status_final
 
 /*MAP scores
 MAP$wide_all*/
@@ -591,8 +600,8 @@ DISC$recent_incidents_wide*/
       ,comment_rc6.teacher_comment AS rc6_comment
       ,comment_rc7.teacher_comment AS rc7_comment
       ,comment_rc8.teacher_comment AS rc8_comment
-      ,comment_rc9.teacher_comment AS rc9_comment
-      ,comment_rc10.teacher_comment AS rc10_comment
+      --,comment_rc9.teacher_comment AS rc9_comment
+      --,comment_rc10.teacher_comment AS rc10_comment
 
 FROM roster WITH(NOLOCK)
 
@@ -620,6 +629,8 @@ LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH(NOLOCK)
 /*PROMO STATUS*/
 LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH(NOLOCK)
   ON roster.base_studentid = promo.studentid
+LEFT OUTER JOIN PROMO$final_status#MS final WITH(NOLOCK)
+  ON roster.base_student_number = final.student_number
 
 /*MAP*/
 LEFT OUTER JOIN MAP$wide_all#static map_all WITH(NOLOCK)
@@ -715,11 +726,11 @@ LEFT OUTER JOIN comments comment_rc8 WITH(NOLOCK)
   ON gr_wide.studentid = comment_rc8.studentid
  AND gr_wide.rc8_course_number = comment_rc8.course_number
  AND comment_rc8.term = roster.curterm
-LEFT OUTER JOIN comments comment_rc9 WITH(NOLOCK)
-  ON gr_wide.studentid = comment_rc9.studentid
- AND gr_wide.rc9_course_number = comment_rc9.course_number
- AND comment_rc9.term = roster.curterm
-LEFT OUTER JOIN comments comment_rc10 WITH(NOLOCK)
-  ON gr_wide.studentid = comment_rc10.studentid
- AND gr_wide.rc10_course_number = comment_rc10.course_number
- AND comment_rc10.term = roster.curterm
+--LEFT OUTER JOIN comments comment_rc9 WITH(NOLOCK)
+--  ON gr_wide.studentid = comment_rc9.studentid
+-- AND gr_wide.rc9_course_number = comment_rc9.course_number
+-- AND comment_rc9.term = roster.curterm
+--LEFT OUTER JOIN comments comment_rc10 WITH(NOLOCK)
+--  ON gr_wide.studentid = comment_rc10.studentid
+-- AND gr_wide.rc10_course_number = comment_rc10.course_number
+-- AND comment_rc10.term = roster.curterm

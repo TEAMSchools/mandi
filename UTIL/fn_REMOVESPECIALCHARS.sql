@@ -1,0 +1,37 @@
+USE KIPP_NJ
+GO
+
+ALTER FUNCTION REMOVESPECIALCHARS (@S VARCHAR(MAX)) 
+RETURNS VARCHAR(MAX)
+
+WITH SCHEMABINDING
+
+BEGIN
+  IF @S IS NULL
+    RETURN NULL
+  
+  DECLARE @S2 VARCHAR(MAX)
+  SET @S2 = ''
+  
+  DECLARE @L INT
+  SET @L = LEN(@S)
+   
+  DECLARE @P INT
+  SET @P = 1
+  
+  WHILE @P <= @L 
+    BEGIN
+      DECLARE @C INT
+      SET @C = ASCII(SUBSTRING(@S, @P, 1))
+      
+      IF @C BETWEEN 48 AND 57 
+         OR @C BETWEEN 65 AND 90 
+         OR @C BETWEEN 97 AND 122
+         SET @S2 = @S2 + CHAR(@C)
+         SET @P = @P + 1
+    END
+   
+    IF LEN(@S2) = 0
+      RETURN NULL
+  RETURN @S2
+END
