@@ -22,6 +22,6 @@ SELECT hr_rost.*
       ,ROW_NUMBER() OVER
         (PARTITION BY studentid
                      ,year
-         ORDER BY dateenrolled
+         ORDER BY dateenrolled DESC
         ) AS rn_stu_year
 FROM hr_rost
