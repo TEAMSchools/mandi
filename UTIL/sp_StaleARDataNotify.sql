@@ -5,7 +5,7 @@ ALTER PROCEDURE sp_StaleARDataNotify AS
 
 /* NOTE: You have to configure/set the following 3 variables */
 DECLARE @MailProfileToSendVia sysname = 'DataRobot';
-DECLARE @OperatorName sysname = 'cbini@kippnj.org;amartin@kippnj.org;ljoseph@kippnj.org;kdjones@kippnj.org;DGlaubinger@kippnj.org';
+DECLARE @OperatorName sysname = 'cbini@kippnj.org;amartin@kippnj.org' --;ljoseph@kippnj.org;kdjones@kippnj.org;DGlaubinger@kippnj.org';
 -------------------------------------------------------------
 SET NOCOUNT ON;
 
