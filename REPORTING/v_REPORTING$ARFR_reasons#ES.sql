@@ -30,7 +30,7 @@ FROM
       AND repo.field = fields.name 
      WHERE repo.repository_id IN (
                                   SELECT DISTINCT repository_id
-                                  FROM ILLUMINATE$summary_assessments#static WITH(NOLOCK)
+                                  FROM KIPP_NJ..ILLUMINATE$summary_assessments#static WITH(NOLOCK)
                                   WHERE scope = 'Reporting'
                                     AND subject = 'ARFR'
                                  )

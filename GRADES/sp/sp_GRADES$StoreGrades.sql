@@ -100,8 +100,7 @@ BEGIN
             ,scale.scale_name AS gradescale_name
       FROM GRADES$DETAIL#MS gr WITH(NOLOCK)
       JOIN COURSES co WITH(NOLOCK)
-        ON gr.COURSE_NUMBER = co.COURSE_NUMBER
-       AND gr.SCHOOLID = co.SCHOOLID
+        ON gr.COURSE_NUMBER = co.COURSE_NUMBER       
       LEFT OUTER JOIN GRADES$grade_scales#static scale WITH(NOLOCK)
         ON co.gradescaleid = scale.scale_id
        AND gr.Y1 >= scale.low_cut
@@ -140,8 +139,7 @@ BEGIN
             ,scale.scale_name AS gradescale_name
       FROM GRADES$DETAIL#NCA gr WITH(NOLOCK)
       JOIN COURSES co WITH(NOLOCK)
-        ON gr.COURSE_NUMBER = co.COURSE_NUMBER
-       AND gr.schoolid = co.schoolid
+        ON gr.COURSE_NUMBER = co.COURSE_NUMBER       
       LEFT OUTER JOIN GRADES$grade_scales#static scale WITH(NOLOCK)
         ON co.gradescaleid = scale.scale_id
        AND gr.Y1 >= scale.low_cut
