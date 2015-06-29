@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER PROCEDURE sp_GRADES$storedgrades    
+ALTER PROCEDURE sp_GRADES$StoreGrades    
   @schoolid INT,
   @storecode VARCHAR(2)
 AS
@@ -15,7 +15,7 @@ BEGIN
       SET @sql = '
         SELECT gbooks.*
               ,scale.grade_points AS gpa_points
-              ,scale.scale_name AS gradescale_NOIMPORT
+              ,scale.scale_name AS gradescale_name
         FROM OPENQUERY(PS_TEAM,''
           SELECT s.lastfirst AS lastfirst_NOIMPORT
                 ,s.student_number || ''''_''''  || c.course_number AS dupeaudit_NOIMPORT            
@@ -43,7 +43,7 @@ BEGIN
                   WHEN s.schoolid = 133570965 AND pgf.percent < 55 THEN 55
                   ELSE pgf.percent
                  END AS percent
-                ,c.gradescaleid
+                ,c.gradescaleid AS gradescaleid_NOIMPORT
           FROM ps.students s
           JOIN ps.cc cc
             ON cc.studentid = s.id
@@ -62,7 +62,7 @@ BEGIN
             AND s.schoolid = ' + CONVERT(VARCHAR,@schoolid)  + '
         '') gbooks
         LEFT OUTER JOIN GRADES$grade_scales#static scale WITH(NOLOCK)
-          ON gbooks.gradescaleid = scale.scale_id
+          ON gbooks.gradescaleid_NOIMPORT = scale.scale_id
          AND gbooks.[percent] >= scale.low_cut
          AND gbooks.[percent] < scale.high_cut
       '
@@ -85,8 +85,8 @@ BEGIN
             ,co.excludefromhonorroll
             ,co.CREDIT_HOURS AS potentialcrhrs
             ,CASE 
-              WHEN gr.schoolid IN (133570965, 73253) AND gr.y1 >= 70 THEN co.CREDIT_HOURS 
-              WHEN gr.SCHOOLID = 73252 AND gr.y1 >= 65 THEN co.CREDIT_HOURS
+              WHEN gr.schoolid = 73253 AND gr.y1 >= 70 THEN co.CREDIT_HOURS 
+              WHEN gr.SCHOOLID IN (73252, 133570965) AND gr.y1 >= 65 THEN co.CREDIT_HOURS
               ELSE 0
              END AS earnedcrhrs
             ,'Y1' AS storecode
@@ -97,10 +97,11 @@ BEGIN
               ELSE gr.y1
              END AS [percent]
             ,scale.grade_points AS gpa_points
-            ,scale.scale_name AS scalename_NOIMPORT
+            ,scale.scale_name AS gradescale_name
       FROM GRADES$DETAIL#MS gr WITH(NOLOCK)
       JOIN COURSES co WITH(NOLOCK)
         ON gr.COURSE_NUMBER = co.COURSE_NUMBER
+       AND gr.SCHOOLID = co.SCHOOLID
       LEFT OUTER JOIN GRADES$grade_scales#static scale WITH(NOLOCK)
         ON co.gradescaleid = scale.scale_id
        AND gr.Y1 >= scale.low_cut
@@ -136,10 +137,11 @@ BEGIN
               ELSE gr.y1
              END AS [percent]
             ,scale.grade_points AS gpa_points
-            ,scale.scale_name AS scalename_NOIMPORT
+            ,scale.scale_name AS gradescale_name
       FROM GRADES$DETAIL#NCA gr WITH(NOLOCK)
       JOIN COURSES co WITH(NOLOCK)
         ON gr.COURSE_NUMBER = co.COURSE_NUMBER
+       AND gr.schoolid = co.schoolid
       LEFT OUTER JOIN GRADES$grade_scales#static scale WITH(NOLOCK)
         ON co.gradescaleid = scale.scale_id
        AND gr.Y1 >= scale.low_cut
