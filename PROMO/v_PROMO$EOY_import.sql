@@ -12,7 +12,7 @@ WITH promo_all AS (
 
   SELECT STUDENT_NUMBER        
         ,promo_status
-  FROM KIPP_NJ..REPORTING$promo_status#NCA WITH(NOLOCK)
+  FROM KIPP_NJ..PROMO$final_status#NCA WITH(NOLOCK)
 
   UNION ALL
 
