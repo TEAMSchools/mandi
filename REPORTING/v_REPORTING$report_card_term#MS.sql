@@ -256,12 +256,14 @@ ATT_MEM$attendance_counts*/
       ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total      
 
     /*--Current--*/      
-      --,att_counts.CUR_ABS_ALL AS curterm_absences_total
-      --,att_counts.CUR_A AS curterm_absences_undoc
-      --,ROUND(att_pct.cur_att_pct_total,0) AS curterm_att_pct_total
-      --,ROUND(att_pct.cur_att_pct_undoc,0) AS curterm_att_pct_undoc      
-      --,att_counts.CUR_T_ALL AS curterm_tardies_total
-      --,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total  
+      --/*
+      ,att_counts.CUR_ABS_ALL AS curterm_absences_total
+      ,att_counts.CUR_A AS curterm_absences_undoc
+      ,ROUND(att_pct.cur_att_pct_total,0) AS curterm_att_pct_total
+      ,ROUND(att_pct.cur_att_pct_undoc,0) AS curterm_att_pct_undoc      
+      ,att_counts.CUR_T_ALL AS curterm_tardies_total
+      ,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total  
+      --*/
       
       /* BY TERM == IN CASE YOU NEED IT */
       /*
@@ -273,7 +275,7 @@ ATT_MEM$attendance_counts*/
       ,att_counts.RT1_t_all         AS curterm_tardies_total
       ,ROUND(att_pct.RT1_tardy_pct_total,0) AS curterm_tardy_pct_total
       --*/      
-      --/*
+      /*
       --T2--
       ,att_counts.RT2_abs_all AS curterm_absences_total
       ,att_counts.RT2_a AS curterm_absences_undoc

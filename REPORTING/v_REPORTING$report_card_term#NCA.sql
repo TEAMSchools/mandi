@@ -4,14 +4,14 @@ GO
 ALTER VIEW REPORTING$report_card_term#NCA AS
 
 WITH curterm AS (
-  SELECT 'RT' + CONVERT(VARCHAR,(RIGHT(time_per_name,1) - 1)) AS time_per_name
-        ,'Q' + CONVERT(VARCHAR,(RIGHT(alt_name,1) - 1)) AS term
+  SELECT CASE WHEN time_per_name LIKE '%4' THEN time_per_name ELSE 'RT' + CONVERT(VARCHAR,(RIGHT(time_per_name,1) - 1)) END AS time_per_name
+        ,CASE WHEN alt_name LIKE '%4' THEN alt_name ELSE 'Q' + CONVERT(VARCHAR,(RIGHT(alt_name,1) - 1)) END AS term
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 73253
-    AND start_date <= CONVERT(DATE,GETDATE())
-    AND end_date >= CONVERT(DATE,GETDATE())
+    AND start_date <= '2015-06-30' --CONVERT(DATE,GETDATE())
+    AND end_date >= '2015-06-30' --CONVERT(DATE,GETDATE())
  )
 
 ,roster AS (
@@ -83,13 +83,23 @@ SELECT roster.*
 
     /*--Current--*/            
       --CUR--
-      -- HARD CODED TEMPORARILY, CURTERM IS ACTUAL CURTERM, NOT PREVIOUS TERM
-      ,att_counts.RT2_ABS_ALL AS curterm_absences_total
-      ,att_counts.RT2_A AS curterm_absences_undoc
-      ,ROUND(att_pct.RT2_att_pct_total,0) AS curterm_att_pct_total
-      ,ROUND(att_pct.RT2_att_pct_undoc,0) AS curterm_att_pct_undoc      
-      ,att_counts.RT2_T_ALL AS curterm_tardies_total
-      ,ROUND(att_pct.RT2_tardy_pct_total,0) AS curterm_tardy_pct_total
+      --/*
+      ,att_counts.cur_ABS_ALL AS curterm_absences_total
+      ,att_counts.cur_A AS curterm_absences_undoc
+      ,ROUND(att_pct.cur_att_pct_total,0) AS curterm_att_pct_total
+      ,ROUND(att_pct.cur_att_pct_undoc,0) AS curterm_att_pct_undoc      
+      ,att_counts.cur_T_ALL AS curterm_tardies_total
+      ,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total
+      --*/
+
+      /* Q4
+      ,att_counts.RT4_ABS_ALL AS curterm_absences_total
+      ,att_counts.RT4_A AS curterm_absences_undoc
+      ,ROUND(att_pct.RT4_att_pct_total,0) AS curterm_att_pct_total
+      ,ROUND(att_pct.RT4_att_pct_undoc,0) AS curterm_att_pct_undoc      
+      ,att_counts.RT4_T_ALL AS curterm_tardies_total
+      ,ROUND(att_pct.RT4_tardy_pct_total,0) AS curterm_tardy_pct_total
+      --*/
       
       
 --GPA
