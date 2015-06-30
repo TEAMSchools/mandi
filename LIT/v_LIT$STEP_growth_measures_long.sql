@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW LIT$step_growth_measures_long AS
+ALTER VIEW LIT$STEP_growth_measures_long AS
 
 SELECT lit_base.studentid
       ,lit_base.schoolid
@@ -15,7 +15,7 @@ SELECT lit_base.studentid
 FROM LIT$test_events#identifiers lit_base WITH(NOLOCK)
 LEFT OUTER JOIN LIT$test_events#identifiers lit_end WITH(NOLOCK)
   ON lit_base.studentid = lit_end.studentid
-  AND lit_base.academic_year = lit_end.academic_year
-  AND lit_end.achv_curr_yr = 1
+ AND lit_base.academic_year = lit_end.academic_year
+ AND lit_end.achv_curr_yr = 1
 WHERE lit_base.academic_year IS NOT NULL
   AND lit_base.achv_base_yr = 1

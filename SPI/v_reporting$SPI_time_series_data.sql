@@ -10,10 +10,8 @@ WITH scaffold AS (
         ,sch.school_number AS schoolid
   FROM KIPP_NJ..UTIL$reporting_days rd WITH(NOLOCK)
   JOIN KIPP_NJ..SCHOOLS sch WITH(NOLOCK)
-    ON sch.school_number != 999999
-   AND 1=1
-  WHERE rd.date >= CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year()) + '-08-01'
-    AND rd.date <  CONVERT(DATE,GETDATE())
+    ON sch.school_number != 999999   
+  WHERE rd.date BETWEEN CONVERT(DATE,CONVERT(VARCHAR,KIPP_NJ.dbo.fn_Global_Academic_Year()) + '-08-01') AND CONVERT(DATE,GETDATE())
     AND rd.day_of_week = 'Monday'    
  )
 
@@ -248,12 +246,9 @@ WITH scaffold AS (
              ,s.lastfirst
              ,CASE WHEN LOWER(s.lunchstatus) IN ('f','r') THEN 1 ELSE 0 END AS farm_dummy
        FROM scaffold WITH(NOLOCK)
-       JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
-         ON s.ENTRYDATE <= scaffold.date
-        AND s.schoolid = scaffold.schoolid
-        AND s.exitdate > scaffold.date
-       JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH(NOLOCK)
-         ON s.id = cust.studentid       
+       JOIN KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
+         ON s.schoolid = scaffold.schoolid
+        AND scaffold.date BETWEEN s.ENTRYDATE AND s.exitdate
       ) sub
   GROUP BY sub.date
           ,sub.reporting_hash
@@ -276,14 +271,11 @@ WITH scaffold AS (
       (
        SELECT scaffold.*
              ,s.lastfirst
-             ,CASE WHEN cust.spedlep LIKE 'SPED%' THEN 1 ELSE 0 END AS sped_dummy  
+             ,CASE WHEN s.spedlep LIKE 'SPED%' THEN 1 ELSE 0 END AS sped_dummy  
        FROM scaffold WITH(NOLOCK)
-       JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
-         ON s.ENTRYDATE <= scaffold.date
-        AND s.schoolid = scaffold.schoolid
-        AND s.exitdate > scaffold.date
-       JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH(NOLOCK)
-         ON s.id = cust.studentid
+       JOIN KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
+         ON s.schoolid = scaffold.schoolid
+        AND scaffold.date BETWEEN s.ENTRYDATE AND s.exitdate       
       ) sub
   GROUP BY sub.date
           ,sub.reporting_hash
@@ -308,12 +300,9 @@ WITH scaffold AS (
              ,s.lastfirst
              ,CASE WHEN LOWER(s.gender) = 'm' THEN 1 ELSE 0 END AS male_dummy  
        FROM scaffold WITH(NOLOCK)
-       JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
-         ON s.ENTRYDATE <= scaffold.date
-        AND s.schoolid = scaffold.schoolid
-        AND s.exitdate > scaffold.date
-       JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH(NOLOCK)
-         ON s.id = cust.studentid         
+       JOIN KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
+         ON s.schoolid = scaffold.schoolid
+        AND scaffold.date BETWEEN s.ENTRYDATE AND s.exitdate  
       ) sub
   GROUP BY sub.date
           ,sub.reporting_hash
