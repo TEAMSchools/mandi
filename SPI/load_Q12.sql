@@ -1,5 +1,5 @@
 WITH responses AS (
-  SELECT [rollup] AS campus
+  SELECT [rollup_2] AS campus
         ,[Q12 Survey_1] AS Q1
         ,[Q12 Survey_2] AS Q2
         ,[Q12 Survey_3] AS Q3
@@ -15,7 +15,7 @@ WITH responses AS (
   FROM OPENROWSET(
     'MSDASQL'
    ,'Driver={Microsoft Access Text Driver (*.txt, *.csv)};'
-   ,'select * from C:\data_robot\q12\Q12_MOY_1415_Responses.csv'
+   ,'select * from C:\data_robot\q12\Q12_Responses_EOY_1415.csv'
    )
   WHERE [rollup] != '*'
  )
@@ -51,8 +51,8 @@ WITH responses AS (
        SELECT ROW_NUMBER() OVER(                
                 ORDER BY campus) AS recipient_dummy      
              ,2014 AS school_year -- UPDATE
-             ,'Winter' AS season_text -- UPDATE
-             ,2 AS season_numeric -- UPDATE
+             ,'Spring' AS season_text -- UPDATE
+             ,3 AS season_numeric -- UPDATE
              ,campus
              ,NULL AS first_year
              ,Q1
