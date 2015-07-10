@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW ES_Daily$tracking_wide AS
+ALTER VIEW DAILY$tracking_wide#ES AS
 
 WITH valid_dates AS (
   SELECT *
@@ -13,7 +13,7 @@ WITH valid_dates AS (
        SELECT DISTINCT daily.schoolid
                       ,daily.att_date                                            
                       ,dates.time_per_name AS week_num
-       FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)
+       FROM DAILY$tracking_long#ES#static daily WITH(NOLOCK)
        JOIN REPORTING$dates dates WITH(NOLOCK)
          ON dates.school_level = 'ES'
         AND daily.att_date >= dates.start_date
@@ -83,7 +83,7 @@ FROM
                 ,daily.color_am
                 ,daily.color_mid
                 ,daily.color_pm
-               FROM ES_DAILY$tracking_long#static daily WITH(NOLOCK)
+               FROM DAILY$tracking_long#ES#static daily WITH(NOLOCK)
                JOIN valid_dates WITH(NOLOCK)
                  ON daily.schoolid = valid_dates.schoolid
                 AND daily.att_date = valid_dates.att_date

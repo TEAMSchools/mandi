@@ -104,7 +104,7 @@ WITH curterm AS (
             SELECT mth.studentid
                   ,mth.month
                   ,mth.pct_ontrack_mth      
-            FROM ES_DAILY$tracking_totals#static mth WITH(NOLOCK)
+            FROM DAILY$tracking_totals#ES#static mth WITH(NOLOCK)
             WHERE mth.month IS NOT NULL
            ) sub
        PIVOT(
@@ -121,7 +121,7 @@ WITH curterm AS (
                           ,[June])
         ) p
       ) sub
-  LEFT OUTER JOIN ES_DAILY$tracking_totals#static yr WITH(NOLOCK)
+  LEFT OUTER JOIN DAILY$tracking_totals#ES#static yr WITH(NOLOCK)
     ON sub.studentid = yr.studentid
    AND yr.month IS NULL
    AND yr.week_num IS NULL  

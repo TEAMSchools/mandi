@@ -38,7 +38,7 @@ FROM
            ,supp.[Behavior Tier ] AS behavior_tier
            ,supp.[Plan Owner ] AS plan_owner
            ,supp.[Admin Support] AS admin_support
-     FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+     FROM DAILY$tracking_long#ES#static dt WITH(NOLOCK)
      JOIN COHORT$identifiers_long#static s WITH(NOLOCK)
        ON dt.studentid = s.studentid
       AND s.schoolid NOT IN (133570965, 73252, 73253)

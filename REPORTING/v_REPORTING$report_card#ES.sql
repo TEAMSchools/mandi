@@ -252,17 +252,17 @@ LEFT OUTER JOIN ATT_MEM$attendance_counts#static att WITH(NOLOCK)
 LEFT OUTER JOIN ILLUMINATE$FSA_scores_wide#static fsa WITH(NOLOCK)
   ON r.STUDENTID = fsa.studentid
  AND rw.week_num = fsa.fsa_week
-LEFT OUTER JOIN ES_DAILY$tracking_wide#static daily WITH(NOLOCK) 
+LEFT OUTER JOIN DAILY$tracking_wide#ES#static daily WITH(NOLOCK) 
   ON r.STUDENTID = daily.studentid
  AND rw.week_num = daily.week_num
-LEFT OUTER JOIN ES_DAILY$tracking_totals#static wk_totals WITH(NOLOCK)
+LEFT OUTER JOIN DAILY$tracking_totals#ES#static wk_totals WITH(NOLOCK)
   ON r.STUDENTID = wk_totals.studentid
  AND rw.week_num = wk_totals.week_num 
-LEFT OUTER JOIN ES_DAILY$tracking_totals#static mth_totals WITH(NOLOCK)
+LEFT OUTER JOIN DAILY$tracking_totals#ES#static mth_totals WITH(NOLOCK)
   ON r.STUDENTID = mth_totals.studentid 
  AND mth_totals.week_num IS NULL
  AND rw.month = mth_totals.month 
-LEFT OUTER JOIN ES_DAILY$tracking_totals#static cur_totals WITH(NOLOCK)
+LEFT OUTER JOIN DAILY$tracking_totals#ES#static cur_totals WITH(NOLOCK)
   ON r.STUDENTID = cur_totals.studentid 
  AND cur_totals.week_num IS NULL
  AND cur_totals.month IS NULL

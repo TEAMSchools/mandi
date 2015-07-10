@@ -38,7 +38,7 @@ SELECT 'KIPP NJ' AS Network
       ,supp.[Plan Owner ] AS plan_owner
       ,supp.[Admin Support] AS admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
-LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+LEFT OUTER JOIN DAILY$tracking_long#ES#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 
@@ -84,7 +84,7 @@ SELECT 'KIPP NJ' AS Network
       ,supp.[Plan Owner ] AS plan_owner
       ,supp.[Admin Support] AS admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
-LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+LEFT OUTER JOIN DAILY$tracking_long#ES#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 
@@ -130,7 +130,7 @@ SELECT 'KIPP NJ' AS Network
       ,supp.[Plan Owner ] AS plan_owner
       ,supp.[Admin Support] AS admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
-LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+LEFT OUTER JOIN DAILY$tracking_long#ES#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 
@@ -176,7 +176,7 @@ SELECT 'KIPP NJ' AS Network
       ,supp.[Plan Owner ] AS plan_owner
       ,supp.[Admin Support] AS admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
-LEFT OUTER JOIN ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+LEFT OUTER JOIN DAILY$tracking_long#ES#static dt WITH(NOLOCK)
   ON co.studentid = dt.studentid
  AND co.year = dt.academic_year
  AND dt.att_date IS NOT NULL 

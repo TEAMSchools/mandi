@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW ES_DAILY$tracking_long AS
+ALTER VIEW DAILY$tracking_long AS
 
 SELECT daily.studentid
       ,daily.schoolid

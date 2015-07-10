@@ -122,7 +122,7 @@ WITH attendance_long AS (
   SELECT studentid
         ,dates.time_per_name AS rt
         ,dt.has_uniform
-  FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+  FROM DAILY$tracking_long#ES#static dt WITH(NOLOCK)
   JOIN REPORTING$dates dates WITH(NOLOCK)
     ON dt.schoolid = dates.schoolid
    AND dt.att_date >= dates.start_date
@@ -135,7 +135,7 @@ WITH attendance_long AS (
   SELECT studentid
         ,curterm.time_per_name AS rt
         ,dt.has_uniform
-  FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+  FROM DAILY$tracking_long#ES#static dt WITH(NOLOCK)
   JOIN REPORTING$dates curterm WITH(NOLOCK)
     ON dt.schoolid = curterm.schoolid
    AND dt.att_date >= curterm.start_date
@@ -150,7 +150,7 @@ WITH attendance_long AS (
   SELECT studentid
         ,'TRIP' AS RT                  
         ,dt.has_uniform
-  FROM ES_DAILY$tracking_long#static dt WITH(NOLOCK)
+  FROM DAILY$tracking_long#ES#static dt WITH(NOLOCK)
   JOIN REPORTING$dates trip WITH (NOLOCK)
     ON dt.schoolid = trip.schoolid
    AND dt.att_date >= trip.start_date
