@@ -8,33 +8,33 @@ WITH curterm AS (
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
     AND school_level = 'ES'
-    --AND start_date <= '2015-05-18'
-    --AND end_date >= '2015-05-18'
-    AND start_date <= CONVERT(DATE,GETDATE())
-    AND end_date >= CONVERT(DATE,GETDATE())
+    AND start_date <= '2015-05-18'
+    AND end_date >= '2015-05-18'
+    --AND start_date <= CONVERT(DATE,GETDATE())
+    --AND end_date >= CONVERT(DATE,GETDATE())
  )
 
 ,roster AS (
- SELECT co.STUDENTID
-       ,co.STUDENT_NUMBER      
-       ,co.LASTFIRST       
-       ,co.FIRST_NAME
-       ,CASE WHEN co.GRADE_LEVEL = 0 THEN 'K' ELSE CONVERT(VARCHAR,co.grade_level) END AS grade_level
-       ,co.SCHOOLID
-       ,co.school_name
-       ,co.TEAM       
-       ,dt.time_per_name
-       ,dt.alt_name AS term
- FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
- JOIN REPORTING$dates dt WITH(NOLOCK)    
-   ON co.schoolid = dt.schoolid    
-  AND dt.academic_year = dbo.fn_Global_Academic_Year()
-  AND identifier = 'RT'      
-  AND time_per_name = (SELECT time_per_name FROM curterm WITH(NOLOCK))
- WHERE co.YEAR = dbo.fn_Global_Academic_Year()
-   AND co.GRADE_LEVEL < 5
-   AND co.RN = 1
-   AND co.enroll_status = 0
+  SELECT co.STUDENTID
+        ,co.STUDENT_NUMBER      
+        ,co.LASTFIRST       
+        ,co.FIRST_NAME
+        ,CASE WHEN co.GRADE_LEVEL = 0 THEN 'K' ELSE CONVERT(VARCHAR,co.grade_level) END AS grade_level
+        ,co.SCHOOLID
+        ,co.school_name
+        ,co.TEAM       
+        ,dt.time_per_name
+        ,dt.alt_name AS term
+  FROM COHORT$identifiers_long#static co WITH(NOLOCK) 
+  JOIN REPORTING$dates dt WITH(NOLOCK)    
+    ON co.schoolid = dt.schoolid    
+   AND dt.academic_year = dbo.fn_Global_Academic_Year()
+   AND identifier = 'RT'      
+   AND time_per_name = (SELECT time_per_name FROM curterm WITH(NOLOCK))
+  WHERE co.YEAR = dbo.fn_Global_Academic_Year()
+    AND co.GRADE_LEVEL < 5
+    AND co.RN = 1
+    --AND co.enroll_status = 0
  )
 
 ,attendance AS (

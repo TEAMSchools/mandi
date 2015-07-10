@@ -153,8 +153,7 @@ WITH valid_TAs AS (
         AND r.schoolid = a.schoolid        
         AND r.year = a.academic_year
         AND r.grade_level = a.grade_level
-       WHERE r.grade_level < 5         
-         AND r.enroll_status = 0         
+       WHERE r.grade_level < 5                  
          AND r.rn = 1
       ) sub
   WHERE has_tested = 1    

@@ -73,7 +73,7 @@ SELECT co.schoolid
       ,COALESCE(hs_advisor.advisor, cs.ADVISOR) AS advisor
       ,s.GENDER
       ,s.ETHNICITY
-      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunch_status END AS lunchstatus
+      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunchstatus END AS lunchstatus
       --,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunch_status END AS lunchstatus
       ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE COALESCE(sped.SPEDLEP, cs.spedlep) END AS SPEDLEP
       ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE ELSE COALESCE(sped.SPEDCODE, cs.spedlep) END AS SPED_code
@@ -156,14 +156,14 @@ LEFT OUTER JOIN KIPP_NJ..COHORT$comprehensive_long#static gr WITH(NOLOCK)
  AND gr.year_in_network = 1
 LEFT OUTER JOIN KIPP_NJ..PS$student_BLObs#static blobs WITH(NOLOCK)
   ON co.studentid = blobs.STUDENTID
-LEFT OUTER JOIN KIPP_NJ..PS$lunch_status_long#static lunch WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$LunchStatus#ARCHIVE lunch WITH(NOLOCK)
   ON co.studentid = lunch.studentid
- AND co.year = lunch.year
+ AND co.year = lunch.academic_year
 --LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info mcs WITH(NOLOCK)
 --  ON co.STUDENT_NUMBER = mcs.StudentNumber
 LEFT OUTER JOIN KIPP_NJ..PS$emerg_release_contact#static emerg WITH(NOLOCK)
   ON co.studentid = emerg.STUDENTID
-LEFT OUTER JOIN KIPP_NJ..PS$SPED_archive#static sped WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$SPED#ARCHIVE sped WITH(NOLOCK)
   ON co.studentid = sped.studentid
  AND co.year  = sped.academic_year
 LEFT OUTER JOIN promo future WITH(NOLOCK)
