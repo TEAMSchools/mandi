@@ -37,10 +37,10 @@ FROM
                   AS all_tests_total
                 ,CASE WHEN ISDATE(REPLACE(test_date,'-00','-01')) = 1 THEN CONVERT(DATE,REPLACE(test_date,'-00','-01')) ELSE NULL END AS test_date                
           FROM AUTOLOAD$NAVIANCE_psat_scores sat WITH(NOLOCK)
-          LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
+          LEFT OUTER JOIN PS$STUDENTS#static s WITH(NOLOCK)
             ON sat.hs_student_id = s.student_number          
          ) sub1    
-    LEFT OUTER JOIN COHORT$comprehensive_long#static co
+    LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
       ON sub1.studentid = co.studentid
      AND sub1.test_date >= co.ENTRYDATE
      AND sub1.test_date <= co.exitdate    

@@ -17,5 +17,5 @@ FROM OPENQUERY(PS_TEAM,'
   WHERE att_date = TRUNC(SYSDATE)
     AND att_mode_code = ''ATT_ModeDaily''    
 ') att
-JOIN STUDENTS s WITH(NOLOCK)
+JOIN PS$STUDENTS#static s WITH(NOLOCK)
   ON att.studentid = s.ID

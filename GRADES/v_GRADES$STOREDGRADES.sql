@@ -85,7 +85,7 @@ FROM
             FROM storedgrades
             WHERE (course_number IS NULL OR (course_number IS NOT NULL AND grade IS NOT NULL AND percent > 0)) -- exclude dirty data but keep transfer credits
           ') oq
-          JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK) -- only records with matching student IDs returned, there's some really dirty data from 2008
+          JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK) -- only records with matching student IDs returned, there's some really dirty data from 2008
             ON oq.studentid = s.id
          ) sub
     ) sub

@@ -54,62 +54,72 @@ WITH hs_advisor AS (
  )
 
 SELECT co.schoolid
-      ,REPLACE(sch.abbreviation,'Rev','Revolution') AS school_name      
       ,co.studentid
       ,co.student_number      
-      ,cs.SID
       ,co.lastfirst
-      ,s.first_name
-      ,s.MIDDLE_NAME
-      ,s.last_name
-      ,s.first_name + ' ' + s.last_name AS full_name
       ,co.grade_level
       ,co.year            
       ,co.cohort
+      ,co.entrycode
+      ,co.exitcode
       ,co.entrydate
       ,co.exitdate
-      ,blobs.EXITCOMMENT
-      ,s.TEAM
-      ,COALESCE(hs_advisor.advisor, cs.ADVISOR) AS advisor
-      ,s.GENDER
-      ,s.ETHNICITY
-      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunchstatus END AS lunchstatus
-      --,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunch_status END AS lunchstatus
-      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE COALESCE(sped.SPEDLEP, cs.spedlep) END AS SPEDLEP
-      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE ELSE COALESCE(sped.SPEDCODE, cs.spedlep) END AS SPED_code
-      ,cs.LEP_STATUS
-      ,s.enroll_status
       ,co.rn
       ,co.year_in_network
       ,ROW_NUMBER() OVER(
          PARTITION BY co.studentid, co.schoolid
            ORDER BY co.year ASC) AS year_in_school
-      ,ms.school AS entry_school_name
-      ,ms.schoolid AS entry_schoolid
-      ,gr.grade_level AS entry_grade_level
-      ,gr.highest_achieved      
-      ,s.DOB
+
+      ,sch.abbreviation AS school_name
+
+      ,s.first_name
+      ,s.MIDDLE_NAME
+      ,s.last_name
+      ,s.first_name + ' ' + s.last_name AS full_name
+      ,s.TEAM
+      ,s.GENDER
+      ,s.ETHNICITY
+      ,s.enroll_status
+      ,s.DOB      
+      ,s.STREET
+      ,s.CITY
+      ,s.STATE
+      ,s.ZIP  
+      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunchstatus END AS lunchstatus
+      /*,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunchstatus END AS lunchstatus*/      
+      
+      ,cs.SID
+      ,COALESCE(hs_advisor.advisor, cs.ADVISOR) AS advisor
+      ,cs.ADVISOR_CELL
+      ,cs.ADVISOR_EMAIL
       ,cs.DEFAULT_STUDENT_WEB_ID AS STUDENT_WEB_ID
       ,cs.DEFAULT_STUDENT_WEB_PASSWORD AS STUDENT_WEB_PASSWORD
       ,cs.DEFAULT_FAMILY_WEB_ID AS FAMILY_WEB_ID
       ,cs.DEFAULT_FAMILY_WEB_PASSWORD AS FAMILY_WEB_PASSWORD
-      ,cs.LUNCH_BALANCE
-      ,cs.ADVISOR_CELL
-      ,cs.ADVISOR_EMAIL
-      ,s.STREET
-      ,s.CITY
-      ,s.STATE
-      ,s.ZIP
-      ,s.HOME_PHONE
-      ,s.MOTHER      
-      ,cs.MOTHER_HOME
-      ,cs.MOTHER_CELL
-      ,cs.MOTHER_DAY
-      ,s.FATHER      
-      ,cs.FATHER_HOME
-      ,cs.FATHER_CELL
-      ,cs.FATHER_DAY
+      ,cs.LUNCH_BALANCE      
+      ,cs.LEP_STATUS
+      ,cs.NEWARK_ENROLLMENT_NUMBER
+      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE COALESCE(sped.SPEDLEP, cs.spedlep) END AS SPEDLEP
+      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE ELSE COALESCE(sped.SPEDCODE, cs.spedlep) END AS SPED_code
+      
+      ,ms.school_name AS entry_school_name
+      ,ms.schoolid AS entry_schoolid
+      
+      ,gr.grade_level AS entry_grade_level
+      ,gr.highest_achieved      
+      
+      ,blobs.EXITCOMMENT    
       ,blobs.guardianemail
+
+      ,emerg.HOME_PHONE
+      ,emerg.MOTHER      
+      ,emerg.MOTHER_HOME
+      ,emerg.MOTHER_CELL
+      ,emerg.MOTHER_DAY
+      ,emerg.FATHER      
+      ,emerg.FATHER_HOME
+      ,emerg.FATHER_CELL
+      ,emerg.FATHER_DAY
       ,emerg.Release_1_Name
       ,emerg.Release_2_Name
       ,emerg.Release_3_Name
@@ -120,6 +130,7 @@ SELECT co.schoolid
       ,emerg.Release_3_Phone
       ,emerg.Release_4_Phone
       ,emerg.Release_5_Phone      
+      
       ,CASE 
         WHEN co.grade_level = 99 THEN 'Graduated'
         WHEN past.grade_level < co.grade_level THEN 'Promoted'
@@ -134,38 +145,38 @@ SELECT co.schoolid
         WHEN future.grade_level < co.grade_level THEN 'Demoted'        
         WHEN future.grade_level IS NULL THEN 'Transferred'
         WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN NULL
-       END AS EOY_status
-      ,cs.NEWARK_ENROLLMENT_NUMBER
+       END AS EOY_status      
+
       ,ret.retained_yr_flag
       ,ret.retained_ever_flag
 FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH (NOLOCK)
-JOIN KIPP_NJ..SCHOOLS sch WITH (NOLOCK)
+JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH (NOLOCK)
   ON co.schoolid = sch.school_number
-JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
+JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   ON co.studentid = s.ID
-JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$LunchStatus#ARCHIVE lunch WITH(NOLOCK)
+  ON co.studentid = lunch.studentid
+ AND co.year = lunch.academic_year
+LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info mcs WITH(NOLOCK)
+  ON co.STUDENT_NUMBER = mcs.StudentNumber
+JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON co.studentid = cs.STUDENTID
 LEFT OUTER JOIN hs_advisor WITH(NOLOCK)
   ON co.studentid = hs_advisor.STUDENTID
  AND co.year = hs_advisor.academic_year
  AND hs_advisor.rn = 1
+LEFT OUTER JOIN KIPP_NJ..PS$SPED#ARCHIVE sped WITH(NOLOCK)
+  ON co.studentid = sped.studentid
+ AND co.year  = sped.academic_year
 LEFT OUTER JOIN KIPP_NJ..COHORT$middle_school_attended ms WITH(NOLOCK)
   ON co.studentid = ms.studentid
 LEFT OUTER JOIN KIPP_NJ..COHORT$comprehensive_long#static gr WITH(NOLOCK)
   ON co.studentid = gr.studentid
  AND gr.year_in_network = 1
-LEFT OUTER JOIN KIPP_NJ..PS$student_BLObs#static blobs WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$student_BLOBs#static blobs WITH(NOLOCK)
   ON co.studentid = blobs.STUDENTID
-LEFT OUTER JOIN KIPP_NJ..PS$LunchStatus#ARCHIVE lunch WITH(NOLOCK)
-  ON co.studentid = lunch.studentid
- AND co.year = lunch.academic_year
---LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info mcs WITH(NOLOCK)
---  ON co.STUDENT_NUMBER = mcs.StudentNumber
-LEFT OUTER JOIN KIPP_NJ..PS$emerg_release_contact#static emerg WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$student_contact#static emerg WITH(NOLOCK)
   ON co.studentid = emerg.STUDENTID
-LEFT OUTER JOIN KIPP_NJ..PS$SPED#ARCHIVE sped WITH(NOLOCK)
-  ON co.studentid = sped.studentid
- AND co.year  = sped.academic_year
 LEFT OUTER JOIN promo future WITH(NOLOCK)
   ON co.STUDENT_NUMBER = future.student_number
  AND co.year = future.past_year

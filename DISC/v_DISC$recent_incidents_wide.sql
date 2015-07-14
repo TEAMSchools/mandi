@@ -3,6 +3,19 @@ GO
 
 ALTER VIEW DISC$recent_incidents_wide AS
 
+WITH dlogs AS (
+  SELECT studentid
+        ,logtypeid
+        ,subtype
+        ,entry_author
+        ,entry_date
+        ,subject
+        ,discipline_details
+        ,rn
+  FROM DISC$log#static WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ )
+
 SELECT s.id AS studentid
       --this logtypeid determines what type of log goes into the rest of the row, see JOIN for the logic      
       ,CASE
@@ -46,24 +59,24 @@ SELECT s.id AS studentid
       ,dlog05.subtype AS DISC_05_subtype
       ,dlog05.discipline_details AS DISC_05_incident
       
-FROM STUDENTS s WITH (NOLOCK)
-LEFT OUTER JOIN DISC$log#static dlog01 WITH (NOLOCK)
+FROM PS$STUDENTS#static s WITH (NOLOCK)
+LEFT OUTER JOIN dlogs dlog01 WITH (NOLOCK)
   ON s.id = dlog01.studentid
  AND dlog01.logtypeid IN (-100000,3023,3223)
  AND dlog01.rn = 1
-LEFT OUTER JOIN DISC$log#static dlog02 WITH (NOLOCK)
+LEFT OUTER JOIN dlogs dlog02 WITH (NOLOCK)
   ON s.id = dlog02.studentid
  AND dlog02.rn = 2
  AND dlog01.logtypeid = dlog02.logtypeid
-LEFT OUTER JOIN DISC$log#static dlog03 WITH (NOLOCK)
+LEFT OUTER JOIN dlogs dlog03 WITH (NOLOCK)
   ON s.id = dlog03.studentid
  AND dlog03.rn = 3
  AND dlog02.logtypeid = dlog03.logtypeid
-LEFT OUTER JOIN DISC$log#static dlog04 WITH (NOLOCK)
+LEFT OUTER JOIN dlogs dlog04 WITH (NOLOCK)
   ON s.id = dlog04.studentid
  AND dlog04.rn = 4
  AND dlog03.logtypeid = dlog04.logtypeid
-LEFT OUTER JOIN DISC$log#static dlog05 WITH (NOLOCK)
+LEFT OUTER JOIN dlogs dlog05 WITH (NOLOCK)
   ON s.id = dlog05.studentid
  AND dlog05.rn = 5
  AND dlog04.logtypeid = dlog05.logtypeid

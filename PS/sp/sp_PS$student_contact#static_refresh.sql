@@ -8,26 +8,26 @@ SET QUOTED_IDENTIFIER ON
 GO
 
                   
-ALTER PROCEDURE [sp_PS$CUSTOM_STUDENTS#static|refresh] AS
+ALTER PROCEDURE [sp_PS$student_contact#static|refresh] AS
 BEGIN
 
   DECLARE @sql AS VARCHAR(MAX)='';
 
   -- STEP 1: make sure no temp table
-		IF OBJECT_ID(N'tempdb..#PS$CUSTOM_STUDENTS#static|refresh') IS NOT NULL
+		IF OBJECT_ID(N'tempdb..#PS$student_contact#static|refresh') IS NOT NULL
 		BEGIN
-						DROP TABLE [#PS$CUSTOM_STUDENTS#static|refresh]
+						DROP TABLE [#PS$student_contact#static|refresh]
 		END
 
 
   -- STEP 2: load into a temporary staging table.
   SELECT *
-		INTO [#PS$CUSTOM_STUDENTS#static|refresh]
-  FROM PS$CUSTOM_STUDENTS;
+		INTO [#PS$student_contact#static|refresh]
+  FROM PS$student_contact;
          
 
   -- STEP 3: truncate destination table
-  EXEC('TRUNCATE TABLE KIPP_NJ..PS$CUSTOM_STUDENTS#static');
+  EXEC('TRUNCATE TABLE KIPP_NJ..PS$student_contact#static');
 
 
   -- STEP 4: disable all nonclustered indexes on table
@@ -39,14 +39,14 @@ BEGIN
     ON sys.indexes.object_id = sys.objects.object_id
   WHERE sys.indexes.type_desc = 'NONCLUSTERED'
     AND sys.objects.type_desc = 'USER_TABLE'
-    AND sys.objects.name = 'PS$CUSTOM_STUDENTS#static';
+    AND sys.objects.name = 'PS$student_contact#static';
   EXEC (@sql);
 
 
   -- STEP 5: insert into final destination
-  INSERT INTO [PS$CUSTOM_STUDENTS#static]
+  INSERT INTO [PS$student_contact#static]
   SELECT *
-  FROM [#PS$CUSTOM_STUDENTS#static|refresh];
+  FROM [#PS$student_contact#static|refresh];
  
 
   -- STEP 6: rebuld all nonclustered indexes on table
@@ -58,7 +58,7 @@ BEGIN
     ON sys.indexes.object_id = sys.objects.object_id
   WHERE sys.indexes.type_desc = 'NONCLUSTERED'
     AND sys.objects.type_desc = 'USER_TABLE'
-    AND sys.objects.name = 'PS$CUSTOM_STUDENTS#static';
+    AND sys.objects.name = 'PS$student_contact#static';
   EXEC (@sql);
   
 END                  

@@ -26,5 +26,5 @@ FROM OPENQUERY(ILLUMINATE,'
   JOIN public.students s
     ON aff.student_id = s.student_id
 ') oq
-JOIN STUDENTS s WITH(NOLOCK)
+JOIN PS$STUDENTS#static s WITH(NOLOCK)
   ON oq.local_student_id = s.STUDENT_NUMBER

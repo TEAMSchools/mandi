@@ -29,6 +29,6 @@ FROM
             ON illum.custom_code = stds.standard
          ) sub
     ) sub
-JOIN STUDENTS s WITH(NOLOCK)
+JOIN PS$STUDENTS#static s WITH(NOLOCK)
   ON sub.local_student_id = s.student_number
 WHERE rn = 1

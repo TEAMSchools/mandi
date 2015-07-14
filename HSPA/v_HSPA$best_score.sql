@@ -32,8 +32,8 @@ SELECT cs.SID
         WHEN hspa_reading.lal_scale_score >= 200 AND hspa_reading.lal_scale_score < 250 THEN 'Proficient'
         WHEN hspa_reading.lal_scale_score < 200 THEN 'Partially Proficient'        
        END AS lal_proficiency
-FROM STUDENTS s WITH(NOLOCK)
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+FROM PS$STUDENTS#static s WITH(NOLOCK)
+LEFT OUTER JOIN PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON s.ID = cs.STUDENTID 
 LEFT OUTER JOIN hspa_math WITH(NOLOCK)
   ON cs.SID = hspa_math.SID

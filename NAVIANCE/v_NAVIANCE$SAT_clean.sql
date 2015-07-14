@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW NAVIANCE$SAT_clean AS
+
 SELECT *
       ,ROW_NUMBER() OVER(
           PARTITION BY student_number
@@ -40,7 +41,7 @@ FROM
                   AS all_tests_total
                 ,CASE WHEN ISDATE(REPLACE(test_date,'-00','-01')) = 1 THEN CONVERT(DATE,REPLACE(test_date,'-00','-01')) ELSE NULL END AS test_date                
           FROM AUTOLOAD$NAVIANCE_sat_scores sat WITH(NOLOCK)
-          LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
+          LEFT OUTER JOIN PS$STUDENTS#static s WITH(NOLOCK)
             ON sat.hs_student_id = s.student_number          
          ) sub1    
     LEFT OUTER JOIN COHORT$comprehensive_long#static co

@@ -10,7 +10,7 @@ SELECT 'Current Enrollment' AS statistic
 FROM
       (SELECT s.ID
              ,1 AS dummy
-       FROM KIPP_NJ..STUDENTS s
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 0
        ) sub
 
@@ -24,8 +24,8 @@ FROM
       (SELECT s.ID
              ,sch.abbreviation AS school
              ,1 AS dummy
-       FROM KIPP_NJ..STUDENTS s
-       JOIN KIPP_NJ..SCHOOLS sch
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH(NOLOCK)
          ON s.schoolid = sch.school_number
        WHERE s.enroll_status = 0
        ) sub
@@ -44,7 +44,7 @@ FROM
                 WHEN s.enroll_status > 0 THEN 1.0
                 ELSE 0.0
               END AS dummy
-       FROM KIPP_NJ..STUDENTS s
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.ENTRYDATE > '01-AUG-14'
          AND DATEDIFF(day,s.entrydate,s.exitdate) > 2
        ) sub
@@ -63,8 +63,8 @@ FROM
                 WHEN s.enroll_status > 0 THEN 1.0
                 ELSE 0.0
               END AS dummy
-       FROM KIPP_NJ..STUDENTS s
-       JOIN KIPP_NJ..SCHOOLS sch
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH(NOLOCK)
          ON s.schoolid = sch.school_number
        WHERE s.ENTRYDATE > '01-AUG-14'
          AND DATEDIFF(day,s.entrydate,s.exitdate) > 2
@@ -83,7 +83,7 @@ FROM
                 WHEN s.lunchstatus IN ('F', 'R') THEN 1.0
                 ELSE 0.0
               END AS dummy
-       FROM KIPP_NJ..STUDENTS s
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 0
        ) sub
 
@@ -99,7 +99,7 @@ FROM
                 WHEN s.lunchstatus = 'F' THEN 1.0
                 ELSE 0.0
               END AS dummy
-       FROM KIPP_NJ..STUDENTS s
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 0
        ) sub
 
@@ -115,7 +115,7 @@ FROM
                 WHEN s.lunchstatus = 'R' THEN 1.0
                 ELSE 0.0
               END AS dummy
-       FROM KIPP_NJ..STUDENTS s
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 0
        ) sub
 
@@ -131,7 +131,7 @@ FROM
                  WHEN s.lunchstatus = 'P' THEN 1.0
                  ELSE 0.0
                END AS dummy
-        FROM KIPP_NJ..STUDENTS s
+        FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
         WHERE s.enroll_status = 0
         ) sub
 
@@ -148,8 +148,8 @@ FROM
                 WHEN s.lunchstatus IN ('F','R') THEN 1.0
                 ELSE 0.0
               END AS dummy
-       FROM KIPP_NJ..STUDENTS s
-       JOIN KIPP_NJ..SCHOOLS sch
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH(NOLOCK)
          ON s.schoolid = sch.school_number
        WHERE s.enroll_status = 0
        ) sub
@@ -167,8 +167,8 @@ FROM
                 WHEN cust.spedlep LIKE '%SPED%' THEN 1.0
                 ELSE 0.0
               END AS dummy
-       FROM KIPP_NJ..STUDENTS s
-       JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cust WITH(NOLOCK)
          ON s.id = cust.studentid
        WHERE s.enroll_status = 0
        ) sub
@@ -186,10 +186,10 @@ FROM
                 WHEN cust.spedlep LIKE '%SPED%' THEN 1.0
                 ELSE 0.0
               END AS dummy
-       FROM KIPP_NJ..STUDENTS s
-       JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cust WITH(NOLOCK)
          ON s.id = cust.studentid
-       JOIN KIPP_NJ..SCHOOLS sch
+       JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH(NOLOCK)
          ON s.schoolid = sch.school_number
        WHERE s.enroll_status = 0
        ) sub
@@ -207,8 +207,8 @@ FROM
                 WHEN cust.spedlep LIKE '%SPED%' THEN 1.0
                 ELSE 0.0
               END AS dummy
-       FROM KIPP_NJ..STUDENTS s
-       JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cust WITH(NOLOCK)
          ON s.id = cust.studentid
        WHERE s.enroll_status = 0
          AND s.grade_level < 5
@@ -227,8 +227,8 @@ FROM
                 WHEN cust.spedlep LIKE '%SPED%' THEN 1.0
                 ELSE 0.0
               END AS dummy
-       FROM KIPP_NJ..STUDENTS s
-       JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cust WITH(NOLOCK)
          ON s.id = cust.studentid
        WHERE s.enroll_status = 0
          AND s.grade_level >= 5
@@ -248,8 +248,8 @@ FROM
                 WHEN cust.spedlep LIKE '%SPED%' THEN 1.0
                 ELSE 0.0
               END AS dummy
-       FROM KIPP_NJ..STUDENTS s
-       JOIN KIPP_NJ..CUSTOM_STUDENTS cust
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cust WITH(NOLOCK)
          ON s.id = cust.studentid
        WHERE s.enroll_status = 0
          AND s.grade_level >= 9

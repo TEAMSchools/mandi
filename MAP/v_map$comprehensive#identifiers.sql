@@ -135,7 +135,7 @@ SELECT cohort.schoolid
                       ,map.percentcorrect
                       ,map.projectedproficiency                     
                 FROM NWEA..map$cdf map WITH (NOLOCK)
-                JOIN KIPP_NJ..STUDENTS s WITH (NOLOCK)
+                JOIN KIPP_NJ..PS$STUDENTS#static s WITH (NOLOCK)
                   ON s.student_number = map.studentid
                 WHERE map.StudentID != '11XXX'
                   AND (map.TestID IS NULL OR map.TestID NOT IN (SELECT TestID FROM KIPP_NJ..MAP$exclusion_audit#static WITH(NOLOCK) WHERE is_excluded = 1))

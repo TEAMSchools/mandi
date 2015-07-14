@@ -60,8 +60,8 @@ SELECT s.LASTFIRST
       ,cs.ADVISOR
       --,cs.SPEDLEP
       ,gpa_credittype.*
-FROM STUDENTS s WITH(NOLOCK)
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+FROM PS$STUDENTS#static s WITH(NOLOCK)
+LEFT OUTER JOIN PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON s.ID = cs.STUDENTID
 LEFT OUTER JOIN gpa_credittype
   ON s.ID = gpa_credittype.studentid

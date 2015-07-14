@@ -36,7 +36,7 @@ SELECT ROW_NUMBER() OVER(
       ,NJASK10.NJASK_Proficiency  AS Prof_2010
       ,NJASK10.test_grade_level   AS Gr_Lev_2010   
 
-FROM STUDENTS s WITH (NOLOCK)
+FROM PS$STUDENTS#static s WITH (NOLOCK)
 LEFT OUTER JOIN NJASK$detail NJASK14 WITH (NOLOCK)
   ON s.id = NJASK14.studentid
  AND NJASK14.subject    = 'ELA'                            

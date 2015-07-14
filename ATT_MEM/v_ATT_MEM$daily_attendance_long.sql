@@ -3,7 +3,7 @@ GO
 
 ALTER VIEW ATT_MEM$daily_attendance_long AS
 
-SELECT sch.ABBREVIATION AS school
+SELECT co.school_name AS school
       ,mem.SCHOOLID
       ,co.GRADE_LEVEL      
       ,co.LASTFIRST      
@@ -12,10 +12,8 @@ SELECT sch.ABBREVIATION AS school
       ,mem.ATTENDANCEVALUE
       ,mem.MEMBERSHIPVALUE
 FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
-JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
+JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
   ON mem.STUDENTID = co.STUDENTID
  AND mem.CALENDARDATE >= co.ENTRYDATE 
  AND mem.CALENDARDATE <= co.EXITDATE
-JOIN SCHOOLS sch WITH(NOLOCK)
-  ON mem.SCHOOLID = sch.SCHOOL_NUMBER
 WHERE mem.MEMBERSHIPVALUE = 1

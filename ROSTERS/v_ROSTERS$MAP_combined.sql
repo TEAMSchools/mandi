@@ -1,13 +1,12 @@
-/*--! MAP Combined Import File !--*/
-  -- Maintenance --
-  -- ANNUAL: add any new schoolids
+USE KIPP_NJ
+GO
 
 ALTER VIEW ROSTERS$MAP_combined AS
 
 WITH roster AS (
-  SELECT sch.ABBREVIATION
+  SELECT s.school_name
         ,s.SCHOOLID
-        ,s.ID
+        ,s.studentid
         ,s.STUDENT_NUMBER
         ,s.LAST_NAME
         ,s.FIRST_NAME
@@ -17,9 +16,7 @@ WITH roster AS (
         ,s.GENDER
         ,CASE WHEN s.GRADE_LEVEL = 0 THEN 'K' ELSE CONVERT(VARCHAR,s.GRADE_LEVEL) END AS grade_level -- Kindergarten needs to be K, not 0
         ,CASE WHEN s.ETHNICITY = 'T' THEN 'B' ELSE s.ETHNICITY END AS ethnicity -- NWEA is racist, import rejects ethnicity 'T'
-  FROM STUDENTS s
-  JOIN SCHOOLS sch
-    ON s.SCHOOLID = sch.SCHOOL_NUMBER
+  FROM COHORT$identifiers_long#static s WITH(NOLOCK)  
   WHERE s.ENROLL_STATUS = 0
  )
  
@@ -48,7 +45,7 @@ WITH roster AS (
  )
 
 SELECT DISTINCT
-       r.ABBREVIATION AS [School Name]
+       r.school_name AS [School Name]
       ,tc.TEACHERNUMBER AS [Previous Instructor ID]
       ,tc.TEACHERNUMBER AS [Instructor ID]
       ,tc.LAST_NAME AS [Instructor Last Name]
@@ -57,7 +54,7 @@ SELECT DISTINCT
       ,tc.EMAIL_ADDR AS [User Name]
       ,tc.EMAIL_ADDR AS [Email Address]
       ,CASE
-        WHEN r.SCHOOLID IN (73252,133570965) THEN tc.CREDITTYPE + '_' + CONVERT(VARCHAR,r.GRADE_LEVEL) /*--UPDATE FOR NEW SCHOOLS--*/
+        WHEN r.SCHOOLID IN (73252,133570965,73258,179902) THEN tc.CREDITTYPE + '_' + CONVERT(VARCHAR,r.GRADE_LEVEL) /*--UPDATE FOR NEW SCHOOLS--*/
         WHEN r.SCHOOLID IN (73254,73255,73256,73257,179901) THEN r.TEAM + '_' + CONVERT(VARCHAR,r.GRADE_LEVEL) /*--UPDATE FOR NEW SCHOOLS--*/
         WHEN r.SCHOOLID = 73253 THEN tc.COURSE_NUMBER + '_sect_' + tc.SECTION_NUMBER /*--UPDATE FOR NEW SCHOOLS--*/
        END AS [Class Name]
@@ -70,7 +67,7 @@ SELECT DISTINCT
       ,r.GENDER AS [Student Gender]
       ,r.GRADE_LEVEL AS [Student Grade]
       ,r.ETHNICITY AS [Student Ethnic Group Name]
-      ,CONVERT(VARCHAR,r.ID) + '_' + ISNULL(tc.course_number,'HR') AS audit_hash
+      ,CONVERT(VARCHAR,r.studentid) + '_' + ISNULL(tc.course_number,'HR') AS audit_hash
 FROM roster r
 JOIN teacher_courses tc
-  ON r.ID = tc.STUDENTID
+  ON r.studentid = tc.STUDENTID

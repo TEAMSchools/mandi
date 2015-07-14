@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW NAVIANCE$PLAN_clean AS
+
 SELECT *
       ,ROW_NUMBER() OVER(
           PARTITION BY student_number
@@ -31,7 +32,7 @@ FROM
            ,CASE WHEN sub1.test_date <= GETDATE() THEN sub1.test_date ELSE NULL END AS test_date
            ,co.year
            ,ROW_NUMBER() OVER(
-              PARTITION BY student_number, test_date
+              PARTITION BY sub1.student_number, test_date
                   ORDER BY test_date) AS dupe_audit
      FROM
          (
@@ -48,11 +49,11 @@ FROM
                 ,CONVERT(INT,composite) AS composite
                 ,CASE WHEN ISDATE(REPLACE(test_date,'-00','-01')) = 1 THEN CONVERT(DATE,REPLACE(test_date,'-00','-01')) ELSE NULL END AS test_date                
           FROM AUTOLOAD$NAVIANCE_act_scores act WITH(NOLOCK)
-          JOIN STUDENTS s WITH(NOLOCK)
+          JOIN PS$STUDENTS#static s WITH(NOLOCK)
             ON act.hs_student_id = s.student_number
           WHERE is_plan = 1
          ) sub1    
-    LEFT OUTER JOIN COHORT$comprehensive_long#static co
+    LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
       ON sub1.studentid = co.studentid
      AND sub1.test_date >= co.ENTRYDATE
      AND sub1.test_date <= co.exitdate

@@ -37,9 +37,9 @@ WITH reenrollments AS (
                  PARTITION BY re_base.studentid, terms.yearid
                      ORDER BY re_base.exitdate DESC) AS rn
        FROM OPENQUERY(PS_TEAM,'
-         SELECT re.studentid AS studentid
-               ,re.schoolid AS schoolid
-               ,re.grade_level AS grade_level
+         SELECT re.studentid
+               ,re.schoolid
+               ,re.grade_level
                ,re.entrydate
                ,re.exitdate
                ,re.entrycode
@@ -80,12 +80,12 @@ WITH reenrollments AS (
              ,s.exitdate
              ,s.entrycode
              ,s.exitcode
-       FROM STUDENTS s WITH(NOLOCK)
+       FROM PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 2
          AND s.schoolid != 999999
          AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1
       ) s_1
-  LEFT OUTER JOIN PS$terms#static terms WITH(NOLOCK)
+  LEFT OUTER JOIN PS$TERMS#static terms WITH(NOLOCK)
     ON s_1.schoolid = terms.schoolid 
    AND s_1.entrydate >= terms.firstday
    AND s_1.exitdate <= DATEADD(DAY, 1, terms.lastday)
@@ -114,7 +114,7 @@ WITH reenrollments AS (
              ,s.entrydate
              ,s.entrycode
              ,s.exitdate           
-       FROM students s WITH(NOLOCK)
+       FROM PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 0 
          AND s.schoolid != 999999
          AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1
@@ -148,7 +148,7 @@ WITH reenrollments AS (
              ,s.grade_level AS grade_level
              ,s.entrydate
              ,s.exitdate
-       FROM STUDENTS s WITH(NOLOCK)
+       FROM PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 3
          AND s.id NOT IN (171, 141, 45) 
          -- 3 students back in the Dark Ages graduated 8th, didn't go to NCA in 9th, but came back and graduated from NCA with a different student record
@@ -233,5 +233,5 @@ SELECT unioned_tables.studentid
           PARTITION BY unioned_tables.studentid
               ORDER BY unioned_tables.yearid ASC) AS year_in_network
 FROM unioned_tables
-LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
+LEFT OUTER JOIN PS$STUDENTS#static s WITH(NOLOCK)
   ON unioned_tables.studentid = s.id

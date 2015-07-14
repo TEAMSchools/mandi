@@ -45,7 +45,7 @@ FROM
              WHEN p.promo_status_final LIKE '%demo%' THEN -1        
             END AS next_grade_modifier
            ,CASE WHEN p.promo_status_final LIKE '%transf%' THEN 1 ELSE 0 END AS transfer_flag
-     FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+     FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
      LEFT OUTER JOIN promo_all p
        ON s.STUDENT_NUMBER = p.student_number
      WHERE s.ENROLL_STATUS = 0

@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$goals_wide AS
+
 SELECT schoolid
       ,grade_level
       ,measurementscale AS subject
@@ -65,8 +66,8 @@ FROM
                          END AS credit_join
                         ,baseline.testritscore                        
                         ,enrollments.course_name AS match_course
-                  FROM STUDENTS s WITH(NOLOCK)
-                  LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+                  FROM PS$STUDENTS#static s WITH(NOLOCK)
+                  LEFT OUTER JOIN PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
                     ON s.id = cs.studentid  
                   JOIN MAP$best_baseline#static baseline WITH(NOLOCK)
                     ON s.id = baseline.studentid
@@ -108,61 +109,57 @@ FROM
       WHERE (sub_2.iep_status = 'IEP' AND sub_2.course = 'Whole Grade')
          OR sub_2.iep_status = 'All Students'
      ) sub_3
-LEFT OUTER JOIN (
-                 SELECT *
-                 FROM
+CROSS JOIN (
+            SELECT *
+            FROM
+                 (
+                  SELECT zscore
+                        ,CASE 
+                          WHEN percentile = 1 THEN 'p01_zscore'
+                          WHEN percentile = 5 THEN 'p05_zscore'
+                          WHEN percentile = 10 THEN 'p10_zscore'
+                          WHEN percentile = 20 THEN 'p20_zscore'
+                          WHEN percentile = 25 THEN 'p25_zscore'
+                          WHEN percentile = 30 THEN 'p30_zscore'
+                          WHEN percentile = 40 THEN 'p40_zscore'
+                          WHEN percentile = 50 THEN 'p50_zscore'
+                          WHEN percentile = 60 THEN 'p60_zscore'
+                          WHEN percentile = 70 THEN 'p70_zscore'
+                          WHEN percentile = 75 THEN 'p75_zscore'
+                          WHEN percentile = 80 THEN 'p80_zscore'
+                          WHEN percentile = 90 THEN 'p90_zscore'
+                          WHEN percentile = 95 THEN 'p95_zscore'
+                          WHEN percentile = 99 THEN 'p99_zscore'
+                         END AS percentile            
+                  FROM
                       (
                        SELECT zscore
-                             ,CASE 
-                               WHEN percentile = 1 THEN 'p01_zscore'
-                               WHEN percentile = 5 THEN 'p05_zscore'
-                               WHEN percentile = 10 THEN 'p10_zscore'
-                               WHEN percentile = 20 THEN 'p20_zscore'
-                               WHEN percentile = 25 THEN 'p25_zscore'
-                               WHEN percentile = 30 THEN 'p30_zscore'
-                               WHEN percentile = 40 THEN 'p40_zscore'
-                               WHEN percentile = 50 THEN 'p50_zscore'
-                               WHEN percentile = 60 THEN 'p60_zscore'
-                               WHEN percentile = 70 THEN 'p70_zscore'
-                               WHEN percentile = 75 THEN 'p75_zscore'
-                               WHEN percentile = 80 THEN 'p80_zscore'
-                               WHEN percentile = 90 THEN 'p90_zscore'
-                               WHEN percentile = 95 THEN 'p95_zscore'
-                               WHEN percentile = 99 THEN 'p99_zscore'
-                              END AS percentile            
-                       FROM
-                           (
-                            SELECT zscore
-                                  ,percentile
-                                  ,ROW_NUMBER() OVER
-                                     (PARTITION BY percentile
-                                          ORDER BY zscore ASC) AS rn           
-                            FROM UTIL$zscores WITH(NOLOCK)
-                            WHERE percentile IN (1,5,10,20,25,30,40,50,60,70,75,80,90,95,99)
-                           ) z
-                      WHERE z.rn = 1
-                     ) z2
-
-                 PIVOT (
-                        MAX(zscore) 
-                        FOR percentile IN 
-                            ([p01_zscore]
-                            ,[p05_zscore]
-                            ,[p10_zscore]
-                            ,[p20_zscore]
-                            ,[p25_zscore]
-                            ,[p30_zscore]
-                            ,[p40_zscore]
-                            ,[p50_zscore]
-                            ,[p60_zscore]
-                            ,[p70_zscore]
-                            ,[p75_zscore]
-                            ,[p80_zscore]
-                            ,[p90_zscore]
-                            ,[p95_zscore]
-                            ,[p99_zscore]
-                            )
-                        ) p
-                ) norm_dist
-  ON 1 = 1
+                             ,percentile
+                             ,ROW_NUMBER() OVER
+                                (PARTITION BY percentile
+                                     ORDER BY zscore ASC) AS rn           
+                       FROM UTIL$zscores WITH(NOLOCK)
+                       WHERE percentile IN (1,5,10,20,25,30,40,50,60,70,75,80,90,95,99)
+                      ) z
+                 WHERE z.rn = 1
+                ) z2
+            PIVOT (
+              MAX(zscore) 
+              FOR percentile IN ([p01_zscore]
+                                ,[p05_zscore]
+                                ,[p10_zscore]
+                                ,[p20_zscore]
+                                ,[p25_zscore]
+                                ,[p30_zscore]
+                                ,[p40_zscore]
+                                ,[p50_zscore]
+                                ,[p60_zscore]
+                                ,[p70_zscore]
+                                ,[p75_zscore]
+                                ,[p80_zscore]
+                                ,[p90_zscore]
+                                ,[p95_zscore]
+                                ,[p99_zscore])
+             ) p
+           ) norm_dist  
 WHERE closest_match = 1

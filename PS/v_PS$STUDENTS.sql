@@ -3,82 +3,47 @@ GO
 
 ALTER VIEW PS$STUDENTS AS
 
-SELECT DCID
-      ,ID
-      ,LASTFIRST
-      ,FIRST_NAME
-      ,MIDDLE_NAME
-      ,LAST_NAME
-      ,STUDENT_NUMBER
-      ,ENROLL_STATUS
-      ,GRADE_LEVEL
-      ,SCHOOLID
-      ,GENDER
-      ,DOB
-      ,LUNCHSTATUS
-      ,ETHNICITY
-      ,ENTRYDATE
-      ,EXITDATE
-      ,ENTRYCODE
-      ,EXITCODE
-      ,FTEID
-      ,TEAM
-      ,STATE_STUDENTNUMBER
-      ,WEB_ID
-      ,WEB_PASSWORD
-      ,ALLOWWEBACCESS
-      ,STUDENT_WEB_ID
-      ,STUDENT_WEB_PASSWORD
-      ,STUDENT_ALLOWWEBACCESS
-      ,STREET
-      ,CITY
-      ,STATE
-      ,ZIP
-      ,MOTHER
-      ,FATHER
-      ,HOME_PHONE
-      ,EMERG_CONTACT_1
-      ,EMERG_CONTACT_2
-      ,EMERG_PHONE_1
-      ,EMERG_PHONE_2
+SELECT *
 FROM OPENQUERY(PS_TEAM,'
   SELECT DCID
         ,ID
+        ,STUDENT_NUMBER
+        ,STATE_STUDENTNUMBER
         ,LASTFIRST
         ,FIRST_NAME
         ,MIDDLE_NAME
-        ,LAST_NAME
-        ,STUDENT_NUMBER
+        ,LAST_NAME        
         ,ENROLL_STATUS
-        ,GRADE_LEVEL
         ,SCHOOLID
-        ,GENDER
-        ,DOB
-        ,LUNCHSTATUS
-        ,ETHNICITY
+        ,GRADE_LEVEL                
+        ,TEAM        
+        ,DOB        
         ,ENTRYDATE
         ,EXITDATE
         ,ENTRYCODE
-        ,EXITCODE
-        ,FTEID
-        ,TEAM
-        ,STATE_STUDENTNUMBER
-        ,WEB_ID
-        ,WEB_PASSWORD
-        ,ALLOWWEBACCESS
-        ,STUDENT_WEB_ID
-        ,STUDENT_WEB_PASSWORD
-        ,STUDENT_ALLOWWEBACCESS
+        ,EXITCODE        
         ,STREET
         ,CITY
         ,STATE
-        ,ZIP
-        ,MOTHER
-        ,FATHER
-        ,HOME_PHONE
-        ,EMERG_CONTACT_1
-        ,EMERG_CONTACT_2
-        ,EMERG_PHONE_1
-        ,EMERG_PHONE_2
-  FROM STUDENTS
+        ,ZIP                
+        ,GEOCODE 
+        ,GENDER
+        ,LUNCHSTATUS
+        ,ETHNICITY                                                
+        ,WEB_ID                
+        ,ALLOWWEBACCESS                        
+        ,STUDENT_WEB_ID        
+        ,STUDENT_ALLOWWEBACCESS                                                
+        ,LDAPENABLED
+        ,NEXT_SCHOOL                                  
+        ,SCHED_NEXTYEARGRADE                
+        ,ENROLLMENT_SCHOOLID                
+        ,FTEID                
+        ,PERSON_ID        
+        ,DISTRICTENTRYDATE
+        ,DISTRICTENTRYGRADELEVEL
+        ,SCHOOLENTRYDATE
+        ,SCHOOLENTRYGRADELEVEL        
+        ,GRADUATED_SCHOOLID                
+  FROM STUDENTS  
 ')

@@ -6,8 +6,8 @@ ALTER VIEW QA$FSA_audit AS
 WITH cur_week AS (
   SELECT DISTINCT time_per_name
   FROM REPORTING$dates WITH(NOLOCK)
-  WHERE start_date <= GETDATE()
-    AND end_date >= GETDATE()
+  WHERE start_date <= CONVERT(DATE,GETDATE())
+    AND end_date >= CONVERT(DATE,GETDATE())
     AND identifier = 'REP'
     AND school_level = 'ES'
  )
@@ -20,7 +20,7 @@ WITH cur_week AS (
         SELECT DISTINCT
                res.assessment_id
               ,CASE WHEN s.GRADE_LEVEL = 0 THEN 'K' ELSE CONVERT(VARCHAR,s.GRADE_LEVEL) END AS grade_level
-        FROM STUDENTS s WITH(NOLOCK)
+        FROM PS$STUDENTS#static s WITH(NOLOCK)
         JOIN ILLUMINATE$assessment_results_by_standard#static res WITH(NOLOCK)
           ON s.student_number = res.local_student_id
         WHERE s.ENROLL_STATUS = 0                  
@@ -60,7 +60,7 @@ WITH cur_week AS (
   AND a.subject = gdocs.subject
   AND a.standards_tested = gdocs.ccss_standard
   --AND a.scope = 'FSA'
- JOIN SCHOOLS sch WITH(NOLOCK)
+ JOIN PS$SCHOOLS#static sch WITH(NOLOCK)
    ON a.schoolid = sch.SCHOOL_NUMBER
   AND sch.HIGH_GRADE = 4
  JOIN grades_tested grades
@@ -83,7 +83,7 @@ WITH cur_week AS (
          + CONVERT(VARCHAR,RIGHT(gdocs.week_num, 2)) + ' - '
          + CONVERT(VARCHAR,sch.ABBREVIATION) AS synth_title
   FROM GDOCS$FSA_longterm_clean gdocs WITH(NOLOCK)
-  JOIN SCHOOLS sch WITH(NOLOCK)
+  JOIN PS$SCHOOLS#static sch WITH(NOLOCK)
     ON gdocs.schoolid = sch.SCHOOL_NUMBER
    AND sch.HIGH_GRADE = 4
   LEFT OUTER JOIN ILLUMINATE$assessments#static a WITH(NOLOCK)
