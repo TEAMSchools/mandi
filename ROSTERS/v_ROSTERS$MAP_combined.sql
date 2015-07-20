@@ -16,8 +16,10 @@ WITH roster AS (
         ,s.GENDER
         ,CASE WHEN s.GRADE_LEVEL = 0 THEN 'K' ELSE CONVERT(VARCHAR,s.GRADE_LEVEL) END AS grade_level -- Kindergarten needs to be K, not 0
         ,CASE WHEN s.ETHNICITY = 'T' THEN 'B' ELSE s.ETHNICITY END AS ethnicity -- NWEA is racist, import rejects ethnicity 'T'
-  FROM COHORT$identifiers_long#static s WITH(NOLOCK)  
+  FROM KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)  
   WHERE s.ENROLL_STATUS = 0
+    AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND s.rn = 1
  )
  
 ,teacher_courses AS (
@@ -25,7 +27,10 @@ WITH roster AS (
         ,t.LAST_NAME
         ,t.FIRST_NAME
         ,LEFT(t.MIDDLE_NAME,1) AS middle_initial        
-        ,t.TEACHERLOGINID + '@teamschools.org' AS email_addr
+        ,CASE
+          WHEN t.TEACHERLOGINID IS NULL THEN LOWER(LEFT(t.first_name,1) + KIPP_NJ.dbo.REMOVESPECIALCHARS(t.LAST_NAME))
+          ELSE t.TEACHERLOGINID            
+         END + '@kippnj.org' AS email_addr
         ,c.CREDITTYPE
         ,c.COURSE_NUMBER
         ,sec.SECTION_NUMBER
@@ -40,7 +45,7 @@ WITH roster AS (
     ON CC.SECTIONID = sec.ID
   JOIN TEACHERS t
     ON sec.TEACHER = t.ID  
-  WHERE cc.TERMID >= dbo.fn_Global_Term_Id()  
+  WHERE cc.TERMID >= KIPP_NJ.dbo.fn_Global_Term_Id()  
     AND cc.SECTIONID >= 0    
  )
 
