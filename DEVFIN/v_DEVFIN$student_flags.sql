@@ -10,15 +10,15 @@ WITH co_base AS (
         ,studentid
         ,exitdate
   FROM COHORT$comprehensive_long#static
-  WHERE year = 2013
-    AND entrydate <= '2013-10-01'
+  WHERE year = 2014
+    AND entrydate <= '2014-10-01'
     AND rn = 1
  )
 
 ,co_cur AS (
   SELECT *
   FROM COHORT$comprehensive_long#static
-  WHERE year = 2014
+  WHERE year = 2015
     AND rn = 1
     AND (entrydate != exitdate OR schoolid = 999999)
  )
@@ -53,7 +53,7 @@ FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
 JOIN PS$STUDENTS#static s
   ON co.STUDENTID = s.ID
  AND s.ENROLL_STATUS = 2
-WHERE YEAR = 2014 --dbo.fn_Global_Academic_Year()
+WHERE YEAR = 2015 --dbo.fn_Global_Academic_Year()
   AND rn = 1
   AND co.EXITDATE <= CONVERT(DATE,GETDATE())
 
@@ -65,4 +65,4 @@ SELECT co_base.schoolid
       ,'TRANSF_SUM' AS flag
 FROM co_base
 WHERE co_base.studentid NOT IN (SELECT studentid FROM co_cur)
-  AND exitdate >= '2014-06-27'
+  AND exitdate >= '2015-06-30'

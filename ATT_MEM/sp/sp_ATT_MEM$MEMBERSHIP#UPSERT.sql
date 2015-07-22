@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER PROCEDURE sp_ATT_MEM$MEMBERSHIP#UPSERT AS
+--ALTER PROCEDURE sp_ATT_MEM$MEMBERSHIP#UPSERT AS
 
 BEGIN 
 
@@ -17,7 +17,7 @@ BEGIN
             ,ctod.potential_attendancevalue
       FROM ps_adaadm_daily_ctod ctod   
       WHERE calendardate >= TO_DATE(''2014-08-01'',''YYYY-MM-DD'') 
-        AND calendardate <= TRUNC(SYSDATE)
+        AND calendardate <= TO_DATE(''2015-06-30'',''YYYY-MM-DD'') 
     ')
    )
 

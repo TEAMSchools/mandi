@@ -6,26 +6,26 @@ ALTER VIEW DEVFIN$enr_stats_long AS
 WITH co_base AS (
   SELECT *        
   FROM COHORT$comprehensive_long#static WITH(NOLOCK)
-  WHERE year = 2013
-    AND entrydate <= '2013-10-01'
-    AND exitdate >= '2013-10-01'
+  WHERE year = 2014
+    AND entrydate <= '2014-10-01'
+    AND exitdate >= '2014-10-01'
     AND rn = 1
  )
 
 ,co_cur AS (
   SELECT *        
   FROM COHORT$comprehensive_long#static WITH(NOLOCK)
-  WHERE year = 2014
+  WHERE year = 2015
     AND rn = 1
-    AND (exitdate >= '2014-10-01' OR schoolid = 999999)
+    AND (exitdate >= '2015-10-01' OR schoolid = 999999)
  )
 
-SELECT dbo.fn_Global_Academic_Year() AS academic_year
+SELECT 2015 AS academic_year
       ,co.SCHOOLID
       ,co.GRADE_LEVEL
       ,'ENR' AS category
       ,'current' AS measure
-      ,SUM(CASE WHEN co.EXITDATE >= GETDATE() THEN 1 ELSE 0 END) AS N
+      ,SUM(CASE WHEN co.EXITDATE >= CONVERT(DATE,GETDATE()) THEN 1 ELSE 0 END) AS N
       ,transf.pct      
 FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN (
@@ -40,7 +40,7 @@ LEFT OUTER JOIN (
                 ) transf
   ON co.schoolid = transf.schoolid
  AND co.grade_level = transf.grade_level
-WHERE co.year = dbo.fn_Global_Academic_Year()
+WHERE co.year = 2015
   AND co.rn = 1
   AND co.SCHOOLID != 999999
 GROUP BY co.SCHOOLID
@@ -50,7 +50,7 @@ GROUP BY co.SCHOOLID
 UNION ALL
 
 -- lunch status counts and %
-SELECT dbo.fn_Global_Academic_Year() AS academic_year
+SELECT 2015 AS academic_year
       ,SCHOOLID
       ,GRADE_LEVEL
       ,category
@@ -76,7 +76,7 @@ GROUP BY SCHOOLID
 UNION ALL
 
 -- SPED numbers
-SELECT dbo.fn_Global_Academic_Year() AS academic_year
+SELECT 2015 AS academic_year
       ,SCHOOLID
       ,GRADE_LEVEL
       ,category

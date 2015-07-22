@@ -85,10 +85,11 @@ SELECT co.schoolid
       ,s.CITY
       ,s.STATE
       ,s.ZIP  
-      ,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunchstatus END AS lunchstatus
-      /*,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunchstatus END AS lunchstatus*/      
-      
-      ,cs.SID
+      ,lunch.lunchstatus
+      --,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunchstatus END AS lunchstatus
+      /*,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunchstatus END AS lunchstatus*/            
+      ,s.state_studentnumber AS SID
+
       ,COALESCE(hs_advisor.advisor, cs.ADVISOR) AS advisor
       ,cs.ADVISOR_CELL
       ,cs.ADVISOR_EMAIL

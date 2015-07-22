@@ -49,4 +49,5 @@ LEFT OUTER JOIN PEOPLE$ADP_PS_linking ps WITH(NOLOCK)
  AND ps.is_master = 1
 LEFT OUTER JOIN enrollments enr WITH(NOLOCK)
   ON ps.TEACHERNUMBER = enr.teachernumber
-WHERE rn_curr = 1
+WHERE adp.rn_curr = 1
+  AND adp.job_title != 'Intern'
