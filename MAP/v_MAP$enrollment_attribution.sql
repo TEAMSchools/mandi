@@ -32,34 +32,28 @@ WITH es_hr AS
    ),
    ms_subj AS (
    SELECT ms_base.*
-         ,cc.academic_year
-         ,cc.course_number
-         ,t.lastfirst AS teacher
+         ,ce.academic_year
+         ,ce.course_number
+         ,ce.teacher_name AS teacher
          ,CASE 
-            WHEN c.credittype = 'MATH' THEN 'Mathematics'
-            WHEN c.credittype = 'ENG' THEN 'Reading'
-            WHEN c.credittype = 'RHET' THEN 'Language Usage'
-            WHEN c.credittype = 'SCI' THEN 'General Science'
+            WHEN ce.credittype = 'MATH' THEN 'Mathematics'
+            WHEN ce.credittype = 'ENG' THEN 'Reading'
+            WHEN ce.credittype = 'RHET' THEN 'Language Usage'
+            WHEN ce.credittype = 'SCI' THEN 'General Science'
           END AS join_subj
          ,ROW_NUMBER() OVER
-           (PARTITION BY ms_base.studentid, cc.academic_year, cc.course_number
-            ORDER BY cc.dateleft DESC
+           (PARTITION BY ms_base.studentid, ce.academic_year, ce.course_number
+            ORDER BY ce.dateleft DESC
            ) AS rn_decode
          ,ROW_NUMBER() OVER
-           (PARTITION BY ms_base.studentid, cc.academic_year, c.credittype
-            ORDER BY c.credit_hours DESC, cc.dateleft DESC
+           (PARTITION BY ms_base.studentid, ce.academic_year, ce.credittype
+            ORDER BY ce.credit_hours DESC, ce.dateleft DESC
            ) AS rn_credittype
    FROM ms_base
-   JOIN KIPP_NJ..CC
-     ON ms_base.studentid = cc.studentid
-    AND ms_base.year = cc.academic_year
-   JOIN KIPP_NJ..SECTIONS sect 
-     ON cc.sectionid = sect.id
-   JOIN KIPP_NJ..TEACHERS t
-     ON sect.teacher = t.id
-   JOIN KIPP_NJ..COURSES c
-     ON sect.course_number = c.course_number
-    AND c.credittype IN ('ENG', 'MATH', 'RHET', 'SCI')
+   JOIN PS$course_enrollments#static ce
+     ON ms_base.studentid = ce.studentid
+    AND ce.credittype IN ('ENG', 'MATH', 'RHET', 'SCI')
+    AND ce.drop_flags = 0
    ),
    ms_subj_slim AS 
   (SELECT studentid,
