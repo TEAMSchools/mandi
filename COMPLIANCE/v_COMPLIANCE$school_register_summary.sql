@@ -36,6 +36,7 @@ WITH schooldays AS (
 SELECT sub.academic_year
       ,sub.studentid
       ,co.SID
+      ,co.lastfirst
       ,sub.region
       ,sub.SCHOOLID
       ,co.grade_level

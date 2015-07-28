@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW COMPLIANCE$civil_rights_data_collection AS 
+--ALTER VIEW COMPLIANCE$civil_rights_data_collection AS 
 
 WITH pt1_roster AS (
   SELECT co.studentid
@@ -126,7 +126,7 @@ SELECT 'SCH_ENR_' + ethnicity + '_' + GENDER AS field_name
 FROM pt1_roster WITH(NOLOCK)
 GROUP BY ethnicity
         ,GENDER
-
+--/*
 UNION ALL
 
 SELECT 'SCH_ENR_' + IDEA + '_' + GENDER AS field_name
@@ -460,3 +460,5 @@ WHERE OSS > 1
   AND [504_status] = '504'
 GROUP BY GENDER       
         ,[504_status]
+        
+--*/
