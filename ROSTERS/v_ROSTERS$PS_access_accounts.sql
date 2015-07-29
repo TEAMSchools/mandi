@@ -44,6 +44,8 @@ SELECT STUDENT_NUMBER
         ELSE LOWER(school_name) + '1'
        END AS student_web_password
       ,uses_alt
+      ,base_dupe_audit
+      ,alt_dupe_audit
 FROM
     (
      SELECT STUDENT_NUMBER
@@ -83,7 +85,7 @@ FROM
                   AS alt_username
                 ,ROW_NUMBER() OVER(
                   PARTITION BY last_name_clean + dob_month + dob_day
-                    ORDER BY first_name_clean) AS base_dupe_audit           
+                    ORDER BY student_number) AS base_dupe_audit           
           FROM clean_names         
          ) sub
     ) sub
