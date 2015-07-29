@@ -3,13 +3,13 @@ GO
 
 ALTER VIEW ROSTERS$GApp_students AS
 
-SELECT co.first_name AS firstname
+SELECT co.student_number
+      ,co.first_name AS firstname
       ,co.last_name AS lastname      
-      ,REPLACE(s.STUDENT_WEB_ID,'.student','') + '@teamstudents.org' AS orig_email
-      ,co.STUDENT_WEB_PASSWORD + 'gap' AS password      
+      ,acct.student_web_id + '@teamstudents.org' AS email
+      ,acct.STUDENT_WEB_PASSWORD AS password 
       ,CASE WHEN co.enroll_status = 0 THEN 'off' ELSE 'on' END AS suspended
-      ,'/Students/' + CASE WHEN co.enroll_status = 0 THEN co.school_name ELSE 'Disabled' END AS org
-      ,acct.student_web_id + '@teamstudents.org' AS update_email
+      ,'/Students/' + CASE WHEN co.enroll_status = 0 THEN co.school_name ELSE 'Disabled' END AS org      
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   ON co.student_number = s.STUDENT_NUMBER
