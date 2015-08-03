@@ -1,30 +1,28 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW COMPLIANCE$civil_rights_data_collection AS 
+ALTER VIEW COMPLIANCE$civil_rights_data_collection AS 
 
 WITH pt1_roster AS (
+  /* only 10/15 students */
   SELECT co.studentid
         ,co.STUDENT_NUMBER
         ,CASE 
           WHEN co.grade_level = 0 THEN 'KG'
           ELSE 'G' + RIGHT('0' + CONVERT(VARCHAR,co.grade_level), 2)
          END AS grade_level
-        ,s.GENDER
+        ,co.GENDER        
         ,CASE
-          WHEN s.ETHNICITY = 'B' THEN 'BL'
-          WHEN s.ETHNICITY = 'H' THEN 'HI'
-          WHEN s.ETHNICITY = 'T' THEN 'TR'
-          WHEN s.ETHNICITY = 'W' THEN 'WH'
+          WHEN co.ETHNICITY = 'B' THEN 'BL'
+          WHEN co.ETHNICITY = 'H' THEN 'HI'
+          WHEN co.ETHNICITY = 'T' THEN 'TR'
+          WHEN co.ETHNICITY = 'W' THEN 'WH'
          END AS ethnicity
-        ,CASE WHEN cs.SPEDLEP LIKE '%SPED%' THEN 'IDEA' ELSE NULL END AS IDEA
-        ,CASE WHEN cs.SPEDLEP = 'LEP' THEN 'LEP' ELSE NULL END AS LEP
-        ,CASE WHEN cs.STATUS_504 = 1 THEN '504' ELSE NULL END AS [504_status]
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  JOIN STUDENTS s WITH(NOLOCK)
-    ON co.studentid = s.id
-  JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-    ON co.studentid = cs.STUDENTID  
+        ,CASE WHEN co.SPEDLEP LIKE '%SPED%' THEN 'IDEA' ELSE NULL END AS IDEA
+        ,CASE WHEN co.SPEDLEP = 'LEP' THEN 'LEP' ELSE NULL END AS LEP
+        ,CASE WHEN co.STATUS_504 = 1 THEN '504' ELSE NULL END AS [504_status]
+        ,co.retained_yr_flag AS is_retained
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   WHERE co.year = 2013
     AND co.grade_level < 99
     AND co.entrydate <= '2013-10-15'
@@ -32,39 +30,25 @@ WITH pt1_roster AS (
  )
 
 ,pt2_roster AS (
+  /* only 10/15 students */
   SELECT co.studentid
         ,co.STUDENT_NUMBER
         ,CASE 
           WHEN co.grade_level = 0 THEN 'KG'
           ELSE 'G' + RIGHT('0' + CONVERT(VARCHAR,co.grade_level), 2)
          END AS grade_level        
-        ,s.GENDER
+        ,co.GENDER
         ,CASE
-          WHEN s.ETHNICITY = 'B' THEN 'BL'
-          WHEN s.ETHNICITY = 'H' THEN 'HI'
-          WHEN s.ETHNICITY = 'T' THEN 'TR'
-          WHEN s.ETHNICITY = 'W' THEN 'WH'
+          WHEN co.ETHNICITY = 'B' THEN 'BL'
+          WHEN co.ETHNICITY = 'H' THEN 'HI'
+          WHEN co.ETHNICITY = 'T' THEN 'TR'
+          WHEN co.ETHNICITY = 'W' THEN 'WH'
          END AS ethnicity
-        ,CASE WHEN cs.SPEDLEP LIKE '%SPED%' THEN 'IDEA' ELSE NULL END AS IDEA
-        ,CASE WHEN cs.SPEDLEP = 'LEP' THEN 'LEP' ELSE NULL END AS LEP
-        ,CASE WHEN cs.STATUS_504 = 1 THEN '504' ELSE NULL END AS [504_status]        
-        ,CASE 
-          WHEN co.grade_level < next_yr.grade_level THEN 0
-          WHEN co.grade_level = next_yr.grade_level THEN 1          
-          WHEN blobs.transfercomment LIKE '%Retained%' THEN 1 
-          ELSE 0 
-         END AS is_retained
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  LEFT OUTER JOIN COHORT$comprehensive_long#static next_yr WITH(NOLOCK)
-    ON co.year = (next_yr.year - 1)
-   AND co.studentid = next_yr.studentid
-   AND next_yr.rn = 1
-  JOIN STUDENTS s WITH(NOLOCK)
-    ON co.studentid = s.id
-  JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-    ON co.studentid = cs.STUDENTID
-  LEFT OUTER JOIN PS$student_BLObs#static blobs WITH(NOLOCK)
-    ON co.studentid = blobs.studentid
+        ,CASE WHEN co.SPEDLEP LIKE '%SPED%' THEN 'IDEA' ELSE NULL END AS IDEA
+        ,CASE WHEN co.SPEDLEP = 'LEP' THEN 'LEP' ELSE NULL END AS LEP
+        ,CASE WHEN co.STATUS_504 = 1 THEN '504' ELSE NULL END AS [504_status]        
+        ,co.retained_yr_flag AS is_retained
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
   WHERE co.year = 2013
     AND co.grade_level < 99    
     AND co.rn = 1
@@ -72,7 +56,7 @@ WITH pt1_roster AS (
 
 ,abs_count AS (
   SELECT r.*
-        ,COUNT(mem.CALENDARDATE) AS abs_count
+        ,COUNT(mem.studentid) AS abs_count
   FROM pt2_roster r WITH(NOLOCK)
   LEFT OUTER JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
     ON r.studentid = mem.STUDENTID
@@ -118,6 +102,45 @@ WITH pt1_roster AS (
           ,r.[504_status]
           ,r.is_retained
           ,oss.OSS
+ )
+
+,enrollments AS (
+  SELECT STUDENTID      
+        ,termid
+        ,CASE WHEN CREDITTYPE NOT IN ('MATH','SCI') THEN 'OTH' ELSE CREDITTYPE END AS credittype
+        ,COURSE_NUMBER
+        ,COURSE_NAME
+        ,CASE
+          WHEN COURSE_NUMBER IN ('MATH10', 'MATH15', 'M400', 'M310', 'M405', 'M415') THEN 'ALG'
+          WHEN COURSE_NUMBER IN ('MATH20', 'MATH25', 'MATH22', 'MATH73', 'MATH72') THEN 'GEOM'
+          WHEN COURSE_NUMBER IN ('MATH32', 'MATH35') THEN 'ALG2'        
+          WHEN COURSE_NUMBER IN ('MATH40', 'MATH44', 'MATH33') THEN 'ADVM'
+          WHEN COURSE_NUMBER IN ('MATH42', 'MATH46') THEN 'CALC'        
+          WHEN COURSE_NUMBER IN ('Sci900','Sci901','SCI110','SCI410','SCI20','SCI25') THEN 'BIOL'
+          WHEN COURSE_NUMBER IN ('SCI1000','SCI30','SCI35','SCI45','SCI32','SCI33') THEN 'CHEM'        
+          WHEN COURSE_NUMBER IN ('SCI31', 'SCI36', 'SCI46') THEN 'PHYS'                    
+         END AS course_shorthand
+        ,CASE WHEN COURSE_NUMBER IN ('MATH46','MATH45','FREN45','SPAN45','ENG45','ENG410','SCI40','SCI46') THEN 1 ELSE 0 END AS is_AP
+        ,ROW_NUMBER() OVER(
+          PARTITION BY studentid, course_number
+            ORDER BY dateleft DESC) AS rn_dupes
+  FROM KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
+  WHERE enr.academic_year = 2013
+    AND drop_flags = 0
+    AND COURSE_NUMBER IN ('MATH10', 'MATH15', 'M400', 'M310', 'M405', 'M415' -- Algebra I                   
+                         ,'MATH32', 'MATH35' -- Algebra II
+                         ,'MATH20', 'MATH25', 'MATH22', 'MATH73', 'MATH72' -- Geometry
+                         ,'MATH40', 'MATH44', 'MATH33' -- Advanced Math
+                         ,'MATH42', 'MATH46' -- Calculus	
+                         ,'MATH45', 'MATH46' -- AP Math	
+                         --
+                         ,'Sci900','Sci901','SCI110','SCI410','SCI20','SCI25' -- Biology
+                         ,'SCI1000','SCI30','SCI35','SCI45','SCI32','SCI33' -- Chemistry
+                         ,'SCI31', 'SCI36', 'SCI46' -- Physics
+                         ,'SCI40', 'SCI46' -- AP Sci	
+                         --
+                         ,'MATH46', 'MATH45', 'FREN45', 'SPAN45', 'ENG45', 'ENG410', 'SCI40', 'SCI46','SCI410' -- AP Courses
+                         )
  )
 
 --Overall Student Enrollment
@@ -461,4 +484,309 @@ WHERE OSS > 1
 GROUP BY GENDER       
         ,[504_status]
         
---*/
+UNION ALL
+
+/* Students who passed Algebra I in grade... */
+-- by ethnicity
+SELECT 'SCH_ALGPASS_'
+         + CASE
+            WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+            WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+            WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+           END + '_'
+         + r.ethnicity + '_'
+         + r.GENDER AS field_name
+      ,COUNT(gr.studentid) AS N
+FROM KIPP_NJ..GRADES$STOREDGRADES#static gr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON gr.STUDENTID = r.studentid
+WHERE gr.academic_year = 2013
+  AND gr.COURSE_NUMBER IN ('MATH10','MATH15','M400','M310','M405','M415')
+  AND gr.STORECODE = 'Y1'
+  AND GRADE NOT LIKE 'F%'
+GROUP BY CASE
+          WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+          WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+          WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+         END 
+        ,r.ethnicity
+        ,r.gender
+UNION ALL
+-- by SPED
+SELECT 'SCH_ALGPASS_'
+         + CASE
+            WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+            WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+            WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+           END + '_'
+         + r.IDEA + '_'
+         + r.GENDER AS field_name
+      ,COUNT(gr.studentid) AS N
+FROM KIPP_NJ..GRADES$STOREDGRADES#static gr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON gr.STUDENTID = r.studentid
+ AND r.IDEA = 'IDEA'
+WHERE gr.academic_year = 2013
+  AND gr.COURSE_NUMBER IN ('MATH10','MATH15','M400','M310','M405','M415')
+  AND gr.STORECODE = 'Y1'
+  AND GRADE NOT LIKE 'F%'
+GROUP BY CASE
+          WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+          WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+          WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+         END 
+        ,r.IDEA
+        ,r.gender
+UNION ALL
+-- by LEP
+SELECT 'SCH_ALGPASS_'
+         + CASE
+            WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+            WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+            WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+           END + '_'
+         + r.LEP + '_'
+         + r.GENDER AS field_name
+      ,COUNT(gr.studentid) AS N
+FROM KIPP_NJ..GRADES$STOREDGRADES#static gr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON gr.STUDENTID = r.studentid
+ AND r.LEP = 'LEP'
+WHERE gr.academic_year = 2013
+  AND gr.COURSE_NUMBER IN ('MATH10','MATH15','M400','M310','M405','M415')
+  AND gr.STORECODE = 'Y1'
+  AND GRADE NOT LIKE 'F%'
+GROUP BY CASE
+          WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+          WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+          WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+         END 
+        ,r.LEP
+        ,r.gender
+
+UNION ALL
+
+/* Students enrolled in Algebra I in grade... */
+-- by ethnicity
+SELECT 'SCH_ALGENR_'
+         + CASE
+            WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+            WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+            WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+           END + '_'
+         + r.ethnicity + '_'
+         + r.GENDER AS field_name
+      ,COUNT(enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+WHERE enr.rn_dupes = 1
+  AND enr.course_shorthand = 'ALG'
+GROUP BY CASE
+          WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+          WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+          WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+         END 
+        ,r.ethnicity
+        ,r.gender
+UNION ALL
+-- by SPED
+SELECT 'SCH_ALGENR_'
+         + CASE
+            WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+            WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+            WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+           END + '_'
+         + r.IDEA + '_'
+         + r.GENDER AS field_name
+      ,COUNT(enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+ AND r.IDEA = 'IDEA'
+WHERE enr.rn_dupes = 1
+  AND enr.course_shorthand = 'ALG'  
+GROUP BY CASE
+          WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+          WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+          WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+         END 
+        ,r.IDEA
+        ,r.gender
+UNION ALL
+-- by LEP
+SELECT 'SCH_ALGENR_'
+         + CASE
+            WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+            WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+            WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+           END + '_'
+         + r.LEP + '_'
+         + r.GENDER AS field_name
+      ,COUNT(enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+ AND r.LEP = 'LEP'
+WHERE enr.rn_dupes = 1
+  AND enr.course_shorthand = 'ALG'  
+GROUP BY CASE
+          WHEN r.grade_level IN ('G07','G08') THEN 'GS0708'
+          WHEN r.grade_level IN ('G09','G10') THEN 'GS0910'
+          WHEN r.grade_level IN ('G11','G12') THEN 'GS1112'
+         END 
+        ,r.LEP
+        ,r.gender
+
+UNION ALL
+
+/* Students enrolled in at least one AP course */
+-- by ethnicity
+SELECT 'SCH_APENR_'
+         + r.ethnicity + '_'
+         + r.GENDER AS field_name
+      ,COUNT(DISTINCT enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+WHERE enr.rn_dupes = 1
+  AND enr.is_AP = 1
+GROUP BY r.ethnicity
+        ,r.gender        
+UNION ALL
+-- by SPED
+SELECT 'SCH_APENR_'
+         + r.IDEA + '_'
+         + r.GENDER AS field_name
+      ,COUNT(DISTINCT enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+ AND r.IDEA = 'IDEA'
+WHERE enr.rn_dupes = 1
+  AND enr.is_AP = 1
+GROUP BY r.IDEA
+        ,r.gender        
+UNION ALL
+-- by LEP
+SELECT 'SCH_APENR_'
+         + r.LEP + '_'
+         + r.GENDER AS field_name
+      ,COUNT(DISTINCT enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+ AND r.LEP = 'LEP'
+WHERE enr.rn_dupes = 1
+  AND enr.is_AP = 1
+GROUP BY r.LEP
+        ,r.gender        
+
+UNION ALL
+
+/* Students enrolled AP courses by subject */
+-- by ethnicity
+SELECT 'SCH_AP' + enr.credittype + 'ENR_'
+         + r.ethnicity + '_'
+         + r.GENDER AS field_name
+      ,COUNT(enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+WHERE enr.rn_dupes = 1
+  AND enr.is_AP = 1
+GROUP BY r.ethnicity
+        ,r.gender
+        ,enr.credittype
+UNION ALL
+-- by SPED
+SELECT 'SCH_AP' + enr.credittype + 'ENR_'
+         + r.IDEA + '_'
+         + r.GENDER AS field_name
+      ,COUNT(enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+ AND r.IDEA = 'IDEA'
+WHERE enr.rn_dupes = 1
+  AND enr.is_AP = 1
+GROUP BY r.IDEA
+        ,r.gender
+        ,enr.credittype
+UNION ALL
+-- by LEP
+SELECT 'SCH_AP' + enr.credittype + 'ENR_'
+         + r.LEP + '_'
+         + r.GENDER AS field_name
+      ,COUNT(enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+ AND r.LEP = 'LEP'
+WHERE enr.rn_dupes = 1
+  AND enr.is_AP = 1
+GROUP BY r.LEP
+        ,r.gender
+        ,enr.credittype
+
+UNION ALL
+
+/* Students enrolled in... */
+-- by ethnicity
+SELECT 'SCH_' 
+         + CASE 
+            WHEN enr.course_shorthand = 'GEOM' THEN 'GEOMENR_GS0712_'
+            ELSE enr.credittype + 'ENR_' + enr.course_shorthand + '_'
+           END
+         + r.ethnicity + '_'
+         + r.GENDER AS field_name
+      ,COUNT(enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+WHERE enr.rn_dupes = 1  
+  AND enr.course_shorthand IS NOT NULL
+GROUP BY r.ethnicity
+        ,r.gender        
+        ,enr.course_shorthand
+        ,enr.credittype
+UNION ALL
+-- by SPED
+SELECT 'SCH_' 
+         + CASE 
+            WHEN enr.course_shorthand = 'GEOM' THEN 'GEOMENR_GS0712_'
+            ELSE enr.credittype + 'ENR_' + enr.course_shorthand + '_'
+           END
+         + r.IDEA + '_'
+         + r.GENDER AS field_name
+      ,COUNT(enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+ AND r.IDEA = 'IDEA'
+WHERE enr.rn_dupes = 1  
+  AND enr.course_shorthand IS NOT NULL
+GROUP BY r.IDEA
+        ,r.gender        
+        ,enr.course_shorthand
+        ,enr.credittype
+UNION ALL
+-- by LEP
+SELECT 'SCH_' 
+         + CASE 
+            WHEN enr.course_shorthand = 'GEOM' THEN 'GEOMENR_GS0712_'
+            ELSE enr.credittype + 'ENR_' + enr.course_shorthand + '_'
+           END
+         + r.LEP + '_'
+         + r.GENDER AS field_name
+      ,COUNT(enr.studentid) AS N
+FROM enrollments enr WITH(NOLOCK)
+JOIN pt2_roster r
+  ON enr.STUDENTID = r.studentid
+ AND r.LEP = 'LEP'
+WHERE enr.rn_dupes = 1  
+  AND enr.course_shorthand IS NOT NULL
+GROUP BY r.LEP
+        ,r.gender        
+        ,enr.course_shorthand
+        ,enr.credittype

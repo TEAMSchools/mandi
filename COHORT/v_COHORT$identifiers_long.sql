@@ -98,6 +98,7 @@ SELECT co.schoolid
       ,cs.DEFAULT_FAMILY_WEB_ID AS FAMILY_WEB_ID
       ,cs.DEFAULT_FAMILY_WEB_PASSWORD AS FAMILY_WEB_PASSWORD
       ,cs.LUNCH_BALANCE      
+      ,cs.STATUS_504
       ,cs.LEP_STATUS
       ,cs.NEWARK_ENROLLMENT_NUMBER
       ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE COALESCE(sped.SPEDLEP, cs.spedlep) END AS SPEDLEP
