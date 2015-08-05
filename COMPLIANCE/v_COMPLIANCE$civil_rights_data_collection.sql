@@ -111,65 +111,48 @@ WITH pt1_roster AS (
         ,COURSE_NUMBER
         ,COURSE_NAME
         ,CASE
-          WHEN COURSE_NUMBER IN ('MATH10', 'MATH15', 'M400', 'M310', 'M405', 'M415') THEN 'ALG'
-          WHEN COURSE_NUMBER IN ('MATH20', 'MATH25', 'MATH22', 'MATH73', 'MATH72') THEN 'GEOM'
-          WHEN COURSE_NUMBER IN ('MATH32', 'MATH35') THEN 'ALG2'        
-          WHEN COURSE_NUMBER IN ('MATH40', 'MATH44', 'MATH33') THEN 'ADVM'
-          WHEN COURSE_NUMBER IN ('MATH42', 'MATH46') THEN 'CALC'        
-          WHEN COURSE_NUMBER IN ('Sci900','Sci901','SCI110','SCI410','SCI20','SCI25') THEN 'BIOL'
-          WHEN COURSE_NUMBER IN ('SCI1000','SCI30','SCI35','SCI45','SCI32','SCI33') THEN 'CHEM'        
-          WHEN COURSE_NUMBER IN ('SCI31', 'SCI36', 'SCI46') THEN 'PHYS'                    
+          WHEN COURSE_NUMBER IN ('M310','M400','M405','M415','MATH10') THEN 'ALG'
+          WHEN COURSE_NUMBER IN ('MATH20','MATH22','MATH25','MATH73') THEN 'GEOM'
+          WHEN COURSE_NUMBER IN ('MATH32','MATH35') THEN 'ALG2'        
+          WHEN COURSE_NUMBER IN ('MATH40','MATH44','MATH45') THEN 'ADVM'
+          WHEN COURSE_NUMBER IN ('MATH42') THEN 'CALC'        
+          WHEN COURSE_NUMBER IN ('SCI20','SCI25') THEN 'BIOL'
+          WHEN COURSE_NUMBER IN ('SCI30','SCI35') THEN 'CHEM'        
+          WHEN COURSE_NUMBER IN ('SCI31','SCI36') THEN 'PHYS'                    
          END AS course_shorthand
-        ,CASE WHEN COURSE_NUMBER IN ('MATH46','MATH45','FREN45','SPAN45','ENG45','ENG410','SCI40','SCI46') THEN 1 ELSE 0 END AS is_AP
+        ,CASE WHEN COURSE_NUMBER IN ('MATH45','ENG45','FREN45','HIST25','HIST35') THEN 1 ELSE 0 END AS is_AP
         ,ROW_NUMBER() OVER(
           PARTITION BY studentid, course_number
             ORDER BY dateleft DESC) AS rn_dupes
   FROM KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   WHERE enr.academic_year = 2013
     AND drop_flags = 0
-    AND COURSE_NUMBER IN ('MATH10', 'MATH15', 'M400', 'M310', 'M405', 'M415' -- Algebra I                   
-                         ,'MATH32', 'MATH35' -- Algebra II
-                         ,'MATH20', 'MATH25', 'MATH22', 'MATH73', 'MATH72' -- Geometry
-                         ,'MATH40', 'MATH44', 'MATH33' -- Advanced Math
-                         ,'MATH42', 'MATH46' -- Calculus	
-                         ,'MATH45', 'MATH46' -- AP Math	
-                         --
-                         ,'Sci900','Sci901','SCI110','SCI410','SCI20','SCI25' -- Biology
-                         ,'SCI1000','SCI30','SCI35','SCI45','SCI32','SCI33' -- Chemistry
-                         ,'SCI31', 'SCI36', 'SCI46' -- Physics
-                         ,'SCI40', 'SCI46' -- AP Sci	
-                         --
-                         ,'MATH46', 'MATH45', 'FREN45', 'SPAN45', 'ENG45', 'ENG410', 'SCI40', 'SCI46','SCI410' -- AP Courses
-                         )
+    AND COURSE_NUMBER IN ('ENG45','FREN45','HIST25','HIST35','M310','M400','M405','M415','MATH10','MATH20','MATH22','MATH25'
+                         ,'MATH32','MATH35','MATH40','MATH42','MATH44','MATH45','MATH73','SCI20','SCI25','SCI30','SCI31'
+                         ,'SCI35','SCI36','SCI40','SCI41','SCI43')
  )
 
---Overall Student Enrollment
+/* Overall Student Enrollment */
 SELECT 'SCH_ENR_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM pt1_roster WITH(NOLOCK)
 GROUP BY ethnicity
         ,GENDER
---/*
 UNION ALL
-
 SELECT 'SCH_ENR_' + IDEA + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM pt1_roster WITH(NOLOCK)
 WHERE IDEA = 'IDEA'
 GROUP BY IDEA
         ,GENDER
-
 UNION ALL
-
 SELECT 'SCH_ENR_' + [504_status] + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM pt1_roster WITH(NOLOCK)
 WHERE [504_status] = '504'
 GROUP BY [504_status]
         ,GENDER
-
 UNION ALL
-
 SELECT 'SCH_ENR_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM pt1_roster WITH(NOLOCK)
@@ -185,16 +168,14 @@ UNION ALL
 --Students Enrolled in LEP Programs
 /* SKIPPED - All should be 0 */
 
--- Students with disabilities served under IDEA
+/* Students with disabilities served under IDEA */
 SELECT 'SCH_IDEAENR_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM pt1_roster WITH(NOLOCK)
 WHERE IDEA = 'IDEA'
 GROUP BY ethnicity
         ,GENDER
-
 UNION ALL
-
 SELECT 'SCH_IDEAENR_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM pt1_roster WITH(NOLOCK)
@@ -205,16 +186,14 @@ GROUP BY LEP
 
 UNION ALL
 
--- Students with disabilities served under Section 504 of the Rehabilitation Act of 1973, but not served  under IDEA
+/* Students with disabilities served under Section 504 of the Rehabilitation Act of 1973, but not served  under IDEA */
 SELECT 'SCH_504ENR_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM pt1_roster WITH(NOLOCK)
 WHERE [504_status] = '504'
 GROUP BY ethnicity
         ,GENDER
-
 UNION ALL
-
 SELECT 'SCH_504ENR_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM pt1_roster WITH(NOLOCK)
@@ -225,7 +204,7 @@ GROUP BY LEP
 
 UNION ALL
 
--- Students who were retained in Grade X
+/* Students who were retained in Grade X */
 SELECT 'SCH_RET_' + grade_level + '_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM pt2_roster WITH(NOLOCK)
@@ -233,9 +212,7 @@ WHERE is_retained = 1
 GROUP BY ethnicity
         ,GENDER
         ,grade_level
-
 UNION ALL
-
 SELECT 'SCH_RET_' + grade_level + '_' + IDEA + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM pt2_roster WITH(NOLOCK)
@@ -244,9 +221,7 @@ WHERE IDEA = 'IDEA'
 GROUP BY IDEA
         ,GENDER
         ,grade_level
-
 UNION ALL
-
 SELECT 'SCH_RET_' + grade_level + '_' + [504_status] + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM pt2_roster WITH(NOLOCK)
@@ -255,9 +230,7 @@ WHERE [504_status] = '504'
 GROUP BY [504_status]
         ,GENDER
         ,grade_level
-
 UNION ALL
-
 SELECT 'SCH_RET_' + grade_level + '_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM pt2_roster WITH(NOLOCK)
@@ -269,7 +242,7 @@ GROUP BY LEP
 
 UNION ALL
 
--- Student Retention Indicator (1 = Yes, 0 = No)
+/* Student Retention Indicator (1 = Yes, 0 = No) */
 SELECT 'SCH_RET_' + grade_level + '_IND' AS field_name
       ,CASE WHEN COUNT(studentid) > 0 THEN 1 ELSE 0 END AS N
 FROM pt2_roster WITH(NOLOCK)
@@ -278,16 +251,14 @@ GROUP BY grade_level
 
 UNION ALL
 
--- Chronic Student Absenteeism - Students absent 15 or more school days during school year
+/* Chronic Student Absenteeism - Students absent 15 or more school days during school year */
 SELECT 'SCH_ABSENT_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM abs_count WITH(NOLOCK)
 WHERE abs_count >= 15
 GROUP BY ethnicity
         ,GENDER        
-
 UNION ALL
-
 SELECT 'SCH_ABSENT_' + IDEA + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM abs_count WITH(NOLOCK)
@@ -295,9 +266,7 @@ WHERE IDEA = 'IDEA'
   AND abs_count >= 15
 GROUP BY IDEA
         ,GENDER        
-
 UNION ALL
-
 SELECT 'SCH_ABSENT_' + [504_status] + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM abs_count WITH(NOLOCK)
@@ -305,9 +274,7 @@ WHERE [504_status] = '504'
   AND abs_count >= 15
 GROUP BY [504_status]
         ,GENDER        
-
 UNION ALL
-
 SELECT 'SCH_ABSENT_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM abs_count WITH(NOLOCK)
@@ -318,7 +285,7 @@ GROUP BY LEP
 
 UNION ALL
 
--- Students without disabilities who received one or more in-school suspensions
+/* Students without disabilities who received one or more in-school suspensions */
 SELECT 'SCH_DISCWODIS_ISS_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -327,9 +294,7 @@ WHERE ISS >= 1
   AND [504_status] IS NULL
 GROUP BY ethnicity
         ,GENDER        
-
 UNION ALL
-
 SELECT 'SCH_DISCWODIS_ISS_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -342,7 +307,7 @@ GROUP BY LEP
 
 UNION ALL
 
--- Students without disabilities who received only one out-of-school suspension
+/* Students without disabilities who received only one out-of-school suspension */
 SELECT 'SCH_DISCWODIS_SINGOOS_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -351,9 +316,7 @@ WHERE OSS = 1
   AND [504_status] IS NULL
 GROUP BY ethnicity
         ,GENDER        
-
 UNION ALL
-
 SELECT 'SCH_DISCWODIS_SINGOOS_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -366,7 +329,7 @@ GROUP BY LEP
 
 UNION ALL
 
--- Students without disabilities who received more than one out-of-school suspension
+/* Students without disabilities who received more than one out-of-school suspension */
 SELECT 'SCH_DISCWODIS_MULTIOOS_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -375,9 +338,7 @@ WHERE OSS > 1
   AND [504_status] IS NULL
 GROUP BY ethnicity
         ,GENDER        
-
 UNION ALL
-
 SELECT 'SCH_DISCWODIS_MULTIOOS_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -390,7 +351,7 @@ GROUP BY LEP
 
 UNION ALL
 
--- Students WITH disabilities who received one or more in-school suspensions
+/* Students WITH disabilities who received one or more in-school suspensions */
 SELECT 'SCH_DISCWDIS_ISS_IDEA_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -398,9 +359,7 @@ WHERE ISS >= 1
   AND IDEA = 'IDEA'
 GROUP BY ethnicity
         ,GENDER        
-
 UNION ALL
-
 SELECT 'SCH_DISCWDIS_ISS_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -409,9 +368,7 @@ WHERE ISS >= 1
   AND LEP = 'LEP'  
 GROUP BY LEP
         ,GENDER
-
 UNION ALL
-
 SELECT 'SCH_DISCWDIS_ISS_' + [504_status] + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -422,7 +379,7 @@ GROUP BY GENDER
 
 UNION ALL
 
--- Students WITH disabilities who received only one out-of-school suspension
+/* Students WITH disabilities who received only one out-of-school suspension */
 SELECT 'SCH_DISCWDIS_SINGOOS_IDEA_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -430,9 +387,7 @@ WHERE OSS = 1
   AND IDEA = 'IDEA'
 GROUP BY ethnicity
         ,GENDER        
-
 UNION ALL
-
 SELECT 'SCH_DISCWDIS_SINGOOS_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -441,9 +396,7 @@ WHERE OSS = 1
   AND LEP = 'LEP'  
 GROUP BY LEP
         ,GENDER
-
 UNION ALL
-
 SELECT 'SCH_DISCWDIS_SINGOOS_' + [504_status] + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -454,7 +407,7 @@ GROUP BY GENDER
 
 UNION ALL
 
--- Students WITH disabilities who received more than one out-of-school suspension
+/* Students WITH disabilities who received more than one out-of-school suspension */
 SELECT 'SCH_DISCWDIS_MULTOOS_IDEA_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -462,9 +415,7 @@ WHERE OSS > 1
   AND IDEA = 'IDEA'
 GROUP BY ethnicity
         ,GENDER        
-
 UNION ALL
-
 SELECT 'SCH_DISCWDIS_MULTOOS_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -473,9 +424,7 @@ WHERE OSS > 1
   AND LEP = 'LEP'  
 GROUP BY LEP
         ,GENDER
-
 UNION ALL
-
 SELECT 'SCH_DISCWDIS_MULTOOS_' + [504_status] + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
@@ -790,3 +739,165 @@ GROUP BY r.LEP
         ,r.gender        
         ,enr.course_shorthand
         ,enr.credittype
+
+UNION ALL
+
+/* Student Participation in the SAT Reasoning Test or ACT  */
+-- by ethnicity
+SELECT CONCAT('SCH_SATACT_', r.ethnicity, '_', r.GENDER) AS field_name
+      ,COUNT(DISTINCT satact.student_number) AS N
+FROM pt2_roster r
+JOIN KIPP_NJ..AAA_DELETE$SAT_ACT_participation_20132014 satact WITH(NOLOCK)
+  ON r.student_number = satact.student_number
+ AND (satact.SAT_taken = 'Yes' OR satact.ACT_taken = 'Yes')
+GROUP BY r.ethnicity
+        ,r.GENDER
+UNION ALL
+-- by IDEA
+SELECT CONCAT('SCH_SATACT_', r.IDEA, '_', r.GENDER) AS field_name
+      ,COUNT(DISTINCT satact.student_number) AS N
+FROM pt2_roster r
+JOIN KIPP_NJ..AAA_DELETE$SAT_ACT_participation_20132014 satact WITH(NOLOCK)
+  ON r.student_number = satact.student_number
+ AND (satact.SAT_taken = 'Yes' OR satact.ACT_taken = 'Yes')
+WHERE r.IDEA = 'IDEA'
+GROUP BY r.IDEA
+        ,r.GENDER
+UNION ALL
+-- by IDEA
+SELECT CONCAT('SCH_SATACT_', r.LEP, '_', r.GENDER) AS field_name
+      ,COUNT(DISTINCT satact.student_number) AS N
+FROM pt2_roster r
+JOIN KIPP_NJ..AAA_DELETE$SAT_ACT_participation_20132014 satact WITH(NOLOCK)
+  ON r.student_number = satact.student_number
+ AND (satact.SAT_taken = 'Yes' OR satact.ACT_taken = 'Yes')
+WHERE r.LEP = 'LEP'
+GROUP BY r.LEP
+        ,r.GENDER
+
+UNION ALL
+
+/*
+Students who did not receive a qualifying score on any AP exams for the one or more AP courses enrolled in
+Students who received a qualifying score on one or more AP exams for one or more AP courses enrolled in
+*/
+-- by ethnicity
+SELECT field_name
+      ,COUNT(DISTINCT student_number) AS N
+FROM
+    (
+     SELECT r.student_number
+           ,CONCAT('SCH_APPASS_'
+                  ,CASE WHEN MAX(ap.score) OVER(PARTITION BY r.student_number) >= 3 THEN 'ONEORMORE' ELSE 'NONE' END, '_'
+                  ,r.ethnicity, '_'
+                  ,r.gender) AS field_name
+           
+     FROM pt2_roster r
+     JOIN KIPP_NJ..AAA_DELETE$AP_scores_20132014 ap WITH(NOLOCK)
+       ON r.student_number = ap.student_number
+    ) sub
+GROUP BY field_name
+UNION ALL
+-- by IDEA
+SELECT field_name
+      ,COUNT(DISTINCT student_number) AS N
+FROM
+    (
+     SELECT r.student_number
+           ,CONCAT('SCH_APPASS_'
+                  ,CASE WHEN MAX(ap.score) OVER(PARTITION BY r.student_number) >= 3 THEN 'ONEORMORE' ELSE 'NONE' END, '_'
+                  ,r.IDEA, '_'
+                  ,r.gender) AS field_name
+           
+     FROM pt2_roster r
+     JOIN KIPP_NJ..AAA_DELETE$AP_scores_20132014 ap WITH(NOLOCK)
+       ON r.student_number = ap.student_number
+     WHERE r.IDEA = 'IDEA'
+    ) sub
+GROUP BY field_name
+UNION ALL
+-- by IDEA
+SELECT field_name
+      ,COUNT(DISTINCT student_number) AS N
+FROM
+    (
+     SELECT r.student_number
+           ,CONCAT('SCH_APPASS_'
+                  ,CASE WHEN MAX(ap.score) OVER(PARTITION BY r.student_number) >= 3 THEN 'ONEORMORE' ELSE 'NONE' END, '_'
+                  ,r.LEP, '_'
+                  ,r.gender) AS field_name
+           
+     FROM pt2_roster r
+     JOIN KIPP_NJ..AAA_DELETE$AP_scores_20132014 ap WITH(NOLOCK)
+       ON r.student_number = ap.student_number
+     WHERE r.LEP = 'LEP'
+    ) sub
+GROUP BY field_name
+
+UNION ALL
+
+/*
+Students who took one or more AP exams for one or more AP courses enrolled in
+Students who were enrolled in one or more AP courses but who did not take any AP exams
+*/
+-- by ethnicity
+SELECT field_name
+      ,COUNT(DISTINCT studentid) AS N
+FROM
+    (
+     SELECT enr.STUDENTID
+           ,CONCAT('SCH_APEXAM_'
+                  ,CASE WHEN SUM(CASE WHEN ap.student_number IS NOT NULL THEN 1 ELSE 0 END) OVER(PARTITION BY enr.studentid) > 0 THEN 'ONEORMORE_' ELSE 'NONE_' END
+                  ,r.ethnicity, '_'
+                  ,r.GENDER) AS field_name
+     FROM enrollments enr WITH(NOLOCK)
+     JOIN pt2_roster r
+       ON enr.STUDENTID = r.studentid
+     LEFT OUTER JOIN KIPP_NJ..AAA_DELETE$AP_scores_20132014 ap WITH(NOLOCK)
+       ON r.student_number = ap.student_number 
+     WHERE enr.rn_dupes = 1
+       AND enr.is_AP = 1
+    ) sub
+GROUP BY field_name
+UNION ALL
+-- by IDEA
+SELECT field_name
+      ,COUNT(DISTINCT studentid) AS N
+FROM
+    (
+     SELECT enr.STUDENTID
+           ,CONCAT('SCH_APEXAM_'
+                  ,CASE WHEN SUM(CASE WHEN ap.student_number IS NOT NULL THEN 1 ELSE 0 END) OVER(PARTITION BY enr.studentid) > 0 THEN 'ONEORMORE_' ELSE 'NONE_' END
+                  ,r.IDEA, '_'
+                  ,r.GENDER) AS field_name
+     FROM enrollments enr WITH(NOLOCK)
+     JOIN pt2_roster r
+       ON enr.STUDENTID = r.studentid
+      AND r.IDEA = 'IDEA'
+     LEFT OUTER JOIN KIPP_NJ..AAA_DELETE$AP_scores_20132014 ap WITH(NOLOCK)
+       ON r.student_number = ap.student_number 
+     WHERE enr.rn_dupes = 1
+       AND enr.is_AP = 1
+    ) sub
+GROUP BY field_name
+UNION ALL
+-- by LEP
+SELECT field_name
+      ,COUNT(DISTINCT studentid) AS N
+FROM
+    (
+     SELECT enr.STUDENTID
+           ,CONCAT('SCH_APEXAM_'
+                  ,CASE WHEN SUM(CASE WHEN ap.student_number IS NOT NULL THEN 1 ELSE 0 END) OVER(PARTITION BY enr.studentid) > 0 THEN 'ONEORMORE_' ELSE 'NONE_' END
+                  ,r.LEP, '_'
+                  ,r.GENDER) AS field_name
+     FROM enrollments enr WITH(NOLOCK)
+     JOIN pt2_roster r
+       ON enr.STUDENTID = r.studentid
+      AND r.LEP = 'LEP'
+     LEFT OUTER JOIN KIPP_NJ..AAA_DELETE$AP_scores_20132014 ap WITH(NOLOCK)
+       ON r.student_number = ap.student_number 
+     WHERE enr.rn_dupes = 1
+       AND enr.is_AP = 1
+    ) sub
+GROUP BY field_name
