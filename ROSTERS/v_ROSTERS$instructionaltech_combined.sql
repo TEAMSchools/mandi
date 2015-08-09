@@ -52,4 +52,8 @@ SELECT *
 
 FROM roster
 	
-	
+--ST MATH students
+--ST MATH admins
+--FOLLETT
+--LEXIA	
+--FASTT MATH
