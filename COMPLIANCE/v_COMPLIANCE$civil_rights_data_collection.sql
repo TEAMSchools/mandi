@@ -330,7 +330,7 @@ GROUP BY LEP
 UNION ALL
 
 /* Students without disabilities who received more than one out-of-school suspension */
-SELECT 'SCH_DISCWODIS_MULTIOOS_' + ethnicity + '_' + GENDER AS field_name
+SELECT 'SCH_DISCWODIS_MULTOOS_' + ethnicity + '_' + GENDER AS field_name
       ,COUNT(studentid) AS N
 FROM suspension_count WITH(NOLOCK)
 WHERE OSS > 1
@@ -339,7 +339,7 @@ WHERE OSS > 1
 GROUP BY ethnicity
         ,GENDER        
 UNION ALL
-SELECT 'SCH_DISCWODIS_MULTIOOS_' +  LEP + '_' + GENDER AS field_name
+SELECT 'SCH_DISCWODIS_MULTOOS_' +  LEP + '_' + GENDER AS field_name
       ,COUNT(*) AS N
 FROM suspension_count WITH(NOLOCK)
 WHERE OSS > 1
@@ -695,6 +695,7 @@ JOIN pt2_roster r
   ON enr.STUDENTID = r.studentid
 WHERE enr.rn_dupes = 1  
   AND enr.course_shorthand IS NOT NULL
+  AND enr.course_shorthand != 'ALG'  
 GROUP BY r.ethnicity
         ,r.gender        
         ,enr.course_shorthand
@@ -715,6 +716,7 @@ JOIN pt2_roster r
  AND r.IDEA = 'IDEA'
 WHERE enr.rn_dupes = 1  
   AND enr.course_shorthand IS NOT NULL
+  AND enr.course_shorthand != 'ALG'  
 GROUP BY r.IDEA
         ,r.gender        
         ,enr.course_shorthand
@@ -735,6 +737,7 @@ JOIN pt2_roster r
  AND r.LEP = 'LEP'
 WHERE enr.rn_dupes = 1  
   AND enr.course_shorthand IS NOT NULL
+  AND enr.course_shorthand != 'ALG'  
 GROUP BY r.LEP
         ,r.gender        
         ,enr.course_shorthand

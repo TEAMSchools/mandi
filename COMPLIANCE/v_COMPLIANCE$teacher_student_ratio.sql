@@ -1,10 +1,11 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW COMPLIANCE$teacher_student_ratio AS
+--ALTER VIEW COMPLIANCE$teacher_student_ratio AS
 
 WITH teacher_count AS (
   SELECT COUNT(associate_id) AS N_teachers
+        ,CASE WHEN location LIKE 'Lanning Square%' THEN 'KCNA' ELSE 'TEAM' END AS region
         ,CASE
           WHEN location = 'Newark Collegiate Academy' THEN 'HS'
           WHEN location IN ('Rise Academy','TEAM Academy') THEN 'MS'
@@ -38,10 +39,12 @@ WITH teacher_count AS (
             WHEN location IN ('Rise Academy','TEAM Academy') THEN 'MS'
             ELSE 'ES'
            END
+          ,CASE WHEN location LIKE 'Lanning Square%' THEN 'KCNA' ELSE 'TEAM' END
  )
 
 ,student_count AS (
   SELECT COUNT(studentid) AS N_students
+        ,CASE WHEN schoolid LIKE '1799%' THEN 'KCNA' ELSE 'TEAM' END AS region
         ,CASE
           WHEN schoolid = 73253 THEN 'HS'
           WHEN schoolid IN (73252,133570965) THEN 'MS'
@@ -58,10 +61,13 @@ WITH teacher_count AS (
             WHEN schoolid IN (73252,133570965) THEN 'MS'
             ELSE 'ES'
            END
+          ,CASE WHEN schoolid LIKE '1799%' THEN 'KCNA' ELSE 'TEAM' END
  )
 
-SELECT s.school_level
+SELECT s.region
+      ,s.school_level
       ,CONCAT(s.N_students / t.N_teachers, ':1') AS ratio
 FROM student_count s
 JOIN teacher_count t
   ON s.school_level = t.school_level
+ AND s.region = t.region
