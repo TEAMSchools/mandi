@@ -8,12 +8,11 @@ SELECT sw.[SN] AS student_number
       ,co.school_name
       ,co.grade_level
       ,KIPP_NJ.dbo.fn_DateToSY(sw.[Date]) AS academic_year
-      ,sw.[Date] AS observation_date
+      ,CONVERT(DATE,sw.[Date]) AS observation_date
       ,sw.[Social Worker] AS social_worker
       ,sw.[Group]
       ,sw.[Environment] AS environment
-      ,sw.[Goal Category] AS goal_cat
-      ,sw.[Goal #] AS goal_num
+      ,sw.[Goal Category] AS goal_cat      
       ,sw.[Skill Description] AS skill_descr
       ,sw.[Rating] AS rating
       ,sw.[Narrative] AS narrative
