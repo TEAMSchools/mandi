@@ -7,7 +7,7 @@ WITH long_scores AS (
   SELECT unique_id      
         ,testid
         ,studentid
-        ,step_ltr_level AS read_lvl
+        ,read_lvl
         ,status
         ,field
         ,score
@@ -16,7 +16,7 @@ WITH long_scores AS (
        SELECT unique_id      
              ,testid
              ,studentid       
-             ,step_ltr_level             
+             ,read_lvl             
              ,status
              ,CONVERT(VARCHAR,name_ass) AS name_ass
              ,CONVERT(VARCHAR,ltr_nameid) AS ltr_nameid
@@ -81,7 +81,6 @@ WITH long_scores AS (
              ,CONVERT(VARCHAR,devsp_prof) AS devsp_prof             
        FROM LIT$readingscores#static WITH(NOLOCK)
       ) sub
-
   UNPIVOT (
     score
     FOR field IN (name_ass
