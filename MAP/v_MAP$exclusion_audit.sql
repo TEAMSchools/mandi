@@ -6,7 +6,7 @@ ALTER VIEW MAP$exclusion_audit AS
 WITH cdf_file AS (
   SELECT [TermName]
         ,[TestID]
-  FROM KIPP_NJ..[AUTOLOAD$NWEA_AssessmentResults]
+  FROM KIPP_NJ..[AUTOLOAD$NWEA_AssessmentResult]
  )
 
 ,cdf_table AS (

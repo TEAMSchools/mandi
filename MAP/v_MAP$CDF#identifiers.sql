@@ -64,103 +64,107 @@ FROM
            ,TermName
            ,StudentID AS student_number
            ,SchoolName
-           ,REPLACE(MeasurementScale,'Language','Language Usage') AS MeasurementScale
+           ,MeasurementScale
            ,Discipline
-           ,GrowthMeasureYN
-           ,NormsReferenceData
-           ,WISelectedAYFall
-           ,WISelectedAYWinter
-           ,WISelectedAYSpring
-           ,WIPreviousAYFall
-           ,WIPreviousAYWinter
-           ,WIPreviousAYSpring
+           ,CASE 
+             WHEN GrowthMeasureYN = 'TRUE' THEN 1
+             WHEN GrowthMeasureYN = 'FALSE' THEN 0
+             ELSE GrowthMeasureYN
+            END AS GrowthMeasureYN
+           ,CONVERT(INT,NormsReferenceData) AS NormsReferenceData
+           ,CONVERT(FLOAT,WISelectedAYFall) AS WISelectedAYFall
+           ,CONVERT(FLOAT,WISelectedAYWinter) AS WISelectedAYWinter
+           ,CONVERT(FLOAT,WISelectedAYSpring) AS WISelectedAYSpring
+           ,CONVERT(FLOAT,WIPreviousAYFall) AS WIPreviousAYFall
+           ,CONVERT(FLOAT,WIPreviousAYWinter) AS WIPreviousAYWinter
+           ,CONVERT(FLOAT,WIPreviousAYSpring) AS WIPreviousAYSpring
            ,TestType
            ,TestName
            ,TestID
            ,CONVERT(DATE,TestStartDate) AS TestStartDate
-           ,TestStartTime                      
-           ,TestDurationMinutes
+           ,CONVERT(TIME,TestStartTime) AS TestStartTime
+           ,CONVERT(FLOAT,TestDurationMinutes) AS TestDurationMinutes
            ,CONVERT(FLOAT,TestRITScore) AS TestRITScore
            ,CONVERT(FLOAT,TestStandardError) AS TestStandardError
            ,CONVERT(FLOAT,TestPercentile) AS TestPercentile
-           ,PercentCorrect
-           ,FallToFallProjectedGrowth
-           ,FallToFallObservedGrowth
-           ,FallToFallObservedGrowthSE
+           ,CONVERT(FLOAT,PercentCorrect) AS PercentCorrect
+           ,CONVERT(FLOAT,FallToFallProjectedGrowth) AS FallToFallProjectedGrowth
+           ,CONVERT(FLOAT,FallToFallObservedGrowth) AS FallToFallObservedGrowth
+           ,CONVERT(FLOAT,FallToFallObservedGrowthSE) AS FallToFallObservedGrowthSE
            ,FallToFallMetProjectedGrowth
-           ,FallToFallConditionalGrowthIndex
-           ,FallToFallConditionalGrowthPercentile
-           ,FallToWinterProjectedGrowth
-           ,FallToWinterObservedGrowth
-           ,FallToWinterObservedGrowthSE
+           ,CONVERT(FLOAT,FallToFallConditionalGrowthIndex) AS FallToFallConditionalGrowthIndex
+           ,CONVERT(FLOAT,FallToFallConditionalGrowthPercentile) AS FallToFallConditionalGrowthPercentile
+           ,CONVERT(FLOAT,FallToWinterProjectedGrowth) AS FallToWinterProjectedGrowth
+           ,CONVERT(FLOAT,FallToWinterObservedGrowth) AS FallToWinterObservedGrowth
+           ,CONVERT(FLOAT,FallToWinterObservedGrowthSE) AS FallToWinterObservedGrowthSE
            ,FallToWinterMetProjectedGrowth
-           ,FallToWinterConditionalGrowthIndex
-           ,FallToWinterConditionalGrowthPercentile
-           ,FallToSpringProjectedGrowth
-           ,FallToSpringObservedGrowth
-           ,FallToSpringObservedGrowthSE
+           ,CONVERT(FLOAT,FallToWinterConditionalGrowthIndex) AS FallToWinterConditionalGrowthIndex
+           ,CONVERT(FLOAT,FallToWinterConditionalGrowthPercentile) AS FallToWinterConditionalGrowthPercentile
+           ,CONVERT(FLOAT,FallToSpringProjectedGrowth) AS FallToSpringProjectedGrowth
+           ,CONVERT(FLOAT,FallToSpringObservedGrowth) AS FallToSpringObservedGrowth
+           ,CONVERT(FLOAT,FallToSpringObservedGrowthSE) AS FallToSpringObservedGrowthSE
            ,FallToSpringMetProjectedGrowth
-           ,FallToSpringConditionalGrowthIndex
-           ,FallToSpringConditionalGrowthPercentile
-           ,WinterToWinterProjectedGrowth
-           ,WinterToWinterObservedGrowth
-           ,WinterToWinterObservedGrowthSE
+           ,CONVERT(FLOAT,FallToSpringConditionalGrowthIndex) AS FallToSpringConditionalGrowthIndex
+           ,CONVERT(FLOAT,FallToSpringConditionalGrowthPercentile) AS FallToSpringConditionalGrowthPercentile
+           ,CONVERT(FLOAT,WinterToWinterProjectedGrowth) AS WinterToWinterProjectedGrowth
+           ,CONVERT(FLOAT,WinterToWinterObservedGrowth) AS WinterToWinterObservedGrowth
+           ,CONVERT(FLOAT,WinterToWinterObservedGrowthSE) AS WinterToWinterObservedGrowthSE
            ,WinterToWinterMetProjectedGrowth
-           ,WinterToWinterConditionalGrowthIndex
-           ,WinterToWinterConditionalGrowthPercentile
-           ,WinterToSpringProjectedGrowth
-           ,WinterToSpringObservedGrowth
-           ,WinterToSpringObservedGrowthSE
+           ,CONVERT(FLOAT,WinterToWinterConditionalGrowthIndex) AS WinterToWinterConditionalGrowthIndex
+           ,CONVERT(FLOAT,WinterToWinterConditionalGrowthPercentile) AS WinterToWinterConditionalGrowthPercentile
+           ,CONVERT(FLOAT,WinterToSpringProjectedGrowth) AS WinterToSpringProjectedGrowth
+           ,CONVERT(FLOAT,WinterToSpringObservedGrowth) AS WinterToSpringObservedGrowth
+           ,CONVERT(FLOAT,WinterToSpringObservedGrowthSE) AS WinterToSpringObservedGrowthSE
            ,WinterToSpringMetProjectedGrowth
-           ,WinterToSpringConditionalGrowthIndex
-           ,WinterToSpringConditionalGrowthPercentile
-           ,SpringToSpringProjectedGrowth
-           ,SpringToSpringObservedGrowth
-           ,SpringToSpringObservedGrowthSE
+           ,CONVERT(FLOAT,WinterToSpringConditionalGrowthIndex) AS WinterToSpringConditionalGrowthIndex
+           ,CONVERT(FLOAT,WinterToSpringConditionalGrowthPercentile) AS WinterToSpringConditionalGrowthPercentile
+           ,CONVERT(FLOAT,SpringToSpringProjectedGrowth) AS SpringToSpringProjectedGrowth
+           ,CONVERT(FLOAT,SpringToSpringObservedGrowth) AS SpringToSpringObservedGrowth
+           ,CONVERT(FLOAT,SpringToSpringObservedGrowthSE) AS SpringToSpringObservedGrowthSE
            ,SpringToSpringMetProjectedGrowth
-           ,SpringToSpringConditionalGrowthIndex
-           ,SpringToSpringConditionalGrowthPercentile
+           ,CONVERT(FLOAT,SpringToSpringConditionalGrowthIndex) AS SpringToSpringConditionalGrowthIndex
+           ,CONVERT(FLOAT,SpringToSpringConditionalGrowthPercentile) AS SpringToSpringConditionalGrowthPercentile
            ,RITtoReadingScore
            ,RITtoReadingMin
            ,RITtoReadingMax
            ,Goal1Name
-           ,Goal1RitScore
-           ,Goal1StdErr
+           ,CONVERT(FLOAT,Goal1RitScore) AS Goal1RitScore
+           ,CONVERT(FLOAT,Goal1StdErr) AS Goal1StdErr
            ,Goal1Range
            ,Goal1Adjective
            ,Goal2Name
-           ,Goal2RitScore
-           ,Goal2StdErr
+           ,CONVERT(FLOAT,Goal2RitScore) AS Goal2RitScore
+           ,CONVERT(FLOAT,Goal2StdErr) AS Goal2StdErr
            ,Goal2Range
            ,Goal2Adjective
            ,Goal3Name
-           ,Goal3RitScore
-           ,Goal3StdErr
+           ,CONVERT(FLOAT,Goal3RitScore) AS Goal3RitScore
+           ,CONVERT(FLOAT,Goal3StdErr) AS Goal3StdErr
            ,Goal3Range
            ,Goal3Adjective
            ,Goal4Name
-           ,Goal4RitScore
-           ,Goal4StdErr
+           ,CONVERT(FLOAT,Goal4RitScore) AS Goal4RitScore
+           ,CONVERT(FLOAT,Goal4StdErr) AS Goal4StdErr
            ,Goal4Range
            ,Goal4Adjective
            ,Goal5Name
-           ,Goal5RitScore
-           ,Goal5StdErr
+           ,CONVERT(FLOAT,Goal5RitScore) AS Goal5RitScore
+           ,CONVERT(FLOAT,Goal5StdErr) AS Goal5StdErr
            ,Goal5Range
            ,Goal5Adjective
            ,Goal6Name
-           ,Goal6RitScore
-           ,Goal6StdErr
+           ,CONVERT(FLOAT,Goal6RitScore) AS Goal6RitScore
+           ,CONVERT(FLOAT,Goal6StdErr) AS Goal6StdErr
            ,Goal6Range
            ,Goal6Adjective
            ,Goal7Name
-           ,Goal7RitScore
-           ,Goal7StdErr
+           ,CONVERT(FLOAT,Goal7RitScore) AS Goal7RitScore
+           ,CONVERT(FLOAT,Goal7StdErr) AS Goal7StdErr
            ,Goal7Range
            ,Goal7Adjective
            ,Goal8Name
-           ,Goal8RitScore
-           ,Goal8StdErr
+           ,CONVERT(FLOAT,Goal8RitScore) AS Goal8RitScore
+           ,CONVERT(FLOAT,Goal8StdErr) AS Goal8StdErr
            ,Goal8Range
            ,Goal8Adjective                      
            ,ProjectedProficiencyStudy1
@@ -171,12 +175,16 @@ FROM
            ,ProjectedProficiencyLevel3                      
            ,ROW_NUMBER() OVER(
               PARTITION BY StudentID, TermName, MeasurementScale
-                ORDER BY GrowthMeasureYN DESC
+                ORDER BY CASE 
+                          WHEN GrowthMeasureYN = 'TRUE' THEN 1
+                          WHEN GrowthMeasureYN = 'FALSE' THEN 0
+                          ELSE GrowthMeasureYN
+                         END DESC
                         ,CONVERT(DATE,TestStartDate) DESC
                         ,CONVERT(FLOAT,TestStandardError) ASC) AS rn
      FROM KIPP_NJ..MAP$CDF WITH (NOLOCK)                
      WHERE StudentID != '11XXX'
-       AND (TestID IS NULL OR TestID NOT IN (SELECT TestID FROM KIPP_NJ..MAP$exclusion_audit#static WITH(NOLOCK) WHERE is_excluded = 1))
+       AND (TestID IS NULL OR TestID NOT IN (SELECT TestID FROM KIPP_NJ..MAP$exclusion_audit#static WITH(NOLOCK) WHERE is_excluded = 1))     
     ) sub
 LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
   ON sub.student_number = co.student_number

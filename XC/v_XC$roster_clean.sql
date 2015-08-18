@@ -3,7 +3,7 @@ GO
 
 ALTER VIEW XC$roster_clean AS
 
-SELECT [School ID] AS schoolid      
+SELECT 133570965 AS schoolid      
       ,CONVERT(INT,CONVERT(FLOAT,[Academic Year])) AS academic_year
       ,CONVERT(INT,CONVERT(FLOAT,[Student Number])) AS student_number
       ,name AS student_name

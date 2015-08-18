@@ -48,7 +48,7 @@ WITH curhex AS (
         ,[TestRITScore]
         ,TestPercentile
         ,[RITtoReadingScore]        
-    FROM KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+    FROM KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
     WHERE map.MeasurementScale = 'Reading'
       AND map.map_year_academic = dbo.fn_Global_Academic_Year()
       AND map.rn_curr = 1
@@ -243,19 +243,19 @@ LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
   ON roster.studentid = base.studentid
  AND base.year = dbo.fn_Global_Academic_Year()
  AND base.measurementscale = 'Reading'
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_fall WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_fall WITH(NOLOCK)
   ON roster.studentid = map_fall.ps_studentid
  AND map_fall.measurementscale = 'Reading'
  AND map_fall.map_year_academic = dbo.fn_Global_Academic_Year()
  AND map_fall.fallwinterspring = 'Fall'
  AND map_fall.rn = 1
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_winter WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_winter WITH(NOLOCK)
   ON roster.studentid = map_winter.ps_studentid
  AND map_winter.measurementscale = 'Reading'
  AND map_winter.map_year_academic = dbo.fn_Global_Academic_Year()
  AND map_winter.fallwinterspring = 'Winter'
  AND map_winter.rn = 1
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_spr WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_spr WITH(NOLOCK)
   ON roster.studentid = map_spr.ps_studentid
  AND map_spr.measurementscale = 'Reading'
  AND map_spr.map_year_academic = (dbo.fn_Global_Academic_Year() - 1)

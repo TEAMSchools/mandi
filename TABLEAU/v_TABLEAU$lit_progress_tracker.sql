@@ -113,7 +113,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
  AND enr.course_number LIKE '%HR%'
 LEFT OUTER JOIN KIPP_NJ..[AUTOLOAD$GDOCS_LIT_GR_Group] gr WITH(NOLOCK)
   ON co.student_number = gr.student_number
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
   ON co.studentid = map.ps_studentid
  AND co.year = map.map_year_academic
  AND map.measurementscale = 'Reading'
@@ -226,7 +226,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
  AND enr.course_number LIKE '%HR%'
 LEFT OUTER JOIN KIPP_NJ..[AUTOLOAD$GDOCS_LIT_GR_Group] gr WITH(NOLOCK)
   ON co.student_number = gr.student_number
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
   ON co.studentid = map.ps_studentid
  AND co.year = map.map_year_academic
  AND map.measurementscale = 'Reading'

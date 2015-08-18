@@ -139,13 +139,13 @@ WITH term_map AS (
     ON base.studentid = rr.studentid
    AND base.year = rr.year
    AND base.measurementscale = rr.measurementscale
-  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
     ON base.studentid = map.ps_studentid
    AND base.year = map.map_year_academic
    AND base.measurementscale = map.measurementscale
    AND map_terms.map = map.fallwinterspring
    AND map.rn = 1
-  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static domain WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers domain WITH(NOLOCK)
     ON base.studentid = domain.ps_studentid   
    AND base.measurementscale = domain.measurementscale
    AND base.termname = domain.termname

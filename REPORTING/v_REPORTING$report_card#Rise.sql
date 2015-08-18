@@ -543,7 +543,7 @@ LEFT OUTER JOIN MAP$best_baseline#static lex_base WITH (NOLOCK)
   ON roster.studentid = lex_base.studentid
  AND lex_base.MeasurementScale = 'Reading' 
  AND lex_base.year = dbo.fn_Global_Academic_Year()
-LEFT OUTER JOIN MAP$comprehensive#identifiers#static lex_cur WITH (NOLOCK)
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
   ON roster.student_number = lex_cur.studentid
  AND lex_cur.MeasurementScale = 'Reading'
  AND lex_cur.rn_curr = 1

@@ -48,13 +48,13 @@ WITH map_long AS (
     ON base.year = rr.year
    AND REPLACE(base.measurementscale,' Usage','') = rr.measurementscale
    AND base.studentid = rr.studentid
-  LEFT OUTER JOIN MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+  LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
     ON base.studentid = map.ps_studentid
    AND base.year = map.map_year_academic
    AND base.measurementscale = map.measurementscale
    AND terms.fallwinterspring = map.fallwinterspring
    AND map.rn = 1
-  LEFT OUTER JOIN MAP$comprehensive#identifiers#static prevspr WITH(NOLOCK)
+  LEFT OUTER JOIN MAP$comprehensive#identifiers prevspr WITH(NOLOCK)
     ON base.studentid = prevspr.ps_studentid
    AND base.year = (prevspr.map_year_academic + 1)
    AND base.measurementscale = prevspr.measurementscale
@@ -70,7 +70,7 @@ WITH map_long AS (
         ,CONVERT(INT,map.testritscore) AS rit
         ,CONVERT(INT,map.percentile_2011_norms) AS pct
         ,CONVERT(INT,REPLACE(map.rittoreadingscore, 'BR', 0)) AS lexile
-  FROM KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+  FROM KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
   WHERE rn_curr = 1
  )
 
