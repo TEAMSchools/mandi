@@ -159,7 +159,7 @@ JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$LunchStatus#ARCHIVE lunch WITH(NOLOCK)
   ON co.studentid = lunch.studentid
  AND co.year = lunch.academic_year
-LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info mcs WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info#static mcs WITH(NOLOCK)
   ON co.STUDENT_NUMBER = mcs.StudentNumber
 JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON co.studentid = cs.STUDENTID

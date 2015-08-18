@@ -29,12 +29,11 @@ WITH roster AS (
         ,lex.lexile_score AS term_lexile        
         ,CONVERT(INT,REPLACE(lex.lexile_score, 'BR', 0)) AS lexile_for_goal
   FROM KIPP_NJ..MAP$best_baseline#static lex WITH(NOLOCK)
-  JOIN (
+  CROSS JOIN (
         SELECT 'Q1' term
         UNION
         SELECT 'Q2'
-       ) terms
-    ON 1 = 1
+       ) terms    
   WHERE lex.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND lex.measurementscale = 'Reading'
   
@@ -49,18 +48,17 @@ WITH roster AS (
           ELSE CONVERT(INT,REPLACE(base.lexile_score, 'BR', 0))
          END AS lexile_for_goal
   FROM KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
-  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
     ON base.studentid = map.ps_studentid
    AND base.year = map.map_year_academic
    AND base.measurementscale = map.measurementscale
    AND map.fallwinterspring = 'Winter'
    AND map.rn = 1
-  JOIN (
+  CROSS JOIN (
         SELECT 'Q3' term
         UNION
         SELECT 'Q4'
-       ) terms
-    ON 1 = 1
+       ) terms    
   WHERE base.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND base.measurementscale = 'Reading'
  )
@@ -93,7 +91,7 @@ WITH roster AS (
     ON r.studentid = lex.studentid
    AND r.term = lex.term
   LEFT OUTER JOIN KIPP_NJ..AR$tier_goals#HS goal WITH(NOLOCK)
-    ON lex.lexile_for_goal >= goal.lexile_min 
+    ON lex.lexile_for_goal >= goal.lexile_min
    AND lex.lexile_for_goal <= goal.lexile_max
   LEFT OUTER JOIN google_doc gdoc WITH(NOLOCK)
     ON r.student_number = gdoc.student_number

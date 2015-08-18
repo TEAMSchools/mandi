@@ -64,7 +64,7 @@ WITH zscore AS (
 ,map_endpoint AS (
   SELECT map_end.*
         ,sch.abbreviation AS school
-  FROM KIPP_NJ..MAP$comprehensive#identifiers#static map_end WITH (NOLOCK)
+  FROM KIPP_NJ..MAP$comprehensive#identifiers map_end WITH (NOLOCK)
   JOIN KIPP_NJ..SCHOOLS sch WITH (NOLOCK)
     ON map_end.schoolid = sch.school_number
   WHERE map_end.map_year_academic = dbo.fn_Global_Academic_Year()

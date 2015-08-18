@@ -8,7 +8,7 @@ WITH min_tested AS (
          c.measurementscale,
          AVG(CAST(c.testdurationminutes AS int)) AS avg_min,
          STDEV(CAST(c.testdurationminutes AS int)) AS stdev_min
-  FROM KIPP_NJ..MAP$comprehensive#identifiers#static c WITH(NOLOCK)
+  FROM KIPP_NJ..MAP$comprehensive#identifiers c WITH(NOLOCK)
   WHERE c.fallwinterspring = 'Spring'
   GROUP BY c.grade_level,
            c.measurementscale
@@ -51,7 +51,7 @@ FROM
      LEFT OUTER JOIN min_tested WITH(NOLOCK)
        ON c.measurementscale = min_tested.measurementscale
       AND c.end_grade_verif = min_tested.grade_level
-     JOIN KIPP_NJ..MAP$comprehensive#identifiers#static spring_id WITH(NOLOCK)
+     JOIN KIPP_NJ..MAP$comprehensive#identifiers spring_id WITH(NOLOCK)
        ON c.studentid = spring_id.ps_studentid
       AND c.measurementscale = spring_id.measurementscale
       AND c.end_rit = spring_id.testritscore

@@ -39,7 +39,7 @@ WITH map_tests AS (
              ,goal5ritscore      
              ,goal5range
              ,goal5adjective             
-       FROM KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)               
+       FROM KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)               
        WHERE map.rn = 1
          AND map.fallwinterspring IN ('Winter', 'Spring')
 
@@ -71,7 +71,7 @@ WITH map_tests AS (
              ,map.goal5range
              ,map.goal5adjective  
        FROM KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
-       JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+       JOIN KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
          ON base.studentid = map.ps_studentid
         AND base.measurementscale = map.measurementscale
         AND base.termname = map.termname

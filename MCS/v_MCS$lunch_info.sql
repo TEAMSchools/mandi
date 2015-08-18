@@ -6,6 +6,7 @@ ALTER VIEW MCS$lunch_info AS
 SELECT CONVERT(INT,c.[StudentNumber]) AS [StudentNumber]
       ,c.[ReimbursableOnlyBalance] + c.[UnallocatedBalance] AS [Balance]
       ,LEFT(cat.[ShortDesc], 1) AS [MealBenefitStatus] /* Returns F.R,P*/
+      ,cat.[ShortDesc]
       ,e.[Description]
 FROM [RM9-RE\RE_ENTERPRISE].[Newton].[dbo].[CUSTOMER] c WITH(NOLOCK)
 INNER JOIN [RM9-RE\RE_ENTERPRISE].[Newton].[dbo].[STUDENT_GUID_LINK] g WITH(NOLOCK)

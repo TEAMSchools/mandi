@@ -40,8 +40,8 @@ SELECT sub.*
          ELSE CAST(map_spr.percentile_2011_norms AS INT)
        END AS testpercentile
       ,CASE 
-         WHEN map_spr.testritscore IS NULL THEN map_fall.TypicalFallToSpringGrowth
-         ELSE map_spr.TypicalSpringToSpringGrowth
+         WHEN map_spr.testritscore IS NULL THEN map_fall.FallToSpringProjectedGrowth
+         ELSE map_spr.FallToSpringProjectedGrowth
        END AS typical_growth_fallorspring_to_spring
       ,CASE 
          WHEN map_spr.testritscore IS NULL THEN map_fall.rittoreadingscore
@@ -54,14 +54,14 @@ FROM
      FROM roster WITH(NOLOCK)
      CROSS JOIN subj WITH(NOLOCK)       
     ) sub
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_fall WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_fall WITH(NOLOCK)
   ON sub.studentid = map_fall.ps_studentid
  AND sub.measurementscale = map_fall.MeasurementScale
  AND map_fall.rn = 1
  --THIS YEAR FALL
  AND map_fall.map_year = sub.year
  AND map_fall.fallwinterspring = 'Fall'
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_spr WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_spr WITH(NOLOCK)
   ON sub.studentid = map_spr.ps_studentid
  AND sub.measurementscale = map_spr.MeasurementScale
  AND map_spr.rn = 1

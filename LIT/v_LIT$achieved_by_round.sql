@@ -9,7 +9,7 @@ WITH roster AS (
         ,SCHOOLID
         ,GRADE_LEVEL
         ,YEAR
-  FROM COHORT$identifiers_long#static WITH(NOLOCK)      
+  FROM KIPP_NJ..COHORT$identifiers_long#static WITH(NOLOCK)      
   WHERE grade_level < 9
     AND RN = 1
  )
@@ -26,7 +26,7 @@ WITH roster AS (
         ,ROW_NUMBER() OVER (
            PARTITION BY academic_year, schoolid
            ORDER BY start_date ASC) AS round_num
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'LIT'      
     --AND start_date <= GETDATE()
  )
@@ -69,7 +69,7 @@ WITH roster AS (
             PARTITION BY r.studentid
                 ORDER BY r.academic_year, r.round_num) AS meta_achv_round
   FROM roster_scaffold r WITH(NOLOCK) 
-  LEFT OUTER JOIN LIT$test_events#identifiers achv WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers achv WITH(NOLOCK)
     ON r.STUDENTID = achv.studentid      
    AND r.academic_year = achv.academic_year
    AND r.test_round = achv.test_round
@@ -163,11 +163,11 @@ FROM
             ON tests.STUDENTID = achv_prev5.STUDENTID
            AND tests.meta_achv_round = (achv_prev5.meta_achv_round + 5)
          ) sub
-     LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..LIT$goals goals WITH(NOLOCK)
        ON sub.grade_level = goals.grade_level
       AND sub.test_round = goals.test_round
-     LEFT OUTER JOIN LIT$individual_goals indiv WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
        ON sub.STUDENT_NUMBER = indiv.student_number
       AND sub.test_round = indiv.test_round
-      AND sub.academic_year = dbo.fn_Global_Academic_Year()
+      AND sub.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     ) sub
