@@ -58,13 +58,13 @@ FROM
      FROM roster
      CROSS JOIN subj       
     ) sub
-LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_fall WITH(NOLOCK) --THIS YEAR FALL
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_fall WITH(NOLOCK) /* THIS YEAR FALL */
   ON sub.studentid = map_fall.studentid
  AND sub.measurementscale = map_fall.MeasurementScale
  AND map_fall.rn = 1
  AND map_fall.academic_year = sub.year
  AND map_fall.term = 'Fall'
-LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_spr WITH(NOLOCK) -- PREVIOUS YEAR SPRING
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_spr WITH(NOLOCK) /* PREVIOUS YEAR SPRING */
   ON sub.studentid = map_spr.studentid
  AND sub.measurementscale = map_spr.MeasurementScale
  AND map_spr.rn = 1 

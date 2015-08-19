@@ -101,7 +101,6 @@ WITH map_tests AS (
         AND base.termname = map.termname
         AND map.rn = 1
       ) sub
-
   UNPIVOT (
      value
      FOR field IN (goal1name
@@ -160,7 +159,6 @@ WITH map_tests AS (
        FROM map_tests WITH(NOLOCK)
        WHERE field != 'name'
       ) sub
-
   PIVOT (
     MAX(value)
     FOR field IN ([ritscore], [range], [adjective])

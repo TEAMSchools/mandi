@@ -47,13 +47,13 @@ WITH reenrollments AS (
          FROM reenrollments re
          WHERE (re.exitdate - re.entrydate) > 0
        ') re_base
-       LEFT OUTER JOIN PS$terms#static terms WITH(NOLOCK)
+       LEFT OUTER JOIN KIPP_NJ..PS$terms#static terms WITH(NOLOCK)
          ON re_base.schoolid = terms.schoolid       
         AND re_base.entrydate >= terms.firstday
         AND re_base.exitdate <= DATEADD(DAY, 1, terms.lastday)
         AND terms.portion = 1
       ) reenrollments
-  WHERE reenrollments.rn = 1 --only last reenrollment for any year
+  WHERE reenrollments.rn = 1 -- only last reenrollment for any year
     --AND reenrollments.yearid < LEFT(dbo.fn_Global_Term_Id(), 2) -- no reenrollments from this year    
  )
 
@@ -80,12 +80,12 @@ WITH reenrollments AS (
              ,s.exitdate
              ,s.entrycode
              ,s.exitcode
-       FROM PS$STUDENTS#static s WITH(NOLOCK)
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 2
          AND s.schoolid != 999999
-         AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1
+         AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1         
       ) s_1
-  LEFT OUTER JOIN PS$TERMS#static terms WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..PS$TERMS#static terms WITH(NOLOCK)
     ON s_1.schoolid = terms.schoolid 
    AND s_1.entrydate >= terms.firstday
    AND s_1.exitdate <= DATEADD(DAY, 1, terms.lastday)
@@ -114,12 +114,12 @@ WITH reenrollments AS (
              ,s.entrydate
              ,s.entrycode
              ,s.exitdate           
-       FROM PS$STUDENTS#static s WITH(NOLOCK)
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 0 
          AND s.schoolid != 999999
-         AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1
+         AND DATEDIFF(DAY, s.entrydate, s.exitdate) > 1         
       ) s_2
-  LEFT OUTER JOIN PS$terms#static terms WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..PS$terms#static terms WITH(NOLOCK)
     ON s_2.schoolid = terms.schoolid      
    AND s_2.entrydate >= terms.firstday
    AND s_2.exitdate <= DATEADD(DAY, 1, terms.lastday)
@@ -148,13 +148,13 @@ WITH reenrollments AS (
              ,s.grade_level AS grade_level
              ,s.entrydate
              ,s.exitdate
-       FROM PS$STUDENTS#static s WITH(NOLOCK)
+       FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 3
-         AND s.id NOT IN (171, 141, 45) 
+         AND s.id NOT IN (171, 141, 45)          
          -- 3 students back in the Dark Ages graduated 8th, didn't go to NCA in 9th, but came back and graduated from NCA with a different student record
          -- these are their stories
       ) s_3
-  LEFT OUTER JOIN PS$terms#static terms WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..PS$terms#static terms WITH(NOLOCK)
     ON s_3.schoolid = terms.schoolid
    AND s_3.entrydate < terms.firstday
    AND terms.portion = 1
@@ -233,5 +233,5 @@ SELECT unioned_tables.studentid
           PARTITION BY unioned_tables.studentid
               ORDER BY unioned_tables.yearid ASC) AS year_in_network
 FROM unioned_tables
-LEFT OUTER JOIN PS$STUDENTS#static s WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   ON unioned_tables.studentid = s.id

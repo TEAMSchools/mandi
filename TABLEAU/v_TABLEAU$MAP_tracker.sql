@@ -120,20 +120,16 @@ SELECT r.year
       ,map_curr.rit AS cur_rit       
       ,map_curr.pct AS cur_pct       
       ,map_curr.lexile AS cur_lex
+      /* Quartiles -- if 1st year, use base %ile, otherwise previous spring (unless NULL) */
       ,CASE 
-        WHEN r.grade_level > 0 AND map_long.prevspr_pct >= 0 AND map_long.prevspr_pct < 25 THEN 1
-        WHEN r.grade_level > 0 AND map_long.prevspr_pct >= 25 AND map_long.prevspr_pct < 50 THEN 2
-        WHEN r.grade_level > 0 AND map_long.prevspr_pct >= 50 AND map_long.prevspr_pct < 75 THEN 3
-        WHEN r.grade_level > 0 AND map_long.prevspr_pct >= 75 THEN 4
-        -- temp fixes for Life Upper
-        WHEN ((r.grade_level = 0) OR (r.schoolid = 73257 AND r.grade_level >= 0) OR (r.schoolid = 73252 AND r.grade_level = 5))
-               AND map_long.base_pct >= 0 AND map_long.base_pct < 25 THEN 1
-        WHEN ((r.grade_level = 0) OR (r.schoolid = 73257 AND r.grade_level >= 0) OR (r.schoolid = 73252 AND r.grade_level = 5)) 
-             AND map_long.base_pct >= 25 AND map_long.base_pct < 50 THEN 2
-        WHEN ((r.grade_level = 0) OR (r.schoolid = 73257 AND r.grade_level >= 0) OR (r.schoolid = 73252 AND r.grade_level = 5)) 
-             AND map_long.base_pct >= 50 AND map_long.base_pct < 75 THEN 3
-        WHEN ((r.grade_level = 0) OR (r.schoolid = 73257 AND r.grade_level >= 0) OR (r.schoolid = 73252 AND r.grade_level = 5)) 
-             AND map_long.base_pct >= 75 THEN 4
+        WHEN r.year_in_network = 1 AND map_long.base_pct BETWEEN 0 AND 24 THEN 1
+        WHEN r.year_in_network = 1 AND map_long.base_pct BETWEEN 25 AND 49 THEN 2
+        WHEN r.year_in_network = 1 AND map_long.base_pct BETWEEN 50 AND 74 THEN 3
+        WHEN r.year_in_network = 1 AND map_long.base_pct >= 75 THEN 4
+        WHEN r.year_in_network > 1 AND COALESCE(map_long.prevspr_pct,map_long.base_pct) BETWEEN 0 AND 24 THEN 1
+        WHEN r.year_in_network > 1 AND COALESCE(map_long.prevspr_pct,map_long.base_pct) BETWEEN 25 AND 49 THEN 2
+        WHEN r.year_in_network > 1 AND COALESCE(map_long.prevspr_pct,map_long.base_pct) BETWEEN 50 AND 74 THEN 3
+        WHEN r.year_in_network > 1 AND COALESCE(map_long.prevspr_pct,map_long.base_pct) >= 75 THEN 4        
         ELSE NULL
        END AS quartile
       ,CASE WHEN map_curr.term = 'Fall' THEN NULL ELSE map_curr.rit - map_long.base_rit END AS ytd_rit_growth
