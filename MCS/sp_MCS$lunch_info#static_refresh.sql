@@ -8,26 +8,26 @@ SET QUOTED_IDENTIFIER ON
 GO
 
                   
-ALTER PROCEDURE [sp_MAP$comprehensive#identifiers#static|refresh] AS
+ALTER PROCEDURE [sp_MCS$lunch_info#static|refresh] AS
 BEGIN
 
   DECLARE @sql AS VARCHAR(MAX)='';
 
   -- STEP 1: make sure no temp table
-		IF OBJECT_ID(N'tempdb..#MAP$comprehensive#identifiers#static|refresh') IS NOT NULL
+		IF OBJECT_ID(N'tempdb..#MCS$lunch_info#static|refresh') IS NOT NULL
 		BEGIN
-						DROP TABLE [#MAP$comprehensive#identifiers#static|refresh]
+						DROP TABLE [#MCS$lunch_info#static|refresh]
 		END
 
 
   -- STEP 2: load into a temporary staging table.
   SELECT *
-		INTO [#MAP$comprehensive#identifiers#static|refresh]
-  FROM MAP$comprehensive#identifiers;
+		INTO [#MCS$lunch_info#static|refresh]
+  FROM MCS$lunch_info;
          
 
   -- STEP 3: truncate destination table
-  EXEC('TRUNCATE TABLE KIPP_NJ..MAP$comprehensive#identifiers#static');
+  EXEC('TRUNCATE TABLE KIPP_NJ..MCS$lunch_info#static');
 
 
   -- STEP 4: disable all nonclustered indexes on table
@@ -39,14 +39,14 @@ BEGIN
     ON sys.indexes.object_id = sys.objects.object_id
   WHERE sys.indexes.type_desc = 'NONCLUSTERED'
     AND sys.objects.type_desc = 'USER_TABLE'
-    AND sys.objects.name = 'MAP$comprehensive#identifiers#static';
+    AND sys.objects.name = 'MCS$lunch_info#static';
   EXEC (@sql);
 
 
   -- STEP 5: insert into final destination
-  INSERT INTO [MAP$comprehensive#identifiers#static]
+  INSERT INTO [MCS$lunch_info#static]
   SELECT *
-  FROM [#MAP$comprehensive#identifiers#static|refresh];
+  FROM [#MCS$lunch_info#static|refresh];
  
 
   -- STEP 6: rebuld all nonclustered indexes on table
@@ -58,7 +58,7 @@ BEGIN
     ON sys.indexes.object_id = sys.objects.object_id
   WHERE sys.indexes.type_desc = 'NONCLUSTERED'
     AND sys.objects.type_desc = 'USER_TABLE'
-    AND sys.objects.name = 'MAP$comprehensive#identifiers#static';
+    AND sys.objects.name = 'MCS$lunch_info#static';
   EXEC (@sql);
   
 END                  

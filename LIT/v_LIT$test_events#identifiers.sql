@@ -161,11 +161,11 @@ FROM
            ,rs.fp_keylever           
            ,rs.fp_wpmrate
            ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
-           ,COALESCE(rs.indep_lvl, rs.step_ltr_level) AS indep_lvl
+           ,COALESCE(rs.indep_lvl, rs.read_lvl) AS indep_lvl
            ,CASE WHEN rs.testid = 3273 THEN 1 ELSE 0 END AS is_fp
      FROM LIT$readingscores#static rs WITH(NOLOCK)
      JOIN LIT$GLEQ gleq WITH(NOLOCK)
-       ON ((rs.testid = 3273 AND rs.step_ltr_level = gleq.read_lvl)
+       ON ((rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl)
             OR (rs.testid != 3273 AND rs.testid = gleq.testid))
       AND gleq.lvl_num > -1
      LEFT OUTER JOIN LIT$GLEQ ind WITH(NOLOCK)
@@ -251,7 +251,7 @@ FROM
            ,rs.fp_keylever           
            ,rs.fp_wpmrate
            ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
-           ,COALESCE(rs.indep_lvl, rs.step_ltr_level) AS indep_lvl
+           ,COALESCE(rs.indep_lvl, rs.read_lvl) AS indep_lvl
            ,0 AS is_fp
      FROM LIT$readingscores#static rs WITH(NOLOCK)
      JOIN LIT$GLEQ gleq WITH(NOLOCK)
@@ -276,5 +276,5 @@ FROM
        ON cohort.STUDENT_NUMBER = indiv.student_number
       AND rs.test_round = indiv.test_round
      WHERE rs.status = 'Did Not Achieve'
-       AND rs.step_ltr_level = 'Pre'
+       AND rs.read_lvl = 'Pre'
     ) sub

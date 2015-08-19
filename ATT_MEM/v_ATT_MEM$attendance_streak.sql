@@ -8,7 +8,7 @@ WITH valid_dates AS (
         ,calendardate
         ,academic_year
         ,ROW_NUMBER() OVER(
-           PARTITION BY schoolid
+           PARTITION BY schoolid, academic_year
              ORDER BY calendardate ASC) AS day_number
   FROM
       (
@@ -21,8 +21,9 @@ WITH valid_dates AS (
  )
 
 SELECT academic_year
-      ,schoolid
       ,studentid
+      ,schoolid
+      ,grade_level      
       ,att_code
       ,streak_id
       ,CONVERT(DATE,MIN(CALENDARDATE)) AS streak_start
@@ -34,12 +35,15 @@ FROM
      SELECT co.year AS academic_year
            ,co.STUDENTID
            ,co.schoolid
+           ,co.grade_level
            ,d.CALENDARDATE
            ,ISNULL(att.ATT_CODE, 'P') AS att_code
-           ,d.day_number - ROW_NUMBER() OVER(
-                             PARTITION BY co.year, co.studentid, att.att_code 
-                               ORDER BY d.calendardate) 
-             AS streak_id
+           ,d.day_number
+           ,CONCAT(co.STUDENTID, '_'
+                  ,co.year, '_'
+                  ,ISNULL(att.ATT_CODE, 'P')
+                  ,d.day_number - ROW_NUMBER() OVER(PARTITION BY co.year, co.studentid, att.att_code ORDER BY d.calendardate)
+                  ) AS streak_id
      FROM COHORT$identifiers_long#static co WITH(NOLOCK)
      JOIN valid_dates d WITH(NOLOCK)
        ON co.schoolid = d.SCHOOLID
@@ -53,3 +57,4 @@ GROUP BY academic_year
         ,schoolid
         ,att_code
         ,streak_id
+        ,grade_level

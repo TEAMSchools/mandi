@@ -12,6 +12,6 @@ SELECT first_name AS [First Name]
       ,schoolid
 FROM COHORT$identifiers_long#static co WITH(NOLOCK)
 WHERE co.schoolid IN (133570965, 179902) -- TEAM & LSM
-  AND co.year = 2015
+  AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1
   AND co.exitdate > co.entrydate

@@ -96,7 +96,7 @@ WITH roster AS (
          ON co.studentid = base.studentid
         AND co.year = base.year
         AND base.measurementscale = 'Reading'
-       LEFT OUTER JOIN MAP$comprehensive#identifiers#static map WITH(NOLOCK)
+       LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
          ON co.studentid = map.ps_studentid
         AND co.year = map.map_year_academic
         AND base.measurementscale = map.measurementscale   
@@ -282,7 +282,7 @@ WITH roster AS (
              ,ROW_NUMBER() OVER(
                 PARTITION BY map_year_academic, studentid
                   ORDER BY teststartdate DESC) AS rn_curr
-       FROM MAP$comprehensive#identifiers#static WITH(NOLOCK)
+       FROM MAP$comprehensive#identifiers WITH(NOLOCK)
        WHERE rn = 1
          AND measurementscale = 'Reading'
       ) sub

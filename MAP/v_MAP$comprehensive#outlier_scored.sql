@@ -8,7 +8,7 @@ WITH global_min_tested AS (
         ,measurementscale
         ,AVG(CAST(testdurationminutes AS int)) AS mean_min_tested
         ,STDEV(CAST(testdurationminutes AS int)) AS stdev_min_tested
-  FROM KIPP_NJ..MAP$comprehensive#identifiers#static m WITH(NOLOCK)
+  FROM KIPP_NJ..MAP$comprehensive#identifiers m WITH(NOLOCK)
   WHERE m.measurementscale != 'Science - Concepts and Processes'
     AND m.grade_level IS NOT NULL
     AND m.rn = 1
@@ -21,7 +21,7 @@ WITH global_min_tested AS (
         ,measurementscale
         ,AVG(CAST(testdurationminutes AS int) + 0.0) AS mean_min_tested
         ,STDEV(CAST(testdurationminutes AS int)) AS stdev_min_tested
-  FROM KIPP_NJ..MAP$comprehensive#identifiers#static m WITH(NOLOCK)
+  FROM KIPP_NJ..MAP$comprehensive#identifiers m WITH(NOLOCK)
   WHERE m.measurementscale != 'Science - Concepts and Processes'
     AND m.grade_level IS NOT NULL
     AND m.rn=1
@@ -38,8 +38,8 @@ WITH global_min_tested AS (
         ,AVG(m_next.percentile_2011_norms - m.percentile_2011_norms + 0.0) AS mean_npr_change
         ,STDEV(m_next.percentile_2011_norms - m.percentile_2011_norms + 0.0) AS stdev_npr_change
         ,COUNT(*) AS n
-  FROM KIPP_NJ..MAP$comprehensive#identifiers#static m WITH(NOLOCK)
-  JOIN KIPP_NJ..MAP$comprehensive#identifiers#static m_next WITH(NOLOCK)
+  FROM KIPP_NJ..MAP$comprehensive#identifiers m WITH(NOLOCK)
+  JOIN KIPP_NJ..MAP$comprehensive#identifiers m_next WITH(NOLOCK)
     ON m.ps_studentid = m_next.ps_studentid
    AND m.measurementscale = m_next.measurementscale
    AND m.rn_asc + 1 = m_next.rn_asc
@@ -64,8 +64,8 @@ WITH global_min_tested AS (
         ,AVG(m.percentile_2011_norms - m_prev.percentile_2011_norms + 0.0) AS mean_npr_change
         ,STDEV(m.percentile_2011_norms - m_prev.percentile_2011_norms + 0.0) AS stdev_npr_change
         ,COUNT(*) AS n
-  FROM KIPP_NJ..MAP$comprehensive#identifiers#static m WITH(NOLOCK)
-  JOIN KIPP_NJ..MAP$comprehensive#identifiers#static m_prev WITH(NOLOCK)
+  FROM KIPP_NJ..MAP$comprehensive#identifiers m WITH(NOLOCK)
+  JOIN KIPP_NJ..MAP$comprehensive#identifiers m_prev WITH(NOLOCK)
     ON m.ps_studentid = m_prev.ps_studentid
    AND m.measurementscale = m_prev.measurementscale
    AND m.rn_asc - 1 = m_prev.rn_asc
@@ -105,15 +105,15 @@ FROM
                     npr_behind.stdev_npr_change AS npr_behind_z
                 ,-1*((m_next.percentile_2011_norms - m.percentile_2011_norms) - npr_ahead.mean_npr_change) / 
                     npr_ahead.stdev_npr_change AS npr_ahead_z
-          FROM KIPP_NJ..MAP$comprehensive#identifiers#static m
-          LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static m_next
+          FROM KIPP_NJ..MAP$comprehensive#identifiers m
+          LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers m_next
             ON m.ps_studentid = m_next.ps_studentid
            AND m.measurementscale = m_next.measurementscale
            AND m.rn_asc + 1 = m_next.rn_asc
            AND m.fallwinterspring != m_next.fallwinterspring
            AND m_next.map_year_academic - m.map_year_academic <= 1
            AND m_next.rn = 1
-          LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static m_prev
+          LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers m_prev
             ON m.ps_studentid = m_prev.ps_studentid
            AND m.measurementscale = m_prev.measurementscale
            AND m.rn_asc - 1 = m_prev.rn_asc

@@ -5,9 +5,9 @@ ALTER VIEW DEVFIN$att_demographics_long AS
 
 WITH calendar AS(
   SELECT CONVERT(DATE,date) AS date
-  FROM UTIL$reporting_days#static WITH(NOLOCK)
+  FROM KIPP_NJ..UTIL$reporting_days#static WITH(NOLOCK)
   WHERE date >= '2013-07-01'
-    AND date <= GETDATE()
+    AND date <= CONVERT(DATE,GETDATE())
  )
 
 ,roster AS(
@@ -18,6 +18,7 @@ WITH calendar AS(
         ,co.lastfirst
         ,co.lunchstatus
         ,CASE WHEN UPPER(co.spedlep) LIKE '%SPEECH%' THEN 'SPEECH' ELSE co.SPEDLEP END AS SPEDLEP
+        ,CASE WHEN co.LEP_STATUS = 1 THEN 'LEP' ELSE 'Not LEP' END AS LEP
         ,co.ethnicity
         ,co.gender
         ,co.year
@@ -25,7 +26,7 @@ WITH calendar AS(
         ,co.exitdate
         ,co.ENROLL_STATUS
         ,co.rn
-  FROM COHORT$identifiers_long#static co WITH(NOLOCK)  
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
   WHERE co.schoolid != 999999    
  )
 
@@ -36,7 +37,7 @@ WITH calendar AS(
         ,mem.attendancevalue      
   FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   WHERE mem.calendardate >= '2013-07-01'
-    AND mem.calendardate <= GETDATE()
+    AND mem.calendardate <= CONVERT(DATE,GETDATE())
 )
 
 SELECT calendar.date
@@ -51,6 +52,7 @@ SELECT calendar.date
       ,CONVERT(INT,attendance.membershipvalue) AS membershipvalue
       ,CONVERT(INT,attendance.attendancevalue) AS attendancevalue
       ,roster.SPEDLEP
+      ,roster.LEP
       ,roster.lunchstatus
       ,roster.ethnicity
       ,roster.gender

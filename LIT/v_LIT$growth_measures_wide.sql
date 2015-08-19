@@ -35,7 +35,7 @@ WITH term_cur AS (
                   ,CONVERT(VARCHAR,read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,GLEQ) AS GLEQ
                   ,CONVERT(VARCHAR,lvl_num) AS lvl_num
-            FROM LIT$achieved_by_round#static WITH(NOLOCK)            
+            FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)            
            ) sub
 
        UNPIVOT (
@@ -94,7 +94,7 @@ WITH term_cur AS (
                   ,CONVERT(VARCHAR,genre) AS genre
                   ,CONVERT(VARCHAR,fp_keylever) AS keylever
                   ,CONVERT(VARCHAR,fp_wpmrate) AS wpmrate                  
-            FROM LIT$test_events#identifiers WITH(NOLOCK)
+            FROM KIPP_NJ..LIT$test_events#identifiers WITH(NOLOCK)
             WHERE achv_curr_yr = 1
            ) sub
 
@@ -148,19 +148,17 @@ WITH term_cur AS (
                   ,rs.studentid
                   ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,dna.dna_reason) AS reason
-            FROM LIT$test_events#identifiers rs WITH(NOLOCK)
-            JOIN LIT$dna_reasons#static dna WITH(NOLOCK)
+            FROM KIPP_NJ..LIT$test_events#identifiers rs WITH(NOLOCK)
+            JOIN KIPP_NJ..LIT$dna_reasons#static dna WITH(NOLOCK)
               ON rs.unique_id = dna.unique_id
             WHERE dna_round = 1
            ) sub
-
        UNPIVOT (
          value
          FOR field IN (read_lvl
                       ,reason)
         ) unpiv
       ) sub2
-
   PIVOT (
     MAX(value)
     FOR identifier IN ([T1_dna_read_lvl]
@@ -194,19 +192,17 @@ WITH term_cur AS (
                   ,rs.studentid
                   ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,dna.dna_reason) AS reason
-            FROM LIT$test_events#identifiers rs WITH(NOLOCK)
-            JOIN LIT$dna_reasons#static dna WITH(NOLOCK)
+            FROM KIPP_NJ..LIT$test_events#identifiers rs WITH(NOLOCK)
+            JOIN KIPP_NJ..LIT$dna_reasons#static dna WITH(NOLOCK)
               ON rs.unique_id = dna.unique_id
             WHERE dna_yr = 1
            ) sub
-
        UNPIVOT (
          value
          FOR field IN (read_lvl
                       ,reason)
         ) unpiv
       ) sub2
-
   PIVOT (
     MAX(value)
     FOR identifier IN ([yr_dna_read_lvl]
@@ -267,7 +263,7 @@ SELECT r.YEAR
       ,CONVERT(INT,t3_cur_lvl_num) - CONVERT(INT,T2_cur_lvl_num) AS t2t3_growth_lvl
       ,CONVERT(FLOAT,EOY_cur_GLEQ) - CONVERT(FLOAT,T3_cur_GLEQ) AS t3EOY_growth_GLEQ
       ,CONVERT(INT,EOY_cur_lvl_num) - CONVERT(INT,T3_cur_lvl_num) AS t3EOY_growth_lvl
-FROM COHORT$identifiers_long#static r WITH(NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_long#static r WITH(NOLOCK)
 LEFT OUTER JOIN year_cur yc WITH(NOLOCK)
   ON r.STUDENTID = yc.studentid
  AND r.YEAR = yc.academic_year

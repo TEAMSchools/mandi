@@ -4,11 +4,13 @@ GO
 ALTER VIEW ROSTERS$PS_access_accounts AS 
 
 WITH clean_names AS (
-  SELECT s.student_number
+  SELECT CONVERT(INT,s.student_number) AS student_number
         ,sch.ABBREVIATION AS school_name
         ,s.grade_level
+        ,CONVERT(INT,s.SCHOOLID) AS SCHOOLID
         ,s.FIRST_NAME
         ,s.LAST_NAME
+        ,s.ENROLL_STATUS
         ,KIPP_NJ.dbo.REMOVESPECIALCHARS(LOWER(s.FIRST_NAME)) AS first_name_clean
         ,LEFT(LOWER(s.first_name),1) AS first_init           
         ,KIPP_NJ.dbo.REMOVESPECIALCHARS(LOWER(
@@ -25,18 +27,20 @@ WITH clean_names AS (
         ,CONVERT(VARCHAR,DATEPART(MONTH,s.DOB)) AS dob_month
         ,CONVERT(VARCHAR,RIGHT(DATEPART(DAY,s.DOB),2)) AS dob_day
         ,CONVERT(VARCHAR,RIGHT(DATEPART(YEAR,s.DOB),2)) AS dob_year                
-  FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
+  FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH(NOLOCK)
     ON s.SCHOOLID = sch.SCHOOL_NUMBER
   WHERE s.ENROLL_STATUS != -1          
  )
 
 SELECT STUDENT_NUMBER
+      ,schoolid
+      ,ENROLL_STATUS
       ,base_username
       ,alt_username
-      ,CASE 
-        WHEN alt_dupe_audit > 1 THEN first_init + last_name_clean + dob_month + dob_day
-        WHEN base_dupe_audit > 1 THEN alt_username 
+      ,CASE         
+        WHEN alt_dupe_audit > 1 THEN first_init + last_name_clean + dob_month + dob_day        
+        WHEN uses_alt = 1 THEN alt_username 
         ELSE base_username 
        END AS student_web_id
       ,CASE
@@ -44,10 +48,14 @@ SELECT STUDENT_NUMBER
         ELSE LOWER(school_name) + '1'
        END AS student_web_password
       ,uses_alt
+      ,base_dupe_audit
+      ,alt_dupe_audit
 FROM
     (
      SELECT STUDENT_NUMBER
+           ,SCHOOLID
            ,GRADE_LEVEL
+           ,ENROLL_STATUS
            ,school_name
            ,first_name_clean
            ,first_init
@@ -58,13 +66,19 @@ FROM
            ,base_username
            ,alt_username
            ,base_dupe_audit
-           ,CASE WHEN base_dupe_audit > 1 THEN 1 ELSE 0 END AS uses_alt
+           ,CASE 
+             WHEN base_dupe_audit > 1 THEN 1 
+             WHEN LEN(base_username) > 16 THEN 1 
+             ELSE 0 
+            END AS uses_alt
            ,ROW_NUMBER() OVER(
              PARTITION BY CASE WHEN base_dupe_audit > 1 THEN alt_username ELSE base_username END
                ORDER BY student_number) AS alt_dupe_audit
      FROM
          (         
           SELECT STUDENT_NUMBER
+                ,SCHOOLID
+                ,ENROLL_STATUS
                 ,GRADE_LEVEL
                 ,school_name
                 ,first_name_clean
@@ -83,7 +97,7 @@ FROM
                   AS alt_username
                 ,ROW_NUMBER() OVER(
                   PARTITION BY last_name_clean + dob_month + dob_day
-                    ORDER BY first_name_clean) AS base_dupe_audit           
+                    ORDER BY student_number) AS base_dupe_audit           
           FROM clean_names         
          ) sub
     ) sub

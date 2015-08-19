@@ -694,12 +694,12 @@ LEFT OUTER JOIN LIT$test_events#identifiers fp_curr WITH (NOLOCK)
  --AND fp_curr.year = dbo.fn_Global_Academic_Year()
  AND fp_curr.achv_curr_all = 1
   --LEXILE
-LEFT OUTER JOIN MAP$comprehensive#identifiers#static lex_base WITH (NOLOCK)
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.student_number = lex_base.StudentID
  AND lex_base.MeasurementScale = 'Reading'
  AND lex_base.rn_base = 1
  AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
-LEFT OUTER JOIN MAP$comprehensive#identifiers#static lex_curr WITH (NOLOCK)
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
   ON roster.student_number = lex_curr.StudentID
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1

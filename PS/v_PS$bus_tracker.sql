@@ -32,12 +32,12 @@ SELECT s.STUDENT_NUMBER
         ELSE BUS_INFO_PM 
        END AS BUS_PM_TODAY      
       ,CASE WHEN ch.studentid IS NOT NULL THEN 1 ELSE 0 END AS dismissal_flag
-FROM COHORT$identifiers_long#static s WITH(NOLOCK)
-LEFT OUTER JOIN PS$bus_info#static bus WITH(NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$bus_info#static bus WITH(NOLOCK)
   ON s.studentid = bus.STUDENTID
 LEFT OUTER JOIN dismiss_change ch WITH(NOLOCK)
   ON bus.studentid = ch.studentid
 WHERE s.ENROLL_STATUS = 0
   AND s.GRADE_LEVEL < 5
-  AND s.year = dbo.fn_Global_Academic_Year()
+  AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND s.rn = 1

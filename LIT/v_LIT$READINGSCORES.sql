@@ -7,12 +7,14 @@ SELECT unique_id
       ,studentid
       ,schoolid
       ,CONVERT(DATE,test_date) AS test_date      
-      -- prior to SY14, academic_year and test_round were derived
-      -- from the test_date, which caused a lot of problems
-      -- so now they're entered directly with the test 
+      /*
+       prior to SY14, academic_year and test_round were derived
+       from the test_date, which caused a lot of problems
+       so now they're entered directly with the test 
+      */
       ,CASE        
         WHEN academic_year IS NULL THEN KIPP_NJ.dbo.fn_DateToSY(test_date)
-        ELSE CONVERT(INT,academic_year) 
+        ELSE CONVERT(INT,LEFT(LTRIM(RTRIM(academic_year)),4))
        END AS academic_year              
       ,CASE        
         WHEN test_round = 'Diagnostic' THEN 'DR'
@@ -20,7 +22,7 @@ SELECT unique_id
         ELSE CONVERT(VARCHAR(8),LTRIM(RTRIM(test_round)))
        END AS test_round
       ,CONVERT(INT,testid) AS testid
-      ,CONVERT(VARCHAR(8),step_ltr_level) AS step_ltr_level
+      ,CONVERT(VARCHAR(8),READ_LVL) AS read_lvl
       ,CONVERT(VARCHAR(32),status) AS status
       ,CONVERT(VARCHAR(16),color) AS color
       ,CONVERT(VARCHAR(8),UPPER(instruct_lvl)) AS instruct_lvl
@@ -74,6 +76,7 @@ SELECT unique_id
       ,CONVERT(FLOAT,fp_comp_beyond) AS fp_comp_beyond
       ,CONVERT(FLOAT,fp_comp_about) AS fp_comp_about
       ,CONVERT(VARCHAR(32),fp_keylever) AS fp_keylever
+      ,CONVERT(VARCHAR(8),coaching_code) AS coaching_code
 
       --aggregate fields
       ,CASE WHEN testid != 3273 THEN

@@ -6,17 +6,13 @@ ALTER VIEW MAP$exclusion_audit AS
 WITH cdf_file AS (
   SELECT [TermName]
         ,[TestID]
-  FROM OPENROWSET(
-		  'MSDASQL'
-	  ,'Driver={Microsoft Access Text Driver (*.txt, *.csv)};'
-	  ,'select * from c:\data_robot\nwea\AssessmentResults.csv'
-  )
+  FROM KIPP_NJ..[AUTOLOAD$NWEA_AssessmentResult]
  )
 
 ,cdf_table AS (
   SELECT [TermName]
         ,[TestID]
-  FROM NWEA..MAP$CDF WITH(NOLOCK)
+  FROM KIPP_NJ..MAP$CDF WITH(NOLOCK)
  )
 
 SELECT TermName
@@ -33,4 +29,3 @@ FROM
        ON t.TestID = f.testid
      WHERE t.TermName IN (SELECT TermName FROM cdf_file WITH(NOLOCK))
     ) sub
---WHERE is_excluded = 1

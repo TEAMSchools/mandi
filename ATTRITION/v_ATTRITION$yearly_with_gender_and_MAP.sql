@@ -110,13 +110,13 @@ FROM
       --AND c_next.rn = 1
      WHERE base_roster.year < 2014
     ) sub
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static m_math WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers m_math WITH(NOLOCK)
   ON sub.studentid = m_math.ps_studentid
  AND sub.year = m_math.map_year_academic
  AND m_math.fallwinterspring = 'Spring'
  AND m_math.measurementscale = 'Mathematics'
  AND m_math.rn = 1
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static m_reading WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers m_reading WITH(NOLOCK)
   ON sub.studentid = m_reading.ps_studentid
  AND sub.year = m_reading.map_year_academic
  AND m_reading.fallwinterspring = 'Spring'

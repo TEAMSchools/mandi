@@ -12,8 +12,7 @@ WITH roster AS (
         ,cohort.lastfirst
   FROM KIPP_NJ..COHORT$identifiers_long#static cohort WITH(NOLOCK)  
   WHERE schoolid != 999999
-    AND rn = 1
-    --AND cohort.studentid = 2877
+    AND rn = 1    
  )
  
 ,subj AS (
@@ -43,9 +42,9 @@ SELECT sub.*
         ELSE CAST(map_spr.percentile_2011_norms AS INT)
        END AS testpercentile
       ,CASE 
-        WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.TypicalFallToSpringGrowth
-        WHEN map_spr.testritscore IS NULL THEN map_fall.TypicalFallToSpringGrowth
-        ELSE map_spr.TypicalSpringToSpringGrowth
+        WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.FallToSpringProjectedGrowth
+        WHEN map_spr.testritscore IS NULL THEN map_fall.FallToSpringProjectedGrowth
+        ELSE map_spr.springtospringprojectedgrowth
        END AS typical_growth_fallorspring_to_spring
       ,CASE 
         WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.rittoreadingscore
@@ -59,15 +58,15 @@ FROM
      FROM roster
      CROSS JOIN subj       
     ) sub
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_fall WITH(NOLOCK) --THIS YEAR FALL
-  ON sub.studentid = map_fall.ps_studentid
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_fall WITH(NOLOCK) --THIS YEAR FALL
+  ON sub.studentid = map_fall.studentid
  AND sub.measurementscale = map_fall.MeasurementScale
  AND map_fall.rn = 1
- AND map_fall.map_year = sub.year
- AND map_fall.fallwinterspring = 'Fall'
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers#static map_spr WITH(NOLOCK) -- PREVIOUS YEAR SPRING
-  ON sub.studentid = map_spr.ps_studentid
+ AND map_fall.academic_year = sub.year
+ AND map_fall.term = 'Fall'
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_spr WITH(NOLOCK) -- PREVIOUS YEAR SPRING
+  ON sub.studentid = map_spr.studentid
  AND sub.measurementscale = map_spr.MeasurementScale
  AND map_spr.rn = 1 
- AND map_spr.map_year = sub.year
- AND map_spr.fallwinterspring = 'Spring'
+ AND map_spr.test_year = sub.year
+ AND map_spr.term = 'Spring'

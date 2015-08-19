@@ -98,6 +98,7 @@ SELECT co.schoolid
       ,cs.DEFAULT_FAMILY_WEB_ID AS FAMILY_WEB_ID
       ,cs.DEFAULT_FAMILY_WEB_PASSWORD AS FAMILY_WEB_PASSWORD
       ,cs.LUNCH_BALANCE      
+      ,cs.STATUS_504
       ,cs.LEP_STATUS
       ,cs.NEWARK_ENROLLMENT_NUMBER
       ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE COALESCE(sped.SPEDLEP, cs.spedlep) END AS SPEDLEP
@@ -158,7 +159,7 @@ JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$LunchStatus#ARCHIVE lunch WITH(NOLOCK)
   ON co.studentid = lunch.studentid
  AND co.year = lunch.academic_year
-LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info mcs WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info#static mcs WITH(NOLOCK)
   ON co.STUDENT_NUMBER = mcs.StudentNumber
 JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON co.studentid = cs.STUDENTID

@@ -12,6 +12,7 @@ SELECT co.schoolid
       ,co.year      
       ,strk.att_code
       ,strk.studentid
+      ,strk.streak_length_membership
 FROM ATT_MEM$attendance_streak strk WITH(NOLOCK)
 JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
   ON strk.studentid = co.studentid
