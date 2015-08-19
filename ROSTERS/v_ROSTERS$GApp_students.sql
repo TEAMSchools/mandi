@@ -13,5 +13,5 @@ SELECT co.student_number
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..ROSTERS$PS_access_accounts acct WITH(NOLOCK)
   ON co.student_number = acct.STUDENT_NUMBER
-WHERE co.year = 2015
+WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1

@@ -13,7 +13,6 @@ WITH roster AS (
   FROM KIPP_NJ..COHORT$identifiers_long#static cohort WITH(NOLOCK)  
   WHERE schoolid != 999999
     AND rn = 1
-    --AND cohort.studentid = 4562
  )
  
 ,subj AS (
@@ -54,20 +53,15 @@ FROM
      FROM roster WITH(NOLOCK)
      CROSS JOIN subj WITH(NOLOCK)       
     ) sub
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_fall WITH(NOLOCK)
-  ON sub.studentid = map_fall.ps_studentid
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_fall WITH(NOLOCK) /* THIS YEAR FALL */
+  ON sub.studentid = map_fall.studentid
  AND sub.measurementscale = map_fall.MeasurementScale
- AND map_fall.rn = 1
- --THIS YEAR FALL
- AND map_fall.map_year = sub.year
- AND map_fall.fallwinterspring = 'Fall'
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_spr WITH(NOLOCK)
-  ON sub.studentid = map_spr.ps_studentid
+ AND map_fall.rn = 1 
+ AND map_fall.academic_year = sub.year
+ AND map_fall.term = 'Fall'
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_spr WITH(NOLOCK) /* PREVIOUS YEAR SPRING */
+  ON sub.studentid = map_spr.studentid
  AND sub.measurementscale = map_spr.MeasurementScale
- AND map_spr.rn = 1
- --PREVIOUS YEAR
- AND map_spr.map_year = sub.year
- AND map_spr.fallwinterspring = 'Spring'
---ORDER BY sub.school
---        ,sub.GRADE_LEVEL
---        ,sub.lastfirst
+ AND map_spr.rn = 1 
+ AND map_spr.test_year = sub.year
+ AND map_spr.term = 'Spring'
