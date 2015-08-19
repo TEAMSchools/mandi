@@ -2,7 +2,6 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW MAP$enrollment_attribution AS 
-
 WITH es_hr AS (
   SELECT hr.studentid
         ,hr.year
