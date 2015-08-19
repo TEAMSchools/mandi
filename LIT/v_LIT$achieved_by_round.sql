@@ -10,11 +10,11 @@ WITH roster AS (
         ,GRADE_LEVEL
         ,YEAR
   FROM KIPP_NJ..COHORT$identifiers_long#static WITH(NOLOCK)      
-  WHERE grade_level < 9
+  WHERE grade_level <= 8
     AND RN = 1
  )
 
--- active lit rounds by school
+/* active lit rounds by school */
 ,terms AS (      
   SELECT academic_year
         ,schoolid
@@ -43,10 +43,10 @@ WITH roster AS (
   FROM roster r WITH(NOLOCK)
   JOIN terms WITH(NOLOCK)
     ON ((r.year = terms.academic_year AND r.schoolid = terms.schoolid) 
-         OR (r.grade_level <= 4 AND terms.schoolid IS NULL AND r.year <= 2012 AND r.year = terms.academic_year)) -- ES rounds for archive years
+         OR (r.grade_level <= 4 AND r.year <= 2012 AND terms.schoolid IS NULL AND r.year = terms.academic_year)) -- ES rounds for archive years
  )
 
--- highest acheived test per round for each student 
+/* highest acheived test per round for each student */
 ,tests AS (
   SELECT r.STUDENTID
         ,r.student_number
@@ -59,30 +59,26 @@ WITH roster AS (
         ,achv.unique_id
         ,achv.read_lvl    
         ,achv.lvl_num
-        ,achv.indep_lvl    
-        ,achv.GLEQ
-        --,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
-        --,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num                     
+        ,achv.indep_lvl   
+        ,achv.indep_lvl_num
+        ,achv.instruct_lvl
+        ,achv.instruct_lvl_num         
+        ,achv.GLEQ        
         ,achv.fp_wpmrate
         ,achv.fp_keylever                
         ,ROW_NUMBER() OVER(
-            PARTITION BY r.studentid
-                ORDER BY r.academic_year, r.round_num) AS meta_achv_round
+           PARTITION BY r.studentid
+             ORDER BY r.academic_year DESC, r.round_num DESC) AS meta_achv_round
   FROM roster_scaffold r WITH(NOLOCK) 
   LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers achv WITH(NOLOCK)
     ON r.STUDENTID = achv.studentid      
    AND r.academic_year = achv.academic_year
    AND r.test_round = achv.test_round
-   AND achv.achv_curr_round = 1
-  --LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
-  --  ON r.grade_level = goals.grade_level
-  -- AND r.test_round = goals.test_round
-  --LEFT OUTER JOIN LIT$individual_goals indiv WITH(NOLOCK)
-  --  ON r.STUDENT_NUMBER = indiv.student_number
-  -- AND r.test_round = indiv.test_round
+   AND achv.status = 'Achieved'
+   AND achv.curr_round = 1
  )
  
--- falls back to most recently achieved reading level for each round, if NULL
+/* falls back to most recently achieved reading level for each round, if NULL */
 SELECT academic_year
       ,SCHOOLID
       ,GRADE_LEVEL
@@ -90,7 +86,10 @@ SELECT academic_year
       ,test_round
       ,start_date
       ,read_lvl
+      ,instruct_lvl
+      ,instruct_lvl_num
       ,indep_lvl
+      ,indep_lvl_num
       ,GLEQ      
       ,lvl_num      
       ,fp_wpmrate
@@ -114,10 +113,13 @@ FROM
            ,sub.STUDENTID
            ,sub.test_round
            ,sub.start_date
-           ,sub.read_lvl
+           ,sub.read_lvl           
+           ,sub.lvl_num 
+           ,sub.instruct_lvl
+           ,sub.instruct_lvl_num     
            ,sub.indep_lvl
-           ,sub.GLEQ
-           ,sub.lvl_num      
+           ,sub.indep_lvl_num
+           ,sub.GLEQ           
            ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
            ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num                           
            ,goals.read_lvl AS default_goal_lvl
@@ -137,31 +139,29 @@ FROM
                 ,tests.GRADE_LEVEL
                 ,tests.STUDENTID      
                 ,tests.student_number
-                ,tests.test_round      
+                ,tests.test_round 
+                ,tests.round_num     
                 ,tests.start_date
-                ,COALESCE(tests.read_lvl, achv_prev1.read_lvl, achv_prev2.read_lvl, achv_prev3.read_lvl, achv_prev4.read_lvl, achv_prev5.read_lvl) AS read_lvl
-                ,COALESCE(tests.indep_lvl, achv_prev1.indep_lvl, achv_prev2.indep_lvl, achv_prev3.indep_lvl, achv_prev4.indep_lvl, achv_prev5.indep_lvl) AS indep_lvl
-                ,COALESCE(tests.gleq, achv_prev1.gleq, achv_prev2.gleq, achv_prev3.gleq, achv_prev4.gleq, achv_prev5.gleq) AS GLEQ
-                ,COALESCE(tests.lvl_num, achv_prev1.lvl_num, achv_prev2.lvl_num, achv_prev3.lvl_num, achv_prev4.lvl_num, achv_prev5.lvl_num) AS lvl_num
-                ,COALESCE(tests.fp_wpmrate, achv_prev1.fp_wpmrate, achv_prev2.fp_wpmrate, achv_prev3.fp_wpmrate, achv_prev4.fp_wpmrate, achv_prev5.fp_wpmrate) AS fp_wpmrate
-                ,COALESCE(tests.fp_keylever, achv_prev1.fp_keylever, achv_prev2.fp_keylever, achv_prev3.fp_keylever, achv_prev4.fp_keylever, achv_prev5.fp_keylever) AS fp_keylever
-                ,COALESCE(tests.unique_id, achv_prev1.unique_id, achv_prev2.unique_id, achv_prev3.unique_id, achv_prev4.unique_id, achv_prev5.unique_id) AS unique_id
+                ,COALESCE(tests.read_lvl,achv_prev.read_lvl) AS read_lvl
+                ,COALESCE(tests.lvl_num,achv_prev.lvl_num) AS lvl_num
+                ,COALESCE(tests.indep_lvl,achv_prev.indep_lvl) AS indep_lvl
+                ,COALESCE(tests.indep_lvl_num,achv_prev.indep_lvl_num) AS indep_lvl_num
+                ,COALESCE(tests.instruct_lvl,achv_prev.instruct_lvl) AS instruct_lvl
+                ,COALESCE(tests.instruct_lvl_num,achv_prev.instruct_lvl_num) AS instruct_lvl_num
+                ,COALESCE(tests.GLEQ,achv_prev.GLEQ) AS GLEQ
+                ,COALESCE(tests.fp_wpmrate,achv_prev.fp_wpmrate) AS fp_wpmrate
+                ,COALESCE(tests.fp_keylever,achv_prev.fp_keylever) AS fp_keylever
+                ,COALESCE(tests.unique_id,achv_prev.unique_id) AS unique_id
+                --,tests.meta_achv_round
+                --,achv_prev.meta_achv_round AS prev_rn
+                ,ROW_NUMBER() OVER(
+                  PARTITION BY tests.studentid, tests.meta_achv_round
+                    ORDER BY achv_prev.meta_achv_round) AS rn
           FROM tests WITH(NOLOCK)
-          LEFT OUTER JOIN tests achv_prev1 WITH(NOLOCK)
-            ON tests.STUDENTID = achv_prev1.STUDENTID
-           AND tests.meta_achv_round = (achv_prev1.meta_achv_round + 1)
-          LEFT OUTER JOIN tests achv_prev2 WITH(NOLOCK)
-            ON tests.STUDENTID = achv_prev2.STUDENTID
-           AND tests.meta_achv_round = (achv_prev2.meta_achv_round + 2) 
-          LEFT OUTER JOIN tests achv_prev3 WITH(NOLOCK)
-            ON tests.STUDENTID = achv_prev3.STUDENTID
-           AND tests.meta_achv_round = (achv_prev3.meta_achv_round + 3) 
-          LEFT OUTER JOIN tests achv_prev4 WITH(NOLOCK)
-            ON tests.STUDENTID = achv_prev4.STUDENTID
-           AND tests.meta_achv_round = (achv_prev4.meta_achv_round + 4) 
-          LEFT OUTER JOIN tests achv_prev5 WITH(NOLOCK)
-            ON tests.STUDENTID = achv_prev5.STUDENTID
-           AND tests.meta_achv_round = (achv_prev5.meta_achv_round + 5)
+          LEFT OUTER JOIN tests achv_prev WITH(NOLOCK)
+            ON tests.STUDENTID = achv_prev.STUDENTID
+           AND tests.meta_achv_round < achv_prev.meta_achv_round
+           AND achv_prev.read_lvl IS NOT NULL                    
          ) sub
      LEFT OUTER JOIN KIPP_NJ..LIT$goals goals WITH(NOLOCK)
        ON sub.grade_level = goals.grade_level
@@ -169,5 +169,6 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
        ON sub.STUDENT_NUMBER = indiv.student_number
       AND sub.test_round = indiv.test_round
-      AND sub.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+      AND indiv.academic_year = sub.academic_year
+     WHERE sub.rn = 1     
     ) sub

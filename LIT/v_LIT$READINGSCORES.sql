@@ -17,17 +17,17 @@ SELECT unique_id
         ELSE CONVERT(INT,LEFT(LTRIM(RTRIM(academic_year)),4))
        END AS academic_year              
       ,CASE        
-        WHEN test_round = 'Diagnostic' THEN 'DR'
-        WHEN test_round = 'BOY' THEN 'DR'
+        WHEN LTRIM(RTRIM(test_round)) = 'Diagnostic' THEN 'DR'
+        WHEN LTRIM(RTRIM(test_round)) = 'BOY' THEN 'DR'
         ELSE CONVERT(VARCHAR(8),LTRIM(RTRIM(test_round)))
        END AS test_round
       ,CONVERT(INT,testid) AS testid
-      ,CONVERT(VARCHAR(8),READ_LVL) AS read_lvl
-      ,CONVERT(VARCHAR(32),status) AS status
-      ,CONVERT(VARCHAR(16),color) AS color
-      ,CONVERT(VARCHAR(8),UPPER(instruct_lvl)) AS instruct_lvl
-      ,CONVERT(VARCHAR(8),UPPER(indep_lvl)) AS indep_lvl
-      ,CONVERT(VARCHAR(16),genre) AS genre
+      ,CONVERT(VARCHAR(8),LTRIM(RTRIM(READ_LVL))) AS read_lvl
+      ,CONVERT(VARCHAR(32),LTRIM(RTRIM(status))) AS status
+      ,CONVERT(VARCHAR(16),LTRIM(RTRIM(color))) AS color
+      ,CONVERT(VARCHAR(8),UPPER(LTRIM(RTRIM(instruct_lvl)))) AS instruct_lvl
+      ,CONVERT(VARCHAR(8),UPPER(LTRIM(RTRIM(indep_lvl)))) AS indep_lvl
+      ,CONVERT(VARCHAR(16),LTRIM(RTRIM(genre))) AS genre
       ,CONVERT(FLOAT,name_ass) AS name_ass
       ,CONVERT(FLOAT,ltr_nameid) AS ltr_nameid
       ,CONVERT(FLOAT,ltr_soundid) AS ltr_soundid
@@ -67,7 +67,7 @@ SELECT unique_id
       ,CONVERT(FLOAT,wcomp_infer) AS wcomp_infer
       ,CONVERT(FLOAT,wcomp_ct) AS wcomp_ct
       ,CONVERT(FLOAT,retelling) AS retelling      
-      ,CONVERT(VARCHAR(32),reading_rate) AS reading_rate
+      ,CONVERT(VARCHAR(32),LTRIM(RTRIM(reading_rate))) AS reading_rate
       ,CONVERT(FLOAT,fluency) AS fluency
       ,CONVERT(FLOAT,fp_wpmrate) AS fp_wpmrate
       ,CONVERT(FLOAT,fp_fluency) AS fp_fluency
@@ -75,8 +75,8 @@ SELECT unique_id
       ,CONVERT(FLOAT,fp_comp_within) AS fp_comp_within
       ,CONVERT(FLOAT,fp_comp_beyond) AS fp_comp_beyond
       ,CONVERT(FLOAT,fp_comp_about) AS fp_comp_about
-      ,CONVERT(VARCHAR(32),fp_keylever) AS fp_keylever
-      ,CONVERT(VARCHAR(8),coaching_code) AS coaching_code
+      ,CONVERT(VARCHAR(32),LTRIM(RTRIM(fp_keylever))) AS fp_keylever
+      ,CONVERT(VARCHAR(8),LTRIM(RTRIM(coaching_code))) AS coaching_code
 
       --aggregate fields
       ,CASE WHEN testid != 3273 THEN

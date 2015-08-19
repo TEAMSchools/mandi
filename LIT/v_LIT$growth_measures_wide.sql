@@ -95,7 +95,8 @@ WITH term_cur AS (
                   ,CONVERT(VARCHAR,fp_keylever) AS keylever
                   ,CONVERT(VARCHAR,fp_wpmrate) AS wpmrate                  
             FROM KIPP_NJ..LIT$test_events#identifiers WITH(NOLOCK)
-            WHERE achv_curr_yr = 1
+            WHERE status = 'Achieved'
+              AND curr_yr = 1
            ) sub
 
        UNPIVOT (
@@ -151,7 +152,8 @@ WITH term_cur AS (
             FROM KIPP_NJ..LIT$test_events#identifiers rs WITH(NOLOCK)
             JOIN KIPP_NJ..LIT$dna_reasons#static dna WITH(NOLOCK)
               ON rs.unique_id = dna.unique_id
-            WHERE dna_round = 1
+            WHERE rs.status = 'Did Not Achieve'
+              AND rs.curr_round = 1
            ) sub
        UNPIVOT (
          value
@@ -195,7 +197,8 @@ WITH term_cur AS (
             FROM KIPP_NJ..LIT$test_events#identifiers rs WITH(NOLOCK)
             JOIN KIPP_NJ..LIT$dna_reasons#static dna WITH(NOLOCK)
               ON rs.unique_id = dna.unique_id
-            WHERE dna_yr = 1
+            WHERE rs.status = 'Did Not Achieve'
+              AND rs.curr_yr = 1
            ) sub
        UNPIVOT (
          value
@@ -276,5 +279,5 @@ LEFT OUTER JOIN term_dna td WITH(NOLOCK)
 LEFT OUTER JOIN yr_dna yd WITH(NOLOCK)
   ON r.STUDENTID = yd.studentid
  AND r.YEAR = yd.academic_year
-WHERE r.grade_level < 9
-  AND r.rn = 1   
+WHERE r.grade_level <= 8
+  AND r.rn = 1

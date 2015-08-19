@@ -5,6 +5,7 @@ ALTER VIEW LIT$test_events#identifiers AS
 
 SELECT sub.unique_id
       ,sub.testid
+      ,sub.is_fp
       ,sub.academic_year
       ,sub.test_round
       ,sub.round_num
@@ -18,263 +19,237 @@ SELECT sub.unique_id
       ,sub.status
       ,sub.read_lvl
       ,sub.lvl_num
+      ,sub.instruct_lvl
+      ,sub.instruct_lvl_num
+      ,sub.indep_lvl
+      ,sub.indep_lvl_num
       ,sub.goal_lvl
       ,sub.goal_num
-      ,sub.GLEQ
+      ,sub.default_goal_lvl
+      ,sub.default_goal_num
+      ,sub.natl_goal_lvl         
+      ,sub.natl_goal_num
+      ,sub.indiv_goal_lvl
+      ,sub.indiv_lvl_num
+      ,sub.met_goal
       ,sub.levels_behind
+      ,sub.GLEQ
       ,sub.color
       ,sub.genre
-      ,sub.fp_keylever
       ,sub.fp_wpmrate
-      ,sub.instruct_lvl
-      ,sub.indep_lvl
-      ,sub.is_fp
-      ,CASE 
-        WHEN status IS NOT NULL AND lvl_num >= goal_num THEN 1 
-        WHEN status IS NOT NULL AND lvl_num < goal_num THEN 0
-        ELSE NULL
-       END AS met_goal
+      ,sub.fp_keylever
+      ,sub.coaching_code      
        
-      -- test sequence identifiers      
-      -- base letter for the round
-      ,CASE WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER(
-           PARTITION BY studentid, academic_year, test_round, status
-             ORDER BY round_num ASC, lvl_num ASC)
-        ELSE NULL
-       END AS achv_base_round
-      -- base letter for the year
-      ,CASE WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER(
-           PARTITION BY studentid, academic_year, status
-             ORDER BY round_num ASC, lvl_num ASC)
-        ELSE NULL
-       END AS achv_base_yr
-      -- base letter, all time
-      ,CASE WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER(
-           PARTITION BY studentid, status
-             ORDER BY round_num ASC, lvl_num ASC)
-        ELSE NULL
-       END AS achv_base_all
-      -- current letter for the round
-      ,CASE WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER(
-           PARTITION BY studentid, academic_year, test_round, status
-             ORDER BY round_num DESC, lvl_num DESC)
-        ELSE NULL
-       END AS achv_curr_round
-      -- current letter for the year
-      ,CASE WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER(
-           PARTITION BY studentid, academic_year, status
-             ORDER BY round_num DESC, lvl_num DESC)
-        ELSE NULL
-       END AS achv_curr_yr   
-      -- current letter, all time
-      ,CASE WHEN status = 'Achieved' THEN
-         ROW_NUMBER() OVER(
-           PARTITION BY studentid, status
-             ORDER BY academic_year DESC, round_num DESC, lvl_num DESC)
-        ELSE NULL
-       END AS achv_curr_all
-       -- current DNA for the round
-      ,CASE WHEN status = 'Did Not Achieve' THEN
-         ROW_NUMBER() OVER(
-           PARTITION BY studentid, academic_year, test_round, status
-             ORDER BY round_num DESC, lvl_num DESC)
-        ELSE NULL
-       END AS dna_round
-       -- current DNA for the year
-      ,CASE WHEN status = 'Did Not Achieve' THEN
-         ROW_NUMBER() OVER(
-           PARTITION BY studentid, academic_year, status
-             ORDER BY round_num DESC, lvl_num DESC)
-        ELSE NULL
-       END AS dna_yr
-       -- current DNA, all time
-      ,CASE WHEN status = 'Did Not Achieve' THEN
-         ROW_NUMBER() OVER(
-           PARTITION BY studentid, status
-             ORDER BY round_num DESC, lvl_num DESC)
-        ELSE NULL
-       END AS dna_all
+      /* test sequence identifiers */      
+      /* base letter for the round */
+      ,ROW_NUMBER() OVER(
+         PARTITION BY studentid, academic_year, test_round, status
+           ORDER BY round_num ASC, lvl_num ASC) AS base_round
+      /* current letter for the round */
+      ,ROW_NUMBER() OVER(
+         PARTITION BY studentid, academic_year, test_round, status
+           ORDER BY round_num DESC, lvl_num DESC) AS curr_round
+
+      /* base letter for the year */
+      ,ROW_NUMBER() OVER(
+         PARTITION BY studentid, academic_year, status
+           ORDER BY round_num ASC, lvl_num ASC) AS base_yr
+      /* current letter for the year */
+      ,ROW_NUMBER() OVER(
+         PARTITION BY studentid, academic_year, status
+           ORDER BY round_num DESC, lvl_num DESC) AS curr_yr
+
+      /* base letter, all time */
+      ,ROW_NUMBER() OVER(
+         PARTITION BY studentid, status
+           ORDER BY academic_year ASC, round_num ASC, lvl_num ASC) AS base_all      
+      /* current letter, all time */
+      ,ROW_NUMBER() OVER(
+         PARTITION BY studentid, status
+           ORDER BY academic_year DESC, round_num DESC, lvl_num DESC) AS curr_all       
 FROM
     (
-     SELECT 
-            -- test identifiers
-            rs.unique_id
-           ,rs.testid           
-           
-           -- date stuff
+     SELECT rs.unique_id
+           ,rs.testid   
+           ,CASE WHEN rs.testid = 3273 THEN 1 ELSE 0 END AS is_fp
+      
+           /* date stuff */
            ,COALESCE(rs.academic_year, dates.academic_year) AS academic_year
-           ,CASE 
-             WHEN rs.test_round IS NULL THEN (CASE
-                                               WHEN rs.schoolid NOT IN (73252, 133570965) AND dates.time_per_name = 'Diagnostic' THEN 'DR' 
-                                               WHEN rs.schoolid IN (73252, 133570965) AND dates.time_per_name IN ('Diagnostic', 'DR') THEN 'BOY' 
-                                               ELSE dates.time_per_name 
-                                              END)
-             ELSE (CASE
-                    WHEN rs.schoolid NOT IN (73252, 133570965) AND rs.test_round = 'Diagnostic' THEN 'DR' 
-                    WHEN rs.schoolid IN (73252, 133570965) AND rs.test_round IN ('Diagnostic', 'DR') THEN 'BOY' 
-                    ELSE rs.test_round
-                   END) 
+           ,CASE
+             WHEN co.grade_level < 5 AND COALESCE(rs.test_round, dates.time_per_name) = 'Diagnostic' THEN 'DR' 
+             WHEN rs.schoolid IN (133570965, 73252) AND COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR') THEN 'BOY' 
+             ELSE COALESCE(rs.test_round, dates.time_per_name)
             END AS test_round
-           ,CASE 
-             WHEN rs.test_round IS NULL THEN (CASE
-                                               WHEN dates.time_per_name IN ('Diagnostic', 'DR', 'BOY') THEN 1
-                                               WHEN dates.time_per_name = 'T1' THEN 2
-                                               WHEN dates.time_per_name = 'T2' THEN 3
-                                               WHEN dates.time_per_name = 'T3' THEN 4
-                                               WHEN dates.time_per_name = 'EOY' THEN 5
-                                              END)
-             ELSE (CASE
-                    WHEN rs.test_round IN ('Diagnostic', 'DR', 'BOY') THEN 1
-                    WHEN rs.test_round = 'T1' THEN 2
-                    WHEN rs.test_round = 'T2' THEN 3
-                    WHEN rs.test_round = 'T3' THEN 4
-                    WHEN rs.test_round = 'EOY' THEN 5
-                   END) 
+           ,CASE
+             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 1
+             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'T1' THEN 2
+             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','T2') THEN 3
+             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'T3' THEN 4
+             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'EOY' THEN 5       
             END AS round_num
            ,rs.test_date
            
-           -- student identifiers
+           /* student identifiers */
            ,rs.schoolid
-           ,ISNULL(cohort.grade_level, s.grade_level) AS grade_level
-           ,cohort.COHORT 
+           ,co.grade_level
+           ,co.COHORT 
            ,rs.studentid
-           ,cohort.student_number
-           ,cohort.LASTFIRST
-           
-           -- progress to goals
-           ,rs.status
-           ,gleq.read_lvl AS read_lvl           
+           ,co.student_number
+           ,co.LASTFIRST
+      
+           /* test identifiers */      
+           ,COALESCE(rs.status,'Did Not Achieve') AS status      
+           ,gleq.read_lvl      
            ,gleq.lvl_num
-           ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
-           ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num
-           ,gleq.GLEQ
-           ,gleq.lvl_num - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind           
+           ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
+           ,instr.lvl_num AS instruct_lvl_num
+           ,COALESCE(rs.indep_lvl, rs.read_lvl, gleq.read_lvl) AS indep_lvl
+           ,ind.lvl_num AS indep_lvl_num
 
-           -- test metadata      
+           /* progress to goals */      
+           ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
+           ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num      
+           ,goals.read_lvl AS default_goal_lvl
+           ,goals.lvl_num AS default_goal_num
+           ,goals.natl_read_lvl AS natl_goal_lvl         
+           ,goals.natl_lvl_num AS natl_goal_num
+           ,indiv.goal AS indiv_goal_lvl
+           ,indiv.lvl_num AS indiv_lvl_num           
+           ,CASE WHEN gleq.lvl_num >= COALESCE(indiv.lvl_num, goals.lvl_num) THEN 1 ELSE 0 END AS met_goal
+           ,gleq.lvl_num - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind                 
+
+           /* test metadata */
+           ,gleq.GLEQ
            ,rs.color
            ,rs.genre
-           ,rs.fp_keylever           
            ,rs.fp_wpmrate
-           ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
-           ,COALESCE(rs.indep_lvl, rs.read_lvl) AS indep_lvl
-           ,CASE WHEN rs.testid = 3273 THEN 1 ELSE 0 END AS is_fp
-     FROM LIT$readingscores#static rs WITH(NOLOCK)
-     JOIN LIT$GLEQ gleq WITH(NOLOCK)
-       ON ((rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl)
-            OR (rs.testid != 3273 AND rs.testid = gleq.testid))
-      AND gleq.lvl_num > -1
-     LEFT OUTER JOIN LIT$GLEQ ind WITH(NOLOCK)
-       ON rs.indep_lvl = ind.read_lvl      
-     JOIN STUDENTS s WITH(NOLOCK)
-       ON rs.studentid = s.id
-     LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
-       ON rs.studentid = cohort.studentid
-      AND rs.academic_year = cohort.year
-      AND cohort.rn = 1          
-     LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
-       ON ((rs.test_date > '2013-06-30' AND rs.schoolid = dates.schoolid) OR (rs.test_date <= '2013-06-30' AND dates.schoolid IS NULL))
-      AND rs.test_date >= dates.start_date
-      AND rs.test_date <= dates.end_date
+           ,rs.fp_keylever      
+           ,rs.coaching_code
+     FROM KIPP_NJ..LIT$readingscores#static rs WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dates WITH(NOLOCK)
+       ON ((rs.test_date >= '2013-07-31' AND rs.schoolid = dates.schoolid) OR (rs.test_date < '2013-07-01' AND dates.schoolid IS NULL))
+      AND rs.test_date BETWEEN dates.start_date AND dates.end_date
       AND dates.identifier = 'LIT'
-     LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
-       ON ISNULL(cohort.grade_level, s.grade_level) = goals.grade_level
-      AND ISNULL(REPLACE(rs.test_round, 'EOY', 'T3'), REPLACE(REPLACE(dates.time_per_name, 'Diagnostic', 'DR'), 'EOY', 'T3')) = goals.test_round
-     LEFT OUTER JOIN LIT$individual_goals indiv WITH(NOLOCK)
-       ON cohort.STUDENT_NUMBER = indiv.student_number
-      AND rs.test_round = indiv.test_round
+     JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+       ON rs.studentid = co.studentid
+      AND COALESCE(rs.academic_year, dates.academic_year) = co.year 
+      AND co.rn = 1
+     JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
+       ON ((rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl) OR (rs.testid != 3273 AND rs.testid = gleq.testid))
+      AND gleq.lvl_num > -1
+     LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ instr WITH(NOLOCK)
+       ON COALESCE(rs.instruct_lvl, gleq.instruct_lvl) = instr.read_lvl
+     LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ ind WITH(NOLOCK)
+       ON COALESCE(rs.indep_lvl, rs.read_lvl, gleq.read_lvl) = ind.read_lvl
+     LEFT OUTER JOIN KIPP_NJ..LIT$goals goals WITH(NOLOCK)
+       ON co.grade_level = goals.grade_level
+      AND CASE
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T3','EOY') THEN 'T3'
+           ELSE COALESCE(rs.test_round, dates.time_per_name)
+          END = goals.test_round 
+     LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
+       ON co.STUDENT_NUMBER = indiv.student_number
+      AND co.year = indiv.academic_year
+      AND CASE
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T3','EOY') THEN 'T3'
+           ELSE COALESCE(rs.test_round, dates.time_per_name)
+          END = goals.test_round  
 
      UNION ALL
 
-     -- synthetic Pre_DNA "Achieved" record
-     SELECT 
-            -- test identifiers
-            rs.unique_id
-           ,rs.testid           
-           
-           -- date stuff
+     /* Synthetic Pre-DNA Achieved */
+     SELECT rs.unique_id
+           ,rs.testid   
+           ,CASE WHEN rs.testid = 3273 THEN 1 ELSE 0 END AS is_fp
+      
+           /* date stuff */
            ,COALESCE(rs.academic_year, dates.academic_year) AS academic_year
-           ,CASE 
-             WHEN rs.test_round IS NULL THEN (CASE
-                                               WHEN rs.schoolid NOT IN (73252, 133570965) AND dates.time_per_name = 'Diagnostic' THEN 'DR' 
-                                               WHEN rs.schoolid IN (73252, 133570965) AND dates.time_per_name IN ('Diagnostic', 'DR') THEN 'BOY' 
-                                               ELSE dates.time_per_name 
-                                              END)
-             ELSE (CASE
-                    WHEN rs.schoolid NOT IN (73252, 133570965) AND rs.test_round = 'Diagnostic' THEN 'DR' 
-                    WHEN rs.schoolid IN (73252, 133570965) AND rs.test_round IN ('Diagnostic', 'DR') THEN 'BOY' 
-                    ELSE rs.test_round
-                   END) 
+           ,CASE
+             WHEN co.grade_level < 5 AND COALESCE(rs.test_round, dates.time_per_name) = 'Diagnostic' THEN 'DR' 
+             WHEN rs.schoolid IN (133570965, 73252) AND COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR') THEN 'BOY' 
+             ELSE COALESCE(rs.test_round, dates.time_per_name)
             END AS test_round
-           ,CASE 
-             WHEN rs.test_round IS NULL THEN (CASE
-                                               WHEN dates.time_per_name IN ('Diagnostic', 'DR', 'BOY') THEN 1
-                                               WHEN dates.time_per_name = 'T1' THEN 2
-                                               WHEN dates.time_per_name = 'T2' THEN 3
-                                               WHEN dates.time_per_name = 'T3' THEN 4
-                                               WHEN dates.time_per_name = 'EOY' THEN 5
-                                              END)
-             ELSE (CASE
-                    WHEN rs.test_round IN ('Diagnostic', 'DR', 'BOY') THEN 1
-                    WHEN rs.test_round = 'T1' THEN 2
-                    WHEN rs.test_round = 'T2' THEN 3
-                    WHEN rs.test_round = 'T3' THEN 4
-                    WHEN rs.test_round = 'EOY' THEN 5
-                   END) 
+           ,CASE
+             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 1
+             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'T1' THEN 2
+             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'T2' THEN 3
+             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'T3' THEN 4
+             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'EOY' THEN 5       
             END AS round_num
            ,rs.test_date
            
-           -- student identifiers
+           /* student identifiers */
            ,rs.schoolid
-           ,ISNULL(cohort.grade_level, s.grade_level) AS grade_level
-           ,cohort.COHORT 
+           ,co.grade_level
+           ,co.COHORT 
            ,rs.studentid
-           ,cohort.student_number
-           ,cohort.LASTFIRST
-           
-           -- progress to goals
+           ,co.student_number
+           ,co.LASTFIRST
+      
+           /* test identifiers */      
            ,'Achieved' AS status
-           ,'Pre_DNA' AS read_lvl           
+           ,'Pre DNA' AS read_lvl           
            ,gleq.lvl_num
+           ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
+           ,instr.lvl_num AS instruct_lvl_num
+           ,COALESCE(rs.indep_lvl, rs.read_lvl, gleq.read_lvl) AS indep_lvl
+           ,ind.lvl_num AS indep_lvl_num
+
+           /* progress to goals */      
            ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
-           ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num
+           ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num      
+           ,goals.read_lvl AS default_goal_lvl
+           ,goals.lvl_num AS default_goal_num
+           ,goals.natl_read_lvl AS natl_goal_lvl         
+           ,goals.natl_lvl_num AS natl_goal_num
+           ,indiv.goal AS indiv_goal_lvl
+           ,indiv.lvl_num AS indiv_lvl_num
+           ,CASE WHEN gleq.lvl_num >= COALESCE(indiv.lvl_num, goals.lvl_num) THEN 1 ELSE 0 END AS met_goal
+           ,gleq.lvl_num - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind                 
+
+           /* test metadata */
            ,gleq.GLEQ
-           ,gleq.lvl_num - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind         
-           
-           -- test metadata      
            ,rs.color
            ,rs.genre
-           ,rs.fp_keylever           
            ,rs.fp_wpmrate
-           ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
-           ,COALESCE(rs.indep_lvl, rs.read_lvl) AS indep_lvl
-           ,0 AS is_fp
-     FROM LIT$readingscores#static rs WITH(NOLOCK)
-     JOIN LIT$GLEQ gleq WITH(NOLOCK)
-       ON gleq.read_lvl = 'Pre DNA'
-     LEFT OUTER JOIN LIT$GLEQ ind WITH(NOLOCK)
-       ON rs.indep_lvl = ind.read_lvl  
-     JOIN STUDENTS s WITH(NOLOCK)
-       ON rs.studentid = s.id
-     LEFT OUTER JOIN COHORT$comprehensive_long#static cohort WITH(NOLOCK)
-       ON rs.studentid = cohort.studentid
-      AND rs.academic_year = cohort.year
-      AND cohort.rn = 1          
-     LEFT OUTER JOIN REPORTING$dates dates WITH(NOLOCK)
-       ON ((rs.test_date > '2013-06-30' AND rs.schoolid = dates.schoolid) OR (rs.test_date <= '2013-06-30' AND dates.schoolid IS NULL))
-      AND rs.test_date >= dates.start_date
-      AND rs.test_date <= dates.end_date
+           ,rs.fp_keylever      
+           ,rs.coaching_code
+     FROM KIPP_NJ..LIT$readingscores#static rs WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dates WITH(NOLOCK)
+       ON ((rs.test_date >= '2013-07-31' AND rs.schoolid = dates.schoolid) OR (rs.test_date < '2013-07-01' AND dates.schoolid IS NULL))
+      AND rs.test_date BETWEEN dates.start_date AND dates.end_date
       AND dates.identifier = 'LIT'
-     LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
-       ON ISNULL(cohort.grade_level, s.grade_level) = goals.grade_level
-      AND ISNULL(REPLACE(rs.test_round, 'EOY', 'T3'), REPLACE(REPLACE(dates.time_per_name, 'Diagnostic', 'DR'), 'EOY', 'T3')) = goals.test_round
-     LEFT OUTER JOIN LIT$individual_goals indiv WITH(NOLOCK)
-       ON cohort.STUDENT_NUMBER = indiv.student_number
-      AND rs.test_round = indiv.test_round
-     WHERE rs.status = 'Did Not Achieve'
-       AND rs.read_lvl = 'Pre'
+     JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+       ON rs.studentid = co.studentid
+      AND COALESCE(rs.academic_year, dates.academic_year) = co.year 
+      AND co.rn = 1
+     JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
+       ON gleq.lvl_num = -1
+     LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ instr WITH(NOLOCK)
+       ON COALESCE(rs.instruct_lvl, gleq.instruct_lvl) = instr.read_lvl
+     LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ ind WITH(NOLOCK)
+       ON COALESCE(rs.indep_lvl, rs.read_lvl, gleq.read_lvl) = ind.read_lvl
+     LEFT OUTER JOIN KIPP_NJ..LIT$goals goals WITH(NOLOCK)
+       ON co.grade_level = goals.grade_level
+      AND CASE
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T3','EOY') THEN 'T3'
+           ELSE COALESCE(rs.test_round, dates.time_per_name)
+          END = goals.test_round 
+     LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
+       ON co.STUDENT_NUMBER = indiv.student_number
+      AND co.year = indiv.academic_year
+      AND CASE
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T3','EOY') THEN 'T3'
+           ELSE COALESCE(rs.test_round, dates.time_per_name)
+          END = goals.test_round  
+     WHERE rs.read_lvl = 'Pre'
+       AND ((rs.status = 'Did Not Achieve') OR (rs.academic_year >= 2015 AND rs.status IS NULL))
     ) sub

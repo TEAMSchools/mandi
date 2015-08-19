@@ -79,7 +79,7 @@ WITH long_scores AS (
              ,CONVERT(VARCHAR,cp_prof) AS cp_prof
              ,CONVERT(VARCHAR,rr_prof) AS rr_prof
              ,CONVERT(VARCHAR,devsp_prof) AS devsp_prof             
-       FROM LIT$readingscores#static WITH(NOLOCK)
+       FROM KIPP_NJ..LIT$readingscores#static WITH(NOLOCK)
       ) sub
   UNPIVOT (
     score
@@ -216,10 +216,10 @@ FROM
               PARTITION BY rs.unique_id, prof.domain
                 ORDER BY rs.score ASC, prof.strand DESC) AS score_order
      FROM long_scores rs
-     JOIN LIT$gleq gleq WITH(NOLOCK)
+     JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
        ON rs.testid = gleq.testid
       AND ((rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl) OR (rs.testid != 3273))
-     JOIN LIT$prof_long prof WITH(NOLOCK)
+     JOIN KIPP_NJ..LIT$prof_long prof WITH(NOLOCK)
        ON rs.testid = prof.testid
       AND rs.field = prof.field_name
       AND gleq.lvl_num = prof.lvl_num          

@@ -33,11 +33,10 @@ WITH goals_wide AS (
          AND co.grade_level < 5
          AND co.rn = 1
       ) sub
-
   PIVOT (
     MAX(goal)
     FOR test_round IN ([DR],[T1],[T2],[T3],[EOY])
-   ) piv
+   ) p
  )
 
 ,terms AS (      
@@ -65,7 +64,7 @@ SELECT
        AS reporting_hash
       ,NULL AS reasons_for_DNA
       ,CASE 
-        WHEN details.achv_curr_yr = 1 AND scores.academic_year = dbo.fn_Global_Academic_Year() AND scores.test_round = (SELECT DISTINCT test_round FROM terms WHERE is_curr = 1)
+        WHEN details.status = 'Achieved' AND details.curr_yr = 1 AND scores.academic_year = dbo.fn_Global_Academic_Year() AND scores.test_round = (SELECT DISTINCT test_round FROM terms WHERE is_curr = 1)
          THEN CONVERT(VARCHAR,details.student_number) + '_MostCurrent_' + CONVERT(VARCHAR,dbo.fn_Global_Academic_Year())
         ELSE NULL 
        END AS mostcurr_hash
@@ -191,7 +190,7 @@ SELECT
        CONVERT(VARCHAR,scores.student_number) + '_'
         + CONVERT(VARCHAR,test_round) + '_Did Not Achieve_' 
         + CONVERT(VARCHAR, academic_year) + '_'
-        + CONVERT(VARCHAR,dna_round) 
+        + CONVERT(VARCHAR,curr_round) 
        AS reporting_hash
       ,dna.dna_reason AS reasons_for_DNA
       ,NULL AS mostcurr_hash
