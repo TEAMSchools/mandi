@@ -43,26 +43,26 @@ SELECT sub.unique_id
       /* test sequence identifiers */      
       /* base letter for the round */
       ,ROW_NUMBER() OVER(
-         PARTITION BY studentid, academic_year, test_round, status
-           ORDER BY round_num ASC, lvl_num ASC) AS base_round
+         PARTITION BY studentid, status, academic_year, test_round
+           ORDER BY lvl_num DESC) AS base_round
       /* current letter for the round */
       ,ROW_NUMBER() OVER(
-         PARTITION BY studentid, academic_year, test_round, status
-           ORDER BY round_num DESC, lvl_num DESC) AS curr_round
+         PARTITION BY studentid, status, academic_year, test_round
+           ORDER BY lvl_num DESC) AS curr_round
 
       /* base letter for the year */
       ,ROW_NUMBER() OVER(
-         PARTITION BY studentid, academic_year, status
-           ORDER BY round_num ASC, lvl_num ASC) AS base_yr
+         PARTITION BY studentid, status, academic_year
+           ORDER BY round_num ASC, lvl_num DESC) AS base_yr
       /* current letter for the year */
       ,ROW_NUMBER() OVER(
-         PARTITION BY studentid, academic_year, status
+         PARTITION BY studentid, status, academic_year
            ORDER BY round_num DESC, lvl_num DESC) AS curr_yr
 
       /* base letter, all time */
       ,ROW_NUMBER() OVER(
          PARTITION BY studentid, status
-           ORDER BY academic_year ASC, round_num ASC, lvl_num ASC) AS base_all      
+           ORDER BY academic_year ASC, round_num ASC, lvl_num DESC) AS base_all      
       /* current letter, all time */
       ,ROW_NUMBER() OVER(
          PARTITION BY studentid, status

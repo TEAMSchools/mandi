@@ -56,16 +56,18 @@ WITH roster AS (
         ,r.test_round
         ,r.round_num
         ,r.start_date
-        ,achv.unique_id
-        ,achv.read_lvl    
+        ,achv.read_lvl
         ,achv.lvl_num
-        ,achv.indep_lvl   
+        ,achv.indep_lvl
         ,achv.indep_lvl_num
         ,achv.instruct_lvl
-        ,achv.instruct_lvl_num         
-        ,achv.GLEQ        
+        ,achv.instruct_lvl_num
+        ,achv.GLEQ
         ,achv.fp_wpmrate
-        ,achv.fp_keylever                
+        ,achv.fp_keylever
+        ,dna.read_lvl AS dna_lvl
+        ,dna.lvl_num AS dna_lvl_num
+        ,dna.unique_id
         ,ROW_NUMBER() OVER(
            PARTITION BY r.studentid
              ORDER BY r.academic_year DESC, r.round_num DESC) AS meta_achv_round
@@ -76,6 +78,12 @@ WITH roster AS (
    AND r.test_round = achv.test_round
    AND achv.status = 'Achieved'
    AND achv.curr_round = 1
+  LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers dna WITH(NOLOCK)
+    ON r.STUDENTID = dna.studentid      
+   AND r.academic_year = dna.academic_year
+   AND r.test_round = dna.test_round
+   AND dna.status = 'Did Not Achieve'
+   AND dna.curr_round = 1
  )
  
 /* falls back to most recently achieved reading level for each round, if NULL */
@@ -90,6 +98,8 @@ SELECT academic_year
       ,instruct_lvl_num
       ,indep_lvl
       ,indep_lvl_num
+      ,dna_lvl
+      ,dna_lvl_num
       ,GLEQ      
       ,lvl_num      
       ,fp_wpmrate
@@ -119,6 +129,8 @@ FROM
            ,sub.instruct_lvl_num     
            ,sub.indep_lvl
            ,sub.indep_lvl_num
+           ,sub.dna_lvl
+           ,sub.dna_lvl_num
            ,sub.GLEQ           
            ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
            ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num                           
@@ -151,6 +163,8 @@ FROM
                 ,COALESCE(tests.GLEQ,achv_prev.GLEQ) AS GLEQ
                 ,COALESCE(tests.fp_wpmrate,achv_prev.fp_wpmrate) AS fp_wpmrate
                 ,COALESCE(tests.fp_keylever,achv_prev.fp_keylever) AS fp_keylever
+                ,COALESCE(tests.dna_lvl,achv_prev.dna_lvl) AS dna_lvl
+                ,COALESCE(tests.dna_lvl_num,achv_prev.dna_lvl_num) AS dna_lvl_num
                 ,COALESCE(tests.unique_id,achv_prev.unique_id) AS unique_id
                 --,tests.meta_achv_round
                 --,achv_prev.meta_achv_round AS prev_rn
