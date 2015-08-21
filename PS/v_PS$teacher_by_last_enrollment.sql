@@ -15,7 +15,7 @@ SELECT cc.schoolid
       ,ROW_NUMBER() OVER(
           PARTITION BY cc.studentid, cc.course_number
               ORDER BY cc.termid DESC) AS rn
-FROM CC WITH(NOLOCK)
-JOIN teachers t WITH(NOLOCK)
+FROM KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
+JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
   ON cc.teacherid = t.id
-WHERE cc.termid >= dbo.fn_Global_Term_Id()
+WHERE cc.termid >= KIPP_NJ.dbo.fn_Global_Term_Id()

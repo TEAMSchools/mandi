@@ -22,7 +22,7 @@ BEGIN
    @v_grade_3             VARCHAR(2) = 'T3',
    @v_grade_yr            VARCHAR(2) = 'FOO',
   
-   --courses to exclude
+   --PS$COURSES#static to exclude
    @v_course_ex_advisory  VARCHAR(8) = 'Adv',
    @v_course_ex_chk       VARCHAR(3) = 'CHK',
    @v_course_ex_hr        VARCHAR(2) = 'HR',
@@ -177,30 +177,31 @@ BEGIN
 
  --stored grades
  SET @v_sql = 
- 'SELECT CONVERT(INT, studentid) AS studentid, 
-   course_number,
-   storecode,
-   grade,
-   [percent]
-    FROM OPENQUERY(PS_TEAM, ''
+ 'SELECT CONVERT(INT, studentid) AS studentid
+        ,course_number
+        ,storecode
+        ,grade
+        ,[percent]
+  FROM OPENQUERY(PS_TEAM, ''
     SELECT TO_CHAR(studentid) AS studentid
-    ,course_number
-    ,storecode
-    ,grade
-    ,percent
-     FROM storedgrades
+          ,course_number
+          ,storecode
+          ,grade
+          ,percent
+    FROM storedgrades
     WHERE termid >= ' + CONVERT(VARCHAR,@v_termid) + '
-   AND credit_type   != ''''' + @v_credit_ex_log + '''''
-   AND course_number != ''''' + @v_course_ex_hr + '''''
-   AND course_number != ''''' + @v_course_ex_chk + '''''
-   AND schoolid IN (73252, 133570965)'');';
+      AND credit_type   != ''''' + @v_credit_ex_log + '''''
+      AND course_number != ''''' + @v_course_ex_hr + '''''
+      AND course_number != ''''' + @v_course_ex_chk + '''''
+      AND schoolid IN (73252, 133570965)
+  '');';
 
  INSERT INTO #TEMP_GRADES$MS#SG
  EXEC (@v_sql);
 
  --step 2: assemble student enrollments and course grades into first staging table
  --(no calculations yet)
- --students w/ all course enrollments this year
+ --KIPP_NJ..PS$STUDENTS#static w/ all course enrollments this year
  --course enrollments are defined AS anything that *was not dropped* 
  --during this school year
  WITH level_1 AS (
@@ -222,18 +223,18 @@ BEGIN
              PARTITION BY co.studentid
                          ,cc.course_number
                  ORDER BY cc.dateleft DESC) AS rn
-   FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-   JOIN STUDENTS s WITH(NOLOCK)
+   FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH(NOLOCK)
+   JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
      ON co.STUDENTID = s.ID
-   JOIN cc WITH(NOLOCK)
+   JOIN PS$CC#static cc WITH(NOLOCK)
      ON co.STUDENTID = cc.studentid
     AND cc.sectionid > 0
     AND cc.termid >= @v_termid
-    --exclude a bunch of courses that will never count towards GPA
+    --exclude a bunch of PS$COURSES#static that will never count towards GPA
     AND cc.course_number != @v_course_ex_advisory
     AND cc.course_number != @v_course_ex_chk
     AND cc.course_number != @v_course_ex_hr
-   JOIN courses c WITH(NOLOCK)
+   JOIN PS$COURSES#static c WITH(NOLOCK)
      ON cc.course_number = c.course_number
     AND c.CREDITTYPE NOT IN ('LOG')
    WHERE co.YEAR = dbo.fn_Global_Academic_Year()

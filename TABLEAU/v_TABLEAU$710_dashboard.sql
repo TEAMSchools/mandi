@@ -69,14 +69,16 @@ WITH enrollments AS (
   SELECT sectionid
         ,term
         ,ROUND(AVG(CONVERT(FLOAT,term_pct)),0) AS termgrade
-  FROM KIPP_NJ..GRADES$detail_long#static
+  FROM KIPP_NJ..GRADES$detail_long#static WITH(NOLOCK)
   GROUP BY sectionid
           ,term
+  
   UNION ALL
+  
   SELECT sectionid
         ,'Y1' AS term
         ,ROUND(AVG(CONVERT(FLOAT,y1_pct)),0) AS termgrade
-  FROM KIPP_NJ..GRADES$detail_long#static
+  FROM KIPP_NJ..GRADES$detail_long#static WITH(NOLOCK)
   GROUP BY sectionid
  )
 
@@ -109,10 +111,9 @@ WITH enrollments AS (
              ,DATEPART(WEEK,mem.CALENDARDATE) AS week
              ,CONVERT(FLOAT,mem.MEMBERSHIPVALUE) AS membershipvalue
        FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
-       JOIN CC WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
          ON mem.STUDENTID = cc.STUDENTID
-        AND mem.CALENDARDATE >= cc.DATEENROLLED
-        AND mem.CALENDARDATE <= cc.DATELEFT 
+        AND (mem.CALENDARDATE BETWEEN cc.DATEENROLLED AND cc.DATELEFT)
        WHERE mem.academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
          AND mem.SCHOOLID = 73253
       ) sub
@@ -141,7 +142,7 @@ WITH enrollments AS (
         ,NULL AS n_absent
         ,ROUND(SUM(CONVERT(FLOAT,mem.attendancevalue)) / SUM(CONVERT(FLOAT,mem.membershipvalue)) * 100,0) AS butts_in_seats_pct
   FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
-  JOIN CC WITH(NOLOCK)
+  JOIN PS$CC#static cc WITH(NOLOCK)
     ON mem.STUDENTID = cc.STUDENTID
    AND cc.COURSE_NUMBER = 'HR' 
    AND cc.TERMID >= dbo.fn_Global_Term_Id()
@@ -197,7 +198,7 @@ FROM
            --,cs.spedlep
            --,co.year_in_network
      FROM course_scaffold enr WITH(NOLOCK)
-     JOIN GRADES$asmt_scores_category_long#static gr WITH(NOLOCK)
+     JOIN KIPP_NJ..GRADES$asmt_scores_category_long#static gr WITH(NOLOCK)
        ON enr.SECTIONID = gr.sectionid
       AND enr.week = gr.week
      --JOIN STUDENTS s WITH(NOLOCK)

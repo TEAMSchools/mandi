@@ -66,10 +66,10 @@ FROM
                          END AS credit_join
                         ,baseline.testritscore                        
                         ,enrollments.course_name AS match_course
-                  FROM PS$STUDENTS#static s WITH(NOLOCK)
-                  LEFT OUTER JOIN PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
+                  FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+                  LEFT OUTER JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
                     ON s.id = cs.studentid  
-                  JOIN MAP$best_baseline#static baseline WITH(NOLOCK)
+                  JOIN KIPP_NJ..MAP$best_baseline#static baseline WITH(NOLOCK)
                     ON s.id = baseline.studentid
                    AND s.GRADE_LEVEL = baseline.grade_level                                          
                   LEFT OUTER JOIN (
@@ -77,14 +77,13 @@ FROM
                                          ,courses.course_name
                                          ,courses.credittype
                                          ,courses.course_number                                      
-                                   FROM CC WITH(NOLOCK)
-                                   JOIN COURSES WITH(NOLOCK)
+                                   FROM PS$CC#static cc WITH(NOLOCK)
+                                   JOIN PS$COURSES#static courses WITH(NOLOCK)
                                      ON cc.course_number = courses.course_number
                                     AND courses.credittype != 'COCUR'
-                                    AND courses.credittype != 'WLANG'                                  
-                                 /*--update for each school an term--*/
-                                   WHERE cc.schoolid IN (133570965, 73252)
-                                     AND cc.termid >= dbo.fn_Global_Term_Id()
+                                    AND courses.credittype != 'WLANG'                                                                   
+                                   WHERE cc.schoolid IN (133570965, 73252, 73258, 179902)
+                                     AND cc.termid >= KIPP_NJ.dbo.fn_Global_Term_Id()
                                   ) enrollments
                     ON s.id = enrollments.studentid
                    AND CASE
@@ -94,7 +93,7 @@ FROM
                         WHEN baseline.measurementscale IN ('Science - Concepts and Processes', 'Science - General Science') THEN 'SCI'
                        END = enrollments.credittype
                 /*--update for each school an term--*/
-                  WHERE s.schoolid IN (133570965, 73252)
+                  WHERE s.schoolid IN (133570965, 73252, 73258,179902)
                     AND s.enroll_status = 0
                  ) sub_1
             WHERE testritscore IS NOT NULL
@@ -102,7 +101,7 @@ FROM
               AND sub_1.measurementscale NOT IN ('Science - General Science', 'Science - Concepts and Processes')
             GROUP BY sub_1.SCHOOLID, sub_1.grade_level, sub_1.measurementscale, CUBE(sub_1.iep_status,sub_1.match_course)
            ) sub_2
-      LEFT OUTER JOIN MAP$rit_scale_school_norms norms WITH(NOLOCK)
+      LEFT OUTER JOIN KIPP_NJ..MAP$rit_scale_school_norms norms WITH(NOLOCK)
         ON norms.subject = sub_2.measurementscale
        AND norms.grade = sub_2.grade_level
        AND norms.term = 'Spring-to-Spring'
@@ -138,7 +137,7 @@ CROSS JOIN (
                              ,ROW_NUMBER() OVER
                                 (PARTITION BY percentile
                                      ORDER BY zscore ASC) AS rn           
-                       FROM UTIL$zscores WITH(NOLOCK)
+                       FROM KIPP_NJ..UTIL$zscores WITH(NOLOCK)
                        WHERE percentile IN (1,5,10,20,25,30,40,50,60,70,75,80,90,95,99)
                       ) z
                  WHERE z.rn = 1

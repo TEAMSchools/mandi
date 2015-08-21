@@ -1,7 +1,7 @@
 /*
 NJSMART COURSE SUBMISSION MONSTER QUERY
-MS & HS Y1 GRADES, TEACHERS AND SECTIONS
-ES PLACEHOLDER COURSES FOR MATH AND ELA WITH PASS/FAIL BASED ON EOY STATUS
+MS & HS Y1 GRADES, TEACHERS AND PS$SECTIONS#static
+ES PLACEHOLDER PS$COURSES#static FOR MATH AND ELA WITH PASS/FAIL BASED ON EOY STATUS
 MISSING DATA TO BE INDEX MATCHED
        STAFF SMIDS
        COURSE MAPPINGS TO NJSMART
@@ -17,7 +17,7 @@ GO
 
 ALTER VIEW COMPLIANCE$NJSMART_course_submission AS
 
-WITH section_long AS ( --sections & teachers all terms
+WITH section_long AS ( --PS$SECTIONS#static & teachers all terms
        SELECT CAST(sec.id AS VARCHAR(20)) as LocalSectionCode
                 ,sec.course_number
                 ,t.id
@@ -25,8 +25,8 @@ WITH section_long AS ( --sections & teachers all terms
                 ,t.lastfirst
                 ,t.last_name
                 ,t.first_name
-       FROM sections sec WITH(NOLOCK)
-       JOIN teachers t WITH(NOLOCK)
+       FROM PS$SECTIONS#static sec WITH(NOLOCK)
+       JOIN PS$TEACHERS#static t WITH(NOLOCK)
          ON sec.teacher = t.id
        WHERE sec.termid >= 2400
 )
@@ -38,8 +38,8 @@ WITH section_long AS ( --sections & teachers all terms
           ,sec.schoolid
           ,c.credit_hours
           ,c.credittype
-       FROM sections sec WITH(NOLOCK)
-       JOIN courses c WITH(NOLOCK)
+       FROM PS$SECTIONS#static sec WITH(NOLOCK)
+       JOIN PS$COURSES#static c WITH(NOLOCK)
          ON sec.COURSE_NUMBER = c.COURSE_NUMBER
        WHERE sec.termid >= 2400
          AND c.COURSE_NUMBER NOT IN ('HR','Adv')
@@ -72,7 +72,7 @@ WITH section_long AS ( --sections & teachers all terms
        ,NULL AS CourseLevel 
        ,NULL AS GradeSpan
        ,NULL as AvailableCredit
-       ,11 AS CourseSequence 
+       ,11 AS PS$COURSES#staticequence 
        ,grades.COURSE_NAME AS LocalCourseTitle
        ,grades.COURSE_NUMBER AS LocalCourseCode
        ,COALESCE (CAST(grades.T3_ENR_SECTIONID AS VARCHAR(20)) 
@@ -131,7 +131,7 @@ WHERE cohort.year = 2014
               ,NULL AS CourseLevel 
               ,NULL AS GradeSpann
               ,grades.credit_hours_y1 as AvailableCredit
-              ,11 AS CourseSequence 
+              ,11 AS PS$COURSES#staticequence 
               ,grades.COURSE_NAME AS LocalCourseTitle
               ,grades.COURSE_NUMBER AS LocalCourseCode
               ,COALESCE (CAST(grades.Q4_ENR_SECTIONID AS VARCHAR(20)) 
@@ -188,7 +188,7 @@ WHERE cohort.year = 2014
        ,NULL AS CourseLevel 
        ,NULL AS GradeSpan
        ,NULL AS AvailableCredit
-       ,NULL AS CourseSequence 
+       ,NULL AS PS$COURSES#staticequence 
 
        ,CASE WHEN row_gen.n = 0 THEN 'ELA' + CAST(cohort.grade_level AS VARCHAR(20))
                 ELSE 'MATH' + CAST(cohort.grade_level AS VARCHAR(20))
@@ -219,11 +219,11 @@ WHERE cohort.year = 2014
          ON cohort.STUDENTID = s.id
        JOIN UTIL$row_generator row_gen WITH(NOLOCK)
          ON cohort.STUDENTID != row_gen.n
-       JOIN cc WITH(NOLOCK)
+       JOIN PS$CC#static cc WITH(NOLOCK)
          ON cohort.studentid = cc.studentid 
         AND cc.COURSE_NUMBER = 'HR' 
         AND cc.TERMID = 2400
-       JOIN sections sec WITH(NOLOCK)
+       JOIN PS$SECTIONS#static sec WITH(NOLOCK)
          ON cc.SECTIONID = sec.id
        JOIN teachers t WITH(NOLOCK)
          ON sec.TEACHER = t.id

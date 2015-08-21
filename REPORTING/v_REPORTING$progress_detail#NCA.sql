@@ -6,12 +6,11 @@ ALTER VIEW REPORTING$progress_detail#NCA AS
 WITH curterm AS (
   SELECT time_per_name
         ,alt_name AS term
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
-    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 73253
-    AND start_date <= CONVERT(DATE,GETDATE())
-    AND end_date >= CONVERT(DATE,GETDATE())
+    AND (CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date)
  )
 
 ,roster AS (
@@ -24,7 +23,7 @@ WITH curterm AS (
         ,c.entry_school_name AS prev_school
         ,c.entry_grade_level AS entry_grade
   FROM KIPP_NJ..COHORT$identifiers_long#static c WITH (NOLOCK)    
-  WHERE c.year = dbo.fn_Global_Academic_Year()
+  WHERE c.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND c.rn = 1        
     AND c.schoolid = 73253
     AND c.enroll_status = 0
@@ -181,37 +180,37 @@ SELECT roster.ID
       ,roster.entry_grade      
       ,rti.behavior_tier
 FROM roster WITH(NOLOCK)
-LEFT OUTER JOIN GRADES$DETAIL#NCA gr WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$DETAIL#NCA gr WITH(NOLOCK)
   ON roster.joinid = gr.studentid 
-LEFT OUTER JOIN PS$rti_tiers#static rti WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$rti_tiers#static rti WITH(NOLOCK)
   ON roster.joinid = rti.studentid
  AND gr.credittype = rti.credittype
 LEFT OUTER JOIN cur_section sec
   ON roster.joinid = sec.studentid
  AND gr.course_number = sec.course_number
  AND sec.rn = 1
-LEFT OUTER JOIN CC cc WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$CC#static cc WITH (NOLOCK)
   ON roster.joinid = cc.studentid
  AND sec.sectionid = cc.sectionid
-LEFT OUTER JOIN GRADES$elements ele_h WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$elements ele_h WITH (NOLOCK)
   ON gr.studentid = ele_h.studentid
  AND gr.course_number = ele_h.course_number
  AND ele_h.pgf_type = 'H'
  AND ele_h.yearid >= LEFT(dbo.fn_Global_Term_ID(), 2)
-LEFT OUTER JOIN GRADES$elements ele_a WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$elements ele_a WITH (NOLOCK)
   ON gr.studentid = ele_a.studentid
  AND gr.course_number = ele_a.course_number
  AND ele_a.pgf_type = 'A'
  AND ele_a.yearid >= LEFT(dbo.fn_Global_Term_ID(), 2)
-LEFT OUTER JOIN GRADES$elements ele_c WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$elements ele_c WITH (NOLOCK)
   ON gr.studentid = ele_c.studentid
  AND gr.course_number = ele_c.course_number
  AND ele_c.pgf_type = 'C'
  AND ele_c.yearid >= LEFT(dbo.fn_Global_Term_ID(), 2)
-LEFT OUTER JOIN GRADES$elements ele_p WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$elements ele_p WITH (NOLOCK)
   ON gr.studentid = ele_p.studentid
  AND gr.course_number = ele_p.course_number
  AND ele_p.pgf_type = 'P'
  AND ele_p.yearid >= LEFT(dbo.fn_Global_Term_ID(), 2)
-LEFT OUTER JOIN GPA$detail#NCA gpa WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GPA$detail#NCA gpa WITH (NOLOCK)
   ON roster.joinid = gpa.studentid

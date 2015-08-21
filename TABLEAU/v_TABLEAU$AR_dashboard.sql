@@ -58,9 +58,9 @@ SELECT ar.*
         ELSE NULL
        END AS diff_block_period      
 FROM AR$progress_to_goals_long#static ar WITH(NOLOCK)
-LEFT OUTER JOIN STUDENTS s WITH(NOLOCK)
+LEFT OUTER JOIN PS$STUDENTS#static s WITH(NOLOCK)
   ON ar.studentid = s.id
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+LEFT OUTER JOIN PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON ar.studentid = cs.STUDENTID
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID
@@ -74,12 +74,12 @@ LEFT OUTER JOIN (
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
                                ORDER BY c.course_name) AS rn
-                 FROM COURSES c WITH (NOLOCK)
-                 JOIN CC WITH (NOLOCK)
+                 FROM PS$COURSES#static c WITH (NOLOCK)
+                 JOIN PS$CC#static cc WITH (NOLOCK)
                    ON c.COURSE_NUMBER = cc.COURSE_NUMBER
-                  AND cc.TERMID >= dbo.fn_Global_Term_Id()
+                  AND cc.TERMID >= KIPP_NJ.dbo.fn_Global_Term_Id()
                   --AND cc.SCHOOLID = 73253
-                 JOIN TEACHERS t WITH (NOLOCK)
+                 JOIN PS$TEACHERS#static t WITH (NOLOCK)
                    ON cc.TEACHERID = t.ID
                  WHERE c.CREDITTYPE = 'ENG'
                    AND c.COURSE_NUMBER NOT LIKE 'ENG0%'
@@ -100,12 +100,12 @@ LEFT OUTER JOIN (
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
                                ORDER BY c.course_name) AS rn
-                 FROM COURSES c WITH (NOLOCK)
-                 JOIN CC WITH (NOLOCK)
+                 FROM PS$COURSES#static c WITH (NOLOCK)
+                 JOIN PS$CC#static cc WITH (NOLOCK)
                    ON c.COURSE_NUMBER = cc.COURSE_NUMBER
                   AND cc.TERMID >= dbo.fn_Global_Term_Id()
                   --AND cc.SCHOOLID = 73253
-                 JOIN TEACHERS t WITH (NOLOCK)
+                 JOIN PS$TEACHERS#static t WITH (NOLOCK)
                    ON cc.TEACHERID = t.ID
                  WHERE c.CREDITTYPE = 'ENG'
                    AND c.COURSE_NUMBER NOT LIKE 'ENG0%'
@@ -128,10 +128,10 @@ LEFT OUTER JOIN (
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
                                ORDER BY cc.termid DESC) AS rn
-                 FROM CC WITH (NOLOCK)   
-                 JOIN COURSES c WITH(NOLOCK)
+                 FROM PS$CC#static cc WITH (NOLOCK)   
+                 JOIN PS$COURSES#static c WITH(NOLOCK)
                    ON cc.COURSE_NUMBER = c.COURSE_NUMBER
-                 JOIN TEACHERS t WITH (NOLOCK)
+                 JOIN PS$TEACHERS#static t WITH (NOLOCK)
                    ON cc.TEACHERID = t.ID                  
                  WHERE cc.TERMID >= dbo.fn_Global_Term_Id()
                    --AND cc.SCHOOLID = 73253

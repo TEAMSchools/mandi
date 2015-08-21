@@ -99,7 +99,7 @@ BEGIN
             ,scale.grade_points AS gpa_points
             ,scale.scale_name AS gradescale_name
       FROM GRADES$DETAIL#MS gr WITH(NOLOCK)
-      JOIN COURSES co WITH(NOLOCK)
+      JOIN PS$COURSES#static co WITH(NOLOCK)
         ON gr.COURSE_NUMBER = co.COURSE_NUMBER       
       LEFT OUTER JOIN GRADES$grade_scales#static scale WITH(NOLOCK)
         ON co.gradescaleid = scale.scale_id
@@ -138,7 +138,7 @@ BEGIN
             ,scale.grade_points AS gpa_points
             ,scale.scale_name AS gradescale_name
       FROM GRADES$DETAIL#NCA gr WITH(NOLOCK)
-      JOIN COURSES co WITH(NOLOCK)
+      JOIN PS$COURSES#static co WITH(NOLOCK)
         ON gr.COURSE_NUMBER = co.COURSE_NUMBER       
       LEFT OUTER JOIN GRADES$grade_scales#static scale WITH(NOLOCK)
         ON co.gradescaleid = scale.scale_id

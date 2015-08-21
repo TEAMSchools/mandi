@@ -16,10 +16,10 @@ WITH dupe_enrollments AS (
                   ,COURSE_NUMBER
                   ,SECTION_NUMBER
                   ,COUNT(sectionid) OVER(PARTITION BY studentid, course_number) AS N_enrollments
-            FROM KIPP_NJ..CC WITH(NOLOCK)
+            FROM KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
             WHERE cc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
               AND cc.sectionid > 0
-              AND '2015-06-01' BETWEEN DATEENROLLED AND DATELEFT       
+              AND CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(),'-06-01')) BETWEEN DATEENROLLED AND DATELEFT       
            ) sub
        WHERE N_enrollments > 1
        GROUP BY STUDENTID, COURSE_NUMBER
@@ -30,7 +30,7 @@ WITH dupe_enrollments AS (
 ,fte AS (
   SELECT SCHOOLID
         ,KIPP_NJ.dbo.GROUP_CONCAT_D(ID, ';') AS fte_id
-  FROM PS$FTE#static
+  FROM KIPP_NJ..PS$FTE#static WITH(NOLOCK)
   WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY SCHOOLID
  )
@@ -59,10 +59,10 @@ SELECT s.LASTFIRST
       ,s.ENTRYDATE
       ,s.EXITDATE
       /**/      
-FROM KIPP_NJ..STUDENTS s WITH(NOLOCK)
-JOIN KIPP_NJ..CUSTOM_STUDENTS cs WITH(NOLOCK)
+FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON s.id = cs.STUDENTID
-LEFT OUTER JOIN KIPP_NJ..CC hr WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$CC#static hr WITH(NOLOCK)
   ON s.id = hr.STUDENTID
  AND hr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 	AND CONVERT(DATE,GETDATE()) BETWEEN hr.dateenrolled AND hr.dateleft

@@ -21,7 +21,7 @@ WITH entrydate AS (
 
 ,bio_courses AS (
   SELECT COURSE_NUMBER
-  FROM courses WITH(NOLOCK)
+  FROM KIPP_NJ..PS$COURSES#static WITH(NOLOCK)
   WHERE (course_name LIKE '%Bio%' OR course_name LIKE '%Life%Sci%')
     AND course_name NOT LIKE '%ICS%'
     AND COURSE_NUMBER NOT LIKE 'SCHED%'
@@ -44,8 +44,8 @@ WITH entrydate AS (
         ,ROW_NUMBER() OVER(
            PARTITION BY cc.studentid
              ORDER BY cc.dateenrolled DESC) AS rn
-  FROM cc WITH(NOLOCK)
-  JOIN COURSES cou WITH(NOLOCK)
+  FROM PS$CC#static cc WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
     ON cc.COURSE_NUMBER = cou.COURSE_NUMBER   
   WHERE cc.SCHOOLID IN (73252,73253,133570965)
     AND cc.COURSE_NUMBER IN (SELECT COURSE_NUMBER FROM bio_courses WITH(NOLOCK))
@@ -106,8 +106,8 @@ SELECT cs.SID
       ,CASE WHEN entrydate.prev_school != 73253 OR entrydate.prev_school IS NULL THEN 'Y' ELSE 'N' END AS TimeInSchool_Flag
       ,NULL AS SES
       ,NULL AS sending_CDS_code
-FROM STUDENTS s WITH(NOLOCK)
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+FROM PS$STUDENTS#static s WITH(NOLOCK)
+LEFT OUTER JOIN PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON s.ID = cs.STUDENTID
 LEFT OUTER JOIN entrydate WITH(NOLOCK)
   ON s.ID = entrydate.STUDENTID  

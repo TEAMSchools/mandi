@@ -5,11 +5,10 @@ ALTER VIEW REPORTING$reading_log#NCA AS
 
 WITH curterm AS (
   SELECT time_per_name
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE schoolid = 73253
     AND identifier = 'RT'
-    AND GETDATE() >= start_date
-    AND GETDATE() <= end_date
+    AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
  )
 
 SELECT s.LASTFIRST
@@ -131,147 +130,61 @@ SELECT s.LASTFIRST
       ,CASE WHEN ROUND(((ar_q2.points / ar_q2.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q2
       ,CASE WHEN ROUND(((ar_q3.points / ar_q3.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q3
       ,CASE WHEN ROUND(((ar_q4.points / ar_q4.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q4
-      ,CASE WHEN ROUND(((ar_yr.points / ar_yr.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_yr      
-      --,CASE
-      --  --WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Attends RTI'
-      --  WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_cur.points / ar_cur.points_goal) * 100),0))
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points >= 25 THEN '100'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points >= 20 AND ar_cur.points < 25 THEN '90'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points >= 15 AND ar_cur.points < 20 THEN '80'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points >= 10 AND ar_cur.points < 15 THEN '70'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points > 0 AND ar_cur.points < 10 THEN '60'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_cur.points = 0 THEN '0'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points >= 30 THEN '100'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points >= 25 AND ar_cur.points < 30 THEN '90'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points >= 20 AND ar_cur.points < 25 THEN '80'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points >= 15 AND ar_cur.points < 20 THEN '70'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points >= 10 AND ar_cur.points < 15 THEN '60'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points > 0 AND ar_cur.points < 10 THEN '50'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_cur.points = 0 THEN '0'
-      -- END AS ar_grade_cur
-      --,CASE
-      --  --WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Attends RTI'
-      --  WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q1.points / ar_q1.points_goal) * 100),0))
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points >= 25 THEN '100'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points >= 20 AND ar_q1.points < 25 THEN '90'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points >= 15 AND ar_q1.points < 20 THEN '80'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points >= 10 AND ar_q1.points < 15 THEN '70'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points > 0 AND ar_q1.points < 10 THEN '60'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q1.points = 0 THEN '0'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points >= 30 THEN '100'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points >= 25 AND ar_q1.points < 30 THEN '90'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points >= 20 AND ar_q1.points < 25 THEN '80'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points >= 15 AND ar_q1.points < 20 THEN '70'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points >= 10 AND ar_q1.points < 15 THEN '60'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points > 0 AND ar_q1.points < 10 THEN '50'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q1.points = 0 THEN '0'
-      -- END AS ar_grade_q1
-      --,CASE
-      --  --WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Attends RTI'
-      --  WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q2.points / ar_q2.points_goal) * 100),0))
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points >= 25 THEN '100'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points >= 20 AND ar_q2.points < 25 THEN '90'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points >= 15 AND ar_q2.points < 20 THEN '80'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points >= 10 AND ar_q2.points < 15 THEN '70'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points > 0 AND ar_q2.points < 10 THEN '60'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q2.points = 0 THEN '0'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points >= 30 THEN '100'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points >= 25 AND ar_q2.points < 30 THEN '90'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points >= 20 AND ar_q2.points < 25 THEN '80'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points >= 15 AND ar_q2.points < 20 THEN '70'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points >= 10 AND ar_q2.points < 15 THEN '60'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points > 0 AND ar_q2.points < 10 THEN '50'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q2.points = 0 THEN '0'
-      -- END AS ar_grade_q2
-      --,CASE
-      --  --WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Attends RTI'
-      --  WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q3.points / ar_q3.points_goal) * 100),0))
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 25 THEN '100'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 20 AND ar_q3.points < 25 THEN '90'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 15 AND ar_q3.points < 20 THEN '80'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points >= 10 AND ar_q3.points < 15 THEN '70'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points > 0 AND ar_q3.points < 10 THEN '60'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q3.points = 0 THEN '0'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 30 THEN '100'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 25 AND ar_q3.points < 30 THEN '90'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 20 AND ar_q3.points < 25 THEN '80'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 15 AND ar_q3.points < 20 THEN '70'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points >= 10 AND ar_q3.points < 15 THEN '60'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points > 0 AND ar_q3.points < 10 THEN '50'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q3.points = 0 THEN '0'
-      -- END AS ar_grade_q3
-      --,CASE
-      --  --WHEN (intv_block.group_name LIKE ('%math rti%') OR intv_block.group_name LIKE ('%readlive%')) THEN 'Attends RTI'
-      --  WHEN (eng1.COURSE_NAME LIKE ('%Eng Foundations%') OR eng2.COURSE_NAME LIKE ('%Eng Foundations%')) THEN CONVERT(VARCHAR,ROUND(((ar_q4.points / ar_q4.points_goal) * 100),0))
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points >= 25 THEN '100'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points >= 20 AND ar_q4.points < 25 THEN '90'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points >= 15 AND ar_q4.points < 20 THEN '80'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points >= 10 AND ar_q4.points < 15 THEN '70'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points > 0 AND ar_q4.points < 10 THEN '60'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG10','ENG20') AND ar_q4.points = 0 THEN '0'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points >= 30 THEN '100'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points >= 25 AND ar_q4.points < 30 THEN '90'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points >= 20 AND ar_q4.points < 25 THEN '80'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points >= 15 AND ar_q4.points < 20 THEN '70'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points >= 10 AND ar_q4.points < 15 THEN '60'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points > 0 AND ar_q4.points < 10 THEN '50'
-      --  WHEN eng1.COURSE_NUMBER IN ('ENG30','ENG40','ENG45') AND ar_q4.points = 0 THEN '0'
-      -- END AS ar_grade_q4
-FROM STUDENTS s WITH (NOLOCK)
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH (NOLOCK)
+      ,CASE WHEN ROUND(((ar_yr.points / ar_yr.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_yr            
+FROM KIPP_NJ..PS$STUDENTS#static s WITH (NOLOCK)
+LEFT OUTER JOIN PS$CUSTOM_STUDENTS#static cs WITH (NOLOCK)
   ON s.ID = cs.STUDENTID
-LEFT OUTER JOIN curterm
-  ON 1 = 1
+CROSS JOIN curterm  
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
   ON s.id = ar_yr.studentid 
  AND ar_yr.time_period_name = 'Year'
- AND ar_yr.yearid = dbo.fn_Global_Term_Id()
+ AND ar_yr.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q1 WITH (NOLOCK)
   ON s.id = ar_q1.studentid 
  AND ar_q1.time_period_name = 'RT1'
- AND ar_q1.yearid = dbo.fn_Global_Term_Id() 
+ AND ar_q1.yearid = KIPP_NJ.dbo.fn_Global_Term_Id() 
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q2 WITH (NOLOCK)
   ON s.id = ar_q2.studentid
  AND ar_q2.time_period_name = 'RT2'
- AND ar_q2.yearid = dbo.fn_Global_Term_Id() 
+ AND ar_q2.yearid = KIPP_NJ.dbo.fn_Global_Term_Id() 
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q3 WITH (NOLOCK)
   ON s.id = ar_q3.studentid
  AND ar_q3.time_period_name = 'RT3'
- AND ar_q3.yearid = dbo.fn_Global_Term_Id() 
+ AND ar_q3.yearid = KIPP_NJ.dbo.fn_Global_Term_Id() 
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q4 WITH (NOLOCK)
   ON s.id = ar_q4.studentid
  AND ar_q4.time_period_name = 'RT4'
- AND ar_q4.yearid = dbo.fn_Global_Term_Id() 
+ AND ar_q4.yearid = KIPP_NJ.dbo.fn_Global_Term_Id() 
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_cur WITH (NOLOCK)
   ON s.id = ar_cur.studentid
  AND ar_cur.time_period_name = curterm.time_per_name
- AND ar_cur.yearid = dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
-  ON s.id = lex_cur.ps_studentid
+ AND ar_cur.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_cur WITH (NOLOCK)
+  ON s.id = lex_cur.studentid
  AND lex_cur.measurementscale  = 'Reading'
- AND lex_cur.map_year_academic = dbo.fn_Global_Academic_Year()
+ AND lex_cur.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  AND lex_cur.rn_curr = 1
 LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
   ON s.ID = rr.studentid
  AND s.schoolid = rr.schoolid 
  AND rr.measurementscale = 'Reading'
- AND rr.year = dbo.fn_Global_Academic_Year()
+ AND rr.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
   ON s.ID = base.studentid
  AND s.schoolid = base.schoolid 
  AND base.measurementscale = 'Reading'
- AND base.year = dbo.fn_Global_Academic_Year()
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_winter WITH (NOLOCK)
-  ON s.id = lex_winter.ps_studentid
+ AND base.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_winter WITH (NOLOCK)
+  ON s.id = lex_winter.studentid
  AND lex_winter.measurementscale  = 'Reading'
- AND lex_winter.map_year_academic = dbo.fn_Global_Academic_Year()
- AND lex_winter.fallwinterspring = 'Winter'
+ AND lex_winter.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND lex_winter.term = 'Winter'
  AND lex_winter.rn = 1
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_spring WITH (NOLOCK)
-  ON s.id = lex_spring.ps_studentid
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_spring WITH (NOLOCK)
+  ON s.id = lex_spring.studentid
  AND lex_spring.measurementscale  = 'Reading'
- AND lex_spring.map_year_academic = dbo.fn_Global_Academic_Year()
- AND lex_spring.fallwinterspring = 'Spring'
+ AND lex_spring.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND lex_spring.term = 'Spring'
  AND lex_spring.rn = 1
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID
@@ -283,12 +196,12 @@ LEFT OUTER JOIN (
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
                                ORDER BY c.course_name) AS rn
-                 FROM COURSES c WITH (NOLOCK)
-                 JOIN CC WITH (NOLOCK)
+                 FROM PS$COURSES#static c WITH (NOLOCK)
+                 JOIN PS$CC#static cc WITH (NOLOCK)
                    ON c.COURSE_NUMBER = cc.COURSE_NUMBER
-                  AND cc.TERMID >= dbo.fn_Global_Term_Id()
+                  AND cc.TERMID >= KIPP_NJ.dbo.fn_Global_Term_Id()
                   AND cc.SCHOOLID = 73253
-                 JOIN TEACHERS t WITH (NOLOCK)
+                 JOIN KIPP_NJ..PS$TEACHERS#static t WITH (NOLOCK)
                    ON cc.TEACHERID = t.ID
                  WHERE CREDITTYPE = 'ENG'
                    AND c.course_number NOT LIKE 'ENG0%'
@@ -305,12 +218,12 @@ LEFT OUTER JOIN (
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
                                ORDER BY c.course_name) AS rn
-                 FROM COURSES c WITH (NOLOCK)
-                 JOIN CC WITH (NOLOCK)
+                 FROM PS$COURSES#static c WITH (NOLOCK)
+                 JOIN PS$CC#static cc WITH (NOLOCK)
                    ON c.COURSE_NUMBER = cc.COURSE_NUMBER
-                  AND cc.TERMID >= dbo.fn_Global_Term_Id()
+                  AND cc.TERMID >= KIPP_NJ.dbo.fn_Global_Term_Id()
                   AND cc.SCHOOLID = 73253
-                 JOIN TEACHERS t WITH (NOLOCK)
+                 JOIN KIPP_NJ..PS$TEACHERS#static t WITH (NOLOCK)
                    ON cc.TEACHERID = t.ID
                  WHERE c.CREDITTYPE = 'ENG'
                    AND c.course_number NOT LIKE 'ENG0%'
@@ -329,20 +242,17 @@ LEFT OUTER JOIN (
                        ,ROW_NUMBER() OVER
                           (PARTITION BY cc.studentid
                                ORDER BY cc.termid DESC) AS rn
-                 FROM CC WITH (NOLOCK)   
-                 JOIN COURSES c WITH(NOLOCK)
+                 FROM PS$CC#static cc WITH (NOLOCK)   
+                 JOIN PS$COURSES#static c WITH(NOLOCK)
                    ON cc.COURSE_NUMBER = c.COURSE_NUMBER
-                 JOIN TEACHERS t WITH (NOLOCK)
+                 JOIN KIPP_NJ..PS$TEACHERS#static t WITH (NOLOCK)
                    ON cc.TEACHERID = t.ID                  
-                 WHERE cc.TERMID >= dbo.fn_Global_Term_Id()
+                 WHERE cc.TERMID >= KIPP_NJ.dbo.fn_Global_Term_Id()
                    AND cc.SCHOOLID = 73253
                    AND cc.EXPRESSION IN ('5(A)','6(A)','7(A)','8(A)')
                    AND (cc.COURSE_NUMBER LIKE 'ENG0%' OR cc.COURSE_NUMBER LIKE 'MATH0%')
                 ) diff
   ON s.id = diff.studentid
  AND diff.rn = 1
---intervention block
---LEFT OUTER JOIN KIPP_NJ..[CUSTOM_GROUPINGS$intervention_block#NCA] intv_block WITH(NOLOCK)
---  ON s.id = intv_block.studentid
 WHERE s.SCHOOLID = 73253
   AND s.ENROLL_STATUS = 0

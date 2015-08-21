@@ -39,28 +39,27 @@ WITH meeting_att AS (
          END AS period
         ,t.LAST_NAME AS teacher
         ,cou.COURSE_NAME
-  FROM cc WITH(NOLOCK)
-  JOIN TEACHERS t WITH(NOLOCK)
+  FROM PS$CC#static cc WITH(NOLOCK)
+  JOIN PS$TEACHERS#static t WITH(NOLOCK)
     ON cc.TEACHERID = t.ID
-  JOIN COURSES cou WITH(NOLOCK)
+  JOIN PS$COURSES#static cou WITH(NOLOCK)
     ON cc.course_number = cou.COURSE_NUMBER
-  JOIN STUDENTS s WITH(NOLOCK)
+  JOIN PS$STUDENTS#static s WITH(NOLOCK)
     ON cc.studentid = s.id
    AND s.ENROLL_STATUS = 0
   WHERE cc.SCHOOLID = 73253
-    AND cc.TERMID >= dbo.fn_Global_Term_Id()
+    AND cc.TERMID >= KIPP_NJ.dbo.fn_Global_Term_Id()
     AND cc.COURSE_NUMBER != 'HR'
  )
 
 ,dates AS (
   SELECT DISTINCT 
-    CONVERT(DATE,mem.CALENDARDATE) AS calendardate
-   ,dt.alt_name
+         CONVERT(DATE,mem.CALENDARDATE) AS calendardate
+        ,dt.alt_name
   FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
-  JOIN REPORTING$dates dt WITH(NOLOCK)
+  JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
     ON mem.schoolid = dt.schoolid
-   AND mem.CALENDARDATE >= dt.start_date
-   AND mem.CALENDARDATE <= dt.end_date
+   AND mem.CALENDARDATE BETWEEN dt.start_date AND dt.end_date
    AND dt.academic_year = dbo.fn_Global_Academic_Year()   
    AND dt.identifier = 'RT'
   WHERE mem.schoolid = 73253

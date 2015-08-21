@@ -8,8 +8,8 @@ ALTER VIEW REPORTING$blended_learning_details AS
 WITH curterm AS (
   SELECT schoolid
         ,alt_name
-  FROM REPORTING$dates WITH(NOLOCK)
-  WHERE academic_year = dbo.fn_Global_Academic_Year()
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND identifier = 'RT'
     AND start_date <= CONVERT(DATE,GETDATE())
     AND end_date >= CONVERT(DATE,GETDATE())
@@ -28,7 +28,7 @@ WITH curterm AS (
 			     ,c.gender			     
         ,c.school_name	AS school
   FROM KIPP_NJ..COHORT$identifiers_long#static c  WITH(NOLOCK)                       
-  WHERE c.year = dbo.fn_Global_Academic_Year()
+  WHERE c.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND c.rn = 1
     AND c.enroll_status = 0
     AND c.grade_level >= 5
@@ -127,18 +127,18 @@ WITH curterm AS (
                    ON c.studentid = enr.STUDENTID
                   AND c.year = enr.academic_year
                   AND enr.credittype IN ('MATH','ENG','SCI','RHET')                
-                 LEFT OUTER JOIN GRADES$sections_by_term#static sec WITH(NOLOCK)
+                 LEFT OUTER JOIN KIPP_NJ..GRADES$sections_by_term#static sec WITH(NOLOCK)
                    ON c.studentid = sec.studentid
                   AND enr.sectionid = sec.sectionid
-                 LEFT OUTER JOIN SECTIONS sn WITH(NOLOCK)
+                 LEFT OUTER JOIN KIPP_NJ..PS$SECTIONS#static sn WITH(NOLOCK)
                    ON sec.sectionid = sn.id
-                 LEFT OUTER JOIN GRADES$detail_long gr WITH(NOLOCK)
+                 LEFT OUTER JOIN KIPP_NJ..GRADES$detail_long gr WITH(NOLOCK)
                    ON c.studentid = gr.studentid
                   AND sec.course_number = gr.course_number
                   AND sec.sectionid = gr.sectionid                
                   AND sec.term = gr.term
                   AND gr.curterm_flag = 1
-                 WHERE c.year = dbo.fn_Global_Academic_Year()
+                 WHERE c.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
                    AND c.rn = 1
                    AND c.enroll_status = 0
      		            AND c.grade_level >= 5

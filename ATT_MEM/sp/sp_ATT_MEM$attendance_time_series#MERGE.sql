@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER PROCEDURE sp_ATT_MEM$attendance_time_series#UPSERT AS
+ALTER PROCEDURE sp_ATT_MEM$attendance_time_series#MERGE AS
 
 BEGIN
 

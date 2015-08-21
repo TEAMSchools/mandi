@@ -94,7 +94,7 @@ LEFT OUTER JOIN PS$rti_tiers#static rti WITH(NOLOCK)
 LEFT OUTER JOIN cur_section sec
   ON roster.studentid = sec.studentid
  AND gr.course_number = sec.course_number
-LEFT OUTER JOIN CC cc WITH(NOLOCK)
+LEFT OUTER JOIN PS$CC#static cc WITH(NOLOCK)
   ON roster.studentid = cc.studentid
  AND sec.sectionid = cc.sectionid
 LEFT OUTER JOIN GRADES$elements ele_h WITH(NOLOCK)

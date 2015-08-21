@@ -60,11 +60,11 @@ WITH disc_log AS (
         ,'Late to Class' AS discipline_details
         ,NULL AS actiontaken
         ,NULL AS followup      
-  FROM ATT_MEM$meeting_attendance#static att WITH(NOLOCK)
-  JOIN sections sec WITH(NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$meeting_attendance#static att WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
     ON att.sectionid = sec.ID
    AND att.schoolid = sec.SCHOOLID
-  JOIN teachers t WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
     ON sec.TEACHER = t.ID
   WHERE att.att_code IN ('T','T10')
     AND att.schoolid = 73253
@@ -88,13 +88,13 @@ WITH disc_log AS (
         ,NULL AS actiontaken
         ,NULL AS followup      
   FROM KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
-  JOIN CC WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
     ON att.STUDENTID = cc.STUDENTID
    AND att.SCHOOLID = cc.SCHOOLID
    AND att.ATT_DATE >= cc.DATEENROLLED
    AND att.ATT_DATE <= cc.DATELEFT
    AND cc.COURSE_NUMBER = 'HR' 
-  JOIN teachers t WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
     ON cc.TEACHERID = t.ID
   WHERE att.att_code IN ('T','T10')
     AND att.schoolid = 73253
@@ -113,7 +113,7 @@ WITH disc_log AS (
           WHEN [Bench/ISS/OSS] = 'ISS' THEN 5
           WHEN [Bench/ISS/OSS] = 'Bench' THEN 4
          END AS subtypeid
-        ,CONVERT(VARCHAR,[Days on ]) AS n_days
+        ,CONVERT(VARCHAR,[Days on]) AS n_days
         ,'Discipline (MS/HS)' AS logtype
         ,CONVERT(VARCHAR,[Bench/ISS/OSS]) AS subtype
         ,CONVERT(VARCHAR,[Bench/ISS/OSS]) AS subject        
@@ -126,7 +126,7 @@ WITH disc_log AS (
         ,NULL AS discipline_details
         ,NULL AS actiontaken
         ,NULL AS followup      
-  FROM [dbo].[AUTOLOAD$GDOCS_MISC_TEAM_Bench_Log] log WITH(NOLOCK)
+  FROM KIPP_NJ..[AUTOLOAD$GDOCS_MISC_TEAM_Bench_Log] log WITH(NOLOCK)
   WHERE student_number IS NOT NULL
  )
 
@@ -228,7 +228,7 @@ SELECT all_logs.schoolid
           PARTITION BY studentid, logtypeid
               ORDER BY entry_date DESC) AS rn
 FROM all_logs WITH(NOLOCK)
-LEFT OUTER JOIN REPORTING$dates dates WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dates WITH (NOLOCK)
   ON all_logs.entry_date >= dates.start_date
  AND all_logs.entry_date <= dates.end_date
  AND all_logs.schoolid = dates.schoolid

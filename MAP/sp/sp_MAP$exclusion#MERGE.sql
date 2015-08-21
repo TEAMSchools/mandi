@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER PROCEDURE sp_MAP$exclusion_upsert AS
+ALTER PROCEDURE sp_MAP$exclusion#MERGE AS
 
 BEGIN 
 

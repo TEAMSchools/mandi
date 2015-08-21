@@ -146,11 +146,11 @@ WITH grades_long AS (
                       ,t3_enr_sectionid)
         ) u
       ) sub2
-  LEFT OUTER JOIN KIPP_NJ..SECTIONS sec WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
     ON sub2.sectionid = sec.id
-  LEFT OUTER JOIN KIPP_NJ..COURSES cou WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
     ON sec.course_number = cou.COURSE_NUMBER
-  LEFT OUTER JOIN KIPP_NJ..TEACHERS t WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
     ON sec.teacher = t.id
  )
 
@@ -169,8 +169,8 @@ SELECT co.schoolid
       ,gr.y1_pct
       ,gr.y1_letter
       ,CASE WHEN dts.start_date <= CONVERT(DATE,GETDATE()) AND dts.end_date >= CONVERT(DATE,GETDATE()) THEN 1 ELSE 0 END AS curterm_flag
-FROM COHORT$identifiers_long#static co WITH(NOLOCK)
-JOIN REPORTING$dates dts WITH(NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..REPORTING$dates dts WITH(NOLOCK)
   ON co.schoolid = dts.schoolid
  AND co.year = dts.academic_year 
  AND co.exitdate >= dts.end_date
@@ -182,6 +182,6 @@ LEFT OUTER JOIN grades_long gr WITH(NOLOCK)
   ON sec.studentid = gr.STUDENTID
  AND sec.term = gr.term
  AND sec.course_number = gr.COURSE_NUMBER
-WHERE co.year = dbo.fn_Global_Academic_Year()
+WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1
   AND co.grade_level >= 5

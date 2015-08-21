@@ -10,11 +10,11 @@ WITH roster AS (
         ,s.full_name
         ,s.team
         ,s.GRADE_LEVEL
-  FROM COHORT$identifiers_long#static s WITH(NOLOCK)
+  FROM KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
   WHERE s.ENROLL_STATUS = 0
     AND s.SCHOOLID = 73252
     AND s.GRADE_LEVEL >= 7
-    AND s.year = dbo.fn_Global_Academic_Year()
+    AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND s.rn = 1
  )
 
@@ -23,7 +23,7 @@ WITH roster AS (
 ,reporting_week AS (
   SELECT date
         ,day_of_week
-  FROM REPORTING$Rise_weekly_dates#static WITH(NOLOCK)  
+  FROM KIPP_NJ..REPORTING$Rise_weekly_dates#static WITH(NOLOCK)  
  )
 
 ,missing_days AS (
@@ -32,7 +32,7 @@ WITH roster AS (
       (
        SELECT date
              ,DATENAME(WEEKDAY,date) AS day_of_week
-       FROM UTIL$reporting_days#static days WITH(NOLOCK)
+       FROM KIPP_NJ..UTIL$reporting_days#static days WITH(NOLOCK)
        WHERE CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) >= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE()) - 1) + '5')
          AND CONVERT(INT,CONVERT(VARCHAR,days.year_part) + CONVERT(VARCHAR,days.week_part) + CONVERT(VARCHAR,dw_numeric)) <= CONVERT(INT,CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) + CONVERT(VARCHAR,DATEPART(WEEK,GETDATE())) + '4')
          AND DATEPART(WEEKDAY,date) NOT IN (1,7)
@@ -85,10 +85,10 @@ WITH roster AS (
           WHEN s.GRADE_LEVEL = 7 AND dt.ccr IS NULL THEN 5
           ELSE dt.ccr_score
          END AS ccr_score        
-  FROM STUDENTS s WITH(NOLOCK)
+  FROM PS$STUDENTS#static s WITH(NOLOCK)
   CROSS JOIN reporting_week rw WITH(NOLOCK)    
   CROSS JOIN classes cl WITH(NOLOCK)    
-  LEFT OUTER JOIN DAILY$tracking_long#Rise#static dt WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_long#Rise#static dt WITH(NOLOCK)
     ON s.id = dt.studentid
    AND rw.date = dt.att_date
    AND cl.class = dt.class
@@ -155,7 +155,6 @@ WITH roster AS (
        JOIN reporting_week wk WITH(NOLOCK)
          ON wk.date = ccr_long.att_date       
       ) sub
-
   PIVOT (
     MAX(ccr)
     FOR hash IN ([mon_adv_behavior]
@@ -248,13 +247,13 @@ WITH roster AS (
           WHEN asmt.CATEGORY IN ('HC','HW C','HWC','Homework Completion','HW Completion','HW Comp') THEN 'HWC'
           ELSE NULL
          END AS category
-  FROM GRADES$assignments#STAGING asmt WITH(NOLOCK)
-  JOIN sections sec WITH(NOLOCK)
+  FROM KIPP_NJ..GRADES$assignments#STAGING asmt WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
     ON asmt.sectionid = sec.id
    AND sec.SCHOOLID = 73252
-   AND sec.termid = dbo.fn_Global_Term_Id()
+   AND sec.termid = KIPP_NJ.dbo.fn_Global_Term_Id()
    AND sec.GRADE_LEVEL >= 7
-  JOIN COURSES cou WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
     ON sec.COURSE_NUMBER = cou.COURSE_NUMBER
   WHERE asmt.ASSIGN_DATE IN (SELECT date FROM reporting_week WITH(NOLOCK))
     AND ((sec.GRADE_LEVEL = 8 AND asmt.CATEGORY IN ('HQ','HWQ','HWA','Q'))
@@ -268,7 +267,7 @@ WITH roster AS (
         ,credittype
         ,CASE WHEN EXEMPT = 1 THEN NULL ELSE CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0)) END AS score_numeric        
         ,CASE WHEN EXEMPT = 1 THEN 'Ex' ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND(s.SCORE / a.POINTSPOSSIBLE * 100,0))) END AS score_text
-  FROM GRADES$assignment_scores#STAGING s WITH(NOLOCK)
+  FROM KIPP_NJ..GRADES$assignment_scores#STAGING s WITH(NOLOCK)
   JOIN weekly_assignments a WITH(NOLOCK)
     ON s.ASSIGNMENTID = a.ASSIGNMENTID
   WHERE s.ASSIGNMENTID IN (SELECT ASSIGNMENTID FROM weekly_assignments WITH(NOLOCK))

@@ -60,7 +60,7 @@ BEGIN
            AND pgf.grade != ''--''
            AND SUBSTR(pgf.finalgradename, 0, 1) != ''T''
        ') oq
-       JOIN CC WITH(NOLOCK)
+       JOIN PS$CC#static cc WITH(NOLOCK)
          ON oq.sectionid = cc.sectionid
         AND oq.studentid = cc.STUDENTID
       ) sub

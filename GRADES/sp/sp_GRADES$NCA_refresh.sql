@@ -269,15 +269,15 @@ BEGIN
        ,c.course_name
        ,c.credit_hours
  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
- JOIN KIPP_NJ..STUDENTS s WITH(NOLOCK)
+ JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
    ON co.STUDENTID = s.ID
- JOIN cc WITH(NOLOCK)
+ JOIN PS$CC#static cc WITH(NOLOCK)
    ON co.studentid = cc.studentid
   AND cc.termid >= @v_termid
- JOIN courses c WITH(NOLOCK)
+ JOIN PS$COURSES#static c WITH(NOLOCK)
    ON cc.course_number = c.course_number 
   AND c.excludefromgpa != @v_1 --exclude courses that will never count towards GPA
- WHERE co.YEAR = dbo.fn_Global_Academic_Year()
+ WHERE co.YEAR = KIPP_NJ.dbo.fn_Global_Academic_Year()
    AND co.schoolid = @v_schoolly_d
    AND co.rn = 1;
 
@@ -493,7 +493,7 @@ BEGIN
    SELECT cc.studentid
          ,cc.course_number
          ,SUM(term_weights.points) AS points
-   FROM cc WITH(NOLOCK)
+   FROM KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
    JOIN (
          SELECT termid
                ,SUM(points)/10 AS points
@@ -539,7 +539,7 @@ BEGIN
    JOIN (
          SELECT gradescaleid
                ,course_number
-         FROM COURSES WITH(NOLOCK)
+         FROM PS$COURSES#static WITH(NOLOCK)
         ) courses   
      ON stage_2.course_number = courses.course_number   
    JOIN term_denominators

@@ -36,10 +36,10 @@ WITH
 			,courses.COURSE_NAME
 			,courses.CREDITTYPE
 			,cc.SECTION_NUMBER
-      FROM KIPP_NJ..cc WITH (NOLOCK)
-	  JOIN KIPP_NJ..TEACHERS teachers WITH (NOLOCK)
+      FROM KIPP_NJ..PS$CC#static cc WITH (NOLOCK)
+	  JOIN KIPP_NJ..PS$TEACHERS#static teachers WITH (NOLOCK)
 		ON cc.TEACHERID = teachers.ID
-	  JOIN KIPP_NJ..courses WITH (NOLOCK)
+	  JOIN KIPP_NJ..PS$COURSES#static courses WITH (NOLOCK)
 	    ON cc.course_number = courses.course_number
 	  JOIN KIPP_NJ..STUDENTS WITH (NOLOCK)
 	    ON cc.studentid = students.id
@@ -61,12 +61,12 @@ WITH
 		  ,courses.COURSE_NAME
 		  ,courses.CREDITTYPE
     	  ,cc.SECTION_NUMBER
-	  FROM KIPP_NJ..cc WITH (NOLOCK)
-	  JOIN KIPP_NJ..TEACHERS teachers WITH (NOLOCK)
+	  FROM KIPP_NJ..PS$CC#static cc WITH (NOLOCK)
+	  JOIN KIPP_NJ..PS$TEACHERS#static teachers WITH (NOLOCK)
 		ON cc.TEACHERID = teachers.ID
-	  JOIN KIPP_NJ..courses WITH (NOLOCK)
+	  JOIN KIPP_NJ..PS$COURSES#static courses WITH (NOLOCK)
 	 	ON cc.course_number = courses.course_number
-	  JOIN KIPP_NJ..STUDENTS WITH (NOLOCK)
+	  JOIN KIPP_NJ..PS$STUDENTS#static students WITH (NOLOCK)
 	    ON cc.studentid = students.id
 	   AND students.grade_level <=4
      WHERE courses.course_number = 'HR'
