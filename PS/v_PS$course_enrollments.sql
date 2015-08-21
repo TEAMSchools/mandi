@@ -4,7 +4,8 @@ GO
 ALTER VIEW PS$course_enrollments AS
 
 WITH coaches AS (
-  SELECT [Teacher Name] AS teacher_name
+  SELECT 2014 AS academic_year
+        ,[Teacher Name] AS teacher_name
         ,[LastFirst] AS teacher_lastfirst
         ,[Teacher Email] AS email
         ,[Teacher's Coach] AS coach
@@ -93,12 +94,12 @@ SELECT cc.academic_year
       ,ROW_NUMBER() OVER(
         PARTITION BY cc.studentid, cou.credittype, cc.academic_year
             ORDER BY cc.termid DESC, cc.dateenrolled DESC) AS rn_subject    
-FROM KIPP_NJ..CC WITH(NOLOCK)
-JOIN KIPP_NJ..SECTIONS sec WITH(NOLOCK)
+FROM KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
+JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
   ON ABS(cc.SECTIONID) = ABS(sec.ID)
-JOIN KIPP_NJ..COURSES cou WITH(NOLOCK)
+JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
   ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
-JOIN KIPP_NJ..TEACHERS t WITH(NOLOCK)
+JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
   ON cc.TEACHERID = t.ID
  AND t.status = 1
 JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
@@ -111,4 +112,5 @@ LEFT OUTER JOIN KIPP_NJ..PS$rti_tiers#static rti WITH(NOLOCK)
 LEFT OUTER JOIN coaches WITH(NOLOCK)
   ON t.LASTFIRST = coaches.teacher_lastfirst
  AND t.SCHOOLID = coaches.schoolid
+ AND co.year = coaches.academic_year
 WHERE cc.DATEENROLLED < cc.DATELEFT

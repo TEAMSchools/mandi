@@ -32,7 +32,7 @@ BEGIN
     FROM OPENQUERY(PS_TEAM,'
       SELECT att.*
       FROM PS_ATTENDANCE_DAILY att    
-      WHERE att.att_date >= TO_DATE(''2014-08-01'',''YYYY-MM-DD'')    
+      WHERE att.att_date >= TO_DATE(''2015-08-01'',''YYYY-MM-DD'')    
     ')
    )
 

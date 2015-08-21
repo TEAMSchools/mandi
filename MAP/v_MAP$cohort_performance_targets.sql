@@ -3,33 +3,27 @@ GO
 
 ALTER VIEW MAP$cohort_performance_targets AS
 
-WITH zscore AS (
-  SELECT *
-  FROM OPENQUERY(KIPP_NWK,'
-    SELECT z.zscore
-          ,z.percentile
-    FROM
-        (
-         SELECT zscore
-               ,percentile
-               ,ROW_NUMBER() OVER(
-                  PARTITION BY percentile
-                      ORDER BY zscore ASC) AS rn
-         FROM ZSCORES
-         WHERE (MOD(percentile, 1) = 0 OR percentile = 99.9 OR percentile = 99.99 OR percentile = 99.999)
-        ) z
-    WHERE rn = 1
-  ')
+WITH zscore AS (  
+  SELECT z.zscore
+        ,z.percentile
+  FROM
+      (
+       SELECT zscore
+             ,percentile
+             ,ROW_NUMBER() OVER(
+                PARTITION BY percentile
+                    ORDER BY zscore ASC) AS rn
+       FROM KIPP_NJ..UTIL$zscores WITH(NOLOCK)
+       WHERE ((percentile % 1) = 0 OR percentile = 99.9 OR percentile = 99.99 OR percentile = 99.999)
+      ) z
+  WHERE rn = 1
  )
 
-,cohort_norms AS (
+,cohort_norms AS (  
   SELECT *
-  FROM OPENQUERY(KIPP_NWK,'
-    SELECT *
-    FROM map_rit_mean_sd norms
-    WHERE (term = ''Spring-to-Spring'') 
-       OR (grade = 0 AND term = ''Fall-to-Spring'')
-  ')
+  FROM KIPP_NJ..MAP$rit_scale_school_norms WITH(NOLOCK)
+  WHERE (term = 'Spring-to-Spring') 
+     OR (grade = 0 AND term = 'Fall-to-Spring')
  )
 
 ,cohort AS (
@@ -43,7 +37,7 @@ WITH zscore AS (
          END AS iep_status
         ,c.school_name AS school
   FROM KIPP_NJ..COHORT$identifiers_long#static c WITH (NOLOCK)  
-  WHERE c.year = dbo.fn_Global_Academic_Year()
+  WHERE c.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND c.rn = 1
     AND c.schoolid != 999999    
  )
@@ -60,51 +54,45 @@ WITH zscore AS (
   WHERE map.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
---SWITCH THIS AS THE YEAR PROGRESSES eg winter, spring
 ,map_endpoint AS (
   SELECT map_end.*
         ,sch.abbreviation AS school
-  FROM KIPP_NJ..MAP$comprehensive#identifiers map_end WITH (NOLOCK)
-  JOIN KIPP_NJ..SCHOOLS sch WITH (NOLOCK)
+  FROM KIPP_NJ..MAP$CDF#identifiers#static map_end WITH (NOLOCK)
+  JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH (NOLOCK)
     ON map_end.schoolid = sch.school_number
-  WHERE map_end.map_year_academic = dbo.fn_Global_Academic_Year()
-    AND map_end.rn = 1
-    --SWITCH THIS AS THE YEAR PROGRESSES eg winter, spring
-    AND map_end.fallwinterspring = 'Spring'
+  WHERE map_end.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND map_end.rn = 1    
+    AND map_end.term = 'Spring' /* UPDATE THIS AS THE YEAR PROGRESSES eg winter, spring */
  )
 
 ,cc AS (
   SELECT last_tch.*
         ,courses.credittype
         ,courses.course_name
-  FROM KIPP_NJ..CC c WITH (NOLOCK)
-  JOIN PS$teacher_by_last_enrollment last_tch WITH (NOLOCK)
+  FROM KIPP_NJ..PS$CC#static c WITH (NOLOCK)
+  JOIN KIPP_NJ..PS$teacher_by_last_enrollment last_tch WITH (NOLOCK)
     ON c.studentid = last_tch.studentid
    AND c.course_number = last_tch.course_number
    AND last_tch.rn = 1
-  JOIN KIPP_NJ..COURSES WITH (NOLOCK)
+  JOIN KIPP_NJ..PS$COURSES#static courses WITH (NOLOCK)
     ON c.course_number = courses.course_number
-  WHERE c.dateenrolled <= CAST(GETDATE() AS date)
-    --AND c.dateleft >= '2014-06-01'
-    AND c.dateleft >= CAST(GETDATE() AS date)
+  WHERE CONVERT(DATE,GETDATE()) BETWEEN c.dateenrolled AND c.DATELEFT
  ) 
 
 ,hr AS (
   SELECT cc.studentid
         ,schools.abbreviation AS school
         ,sections.section_number
-  FROM KIPP_NJ..CC WITH(NOLOCK)
-  JOIN KIPP_NJ..COURSES WITH(NOLOCK)
+  FROM KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$COURSES#static courses WITH(NOLOCK)
     ON cc.course_number = courses.course_number
    AND courses.course_name = 'HR'
-  JOIN KIPP_NJ..SECTIONS WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$SECTIONS#static sections WITH(NOLOCK)
     ON cc.sectionid = sections.id
-  JOIN KIPP_NJ..SCHOOLS WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$SCHOOLS#static schools WITH(NOLOCK)
     ON cc.schoolid = schools.school_number
    AND schools.school_number IN (73252, 73254, 73255, 73256)
-  WHERE cc.dateenrolled <= CAST(GETDATE() AS DATE)
-    --AND cc.dateleft >= '2014-06-01'
-    AND cc.dateleft >= CAST(GETDATE() AS DATE)
+  WHERE CONVERT(DATE,GETDATE()) BETWEEN cc.dateenrolled AND cc.DATELEFT
  ) 
 
 --LOOSE method
@@ -182,7 +170,7 @@ LEFT OUTER JOIN (
                        ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
                  FROM
                      (
-                      SELECT map_endpoint.map_year_academic AS year
+                      SELECT map_endpoint.academic_year AS year
                             ,map_endpoint.school
                             ,map_endpoint.measurementscale
                             ,map_endpoint.grade_level
@@ -193,8 +181,8 @@ LEFT OUTER JOIN (
                             ,map_endpoint.testritscore
                             ,map_endpoint.testpercentile
                       FROM map_endpoint
-                      JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH (NOLOCK)
-                        ON map_endpoint.ps_studentid = cust.studentid
+                      JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cust WITH (NOLOCK)
+                        ON map_endpoint.studentid = cust.studentid
                      ) sub
                  GROUP BY sub.year
                          ,sub.school
@@ -272,7 +260,7 @@ FROM
                  ON cohort.studentid = map_baseline.studentid
                --STRICT only returns students with test events in both terms
                JOIN map_endpoint
-                 ON cohort.studentid = map_endpoint.ps_studentid
+                 ON cohort.studentid = map_endpoint.studentid
                 AND map_baseline.measurementscale = map_endpoint.measurementscale
                 AND map_baseline.testritscore IS NOT NULL
               ) sub
@@ -366,7 +354,7 @@ LEFT OUTER JOIN
         ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
         ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
   FROM
-        (SELECT map_endpoint.map_year_academic AS year
+        (SELECT map_endpoint.academic_year AS year
                ,map_endpoint.school
                ,map_endpoint.measurementscale
                ,map_endpoint.grade_level
@@ -377,8 +365,8 @@ LEFT OUTER JOIN
                ,map_endpoint.testritscore
                ,map_endpoint.testpercentile
          FROM map_endpoint
-         JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH (NOLOCK)
-           ON map_endpoint.ps_studentid = cust.studentid
+         JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cust WITH (NOLOCK)
+           ON map_endpoint.studentid = cust.studentid
         ) sub
   GROUP BY sub.year
           ,sub.school
@@ -455,7 +443,7 @@ FROM
                     --STRICT only returns students with test events in both terms
                     JOIN map_endpoint
                       -- this makes it strict
-                      ON cohort.studentid = map_endpoint.ps_studentid
+                      ON cohort.studentid = map_endpoint.studentid
                      AND map_baseline.measurementscale = map_endpoint.measurementscale
                      AND map_baseline.testritscore IS NOT NULL
                     ) sub
@@ -549,7 +537,7 @@ LEFT OUTER JOIN
         ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
         ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
   FROM
-        (SELECT map_endpoint.map_year_academic AS year
+        (SELECT map_endpoint.academic_year AS year
                ,map_endpoint.school
                ,map_endpoint.measurementscale
                ,map_endpoint.grade_level
@@ -558,7 +546,7 @@ LEFT OUTER JOIN
                ,map_endpoint.testpercentile
          FROM map_endpoint
          JOIN hr
-           ON map_endpoint.ps_studentid = hr.studentid
+           ON map_endpoint.studentid = hr.studentid
         ) sub
   GROUP BY sub.year
           ,sub.school
@@ -639,7 +627,7 @@ FROM
                       ON cohort.studentid = hr.studentid
                     --STRICT only returns students with test events in both terms
                     JOIN map_endpoint
-                      ON cohort.studentid = map_endpoint.ps_studentid
+                      ON cohort.studentid = map_endpoint.studentid
                      AND map_baseline.measurementscale = map_endpoint.measurementscale
                      AND map_baseline.testritscore IS NOT NULL
                     ) sub
@@ -739,7 +727,7 @@ LEFT OUTER JOIN
         ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
         ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
   FROM
-        (SELECT map_endpoint.map_year_academic AS year
+        (SELECT map_endpoint.academic_year AS year
                ,map_endpoint.school
                ,map_endpoint.measurementscale
                ,map_endpoint.grade_level
@@ -846,7 +834,7 @@ LEFT OUTER JOIN
         ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
         ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
   FROM
-        (SELECT map_endpoint.map_year_academic AS year
+        (SELECT map_endpoint.academic_year AS year
                ,map_endpoint.school
                ,map_endpoint.measurementscale
                ,map_endpoint.grade_level
@@ -949,7 +937,7 @@ LEFT OUTER JOIN
         ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
         ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
   FROM
-        (SELECT map_endpoint.map_year_academic AS year
+        (SELECT map_endpoint.academic_year AS year
                ,map_endpoint.school
                ,map_endpoint.measurementscale
                ,map_endpoint.grade_level
@@ -1050,7 +1038,7 @@ LEFT OUTER JOIN
         ,CAST(ROUND(AVG(sub.testritscore + 0.0),2) AS FLOAT) AS avg_cur_endpoint_rit
         ,ROUND(AVG(CAST(sub.testpercentile AS FLOAT) + 0.0),1) AS avg_cur_endpoint_percentile
   FROM
-        (SELECT map_endpoint.map_year_academic AS year
+        (SELECT map_endpoint.academic_year AS year
                ,map_endpoint.school
                ,map_endpoint.measurementscale
                ,map_endpoint.grade_level
@@ -1061,8 +1049,8 @@ LEFT OUTER JOIN
                ,map_endpoint.testritscore
                ,map_endpoint.testpercentile
          FROM map_endpoint
-         JOIN KIPP_NJ..CUSTOM_STUDENTS cust WITH (NOLOCK)
-           ON map_endpoint.ps_studentid = cust.studentid
+         JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cust WITH (NOLOCK)
+           ON map_endpoint.studentid = cust.studentid
         ) sub
   GROUP BY sub.year
           ,sub.school

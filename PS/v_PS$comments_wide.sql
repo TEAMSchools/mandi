@@ -21,7 +21,7 @@ FROM
      SELECT comm.studentid           
            ,comm.term      
            --,ISNULL(rc.course_number, 'HR') AS course_number
-           ,COALESCE(comm.teacher_comment, comm.advisor_comment) AS teacher_comment
+           ,comm.teacher_comment
            ,ISNULL(rc.rc, 'advisor') + '_comment' AS pivot_hash
      FROM PS$comments#static comm WITH(NOLOCK)
      LEFT OUTER JOIN GRADES$rc_decoded rc WITH(NOLOCK)

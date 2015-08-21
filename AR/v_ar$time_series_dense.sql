@@ -9,7 +9,7 @@ WITH reporting_weeks AS (
         ,reporting_hash
         ,ROW_NUMBER() OVER(
            ORDER BY reporting_hash) AS rn         
-  FROM UTIL$reporting_weeks_days#static WITH(NOLOCK)
+  FROM KIPP_NJ..UTIL$reporting_weeks_days#static WITH(NOLOCK)
   WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND weekday_sun <= CONVERT(DATE,GETDATE())
  )
@@ -175,7 +175,7 @@ FROM
                         AND co.rn = 1         
                         --AND co.studentid = 2307 -- testing                
                      ) sub
-                 LEFT OUTER JOIN AR$test_event_detail#static ar WITH(NOLOCK)
+                 LEFT OUTER JOIN KIPP_NJ..AR$test_event_detail#static ar WITH(NOLOCK)
                    ON sub.student_number = ar.student_number 
                   AND sub.year = ar.academic_year
                   AND sub.week_start >= ar.dttaken

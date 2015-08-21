@@ -5,6 +5,7 @@ ALTER VIEW REPORTING$student_contact_info AS
 
 SELECT co.schoolid
       ,co.student_number AS SN
+      ,co.SID AS [NJ State ID]
       ,co.lastfirst AS Name
       ,co.grade_level AS Grade
       /*

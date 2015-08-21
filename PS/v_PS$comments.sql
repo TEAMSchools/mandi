@@ -8,8 +8,7 @@ SELECT tco.studentid
       ,cc.course_number
       ,tco.sectionid
       ,tco.finalgradename AS term
-      ,CASE WHEN cc.course_number IN ('HR','Adv') THEN NULL ELSE tco.teacher_comment END AS teacher_comment
-      ,CASE WHEN cc.course_number IN ('HR','Adv') THEN tco.teacher_comment ELSE NULL END AS advisor_comment
+      ,tco.teacher_comment      
 FROM OPENQUERY(PS_TEAM,'
   SELECT pgf.studentid            
         ,pgf.sectionid           
@@ -21,6 +20,6 @@ FROM OPENQUERY(PS_TEAM,'
     AND pgf.startdate <= TRUNC(SYSDATE)
     AND pgf.comment_value IS NOT NULL         
 ') tco /* UPDATE DATE ANNUALLY */
-LEFT OUTER JOIN CC WITH(NOLOCK)
+LEFT OUTER JOIN PS$CC#static cc WITH(NOLOCK)
   ON tco.studentid = cc.studentid
  AND tco.sectionid = cc.sectionid

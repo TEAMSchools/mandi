@@ -34,7 +34,7 @@ FROM
                 ,NULL AS t1_enr_sectionid
                 ,NULL AS t2_enr_sectionid
                 ,NULL AS t3_enr_sectionid
-          FROM GRADES$DETAIL#NCA WITH(NOLOCK)
+          FROM KIPP_NJ..GRADES$DETAIL#NCA WITH(NOLOCK)
 
           UNION ALL
 
@@ -50,9 +50,8 @@ FROM
                 ,t1_enr_sectionid
                 ,t2_enr_sectionid
                 ,t3_enr_sectionid
-          FROM GRADES$DETAIL#MS WITH(NOLOCK)
+          FROM KIPP_NJ..GRADES$DETAIL#MS WITH(NOLOCK)
          ) sub
-
      UNPIVOT (
        sectionid
        FOR field IN (q1_enr_sectionid
@@ -63,8 +62,8 @@ FROM
                     ,t2_enr_sectionid
                     ,t3_enr_sectionid)
       ) u
-     ) sub2
-LEFT OUTER JOIN sections sec WITH(NOLOCK)
+    ) sub2
+LEFT OUTER JOIN PS$SECTIONS#static sec WITH(NOLOCK)
   ON sub2.sectionid = sec.id
-LEFT OUTER JOIN teachers t WITH(NOLOCK)
+LEFT OUTER JOIN PS$TEACHERS#static t WITH(NOLOCK)
   ON sec.teacher = t.id

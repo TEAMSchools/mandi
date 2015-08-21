@@ -1,0 +1,35 @@
+USE KIPP_NJ
+GO
+
+--ALTER VIEW PS$CC AS
+
+SELECT *
+      ,KIPP_NJ.dbo.fn_DateToSY(DATEENROLLED) AS academic_year
+      ,KIPP_NJ.dbo.fn_ExprToPeriod(EXPRESSION) AS period
+FROM OPENQUERY(PS_TEAM,'
+  SELECT ATTENDANCE_TYPE_CODE
+        ,COURSE_NUMBER
+        ,CURRENTABSENCES
+        ,CURRENTTARDIES
+        ,DATEENROLLED
+        ,DATELEFT
+        ,DCID
+        ,EXPRESSION
+        ,FIRSTATTDATE
+        ,ID
+        ,LASTATTMOD
+        ,LASTGRADEUPDATE
+        ,ORIGSECTIONID
+        ,PERIOD_OBSOLETE
+        ,PSGUID
+        ,SCHOOLID
+        ,SECTION_NUMBER
+        ,SECTIONID
+        ,STUDENTID
+        ,STUDENTSECTENRL_GUID
+        ,STUDYEAR
+        ,TEACHERID
+        ,TERMID
+  FROM CC
+  WHERE TERMID >= 2500
+')

@@ -29,8 +29,8 @@ WITH membership_long AS (
    AND mem.CALENDARDATE <= curterm.end_date
    AND curterm.identifier = 'RT'
   WHERE mem.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-    AND curterm.start_date <= GETDATE()
-    AND curterm.end_date >= GETDATE()
+    AND curterm.start_date <= CONVERT(DATE,GETDATE())
+    AND curterm.end_date >= CONVERT(DATE,GETDATE())
  )
 
 SELECT STUDENTID
