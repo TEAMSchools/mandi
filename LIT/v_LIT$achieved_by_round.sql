@@ -56,17 +56,17 @@ WITH roster AS (
         ,r.test_round
         ,r.round_num
         ,r.start_date
-        ,achv.read_lvl
-        ,achv.lvl_num
-        ,achv.indep_lvl
-        ,achv.indep_lvl_num
-        ,achv.instruct_lvl
-        ,achv.instruct_lvl_num
-        ,achv.GLEQ
-        ,achv.fp_wpmrate
-        ,achv.fp_keylever
-        ,dna.read_lvl AS dna_lvl
-        ,dna.lvl_num AS dna_lvl_num
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.read_lvl ELSE achv.read_lvl END AS read_lvl
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.lvl_num ELSE achv.lvl_num END AS lvl_num
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.indep_lvl ELSE achv.indep_lvl END AS indep_lvl
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.indep_lvl_num ELSE achv.indep_lvl_num END AS indep_lvl_num
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.instruct_lvl ELSE achv.instruct_lvl END AS instruct_lvl
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.instruct_lvl_num ELSE achv.instruct_lvl_num END AS instruct_lvl_num
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.GLEQ ELSE achv.GLEQ END AS GLEQ
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.fp_wpmrate ELSE achv.fp_wpmrate END AS fp_wpmrate
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.fp_keylever ELSE achv.fp_keylever END AS fp_keylever
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.dna_lvl ELSE dna.read_lvl END AS dna_lvl
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.dna_lvl_num ELSE dna.lvl_num END AS dna_lvl_num
         ,dna.unique_id
         ,ROW_NUMBER() OVER(
            PARTITION BY r.studentid

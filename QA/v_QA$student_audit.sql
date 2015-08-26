@@ -35,7 +35,8 @@ WITH dupe_enrollments AS (
   GROUP BY SCHOOLID
  )
 
-SELECT s.LASTFIRST
+SELECT s.student_number
+      ,s.LASTFIRST
       ,s.GRADE_LEVEL
       ,s.SCHOOLID
       ,s.enroll_status
@@ -44,7 +45,8 @@ SELECT s.LASTFIRST
       ,s.gender -- 'M', 'F'
       ,cs.spedlep -- 'No IEP', 'SPED', 'SPED SPEECH'
       ,s.state_studentnumber -- NOT NULL
-      ,hr.sectionid AS hr_sectionid -- NOT NULL
+      ,s.TEAM -- NOT NULL
+      ,hr.sectionid AS hr_sectionid -- NOT NULL      
       ,dupe.dupe_enrollments -- IS NULL
       /* IS NOT NULL & LIKE school fteid if enrolled */
       ,s.fteid

@@ -19,6 +19,8 @@ SELECT sub.unique_id
       ,sub.status
       ,sub.read_lvl
       ,sub.lvl_num
+      ,sub.dna_lvl
+      ,sub.dna_lvl_num
       ,sub.instruct_lvl
       ,sub.instruct_lvl_num
       ,sub.indep_lvl
@@ -98,9 +100,12 @@ FROM
            ,co.LASTFIRST
       
            /* test identifiers */      
-           ,COALESCE(rs.status,'Did Not Achieve') AS status      
-           ,gleq.read_lvl      
-           ,gleq.lvl_num
+           ,COALESCE(rs.status,'Did Not Achieve') AS status /* removed in 2015-2016, all tests are DNA */
+           /* In 2015-2016, we changed STEP entry to  only be DNA levels, so Achieved level doesn't correlate with testid anymore */           
+           ,CASE WHEN co.year >= 2015 THEN rs.read_lvl ELSE gleq.read_lvl END AS read_lvl
+           ,CASE WHEN co.year >= 2015 THEN achv.lvl_num ELSE gleq.lvl_num END AS lvl_num
+           ,CASE WHEN co.year >= 2015 THEN gleq.read_lvl ELSE NULL END AS dna_lvl
+           ,CASE WHEN co.year >= 2015 THEN gleq.lvl_num ELSE NULL END AS dna_lvl_num
            ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
            ,instr.lvl_num AS instruct_lvl_num
            ,COALESCE(rs.indep_lvl, rs.read_lvl, gleq.read_lvl) AS indep_lvl
@@ -135,8 +140,9 @@ FROM
       AND COALESCE(rs.academic_year, dates.academic_year) = co.year 
       AND co.rn = 1
      JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
-       ON ((rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl) OR (rs.testid != 3273 AND rs.testid = gleq.testid))
-      AND gleq.lvl_num > -1
+       ON ((rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl) OR (rs.testid != 3273 AND rs.testid = gleq.testid AND gleq.lvl_num > -1))      
+     LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ achv WITH(NOLOCK)
+       ON rs.read_lvl = gleq.read_lvl      
      LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ instr WITH(NOLOCK)
        ON COALESCE(rs.instruct_lvl, gleq.instruct_lvl) = instr.read_lvl
      LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ ind WITH(NOLOCK)
@@ -145,8 +151,7 @@ FROM
        ON co.grade_level = goals.grade_level
       AND CASE
            WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T3','EOY') THEN 'T3'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = goals.test_round 
      LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
@@ -154,8 +159,7 @@ FROM
       AND co.year = indiv.academic_year
       AND CASE
            WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T3','EOY') THEN 'T3'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = goals.test_round  
 
@@ -194,6 +198,8 @@ FROM
            ,'Achieved' AS status
            ,'Pre DNA' AS read_lvl           
            ,gleq.lvl_num
+           ,'Pre' AS dna_lvl
+           ,'0' AS dna_lvl_num
            ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
            ,instr.lvl_num AS instruct_lvl_num
            ,COALESCE(rs.indep_lvl, rs.read_lvl, gleq.read_lvl) AS indep_lvl
@@ -237,8 +243,7 @@ FROM
        ON co.grade_level = goals.grade_level
       AND CASE
            WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T3','EOY') THEN 'T3'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = goals.test_round 
      LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
@@ -246,10 +251,10 @@ FROM
       AND co.year = indiv.academic_year
       AND CASE
            WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T3','EOY') THEN 'T3'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = goals.test_round  
      WHERE rs.read_lvl = 'Pre'
-       AND ((rs.status = 'Did Not Achieve') OR (rs.academic_year >= 2015 AND rs.status IS NULL))
+       AND rs.status = 'Did Not Achieve'
+       AND rs.academic_year <= 2014
     ) sub
