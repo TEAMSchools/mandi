@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW ILLUMINATE$running_record AS
+ALTER VIEW LIT$running_record AS
 
 WITH running_record AS (
   SELECT CONVERT(FLOAT,student_number) AS student_number

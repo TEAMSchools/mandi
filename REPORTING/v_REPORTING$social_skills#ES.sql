@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW ILLUMINATE$social_skills#ES AS
+ALTER VIEW REPORTING$social_skills#ES AS
 
 WITH valid_assessments AS (
   SELECT DISTINCT repository_id

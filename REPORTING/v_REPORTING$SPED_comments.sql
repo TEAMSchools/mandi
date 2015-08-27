@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW ILLUMINATE$SPED_comments AS
+ALTER VIEW REPORTING$SPED_comments AS
 
 SELECT CONVERT(INT,student_id) AS student_number
       ,CASE
