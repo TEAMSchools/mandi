@@ -34,7 +34,7 @@ BEGIN
             ,Discipline_ActionTakendetail
             ,consequence
       FROM log    
-      WHERE (log.entry_date >= TO_DATE(''2014-08-01'',''YYYY-MM-DD'') OR log.discipline_incidentdate >= TO_DATE(''2014-08-01'',''YYYY-MM-DD''))
+      WHERE (log.entry_date >= TO_DATE(''2015-08-01'',''YYYY-MM-DD'') OR log.discipline_incidentdate >= TO_DATE(''2015-08-01'',''YYYY-MM-DD''))
         AND log.entry_date <= TRUNC(SYSDATE)
     ') disc /*-- UPDATE QUERY FOR CURRENT SCHOOL YEAR --*/
    )
@@ -86,8 +86,8 @@ BEGIN
     ,SOURCE.DISCIPLINE_ACTIONTAKENDETAIL
     ,SOURCE.CONSEQUENCE)
   WHEN NOT MATCHED BY SOURCE 
-   AND (TARGET.entry_date >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(), '-08-01')) 
-        OR TARGET.discipline_incidentdate >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(), '-08-01'))) 
+   AND (TARGET.entry_date >= CONVERT(DATE,'2015-08-01')
+        OR TARGET.discipline_incidentdate >= CONVERT(DATE,'2015-08-01'))
    THEN DELETE;
 
 END 

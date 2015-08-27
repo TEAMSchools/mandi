@@ -26,7 +26,7 @@ FROM
                 ,earnedcrhrs                   
           FROM KIPP_NJ..GRADES$STOREDGRADES#static WITH(NOLOCK)
           WHERE storecode = 'Y1'
-            AND schoolid IN (73252, 73253, 133570965)
+            AND schoolid IN (73252, 73253, 133570965, 179902)
             AND excludefromgpa = 0
          ) sub
      GROUP BY studentid, schoolid

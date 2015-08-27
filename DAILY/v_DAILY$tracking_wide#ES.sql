@@ -10,9 +10,10 @@ WITH valid_dates AS (
                 ORDER BY att_date) AS day_number
   FROM
       (
-       SELECT DISTINCT daily.schoolid
-                      ,daily.att_date                                            
-                      ,dates.time_per_name AS week_num
+       SELECT DISTINCT 
+              daily.schoolid
+             ,daily.att_date                                            
+             ,dates.time_per_name AS week_num
        FROM DAILY$tracking_long#ES#static daily WITH(NOLOCK)
        JOIN REPORTING$dates dates WITH(NOLOCK)
          ON dates.school_level = 'ES'

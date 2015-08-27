@@ -183,6 +183,6 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
        ON sub.STUDENT_NUMBER = indiv.student_number
       AND sub.test_round = indiv.test_round
-      AND indiv.academic_year = sub.academic_year
+      AND sub.academic_year = indiv.academic_year
      WHERE sub.rn = 1     
     ) sub

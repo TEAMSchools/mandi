@@ -1,0 +1,49 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW PS$USERS AS
+
+SELECT *
+FROM OPENQUERY(PS_TEAM,'
+  SELECT ACCESSVALUE
+        ,ADMINLDAPENABLED
+        ,ALLOWLOGINEND
+        ,ALLOWLOGINSTART
+        ,CANCHANGESCHOOL
+        ,DCID
+        ,EMAIL_ADDR
+        ,FEDETHNICITY
+        ,FEDRACEDECLINE
+        ,FIRST_NAME
+        ,GRADEBOOKTYPE
+        ,GROUPVALUE
+        ,HOME_PHONE
+        ,HOMEROOM
+        ,HOMESCHOOLID
+        ,LAST_NAME
+        ,LASTFIRST
+        ,LASTMEAL
+        ,LOGINID
+        ,LUNCH_ID
+        ,MAXIMUM_LOAD
+        ,MIDDLE_NAME
+        ,NAMEASIMPORTED        
+        ,PHOTO        
+        ,PREFERREDNAME
+        ,PSACCESS
+        ,PSGUID
+        ,PTACCESS
+        ,SCHOOL_PHONE
+        ,SIF_STATEPRID
+        ,SSN        
+        ,SUPPORTCONTACT
+        ,TEACHERLDAPENABLED
+        ,TEACHERLOGINID        
+        ,TEACHERNUMBER
+        ,TITLE
+        ,WHENCREATED
+        ,WHENMODIFIED
+        ,WHOCREATED
+        ,WHOMODIFIED
+  FROM USERS  
+')

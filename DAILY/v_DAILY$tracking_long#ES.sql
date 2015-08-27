@@ -1,17 +1,14 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW DAILY$tracking_long AS
+ALTER VIEW DAILY$tracking_long#ES AS
 
 SELECT daily.studentid
       ,daily.schoolid
       ,dbo.fn_DateToSY(daily.att_date) AS academic_year
       ,CONVERT(DATE,daily.att_date) AS att_date
       ,daily.hw
-      ,CASE
-        WHEN (daily.schoolid = 73255 AND daily.att_date <= '2014-09-30') THEN NULL
-        ELSE daily.uniform
-       END AS uniform
+      ,daily.uniform       
       ,CASE WHEN daily.schoolid IN (73255, 179901) THEN NULL ELSE daily.color END AS color_day
       ,CASE WHEN daily.schoolid IN (73255, 179901) THEN daily.color ELSE NULL END AS color_am
       ,CASE WHEN daily.schoolid IN (73255, 179901) THEN daily.color_mid ELSE NULL END AS color_mid
@@ -20,11 +17,8 @@ SELECT daily.studentid
         WHEN daily.hw = 'Yes' THEN 1.0 
         WHEN daily.hw = 'No' THEN 0.0
         ELSE NULL 
-       END AS has_hw
-      -- FML -- THRIVE told teachers to log uniform infractions the opposite of what it should have been
-      -- delete this next year and #planbetter
-      ,CASE         
-        WHEN (daily.schoolid = 73255 AND daily.att_date <= '2014-09-30') THEN NULL
+       END AS has_hw      
+      ,CASE                 
         WHEN daily.uniform = 'Yes' THEN 1.0 
         WHEN daily.uniform = 'No' THEN 0.0
         ELSE NULL 
