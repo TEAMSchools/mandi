@@ -67,8 +67,7 @@ WITH disc_log AS (
   JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
     ON sec.TEACHER = t.ID
   WHERE att.att_code IN ('T','T10')
-    AND att.schoolid = 73253
-    AND att.ATT_DATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-08-01')
+    AND att.schoolid = 73253    
 
   UNION ALL
 
@@ -97,10 +96,10 @@ WITH disc_log AS (
   JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
     ON cc.TEACHERID = t.ID
   WHERE att.att_code IN ('T','T10')
-    AND att.schoolid = 73253
-    AND att.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND att.schoolid = 73253    
  )
 
+/*
 ,TEAM_bench AS (
   SELECT 133570965 AS schoolid
         ,CONVERT(INT,CONVERT(FLOAT,[student_number])) AS studentid
@@ -129,6 +128,7 @@ WITH disc_log AS (
   FROM KIPP_NJ..[AUTOLOAD$GDOCS_MISC_TEAM_Bench_Log] log WITH(NOLOCK)
   WHERE student_number IS NOT NULL
  )
+--*/
 
 ,all_logs AS (
   SELECT schoolid
@@ -169,6 +169,7 @@ WITH disc_log AS (
   
   UNION ALL
   
+  /*
   SELECT schoolid
         ,studentid
         ,entry_author
@@ -185,8 +186,8 @@ WITH disc_log AS (
         ,actiontaken
         ,followup
   FROM TEAM_bench WITH(NOLOCK)
-
   UNION ALL
+  --*/
 
   SELECT 73253 AS schoolid
         ,studentid

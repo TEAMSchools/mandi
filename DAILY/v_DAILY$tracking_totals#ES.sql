@@ -16,7 +16,7 @@ WITH valid_dates AS (
                       ,daily.att_date                      
                       ,daily.week_num
        FROM DAILY$tracking_long#ES#static daily WITH(NOLOCK)     
-       WHERE daily.att_date >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-09-01')
+       WHERE daily.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       ) sub
  )
 

@@ -1,8 +1,6 @@
 USE KIPP_NJ
 GO
 
-ALTER PROCEDURE sp_GRADES$time_series#MERGE AS
-
 BEGIN
 
   WITH assignment_scores AS (

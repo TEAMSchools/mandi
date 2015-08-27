@@ -4,7 +4,9 @@ GO
 ALTER VIEW GRADES$elements_long AS 
 
 SELECT studentid
+      ,schoolid
       ,yearid
+      ,KIPP_NJ.dbo.fn_TermToYear(CONCAT(yearid,'00')) AS academic_year
       ,course_number
       ,pgf_type      
       ,CASE

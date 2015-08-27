@@ -2,6 +2,7 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW GRADES$grade_scales AS
+
 WITH ps_style AS (
   SELECT *
   FROM OPENQUERY(PS_TEAM,'
@@ -26,7 +27,7 @@ WITH ps_style AS (
 
 SELECT sub.id AS scale_id
       ,sub.name AS scale_name
-      ,CAST(sub.description AS VARCHAR) AS description
+      ,CONVERT(VARCHAR,sub.description) AS description
       ,sub.letter_grade
       ,sub.grade_points
       ,sub.low_cut

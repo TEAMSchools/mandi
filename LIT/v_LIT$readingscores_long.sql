@@ -17,7 +17,7 @@ WITH long_scores AS (
              ,testid
              ,studentid       
              ,read_lvl             
-             ,status
+             ,ISNULL(status,'Did Not Achieve') AS status
              ,CONVERT(VARCHAR,name_ass) AS name_ass
              ,CONVERT(VARCHAR,ltr_nameid) AS ltr_nameid
              ,CONVERT(VARCHAR,ltr_soundid) AS ltr_soundid
@@ -180,9 +180,9 @@ SELECT sub.unique_id
 FROM 
     (
      SELECT rs.unique_id
+           ,rs.studentid           
            ,rs.testid
-           ,rs.studentid
-           ,rs.read_lvl
+           ,gleq.read_lvl
            ,gleq.lvl_num
            ,rs.status
            ,prof.domain
@@ -217,8 +217,7 @@ FROM
                 ORDER BY rs.score ASC, prof.strand DESC) AS score_order
      FROM long_scores rs
      JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
-       ON rs.testid = gleq.testid
-      AND ((rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl) OR (rs.testid != 3273))
+       ON ((rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl) OR (rs.testid != 3273 AND rs.testid = gleq.testid AND gleq.lvl_num != -1))
      JOIN KIPP_NJ..LIT$prof_long prof WITH(NOLOCK)
        ON rs.testid = prof.testid
       AND rs.field = prof.field_name
