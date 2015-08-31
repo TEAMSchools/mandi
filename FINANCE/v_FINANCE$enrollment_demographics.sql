@@ -10,12 +10,10 @@ SELECT year + 1 AS fiscal_year
       ,COUNT(student_number) AS enrollment
       ,SUM(CASE WHEN lunchstatus IN ('F','R') THEN 1 ELSE 0 END) AS N_FR_lunch
       ,SUM(CASE WHEN spedlep = 'SPED' THEN 1 ELSE 0 END) AS N_SPED
-      ,SUM(CASE WHEN spedlep = 'SPED SPEECH' THEN 1 ELSE 0 END) AS N_SPEECH
-      --,LEP_STATUS
-      ,CASE WHEN date LIKE '%-10-15' THEN 1 ELSE 0 END AS is_oct_15
-      --,CASE WHEN date = CONVERT(DATE,SYSDATETIME()) THEN 1 ELSE 0 END AS is_today
+      ,SUM(CASE WHEN spedlep = 'SPED SPEECH' THEN 1 ELSE 0 END) AS N_SPEECH      
+      ,CASE WHEN CONVERT(DATE,date) LIKE '%-10-15' THEN 1 ELSE 0 END AS is_oct_15      
       ,CASE WHEN date = MAX(date) OVER(PARTITION BY school_name, grade_level) THEN 1 ELSE 0 END AS is_most_recent
 FROM KIPP_NJ..COHORT$identifiers_scaffold#static WITH(NOLOCK)
-WHERE (date = CONVERT(DATE,CONCAT(year,'-10-15')) OR DATEPART(DW,date) = 6)
+WHERE CONVERT(DATE,date) <= CONVERT(DATE,GETDATE())
+  AND (CONVERT(DATE,date) = CONVERT(DATE,CONVERT(VARCHAR,year) + '-10-15') OR DATEPART(DW,CONVERT(DATE,date)) = 6)
 GROUP BY year, date, school_name, grade_level
---ORDER BY date, school_name

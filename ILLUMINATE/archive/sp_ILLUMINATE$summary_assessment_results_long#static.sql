@@ -36,8 +36,7 @@ BEGIN
     FROM OPENQUERY(ILLUMINATE,'
       SELECT repository_id          
       FROM dna_repositories.repositories    
-      WHERE deleted_at IS NULL      
-        --AND (created_at >= (current_date - interval ''1 day'') OR updated_at >= (current_date - interval ''1 day''))
+      WHERE deleted_at IS NULL              
         AND repository_id <= 110
       ORDER BY repository_id DESC
     ')

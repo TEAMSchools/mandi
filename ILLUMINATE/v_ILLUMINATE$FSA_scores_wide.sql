@@ -8,44 +8,35 @@ WITH fsa_rn AS (
         ,grade_level
         ,academic_year
         ,assessment_id
-        ,fsa_week
+        ,reporting_wk
         ,administered_at
         ,scope
-        ,subject
-        ,standards_tested
-        ,FSA_nxtstp_y
-        ,FSA_nxtstp_n
-        ,FSA_obj
+        ,subject_area
+        ,standard_id
+        ,standard_code        
+        ,standard_description
         ,ROW_NUMBER() OVER(
-           PARTITION BY schoolid, grade_level, scope, fsa_week
-             ORDER BY subject, standards_tested) AS fsa_std_rn      
+           PARTITION BY schoolid, grade_level, scope, reporting_wk
+             ORDER BY subject_area, standard_code) AS fsa_std_rn      
   FROM
       (
-       SELECT DISTINCT
-              a.schoolid      
+       SELECT a.schoolid      
              ,a.grade_level
              ,a.academic_year
              ,a.assessment_id
-             ,a.fsa_week
+             ,a.reporting_wk
              ,a.administered_at           
              ,a.scope
-             ,a.subject      
-             ,a.standards_tested            
-             ,CONVERT(VARCHAR(250),nxt.next_steps_mastered) AS FSA_nxtstp_y
-             ,CONVERT(VARCHAR(250),nxt.next_steps_notmastered) AS FSA_nxtstp_n
-             ,CONVERT(VARCHAR(250),nxt.objective) AS FSA_obj
-       FROM ILLUMINATE$assessments#static a WITH(NOLOCK)
-       JOIN GDOCS$FSA_longterm_clean nxt WITH(NOLOCK)
-         ON a.SCHOOLID = nxt.schoolid
-        AND a.GRADE_LEVEL = nxt.grade_level
-        AND a.fsa_week = nxt.week_num
-        AND a.standards_tested = nxt.ccss_standard  
-        AND nxt.dupe_audit = 1
-       WHERE a.schoolid IN (73254, 73255, 73256, 73257, 179901)
+             ,CONVERT(VARCHAR,a.subject_area) AS subject_area
+             ,a.standard_id
+             ,CONVERT(VARCHAR,a.standard_code) AS standard_code
+             ,CONVERT(VARCHAR,a.standard_description) AS standard_description
+       FROM KIPP_NJ..ILLUMINATE$assessments_long#static a WITH(NOLOCK)       
+       WHERE a.grade_level <= 4
          AND a.scope = 'FSA'
-         AND a.subject IS NOT NULL
-         AND a.fsa_week IS NOT NULL
-         AND a.academic_year = dbo.fn_Global_Academic_Year()
+         AND a.subject_area IS NOT NULL
+         AND a.reporting_wk IS NOT NULL
+         --AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       ) sub  
  )    
 
@@ -54,15 +45,13 @@ WITH fsa_rn AS (
         ,co.STUDENT_NUMBER
         ,co.SPEDLEP
         ,a.assessment_id
-        ,a.fsa_week
+        ,a.reporting_wk
         ,a.schoolid
         ,a.grade_level
-        ,a.standards_tested
-        ,CONVERT(VARCHAR(250),a.subject) AS FSA_subject
-        ,CONVERT(VARCHAR(250),a.standards_tested) AS FSA_standard
-        ,a.FSA_nxtstp_y
-        ,a.FSA_nxtstp_n
-        ,a.FSA_obj
+        ,a.standard_id
+        ,a.standard_code
+        ,a.subject_area
+        ,a.standard_description
         ,a.FSA_std_rn
   FROM fsa_rn a WITH(NOLOCK)
   JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
@@ -74,8 +63,7 @@ WITH fsa_rn AS (
 
 SELECT studentid
       ,STUDENT_NUMBER
-      ,fsa_week
-      ,pct_mastered_wk
+      ,reporting_wk      
       ,FSA_subject_1
       ,FSA_subject_2
       ,FSA_subject_3
@@ -151,56 +139,34 @@ SELECT studentid
       ,FSA_prof_13
       ,FSA_prof_14
       ,FSA_prof_15
-      ,FSA_nxtstp_1
-      ,FSA_nxtstp_2
-      ,FSA_nxtstp_3
-      ,FSA_nxtstp_4
-      ,FSA_nxtstp_5
-      ,FSA_nxtstp_6
-      ,FSA_nxtstp_7
-      ,FSA_nxtstp_8
-      ,FSA_nxtstp_9
-      ,FSA_nxtstp_10
-      ,FSA_nxtstp_11
-      ,FSA_nxtstp_12
-      ,FSA_nxtstp_13
-      ,FSA_nxtstp_14
-      ,FSA_nxtstp_15
 FROM
     (
      SELECT studentid
            ,STUDENT_NUMBER
-           ,fsa_week
-           ,ROUND(CONVERT(FLOAT,n_mastered) / CONVERT(FLOAT,n_total) * 100,0) AS pct_mastered_wk
+           ,reporting_wk           
            ,identifier + '_' + CONVERT(VARCHAR,fsa_std_rn) AS identifier
            ,value
      FROM
          (
           SELECT a.studentid
                 ,a.student_number           
-                ,a.FSA_week
-                ,a.FSA_subject
-                ,a.FSA_standard
-                ,a.FSA_obj                
-                ,CASE
-                  WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 60 THEN a.FSA_nxtstp_y
-                  WHEN a.SPEDLEP = 'SPED' AND res.percent_correct < 60 THEN a.FSA_nxtstp_n
-                  WHEN res.percent_correct >= 80 THEN a.FSA_nxtstp_y
-                  WHEN res.percent_correct < 80 THEN a.FSA_nxtstp_n
-                 END AS FSA_nxtstp
+                ,a.reporting_wk
+                ,a.subject_area AS FSA_subject
+                ,a.standard_code AS FSA_standard
+                ,a.standard_description AS FSA_obj                       
                 ,ROW_NUMBER() OVER(
-                   PARTITION BY student_number, schoolid, grade_level, fsa_week
-                     ORDER BY FSA_subject, standards_tested) AS fsa_std_rn
-                ,CONVERT(VARCHAR(250),
+                   PARTITION BY student_number, schoolid, grade_level, reporting_wk
+                     ORDER BY subject_area, standard_code) AS fsa_std_rn
+                ,CONVERT(VARCHAR,
                   CASE 
-                   WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 60 THEN 3
-                   WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 30 AND res.percent_correct < 60 THEN 2
-                   WHEN a.SPEDLEP = 'SPED' AND res.percent_correct < 30 THEN 1
-                   WHEN res.percent_correct >= 80 THEN 3
-                   WHEN res.percent_correct >= 60 AND res.percent_correct < 80 THEN 2
-                   WHEN res.percent_correct < 60 THEN 1
-                  END) AS FSA_score
-                ,CONVERT(VARCHAR(250),
+                    WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 60 THEN '3'
+                    WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 30 AND res.percent_correct < 60 THEN '2'
+                    WHEN a.SPEDLEP = 'SPED' AND res.percent_correct < 30 THEN '1'
+                    WHEN res.percent_correct >= 80 THEN '3'
+                    WHEN res.percent_correct >= 60 AND res.percent_correct < 80 THEN '2'
+                    WHEN res.percent_correct < 60 THEN '1'
+                   END) AS FSA_score
+                ,CONVERT(VARCHAR,
                   CASE
                    WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 60 THEN 'Proficient' 
                    WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 30 AND res.percent_correct < 60 THEN 'Approaching'
@@ -208,31 +174,22 @@ FROM
                    WHEN res.percent_correct >= 80 THEN 'Proficient' 
                    WHEN res.percent_correct >= 60 AND res.percent_correct < 80 THEN 'Approaching'
                    WHEN res.percent_correct < 60 THEN 'Not Yet'
-                  END) AS FSA_prof                
-                ,CONVERT(FLOAT,SUM(CASE
-                                    WHEN a.SPEDLEP = 'SPED' AND res.percent_correct >= 60 THEN 1
-                                    WHEN a.SPEDLEP = 'SPED' AND res.percent_correct < 60 THEN 0
-                                    WHEN res.percent_correct >= 80 THEN 1
-                                    WHEN res.percent_correct < 80 THEN 0
-                                   END) OVER(PARTITION BY a.studentid, a.fsa_week)) AS n_mastered
-                ,CONVERT(FLOAT,COUNT(a.FSA_standard) OVER(PARTITION BY a.studentid, a.fsa_week)) AS n_total
+                  END) AS FSA_prof                                
           FROM fsa_scaffold a WITH(NOLOCK)
-          JOIN ILLUMINATE$assessment_results_by_standard#static res WITH(NOLOCK)  
+          JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard#static res WITH(NOLOCK)  
             ON a.student_number = res.local_student_id           
            AND a.assessment_id = res.assessment_id
-           AND res.custom_code = a.standards_tested
+           AND a.standard_id = res.standard_id
          ) sub         
      UNPIVOT (
        value
        FOR identifier IN ([FSA_subject]
                          ,[FSA_score]
                          ,[FSA_prof]
-                         ,[FSA_standard]
-                         ,[FSA_nxtstp]                         
+                         ,[FSA_standard]                         
                          ,[FSA_obj])
       ) unpiv
     ) sub2  
---/*
 PIVOT (
   MAX(value)
   FOR identifier IN ([FSA_subject_1]
@@ -309,21 +266,5 @@ PIVOT (
                     ,[FSA_prof_12]
                     ,[FSA_prof_13]
                     ,[FSA_prof_14]
-                    ,[FSA_prof_15]
-                    ,[FSA_nxtstp_1]
-                    ,[FSA_nxtstp_2]
-                    ,[FSA_nxtstp_3]
-                    ,[FSA_nxtstp_4]
-                    ,[FSA_nxtstp_5]
-                    ,[FSA_nxtstp_6]
-                    ,[FSA_nxtstp_7]
-                    ,[FSA_nxtstp_8]
-                    ,[FSA_nxtstp_9]
-                    ,[FSA_nxtstp_10]
-                    ,[FSA_nxtstp_11]
-                    ,[FSA_nxtstp_12]
-                    ,[FSA_nxtstp_13]
-                    ,[FSA_nxtstp_14]
-                    ,[FSA_nxtstp_15])
- ) piv
- --*/
+                    ,[FSA_prof_15])
+ ) p

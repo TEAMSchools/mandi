@@ -4,6 +4,7 @@ GO
 ALTER VIEW ILLUMINATE$agg_student_responses AS
 
 SELECT *
+      ,KIPP_NJ.dbo.fn_DateToSY(date_taken) AS academic_year
 FROM OPENQUERY(ILLUMINATE, '
  SELECT s.local_student_id
        ,r.assessment_id

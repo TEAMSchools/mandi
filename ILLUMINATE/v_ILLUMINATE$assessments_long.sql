@@ -3,21 +3,23 @@ GO
 
 ALTER VIEW ILLUMINATE$assessments_long AS
 
-SELECT sub.assessment_id
-      ,sub.schoolid
+SELECT sub.assessment_id      
       ,sub.title
-      ,sub.grade_level
-      ,sub.subject_area
-      ,sub.credittype
       ,sub.scope
-      ,sub.standard_code
-      ,sub.standard_description
+      ,sub.subject_area
+      ,sub.credittype      
+      ,sub.schoolid
+      ,sub.grade_level      
+      ,sub.academic_year
+      ,sub.term
+      ,sub.reporting_wk
+      ,sub.administered_at
       ,sub.teachernumber
       ,sub.created_by
-      ,sub.reporting_wk
-      ,sub.academic_year
-      ,sub.administered_at
       ,sub.performance_band_set_id      
+      ,sub.standard_id
+      ,sub.standard_code
+      ,sub.standard_description            
       ,ROW_NUMBER() OVER (
           PARTITION BY sub.academic_year, sub.reporting_wk, sub.schoolid, sub.grade_level, sub.scope, sub.performance_band_set_id
               ORDER BY sub.performance_band_set_id, subject_area, standard_code ASC) AS weekly_stds_rn
@@ -75,13 +77,14 @@ FROM
              WHEN a.subject_area = 'Writing' THEN 'RHET'
              ELSE a.subject_area
             END AS credittype           
-           ,KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,a.administered_at)) AS academic_year
+           ,a.academic_year
            ,CONVERT(DATE,a.administered_at) AS administered_at
            ,a.state_id AS teachernumber
            ,u.lastfirst AS created_by
            ,a.performance_band_set_id
            ,sch.schoolid
            ,sch.grade_level
+           ,std.standard_id
            ,std.custom_code AS standard_code
            ,KIPP_NJ.dbo.ASCII_CONVERT(std.description) AS standard_description
            ,rpt_wks.time_per_name AS reporting_wk

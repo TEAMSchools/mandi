@@ -9,20 +9,20 @@ SELECT CONVERT(INT,student_id) AS student_number
         WHEN [field_subject] = 'ELA' THEN 'Comprehension'
         ELSE [field_subject] 
        END AS subject
-      ,[field_comment] AS comment
-      ,CONVERT(DATE,[field_date]) AS date
+      ,[field_comment] AS comment      
+      ,KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,[field_date])) AS academic_year
+      ,CONVERT(DATE,[field_date]) AS date      
       ,ROW_NUMBER() OVER(
           PARTITION BY student_id, field_subject
-              ORDER BY field_date DESC) AS rn
+              ORDER BY CONVERT(DATE,[field_date]) DESC) AS rn
 FROM (
-      SELECT student_id
-            ,repository_row_id
-            ,field
-            ,value
-      FROM ILLUMINATE$summary_assessment_results_long#static WITH(NOLOCK)
-      WHERE repository_id = 58
+      SELECT d.student_id
+            ,d.repository_row_id
+            ,d.field
+            ,d.value            
+      FROM KIPP_NJ..ILLUMINATE$repository_data d WITH(NOLOCK)      
+      WHERE d.repository_id = 58
      ) sub
-
 PIVOT(
   MAX(value)
   FOR field IN ([field_subject]

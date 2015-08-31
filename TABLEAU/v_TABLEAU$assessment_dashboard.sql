@@ -18,18 +18,18 @@ SELECT co.schoolid
       ,a.assessment_id
       ,a.title
       ,a.scope            
-      ,a.subject      
+      ,a.subject_area AS subject
       ,a.credittype      
       ,enr.COURSE_NAME
       ,enr.teacher_name
       ,COALESCE(enr.period, enr.section_number) AS section
       ,enr.behavior_tier AS rti_tier
       ,a.term
-      ,a.fsa_week
+      ,a.reporting_wk AS fsa_week
       ,a.administered_at
-      ,CONVERT(VARCHAR,a.standards_tested) AS standards_tested      
-      ,a.standard_descr
-      ,a.parent_standard
+      ,CONVERT(VARCHAR,a.standard_code) AS standards_tested      
+      ,a.standard_description AS standard_descr
+      ,NULL AS parent_standard
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS percent_correct
       ,CONVERT(FLOAT,res.mastered) AS mastered      
       ,ovr.percent_correct AS overall_pct_correct
@@ -38,42 +38,41 @@ SELECT co.schoolid
       ,a.std_attempt_rn
       ,a.std_attempt_curr
       ,ROW_NUMBER() OVER(
-         PARTITION BY ovr.student_number, a.assessment_id
-           ORDER BY ovr.student_number) AS overall_rn
+         PARTITION BY co.student_number, a.assessment_id
+           ORDER BY co.student_number) AS overall_rn
       ,ROW_NUMBER() OVER(
-         PARTITION BY ovr.student_number, a.scope, a.standard_id
+         PARTITION BY co.student_number, a.scope, a.standard_id
            ORDER BY a.administered_at DESC) AS rn_curr
-FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH (NOLOCK)
+FROM KIPP_NJ..ILLUMINATE$assessments_long#static a WITH (NOLOCK)
 JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK) 
   ON a.academic_year = co.year
  AND a.grade_level = co.grade_level
  AND a.schoolid = co.schoolid
  AND co.rn = 1
-JOIN KIPP_NJ..ILLUMINATE$assessment_results_overall#static ovr WITH(NOLOCK)
-  ON co.student_number = ovr.student_number
+JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
+  ON co.student_number = ovr.local_student_id
  AND a.assessment_id = ovr.assessment_id 
 LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
  AND co.year = enr.academic_year
- AND a.subject = enr.illuminate_subject
+ AND a.subject_area = enr.illuminate_subject
  AND enr.drop_flags = 0
 LEFT OUTER JOIN (
                  SELECT DISTINCT 
                         student_number
-                       ,academic_year
+                       --,academic_year
                        ,illuminate_group AS groups
                  FROM KIPP_NJ..PS$enrollments_rollup#static WITH(NOLOCK)  
-                 WHERE academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year() -- first year w/ Illuminate, so we can hard code this 
+                 WHERE academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
                 ) groups
-  ON co.STUDENT_NUMBER = groups.student_number
- AND co.year = groups.academic_year
-LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOCK)
-  ON a.assessment_id = res.assessment_id
+  ON co.STUDENT_NUMBER = groups.student_number 
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard#static res WITH (NOLOCK)
+  ON co.student_number = res.local_student_id
+ AND a.assessment_id = res.assessment_id
  AND a.standard_id = res.standard_id  
- AND ovr.student_number = res.local_student_id
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$SPED_comments#static comm WITH(NOLOCK)
-  ON ovr.student_number = comm.student_number
- AND a.subject = comm.subject
+  ON co.student_number = comm.student_number
+ AND a.subject_area = comm.subject
  AND comm.rn = 1
 WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year() 
 

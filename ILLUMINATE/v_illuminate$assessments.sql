@@ -4,6 +4,7 @@ GO
 ALTER VIEW ILLUMINATE$assessments AS
 
 SELECT *
+      ,KIPP_NJ.dbo.fn_DateToSY(administered_at) AS academic_year
 FROM OPENQUERY(ILLUMINATE,'
   SELECT a.assessment_id        
         ,a.title                

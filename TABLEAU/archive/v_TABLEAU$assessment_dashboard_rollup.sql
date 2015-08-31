@@ -38,7 +38,7 @@ FROM
            ,a.assessment_id
            ,a.title
            ,a.scope            
-           ,a.subject      
+           ,a.subject_area AS subject
            ,a.credittype      
            ,enr.COURSE_NAME
            ,enr.teacher_name
@@ -46,18 +46,19 @@ FROM
            ,enr.tier AS rti_tier
            ,a.term
            ,a.administered_at
-           ,CONVERT(VARCHAR,a.standards_tested) AS standards_tested      
-           ,a.standard_descr
+           ,CONVERT(VARCHAR,a.standard_code) AS standards_tested      
+           ,a.standard_description AS standard_descr
            ,CONVERT(FLOAT,res.percent_correct) AS percent_correct
            ,CONVERT(FLOAT,res.mastered) AS mastered                 
-     FROM KIPP_NJ..ILLUMINATE$assessment_results_by_standard#static res WITH (NOLOCK)
-     JOIN KIPP_NJ..ILLUMINATE$distinct_assessments#static a WITH (NOLOCK)
+     FROM KIPP_NJ..ILLUMINATE$agg_student_responses_standard#static res WITH (NOLOCK)
+     JOIN KIPP_NJ..ILLUMINATE$assessments_long#static a WITH (NOLOCK)
        ON res.assessment_id = a.assessment_id
       AND res.standard_id = a.standard_id  
      JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK)
        ON res.local_student_id = co.student_number
       AND a.academic_year = co.year
-      AND co.schoolid IN (73253,73252,133570965)
+      AND a.schoolid = co.schoolid
+      AND a.grade_level = co.grade_level
       AND co.rn = 1     
      LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
        ON co.studentid = enr.studentid

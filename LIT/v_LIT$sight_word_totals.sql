@@ -4,10 +4,10 @@ GO
 ALTER VIEW LIT$sight_word_totals AS
 
 WITH valid_tests AS (
-  SELECT DISTINCT a.repository_id        
-  FROM KIPP_NJ..ILLUMINATE$summary_assessments#static a WITH(NOLOCK)    
+  SELECT a.repository_id        
+  FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)    
   WHERE a.scope = 'Reporting' 
-    AND a.subject = 'Word Work'
+    AND a.subject_area = 'Word Work'
  )
 
 ,scores_long AS (
@@ -22,33 +22,32 @@ WITH valid_tests AS (
            THEN SUBSTRING(label, CHARINDEX('_',label,CHARINDEX('_',label) + 1) + 1, LEN(label) - CHARINDEX('_',label,CHARINDEX('_',label) + 1))
           ELSE NULL
          END AS missed_word 
-  FROM KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
-  JOIN KIPP_NJ..ILLUMINATE$repository_fields f WITH(NOLOCK)
+  FROM KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
+  JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
     ON res.repository_id = f.repository_id
    AND res.field = f.name
-   AND f.rn = 1
   WHERE res.repository_id IN (SELECT repository_id FROM valid_tests WITH(NOLOCK))
  )
-
+ 
 ,roster AS (
   SELECT co.schoolid
+        ,co.year AS academic_year
         ,grade_level
         ,STUDENT_NUMBER
         ,dt.time_per_name
   FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH(NOLOCK)
   JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
-    ON co.schoolid = dt.schoolid 
-    AND dt.academic_year = dbo.fn_Global_Academic_Year()
-    AND dt.start_date <= GETDATE()
-    AND dt.identifier = 'REP'
-    AND dt.school_level = 'ES'
+    ON co.schoolid = dt.schoolid   
+   AND co.year = dt.academic_year 
+   AND dt.start_date <= CONVERT(DATE,GETDATE())
+   AND dt.identifier = 'REP'
   WHERE co.rn = 1
-    AND co.year = dbo.fn_Global_Academic_Year()
-    AND co.grade_level < 5
+    AND co.grade_level <= 4
  )
 
 ,week_totals AS (
   SELECT r.schoolid
+        ,r.academic_year
         ,r.grade_level      
         ,r.STUDENT_NUMBER
         ,r.time_per_name AS listweek_num
@@ -65,10 +64,12 @@ WITH valid_tests AS (
           ,r.grade_level
           ,r.STUDENT_NUMBER
           ,r.time_per_name
+          ,r.academic_year
  )
  
 ,year_totals AS (
   SELECT r.schoolid
+        ,r.academic_year
         ,r.grade_level      
         ,r.STUDENT_NUMBER                
         ,COUNT(CONVERT(FLOAT,value)) AS n_total_yr
@@ -83,9 +84,11 @@ WITH valid_tests AS (
   GROUP BY r.SCHOOLID
           ,r.GRADE_LEVEL
           ,r.STUDENT_NUMBER          
+          ,r.academic_year
  )
  
 SELECT wk.schoolid
+      ,wk.academic_year
       ,wk.grade_level
       ,wk.STUDENT_NUMBER
       ,wk.listweek_num
@@ -109,3 +112,4 @@ SELECT wk.schoolid
 FROM week_totals wk WITH(NOLOCK)
 JOIN year_totals yr WITH(NOLOCK)
   ON wk.student_number = yr.student_number
+ AND wk.academic_year = yr.academic_year

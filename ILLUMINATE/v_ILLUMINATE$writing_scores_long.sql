@@ -18,11 +18,11 @@ WITH test_roster AS (
              ,f.label
              ,res.repository_row_id
              ,res.value AS field_value           
-       FROM KIPP_NJ..ILLUMINATE$summary_assessments#static a WITH(NOLOCK)
-       JOIN KIPP_NJ..ILLUMINATE$repository_fields f WITH(NOLOCK)
+       FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)
+       JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
          ON a.repository_id = f.repository_id      
         AND f.label IN ('Year','Interim','Quarter')
-       JOIN KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
+       JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
          ON a.repository_id = res.repository_id
         AND f.name = res.field
        WHERE a.title IN ('Writing - Interim - TEAM MS', 'English OE - Quarterly Assessments')
@@ -34,8 +34,7 @@ WITH test_roster AS (
  )
 
 ,test_data AS (
-  SELECT DISTINCT 
-         res.student_id AS student_number
+  SELECT res.student_id AS student_number
         ,a.repository_id
         ,a.title                     
         ,CASE
@@ -43,16 +42,15 @@ WITH test_roster AS (
           ELSE LTRIM(RTRIM(f.label))
          END AS strand
         ,f.label AS field_name
-        ,res.repository_row_id
-        ,res.value
-        ,CONVERT(FLOAT,res.value) AS field_value           
-  FROM KIPP_NJ..ILLUMINATE$summary_assessments#static a WITH(NOLOCK)
-  JOIN KIPP_NJ..ILLUMINATE$repository_fields f WITH(NOLOCK)
+        ,res.repository_row_id        
+        ,res.value AS field_value           
+  FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)
+  JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
     ON a.repository_id = f.repository_id      
    AND f.label NOT IN ('Year','Interim','Quarter','Test Type')
-  JOIN KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
+  JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
     ON a.repository_id = res.repository_id
-   AND f.name = res.field
+   AND f.name = res.field   
   WHERE a.title IN ('Writing - Interim - TEAM MS', 'English OE - Quarterly Assessments')
  )
 
@@ -65,7 +63,7 @@ SELECT t.student_number
       ,res.strand
       ,t.term + '_' + res.strand AS pivot_hash
       ,res.field_name      
-      ,res.field_value        
+      ,CONVERT(FLOAT,res.field_value) AS field_value        
       ,RIGHT(term,1) AS series
 FROM test_roster t WITH(NOLOCK)
 JOIN test_data res WITH(NOLOCK)
