@@ -27,9 +27,9 @@ WITH logentrycodes AS (
   CROSS APPLY string.nodes('/M') AS SPLIT(sub)
 )
 
-SELECT field
+SELECT CONVERT(VARCHAR(64),field) AS field      
       ,string
-      ,dbo.fn_StripCharacters(LEFT(string, CHARINDEX(';',string) - 1), '^a-z') AS code      
+      ,CONVERT(VARCHAR(8),KIPP_NJ.dbo.fn_StripCharacters(LEFT(string, CHARINDEX(';',string) - 1), '^a-z')) AS code      
       ,RIGHT(string, CHARINDEX(';', REVERSE(string)) - 1) AS detail
 FROM codes_long
 WHERE string NOT LIKE '%office use%'

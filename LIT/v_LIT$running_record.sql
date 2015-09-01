@@ -5,6 +5,7 @@ ALTER VIEW LIT$running_record AS
 
 WITH running_record AS (
   SELECT CONVERT(FLOAT,student_number) AS student_number
+        ,ISNULL(KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,[field_date_administered])),2014) AS academic_year
         ,CONVERT(DATE,[field_date_administered]) AS date_administered
         ,[field_administrator_1] AS administrator      
         ,[field_level_tested] AS level_tested
@@ -27,10 +28,9 @@ WITH running_record AS (
              ,repository_row_id
              ,field
              ,value
-       FROM KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static WITH(NOLOCK)
+       FROM KIPP_NJ..ILLUMINATE$repository_data WITH(NOLOCK)
        WHERE repository_id = 54
       ) sub
-
   PIVOT (
     MAX(value)
     FOR field IN ([field_about_the_text]
@@ -71,6 +71,7 @@ SELECT s.LASTFIRST
       ,s.GRADE_LEVEL
       ,s.SPEDLEP
       ,rr.student_number
+      ,rr.academic_year
       ,rr.date_administered
       ,rr.administrator
       ,rr.level_tested
@@ -91,15 +92,16 @@ SELECT s.LASTFIRST
       ,lli.comment
       ,lli.date AS comment_date
 FROM running_record rr WITH(NOLOCK)
-JOIN LIT$GLEQ gleq WITH(NOLOCK)
+JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
   ON rr.level_tested_join = gleq.read_lvl
 JOIN prof_wide WITH(NOLOCK)
   ON gleq.lvl_num = prof_wide.lvl_num
-JOIN COHORT$identifiers_long#static s WITH(NOLOCK)
+JOIN KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
   ON rr.student_number = s.STUDENT_NUMBER
- AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND rr.academic_year = s.year
  AND s.rn = 1
-LEFT OUTER JOIN ILLUMINATE$SPED_comments#static lli WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..REPORTING$SPED_comments#static lli WITH(NOLOCK)
   ON rr.student_number = lli.student_number
+ AND rr.academic_year = KIPP_NJ.dbo.fn_DateToSY(lli.date)
  AND lli.subject = 'LLI'
  AND lli.rn = 1

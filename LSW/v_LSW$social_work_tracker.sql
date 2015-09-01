@@ -9,11 +9,11 @@ SELECT sw.[SN] AS student_number
       ,co.grade_level
       ,KIPP_NJ.dbo.fn_DateToSY(sw.[Date]) AS academic_year
       ,CONVERT(DATE,sw.[Date]) AS observation_date
-      ,sw.[Social Worker] AS social_worker
+      ,sw.social_worker
       ,sw.[Group]
       ,sw.[Environment] AS environment
-      ,sw.[Goal Category] AS goal_cat      
-      ,sw.[Skill Description] AS skill_descr
+      ,sw.goal_category AS goal_cat      
+      ,sw.skill_description AS skill_descr
       ,sw.[Rating] AS rating
       ,sw.[Narrative] AS narrative
 FROM [KIPP_NJ].[dbo].[AUTOLOAD$GDOCS_LSW_Data_Entry] sw WITH(NOLOCK)

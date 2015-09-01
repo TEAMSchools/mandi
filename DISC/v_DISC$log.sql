@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW DISC$log AS
+--ALTER VIEW DISC$log AS
 
 WITH disc_log AS (
   SELECT disc.schoolid
@@ -41,7 +41,7 @@ WITH disc_log AS (
   LEFT OUTER JOIN KIPP_NJ..DISC$entrycodes#static follow WITH(NOLOCK)
     ON disc.discipline_incidenttype = follow.code
    AND follow.field = 'discipline_actiontakendetail'
-  WHERE (ISDATE(disc.ENTRY_DATE) = 1 OR ISDATE(disc.discipline_incidentdate) = 1)       
+  WHERE (ISDATE(disc.ENTRY_DATE) = 1 OR ISDATE(disc.discipline_incidentdate) = 1)
  )
 
 ,tardy_demerits AS (
@@ -64,8 +64,10 @@ WITH disc_log AS (
   JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
     ON att.sectionid = sec.ID
    AND att.schoolid = sec.SCHOOLID
-  JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
-    ON sec.TEACHER = t.ID
+  JOIN KIPP_NJ..PS$SCHOOLSTAFF#static ss WITH(NOLOCK)
+    ON sec.TEACHER = ss.ID
+  JOIN KIPP_NJ..PS$USERS#static t WITH(NOLOCK)
+    ON ss.USERS_DCID = t.DCID
   WHERE att.att_code IN ('T','T10')
     AND att.schoolid = 73253    
 
@@ -93,8 +95,10 @@ WITH disc_log AS (
    AND att.ATT_DATE >= cc.DATEENROLLED
    AND att.ATT_DATE <= cc.DATELEFT
    AND cc.COURSE_NUMBER = 'HR' 
-  JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
-    ON cc.TEACHERID = t.ID
+  JOIN KIPP_NJ..PS$SCHOOLSTAFF#static ss WITH(NOLOCK)
+    ON cc.TEACHERID = ss.ID
+  JOIN KIPP_NJ..PS$USERS#static t WITH(NOLOCK)
+    ON ss.USERS_DCID = t.DCID
   WHERE att.att_code IN ('T','T10')
     AND att.schoolid = 73253    
  )
@@ -230,7 +234,6 @@ SELECT all_logs.schoolid
               ORDER BY entry_date DESC) AS rn
 FROM all_logs WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dates WITH (NOLOCK)
-  ON all_logs.entry_date >= dates.start_date
- AND all_logs.entry_date <= dates.end_date
+  ON all_logs.entry_date BETWEEN dates.start_date AND dates.end_date
  AND all_logs.schoolid = dates.schoolid
  AND dates.identifier = 'RT'

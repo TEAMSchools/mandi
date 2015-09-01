@@ -1,6 +1,8 @@
 USE KIPP_NJ
 GO
+
 ALTER VIEW ILLUMINATE$student_response_detail_long AS
+
 SELECT *
 FROM OPENQUERY(ILLUMINATE, '
   SELECT a.assessment_id
@@ -31,7 +33,5 @@ FROM OPENQUERY(ILLUMINATE, '
   JOIN public.students s
     ON sa.student_id = s.student_id
   JOIN dna_assessments.responses r
-    ON sar.response_id = r.response_id
-  ORDER BY sa.student_id
-          ,f.order
+    ON sar.response_id = r.response_id  
 ')

@@ -24,15 +24,15 @@ FROM
            ,repo.repository_row_id      
            ,fields.label AS field
            ,repo.value
-     FROM KIPP_NJ..ILLUMINATE$summary_assessment_results_long#static repo WITH(NOLOCK)
-     JOIN KIPP_NJ..ILLUMINATE$repository_fields fields WITH(NOLOCK)
+     FROM KIPP_NJ..ILLUMINATE$repository_data repo WITH(NOLOCK)
+     JOIN KIPP_NJ..ILLUMINATE$repository_fields#static fields WITH(NOLOCK)
        ON repo.repository_id = fields.repository_id
       AND repo.field = fields.name 
      WHERE repo.repository_id IN (
-                                  SELECT DISTINCT repository_id
-                                  FROM KIPP_NJ..ILLUMINATE$summary_assessments#static WITH(NOLOCK)
+                                  SELECT repository_id
+                                  FROM KIPP_NJ..ILLUMINATE$repositories#static WITH(NOLOCK)
                                   WHERE scope = 'Reporting'
-                                    AND subject = 'ARFR'
+                                    AND subject_area = 'ARFR'
                                  )
     ) sub
 PIVOT(

@@ -105,12 +105,12 @@ FROM
            ,CASE WHEN co.year >= 2015 THEN rs.read_lvl ELSE gleq.read_lvl END AS read_lvl
            ,CASE WHEN co.year >= 2015 THEN achv.lvl_num ELSE gleq.lvl_num END AS lvl_num
            ,CASE 
-             WHEN co.year >= 2015 AND rs.testid != 3273 THEN gleq.read_lvl 
+             WHEN co.year >= 2015 AND rs.testid != 3273 THEN stepdna.read_lvl 
              WHEN co.year >= 2015 AND rs.testid = 3273 THEN rs.instruct_lvl
              ELSE NULL 
             END AS dna_lvl
            ,CASE 
-             WHEN co.year >= 2015 AND rs.testid != 3273 THEN gleq.lvl_num 
+             WHEN co.year >= 2015 AND rs.testid != 3273 THEN stepdna.lvl_num 
              WHEN co.year >= 2015 AND rs.testid = 3273 THEN instr.lvl_num
              ELSE NULL 
             END AS dna_lvl_num
@@ -151,6 +151,8 @@ FROM
        ON ((co.year <= 2014 AND rs.testid != 3273 AND rs.testid = gleq.testid AND gleq.lvl_num > -1) /* before 2015-2016, JOIN Achieved STEP on testid */
               OR (co.year <= 2014 AND rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl) /* before 2015-2016, JOIN Achieved F&P on reading level */
               OR (co.year >= 2015 AND rs.read_lvl = gleq.read_lvl)) /* 2015-2016 onward, JOIN everything on reading level */
+     LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ stepdna WITH(NOLOCK)
+       ON (co.year >= 2015 AND rs.testid != 3273 AND rs.testid = stepdna.testid AND stepdna.lvl_num > -1)
      LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ achv WITH(NOLOCK)
        ON rs.read_lvl = achv.read_lvl      
      LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ instr WITH(NOLOCK)

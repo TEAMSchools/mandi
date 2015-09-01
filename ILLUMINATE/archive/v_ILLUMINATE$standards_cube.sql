@@ -2,13 +2,15 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW ILLUMINATE$standards_cube AS
-WITH standards_univ AS
-   (SELECT *
-    FROM KIPP_NJ..ILLUMINATE$standards
-    --comment out
-    --WHERE std_title = 'Mathematics'
-    --  AND cat_title = 'Grade 12'
-   )
+
+WITH standards_univ AS (
+  SELECT state_num
+        ,level
+        ,custom_code
+        ,standard_id
+        ,parent_standard_id
+  FROM KIPP_NJ..ILLUMINATE$standards#static WITH(NOLOCK)    
+ )
 
 SELECT state_num AS d1
       ,NULL AS d2

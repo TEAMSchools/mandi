@@ -27,8 +27,7 @@ WITH roster AS (
            PARTITION BY academic_year, schoolid
            ORDER BY start_date ASC) AS round_num
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
-  WHERE identifier = 'LIT'      
-    --AND start_date <= GETDATE()
+  WHERE identifier = 'LIT'          
  )
  
 ,roster_scaffold AS (
@@ -176,6 +175,7 @@ FROM
             ON tests.STUDENTID = achv_prev.STUDENTID
            AND tests.meta_achv_round < achv_prev.meta_achv_round
            AND achv_prev.read_lvl IS NOT NULL                    
+           AND tests.start_date <= CONVERT(DATE,GETDATE()) /* preserves the scaffold but will not carry scores to a future term */
          ) sub
      LEFT OUTER JOIN KIPP_NJ..LIT$goals goals WITH(NOLOCK)
        ON sub.grade_level = goals.grade_level

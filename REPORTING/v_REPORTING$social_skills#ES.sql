@@ -4,10 +4,10 @@ GO
 ALTER VIEW REPORTING$social_skills#ES AS
 
 WITH valid_assessments AS (
-  SELECT DISTINCT repository_id
-  FROM ILLUMINATE$summary_assessments#static WITH(NOLOCK)
+  SELECT repository_id
+  FROM ILLUMINATE$repositories#static WITH(NOLOCK)
   WHERE scope = 'Reporting'
-    AND subject = 'Social Skills'
+    AND subject_area = 'Social Skills'
  )
 
 ,scores_long AS (  
@@ -15,8 +15,8 @@ WITH valid_assessments AS (
         ,repo.repository_row_id      
         ,fields.label AS field
         ,repo.value
-  FROM ILLUMINATE$summary_assessment_results_long#static repo WITH(NOLOCK)
-  JOIN ILLUMINATE$repository_fields fields WITH(NOLOCK)
+  FROM ILLUMINATE$repository_data repo WITH(NOLOCK)
+  JOIN ILLUMINATE$repository_fields#static fields WITH(NOLOCK)
     ON repo.repository_id = fields.repository_id
    AND repo.field = fields.name 
   WHERE repo.repository_id IN (SELECT repository_id FROM valid_assessments WITH(NOLOCK))

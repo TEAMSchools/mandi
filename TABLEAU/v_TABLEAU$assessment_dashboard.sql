@@ -70,7 +70,7 @@ LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard#static res WI
   ON co.student_number = res.local_student_id
  AND a.assessment_id = res.assessment_id
  AND a.standard_id = res.standard_id  
-LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$SPED_comments#static comm WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..REPORTING$SPED_comments#static comm WITH(NOLOCK)
   ON co.student_number = comm.student_number
  AND a.subject_area = comm.subject
  AND comm.rn = 1

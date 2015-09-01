@@ -11,7 +11,7 @@ WITH agg_scores AS (
         ,strand
         ,term
         ,ROUND(AVG(field_value),1) AS avg_strand_score
-  FROM ILLUMINATE$writing_scores_long#static WITH(NOLOCK)
+  FROM KIPP_NJ..ILLUMINATE$writing_scores_long#static WITH(NOLOCK)
   GROUP BY student_number
           ,repository_id
           ,academic_year
@@ -64,9 +64,9 @@ SELECT student_number
       ,[QE2QE3_Overall_growth]
       ,[QE3QE4_Overall_growth]
       ,COALESCE(
-        (ISNULL([IA1IA2_overall_growth],0) + ISNULL([IA2IA3_overall_growth],0)), 
-        (ISNULL([QE1QE2_overall_growth],0) + ISNULL([QE2QE3_overall_growth],0) + ISNULL([QE3QE4_overall_growth],0))
-       ) AS YTD_overall_growth
+         (ISNULL([IA1IA2_overall_growth],0) + ISNULL([IA2IA3_overall_growth],0)) 
+        ,(ISNULL([QE1QE2_overall_growth],0) + ISNULL([QE2QE3_overall_growth],0) + ISNULL([QE3QE4_overall_growth],0))
+        ) AS YTD_overall_growth
 FROM
     (
      SELECT a1.student_number

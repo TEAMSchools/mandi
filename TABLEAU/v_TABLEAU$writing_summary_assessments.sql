@@ -5,18 +5,20 @@ ALTER VIEW TABLEAU$writing_summary_assessments AS
 
 WITH assessments AS (
   SELECT a.repository_id
-        ,a.schoolid
-        ,a.grade_level
+        ,s.schoolid
+        ,s.grade_level
         ,a.title
         ,a.scope
-        ,a.subject      
+        ,a.subject_area      
         ,a.credittype
         ,a.date_administered
         ,a.academic_year
         ,f.label AS field_label
         ,f.name AS field_name        
-  FROM ILLUMINATE$summary_assessments#static a WITH(NOLOCK)
-  JOIN ILLUMINATE$repository_fields f WITH(NOLOCK)
+  FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)
+  JOIN KIPP_NJ..ILLUMINATE$repositories_sites#static s WITH(NOLOCK)
+    ON a.repository_id = s.repository_id
+  JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
     ON a.repository_id = f.repository_id      
   WHERE a.title IN ('Writing - Interim - TEAM MS', 'English OE - Quarterly Assessments')
  )
@@ -72,11 +74,10 @@ WITH assessments AS (
              ,res.repository_row_id
              ,res.value AS field_value           
        FROM assessments a WITH(NOLOCK)         
-       JOIN ILLUMINATE$summary_assessment_results_long#static res WITH(NOLOCK)
+       JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
          ON a.repository_id = res.repository_id
         AND a.field_name = res.field     
       ) sub
-
   PIVOT(
     MAX(field_value)
     FOR field_label IN ([Year]
@@ -126,7 +127,7 @@ WITH assessments AS (
         ,ROW_NUMBER() OVER(
           PARTITION BY cc.studentid, cc.academic_year, cc.credittype
             ORDER BY cc.course_number DESC, cc.dateenrolled DESC) AS rn
-  FROM PS$course_enrollments#static cc WITH(NOLOCK)
+  FROM KIPP_NJ..PS$course_enrollments#static cc WITH(NOLOCK)
   WHERE cc.SCHOOLID = 73253        
     AND cc.SECTIONID > 0    
     AND cc.CREDITTYPE = 'ENG'    
@@ -260,11 +261,11 @@ SELECT co.SCHOOLID
       ,enr.period AS nca_period
       ,enr.teacher_name
 FROM results_wide w WITH(NOLOCK)
-LEFT OUTER JOIN ILLUMINATE$writing_growth_wide growth WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$writing_growth_wide growth WITH(NOLOCK)
   ON w.student_number = growth.student_number
  AND w.repository_id = growth.repository_id
  AND w.academic_year = growth.academic_year
-JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   ON w.student_number = co.student_number
  AND w.academic_year = co.year
  AND co.rn = 1
@@ -276,4 +277,4 @@ LEFT OUTER JOIN enrollments enr WITH(NOLOCK)
 --LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
 --  ON w.studentid = enr.STUDENTID
 -- AND w.academic_year = enr.academic_year
--- AND w.credittype = enr.CREDITTYPE 
+-- AND w.credittype = enr.CREDITTYPE
