@@ -26,13 +26,10 @@ JOIN DISC$log#static disc WITH (NOLOCK)
   ON s.studentid = disc.studentid
  AND s.schoolid = disc.schoolid
  AND s.year = disc.academic_year
-JOIN REPORTING$dates dates WITH (NOLOCK)
-  ON disc.entry_date >= dates.start_date
- AND disc.entry_date <= dates.end_date
+LEFT OUTER JOIN REPORTING$dates dates WITH (NOLOCK)
+  ON s.SCHOOLID = dates.schoolid
+ AND disc.entry_date BETWEEN dates.start_date AND dates.end_date
  AND disc.academic_year = dates.academic_year
- AND dates.identifier = 'RT'
- AND s.SCHOOLID = dates.schoolid
-WHERE s.SCHOOLID IN (73253,73252,133570965)
-  --AND s.year = dbo.fn_Global_Academic_Year()
-  AND s.ENROLL_STATUS = 0
+ AND dates.identifier = 'RT' 
+WHERE s.SCHOOLID IN (73253,73252,133570965)  
   AND s.rn = 1

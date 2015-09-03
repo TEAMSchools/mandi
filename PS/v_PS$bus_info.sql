@@ -14,4 +14,6 @@ FROM OPENQUERY(PS_TEAM,'
         ,ps_customfields.getcf(''Students'',id,''geocode'') AS geocode        
   FROM students
   WHERE schoolid IN (73254, 73255, 73256, 73257, 179901)    
+    AND enroll_status = 0
+    AND grade_level <= 4
 ')
