@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW DISC$log AS
+ALTER VIEW DISC$log AS
 
 WITH disc_log AS (
   SELECT disc.schoolid
@@ -103,37 +103,6 @@ WITH disc_log AS (
     AND att.schoolid = 73253    
  )
 
-/*
-,TEAM_bench AS (
-  SELECT 133570965 AS schoolid
-        ,CONVERT(INT,CONVERT(FLOAT,[student_number])) AS studentid
-        ,CONVERT(VARCHAR,[Teacher]) AS entry_author        
-        ,CASE WHEN ISDATE([Date]) = 1 THEN CONVERT(DATE,[Date]) ELSE NULL END AS entry_date
-        ,NULL AS consequence_date
-        ,-100000 AS logtypeid
-        ,CASE 
-          WHEN [Bench/ISS/OSS] = 'OSS' THEN 6
-          WHEN [Bench/ISS/OSS] = 'ISS' THEN 5
-          WHEN [Bench/ISS/OSS] = 'Bench' THEN 4
-         END AS subtypeid
-        ,CONVERT(VARCHAR,[Days on]) AS n_days
-        ,'Discipline (MS/HS)' AS logtype
-        ,CONVERT(VARCHAR,[Bench/ISS/OSS]) AS subtype
-        ,CONVERT(VARCHAR,[Bench/ISS/OSS]) AS subject        
-        ,CONVERT(VARCHAR,ISNULL('Approved with: ' + CONVERT(VARCHAR,[Approved With] + CHAR(10) + CHAR(13)), '')
-          + ISNULL('Location: ' + CONVERT(VARCHAR,[Class and Time of Day] + CHAR(10) + CHAR(13)), '')
-          + ISNULL('Descr: ' + CONVERT(VARCHAR,[Description] + CHAR(10) + CHAR(13)), '')
-          + ISNULL('Parent Contact: ' + CONVERT(VARCHAR,[Parent Contact] + CHAR(10) + CHAR(13)), '')
-          + ISNULL('Off Bench: ' + CONVERT(VARCHAR,[Date off the Bench],101), ''))
-          AS entry
-        ,NULL AS discipline_details
-        ,NULL AS actiontaken
-        ,NULL AS followup      
-  FROM KIPP_NJ..[AUTOLOAD$GDOCS_MISC_TEAM_Bench_Log] log WITH(NOLOCK)
-  WHERE student_number IS NOT NULL
- )
---*/
-
 ,all_logs AS (
   SELECT schoolid
         ,studentid
@@ -172,26 +141,6 @@ WITH disc_log AS (
   FROM tardy_demerits WITH(NOLOCK)
   
   UNION ALL
-  
-  /*
-  SELECT schoolid
-        ,studentid
-        ,entry_author
-        ,entry_date
-        ,consequence_date
-        ,logtypeid
-        ,subtypeid
-        ,n_days
-        ,logtype
-        ,subtype
-        ,subject
-        ,entry
-        ,discipline_details
-        ,actiontaken
-        ,followup
-  FROM TEAM_bench WITH(NOLOCK)
-  UNION ALL
-  --*/
 
   SELECT 73253 AS schoolid
         ,studentid
@@ -212,14 +161,14 @@ WITH disc_log AS (
   WHERE is_perfect = 1
  )
 
-SELECT all_logs.schoolid
-      ,all_logs.studentid
+SELECT CONVERT(INT,all_logs.schoolid) AS schoolid
+      ,CONVERT(INT,all_logs.studentid) AS studentid
       ,all_logs.entry_author
       ,dbo.fn_DateToSY(all_logs.entry_date) AS academic_year
-      ,all_logs.entry_date
-      ,all_logs.consequence_date
-      ,all_logs.logtypeid
-      ,all_logs.subtypeid
+      ,CONVERT(DATE,all_logs.entry_date) AS entry_date
+      ,CONVERT(DATE,all_logs.consequence_date) AS consequence_date
+      ,CONVERT(INT,all_logs.logtypeid) AS logtypeid
+      ,CONVERT(INT,all_logs.subtypeid) AS subtypeid
       ,all_logs.n_days
       ,all_logs.logtype
       ,all_logs.subtype
@@ -230,8 +179,8 @@ SELECT all_logs.schoolid
       ,all_logs.followup
       ,dates.time_per_name AS RT
       ,ROW_NUMBER() OVER(
-          PARTITION BY studentid, logtypeid
-              ORDER BY entry_date DESC) AS rn
+         PARTITION BY studentid, logtypeid
+           ORDER BY CONVERT(DATE,entry_date) DESC) AS rn
 FROM all_logs WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dates WITH (NOLOCK)
   ON all_logs.entry_date BETWEEN dates.start_date AND dates.end_date

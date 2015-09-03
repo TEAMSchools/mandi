@@ -9,6 +9,7 @@ GO
 
                   
 ALTER PROCEDURE [sp_DISC$log#static|refresh] AS
+
 BEGIN
 
   DECLARE @sql AS VARCHAR(MAX)='';

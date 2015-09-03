@@ -62,8 +62,7 @@ FROM
                    PARTITION BY studentid, att_date
                      ORDER BY unique_id ASC) AS dupe_audit
           FROM KIPP_NJ..DAILY$tracking_long#staging WITH(NOLOCK)
-          WHERE schoolid = 73252
-            AND KIPP_NJ.dbo.fn_DateToSY(att_date) = KIPP_NJ.dbo.fn_Global_Academic_Year()
+          WHERE schoolid = 73252            
          ) daily
      JOIN KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
        ON daily.studentid = s.studentid

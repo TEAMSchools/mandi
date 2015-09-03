@@ -37,7 +37,7 @@ BEGIN
             ,PS_CUSTOMFIELDS.GETCF(''dailytracking'',unique_id,''field10'') AS field10                
       FROM virtualtablesdata2
       WHERE related_to_table = ''dailytracking''    
-        AND (created_on >= TRUNC(SYSDATE - 1) OR last_modified >= TRUNC(SYSDATE - 1))
+        AND (created_on >= TRUNC(SYSDATE - 3) OR last_modified >= TRUNC(SYSDATE - 3))
     ')  
    )
 

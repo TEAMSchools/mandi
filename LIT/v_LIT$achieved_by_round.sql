@@ -9,6 +9,7 @@ WITH roster AS (
         ,SCHOOLID
         ,GRADE_LEVEL
         ,YEAR
+        ,exitdate
   FROM KIPP_NJ..COHORT$identifiers_long#static WITH(NOLOCK)      
   WHERE grade_level <= 8
     AND RN = 1
@@ -17,7 +18,7 @@ WITH roster AS (
 /* active lit rounds by school */
 ,terms AS (      
   SELECT academic_year
-        ,schoolid
+        ,schoolid        
         ,CASE 
           WHEN school_level = 'MS' AND time_per_name = 'DR' THEN 'BOY' 
           ELSE REPLACE(time_per_name, 'Diagnostic', 'DR')
@@ -41,8 +42,10 @@ WITH roster AS (
         ,terms.start_date
   FROM roster r WITH(NOLOCK)
   JOIN terms WITH(NOLOCK)
-    ON ((r.year = terms.academic_year AND r.schoolid = terms.schoolid) 
-         OR (r.grade_level <= 4 AND r.year <= 2012 AND terms.schoolid IS NULL AND r.year = terms.academic_year)) -- ES rounds for archive years
+    ON r.year = terms.academic_year 
+   AND r.schoolid = terms.schoolid
+   AND r.exitdate > terms.start_date
+         --OR (r.grade_level <= 4 AND r.year <= 2012 AND terms.schoolid IS NULL AND r.year = terms.academic_year)) -- ES rounds for archive years
  )
 
 /* highest acheived test per round for each student */
@@ -66,7 +69,7 @@ WITH roster AS (
         ,CASE WHEN r.academic_year >= 2015 THEN dna.fp_keylever ELSE achv.fp_keylever END AS fp_keylever
         ,CASE WHEN r.academic_year >= 2015 THEN dna.dna_lvl ELSE dna.read_lvl END AS dna_lvl
         ,CASE WHEN r.academic_year >= 2015 THEN dna.dna_lvl_num ELSE dna.lvl_num END AS dna_lvl_num
-        ,dna.unique_id
+        ,CASE WHEN r.academic_year >= 2015 THEN dna.unique_id ELSE achv.unique_id END AS unique_id
         ,ROW_NUMBER() OVER(
            PARTITION BY r.studentid
              ORDER BY r.academic_year DESC, r.round_num DESC) AS meta_achv_round

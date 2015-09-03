@@ -12,11 +12,12 @@ WITH valid_dates AS (
                 ORDER BY att_date) AS day_number
   FROM
       (
-       SELECT DISTINCT daily.schoolid
-                      ,daily.att_date                      
-                      ,daily.week_num
-       FROM DAILY$tracking_long#ES#static daily WITH(NOLOCK)     
-       WHERE daily.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       SELECT DISTINCT 
+              daily.schoolid
+             ,daily.att_date                      
+             ,daily.week_num
+             ,daily.academic_year
+       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)            
       ) sub
  )
 
@@ -85,7 +86,7 @@ WITH valid_dates AS (
                + ISNULL(SUM(am_red),0)
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red        
-       FROM DAILY$tracking_long#ES#static daily WITH(NOLOCK)
+       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
        JOIN valid_dates WITH(NOLOCK)
          ON daily.schoolid = valid_dates.schoolid
         AND daily.att_date = valid_dates.att_date
@@ -160,7 +161,7 @@ WITH valid_dates AS (
                + ISNULL(SUM(am_red),0)
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red        
-       FROM DAILY$tracking_long#ES#static daily WITH(NOLOCK)
+       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
        JOIN valid_dates WITH(NOLOCK)
          ON daily.schoolid = valid_dates.schoolid
         AND daily.att_date = valid_dates.att_date
@@ -233,7 +234,7 @@ WITH valid_dates AS (
                + ISNULL(SUM(am_red),0)
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red           
-       FROM DAILY$tracking_long#ES#static daily WITH(NOLOCK)
+       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
        JOIN valid_dates WITH(NOLOCK)
          ON daily.schoolid = valid_dates.schoolid
         AND daily.att_date = valid_dates.att_date
@@ -305,16 +306,14 @@ WITH valid_dates AS (
                + ISNULL(SUM(am_red),0)
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red        
-       FROM DAILY$tracking_long#ES#static daily WITH(NOLOCK)
+       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
        JOIN valid_dates WITH(NOLOCK)
          ON daily.schoolid = valid_dates.schoolid
         AND daily.att_date = valid_dates.att_date
-       JOIN REPORTING$dates dt WITH(NOLOCK)
-         ON daily.att_date >= dt.start_date        
-        AND daily.att_date <= dt.end_date
+       JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+         ON daily.att_date BETWEEN dt.start_date AND dt.end_date
         AND daily.schoolid = dt.schoolid
-        AND dt.start_date <= GETDATE()
-        AND dt.end_date >= GETDATE()
+        AND CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date
         AND dt.identifier = 'RT'
        GROUP BY daily.schoolid
                ,daily.studentid                                      
@@ -503,4 +502,4 @@ PIVOT (
                ,[red_tri]
                ,[pct_ontrack_tri]
                ,[status_tri])
- ) piv               
+ ) p

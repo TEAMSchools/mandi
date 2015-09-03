@@ -3,10 +3,11 @@ GO
 
 ALTER VIEW COHORT$identifiers_long AS
 
-WITH hs_advisor AS (
+WITH advisory AS (
   SELECT STUDENTID
         ,academic_year
         ,advisor
+        ,SECTION_NUMBER
         ,ROW_NUMBER() OVER(
            PARTITION BY studentid, academic_year
              ORDER BY dateleft DESC) AS rn
@@ -16,10 +17,9 @@ WITH hs_advisor AS (
              ,enr.DATELEFT
              ,enr.academic_year           
              ,enr.teacher_name AS advisor      
+             ,UPPER(KIPP_NJ.dbo.fn_StripCharacters(enr.section_number,'0-9')) AS section_number
        FROM KIPP_NJ..PS$course_enrollments#static enr wITH(NOLOCK)
-       WHERE enr.SCHOOLID = 73253
-         AND enr.COURSE_NUMBER = 'HR'
-         AND enr.SECTIONID > 0
+       WHERE enr.COURSE_NUMBER = 'HR'         
       ) sub
  )
 
@@ -76,7 +76,7 @@ SELECT co.schoolid
       ,s.MIDDLE_NAME
       ,s.last_name
       ,s.first_name + ' ' + s.last_name AS full_name
-      ,s.TEAM
+      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN s.TEAM ELSE advisory.section_number END AS team
       ,s.GENDER
       ,s.ETHNICITY
       ,s.enroll_status
@@ -90,7 +90,7 @@ SELECT co.schoolid
       /*,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunchstatus END AS lunchstatus*/            
       ,s.state_studentnumber AS SID
 
-      ,COALESCE(hs_advisor.advisor, cs.ADVISOR) AS advisor
+      ,COALESCE(advisory.advisor, cs.ADVISOR) AS advisor
       ,cs.ADVISOR_CELL
       ,cs.ADVISOR_EMAIL
       ,cs.DEFAULT_STUDENT_WEB_ID AS STUDENT_WEB_ID
@@ -163,10 +163,10 @@ LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info#static mcs WITH(NOLOCK)
   ON co.STUDENT_NUMBER = mcs.StudentNumber
 JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON co.studentid = cs.STUDENTID
-LEFT OUTER JOIN hs_advisor WITH(NOLOCK)
-  ON co.studentid = hs_advisor.STUDENTID
- AND co.year = hs_advisor.academic_year
- AND hs_advisor.rn = 1
+LEFT OUTER JOIN advisory WITH(NOLOCK)
+  ON co.studentid = advisory.STUDENTID
+ AND co.year = advisory.academic_year
+ AND advisory.rn = 1
 LEFT OUTER JOIN KIPP_NJ..PS$SPED#ARCHIVE sped WITH(NOLOCK)
   ON co.studentid = sped.studentid
  AND co.year  = sped.academic_year

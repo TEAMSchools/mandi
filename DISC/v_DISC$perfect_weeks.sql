@@ -10,8 +10,7 @@ WITH roster AS (
         ,co.exitdate        
         ,co.year AS academic_year
   FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH(NOLOCK)
-  WHERE co.schoolid = 73253
-    AND co.rn = 1    
+  WHERE co.schoolid = 73253    
  )
 
 ,weeks AS (  
@@ -23,24 +22,23 @@ WITH roster AS (
         ,is_past
   FROM
       (
-       SELECT DISTINCT
-              CONVERT(DATE,mem.calendardate) AS calendardate
-             ,DATEPART(WEEK,mem.calendardate) AS wk
+       SELECT CONVERT(DATE,mem.date_value) AS calendardate
+             ,DATEPART(WEEK,mem.date_value) AS wk
              ,mem.academic_year
              ,dt.time_per_name AS rt             
              ,CASE 
-               WHEN CONVERT(INT,CONCAT(DATEPART(YEAR,GETDATE()), DATEPART(WEEK,GETDATE()))) 
-                     > CONVERT(INT,CONCAT(DATEPART(YEAR,mem.calendardate), DATEPART(WEEK,mem.calendardate))) THEN 1
+               WHEN 
+                 CONVERT(INT,CONCAT(DATEPART(YEAR,GETDATE()), DATEPART(WEEK,GETDATE()))) > CONVERT(INT,CONCAT(DATEPART(YEAR,mem.date_value), DATEPART(WEEK,mem.date_value))) THEN 1
                ELSE 0
               END AS is_past        
-       FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
+       FROM KIPP_NJ..PS$CALENDAR_DAY mem WITH(NOLOCK)
        JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
          ON mem.schoolid = dt.schoolid
         AND mem.academic_year = dt.academic_year
-        AND mem.calendardate >= dt.start_date
-        AND mem.calendardate <= dt.end_date 
+        AND mem.date_value BETWEEN dt.start_date AND dt.end_date 
         AND dt.identifier = 'RT'        
-       WHERE mem.schoolid = 73253         
+       WHERE mem.schoolid = 73253       
+         AND mem.membershipvalue = 1
       ) sub 
  )
 
@@ -49,8 +47,7 @@ WITH roster AS (
         ,time_per_name
   FROM REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT' 
-    AND start_date <= CONVERT(DATE,GETDATE())
-    AND end_date >= CONVERT(DATE,GETDATE())
+    AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
     AND schoolid = 73253
  )
 
@@ -58,8 +55,8 @@ WITH roster AS (
   SELECT demerits.studentid        
         ,demerits.academic_year
         ,DATEPART(WEEK,demerits.entry_date) AS wk
-        ,CASE WHEN COUNT(studentid) > 0 THEN 0 ELSE 1 END AS is_perfect
-  FROM DISC$log#static demerits WITH(NOLOCK)
+        ,COUNT(studentid) AS n_demerits
+  FROM KIPP_NJ..DISC$log#static demerits WITH(NOLOCK)
   WHERE demerits.logtypeid = 3223
     AND demerits.schoolid = 73253    
   GROUP BY demerits.studentid
@@ -73,8 +70,8 @@ SELECT DISTINCT
       ,r.academic_year
       ,w.rt           
       ,w.week_of
-      ,ISNULL(d.is_perfect, 1) AS is_perfect
-      ,CASE WHEN w.rt = curterm.time_per_name AND w.is_past = 1 THEN ISNULL(d.is_perfect, 1) ELSE 0 END AS is_perfect_cur           
+      ,CASE WHEN d.studentid IS NULL THEN 1 ELSE 0 END AS is_perfect
+      ,CASE WHEN w.rt = curterm.time_per_name AND w.is_past = 1 AND d.studentid IS NULL THEN 1 ELSE 0 END AS is_perfect_cur           
 FROM roster r
 JOIN weeks w
   ON r.academic_year = w.academic_year      

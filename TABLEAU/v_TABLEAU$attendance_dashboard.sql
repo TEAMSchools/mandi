@@ -3,16 +3,7 @@ GO
 
 ALTER VIEW TABLEAU$attendance_dashboard AS
 
-SELECT 'KIPP NJ' AS Network
-      ,CASE
-        WHEN co.schoolid != 179901 THEN 'Newark'
-        ELSE 'Camden'
-       END AS Region
-      ,CASE
-        WHEN co.schoolid IN (73254,73255,73256,73257,179901) THEN 'ES'
-        WHEN co.schoolid IN (73252,133570965) THEN 'MS'
-        WHEN co.schoolid IN (73253) THEN 'HS'
-       END AS school_level      
+SELECT co.year
       ,co.schoolid
       ,co.studentid
       ,co.lastfirst
@@ -20,9 +11,10 @@ SELECT 'KIPP NJ' AS Network
       ,co.team
       ,co.SPEDLEP
       ,CONVERT(DATE,mem.calendardate) AS att_date
+      ,dt.alt_name AS term
       ,mem.membershipvalue
+      ,mem.ATTENDANCEVALUE AS present
       ,att.att_code
-      ,CASE WHEN att.PRESENCE_STATUS_CD = 'Present' THEN 1 ELSE 0 END AS present
       --tardies
       ,CASE WHEN att.att_code IN ('T','T10','ET') THEN 1 ELSE 0 END AS tardy_all
       ,CASE WHEN att.att_code = 'T' THEN 1 ELSE 0 END AS tardy
@@ -39,14 +31,19 @@ SELECT 'KIPP NJ' AS Network
       ,CASE WHEN att.att_code = 'OSS' THEN 1 ELSE 0 END AS OSS
       --other
       ,CASE WHEN ed.logtypeid IS NOT NULL THEN 1 ELSE 0 END AS early_dismissal
-      ,supp.[Behavior Tier ] AS behavior_tier
-      ,supp.[Plan Owner ] AS plan_owner
-      ,supp.[Admin Support] AS admin_support
+      ,supp.behavior_tier
+      ,supp.plan_owner
+      ,supp.admin_support
 FROM COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
  AND co.schoolid = mem.schoolid
  AND co.year = mem.academic_year
+LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK) 
+  ON co.schoolid = dt.schoolid
+ AND co.year = dt.academic_year
+ AND mem.CALENDARDATE BETWEEN dt.start_date AND dt.end_date
+ AND dt.identifier = 'RT'
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
   ON co.studentid = att.studentid
  AND mem.CALENDARDATE = att.ATT_DATE 
@@ -56,5 +53,5 @@ LEFT OUTER JOIN DISC$log#static ed WITH(NOLOCK)
  AND ed.logtypeid = 3953
 LEFT OUTER JOIN AUTOLOAD$GDOCS_SUPPORT_Master_List supp WITH(NOLOCK)
   ON co.student_number = supp.SN
-WHERE co.year = dbo.fn_Global_Academic_Year()
-  AND co.rn = 1
+ AND co.year = supp.academic_year
+WHERE co.rn = 1

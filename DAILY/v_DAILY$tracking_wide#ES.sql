@@ -14,11 +14,10 @@ WITH valid_dates AS (
               daily.schoolid
              ,daily.att_date                                            
              ,dates.time_per_name AS week_num
-       FROM DAILY$tracking_long#ES#static daily WITH(NOLOCK)
-       JOIN REPORTING$dates dates WITH(NOLOCK)
+       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
+       JOIN KIPP_NJ..REPORTING$dates dates WITH(NOLOCK)
          ON dates.school_level = 'ES'
-        AND daily.att_date >= dates.start_date
-        AND daily.att_date <= dates.end_date
+        AND daily.att_date BETWEEN dates.start_date AND dates.end_date
         AND dates.identifier = 'REP'
        ) sub
  )      
@@ -84,12 +83,11 @@ FROM
                 ,daily.color_am
                 ,daily.color_mid
                 ,daily.color_pm
-               FROM DAILY$tracking_long#ES#static daily WITH(NOLOCK)
+               FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
                JOIN valid_dates WITH(NOLOCK)
                  ON daily.schoolid = valid_dates.schoolid
                 AND daily.att_date = valid_dates.att_date
          ) sub
-
      UNPIVOT (
        value
        FOR identifier IN ([hw]
@@ -97,9 +95,8 @@ FROM
                          ,[color_am]
                          ,[color_mid]
                          ,[color_pm])
-      ) unpiv
+      ) u
     ) sub2
-
 PIVOT (
   MAX(value)
   FOR identifier IN ([color_am_1]
@@ -127,13 +124,11 @@ PIVOT (
                     ,[hw_3]
                     ,[hw_4]
                     ,[hw_5])  
- ) piv1
- 
+ ) p1  
 PIVOT (  
   MAX(day)
   FOR day_number IN ([1],[2],[3],[4],[5])
- ) piv2
- 
+ ) p2 
 GROUP BY schoolid
         ,studentid
         ,week_num

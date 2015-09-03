@@ -101,7 +101,6 @@ JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
   ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
 JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
   ON cc.TEACHERID = t.ID
- AND t.status = 1
 JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   ON cc.STUDENTID = co.studentid
  AND cc.academic_year = co.year
