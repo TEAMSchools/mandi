@@ -84,10 +84,8 @@ SELECT co.schoolid
       ,s.STREET
       ,s.CITY
       ,s.STATE
-      ,s.ZIP  
-      ,lunch.lunchstatus
-      --,CASE WHEN co.year = dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunchstatus END AS lunchstatus
-      /*,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN s.LUNCHSTATUS ELSE lunch.lunchstatus END AS lunchstatus*/            
+      ,s.ZIP        
+      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunchstatus END AS lunchstatus      
       ,s.state_studentnumber AS SID
 
       ,COALESCE(advisory.advisor, cs.ADVISOR) AS advisor
@@ -101,7 +99,7 @@ SELECT co.schoolid
       ,cs.STATUS_504
       ,cs.LEP_STATUS
       ,cs.NEWARK_ENROLLMENT_NUMBER
-      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP ELSE COALESCE(sped.SPEDLEP, cs.spedlep) END AS SPEDLEP
+      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN ISNULL(cs.SPEDLEP,'No IEP') ELSE ISNULL(COALESCE(sped.SPEDLEP, cs.spedlep),'No IEP') END AS SPEDLEP
       ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE ELSE COALESCE(sped.SPEDCODE, cs.spedlep) END AS SPED_code
       
       ,ms.school_name AS entry_school_name

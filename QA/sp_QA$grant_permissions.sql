@@ -61,18 +61,12 @@ GRANT SELECT ON KIPP_NJ..[AUTOLOAD$GDOCS_XC_TEAM_Roster] TO db_data_tool_reader
 GRANT SELECT ON KIPP_NJ..[AUTOLOAD$GDOCS_XC_Rise_Roster] TO db_data_tool_reader
 
 --ES Reporting
-GRANT SELECT ON REPORTING$intervention_results_by_standard TO db_data_tool_reader
-GRANT SELECT ON ES_DAILY$tracking_long#static TO db_data_tool_reader
+GRANT SELECT ON [DAILY$tracking_long#ES#static] TO db_data_tool_reader
 GRANT SELECT ON DAILY$tracking_long#staging TO db_data_tool_reader
 
 --Testing
-GRANT SELECT ON NAVIANCE$ID_key TO db_data_tool_reader
-GRANT SELECT ON NAVIANCE$act_scores TO db_data_tool_reader
-GRANT SELECT ON NAVIANCE$SAT_scores TO db_data_tool_reader
-GRANT SELECT ON NAVIANCE$PSAT_scores TO db_data_tool_reader
 GRANT SELECT ON HSPA$scaled_scores_roster TO db_data_tool_reader
-GRANT SELECT ON NAVIANCE$EXPLORE_scores TO db_data_tool_reader
-GRANT SELECT ON NAVIANCE$SAT_II_scores TO db_data_tool_reader
+
 
 --Tableau
 GRANT SELECT ON TABLEAU$culture_dashboard#ES TO db_data_tool_reader

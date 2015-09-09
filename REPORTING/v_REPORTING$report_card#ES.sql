@@ -16,15 +16,17 @@ WITH reporting_week AS (
              ,time_per_name AS week_num        
              ,start_date
              ,end_date
-             ,DATENAME(MONTH,start_date) AS month
-             ,REPLACE(time_per_name,'_',' ') + ': ' + LEFT(CONVERT(VARCHAR,start_date,101),5) + ' - ' + LEFT(CONVERT(VARCHAR,end_date,101),5) AS week_title
+             ,custom AS month
+             ,report_name_long AS week_title
+             ,report_name_short AS term_end
              ,ROW_NUMBER() OVER(
                PARTITION BY academic_year, schoolid
                  ORDER BY start_date DESC) AS rn
-       FROM REPORTING$dates WITH(NOLOCK)    
+       FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)    
        WHERE identifier = 'REP'    
          AND school_level = 'ES'  
-         AND end_date <= CONVERT(DATE,GETDATE())
+         AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND start_date <= CONVERT(DATE,GETDATE())
       ) sub
   WHERE rn = 1
  )
@@ -239,43 +241,46 @@ SELECT r.studentid
       ,sp.pct_correct_yr AS sp_average_yr
       ,vocab.pct_correct_wk AS v_average_w
       ,vocab.pct_correct_yr AS v_average_yr
-FROM COHORT$identifiers_long#static r WITH(NOLOCK) 
-JOIN REPORTING$dates dt WITH(NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_long#static r WITH(NOLOCK) 
+JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON r.schoolid = dt.schoolid
  AND dt.identifier = 'RT'    
  AND dt.start_date <= CONVERT(DATE,GETDATE())
  AND dt.end_date >= CONVERT(DATE,GETDATE())
 LEFT OUTER JOIN reporting_week rw WITH(NOLOCK)
   ON r.schoolid = rw.schoolid
-LEFT OUTER JOIN ATT_MEM$attendance_counts#static att WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts#static att WITH(NOLOCK)
   ON r.STUDENTID = att.studentid
-LEFT OUTER JOIN ILLUMINATE$FSA_scores_wide#static fsa WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$FSA_scores_wide#static fsa WITH(NOLOCK)
   ON r.STUDENTID = fsa.studentid
  AND rw.week_num = fsa.fsa_week
-LEFT OUTER JOIN DAILY$tracking_wide#ES#static daily WITH(NOLOCK) 
+LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_wide#ES#static daily WITH(NOLOCK) 
   ON r.STUDENTID = daily.studentid
  AND rw.week_num = daily.week_num
-LEFT OUTER JOIN DAILY$tracking_totals#ES#static wk_totals WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_totals#ES#static wk_totals WITH(NOLOCK)
   ON r.STUDENTID = wk_totals.studentid
  AND rw.week_num = wk_totals.week_num 
-LEFT OUTER JOIN DAILY$tracking_totals#ES#static mth_totals WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_totals#ES#static mth_totals WITH(NOLOCK)
   ON r.STUDENTID = mth_totals.studentid 
  AND mth_totals.week_num IS NULL
  AND rw.month = mth_totals.month 
-LEFT OUTER JOIN DAILY$tracking_totals#ES#static cur_totals WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_totals#ES#static cur_totals WITH(NOLOCK)
   ON r.STUDENTID = cur_totals.studentid 
  AND cur_totals.week_num IS NULL
  AND cur_totals.month IS NULL
-LEFT OUTER JOIN LIT$sight_word_totals#static sw WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..LIT$sight_word_totals#static sw WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sw.student_number
+ AND r.year = sw.academic_year
  AND rw.week_num = sw.listweek_num
-LEFT OUTER JOIN LIT$spelling_totals#static sp WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..LIT$spelling_totals#static sp WITH(NOLOCK)
   ON r.STUDENT_NUMBER = sp.student_number
+ --AND r.year = sp.academic_year 
  AND rw.week_num = sp.listweek_num
-LEFT OUTER JOIN LIT$vocab_totals#static vocab WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..LIT$vocab_totals#static vocab WITH(NOLOCK)
   ON r.STUDENT_NUMBER = vocab.student_number
+ AND r.year = vocab.academic_year
  AND rw.week_num = vocab.listweek_num
-WHERE r.YEAR = dbo.fn_Global_Academic_Year()
+WHERE r.YEAR = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND r.GRADE_LEVEL < 5
-  AND r.RN = 1
-  AND r.enroll_status = 0
+  AND r.schoolid != 73252
+  AND r.RN = 1  

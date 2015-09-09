@@ -66,7 +66,7 @@ LEFT OUTER JOIN (
                  WHERE academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
                 ) groups
   ON co.STUDENT_NUMBER = groups.student_number 
-LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard#static res WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH (NOLOCK)
   ON co.student_number = res.local_student_id
  AND a.assessment_id = res.assessment_id
  AND a.standard_id = res.standard_id  
@@ -74,7 +74,7 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$SPED_comments#static comm WITH(NOLOCK)
   ON co.student_number = comm.student_number
  AND a.subject_area = comm.subject
  AND comm.rn = 1
-WHERE a.academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year() - 1
+WHERE a.academic_year >= (KIPP_NJ.dbo.fn_Global_Academic_Year() - 1)
 
 /*
 UNION ALL

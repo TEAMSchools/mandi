@@ -45,7 +45,7 @@ BEGIN
             ,a.exempt
             ,a.ismissing		          
             ,e.sectionenrollmentstatus
-    HAVING MAX(f.lastupdated) >= TRUNC(SYSDATE - INTERVAL ''24'' HOUR)        
+    HAVING MAX(f.lastupdated) >= TRUNC(SYSDATE - INTERVAL ''72'' HOUR)        
   ');
 
   MERGE KIPP_NJ..GRADES$assignment_scores#STAGING AS TARGET
@@ -79,7 +79,7 @@ BEGIN
     ,SOURCE.ismissing
     ,SOURCE.lastupdated
     ,SOURCE.sectionenrollmentstatus)
-  WHEN NOT MATCHED BY SOURCE AND TARGET.lastupdated >= DATEADD(DAY,-1,CONVERT(DATE,GETDATE()))
+  WHEN NOT MATCHED BY SOURCE AND TARGET.lastupdated >= DATEADD(DAY,-3,CONVERT(DATE,GETDATE()))
    THEN DELETE;
 
 END

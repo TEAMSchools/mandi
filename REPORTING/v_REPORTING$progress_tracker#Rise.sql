@@ -6,9 +6,9 @@ ALTER VIEW REPORTING$progress_tracker#Rise AS
 WITH curterm AS (
   SELECT time_per_name
         ,alt_name AS term
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'
-    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 73252
     AND start_date <= CONVERT(DATE,GETDATE())
     AND end_date >= CONVERT(DATE,GETDATE())
@@ -32,10 +32,10 @@ WITH curterm AS (
         ,co.father_cell
         ,co.father_home
         ,co.guardianemail AS contactemail
-  FROM COHORT$identifiers_long#static co WITH(NOLOCK)
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   WHERE co.schoolid = 73252
     AND co.enroll_status = 0
-    AND co.year = dbo.fn_Global_Academic_Year()
+    AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND co.rn = 1
  )
 
@@ -48,8 +48,8 @@ WITH curterm AS (
           WHEN RIGHT(time_per_name, 1) IN (1, 3, 5) THEN 'RT' + CONVERT(VARCHAR,RIGHT(time_per_name, 1) + 1)
           ELSE 'RT' + RIGHT(time_per_name, 1)
          END AS hex_b
-  FROM REPORTING$dates WITH(NOLOCK)
-  WHERE academic_year = dbo.fn_Global_Academic_Year()
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 73252
     AND identifier = 'HEX'
     AND start_date <= CONVERT(DATE,GETDATE())
@@ -652,91 +652,92 @@ SELECT ROW_NUMBER() OVER(
 
 --Extracurriculars
 --RutgersReady..XC$activities_wide
-      ,xc.Fall_1 AS xc_Fall_1
-      ,xc.Fall_2 AS xc_Fall_2
-      ,xc.Winter_1 AS xc_Winter_1
-      ,xc.Winter_2 AS xc_Winter_2
-      ,xc.Spring_1 AS xc_Spring_1
-      ,xc.Spring_2 AS xc_Spring_2
-      ,xc.[Winter-Spring_1] AS xc_WinterSpring_1
-      ,xc.[Winter-Spring_2] AS xc_WinterSpring_2
-      ,xc.[Year-Round_1] AS xc_YearRound_1
-      ,xc.[Year-Round_2] AS xc_YearRound_2
+      ,xc.fall AS xc_Fall_1
+      ,NULL AS xc_Fall_2
+      ,xc.winter AS xc_Winter_1
+      ,NULL AS xc_Winter_2
+      ,xc.Spring AS xc_Spring_1
+      ,NULL AS xc_Spring_2
+      ,xc.[winter-spring] AS xc_WinterSpring_1
+      ,NULL AS xc_WinterSpring_2
+      ,xc.[year-round] AS xc_YearRound_1
+      ,NULL AS xc_YearRound_2
       ,ISNULL(xc.activity_hash, 'None') AS activity_hash
       
 FROM roster WITH (NOLOCK)
 
 --Attendance
-LEFT OUTER JOIN ATT_MEM$attendance_counts#static att_counts WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts#static att_counts WITH (NOLOCK)
   ON roster.id = att_counts.studentid
-LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON roster.id = att_pct.studentid
-LEFT OUTER JOIN ATT_MEM$membership_counts#static membership_counts WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$membership_counts#static membership_counts WITH (NOLOCK)
   ON roster.id = membership_counts.studentid
 
 --Grades & GPA
-LEFT OUTER JOIN GRADES$wide_credit_core#MS#static grades WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$wide_credit_core#MS#static grades WITH (NOLOCK)
   ON roster.ID = grades.studentid
-LEFT OUTER JOIN GPA$detail#MS gpa WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GPA$detail#MS gpa WITH (NOLOCK)
   ON roster.id = gpa.studentid
-LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH (NOLOCK)
   ON roster.id = promo.studentid
   
 --LITERACY
   --F&P
-LEFT OUTER JOIN LIT$test_events#identifiers fp_base WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers fp_base WITH (NOLOCK)
   ON roster.student_number = fp_base.STUDENT_NUMBER
- AND fp_base.academic_year = dbo.fn_Global_Academic_Year()
- AND fp_base.achv_base_yr = 1
-LEFT OUTER JOIN LIT$test_events#identifiers fp_curr WITH (NOLOCK)
-  ON roster.student_number = fp_curr.STUDENT_NUMBER
- --AND fp_curr.year = dbo.fn_Global_Academic_Year()
- AND fp_curr.achv_curr_all = 1
+ AND fp_base.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND fp_base.base_yr = 1
+ AND fp_base.status = 'Achieved'
+LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers fp_curr WITH (NOLOCK)
+  ON roster.student_number = fp_curr.STUDENT_NUMBER 
+ AND fp_curr.curr_all = 1
+ AND fp_base.status = 'Achieved'
   --LEXILE
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.student_number = lex_base.StudentID
  AND lex_base.MeasurementScale = 'Reading'
  AND lex_base.rn_base = 1
- AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
-LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
+ AND lex_base.map_year_academic = KIPP_NJ.dbo.fn_Global_Academic_Year()
+LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
   ON roster.student_number = lex_curr.StudentID
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
- AND lex_curr.map_year_academic = dbo.fn_Global_Academic_Year()
+ AND lex_curr.map_year_academic = KIPP_NJ.dbo.fn_Global_Academic_Year()
   
 --ED TECH
   --ACCELERATED READER
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
   ON roster.id = ar_yr.studentid 
  AND ar_yr.time_period_name = 'Year'
- AND ar_yr.yearid = dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
+ AND ar_yr.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
+LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.id = ar_curr.studentid 
  AND ar_curr.time_period_name = (SELECT hex_a FROM cur_hex)
- AND ar_curr.yearid = dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
+ AND ar_curr.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
+LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
   ON roster.id = ar_curr2.studentid 
  AND ar_curr2.time_period_name = (SELECT hex_b FROM cur_hex)
- AND ar_curr2.yearid = dbo.fn_Global_Term_Id()
+ AND ar_curr2.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
 
 --MAP
-LEFT OUTER JOIN MAP$wide_all#static map_all WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..MAP$wide_all#static map_all WITH (NOLOCK)
   ON roster.id = map_all.studentid
   
 --NJASK
-LEFT OUTER JOIN NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
   ON roster.id = njask_ela.studentid
  AND njask_ela.schoolid = 73252
  AND njask_ela.rn = 1
-LEFT OUTER JOIN NJASK$MATH_WIDE njask_math WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..NJASK$MATH_WIDE njask_math WITH (NOLOCK)
   ON roster.id = njask_math.studentid
  AND njask_math.schoolid = 73252
  AND njask_math.rn = 1
 
 --Discipline
-LEFT OUTER JOIN DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
   ON roster.id = disc_recent.studentid
-LEFT OUTER JOIN DISC$counts_wide disc_count WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..DISC$counts_wide disc_count WITH (NOLOCK)
   ON roster.id = disc_count.studentid
   
 --XC

@@ -14,7 +14,7 @@ USING (
              ,time_period_start
              ,time_period_end
              ,time_period_hierarchy
-       FROM AR$goals_staging
+       FROM KIPP_NJ..AR$goals_staging
        WHERE rn = 1
       ) AS SOURCE  
   (student_number

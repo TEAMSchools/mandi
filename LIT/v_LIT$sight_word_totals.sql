@@ -113,3 +113,4 @@ FROM week_totals wk WITH(NOLOCK)
 JOIN year_totals yr WITH(NOLOCK)
   ON wk.student_number = yr.student_number
  AND wk.academic_year = yr.academic_year
+ AND yr.n_total_yr > 0

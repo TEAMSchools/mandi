@@ -176,7 +176,7 @@ FROM
                    WHEN res.percent_correct < 60 THEN 'Not Yet'
                   END) AS FSA_prof                                
           FROM fsa_scaffold a WITH(NOLOCK)
-          JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard#static res WITH(NOLOCK)  
+          JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)  
             ON a.student_number = res.local_student_id           
            AND a.assessment_id = res.assessment_id
            AND a.standard_id = res.standard_id

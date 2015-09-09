@@ -43,7 +43,7 @@ BEGIN
         ON fgsetup.gradingformulaid = gfw.parentgradingformulaid
       LEFT OUTER JOIN PSM_AssignmentCategory cat
         ON gfw.assignmentcategoryid = cat.id     
-      WHERE term.schoolyear = 2015
+      WHERE term.schoolyear = 2016
     ') /*-- UPDATE schoolyear ANNUALLY --*/
    )
 
@@ -110,7 +110,7 @@ BEGIN
       ,SOURCE.academic_year)
     WHEN NOT MATCHED BY SOURCE AND TARGET.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
      THEN DELETE
-    --OUTPUT $ACTION, deleted.*
+    OUTPUT $ACTION, deleted.*
    ;
 
 END
