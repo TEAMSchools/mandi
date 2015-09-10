@@ -3,132 +3,54 @@ GO
 
 ALTER VIEW DAILY$tracking_wide#ES AS
 
-WITH valid_dates AS (
-  SELECT *
+WITH extern AS (
+  SELECT co.schoolid                
+        ,co.year AS academic_year                
+        ,co.studentid                                
+        ,cd.date_value
+        ,FORMAT(cd.date_value,'ddd') AS day                
+        ,dt.time_per_name AS week_num                
+        ,CASE
+          WHEN co.schoolid NOT IN (73255, 179901) THEN CONCAT(daily.color_day, CHAR(9), daily.hw)
+          ELSE CONCAT(daily.color_am, CHAR(9), daily.color_mid, CHAR(9), daily.color_pm, CHAR(9), daily.hw)
+         END AS color_hw_data                
         ,ROW_NUMBER() OVER(
-            PARTITION BY schoolid, week_num
-                ORDER BY att_date) AS day_number
-  FROM
-      (
-       SELECT DISTINCT 
-              daily.schoolid
-             ,daily.att_date                                            
-             ,dates.time_per_name AS week_num
-       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
-       JOIN KIPP_NJ..REPORTING$dates dates WITH(NOLOCK)
-         ON dates.school_level = 'ES'
-        AND daily.att_date BETWEEN dates.start_date AND dates.end_date
-        AND dates.identifier = 'REP'
-       ) sub
- )      
+           PARTITION BY co.studentid, co.year, dt.time_per_name
+             ORDER BY cd.date_value) AS rn
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$CALENDAR_DAY cd WITH(NOLOCK)
+    ON co.year = cd.academic_year
+   AND co.schoolid = cd.schoolid
+   AND cd.date_value BETWEEN co.entrydate AND co.exitdate
+   AND cd.insession = 1
+  JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+    ON co.year = dt.academic_year
+   AND co.schoolid = dt.schoolid
+   AND cd.date_value BETWEEN dt.start_date AND dt.end_date
+   AND dt.identifier = 'REP'
+  LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
+    ON co.studentid = daily.studentid
+   AND cd.date_value = daily.att_date             
+ )
 
 SELECT schoolid
-      ,studentid
+      ,academic_year
+      ,studentid      
       ,week_num
-      ,MAX([1]) AS day_1
-      ,MAX([2]) AS day_2
-      ,MAX([3]) AS day_3
-      ,MAX([4]) AS day_4
-      ,MAX([5]) AS day_5
-      ,MAX([hw_1]) AS [hw_1]
-      ,MAX([hw_2]) AS [hw_2]
-      ,MAX([hw_3]) AS [hw_3]
-      ,MAX([hw_4]) AS [hw_4]
-      ,MAX([hw_5]) AS [hw_5]
-      ,CASE WHEN MAX(hw_1) = 'No' THEN LEFT(MAX([1]),3) + ' ' ELSE '' END
-        + CASE WHEN MAX(hw_2) = 'No' THEN LEFT(MAX([2]),3) + ' ' ELSE '' END
-        + CASE WHEN MAX(hw_3) = 'No' THEN LEFT(MAX([3]),3) + ' ' ELSE '' END 
-        + CASE WHEN MAX(hw_4) = 'No' THEN LEFT(MAX([4]),3) + ' ' ELSE '' END
-        + CASE WHEN MAX(hw_5) = 'No' THEN LEFT(MAX([5]),3) + ' ' ELSE '' END
-        AS hw_missing_days
-      ,MAX([color_day_1]) AS [color_day_1]
-      ,MAX([color_day_2]) AS [color_day_2]
-      ,MAX([color_day_3]) AS [color_day_3]
-      ,MAX([color_day_4]) AS [color_day_4]
-      ,MAX([color_day_5]) AS [color_day_5]
-      ,MAX([color_am_1]) AS [color_am_1]
-      ,MAX([color_am_2]) AS [color_am_2]
-      ,MAX([color_am_3]) AS [color_am_3]
-      ,MAX([color_am_4]) AS [color_am_4]
-      ,MAX([color_am_5]) AS [color_am_5]      
-      ,MAX([color_mid_1]) AS [color_mid_1]
-      ,MAX([color_mid_2]) AS [color_mid_2]
-      ,MAX([color_mid_3]) AS [color_mid_3]
-      ,MAX([color_mid_4]) AS [color_mid_4]
-      ,MAX([color_mid_5]) AS [color_mid_5]
-      ,MAX([color_pm_1]) AS [color_pm_1]
-      ,MAX([color_pm_2]) AS [color_pm_2]
-      ,MAX([color_pm_3]) AS [color_pm_3]
-      ,MAX([color_pm_4]) AS [color_pm_4]
-      ,MAX([color_pm_5]) AS [color_pm_5]      
-FROM 
-    (
-     SELECT schoolid
-           ,studentid
-           ,week_num
-           ,day
-           ,day_number
-           ,identifier + '_' + CONVERT(VARCHAR,day_number) AS identifier
-           ,value
-     FROM
-         (
-          SELECT daily.schoolid
-                ,daily.studentid
-                ,daily.week_num
-                ,daily.att_date
-                ,DATENAME(WEEKDAY,daily.att_date) AS day
-                ,valid_dates.day_number        
-                ,daily.hw
-                ,CASE WHEN daily.schoolid IN (73255, 179901) THEN COALESCE(daily.color_pm, daily.color_mid, daily.color_am) ELSE daily.color_day END AS color_day
-                ,daily.color_am
-                ,daily.color_mid
-                ,daily.color_pm
-               FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
-               JOIN valid_dates WITH(NOLOCK)
-                 ON daily.schoolid = valid_dates.schoolid
-                AND daily.att_date = valid_dates.att_date
-         ) sub
-     UNPIVOT (
-       value
-       FOR identifier IN ([hw]
-                         ,[color_day]
-                         ,[color_am]
-                         ,[color_mid]
-                         ,[color_pm])
-      ) u
-    ) sub2
-PIVOT (
-  MAX(value)
-  FOR identifier IN ([color_am_1]
-                    ,[color_am_2]
-                    ,[color_am_3]
-                    ,[color_am_4]
-                    ,[color_am_5]
-                    ,[color_day_1]
-                    ,[color_day_2]
-                    ,[color_day_3]
-                    ,[color_day_4]
-                    ,[color_day_5]
-                    ,[color_mid_1]
-                    ,[color_mid_2]
-                    ,[color_mid_3]
-                    ,[color_mid_4]
-                    ,[color_mid_5]
-                    ,[color_pm_1]
-                    ,[color_pm_2]
-                    ,[color_pm_3]
-                    ,[color_pm_4]
-                    ,[color_pm_5]
-                    ,[hw_1]
-                    ,[hw_2]
-                    ,[hw_3]
-                    ,[hw_4]
-                    ,[hw_5])  
- ) p1  
-PIVOT (  
-  MAX(day)
-  FOR day_number IN ([1],[2],[3],[4],[5])
- ) p2 
-GROUP BY schoolid
-        ,studentid
-        ,week_num
+      ,CASE 
+        WHEN schoolid NOT IN (73255, 179901) THEN CONCAT(CHAR(9), 'Color', CHAR(9), 'HW')
+        ELSE CONCAT(CHAR(9), 'AM', CHAR(9), 'Mid', CHAR(9), 'PM', CHAR(9), 'HW')
+       END AS color_hw_header
+      ,LEFT(y.color_hw_data, LEN(y.color_hw_data) - 2) AS color_hw_data
+FROM extern
+CROSS APPLY (
+             SELECT CONCAT(day, ':', CHAR(9), color_hw_data, CHAR(10)+CHAR(13))
+             FROM extern daily WITH(NOLOCK)           
+             WHERE extern.studentid = daily.studentid
+               AND extern.academic_year = daily.academic_year
+               AND extern.week_num = daily.week_num               
+             ORDER BY date_value
+             FOR XML PATH(''), TYPE
+            ) x (color_hw_data)
+CROSS APPLY (SELECT x.color_hw_data.value('.', 'NVARCHAR(MAX)')) y (color_hw_data)
+WHERE extern.rn = 1

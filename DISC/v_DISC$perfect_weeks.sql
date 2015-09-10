@@ -25,10 +25,10 @@ WITH roster AS (
        SELECT CONVERT(DATE,mem.date_value) AS calendardate
              ,DATEPART(WEEK,mem.date_value) AS wk
              ,mem.academic_year
-             ,dt.time_per_name AS rt             
+             ,dt.time_per_name AS rt                          
              ,CASE 
-               WHEN 
-                 CONVERT(INT,CONCAT(DATEPART(YEAR,GETDATE()), DATEPART(WEEK,GETDATE()))) > CONVERT(INT,CONCAT(DATEPART(YEAR,mem.date_value), DATEPART(WEEK,mem.date_value))) THEN 1
+               WHEN CONVERT(INT,CONCAT(DATEPART(YEAR,GETDATE()), DATEPART(WEEK,GETDATE()))) 
+                      > CONVERT(INT,CONCAT(DATEPART(YEAR,mem.date_value),RIGHT(CONCAT('0',DATEPART(WEEK,mem.date_value)),2))) THEN 1
                ELSE 0
               END AS is_past        
        FROM KIPP_NJ..PS$CALENDAR_DAY mem WITH(NOLOCK)

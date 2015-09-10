@@ -46,7 +46,7 @@ SELECT co.schoolid
 FROM KIPP_NJ..ILLUMINATE$assessments_long#static a WITH (NOLOCK)
 JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK) 
   ON a.academic_year = co.year
- AND a.grade_level = co.grade_level
+ --AND a.grade_level = co.grade_level
  AND a.schoolid = co.schoolid
  AND co.rn = 1
 JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)

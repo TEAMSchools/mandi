@@ -19,7 +19,7 @@ SELECT sub.assessment_id
       ,sub.performance_band_set_id      
       ,sub.standard_id
       ,sub.standard_code
-      ,sub.standard_description            
+      ,KIPP_NJ.dbo.fn_StripCharacters(LTRIM(RTRIM(sub.standard_description)),CHAR(10)+CHAR(13)) AS standard_description
       ,ROW_NUMBER() OVER (
           PARTITION BY sub.academic_year, sub.reporting_wk, sub.schoolid, sub.grade_level, sub.scope, sub.performance_band_set_id
               ORDER BY sub.performance_band_set_id, subject_area, standard_code ASC) AS weekly_stds_rn
@@ -104,6 +104,6 @@ FROM
       AND rpt_wks.identifier = 'REP'
      LEFT OUTER JOIN REPORTING$dates rt WITH(NOLOCK)
        ON a.administered_at BETWEEN rt.start_date AND rt.end_date
-      AND sch.schoolid = rt.schoolid
+      AND ((a.academic_year >= 2015 AND rt.schoolid = 0) OR (a.academic_year < 2015 AND sch.schoolid = rt.schoolid)) /* district normed quarters as of 2015-2016 */
       AND rt.identifier = 'RT'
     ) sub        

@@ -4,21 +4,73 @@ GO
 ALTER VIEW DAILY$tracking_totals#ES AS
 
 WITH valid_dates AS (
-  SELECT schoolid
-        ,att_date
-        ,week_num
-        ,ROW_NUMBER() OVER(
-            PARTITION BY schoolid, week_num
-                ORDER BY att_date) AS day_number
+  SELECT schoolid        
+        ,academic_year
+        ,term
+        ,week_num        
+        ,date_value
+        ,is_curterm        
   FROM
       (
-       SELECT DISTINCT 
-              daily.schoolid
-             ,daily.att_date                      
-             ,daily.week_num
+       SELECT daily.schoolid                          
              ,daily.academic_year
-       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)            
+             ,daily.date_value
+             ,dt.time_per_name AS week_num
+             ,rt.time_per_name AS term
+             ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN rt.start_date AND rt.end_date THEN 1 ELSE 0 END AS is_curterm
+       FROM KIPP_NJ..PS$CALENDAR_DAY daily WITH(NOLOCK)            
+       JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+         ON daily.schoolid = dt.schoolid
+        AND daily.date_value BETWEEN dt.start_date AND dt.end_date
+        AND dt.identifier = 'REP'
+       JOIN KIPP_NJ..REPORTING$dates rt WITH(NOLOCK)
+         ON daily.schoolid = rt.schoolid
+        AND daily.date_value BETWEEN rt.start_date AND rt.end_date
+        AND rt.identifier = 'RT'
+       WHERE daily.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       ) sub
+ )
+
+,tracking_long AS (
+   SELECT valid_dates.academic_year
+         ,valid_dates.term  
+         ,valid_dates.date_value
+         ,valid_dates.is_curterm         
+         ,daily.schoolid
+         ,daily.studentid      
+         ,daily.week_num         
+         ,hw
+         ,has_hw         
+         ,uniform
+         ,has_uniform         
+         ,color_day
+         ,color_am
+         ,color_mid
+         ,color_pm
+         ,purple_pink
+         ,am_purple_pink
+         ,mid_purple_pink
+         ,pm_purple_pink
+         ,green
+         ,am_green
+         ,mid_green
+         ,pm_green
+         ,yellow
+         ,am_yellow
+         ,mid_yellow
+         ,pm_yellow
+         ,orange
+         ,am_orange
+         ,mid_orange
+         ,pm_orange
+         ,red
+         ,am_red
+         ,mid_red
+         ,pm_red
+   FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
+   JOIN valid_dates WITH(NOLOCK)
+     ON daily.schoolid = valid_dates.schoolid
+    AND daily.att_date = valid_dates.date_value   
  )
 
 ,long_totals AS (
@@ -26,6 +78,7 @@ WITH valid_dates AS (
   SELECT 'wk' AS identifier 
         ,schoolid
         ,studentid
+        ,academic_year
         ,week_num
         ,NULL AS month
         ,CONVERT(VARCHAR,n_hw) AS n_hw
@@ -51,6 +104,7 @@ WITH valid_dates AS (
       (
        SELECT daily.schoolid
              ,daily.studentid      
+             ,daily.academic_year
              ,daily.week_num
              --,DATENAME(MONTH,daily.att_date) AS month
              ,COUNT(hw) AS n_hw
@@ -86,14 +140,11 @@ WITH valid_dates AS (
                + ISNULL(SUM(am_red),0)
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red        
-       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
-       JOIN valid_dates WITH(NOLOCK)
-         ON daily.schoolid = valid_dates.schoolid
-        AND daily.att_date = valid_dates.att_date
+       FROM tracking_long daily
        GROUP BY daily.schoolid
                ,daily.studentid        
-               ,daily.week_num
-               --,DATENAME(MONTH,daily.att_date)
+               ,daily.academic_year
+               ,daily.week_num               
       ) sub  
  
   UNION ALL 
@@ -102,6 +153,7 @@ WITH valid_dates AS (
   SELECT 'mth' AS identifier
         ,schoolid
         ,studentid        
+        ,academic_year
         ,NULL AS week_num
         ,month
         ,CONVERT(VARCHAR,n_hw) AS n_hw
@@ -126,8 +178,9 @@ WITH valid_dates AS (
   FROM
       (
        SELECT daily.schoolid
-             ,daily.studentid                   
-             ,DATENAME(MONTH,daily.att_date) AS month
+             ,daily.studentid         
+             ,daily.academic_year          
+             ,DATENAME(MONTH,daily.date_value) AS month
              ,COUNT(hw) AS n_hw
              ,SUM(has_hw) AS hw_complete
              ,COUNT(hw) - SUM(has_hw) AS hw_missing
@@ -161,13 +214,11 @@ WITH valid_dates AS (
                + ISNULL(SUM(am_red),0)
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red        
-       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
-       JOIN valid_dates WITH(NOLOCK)
-         ON daily.schoolid = valid_dates.schoolid
-        AND daily.att_date = valid_dates.att_date
+       FROM tracking_long daily
        GROUP BY daily.schoolid
                ,daily.studentid                       
-               ,DATENAME(MONTH,daily.att_date)
+               ,daily.academic_year
+               ,DATENAME(MONTH,daily.date_value)
       ) sub  
  
   UNION ALL 
@@ -176,6 +227,7 @@ WITH valid_dates AS (
   SELECT 'yr' AS identifier 
         ,schoolid
         ,studentid
+        ,academic_year
         ,NULL AS week_num
         ,NULL AS month
         ,CONVERT(VARCHAR,n_hw) AS n_hw
@@ -201,6 +253,7 @@ WITH valid_dates AS (
       (
        SELECT daily.schoolid
              ,daily.studentid                                
+             ,daily.academic_year
              ,COUNT(hw) AS n_hw
              ,SUM(has_hw) AS hw_complete
              ,COUNT(hw) - SUM(has_hw) AS hw_missing
@@ -234,12 +287,10 @@ WITH valid_dates AS (
                + ISNULL(SUM(am_red),0)
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red           
-       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
-       JOIN valid_dates WITH(NOLOCK)
-         ON daily.schoolid = valid_dates.schoolid
-        AND daily.att_date = valid_dates.att_date
+       FROM tracking_long daily
        GROUP BY daily.schoolid
                ,daily.studentid                                    
+               ,daily.academic_year
       ) sub  
 
   UNION ALL
@@ -247,7 +298,8 @@ WITH valid_dates AS (
   -- current trimester
   SELECT 'tri' AS identifier
         ,schoolid
-        ,studentid        
+        ,studentid       
+        ,academic_year 
         ,NULL AS week_num
         ,NULL AS month
         ,CONVERT(VARCHAR,n_hw) AS n_hw
@@ -272,7 +324,8 @@ WITH valid_dates AS (
   FROM
       (
        SELECT daily.schoolid
-             ,daily.studentid                                
+             ,daily.studentid  
+             ,daily.academic_year                              
              ,COUNT(hw) AS n_hw
              ,SUM(has_hw) AS hw_complete
              ,COUNT(hw) - SUM(has_hw) AS hw_missing
@@ -306,25 +359,19 @@ WITH valid_dates AS (
                + ISNULL(SUM(am_red),0)
                + ISNULL(SUM(mid_red),0)
                + ISNULL(SUM(pm_red),0) AS red        
-       FROM KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
-       JOIN valid_dates WITH(NOLOCK)
-         ON daily.schoolid = valid_dates.schoolid
-        AND daily.att_date = valid_dates.att_date
-       JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
-         ON daily.att_date BETWEEN dt.start_date AND dt.end_date
-        AND daily.schoolid = dt.schoolid
-        AND CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date
-        AND dt.identifier = 'RT'
+       FROM tracking_long daily
+       WHERE is_curterm = 1
        GROUP BY daily.schoolid
-               ,daily.studentid                                      
+               ,daily.studentid        
+               ,daily.academic_year                              
       ) sub  
  )
 
--- rollup
 SELECT schoolid
       ,studentid      
-      ,week_num
+      ,academic_year
       ,month
+      ,week_num      
       ,[n_hw_wk]
       ,[hw_complete_wk]
       ,[hw_missing_wk]
@@ -385,6 +432,7 @@ FROM
     (
      SELECT schoolid
            ,studentid
+           ,academic_year
            ,month
            ,week_num
            ,field + '_' + identifier AS field
@@ -393,6 +441,7 @@ FROM
          (
           SELECT schoolid
                 ,studentid
+                ,academic_year
                 ,month
                 ,week_num
                 ,identifier           
@@ -413,8 +462,7 @@ FROM
                 ,CONVERT(VARCHAR,pct_ontrack) AS pct_ontrack
                 ,CONVERT(VARCHAR,status) AS status
           FROM long_totals WITH(NOLOCK)
-         ) sub 
-     
+         ) sub      
      UNPIVOT (
        value
        FOR field IN (n_hw
@@ -435,7 +483,6 @@ FROM
                     ,status)
       ) unpiv 
     ) sub2
-
 PIVOT (
   MAX(value)
   FOR field IN ([n_hw_wk]

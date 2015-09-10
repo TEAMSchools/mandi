@@ -6,7 +6,7 @@ ALTER VIEW ILLUMINATE$assessments_sites AS
 SELECT DISTINCT
        oq.assessment_id
       ,co.schoolid
-      ,co.grade_level
+      ,NULL AS grade_level
 FROM OPENQUERY(ILLUMINATE,'
   SELECT a.assessment_id       
         ,a.created_at
