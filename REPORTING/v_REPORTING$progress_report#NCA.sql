@@ -3,32 +3,30 @@ GO
 
 ALTER VIEW REPORTING$progress_report#NCA AS
 
-SELECT --roster.schoolid
-      --,roster.student_number AS base_student_number
-      --,roster.studentid AS base_studentid
-      roster.lastfirst AS stu_lastfirst
-      --,roster.first_name AS stu_firstname
-      --,roster.last_name AS stu_lastname
+SELECT roster.schoolid
+      ,roster.student_number AS base_student_number
+      ,roster.studentid AS base_studentid
+      ,roster.lastfirst AS stu_lastfirst
+      ,roster.first_name AS stu_firstname
+      ,roster.last_name AS stu_lastname
       ,roster.grade_level AS stu_grade_level
-      --,roster.FAMILY_WEB_ID AS web_id
-      --,roster.FAMILY_WEB_PASSWORD AS web_password
+      ,roster.FAMILY_WEB_ID AS web_id
+      ,roster.FAMILY_WEB_PASSWORD AS web_password
       ,roster.student_web_id AS student_web_id
       ,roster.student_web_password AS student_web_password
-      --,roster.street
-      --,roster.city
-      --,roster.home_phone
+      ,roster.street
+      ,roster.city
+      ,roster.home_phone
       ,roster.advisor
       ,roster.advisor_email
       ,roster.advisor_cell
-      --,roster.mother_cell
-      --,COALESCE(roster.mother_home, roster.mother_day) AS mother_daytime
-      --,roster.father_cell
-      --,COALESCE(roster.father_home, roster.father_day) AS father_daytime
-      --,roster.GUARDIANEMAIL           
-      --,roster.SPEDLEP AS SPED
-      --,roster.lunch_balance AS lunch_balance
-      
-      /* date stuff */
+      ,roster.mother_cell
+      ,COALESCE(roster.mother_home, roster.mother_day) AS mother_daytime
+      ,roster.father_cell
+      ,COALESCE(roster.father_home, roster.father_day) AS father_daytime
+      ,roster.GUARDIANEMAIL           
+      ,roster.SPEDLEP AS SPED
+      ,roster.lunch_balance AS lunch_balance
       ,curterm.alt_name AS curterm
       ,curterm.time_per_name AS rt
       ,CONVERT(VARCHAR,DATENAME(MONTH,GETDATE())) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,GETDATE())) + ', ' + CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) AS today_words
@@ -215,7 +213,7 @@ SELECT --roster.schoolid
       ,gr_wide.RC10_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC10_y1 >= 70 THEN gr_wide.RC10_credit_hours_Y1 ELSE NULL END AS RC10_earned_crhrs      
 
-    /* Current component averages */
+    /*--Current component averages -- UPDATE TERM NUMBER (e.g. H1/H2/H3/H4) on FIELD to current term--*/
       /*--H--*/
       ,ele.rc1_h AS rc1_cur_hw_pct
       ,ele.rc2_h AS rc2_cur_hw_pct
@@ -326,7 +324,7 @@ SELECT --roster.schoolid
       --,replace(convert(varchar,convert(Money, ar_curr.words_goal),1),'.00','') AS words_goal_cur_term
 
 --Literacy tracking
---MAP$CDF#identifiers#static
+--MAP$comprehensive#identifiers
       --Lexile (from MAP)
       --base for year
       ,COALESCE(REPLACE(map_base.lexile_score, 'BR', 'Beginning Reader'), REPLACE(lex_base.RITtoReadingScore, 'BR', 'Beginning Reader')) AS lexile_base      
@@ -367,70 +365,71 @@ SELECT --roster.schoolid
        /*--Current--*/       
       ,merits.total_demerits_cur
 
-FROM KIPP_NJ..COHORT$identifiers_long#static roster WITH (NOLOCK)
-JOIN KIPP_NJ..REPORTING$dates curterm WITH(NOLOCK)
-  ON roster.schoolid = curterm.schoolid 
+FROM COHORT$identifiers_long#static roster WITH (NOLOCK)
+JOIN REPORTING$dates curterm WITH(NOLOCK)
+  ON roster.schoolid = curterm.schoolid
+ AND academic_year = dbo.fn_Global_Academic_Year()  
  AND curterm.identifier = 'RT' 
- AND CONVERT(DATE,GETDATE()) BETWEEN curterm.start_date AND curterm.end_date
+ AND curterm.start_date <= CONVERT(DATE,GETDATE())
+ AND curterm.end_date >= CONVERT(DATE,GETDATE())  
 
 --ATTENDANCE
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts#static att_counts WITH (NOLOCK)
+LEFT OUTER JOIN ATT_MEM$attendance_counts#static att_counts WITH (NOLOCK)
   ON roster.studentid = att_counts.studentid
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$att_percentages att_pct WITH (NOLOCK)
+LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
   ON roster.studentid = att_pct.studentid
   
 --GRADES & GPA
-LEFT OUTER JOIN KIPP_NJ..GRADES$wide_all#NCA#static gr_wide WITH(NOLOCK)
+LEFT OUTER JOIN GRADES$wide_all#NCA#static gr_wide WITH(NOLOCK)
   ON roster.studentid = gr_wide.studentid
-LEFT OUTER JOIN KIPP_NJ..GRADES$rc_elements_by_term ele WITH(NOLOCK)
+LEFT OUTER JOIN GRADES$rc_elements_by_term ele WITH(NOLOCK)
   ON roster.studentid = ele.studentid
  AND curterm.alt_name = ele.term
-LEFT OUTER JOIN KIPP_NJ..GPA$detail#NCA nca_gpa WITH (NOLOCK)
+LEFT OUTER JOIN GPA$detail#NCA nca_gpa WITH (NOLOCK)
   ON roster.studentid = nca_gpa.studentid
-LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_cumulative#static gpa_cumulative WITH (NOLOCK)
+LEFT OUTER JOIN GRADES$GPA_cumulative#static gpa_cumulative WITH (NOLOCK)
   ON roster.studentid = gpa_cumulative.studentid
  AND roster.schoolid = gpa_cumulative.schoolid
-LEFT OUTER JOIN KIPP_NJ..GPA$detail_long gpa_long WITH(NOLOCK)
+LEFT OUTER JOIN GPA$detail_long gpa_long WITH(NOLOCK)
   ON roster.studentid = gpa_long.studentid
  AND curterm.alt_name = gpa_long.term
 
 --MERITS & DEMERITS
-LEFT OUTER JOIN KIPP_NJ..DISC$culture_counts#NCA merits WITH (NOLOCK)
+LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
   ON roster.studentid = merits.studentid
 
 --ED TECH
 --ACCELERATED READER
-LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
   ON roster.studentid = ar_yr.studentid 
- AND roster.year = ar_yr.academic_year
- AND ar_yr.time_period_name = 'Year'  
-LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
+ AND ar_yr.time_period_name = 'Year' 
+ AND ar_yr.yearid = dbo.fn_Global_Term_Id()
+LEFT OUTER JOIN AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.studentid = ar_curr.studentid 
- AND roster.year = ar_curr.academic_year
- AND ar_curr.time_period_name = curterm.time_per_name  
+ AND ar_curr.time_period_name = curterm.time_per_name
+ AND ar_curr.yearid = dbo.fn_Global_Term_Id()
 
 --LEXILE
-LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH (NOLOCK)
+LEFT OUTER JOIN MAP$best_baseline#static map_base WITH (NOLOCK)
   ON roster.studentid = map_base.studentid
- AND roster.year = map_base.year
- AND map_base.MeasurementScale = 'Reading'  
-LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_base WITH (NOLOCK)
+ AND map_base.MeasurementScale = 'Reading' 
+ AND map_base.year = dbo.fn_Global_Academic_Year()
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
   ON roster.student_number = lex_base.StudentID
- AND roster.year = lex_base.academic_year
  AND lex_base.MeasurementScale = 'Reading'
- AND lex_base.rn_base = 1 
-LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_curr WITH (NOLOCK)
+ AND lex_base.rn_base = 1
+ AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
+LEFT OUTER JOIN MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
   ON roster.student_number = lex_curr.StudentID
- AND roster.year = lex_curr.academic_year
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
- 
+ AND lex_curr.map_year_academic = dbo.fn_Global_Academic_Year()
 
 --GRADEBOOK COMMMENTS
-LEFT OUTER JOIN KIPP_NJ..PS$comments_wide#static comm WITH(NOLOCK)
+LEFT OUTER JOIN PS$comments_wide#static comm WITH(NOLOCK)
   ON roster.studentid = comm.studentid
  AND curterm.alt_name = comm.term
-WHERE roster.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+WHERE roster.year = dbo.fn_Global_Academic_Year()
   AND roster.rn = 1
   AND roster.schoolid = 73253
   AND roster.enroll_status = 0    

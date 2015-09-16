@@ -6,6 +6,7 @@ ALTER VIEW COHORT$identifiers_long AS
 WITH advisory AS (
   SELECT STUDENTID
         ,academic_year
+        ,teachernumber
         ,advisor
         ,SECTION_NUMBER
         ,ROW_NUMBER() OVER(
@@ -16,8 +17,9 @@ WITH advisory AS (
        SELECT enr.STUDENTID           
              ,enr.DATELEFT
              ,enr.academic_year           
+             ,enr.TEACHERNUMBER
              ,enr.teacher_name AS advisor      
-             ,UPPER(KIPP_NJ.dbo.fn_StripCharacters(enr.section_number,'0-9')) AS section_number
+             ,KIPP_NJ.dbo.fn_StripCharacters(enr.section_number,'0-9') AS section_number
        FROM KIPP_NJ..PS$course_enrollments#static enr wITH(NOLOCK)
        WHERE enr.COURSE_NUMBER = 'HR'         
       ) sub
@@ -76,7 +78,7 @@ SELECT co.schoolid
       ,s.MIDDLE_NAME
       ,s.last_name
       ,s.first_name + ' ' + s.last_name AS full_name
-      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN s.TEAM ELSE advisory.section_number END AS team
+      ,advisory.section_number AS team
       ,s.GENDER
       ,s.ETHNICITY
       ,s.enroll_status
@@ -88,13 +90,13 @@ SELECT co.schoolid
       ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunchstatus END AS lunchstatus      
       ,s.state_studentnumber AS SID
 
-      ,COALESCE(advisory.advisor, cs.ADVISOR) AS advisor
-      ,cs.ADVISOR_CELL
-      ,cs.ADVISOR_EMAIL
-      ,cs.DEFAULT_STUDENT_WEB_ID AS STUDENT_WEB_ID
-      ,cs.DEFAULT_STUDENT_WEB_PASSWORD AS STUDENT_WEB_PASSWORD
-      ,cs.DEFAULT_FAMILY_WEB_ID AS FAMILY_WEB_ID
-      ,cs.DEFAULT_FAMILY_WEB_PASSWORD AS FAMILY_WEB_PASSWORD
+      ,advisory.advisor AS advisor
+      ,adp.phone_mobile AS ADVISOR_CELL
+      ,dir.mail AS ADVISOR_EMAIL
+      ,logins.student_web_id
+      ,logins.STUDENT_WEB_PASSWORD
+      ,logins.student_web_id + '.fam' AS FAMILY_WEB_ID
+      ,logins.STUDENT_WEB_PASSWORD AS FAMILY_WEB_PASSWORD
       ,cs.LUNCH_BALANCE      
       ,cs.STATUS_504
       ,cs.LEP_STATUS
@@ -161,10 +163,21 @@ LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info#static mcs WITH(NOLOCK)
   ON co.STUDENT_NUMBER = mcs.StudentNumber
 JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON co.studentid = cs.STUDENTID
+LEFT OUTER JOIN KIPP_NJ..ROSTERS$PS_access_accounts logins WITH(NOLOCK)
+  ON co.STUDENT_NUMBER = logins.STUDENT_NUMBER
 LEFT OUTER JOIN advisory WITH(NOLOCK)
   ON co.studentid = advisory.STUDENTID
  AND co.year = advisory.academic_year
  AND advisory.rn = 1
+LEFT OUTER JOIN KIPP_NJ..PEOPLE$ADP_PS_linking link WITH(NOLOCK)
+  ON advisory.teachernumber = link.teachernumber
+ AND link.is_master = 1
+LEFT OUTER JOIN KIPP_NJ..PEOPLE$ADP_detail adp WITH(NOLOCK)
+  ON COALESCE(link.associate_id, advisory.teachernumber) = adp.associate_id
+ AND adp.rn_curr = 1
+LEFT OUTER JOIN KIPP_NJ..PEOPLE$AD_users#static dir WITH(NOLOCK)
+  ON adp.position_id = dir.employeenumber
+ AND dir.is_active = 1
 LEFT OUTER JOIN KIPP_NJ..PS$SPED#ARCHIVE sped WITH(NOLOCK)
   ON co.studentid = sped.studentid
  AND co.year  = sped.academic_year

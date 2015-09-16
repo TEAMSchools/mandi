@@ -15,11 +15,11 @@ FROM OPENQUERY(PS_TEAM,'
         ,pgf.finalgradename             
         ,CAST(SUBSTR(pgf.comment_value,1,4000) AS varchar2(4000)) AS teacher_comment
   FROM pgfinalgrades pgf       
-  WHERE (pgf.finalgradename LIKE ''T%'' OR pgf.finalgradename LIKE ''Q%'')       
-    AND pgf.startdate >= ''2014-08-01''
+  WHERE pgf.finalgradename LIKE ''Q%''
+    AND pgf.startdate >= ''2015-07-01''
     AND pgf.startdate <= TRUNC(SYSDATE)
     AND pgf.comment_value IS NOT NULL         
 ') tco /* UPDATE DATE ANNUALLY */
-LEFT OUTER JOIN PS$CC#static cc WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
   ON tco.studentid = cc.studentid
  AND tco.sectionid = cc.sectionid

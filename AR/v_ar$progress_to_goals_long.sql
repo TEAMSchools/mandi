@@ -28,11 +28,12 @@ WITH long_goals AS (
         ,goals.time_period_end AS end_date     
   FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH (NOLOCK) 
   --year
-  JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
     ON cohort.student_number = goals.student_number   
    AND cohort.year = goals.academic_year
    AND goals.time_period_hierarchy = 1
   WHERE cohort.rn = 1    
+    AND cohort.schoolid != 999999
   
   --term
   UNION ALL
@@ -76,15 +77,13 @@ WITH long_goals AS (
         ,goals.time_period_start AS start_date_summer_bonus
         ,goals.time_period_start AS start_date
         ,goals.time_period_end AS end_date
-  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH (NOLOCK)     
-  JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
+  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)     
+  LEFT OUTER JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH(NOLOCK)
      ON cohort.student_number = goals.student_number
+    AND cohort.year = goals.academic_year        
     AND goals.time_period_hierarchy = 2
-  WHERE cohort.year = goals.academic_year    
-    AND cohort.rn = 1
-    --TESTING
-    --AND goals.yearid = dbo.fn_Global_Term_Id()
-    --AND goals.time_period_name = 'Hexameter 2'
+  WHERE cohort.rn = 1    
+    AND cohort.schoolid != 999999
  )
  
 ,last_book AS (
@@ -98,7 +97,7 @@ WITH long_goals AS (
         ,sub.rn_desc
   FROM
       (
-       SELECT goals.student_number
+       SELECT detail.student_number
              ,goals.yearid
              ,goals.time_period_hierarchy
              ,goals.time_period_start
@@ -121,11 +120,10 @@ WITH long_goals AS (
                              ,goals.time_period_start
                              ,goals.time_period_end
                      ORDER BY detail.dttaken DESC) AS rn_desc
-       FROM KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
-       JOIN KIPP_NJ..AR$test_event_detail#static detail WITH (NOLOCK)
-         ON goals.student_number = detail.student_number
-        AND detail.dtTaken >= goals.time_period_start
-        AND detail.dtTaken <= goals.time_period_end
+       FROM KIPP_NJ..AR$test_event_detail#static detail WITH(NOLOCK)
+       LEFT OUTER JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH(NOLOCK)
+         ON detail.student_number = goals.student_number
+        AND detail.dtTaken BETWEEN goals.time_period_start AND goals.time_period_end
       ) sub
   WHERE rn_desc = 1  
  )
@@ -308,11 +306,11 @@ SELECT totals.studentid
                          ORDER BY points DESC) AS rank_points_overall_in_network      
 FROM    
      (
-      SELECT long_goals.studentid
-            ,long_goals.student_number
-            ,long_goals.grade_level
-            ,long_goals.schoolid
-            ,long_goals.academic_year
+      SELECT co.studentid
+            ,co.student_number
+            ,co.grade_level
+            ,co.schoolid
+            ,co.year AS academic_year
             ,long_goals.yearid
             ,long_goals.time_hierarchy
             ,long_goals.time_period_name
@@ -346,15 +344,20 @@ FROM
             --SQL doesn't support KEEP; refactored LAST BOOK
             ,SUM(ar_all.tipassed) AS N_passed
             ,COUNT(ar_all.iuserid) AS N_total                     
-      FROM long_goals
-      LEFT OUTER JOIN AR$test_event_detail#static ar_all WITH (NOLOCK)
-        ON long_goals.student_number = ar_all.student_number
-       AND CONVERT(DATE,ar_all.dttaken) BETWEEN long_goals.start_date_summer_bonus AND long_goals.end_date
-      GROUP BY long_goals.studentid
-              ,long_goals.student_number
-              ,long_goals.grade_level
-              ,long_goals.schoolid
-              ,long_goals.academic_year
+      FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+      LEFT OUTER JOIN AR$test_event_detail#static ar_all WITH(NOLOCK)
+        ON co.student_number = ar_all.student_number
+       AND co.year = ar_all.academic_year
+      LEFT OUTER JOIN long_goals
+        ON ar_all.student_number = long_goals.student_number
+       AND CONVERT(DATE,ar_all.dttaken) BETWEEN long_goals.start_date_summer_bonus AND long_goals.end_date      
+      WHERE co.rn = 1
+        AND co.schoolid != 999999
+      GROUP BY co.studentid
+              ,co.student_number
+              ,co.grade_level
+              ,co.schoolid
+              ,co.year
               ,long_goals.yearid
               ,long_goals.time_hierarchy
               ,long_goals.time_period_name
