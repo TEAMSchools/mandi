@@ -85,7 +85,7 @@ WITH roster AS (
           WHEN s.GRADE_LEVEL = 7 AND dt.ccr IS NULL THEN 5
           ELSE dt.ccr_score
          END AS ccr_score        
-  FROM PS$STUDENTS#static s WITH(NOLOCK)
+  FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   CROSS JOIN reporting_week rw WITH(NOLOCK)    
   CROSS JOIN classes cl WITH(NOLOCK)    
   LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_long#Rise#static dt WITH(NOLOCK)
@@ -242,11 +242,7 @@ WITH roster AS (
         ,asmt.ASSIGNMENTID
         ,asmt.ASSIGN_NAME
         ,asmt.POINTSPOSSIBLE
-        ,CASE 
-          WHEN asmt.CATEGORY IN ('HW Q','HQ','HWQ','HWA','Q','Homework Quality') THEN 'HWQ'
-          WHEN asmt.CATEGORY IN ('HC','HW C','HWC','Homework Completion','HW Completion','HW Comp') THEN 'HWC'
-          ELSE NULL
-         END AS category
+        ,asmt.category
   FROM KIPP_NJ..GRADES$assignments#STAGING asmt WITH(NOLOCK)
   JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
     ON asmt.sectionid = sec.id
@@ -256,8 +252,7 @@ WITH roster AS (
   JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
     ON sec.COURSE_NUMBER = cou.COURSE_NUMBER
   WHERE asmt.ASSIGN_DATE IN (SELECT date FROM reporting_week WITH(NOLOCK))
-    AND ((sec.GRADE_LEVEL = 8 AND asmt.CATEGORY IN ('HQ','HWQ','HWA','Q'))
-          OR (sec.GRADE_LEVEL = 7 AND asmt.CATEGORY IN ('HW','HWQ','HQ','HW Comp','Homework Quality','HC','Homework Completion','HW Q','HW C','homework','Homework Completion','HW Completion','Homework Quality')))
+    AND asmt.category = 'HWQ'
  )
 
 ,assignment_scores AS (
@@ -556,8 +551,7 @@ SELECT r.STUDENT_NUMBER
       ,[soc_hwq_avg]
       ,[soc_hwc_avg]
 FROM roster r WITH(NOLOCK)
-JOIN date_strings ds WITH(NOLOCK)
-  ON 1 = 1
+CROSS JOIN date_strings ds WITH(NOLOCK)  
 LEFT OUTER JOIN ccr_totals WITH(NOLOCK)
   ON r.studentid = ccr_totals.studentid
 LEFT OUTER JOIN ccr_wide WITH(NOLOCK)

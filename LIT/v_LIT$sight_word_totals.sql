@@ -4,10 +4,11 @@ GO
 ALTER VIEW LIT$sight_word_totals AS
 
 WITH valid_tests AS (
-  SELECT a.repository_id        
+  SELECT a.repository_id                
   FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)    
   WHERE a.scope = 'Reporting' 
     AND a.subject_area = 'Word Work'
+    AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
 ,scores_long AS (
@@ -43,6 +44,7 @@ WITH valid_tests AS (
    AND dt.identifier = 'REP'
   WHERE co.rn = 1
     AND co.grade_level <= 4
+    AND co.schoolid != 73252
  )
 
 ,week_totals AS (
@@ -55,9 +57,9 @@ WITH valid_tests AS (
         ,SUM(CONVERT(FLOAT,value)) AS n_correct
         ,COUNT(CONVERT(FLOAT,value)) - SUM(CONVERT(FLOAT,value)) AS n_missed
         ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct
-        ,dbo.GROUP_CONCAT_DS(missed_word, ', ', 1) AS missed_words
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(missed_word, ', ') AS missed_words
   FROM roster r WITH(NOLOCK)
-  LEFT OUTER JOIN scores_long res WITH(NOLOCK)
+  JOIN scores_long res WITH(NOLOCK)
     ON r.STUDENT_NUMBER = res.student_number
    AND r.time_per_name = res.listweek_num
   GROUP BY r.schoolid
@@ -76,9 +78,9 @@ WITH valid_tests AS (
         ,SUM(CONVERT(FLOAT,value)) AS n_correct_yr
         ,COUNT(CONVERT(FLOAT,value)) - SUM(CONVERT(FLOAT,value)) AS n_missed_yr
         ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct_yr
-        ,dbo.GROUP_CONCAT_DS(missed_word, ', ', 1) AS missed_words_yr
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(missed_word, ', ') AS missed_words_yr
   FROM roster r WITH(NOLOCK)
-  LEFT OUTER JOIN scores_long res WITH(NOLOCK)
+  JOIN scores_long res WITH(NOLOCK)
     ON r.STUDENT_NUMBER = res.student_number
    AND r.time_per_name = res.listweek_num
   GROUP BY r.SCHOOLID

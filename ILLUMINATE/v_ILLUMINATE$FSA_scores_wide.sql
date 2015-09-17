@@ -8,7 +8,7 @@ WITH standards_rollup AS (
         ,reporting_week
         ,local_student_id AS student_number
         ,CONCAT(subj_abbrev, '_', proficiency) AS subj_prof
-        ,KIPP_NJ.dbo.GROUP_CONCAT_D(CONCAT(standard_description, CHAR(10), '(( ', percent_correct, '%', ' ))'), CHAR(10)+CHAR(13)) AS std
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(standard_description, CHAR(10)+CHAR(13)) AS std
   FROM
       (
        SELECT academic_year
@@ -54,13 +54,13 @@ WITH standards_rollup AS (
               ON co.schoolid = a.schoolid
              --AND co.grade_level = a.grade_level
              AND ovr.assessment_id = a.assessment_id
-             AND a.scope IN ('Common FSA','Exit Ticket','FSA','Common Module Assessment')
+             AND a.scope IN ('Common FSA','Exit Ticket','Common Module Assessment','FSA')
              AND a.subject_area IS NOT NULL
             JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard r WITH(NOLOCK)
               ON ovr.local_student_id = r.local_student_id
              AND ovr.assessment_id = r.assessment_id
              AND a.standard_id = r.standard_id            
-            WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+            --WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
            ) sub
        GROUP BY academic_year
                ,local_student_id

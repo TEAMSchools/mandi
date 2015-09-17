@@ -22,18 +22,18 @@ FROM
           FROM
               (
                SELECT DISTINCT
-                      CALENDARDATE AS date
-                     ,DATENAME(WEEKDAY,calendardate) AS day_of_week                        
-               FROM KIPP_NJ..ATT_MEM$MEMBERSHIP WITH(NOLOCK)
+                      date_value AS date
+                     ,DATENAME(WEEKDAY,date_value) AS day_of_week                        
+               FROM KIPP_NJ..PS$CALENDAR_DAY WITH(NOLOCK)
                WHERE SCHOOLID = 73252                 
-                 AND academic_year = dbo.fn_Global_Academic_Year()     
-                 AND DATEPART(WEEKDAY,CALENDARDATE) NOT IN (1,7)                
-                 AND CALENDARDATE < CASE 
-                                     WHEN DATEPART(WEEKDAY,CALENDARDATE) >= 5 THEN DATEADD(DAY, 4 - DATEPART(WEEKDAY,GETDATE()), CONVERT(DATE,GETDATE()))
+                 AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()     
+                 AND DATEPART(WEEKDAY,date_value) NOT IN (1,7)                
+                 AND date_value < CASE 
+                                     WHEN DATEPART(WEEKDAY,date_value) >= 5 THEN DATEADD(DAY, 4 - DATEPART(WEEKDAY,GETDATE()), CONVERT(DATE,GETDATE()))
                                      ELSE DATEADD(DAY, 5 - DATEPART(WEEKDAY,GETDATE()), CONVERT(DATE,GETDATE()))
                                     END
               ) sub
          ) sub
      WHERE rn = 1
     ) sub
-WHERE max_date_order - date_order < 5 -- if there's a day off during the week, this will prevent earlier dates from filling in the gaps
+WHERE max_date_order - date_order < 5 /* if there's a day off during the week, this will prevent earlier dates from filling in the gaps */

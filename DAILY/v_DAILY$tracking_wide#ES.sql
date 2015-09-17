@@ -11,7 +11,7 @@ WITH extern AS (
         ,FORMAT(cd.date_value,'ddd') AS day                
         ,dt.time_per_name AS week_num                
         ,CASE
-          WHEN co.schoolid NOT IN (73255, 179901) THEN CONCAT(daily.color_day, CHAR(9), daily.hw)
+          WHEN co.schoolid NOT IN (73255, 179901) THEN CONCAT(daily.color_day, CHAR(9), CHAR(9), daily.hw)
           ELSE CONCAT(daily.color_am, CHAR(9), daily.color_mid, CHAR(9), daily.color_pm, CHAR(9), daily.hw)
          END AS color_hw_data                
         ,ROW_NUMBER() OVER(
@@ -30,15 +30,15 @@ WITH extern AS (
    AND dt.identifier = 'REP'
   LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
     ON co.studentid = daily.studentid
-   AND cd.date_value = daily.att_date             
+   AND cd.date_value = daily.att_date      
  )
 
 SELECT schoolid
       ,academic_year
       ,studentid      
-      ,week_num
+      ,week_num      
       ,CASE 
-        WHEN schoolid NOT IN (73255, 179901) THEN CONCAT(CHAR(9), 'Color', CHAR(9), 'HW')
+        WHEN schoolid NOT IN (73255, 179901) THEN CONCAT(CHAR(9), 'Color', CHAR(9), CHAR(9), 'HW')
         ELSE CONCAT(CHAR(9), 'AM', CHAR(9), 'Mid', CHAR(9), 'PM', CHAR(9), 'HW')
        END AS color_hw_header
       ,LEFT(y.color_hw_data, LEN(y.color_hw_data) - 2) AS color_hw_data

@@ -31,5 +31,4 @@ LEFT OUTER JOIN REPORTING$dates dates WITH (NOLOCK)
  AND disc.entry_date BETWEEN dates.start_date AND dates.end_date
  AND disc.academic_year = dates.academic_year
  AND dates.identifier = 'RT' 
-WHERE s.SCHOOLID IN (73253,73252,133570965)  
-  AND s.rn = 1
+WHERE s.rn = 1
