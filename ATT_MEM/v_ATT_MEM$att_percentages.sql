@@ -50,6 +50,6 @@ SELECT att.studentid
       ,ISNULL(ROUND((rt5_t10 / rt5_mem) * 100,1),0) AS rt5_tardy_pct_t10
       ,ISNULL(ROUND((rt6_t10 / rt6_mem) * 100,1),0) AS rt6_tardy_pct_t10
       ,ISNULL(ROUND((cur_t10 / cur_mem) * 100,1),0) AS cur_tardy_pct_t10
-FROM att_mem$attendance_counts#static att WITH (NOLOCK)
-LEFT OUTER JOIN ATT_MEM$membership_counts#static mem  WITH (NOLOCK)
+FROM KIPP_NJ..ATT_MEM$attendance_counts#static att WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$membership_counts#static mem  WITH(NOLOCK)
   ON att.studentid = mem.studentid

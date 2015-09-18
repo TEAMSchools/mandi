@@ -27,7 +27,7 @@ WITH valid_dates AS (
          ON daily.schoolid = rt.schoolid
         AND daily.date_value BETWEEN rt.start_date AND rt.end_date
         AND rt.identifier = 'RT'
-       WHERE daily.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       --WHERE daily.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       ) sub
  )
 

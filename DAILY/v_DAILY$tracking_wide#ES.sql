@@ -23,6 +23,7 @@ WITH extern AS (
    AND co.schoolid = cd.schoolid
    AND cd.date_value BETWEEN co.entrydate AND co.exitdate
    AND cd.insession = 1
+   AND DATEPART(DW,cd.date_value) NOT IN (1,7)
   JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
     ON co.year = dt.academic_year
    AND co.schoolid = dt.schoolid
@@ -52,5 +53,7 @@ CROSS APPLY (
              ORDER BY date_value
              FOR XML PATH(''), TYPE
             ) x (color_hw_data)
-CROSS APPLY (SELECT x.color_hw_data.value('.', 'NVARCHAR(MAX)')) y (color_hw_data)
+CROSS APPLY (
+             SELECT x.color_hw_data.value('.', 'NVARCHAR(MAX)')
+            ) y (color_hw_data)
 WHERE extern.rn = 1

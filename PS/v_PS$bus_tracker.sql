@@ -28,7 +28,7 @@ SELECT s.STUDENT_NUMBER
       ,CASE 
         WHEN ch.studentid IS NOT NULL AND ch.subtype = '01' THEN 'School Event'
         WHEN ch.studentid IS NOT NULL THEN 'Parent Pickup'
-        WHEN DATEPART(WEEKDAY,GETDATE()) = 6 THEN BUS_INFO_FRIDAYS 
+        WHEN DATEPART(WEEKDAY,GETDATE()) = 4 THEN BUS_INFO_FRIDAYS 
         ELSE BUS_INFO_PM 
        END AS BUS_PM_TODAY      
       ,CASE WHEN ch.studentid IS NOT NULL THEN 1 ELSE 0 END AS dismissal_flag

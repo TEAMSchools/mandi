@@ -8,11 +8,11 @@ WITH valid_tests AS (
   FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)    
   WHERE a.scope = 'Reporting' 
     AND a.subject_area = 'Word Work'
-    AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    --AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
 ,scores_long AS (
-  SELECT res.student_id AS student_number             
+  SELECT res.student_id AS student_number                     
         ,'Week_' + SUBSTRING(label, CHARINDEX('_',label) + 1, 2) AS listweek_num
         ,SUBSTRING(label, CHARINDEX('_',label,CHARINDEX('_',label) + 1) + 1, LEN(label) - CHARINDEX('_',label,CHARINDEX('_',label) + 1)) AS word
         ,CASE WHEN CONVERT(FLOAT,value) = 9 THEN NULL ELSE CONVERT(FLOAT,value) END AS value                

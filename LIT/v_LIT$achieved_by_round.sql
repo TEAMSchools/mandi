@@ -69,7 +69,8 @@ WITH roster AS (
         ,CASE WHEN r.academic_year >= 2015 THEN dna.fp_keylever ELSE achv.fp_keylever END AS fp_keylever
         ,CASE WHEN r.academic_year >= 2015 THEN dna.dna_lvl ELSE dna.read_lvl END AS dna_lvl
         ,CASE WHEN r.academic_year >= 2015 THEN dna.dna_lvl_num ELSE dna.lvl_num END AS dna_lvl_num
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.unique_id ELSE achv.unique_id END AS unique_id
+        ,dna.unique_id
+        --,CASE WHEN r.academic_year >= 2015 THEN dna.unique_id ELSE achv.unique_id END AS unique_id /* zomg */
         ,ROW_NUMBER() OVER(
            PARTITION BY r.studentid
              ORDER BY r.academic_year DESC, r.round_num DESC) AS meta_achv_round
