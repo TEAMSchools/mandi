@@ -652,15 +652,15 @@ SELECT ROW_NUMBER() OVER(
 
 --Extracurriculars
 --RutgersReady..XC$activities_wide
-      ,xc.fall AS xc_Fall_1
+      ,NULL AS xc_Fall_1
       ,NULL AS xc_Fall_2
-      ,xc.winter AS xc_Winter_1
+      ,NULL AS xc_Winter_1
       ,NULL AS xc_Winter_2
-      ,xc.Spring AS xc_Spring_1
+      ,NULL AS xc_Spring_1
       ,NULL AS xc_Spring_2
-      ,xc.[winter-spring] AS xc_WinterSpring_1
+      ,NULL AS xc_WinterSpring_1
       ,NULL AS xc_WinterSpring_2
-      ,xc.[year-round] AS xc_YearRound_1
+      ,NULL AS xc_YearRound_1
       ,NULL AS xc_YearRound_2
       ,ISNULL(xc.activity_hash, 'None') AS activity_hash
       
