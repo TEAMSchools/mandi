@@ -31,12 +31,8 @@ SELECT CONVERT(VARCHAR,ar_default.student_number) AS student_number
       ,ar_default.yearid
       ,ar_default.academic_year
       ,ar_default.time_period_name
-      ,COALESCE(ar_explicit.time_period_start, ar_default.time_period_start) AS time_period_start
-      -- fuuuuuuuuuuuuuuuuckk delete this after the year is over
-      ,CASE
-        WHEN ar_default.academic_year = 2014 AND ar_default.schoolid = 73253 AND ar_default.grade_level = 12 AND ar_default.time_period_name = 'Reporting Term 4' THEN '2015-06-04'
-        ELSE COALESCE(ar_explicit.time_period_end, ar_default.time_period_end) 
-       END AS time_period_end
+      ,COALESCE(ar_explicit.time_period_start, ar_default.time_period_start) AS time_period_start      
+      ,COALESCE(ar_explicit.time_period_end, ar_default.time_period_end) AS time_period_end
       ,COALESCE(ar_explicit.time_period_hierarchy, ar_default.time_period_hierarchy) AS time_period_hierarchy      
 FROM default_scaffold ar_default WITH(NOLOCK)
 LEFT OUTER JOIN AR$goals ar_explicit WITH(NOLOCK)

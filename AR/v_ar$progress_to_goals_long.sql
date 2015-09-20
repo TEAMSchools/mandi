@@ -4,84 +4,56 @@ GO
 ALTER VIEW AR$progress_to_goals_long AS
 
 WITH long_goals AS (
+  /* year */
   SELECT cohort.studentid
         ,cohort.student_number
         ,cohort.grade_level
         ,cohort.schoolid
-        ,cohort.year AS academic_year
-        ,goals.yearid
+        ,cohort.year AS academic_year        
+        ,COALESCE(goals.yearid, CONVERT(VARCHAR,sy.yearid) + '00') AS yearid
         ,1 AS time_hierarchy
-        ,goals.time_period_name
+        ,ISNULL(goals.time_period_name,'Year') AS time_period_name
         ,goals.words_goal
         ,goals.points_goal
-
-         --UPDATE: 09-30-2013.  Rise is killing this. Just use the goal start date
-         --for Rise (and eventually others) summer words are 'bonus'
-         --toward year goal.  this requires differentiating between
-         --goal start date for calculation and for the join
-          
-        --,CONVERT(datetime, CAST('07/01/' + CAST(DATEPART(YYYY,time_period_start) AS NVARCHAR) AS DATE), 101) AS start_date_summer_bonus
-        --NULL AS start_date_summer_bonus
-        --'01-JUN-13' AS start_date_summer_bonus
-        ,goals.time_period_start AS start_date_summer_bonus
-        ,goals.time_period_start AS [start_date]
-        ,goals.time_period_end AS end_date     
+        ,COALESCE(goals.time_period_start, sy.start_date) AS start_date_summer_bonus
+        ,COALESCE(goals.time_period_start, sy.start_date) AS [start_date]
+        ,COALESCE(goals.time_period_end, sy.end_date) AS end_date     
   FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH (NOLOCK) 
-  --year
+  LEFT OUTER JOIN KIPP_NJ..REPORTING$dates sy WITH(NOLOCK)
+    ON cohort.year = sy.academic_year
+   AND sy.identifier = 'SY'  
   LEFT OUTER JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
     ON cohort.student_number = goals.student_number   
    AND cohort.year = goals.academic_year
    AND goals.time_period_hierarchy = 1
   WHERE cohort.rn = 1    
     AND cohort.schoolid != 999999
-  
-  --term
+    
   UNION ALL
-
+  
+  /* term */
   SELECT cohort.studentid
         ,cohort.student_number
         ,cohort.grade_level
         ,cohort.schoolid
         ,cohort.year AS academic_year
-        ,goals.yearid
-        --standardize term names
+        ,CONVERT(VARCHAR,hex.yearid) + '00' AS yearid
         ,2 AS time_hierarchy
-        ,CASE
-          --middle
-          WHEN time_period_name = 'Trimester 1' THEN 'RT1'
-          WHEN time_period_name = 'Trimester 2' THEN 'RT2'
-          WHEN time_period_name = 'Trimester 3' THEN 'RT3'
-          --TEAM
-          WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
-          WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
-          WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
-          WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
-          WHEN time_period_name = 'Reporting Term 5' THEN 'RT5'
-          WHEN time_period_name = 'Reporting Term 6' THEN 'RT6'
-          --high
-          WHEN time_period_name = 'Reporting Term 1' THEN 'RT1'
-          WHEN time_period_name = 'Reporting Term 2' THEN 'RT2'
-          WHEN time_period_name = 'Reporting Term 3' THEN 'RT3'
-          WHEN time_period_name = 'Reporting Term 4' THEN 'RT4'
-          --new middle school
-          WHEN time_period_name = 'Hexameter 1' THEN 'RT1'
-          WHEN time_period_name = 'Hexameter 2' THEN 'RT2'
-          WHEN time_period_name = 'Hexameter 3' THEN 'RT3'
-          WHEN time_period_name = 'Hexameter 4' THEN 'RT4'
-          WHEN time_period_name = 'Hexameter 5' THEN 'RT5'
-          WHEN time_period_name = 'Hexameter 6' THEN 'RT6'
-          --elementary? (CAPSTONE?)
-         END AS time_period_name
+        ,REPLACE(hex.time_per_name, 'Hexameter ', 'RT') AS time_period_name
         ,goals.words_goal
         ,goals.points_goal
-        ,goals.time_period_start AS start_date_summer_bonus
-        ,goals.time_period_start AS start_date
-        ,goals.time_period_end AS end_date
-  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)     
+        ,COALESCE(goals.time_period_start, hex.start_date) AS start_date_summer_bonus
+        ,COALESCE(goals.time_period_start, hex.start_date) AS start_date
+        ,COALESCE(goals.time_period_end, hex.end_date) AS end_date
+  FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)       
+  LEFT OUTER JOIN KIPP_NJ..REPORTING$dates hex WITH(NOLOCK)
+    ON cohort.year = hex.academic_year
+   AND cohort.schoolid = hex.schoolid
+   AND ((cohort.year <= 2014 AND hex.identifier = 'HEX') OR (cohort.year >= 2015 AND hex.identifier = 'RT'))
   LEFT OUTER JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH(NOLOCK)
      ON cohort.student_number = goals.student_number
-    AND cohort.year = goals.academic_year        
-    AND goals.time_period_hierarchy = 2
+    AND cohort.year = goals.academic_year
+    AND hex.time_per_name = REPLACE(REPLACE(REPLACE(goals.time_period_name, 'Trimester ', 'RT'), 'Reporting Term ', 'RT'), 'Hexameter ', 'RT')
   WHERE cohort.rn = 1    
     AND cohort.schoolid != 999999
  )
@@ -103,16 +75,17 @@ WITH long_goals AS (
              ,goals.time_period_start
              ,goals.time_period_end
              ,detail.dttaken AS last_book_date
-             ,CAST(DATEPART(MM, detail.dttaken) AS NVARCHAR) + '/' 
-               + CAST(DATEPART(DD, detail.dttaken) AS NVARCHAR) + ' '
-               + detail.vchcontenttitle + ' (' 
-               + detail.vchauthor + ' | ' 
-               + LTRIM(detail.chfictionnonfiction) + ', Lexile: ' 
-               + CAST(ialternatebooklevel_2 AS NVARCHAR) + ') [' 
-               + CAST(detail.iquestionscorrect AS NVARCHAR) + '/' 
-               + CAST(detail.iquestionspresented AS NVARCHAR) + ', ' 
-               + CAST(CAST(detail.dpercentcorrect * 100 AS INT) AS NVARCHAR) + '% ' 
-               + REPLICATE('+', detail.tibookrating) + ']' AS title_string
+             ,CONCAT(
+                 FORMAT(detail.dtTaken, 'M/dd ')
+                ,detail.vchcontenttitle, ' (' 
+                ,detail.vchauthor, ' | '
+                ,RTRIM(LTRIM(detail.chfictionnonfiction)), ', Lexile: ' 
+                ,ialternatebooklevel_2, ') ['
+                ,detail.iquestionscorrect, '/'
+                ,detail.iquestionspresented, ', '
+                ,CONVERT(INT,detail.dpercentcorrect * 100), '% '
+                ,REPLICATE('+', detail.tibookrating), ']'
+               ) AS title_string
              ,ROW_NUMBER() OVER (
                  PARTITION BY goals.student_number
                              ,goals.yearid
