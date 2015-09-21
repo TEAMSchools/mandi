@@ -53,18 +53,9 @@ SELECT r.student_number
       ,rw.week_rn
       
       /* attendance */
-      ,CONCAT(
-          CASE WHEN r.schoolid != 73255 THEN att.CUR_ABS_ALL ELSE att.Y1_ABS_ALL END, ' ('
-         ,CASE WHEN r.schoolid != 73255 THEN att.CUR_AD + att.CUR_AE ELSE att.Y1_AD + att.Y1_AE END, ')'
-        ) AS cur_absences_total      
-      ,CONCAT(
-          CASE WHEN r.schoolid != 73255 THEN att.cur_t_all ELSE att.Y1_T_ALL END , ' ('
-         ,CASE WHEN r.schoolid != 73255 THEN att.CUR_TE ELSE att.Y1_TE END, ')'
-        ) AS cur_tardies_total      
-      ,CONCAT(
-          CASE WHEN r.schoolid != 73255 THEN att.cur_le ELSE att.Y1_LE END, ' ('
-         ,CASE WHEN r.schoolid != 73255 THEN att.cur_lex ELSE att.Y1_LEX END, ')'
-        ) AS cur_early_dismiss  
+      ,CONCAT(att.Y1_ABS_ALL, ' (', att.Y1_AE, ')') AS cur_absences_total
+      ,CONCAT(att.Y1_T_ALL, ' (', att.Y1_TE, ')') AS cur_tardies_total      
+      ,CONCAT(att.Y1_LE, ' (', att.Y1_LEX, ')') AS cur_early_dismiss  
       ,ROUND(att.cur_trip_abs,1) AS trip_absences
       ,CASE
         WHEN r.schoolid = 73255 AND att.cur_trip_abs >= 10 THEN 'Off Track'
@@ -123,11 +114,11 @@ SELECT r.student_number
       ,mth_totals.status_mth AS status_mth
 
       /* word study */      
-      ,CASE WHEN sw.n_total IS NULL THEN NULL ELSE CONCAT(sw.pct_correct, ' (', sw.n_correct, '/', sw.n_total, ')') END AS sw_pct_wk
-      ,CASE WHEN sw.n_total IS NULL THEN NULL ELSE CONCAT(sw.pct_correct_yr, ' (', sw.n_correct_yr, '/', sw.n_total_yr, ')') END AS sw_pct_yr
+      ,CASE WHEN sw.n_total IS NULL THEN NULL ELSE CONCAT(sw.pct_correct, '% (', sw.n_correct, '/', sw.n_total, ')') END AS sw_pct_wk
+      ,CASE WHEN sw.n_total IS NULL THEN NULL ELSE CONCAT(sw.pct_correct_yr, '% (', sw.n_correct_yr, '/', sw.n_total_yr, ')') END AS sw_pct_yr
       ,sw.missed_words_yr AS sw_missedwords_yr      
-      ,CASE WHEN sp.n_total IS NULL THEN NULL ELSE CONCAT(sp.pct_correct, ' (', sp.n_correct, '/', sp.n_total, ')') END AS sp_pct_wk
-      ,CASE WHEN sp.n_total IS NULL THEN NULL ELSE CONCAT(sp.pct_correct_yr, ' (', sp.n_correct_yr, '/', sp.n_total_yr, ')') END AS sp_pct_yr      
+      ,CASE WHEN sp.n_total IS NULL THEN NULL ELSE CONCAT(sp.pct_correct, '% (', sp.n_correct, '/', sp.n_total, ')') END AS sp_pct_wk
+      ,CASE WHEN sp.n_total IS NULL THEN NULL ELSE CONCAT(sp.pct_correct_yr, '% (', sp.n_correct_yr, '/', sp.n_total_yr, ')') END AS sp_pct_yr      
       ,sp.missed_words_yr AS sp_missedwords_yr
 FROM KIPP_NJ..COHORT$identifiers_long#static r WITH(NOLOCK) 
 LEFT OUTER JOIN reporting_week rw WITH(NOLOCK)
@@ -171,3 +162,4 @@ LEFT OUTER JOIN KIPP_NJ..LIT$spelling_totals#static sp WITH(NOLOCK)
 WHERE r.GRADE_LEVEL <= 4  
   AND r.schoolid != 73252
   AND r.RN = 1
+  AND r.enroll_status = 0

@@ -234,7 +234,7 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_wide ar WITH(NOLOCK)
 /* XC */
 LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON co.student_number = xc.student_number
- AND xc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND co.year = xc.academic_year
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1        
   AND co.schoolid IN (73252, 133570965, 179902)

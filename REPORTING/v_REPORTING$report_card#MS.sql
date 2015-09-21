@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$report_card_term#MS AS
+CREATE VIEW REPORTING$report_card#MS AS
 
 WITH roster AS (
   SELECT co.student_number AS base_student_number

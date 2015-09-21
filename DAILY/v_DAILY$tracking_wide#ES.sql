@@ -23,8 +23,8 @@ WITH extern AS (
     ON co.year = cd.academic_year
    AND co.schoolid = cd.schoolid
    AND cd.date_value BETWEEN co.entrydate AND co.exitdate
-   AND cd.insession = 1
-   AND DATEPART(DW,cd.date_value) NOT IN (1,7)
+   AND cd.insession = 1   
+   AND cd.date_value <= CONVERT(DATE,GETDATE())
   JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
     ON co.year = dt.academic_year
    AND co.schoolid = dt.schoolid
@@ -33,6 +33,7 @@ WITH extern AS (
   LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_long#ES#static daily WITH(NOLOCK)
     ON co.studentid = daily.studentid
    AND cd.date_value = daily.att_date      
+  WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
 SELECT schoolid
