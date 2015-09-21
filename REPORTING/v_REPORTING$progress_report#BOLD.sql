@@ -3,52 +3,6 @@ GO
 
 ALTER VIEW REPORTING$progress_report#BOLD AS 
 
-WITH AR_progress AS (
-  SELECT student_number
-        ,[Y1] AS AR_avg_pct_correct_Y1
-        ,[CUR]  AS AR_avg_pct_correct_CUR
-  FROM
-      (
-       SELECT ar.student_number      
-             ,ROUND(AVG(ar.dpercentcorrect) * 100,0) AS avg_pct_correct
-             ,'Y1' AS term
-       FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-       JOIN KIPP_NJ..AR$test_event_detail#static ar WITH(NOLOCK)
-         ON co.student_number = ar.student_number
-        AND co.year = ar.academic_year
-        AND ar.tiPassed = 1
-       WHERE co.schoolid = 73258
-         AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND co.rn = 1
-       GROUP BY ar.student_number
-
-       UNION ALL
-
-       SELECT ar.student_number      
-             ,ROUND(AVG(ar.dpercentcorrect) * 100,0) AS avg_pct_correct
-             ,'CUR'
-       FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-       JOIN KIPP_NJ..AR$test_event_detail#static ar WITH(NOLOCK)
-         ON co.student_number = ar.student_number
-        AND co.year = ar.academic_year
-        AND ar.tiPassed = 1
-       JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
-         ON co.schoolid = dt.schoolid
-        AND co.year = dt.academic_year
-        AND CONVERT(DATE,ar.dtTakenOriginal) BETWEEN dt.start_date AND dt.end_date 
-        AND CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date 
-        AND dt.identifier = 'RT'
-       WHERE co.schoolid = 73258
-         AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND co.rn = 1
-       GROUP BY ar.student_number
-      ) sub
-  PIVOT(
-    MAX(avg_pct_correct)
-    FOR term IN ([Y1],[CUR])
-   ) p
-)
-
 SELECT co.student_number
       ,co.year AS academic_year            
       ,co.LASTFIRST      
@@ -78,19 +32,19 @@ SELECT co.student_number
       
       /* daily tracking */
       ,dt.CUR_BOLD_points
-      ,dt.CUR_hw_full_pct
-      ,dt.CUR_hw_half_pct
-      ,dt.CUR_hw_missing_pct
+      ,dt.CUR_hw_comp_pct      
+      ,dt.CUR_hw_inc_pct
       ,dt.CUR_uniform_pct
       ,dt.Y1_BOLD_points
-      ,dt.Y1_hw_full_pct
-      ,dt.Y1_hw_half_pct
-      ,dt.Y1_hw_missing_pct
+      ,dt.Y1_hw_comp_pct      
+      ,dt.Y1_hw_inc_pct      
       ,dt.Y1_uniform_pct
       
       /* AR */
-      ,ar.AR_avg_pct_correct_Y1
-      ,ar.AR_avg_pct_correct_CUR
+      ,ar.Y1_avg_pct_correct AS AR_Y1_avg_pct_correct 
+      ,ar.CUR_avg_pct_correct AS AR_CUR_avg_pct_correct
+      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.Y1_words_read), 1), '.00', '') AS AR_Y1_words_read
+      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.CUR_words_read), 1), '.00', '') AS AR_CUR_words_read
 
       /* Standards */
       ,fsa.ELA_ADV
@@ -122,7 +76,7 @@ LEFT OUTER JOIN KIPP_NJ..ATT_MEM$att_percentages att_pct WITH(NOLOCK)
   ON co.studentid = att_pct.studentid
 LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_totals#BOLD#static dt WITH(NOLOCK)
   ON co.studentid = dt.STUDENTID
-LEFT OUTER JOIN AR_progress ar
+LEFT OUTER JOIN KIPP_NJ..AR$progress_wide ar WITH(NOLOCK)
   ON co.student_number = ar.student_number
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$FSA_scores_wide#static fsa WITH(NOLOCK)
   ON co.student_number = fsa.student_number

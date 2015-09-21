@@ -11,8 +11,9 @@ WITH extern AS (
         ,FORMAT(cd.date_value,'ddd') AS day                
         ,dt.time_per_name AS week_num                
         ,CASE
-          WHEN co.schoolid NOT IN (73255, 179901) THEN CONCAT(daily.color_day, CHAR(9), CHAR(9), daily.hw)
-          ELSE CONCAT(daily.color_am, CHAR(9), daily.color_mid, CHAR(9), daily.color_pm, CHAR(9), daily.hw)
+          WHEN co.schoolid IN (73255) THEN CONCAT(daily.color_am, CHAR(9), daily.color_mid, CHAR(9), daily.color_pm, CHAR(9), daily.hw)
+          WHEN co.schoolid IN (179901) THEN CONCAT(daily.color_am, CHAR(9), daily.color_pm, CHAR(9), daily.hw)
+          ELSE CONCAT(daily.color_day, CHAR(9), CHAR(9), daily.hw)
          END AS color_hw_data                
         ,ROW_NUMBER() OVER(
            PARTITION BY co.studentid, co.year, dt.time_per_name
@@ -39,8 +40,9 @@ SELECT schoolid
       ,studentid      
       ,week_num      
       ,CASE 
-        WHEN schoolid NOT IN (73255, 179901) THEN CONCAT(CHAR(9), 'Color', CHAR(9), CHAR(9), 'HW')
-        ELSE CONCAT(CHAR(9), 'AM', CHAR(9), 'Mid', CHAR(9), 'PM', CHAR(9), 'HW')
+        WHEN schoolid IN (73255) THEN CONCAT(CHAR(9), 'AM', CHAR(9), 'Mid', CHAR(9), 'PM', CHAR(9), 'HW')
+        WHEN schoolid IN (179901) THEN CONCAT(CHAR(9), 'AM', CHAR(9), 'PM', CHAR(9), 'HW')
+        ELSE CONCAT(CHAR(9), 'Color', CHAR(9), CHAR(9), 'HW')
        END AS color_hw_header
       ,LEFT(y.color_hw_data, LEN(y.color_hw_data) - 2) AS color_hw_data
 FROM extern

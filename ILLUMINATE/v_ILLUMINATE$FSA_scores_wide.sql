@@ -3,7 +3,16 @@ GO
 
 ALTER VIEW ILLUMINATE$FSA_scores_wide AS
 
-WITH standards_rollup AS (
+WITH standard_descriptions AS (
+  SELECT standard_code
+        ,studentfriendly_description
+        ,ROW_NUMBER() OVER(
+           PARTITION BY standard_code
+             ORDER BY BINI_ID DESC) AS rn           
+  FROM KIPP_NJ..AUTOLOAD$GDOCS_LTP_standard_descriptions WITH(NOLOCK)
+ )
+
+,standards_rollup AS (
   SELECT academic_year
         ,reporting_week
         ,local_student_id AS student_number
@@ -28,6 +37,7 @@ WITH standards_rollup AS (
                   ,ovr.local_student_id
                   ,a.standard_id
                   ,CASE 
+                    WHEN co.schoolid = 73258 THEN COALESCE(ltp.studentfriendly_description, a.standard_description)
                     WHEN a.subject_area NOT IN ('Comprehension','Writing','Text Study','Word Work','Phonics','Grammar','Mathematics') 
                          THEN CONCAT(a.subject_area, ' - ', a.standard_description)
                     ELSE a.standard_description
@@ -56,6 +66,9 @@ WITH standards_rollup AS (
              AND ovr.assessment_id = a.assessment_id
              AND a.scope IN ('Common FSA','Exit Ticket','Common Module Assessment')
              AND a.subject_area IS NOT NULL
+            LEFT OUTER JOIN standard_descriptions ltp WITH(NOLOCK)
+              ON a.standard_code = ltp.standard_code
+             AND ltp.rn = 1
             JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard r WITH(NOLOCK)
               ON ovr.local_student_id = r.local_student_id
              AND ovr.assessment_id = r.assessment_id

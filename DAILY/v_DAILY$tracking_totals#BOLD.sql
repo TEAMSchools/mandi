@@ -6,9 +6,7 @@ ALTER VIEW DAILY$tracking_totals#BOLD AS
 WITH tracking_long AS (
   SELECT dt.studentid            
         ,ROUND(AVG(CONVERT(FLOAT,dt.field1)) * 100,0) AS uniform_pct
-        ,ROUND(AVG(CONVERT(FLOAT,CASE WHEN dt.field2 IS NULL THEN NULL WHEN dt.field2 = 0 THEN 1 ELSE 0 END)) * 100,0) AS hw_missing_pct
-        ,ROUND(AVG(CONVERT(FLOAT,CASE WHEN dt.field2 IS NULL THEN NULL WHEN dt.field2 = 1 THEN 1 ELSE 0 END)) * 100,0) AS hw_half_pct
-        ,ROUND(AVG(CONVERT(FLOAT,CASE WHEN dt.field2 IS NULL THEN NULL WHEN dt.field2 = 2 THEN 1 ELSE 0 END)) * 100,0) AS hw_full_pct
+        ,ROUND((SUM(CONVERT(FLOAT,dt.field2)) / SUM(CONVERT(FLOAT,CASE WHEN dt.field2 IS NOT NULL THEN 2 ELSE 0 END))) * 100,0) AS hw_pct
         ,SUM(CONVERT(FLOAT,dt.field3)) AS BOLD_points
         ,'Y1' AS term      
   FROM KIPP_NJ..DAILY$tracking_long#STAGING dt WITH(NOLOCK)    
@@ -19,9 +17,7 @@ WITH tracking_long AS (
 
   SELECT dt.studentid            
         ,ROUND(AVG(CONVERT(FLOAT,dt.field1)) * 100,0) AS uniform_pct
-        ,ROUND(AVG(CONVERT(FLOAT,CASE WHEN dt.field2 IS NULL THEN NULL WHEN dt.field2 = 0 THEN 1 ELSE 0 END)) * 100,0) AS hw_missing_pct
-        ,ROUND(AVG(CONVERT(FLOAT,CASE WHEN dt.field2 IS NULL THEN NULL WHEN dt.field2 = 1 THEN 1 ELSE 0 END)) * 100,0) AS hw_half_pct
-        ,ROUND(AVG(CONVERT(FLOAT,CASE WHEN dt.field2 IS NULL THEN NULL WHEN dt.field2 = 2 THEN 1 ELSE 0 END)) * 100,0) AS hw_full_pct
+        ,ROUND((SUM(CONVERT(FLOAT,dt.field2)) / SUM(CONVERT(FLOAT,CASE WHEN dt.field2 IS NOT NULL THEN 2 ELSE NULL END))) * 100,0) AS hw_pct
         ,SUM(CONVERT(FLOAT,dt.field3)) AS BOLD_points
         ,'CUR' AS term      
   FROM KIPP_NJ..DAILY$tracking_long#STAGING dt WITH(NOLOCK)  
@@ -36,14 +32,12 @@ WITH tracking_long AS (
 
 SELECT STUDENTID
       ,[CUR_BOLD_points]
-      ,[CUR_hw_full_pct]
-      ,[CUR_hw_half_pct]
-      ,[CUR_hw_missing_pct]
+      ,[CUR_hw_pct] AS CUR_hw_comp_pct
+      ,100 - [CUR_hw_pct] AS CUR_hw_inc_pct
       ,[CUR_uniform_pct]
       ,[Y1_BOLD_points]
-      ,[Y1_hw_full_pct]
-      ,[Y1_hw_half_pct]
-      ,[Y1_hw_missing_pct]
+      ,[Y1_hw_pct] AS Y1_hw_comp_pct
+      ,100 - [Y1_hw_pct] AS Y1_hw_inc_pct
       ,[Y1_uniform_pct]
 FROM
     (
@@ -54,22 +48,16 @@ FROM
      UNPIVOT(
        value
        FOR field IN (uniform_pct
-                    ,hw_missing_pct
-                    ,hw_half_pct
-                    ,hw_full_pct
+                    ,hw_pct
                     ,BOLD_points)
       ) u
     ) sub
 PIVOT(
   MAX(value)
   FOR pivot_field IN ([CUR_BOLD_points]
-                     ,[CUR_hw_full_pct]
-                     ,[CUR_hw_half_pct]
-                     ,[CUR_hw_missing_pct]
+                     ,[CUR_hw_pct]                     
                      ,[CUR_uniform_pct]
                      ,[Y1_BOLD_points]
-                     ,[Y1_hw_full_pct]
-                     ,[Y1_hw_half_pct]
-                     ,[Y1_hw_missing_pct]
+                     ,[Y1_hw_pct]                     
                      ,[Y1_uniform_pct])
  ) p
