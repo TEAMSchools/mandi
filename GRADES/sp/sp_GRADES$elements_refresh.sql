@@ -55,17 +55,15 @@ BEGIN
                ,pgf.finalgradename
                ,pgf.percent                
          FROM pgfinalgrades pgf  
-         WHERE pgf.startdate >= TO_DATE(''2014-08-01'',''YYYY-MM-DD'')
+         WHERE pgf.startdate >= TO_DATE(''2015-07-01'',''YYYY-MM-DD'')
            AND pgf.startdate <= TRUNC(SYSDATE)    
            AND pgf.grade != ''--''
-           AND SUBSTR(pgf.finalgradename, 0, 1) != ''T''
+           AND SUBSTR(pgf.finalgradename, 0, 1) != ''Q''
        ') oq
        JOIN PS$CC#static cc WITH(NOLOCK)
          ON oq.sectionid = cc.sectionid
         AND oq.studentid = cc.STUDENTID
-      ) sub
-  --Rise uses Q for HW quality, others should be EXCLUDED
-  WHERE (sub.schoolid = 73252 OR (sub.schoolid != 73252 AND sub.pgf_type != 'Q'));
+      ) sub  
   
   SELECT sub_1.studentid
         ,sub_1.schoolid
@@ -147,7 +145,8 @@ BEGIN
   JOIN KIPP_NJ..GRADES$grade_scales#static scales WITH(NOLOCK)
     ON ele.simple_avg >= scales.low_cut 
    AND ele.simple_avg <  scales.high_cut
-   AND scales.scale_name = 'NCA 2011';
+   AND ((ele.schoolid = 73253 AND scales.scale_name = 'NCA 2011')
+         OR (ele.schoolid != 73253 AND scales.scale_name = 'Default'));
   
   EXEC('TRUNCATE TABLE dbo.[GRADES$elements]');
  
