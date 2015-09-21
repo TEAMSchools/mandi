@@ -11,6 +11,7 @@ WITH roster AS (
 		   ,s.lastfirst
 		   ,s.last_name
 		   ,s.first_name
+		   ,s.team
 		   ,CAST(s.grade_level AS VARCHAR(20)) AS grade_level
 		   ,s.schoolid
 		   ,schools.abbreviation
@@ -49,12 +50,12 @@ WITH roster AS (
 	 LEFT OUTER JOIN COHORT$student_homerooms hr WITH(NOLOCK)
 	   ON cohort.studentid = hr.studentid
 	  AND hr.rn_stu_year = 1
-	  AND hr.year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+	  AND hr.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
 	 LEFT OUTER JOIN PS$TEACHERS#static teachers WITH(NOLOCK)
 	   ON CAST(hr.teachernumber AS VARCHAR(20)) = CAST(teachers.teachernumber AS VARCHAR(20))
 
-	 WHERE cohort.year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+	 WHERE cohort.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
 	 --ORDER BY student_number
 
@@ -105,6 +106,7 @@ SELECT roster.last_name AS slast
 			WHEN roster.schoolid = 179902 THEN 'LM1'
 	   ELSE NULL
 	   END AS siteshortname
+	  ,roster.team AS homeroom
 
 FROM roster
 
@@ -115,7 +117,7 @@ ORDER BY roster.schoolid
 */
 
 --FASTT MATH
-/*
+--/*
 
 SELECT student_number AS SIS_ID
       ,grade_level AS GRADE
@@ -128,16 +130,17 @@ SELECT student_number AS SIS_ID
 
 FROM roster
 
---WHERE schoolid = 73252
-
 WHERE schoolid = 133570965
+  AND entrydate > '2015-08-05'
+
+--WHERE schoolid = 133570965
 
 ORDER BY schoolid
         ,grade
 		,lastfirst
 
 
-*/
+--*/
 
 --READ LIVE SERIOUSLY DIE
 --this gets a roster of all new students for Rise and TEAM... because you cannot update students via import to readlive, only add new students (!)
@@ -194,11 +197,15 @@ SELECT roster.student_number AS "Lexia id"
 	   END AS "Grade"
 	  ,roster.section_number AS "Class"
 	  ,roster.abbreviation AS "School"
+	  ,roster.dateenrolled AS NOIMPORT_HR_ENROLL
+	  ,roster.entrydate AS NOIMPORT_ENROLLDATE
 
 	  
 FROM roster
 
-WHERE roster.grade_level < 5 AND roster.schoolid != 73252
+--WHERE roster.grade_level < 5 AND roster.schoolid != 73252
+WHERE roster.schoolid IN (133570965,73252,73258,179902)
+   AND entrydate >= '2015-09-08'
 
 
 ORDER BY roster.abbreviation, roster.grade_level, roster.teacherloginid, roster.lastfirst
@@ -216,11 +223,13 @@ SELECT DISTINCT
       ,'C' AS "Access"
 	  ,roster.abbreviation AS "School"
 	  ,roster.section_number AS "Class"
+
 	 
 	  
 FROM roster
 
 WHERE roster.grade_level < 5 AND roster.schoolid != 73252
+
 
 ORDER BY roster.ABBREVIATION, roster.section_number
 
@@ -275,11 +284,14 @@ SELECT
 	END AS "permanent_login"
    ,'' AS "birth_date"
    ,'' AS "action"
-
+   ,roster.dateenrolled
+   ,roster.entrydate
 FROM roster
 
-WHERE grade_level < 5
-  AND schoolid != 73252
+WHERE grade_level <= 8
+--  AND schoolid != 73252
+   AND entrydate > '2015-09-01'
+   AND schoolid IN (133570965,73252,73258,179902)
 
 ORDER BY schoolid
         ,grade_level
