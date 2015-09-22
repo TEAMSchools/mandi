@@ -84,10 +84,10 @@ FROM
             END AS test_round
            ,CASE
              WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 1
-             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'T1' THEN 2
-             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','T2') THEN 3
-             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'T3' THEN 4
-             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'EOY' THEN 5       
+             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T1','Q1') THEN 2
+             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','T2','Q2') THEN 3
+             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T3','Q3') THEN 4
+             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('EOY','Q4') THEN 5       
             END AS round_num
            ,rs.test_date
            
@@ -114,9 +114,9 @@ FROM
              WHEN co.year >= 2015 AND rs.testid = 3273 THEN instr.lvl_num
              ELSE NULL 
             END AS dna_lvl_num
-           ,COALESCE(rs.instruct_lvl, gleq.instruct_lvl) AS instruct_lvl
-           ,COALESCE(instr.lvl_num, (gleq.lvl_num + 1)) AS instruct_lvl_num
-           ,COALESCE(rs.indep_lvl, rs.read_lvl) AS indep_lvl
+           ,rs.instruct_lvl
+           ,instr.lvl_num AS instruct_lvl_num
+           ,rs.indep_lvl
            ,ind.lvl_num AS indep_lvl_num
 
            /* progress to goals */      
@@ -163,7 +163,10 @@ FROM
        ON co.grade_level = goals.grade_level
       AND CASE
            WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q1' THEN 'T1'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','Q2') THEN 'T2'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q3' THEN 'T3'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q4' THEN 'EOY'
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = goals.test_round 
      LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
@@ -171,7 +174,10 @@ FROM
       AND co.year = indiv.academic_year
       AND CASE
            WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q1' THEN 'T1'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','Q2') THEN 'T2'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q3' THEN 'T3'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q4' THEN 'EOY'
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = indiv.test_round  
 
@@ -191,10 +197,10 @@ FROM
             END AS test_round
            ,CASE
              WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 1
-             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'T1' THEN 2
-             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'T2' THEN 3
-             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'T3' THEN 4
-             WHEN COALESCE(rs.test_round, dates.time_per_name) = 'EOY' THEN 5       
+             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T1','Q1') THEN 2
+             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','T2','Q2') THEN 3
+             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('T3','Q3') THEN 4
+             WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('EOY','Q4') THEN 5       
             END AS round_num
            ,rs.test_date
            
@@ -214,7 +220,7 @@ FROM
            ,0 AS dna_lvl_num
            ,COALESCE(rs.instruct_lvl, 'A') AS instruct_lvl
            ,0 AS instruct_lvl_num
-           ,COALESCE(rs.indep_lvl, rs.read_lvl, 'AA') AS indep_lvl
+           ,COALESCE(rs.indep_lvl, 'AA') AS indep_lvl
            ,-1 AS indep_lvl_num
 
            /* progress to goals */      
@@ -249,7 +255,10 @@ FROM
        ON co.grade_level = goals.grade_level
       AND CASE
            WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q1' THEN 'T1'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','Q2') THEN 'T2'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q3' THEN 'T3'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q4' THEN 'EOY'
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = goals.test_round 
      LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
@@ -257,7 +266,10 @@ FROM
       AND co.year = indiv.academic_year
       AND CASE
            WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q1' THEN 'T1'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','Q2') THEN 'T2'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q3' THEN 'T3'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q4' THEN 'EOY'
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = indiv.test_round  
      WHERE rs.testid = 3280
