@@ -19,8 +19,10 @@ FROM
            ,MAX(CONVERT(VARCHAR,co.date,1)) AS end_date
            ,SUM(CASE 
              WHEN logs.subtype = 'Silent Lunch' THEN -2
-             WHEN logs.subtype = 'Detention' THEN -4
-             WHEN logs.subtype = 'Class Removal' THEN -6
+             WHEN logs.subtype = 'Bench / Choices' THEN -4
+			 WHEN logs.subtype = 'Detention' THEN -4
+             WHEN logs.subtype = 'Recess Detention' THEN -4
+			 WHEN logs.subtype = 'Class Removal' THEN -6
              ELSE 0
             END) AS discipline_points      
            ,SUM(CASE
