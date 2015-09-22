@@ -55,7 +55,10 @@ FROM
            ,d.field8
            ,d.field9
            ,d.field10 AS bip_status
-     FROM KIPP_NJ..DAILY$tracking_long#staging d WITH(NOLOCK)
+           ,ROW_NUMBER() OVER(
+              PARTITION BY d.studentid, d.att_date
+                ORDER BY d.unique_id DESC) AS rn
+     FROM KIPP_NJ..DAILY$tracking_long#STAGING d WITH(NOLOCK)
      JOIN KIPP_NJ..COHORT$comprehensive_long#static co WITH(NOLOCK)
        ON d.STUDENTID = co.studentid
       AND CONVERT(DATE,d.ATT_DATE) BETWEEN co.entrydate AND co.exitdate
@@ -69,3 +72,4 @@ LEFT OUTER JOIN REPORTING$dates terms WITH(NOLOCK)
   ON daily.att_date BETWEEN terms.start_date AND terms.end_date
  AND daily.schoolid = terms.schoolid
  AND terms.identifier = 'RT'
+WHERE daily.rn = 1

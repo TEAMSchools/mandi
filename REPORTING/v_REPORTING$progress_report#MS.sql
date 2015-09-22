@@ -107,8 +107,8 @@ SELECT co.student_number
       /*--current term component averages--*/       
       /*All classes element averages for the year*/
       ,CONCAT(
-         gr_wide.HY_all + '% Completion / '
-        ,gr_wide.QY_all + '% Quality'
+         gr_wide.HY_all + '% Completion'
+        ,' / ' + gr_wide.QY_all + '% Quality'
         ) AS homework_year_avg      
       --,gr_wide.AY_all AS assess_year_avg       
        
@@ -141,7 +141,7 @@ SELECT co.student_number
       --,ele.rc8_Q AS rc8_cur_qual_pct     
 
       /* GPA - GPA$detail#MS*/     
-      ,CONCAT(gpa.GPA_y1_all, ' (', gpa.rank_gr_y1_all, '/', gpa.n_gr, ')') AS gpa_Y1     
+      ,gpa.GPA_y1_all + ' (' + gpa.rank_gr_y1_all + '/' + gpa.n_gr + ')' AS gpa_Y1     
       ,gpa_long.GPA_all AS gpa_curterm
 
       /* Attendance & Tardies - ATT_MEM$attendance_percentages, ATT_MEM$attendance_counts */    
@@ -234,7 +234,7 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_wide ar WITH(NOLOCK)
 /* XC */
 LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON co.student_number = xc.student_number
- AND xc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND co.year = xc.academic_year
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1        
   AND co.schoolid IN (73252, 133570965, 179902)

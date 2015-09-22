@@ -474,7 +474,7 @@ FROM
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
-        AND pivot_ele.pgf_type = 'Q'
+        AND pivot_ele.pgf_type = 'E'
         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
        
        UNION ALL
@@ -487,7 +487,7 @@ FROM
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
-        AND pivot_ele.pgf_type = 'Q'
+        AND pivot_ele.pgf_type = 'E'
         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
        
        UNION ALL
@@ -500,7 +500,7 @@ FROM
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND rost.course_number = pivot_ele.course_number
-        AND pivot_ele.pgf_type = 'Q'              
+        AND pivot_ele.pgf_type = 'E'              
         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
         
        UNION ALL 
@@ -513,7 +513,7 @@ FROM
        JOIN KIPP_NJ..GRADES$elements pivot_ele WITH (NOLOCK)
          ON rost.studentid = pivot_ele.studentid
         AND pivot_ele.course_number = 'all_courses'        
-        AND pivot_ele.pgf_type = 'Q'                     
+        AND pivot_ele.pgf_type = 'E'                     
         AND pivot_ele.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
 
        UNION ALL
