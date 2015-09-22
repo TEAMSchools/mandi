@@ -93,6 +93,32 @@ WITH max_grade AS (
   WHERE isdeleted = 0
  )
 
+,perisisting AS (
+  SELECT Student__c
+        ,Name
+        ,Status__c
+        --,Pursuing_Degree_Type__c
+        --,CASE
+        --  WHEN Pursuing_Degree_Type__c = 'Bachelor''s (4-year)' THEN 4
+        --  WHEN Pursuing_Degree_Type__c = 'Associate''s (2 year)' THEN 2
+        -- END AS degree_length
+        --,Start_Date__c
+        --,DATEDIFF(YEAR,Start_Date__c,GETDATE()) + 1 AS yrs_enrolled
+        --,Actual_End_Date__c      
+        --,Anticipated_Graduation__c
+        --,Date_Last_Verified__c
+        --,Type__c
+        ,ROW_NUMBER() OVER(
+           PARTITION BY student__c
+             ORDER BY start_date__c DESC) AS rn
+  FROM [AlumniMirror].[dbo].[Enrollment__c] WITH(NOLOCK)
+  WHERE Type__c = 'College'
+    AND Pursuing_Degree_Type__c IN ('Bachelor''s (4-year)', 'Associate''s (2 year)')
+    AND Status__c NOT IN ('Did Not Enroll', 'Graduated', 'Deferred', 'Matriculated', 'Transferred out')
+    AND (Actual_End_Date__c IS NULL OR CONVERT(DATE,Actual_End_Date__c) >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(),'-08-01')))
+    AND CONVERT(DATE,Start_Date__c) <= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(),'-09-21'))
+  )
+
 SELECT scaff.academic_year
       ,scaff.month
       ,scaff.counselor_id
@@ -119,6 +145,11 @@ SELECT scaff.academic_year
       ,con.Category__c
       ,con.Subject__c
       ,con.Comments__c
+      ,CASE WHEN p.Status__c IS NOT NULL THEN 1 END AS is_persisting_baseline
+      ,CASE 
+        WHEN p.Status__c = 'Attending' THEN 1
+        WHEN p.Status__c = 'Withdrawn' THEN 0
+       END AS is_persisting
 FROM roster_scaffold scaff WITH(NOLOCK)
 LEFT OUTER JOIN combined_roster r WITH(NOLOCK)
   ON scaff.counselor_id = r.counselor_id
@@ -129,3 +160,6 @@ LEFT OUTER JOIN contact_long con WITH(NOLOCK)
  AND scaff.salesforce_id = con.salesforce_id
  AND scaff.academic_year = con.academic_year
  AND scaff.month = con.month
+LEFT OUTER JOIN perisisting p WITH(NOLOCK)
+  ON scaff.salesforce_id = p.Student__c
+ AND p.rn = 1
