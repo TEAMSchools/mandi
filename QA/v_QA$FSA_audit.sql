@@ -12,6 +12,7 @@ SELECT DISTINCT
       ,a.teachernumber
       ,a.created_by
       ,a.standard_code
+      ,a.standard_description
       ,d.time_per_name
 FROM KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
 JOIN KIPP_NJ..ILLUMINATE$assessments_sites#static sch WITH(NOLOCK)
