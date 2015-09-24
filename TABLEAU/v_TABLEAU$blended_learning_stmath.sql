@@ -43,8 +43,9 @@ WITH
 	    ON cc.course_number = courses.course_number
 	  JOIN KIPP_NJ..STUDENTS WITH (NOLOCK)
 	    ON cc.studentid = students.id
-       AND students.grade_level >= 5
+       AND students.grade_level >= 4
        AND students.grade_level <= 8
+	   AND students.schoolid IN (133570965,73252,179902)
 	  WHERE courses.credittype LIKE '%MATH%' 
 		AND cc.TERMID >= dbo.fn_Global_Term_Id()
 		AND cc.dateenrolled <= GETDATE()
@@ -69,6 +70,7 @@ WITH
 	  JOIN KIPP_NJ..PS$STUDENTS#static students WITH (NOLOCK)
 	    ON cc.studentid = students.id
 	   AND students.grade_level <=4
+	   AND students.schoolid != 73252
      WHERE courses.course_number = 'HR'
 	   AND cc.TERMID >= dbo.fn_Global_Term_Id()
        AND cc.dateenrolled <= GETDATE()
@@ -102,12 +104,12 @@ WITH
        ,rr.keep_up_rit
        ,rr.rutgers_ready_rit
 	FROM MAP$best_baseline#static map_math WITH(NOLOCK)
- LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
-   ON map_math.studentid = rr.studentid
-  AND map_math.year = rr.year
-  AND map_math.measurementscale = rr.measurementscale
+	LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
+		ON map_math.studentid = rr.studentid
+		AND map_math.year = rr.year
+		AND map_math.measurementscale = rr.measurementscale
 	WHERE map_math.measurementscale LIKE 'Math%' 
-	 AND map_math.year = dbo.fn_Global_Academic_Year()	 
+		AND map_math.year = dbo.fn_Global_Academic_Year()	 
 	)
 
 SELECT roster.*

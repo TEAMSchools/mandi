@@ -9,7 +9,7 @@ WITH observed_completion AS (
         ,SUM(K_5_Progress) AS total_completion
   FROM STMath..prep_blended_tracker_long WITH(NOLOCK)
   WHERE comp_type = 'Observed'
-    AND school_year = 2014
+    AND school_year = dbo.fn_Global_Academic_Year()
   GROUP BY studentid
  )
   
@@ -30,7 +30,7 @@ WITH observed_completion AS (
        FROM STMath..completion_by_week st WITH(NOLOCK)
        JOIN max_week WITH(NOLOCK)
          ON st.week_num <= max_week.max_week - 1
-        AND st.start_year = 2014
+        AND st.start_year = dbo.fn_Global_Academic_Year()
        GROUP BY st.studentid
                ,st.start_year
                ,st.gcd_sort

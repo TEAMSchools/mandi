@@ -8,7 +8,7 @@ WITH observed_completion AS
            ,SUM(K_5_Progress) AS total_completion
      FROM STMath..prep_blended_tracker_long WITH(NOLOCK)
      WHERE comp_type = 'Observed'
-       AND school_year = 2014
+       AND school_year = dbo.fn_Global_Academic_Year()
      GROUP BY studentid
      )
 
@@ -22,8 +22,9 @@ WITH observed_completion AS
        ON s.id = cc.studentid
       AND cc.dateenrolled <= GETDATE()
       AND cc.dateleft >= GETDATE()
-      AND s.grade_level >= 5
+      AND s.grade_level >= 4
       AND s.grade_level <= 8
+	  and S.SCHOOLID IN (73252,133570965,179902)
      JOIN KIPP_NJ..PS$COURSES#static courses  WITH(NOLOCK)
        ON cc.course_number = courses.course_number
       AND courses.credittype LIKE '%MATH%'
@@ -44,6 +45,7 @@ WITH observed_completion AS
       AND cc.dateenrolled <= GETDATE()
       AND cc.dateleft >= GETDATE()
       AND s.grade_level <= 4
+	  AND s.grade_level != 73252
      JOIN KIPP_NJ..PS$COURSES#static courses WITH(NOLOCK)
        ON cc.course_number = courses.course_number
       AND courses.course_number LIKE '%HR%'
@@ -69,7 +71,7 @@ WITH observed_completion AS
             FROM STMath..completion_by_week st WITH(NOLOCK)
             JOIN max_week
               ON st.week_num <= max_week.max_week - 1
-             AND st.start_year = 2014
+             AND st.start_year = dbo.fn_Global_Academic_Year()
             GROUP BY st.studentid
                     ,st.start_year
                     ,st.gcd_sort
