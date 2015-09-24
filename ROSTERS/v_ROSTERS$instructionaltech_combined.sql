@@ -130,8 +130,8 @@ SELECT student_number AS SIS_ID
 
 FROM roster
 
-WHERE schoolid = 133570965
-  AND entrydate > '2015-08-05'
+WHERE schoolid = 179902
+ -- AND entrydate > '2015-08-05'
 
 --WHERE schoolid = 133570965
 
@@ -203,10 +203,10 @@ SELECT roster.student_number AS "Lexia id"
 	  
 FROM roster
 
---WHERE roster.grade_level < 5 AND roster.schoolid != 73252
-WHERE roster.schoolid IN (133570965,73252,73258,179902)
-   AND entrydate >= '2015-09-08'
-
+WHERE roster.schoolid = 73258
+-- roster.schoolid IN (133570965,73252,73258,179902)
+  -- WHERE entrydate >= '2015-09-08'
+ 
 
 ORDER BY roster.abbreviation, roster.grade_level, roster.teacherloginid, roster.lastfirst
 
@@ -288,10 +288,9 @@ SELECT
    ,roster.entrydate
 FROM roster
 
-WHERE grade_level <= 8
---  AND schoolid != 73252
-   AND entrydate > '2015-09-01'
-   AND schoolid IN (133570965,73252,73258,179902)
+WHERE schoolid = 73258
+--   AND entrydate > '2015-09-10'
+--   AND schoolid IN (133570965,73252,73258,179902)
 
 ORDER BY schoolid
         ,grade_level
