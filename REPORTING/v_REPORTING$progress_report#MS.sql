@@ -141,7 +141,7 @@ SELECT co.student_number
       --,ele.rc8_Q AS rc8_cur_qual_pct     
 
       /* GPA - GPA$detail#MS*/     
-      ,gpa.GPA_y1_all + ' (' + gpa.rank_gr_y1_all + '/' + gpa.n_gr + ')' AS gpa_Y1     
+      ,CONVERT(VARCHAR,gpa.GPA_y1_all) + ' (' + CONVERT(VARCHAR,gpa.rank_gr_y1_all) + '/' + CONVERT(VARCHAR,gpa.n_gr) + ')' AS gpa_Y1     
       ,gpa_long.GPA_all AS gpa_curterm
 
       /* Attendance & Tardies - ATT_MEM$attendance_percentages, ATT_MEM$attendance_counts */    

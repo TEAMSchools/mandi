@@ -27,12 +27,13 @@ SELECT co.studentid
       ,supp.behavior_tier
       ,supp.plan_owner
       ,supp.admin_support
-FROM COHORT$identifiers_long#static co WITH(NOLOCK)
-JOIN DISC$log#static disc WITH(NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..DISC$log#static disc WITH(NOLOCK)
   ON co.studentid = disc.studentid
  AND co.year = disc.academic_year
  AND disc.logtypeid = 3123
-LEFT OUTER JOIN AUTOLOAD$GDOCS_SUPPORT_Master_List supp WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_SUPPORT_Master_List supp WITH(NOLOCK)
   ON co.student_number = supp.SN
+ AND co.year = supp.academic_year
 WHERE co.grade_level < 5  
   AND co.rn = 1  

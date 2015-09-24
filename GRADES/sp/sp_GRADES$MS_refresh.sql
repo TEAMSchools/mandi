@@ -167,7 +167,7 @@ BEGIN
       ON pgf.sectionid = cc.sectionid
      AND pgf.studentid = cc.studentid
      AND cc.termid >= ' + CONVERT(VARCHAR,  @v_termid) + '
-     AND cc.schoolid IN (73252, 133570965)         
+     AND cc.schoolid IN (73252, 133570965, 179902)         
     WHERE pgf.finalgradename IN (''''' + @v_grade_1 + ''''','''''+ @v_grade_2 +''''','''''+ @v_grade_3 +''''')      
   '');
 ';
@@ -193,7 +193,7 @@ BEGIN
       AND credit_type   != ''''' + @v_credit_ex_log + '''''
       AND course_number != ''''' + @v_course_ex_hr + '''''
       AND course_number != ''''' + @v_course_ex_chk + '''''
-      AND schoolid IN (73252, 133570965)
+      AND schoolid IN (73252, 133570965, 179902)
   '');';
 
  INSERT INTO #TEMP_GRADES$MS#SG
@@ -238,7 +238,7 @@ BEGIN
      ON cc.course_number = c.course_number
     AND c.CREDITTYPE NOT IN ('LOG')
    WHERE co.YEAR = dbo.fn_Global_Academic_Year()
-     AND co.schoolid IN (73252, 133570965)
+     AND co.schoolid IN (73252, 133570965, 179902)
      AND co.rn = 1
   )
 

@@ -16,7 +16,7 @@ WITH roster AS (
   JOIN KIPP_NJ..REPORTING$dates terms WITH(NOLOCK) 
     ON co.schoolid = terms.schoolid
    AND co.year = terms.academic_year
-   AND terms.identifier IN ('HEX', 'RT_IR')
+   AND terms.identifier = 'AR'
   WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND co.schoolid = 73253    
     AND co.rn = 1
@@ -65,7 +65,7 @@ WITH roster AS (
 
 ,google_doc AS (  
   SELECT [SN] AS student_number
-        ,CONVERT(INT,[points goal]) AS points_goal
+        ,CONVERT(INT,points_goal) AS points_goal
         ,term        
         ,ROW_NUMBER() OVER(
            PARTITION BY [SN], term

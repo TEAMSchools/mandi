@@ -59,7 +59,7 @@ WITH standard_descriptions AS (
               ON co.schoolid = d.schoolid
              AND ((co.schoolid != 73258 AND ovr.date_taken BETWEEN DATEADD(DAY, (3 - DATEPART(DW,d.start_date)), d.start_date) /* Tuesday start */
                                                                AND DATEADD(DAY, 7, (DATEADD(DAY,(2 - DATEPART(DW,d.start_date)), d.start_date)))) /* Monday end */
-               OR (co.schoolid = 73258 AND ovr.date_taken BETWEEN DATEADD(DAY, 1, d.start_date) AND DATEADD(DAY, 1, d.end_date))) /* Tues - Mon for BOLD */
+               OR (co.schoolid = 73258 AND ovr.date_taken BETWEEN d.start_date AND d.end_date)) /* Tues - Mon for BOLD */
              AND d.identifier = 'REP'
             JOIN KIPP_NJ..ILLUMINATE$assessments_long#static a WITH(NOLOCK)
               ON co.schoolid = a.schoolid             
