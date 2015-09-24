@@ -108,29 +108,29 @@ FROM
                  END AS promo_grades_team
                 ,gpa.GPA_y1_all
                 ,gpa.GPA_y1_core
-                ,CAST(mem.Y1_MEM AS VARCHAR) + ' - (' 
-                  + CAST(ac.Y1_ABS_ALL AS VARCHAR) + ' + (' 
-                  + CAST(ac.Y1_T_ALL AS VARCHAR) + ' / 3)) / ' 
-                  + CAST(mem.y1_mem AS VARCHAR) AS att_pts_string
+                ,CONCAT(mem.Y1_MEM, ' - ('
+                       ,ac.Y1_ABS_ALL, ' + ('
+                       ,ac.Y1_T_ALL, ' / 3)) / '
+                       ,mem.y1_mem) AS att_pts_string
                 ,ac.Y1_ABS_ALL + FLOOR(ac.Y1_T_ALL / 3) AS attendance_points
                 ,ROUND(((mem.Y1_MEM - (ac.Y1_ABS_ALL + FLOOR(ac.Y1_T_ALL / 3))) / mem.Y1_MEM) * 100, 2) AS y1_att_pts_pct
                 ,hw.simple_avg
                 ,mem.Y1_MEM
-          FROM COHORT$comprehensive_long#static co WITH (NOLOCK)
-          LEFT OUTER JOIN GRADES$wide_all#MS#static gr_wide WITH (NOLOCK)
+          FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH (NOLOCK)
+          LEFT OUTER JOIN KIPP_NJ..GRADES$wide_all#MS#static gr_wide WITH (NOLOCK)
             ON co.studentid = gr_wide.studentid
-          LEFT OUTER JOIN GPA$detail#MS gpa WITH (NOLOCK)
+          LEFT OUTER JOIN KIPP_NJ..GPA$detail#MS gpa WITH (NOLOCK)
             ON co.studentid = gpa.studentid
-          LEFT OUTER JOIN ATT_MEM$attendance_counts#static ac WITH (NOLOCK)
+          LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts#static ac WITH (NOLOCK)
             ON co.studentid = ac.studentid
-          LEFT OUTER JOIN ATT_MEM$membership_counts#static mem WITH (NOLOCK)
+          LEFT OUTER JOIN KIPP_NJ..ATT_MEM$membership_counts#static mem WITH (NOLOCK)
             ON co.studentid = mem.studentid
-          LEFT OUTER JOIN GRADES$elements hw WITH (NOLOCK)
+          LEFT OUTER JOIN KIPP_NJ..GRADES$elements hw WITH (NOLOCK)
             ON co.studentid = hw.studentid
            AND hw.pgf_type = 'H'
            AND hw.course_number = 'all_courses'
-           AND hw.yearid = LEFT(dbo.fn_Global_Term_ID(), 2)
-          WHERE co.year = dbo.fn_Global_Academic_Year()
+           AND hw.yearid = LEFT(KIPP_NJ.dbo.fn_Global_Term_ID(), 2)
+          WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
             AND co.schoolid IN (73252, 133570965)
             AND co.rn = 1
          ) sub

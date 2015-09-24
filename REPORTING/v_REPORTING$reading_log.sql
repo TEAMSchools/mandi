@@ -15,6 +15,37 @@ WITH curhex AS (
     AND school_level = 'MS'
  )
 
+,fp AS (
+  SELECT STUDENTID
+        ,base AS fp_base
+        ,COALESCE(curr, base) AS fp_curr
+  FROM
+      (
+       SELECT STUDENTID           
+             ,read_lvl
+             ,COALESCE(
+                CASE 
+                 WHEN ROW_NUMBER() OVER(
+                        PARTITION BY studentid, academic_year
+                          ORDER BY start_date ASC) = 1 THEN 'base'
+                 ELSE NULL
+                END
+               ,CASE
+                 WHEN ROW_NUMBER() OVER(
+                        PARTITION BY studentid, academic_year
+                          ORDER BY start_date DESC) = 1 THEN 'curr' 
+                 ELSE NULL
+                END) AS pivot_hash
+       FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
+       WHERE read_lvl IS NOT NULL
+         AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+      ) sub
+  PIVOT(
+    MAX(read_lvl)
+    FOR pivot_hash IN ([base],[curr])
+   ) p
+)
+
 ,ar_wide AS (
   SELECT *
   FROM
@@ -109,44 +140,49 @@ SELECT roster.studentid
       ,roster.full_name AS name
       ,roster.school_name AS school     
       ,enr.course_name + '|' + enr.section_number AS enr_hash
-      ,gr.course_number
-      ,gr.course_name
+      ,enr.course_number
+      ,enr.course_name
+
+      /* grades */
       ,gr_cur.term_pct AS cur_term_rdg_gr
       ,gr.Y1 AS y1_rdg_gr
       ,ele.grade AS cur_term_rdg_hw_avg
       ,ele_y1.grade AS y1_rdg_hw_avg
-      ,COALESCE(fp_base.read_lvl, fp_gro.yr_cur_read_lvl) AS fp_base_letter
-      ,COALESCE(fp_gro.yr_cur_read_lvl, fp_gro.yr_dna_read_lvl) AS fp_cur_letter
+      
+      /* F&P */
+      ,fp.fp_base AS fp_base_letter
+      ,fp.fp_curr AS fp_cur_letter
+      
+      /* MAP */
       ,base.testritscore AS map_baseline
       ,COALESCE(cur_rit.TestRITScore, base.testritscore) AS cur_RIT
-      ,COALESCE(cur_rit.TestPercentile, base.testpercentile) AS cur_RIT_percentile
-       --use MAP for lexile      
+      ,COALESCE(cur_rit.TestPercentile, base.testpercentile) AS cur_RIT_percentile       
+      /* Lexile */
       ,base.lexile_score AS lexile_baseline_MAP
       ,map_fall.rittoreadingscore AS lexile_fall
-      ,map_winter.rittoreadingscore AS lexile_winter
-       --readlive
+      ,map_winter.rittoreadingscore AS lexile_winter       
+      
+      /* Readlive = ded */
       ,NULL /*rl_base.wpm*/ AS starting_fluency
       ,NULL /*COALESCE(rl_cur.wpm, rl_base.wpm)*/ AS cur_fluency      
  
-       --AR cur
+       /* AR curterm */
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, AR_CUR.WORDS),1),'.00','') AS HEX_WORDS
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, AR_CUR.WORDS_GOAL),1),'.00','') AS HEX_GOAL
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, CAST(ROUND(AR_CUR.ONTRACK_WORDS,0) AS INT)),1),'.00','') AS HEX_NEEDED
       ,ar_cur.stu_status_words AS hex_on_track
       ,ar_cur.rank_words_grade_in_school AS hex_rank_words
       ,ar_cur.N_passed
-      ,ar_cur.N_total
-      --accuracy cur term
+      ,ar_cur.N_total      
       ,ar_cur.mastery AS cur_accuracy
       ,ar_cur.mastery_fiction AS cur_accuracy_fiction
       ,ar_cur.mastery_nonfiction AS cur_accuracy_nonfiction
 
-       --AR year
+       /* AR yr */
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,AR_YEAR.WORDS),1),'.00','') AS YEAR_WORDS
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,AR_YEAR.WORDS_GOAL),1),'.00','') AS YEAR_GOAL
       ,100 - ar_year.pct_fiction AS year_pct_nf 
-      ,ar_year.rank_words_grade_in_school AS year_rank_words
-      --accuracy year
+      ,ar_year.rank_words_grade_in_school AS year_rank_words      
       ,ar_year.mastery AS accuracy
       ,ar_year.mastery_fiction AS accuracy_fiction
       ,ar_year.mastery_nonfiction AS accuracy_nonfiction
@@ -154,7 +190,7 @@ SELECT roster.studentid
       ,ar_year.n_nonfic
       ,ROUND((CONVERT(FLOAT,ar_year.N_passed) / CONVERT(FLOAT,ar_year.N_total) * 100), 1) AS pct_passing_yr
       
-      --AR by Hex
+      /* AR by hex */
       ,[HEX1_accuracy_all]
       ,[HEX1_accuracy_fiction]
       ,[HEX1_accuracy_nonfiction]
@@ -230,15 +266,8 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$elements_long ele_y1 WITH(NOLOCK)
  AND gr.course_number = ele_y1.course_number  
  AND ele_y1.term = 'Y1'
  AND ele_y1.pgf_type = 'H'
-LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers fp_base WITH(NOLOCK)
-  ON roster.STUDENTID = fp_base.studentid
- AND roster.year = fp_base.academic_year
- AND fp_base.base_yr = 1
- AND fp_base.status = 'Achieved'
-LEFT OUTER JOIN KIPP_NJ..LIT$growth_measures_wide#static fp_gro WITH(NOLOCK)
-  ON roster.studentid = fp_gro.studentid
- AND roster.year = fp_gro.year
---RIT, NWEA LEXILE
+LEFT OUTER JOIN fp
+  ON roster.studentid = fp.STUDENTID
 LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
   ON roster.studentid = base.studentid
  AND base.year = dbo.fn_Global_Academic_Year()
@@ -266,9 +295,6 @@ LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static cur_rit WITH(NOLOCK)
  AND roster.year = cur_rit.academic_year
  AND cur_rit.MeasurementScale = 'Reading'    
  AND cur_rit.rn_curr = 1  
-
---AR
---current
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_cur WITH(NOLOCK)
   ON roster.studentid = ar_cur.studentid
  AND roster.year = ar_cur.academic_year

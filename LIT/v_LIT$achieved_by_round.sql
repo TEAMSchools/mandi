@@ -3,49 +3,28 @@ GO
 
 ALTER VIEW LIT$achieved_by_round AS
 
-WITH roster AS (
-  SELECT STUDENTID
-        ,student_number
-        ,SCHOOLID
-        ,GRADE_LEVEL
-        ,YEAR
-        ,exitdate
-  FROM KIPP_NJ..COHORT$identifiers_long#static WITH(NOLOCK)      
-  WHERE grade_level <= 8
-    AND RN = 1
- )
-
-/* active lit rounds by school */
-,terms AS (      
-  SELECT academic_year
-        ,schoolid        
-        ,CASE 
-          WHEN school_level = 'MS' AND time_per_name = 'DR' THEN 'BOY' 
-          ELSE REPLACE(time_per_name, 'Diagnostic', 'DR')
-         END AS test_round
-        ,start_date
-        ,ROW_NUMBER() OVER (
-           PARTITION BY academic_year, schoolid
-           ORDER BY start_date ASC) AS round_num
-  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
-  WHERE identifier = 'LIT'          
- )
- 
-,roster_scaffold AS (
+WITH roster_scaffold AS (
   SELECT r.STUDENTID
         ,r.student_number
         ,r.SCHOOLID
         ,r.GRADE_LEVEL
         ,r.year AS academic_year
-        ,terms.test_round
-        ,terms.round_num
+        ,CASE 
+          WHEN terms.school_level = 'MS' AND terms.time_per_name = 'DR' THEN 'BOY' 
+          ELSE REPLACE(terms.time_per_name, 'Diagnostic', 'DR')
+         END AS test_round
+        ,ROW_NUMBER() OVER (
+           PARTITION BY r.studentid, r.year
+             ORDER BY terms.start_date ASC) AS round_num
         ,terms.start_date
-  FROM roster r WITH(NOLOCK)
-  JOIN terms WITH(NOLOCK)
+  FROM KIPP_NJ..COHORT$identifiers_long#static r WITH(NOLOCK)
+  JOIN KIPP_NJ..REPORTING$dates terms WITH(NOLOCK)
     ON r.year = terms.academic_year 
    AND r.schoolid = terms.schoolid
-   AND r.exitdate > terms.start_date
-         --OR (r.grade_level <= 4 AND r.year <= 2012 AND terms.schoolid IS NULL AND r.year = terms.academic_year)) -- ES rounds for archive years
+   AND r.exitdate > terms.start_date       
+   AND terms.identifier = 'LIT'          
+  WHERE r.grade_level <= 8
+    AND r.rn = 1  
  )
 
 /* highest acheived test per round for each student */
@@ -58,19 +37,18 @@ WITH roster AS (
         ,r.test_round
         ,r.round_num
         ,r.start_date
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.read_lvl ELSE achv.read_lvl END AS read_lvl
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.lvl_num ELSE achv.lvl_num END AS lvl_num
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.indep_lvl ELSE achv.indep_lvl END AS indep_lvl
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.indep_lvl_num ELSE achv.indep_lvl_num END AS indep_lvl_num
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.instruct_lvl ELSE achv.instruct_lvl END AS instruct_lvl
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.instruct_lvl_num ELSE achv.instruct_lvl_num END AS instruct_lvl_num
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.GLEQ ELSE achv.GLEQ END AS GLEQ
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.fp_wpmrate ELSE achv.fp_wpmrate END AS fp_wpmrate
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.fp_keylever ELSE achv.fp_keylever END AS fp_keylever
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.dna_lvl ELSE dna.read_lvl END AS dna_lvl
-        ,CASE WHEN r.academic_year >= 2015 THEN dna.dna_lvl_num ELSE dna.lvl_num END AS dna_lvl_num
-        ,dna.unique_id
-        --,CASE WHEN r.academic_year >= 2015 THEN dna.unique_id ELSE achv.unique_id END AS unique_id /* zomg */
+        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.achieved_independent_level, dna.read_lvl) ELSE achv.read_lvl END AS read_lvl
+        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.indep_lvl_num, dna.lvl_num) ELSE achv.lvl_num END AS lvl_num
+        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.achieved_independent_level, dna.indep_lvl) ELSE achv.indep_lvl END AS indep_lvl
+        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.indep_lvl_num, dna.indep_lvl_num) ELSE achv.indep_lvl_num END AS indep_lvl_num
+        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.instructional_level_tested, dna.instruct_lvl) ELSE achv.instruct_lvl END AS instruct_lvl
+        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.instr_lvl_num, dna.instruct_lvl_num) ELSE achv.instruct_lvl_num END AS instruct_lvl_num
+        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.GLEQ, dna.GLEQ) ELSE achv.GLEQ END AS GLEQ
+        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.reading_rate_wpm, dna.fp_wpmrate) ELSE achv.fp_wpmrate END AS fp_wpmrate
+        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.key_lever, dna.fp_keylever) ELSE achv.fp_keylever END AS fp_keylever
+        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.instructional_level_tested, dna.dna_lvl) ELSE dna.read_lvl END AS dna_lvl
+        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.instr_lvl_num, dna.dna_lvl_num) ELSE dna.lvl_num END AS dna_lvl_num
+        ,dna.unique_id --,CASE WHEN r.academic_year >= 2015 THEN dna.unique_id ELSE achv.unique_id END AS unique_id /* zomg */
         ,ROW_NUMBER() OVER(
            PARTITION BY r.studentid
              ORDER BY r.academic_year DESC, r.round_num DESC) AS meta_achv_round
@@ -79,7 +57,7 @@ WITH roster AS (
     ON r.STUDENTID = achv.studentid      
    AND r.academic_year = achv.academic_year
    AND r.test_round = achv.test_round
-   AND achv.status = 'Achieved'
+   AND (achv.status = 'Achieved')
    AND achv.curr_round = 1
   LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers dna WITH(NOLOCK)
     ON r.STUDENTID = dna.studentid      
@@ -87,6 +65,11 @@ WITH roster AS (
    AND r.test_round = dna.test_round
    AND dna.status = 'Did Not Achieve'
    AND dna.curr_round = 1
+  LEFT OUTER JOIN KIPP_NJ..LIT$test_events#MS#static fp WITH(NOLOCK)
+    ON r.student_number = fp.student_number
+   AND r.academic_year = fp.academic_year
+   AND r.test_round = fp.test_round
+   AND fp.curr_round = 1
  )
  
 /* falls back to most recently achieved reading level for each round, if NULL */

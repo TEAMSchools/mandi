@@ -7,6 +7,7 @@ SELECT s.LASTFIRST AS Name
       ,s.GRADE_LEVEL AS Gr
       ,s.Advisor      
       ,dates.alt_name AS Term
+      ,DATENAME(MONTH,disc.entry_date) AS [Demerit Cycle]
       ,CONVERT(VARCHAR,disc.entry_date,101) AS [Log Date]
       ,disc.entry_author AS [Log Author]
       ,disc.logtype AS [Type]
