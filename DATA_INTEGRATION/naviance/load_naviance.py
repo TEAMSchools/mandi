@@ -9,20 +9,19 @@ import json
 CONFIG
 """
 # file paths
-save_path = "W:\\data_robot\\naviance\\"
-save_path_server = "C:\\data_robot\\naviance\\"
+save_path = ''
 
 # login files
-nav_secret = "W:\\data_robot\\logistical\\naviance_secret.json"
-db_secret = "W:\\data_robot\\logistical\\nardo_secret.json"
+nav_secret = ''
+db_secret = ''
 
 # urls
 LOGIN_URL = 'https://succeed.naviance.com/auth/signin'
 EXPORT_URL = 'https://succeed.naviance.com/setupmain/export.php'
 
 # db config
-server_name = "WINSQL01\NARDO"
-db_name = "KIPP_NJ"
+server_name = ''
+db_name = ''
 
 # keys
 keys = json.load(file(nav_secret))
@@ -116,13 +115,29 @@ print 'Connecting to SQL Server to load csv files into database...'
 conn = pymssql.connect(server_name, db_user, db_pass, db_name)
 cursor = conn.cursor()
 
-query = "sp_LoadFolder '" + db_name + "', '" + save_path_server + "'"
+query = "sp_LoadFolder '" + db_name + "', '" + save_path + "'"
 print 'Running "EXEC ' + query + '"'
-cursor.execute(query)
+try:
+    cursor.execute(query)
+    print 'NARDO say: ' + cursor.fetchall()[0][0]
+    conn.commit()
+    conn.close()
+except:
+    print '!!! ERROR LOADING FOLDER !!!'
+    warn_email = """
+        DECLARE @body VARCHAR(MAX);
+        SET @body = 'The database load failed for ' + '""" + save_path + """' + '.  Check that the GDocs source still matches the destination table and reset if necessary.';
 
-print 'NARDO say: ' + cursor.fetchall()[0][0]
-conn.commit()
-conn.close()
+        EXEC msdb..sp_send_dbmail
+            @profile_name = '',
+            @recipients = '',
+            @body = @body,
+            @subject = '!!! WARNING - NAVIANCE sp_LoadFolder fail !!!',
+            @importance = 'High';
+    """        
+    cursor.execute(warn_email)        
+    conn.commit()
+    conn.close()
 
 print
 print 'All done! Have a great day!'
