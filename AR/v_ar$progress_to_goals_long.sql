@@ -22,7 +22,7 @@ WITH long_goals AS (
   LEFT OUTER JOIN KIPP_NJ..REPORTING$dates sy WITH(NOLOCK)
     ON cohort.year = sy.academic_year
    AND sy.identifier = 'SY'  
-  LEFT OUTER JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..AR$goals goals WITH (NOLOCK)
     ON cohort.student_number = goals.student_number   
    AND cohort.year = goals.academic_year
    AND goals.time_period_hierarchy = 1
@@ -50,7 +50,7 @@ WITH long_goals AS (
     ON cohort.year = hex.academic_year
    AND cohort.schoolid = hex.schoolid
    AND ((cohort.year <= 2014 AND hex.identifier = 'HEX') OR (cohort.year >= 2015 AND hex.identifier = 'RT'))
-  LEFT OUTER JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..AR$goals goals WITH(NOLOCK)
      ON cohort.student_number = goals.student_number
     AND cohort.year = goals.academic_year
     AND hex.time_per_name = REPLACE(REPLACE(REPLACE(goals.time_period_name, 'Trimester ', 'RT'), 'Reporting Term ', 'RT'), 'Hexameter ', 'RT')
@@ -94,7 +94,7 @@ WITH long_goals AS (
                              ,goals.time_period_end
                      ORDER BY detail.dttaken DESC) AS rn_desc
        FROM KIPP_NJ..AR$test_event_detail#static detail WITH(NOLOCK)
-       LEFT OUTER JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH(NOLOCK)
+       LEFT OUTER JOIN KIPP_NJ..AR$goals goals WITH(NOLOCK)
          ON detail.student_number = goals.student_number
         AND detail.dtTaken BETWEEN goals.time_period_start AND goals.time_period_end
       ) sub

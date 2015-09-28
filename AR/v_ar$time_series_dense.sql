@@ -167,7 +167,7 @@ FROM
                       FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
                       JOIN reporting_weeks wk WITH(NOLOCK)
                         ON co.entrydate <= wk.week_start
-                      LEFT OUTER JOIN KIPP_NJ..AR$goals_long_decode#static goals WITH (NOLOCK)
+                      LEFT OUTER JOIN KIPP_NJ..AR$goals goals WITH (NOLOCK)
                         ON co.student_number = goals.student_number  
                        AND wk.week_start BETWEEN goals.time_period_start AND goals.time_period_end  
                       WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  

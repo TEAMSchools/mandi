@@ -127,15 +127,15 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q4 WITH (NOLOCK)
   ON s.studentid = ar_q4.studentid
  AND ar_q4.time_period_name = 'RT4'
  AND ar_q4.yearid = dbo.fn_Global_Term_Id()                    
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_cur WITH (NOLOCK)
-  ON s.studentid = lex_cur.ps_studentid
- AND lex_cur.measurementscale  = 'Reading'
- AND lex_cur.map_year_academic = dbo.fn_Global_Academic_Year()
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_cur WITH (NOLOCK)
+  ON s.student_number = lex_cur.student_number
+ AND s.year = lex_cur.academic_year
+ AND lex_cur.measurementscale  = 'Reading' 
  AND lex_cur.rn_curr = 1
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
-  ON s.studentid = lex_base.ps_studentid
- AND lex_base.measurementscale  = 'Reading'
- AND lex_base.map_year_academic = dbo.fn_Global_Academic_Year()
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_base WITH (NOLOCK)
+  ON s.student_number = lex_base.student_number
+ AND s.year = lex_base.academic_year
+ AND lex_base.measurementscale  = 'Reading' 
  AND lex_base.rn_base = 1
 WHERE s.schoolid = 73253
   AND s.enroll_status = 0

@@ -131,59 +131,57 @@ SELECT s.LASTFIRST
       ,CASE WHEN ROUND(((ar_q3.points / ar_q3.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q3
       ,CASE WHEN ROUND(((ar_q4.points / ar_q4.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q4
       ,CASE WHEN ROUND(((ar_yr.points / ar_yr.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_yr            
-FROM KIPP_NJ..PS$STUDENTS#static s WITH (NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_long#static s WITH (NOLOCK)
 LEFT OUTER JOIN PS$CUSTOM_STUDENTS#static cs WITH (NOLOCK)
-  ON s.ID = cs.STUDENTID
+  ON s.studentid = cs.STUDENTID
 CROSS JOIN curterm  
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
-  ON s.id = ar_yr.studentid 
+  ON s.studentid = ar_yr.studentid 
+ AND s.year = ar_yr.academic_year
  AND ar_yr.time_period_name = 'Year'
- AND ar_yr.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q1 WITH (NOLOCK)
-  ON s.id = ar_q1.studentid 
- AND ar_q1.time_period_name = 'RT1'
- AND ar_q1.yearid = KIPP_NJ.dbo.fn_Global_Term_Id() 
+  ON s.studentid = ar_q1.studentid 
+ AND s.year = ar_q1.academic_year
+ AND ar_q1.time_period_name = 'RT1' 
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q2 WITH (NOLOCK)
-  ON s.id = ar_q2.studentid
- AND ar_q2.time_period_name = 'RT2'
- AND ar_q2.yearid = KIPP_NJ.dbo.fn_Global_Term_Id() 
+  ON s.studentid = ar_q2.studentid
+ AND s.year = ar_q2.academic_year
+ AND ar_q2.time_period_name = 'RT2' 
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q3 WITH (NOLOCK)
-  ON s.id = ar_q3.studentid
- AND ar_q3.time_period_name = 'RT3'
- AND ar_q3.yearid = KIPP_NJ.dbo.fn_Global_Term_Id() 
+  ON s.studentid = ar_q3.studentid
+ AND s.year = ar_q3.academic_year
+ AND ar_q3.time_period_name = 'RT3' 
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q4 WITH (NOLOCK)
-  ON s.id = ar_q4.studentid
- AND ar_q4.time_period_name = 'RT4'
- AND ar_q4.yearid = KIPP_NJ.dbo.fn_Global_Term_Id() 
+  ON s.studentid = ar_q4.studentid
+ AND s.year = ar_q4.academic_year
+ AND ar_q4.time_period_name = 'RT4' 
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_cur WITH (NOLOCK)
-  ON s.id = ar_cur.studentid
- AND ar_cur.time_period_name = curterm.time_per_name
- AND ar_cur.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
+  ON s.studentid = ar_cur.studentid
+ AND s.year = ar_cur.academic_year
+ AND ar_cur.time_period_name = curterm.time_per_name 
 LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_cur WITH (NOLOCK)
-  ON s.id = lex_cur.studentid
- AND lex_cur.measurementscale  = 'Reading'
- AND lex_cur.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  ON s.studentid = lex_cur.studentid
+ AND s.year = lex_cur.academic_year
+ AND lex_cur.measurementscale  = 'Reading' 
  AND lex_cur.rn_curr = 1
 LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
-  ON s.ID = rr.studentid
- AND s.schoolid = rr.schoolid 
- AND rr.measurementscale = 'Reading'
- AND rr.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  ON s.studentid = rr.studentid 
+ AND s.year = rr.year
+ AND rr.measurementscale = 'Reading' 
 LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
-  ON s.ID = base.studentid
- AND s.schoolid = base.schoolid 
+  ON s.studentid = base.studentid
+ AND s.year = base.year
  AND base.measurementscale = 'Reading'
- AND base.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_winter WITH (NOLOCK)
-  ON s.id = lex_winter.studentid
- AND lex_winter.measurementscale  = 'Reading'
- AND lex_winter.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  ON s.studentid = lex_winter.studentid
+ AND s.year = lex_winter.academic_year 
+ AND lex_winter.measurementscale  = 'Reading'  
  AND lex_winter.term = 'Winter'
  AND lex_winter.rn = 1
 LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_spring WITH (NOLOCK)
-  ON s.id = lex_spring.studentid
- AND lex_spring.measurementscale  = 'Reading'
- AND lex_spring.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  ON s.studentid = lex_spring.studentid
+ AND s.year = lex_spring.academic_year
+ AND lex_spring.measurementscale  = 'Reading' 
  AND lex_spring.term = 'Spring'
  AND lex_spring.rn = 1
 LEFT OUTER JOIN (
@@ -206,7 +204,7 @@ LEFT OUTER JOIN (
                  WHERE CREDITTYPE = 'ENG'
                    AND c.course_number NOT LIKE 'ENG0%'
                 ) eng1
-  ON s.ID = eng1.STUDENTID
+  ON s.studentid = eng1.STUDENTID
  AND eng1.rn = 1
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID
@@ -228,7 +226,7 @@ LEFT OUTER JOIN (
                  WHERE c.CREDITTYPE = 'ENG'
                    AND c.course_number NOT LIKE 'ENG0%'
                 ) eng2
-  ON s.ID = eng2.STUDENTID
+  ON s.studentid = eng2.STUDENTID
  AND eng2.rn = 2
 LEFT OUTER JOIN (
                  SELECT cc.STUDENTID     
@@ -252,7 +250,9 @@ LEFT OUTER JOIN (
                    AND cc.EXPRESSION IN ('5(A)','6(A)','7(A)','8(A)')
                    AND (cc.COURSE_NUMBER LIKE 'ENG0%' OR cc.COURSE_NUMBER LIKE 'MATH0%')
                 ) diff
-  ON s.id = diff.studentid
+  ON s.studentid = diff.studentid
  AND diff.rn = 1
 WHERE s.SCHOOLID = 73253
   AND s.ENROLL_STATUS = 0
+  AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  AND s.rn = 1

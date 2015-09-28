@@ -17,8 +17,9 @@ WITH curterm AS (
 ,roster AS (
   SELECT co.studentid AS id
         ,co.student_number
+        ,co.year
         ,co.schoolid
-        ,co.lastfirst
+        ,co.lastfirst        
         ,co.grade_level
         ,co.team
         ,co.advisor       
@@ -40,18 +41,11 @@ WITH curterm AS (
  )
 
 ,cur_hex AS (
-  SELECT CASE 
-          WHEN RIGHT(time_per_name, 1) IN (1, 3, 5) THEN 'RT' + RIGHT(time_per_name, 1)
-          ELSE 'RT' + CONVERT(VARCHAR,RIGHT(time_per_name, 1) - 1)
-         END AS hex_a
-        ,CASE 
-          WHEN RIGHT(time_per_name, 1) IN (1, 3, 5) THEN 'RT' + CONVERT(VARCHAR,RIGHT(time_per_name, 1) + 1)
-          ELSE 'RT' + RIGHT(time_per_name, 1)
-         END AS hex_b
-  FROM KIPP_NJ..REPORTING$dates
+  SELECT REPLACE(time_per_name,'Round ','Q') AS hex_a
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 133570965
-    AND identifier = 'HEX'
+    AND identifier = 'AR'
     AND start_date <= CONVERT(DATE,GETDATE())
     AND end_date >= CONVERT(DATE,GETDATE())
  )
@@ -394,14 +388,10 @@ SELECT ROW_NUMBER() OVER(
      
      --AR current
      --current trimester = current HEX + previous HEX
-     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_curr.words + ar_curr2.words),1),'.00','') AS words_read_cur_term
-     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_curr.words_goal + ar_curr2.words_goal),1),'.00','') AS words_goal_cur_term
-     ,CASE 
-       WHEN (SELECT time_per_name FROM curterm) = ar_curr.time_period_name THEN ar_curr.rank_words_grade_in_school
-       WHEN (SELECT time_per_name FROM curterm) = ar_curr2.time_period_name THEN ar_curr2.rank_words_grade_in_school
-       ELSE NULL
-      END AS words_rank_cur_term_in_grade
-     --,CONVERT(FLOAT,ar_curr2.mastery) AS mastery_curr
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar_curr.words)),'.00','') AS words_read_cur_term
+     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_curr.words_goal)),'.00','') AS words_goal_cur_term
+     ,ar_curr.rank_words_grade_in_school AS words_rank_cur_term_in_grade
+     --,CONVERT(FLOAT,NULL AS mastery_curr
       
       --AR progress
         --to year goal      
@@ -417,21 +407,51 @@ SELECT ROW_NUMBER() OVER(
        END,0) AS INT)),1),'.00','') AS words_needed_yr
       --to term goal       
      ,CASE
-       WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN 'Met Goal'
-       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') AND ar_curr2.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
-       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') AND ar_curr2.stu_status_words IN ('Off Track','Missed Goal') THEN 'Yes!'
-       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') AND ar_curr2.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
-       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') AND ar_curr2.stu_status_words IN ('Off Track','Missed Goal') THEN 'No'              
-       ELSE COALESCE(ar_curr2.stu_status_words, ar_curr.stu_status_words)
+       WHEN ar_curr.words_goal - ar_curr.words <= 0 THEN 'Met Goal'
+       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('On Track','Met Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') THEN 'Yes!'
+       WHEN ar_curr.stu_status_words IN ('Off Track','Missed Goal') THEN 'No'              
+       ELSE ar_curr.stu_status_words
       END AS stu_status_words_cur_term
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CAST(ROUND(
        CASE
-        WHEN ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words)) <= 0 THEN NULL 
-        ELSE ((ar_curr.words_goal + ar_curr2.words_goal) - (ar_curr.words + ar_curr2.words))
-       END,0) AS INT)),1),'.00','') AS words_needed_cur_term      
+        WHEN ar_curr.words_goal - ar_curr.words <= 0 THEN NULL 
+        ELSE ar_curr.words_goal - ar_curr.words
+       END,0) AS INT)),1),'.00','') AS words_needed_cur_term        
              
 --MAP scores
 /*--UPDATE FIELDS FOR CURRENT YEAR--*/
+--15-16
+      --reading
+      ,map_all.spr_2016_read_pctle
+      ,map_all.w_2016_read_pctle
+      ,map_all.f_2015_read_pctle      
+      ,map_all.spr_2016_read_rit
+      ,map_all.w_2016_read_rit
+      ,map_all.f_2015_read_rit                  
+      --math
+      ,map_all.spr_2016_math_pctle
+      ,map_all.w_2016_math_pctle
+      ,map_all.f_2015_math_pctle      
+      ,map_all.spr_2016_math_rit
+      ,map_all.w_2016_math_rit
+      ,map_all.f_2015_math_rit
+      --lang
+      ,map_all.spr_2016_lang_pctle
+      ,map_all.w_2016_lang_pctle
+      ,map_all.f_2015_lang_pctle
+      ,map_all.spr_2016_lang_rit
+      ,map_all.w_2016_lang_rit
+      ,map_all.f_2015_lang_rit            
+      --sci
+      ,map_all.spr_2016_gen_pctle
+      ,map_all.w_2016_GEN_pctle
+      ,map_all.f_2015_gen_pctle
+      ,map_all.spr_2016_gen_rit
+      ,map_all.w_2016_GEN_RIT
+      ,map_all.f_2015_gen_rit
+
 --14-15
       --reading
       ,map_all.spr_2015_read_pctle
@@ -522,81 +542,46 @@ SELECT ROW_NUMBER() OVER(
       ,map_all.w_2013_GEN_RIT
       ,map_all.f_2012_gen_rit
      
- --11-12
-      --reading
-      ,map_all.spr_2012_read_pctle
-      --,map_all.w_2012_read_pctle
-      ,map_all.f_2011_read_pctle      
-      ,map_all.spr_2012_read_rit
-      --,map_all.w_2012_read_rit
-      ,map_all.f_2011_read_rit                  
-      --math
-      ,map_all.spr_2012_math_pctle
-      --,map_all.w_2012_math_pctle
-      ,map_all.f_2011_math_pctle      
-      ,map_all.spr_2012_math_rit
-      --,map_all.w_2012_math_rit
-      ,map_all.f_2011_math_rit
-      --lang
-      ,map_all.spr_2012_lang_pctle
-      --,map_all.w_2012_lang_pctle
-      ,map_all.f_2011_lang_pctle
-      ,map_all.spr_2012_lang_rit
-      --,map_all.w_2012_lang_rit
-      ,map_all.f_2011_lang_rit            
-      --sci
-      ,map_all.spr_2012_gen_pctle
-      --,map_all.w_2012_GEN_pctle
-      ,map_all.f_2011_gen_pctle
-      ,map_all.spr_2012_gen_rit
-      --,map_all.w_2012_GEN_RIT
-      ,map_all.f_2011_gen_rit
-     
 --NJASK scores
 --NJASK$ela_wide
 --NJASK$math_wide      
 /*--UPDATE FIELDS FOR CURRENT YEAR--*/
-
 --13-14      
       --Grade
-      ,njask_math.gr_lev_2014 AS njask_gr_lev_2014
+      ,NULL AS njask_gr_lev_2014
       --ELA
-      ,njask_ela.score_2014 AS ela_score_2014
-      ,njask_ela.prof_2014 AS ela_prof_2014      
+      ,NULL AS ela_score_2014
+      ,NULL AS ela_prof_2014      
       --Math
-      ,njask_math.score_2014 AS math_score_2014
-      ,njask_math.prof_2014 AS math_prof_2014
-
+      ,NULL AS math_score_2014
+      ,NULL AS math_prof_2014
 --12-13
       --Grade
-      ,njask_math.gr_lev_2013 AS njask_gr_lev_2013
+      ,NULL AS njask_gr_lev_2013
       --ELA
-      ,njask_ela.score_2013 AS ela_score_2013
-      ,njask_ela.prof_2013 AS ela_prof_2013      
+      ,NULL AS ela_score_2013
+      ,NULL AS ela_prof_2013      
       --Math
-      ,njask_math.score_2013 AS math_score_2013
-      ,njask_math.prof_2013 AS math_prof_2013
-
+      ,NULL AS math_score_2013
+      ,NULL AS math_prof_2013
 --11-12      
       --Grade
-      ,njask_math.gr_lev_2012 AS njask_gr_lev_2012
+      ,NULL AS njask_gr_lev_2012
       --ELA
-      ,njask_ela.score_2012 AS ela_score_2012
-      ,njask_ela.prof_2012 AS ela_prof_2012      
+      ,NULL AS ela_score_2012
+      ,NULL AS ela_prof_2012      
       --Math
-      ,njask_math.score_2012 AS math_score_2012
-      ,njask_math.prof_2012 AS math_prof_2012      
-
+      ,NULL AS math_score_2012
+      ,NULL AS math_prof_2012
 --10-11
       --Grade
-      ,njask_math.gr_lev_2011 AS njask_gr_lev_2011
+      ,NULL AS njask_gr_lev_2011
       --ELA
-      ,njask_ela.score_2011 AS ela_score_2011
-      ,njask_ela.prof_2011 AS ela_prof_2011      
+      ,NULL AS ela_score_2011
+      ,NULL AS ela_prof_2011      
       --Math
-      ,njask_math.score_2011 AS math_score_2011
-      ,njask_math.prof_2011 AS math_prof_2011
-      
+      ,NULL AS math_score_2011
+      ,NULL AS math_prof_2011      
       
 --DISCIPLINE
       ,disc_recent.disc_01_date_reported
@@ -687,7 +672,7 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH (NOLOCK)
   --F&P
 LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers fp_base WITH (NOLOCK)
   ON roster.student_number = fp_base.STUDENT_NUMBER
- AND fp_base.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND roster.year = fp_base.academic_year
  AND fp_base.base_yr = 1
  AND fp_base.status = 'Achieved'
 LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers fp_curr WITH (NOLOCK)
@@ -695,16 +680,18 @@ LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers fp_curr WITH (NOLOCK)
  AND fp_curr.curr_all = 1
  AND fp_curr.status = 'Achieved'
   --LEXILE
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_base WITH (NOLOCK)
-  ON roster.student_number = lex_base.StudentID
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_base WITH (NOLOCK)
+  ON roster.student_number = lex_base.student_number
+ AND roster.year = lex_base.academic_year
  AND lex_base.MeasurementScale = 'Reading'
  AND lex_base.rn_base = 1
- AND lex_base.map_year_academic = KIPP_NJ.dbo.fn_Global_Academic_Year()
-LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers lex_curr WITH (NOLOCK)
-  ON roster.student_number = lex_curr.StudentID
+ 
+LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_curr WITH (NOLOCK)
+  ON roster.student_number = lex_curr.student_number
+ AND roster.year = lex_curr.academic_year
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
- AND lex_curr.map_year_academic = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ 
   
 --ED TECH
   --ACCELERATED READER
@@ -716,24 +703,20 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.id = ar_curr.studentid 
  AND ar_curr.time_period_name = (SELECT hex_a FROM cur_hex)
  AND ar_curr.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
-LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
-  ON roster.id = ar_curr2.studentid 
- AND ar_curr2.time_period_name = (SELECT hex_b FROM cur_hex)
- AND ar_curr2.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
 
 --MAP
 LEFT OUTER JOIN KIPP_NJ..MAP$wide_all#static map_all WITH (NOLOCK)
   ON roster.id = map_all.studentid
   
---NJASK
-LEFT OUTER JOIN KIPP_NJ..NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
-  ON roster.id = njask_ela.studentid
- AND njask_ela.schoolid = 133570965
- AND njask_ela.rn = 1
-LEFT OUTER JOIN KIPP_NJ..NJASK$MATH_WIDE njask_math WITH (NOLOCK)
-  ON roster.id = njask_math.studentid
- AND njask_math.schoolid = 133570965
- AND njask_math.rn = 1
+----NJASK
+--LEFT OUTER JOIN KIPP_NJ..NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
+--  ON roster.id = njask_ela.studentid
+-- AND njask_ela.schoolid = 133570965
+-- AND njask_ela.rn = 1
+--LEFT OUTER JOIN KIPP_NJ..NJASK$MATH_WIDE njask_math WITH (NOLOCK)
+--  ON roster.id = njask_math.studentid
+-- AND njask_math.schoolid = 133570965
+-- AND njask_math.rn = 1
 
 --Discipline
 LEFT OUTER JOIN KIPP_NJ..DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
@@ -744,4 +727,4 @@ LEFT OUTER JOIN KIPP_NJ..DISC$counts_wide disc_count WITH (NOLOCK)
 --XC
 LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON roster.STUDENT_NUMBER = xc.student_number
- AND xc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND roster.year = xc.academic_year
