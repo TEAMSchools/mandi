@@ -10,10 +10,12 @@ SELECT daily.studentid
       ,daily.hw
       ,daily.uniform       
       ,daily.bip_status
+      ,daily.beyond_z_color
       ,CASE WHEN daily.schoolid IN (73255, 179901) THEN NULL ELSE daily.color END AS color_day
       ,CASE WHEN daily.schoolid IN (73255, 179901) THEN daily.color ELSE NULL END AS color_am
-      ,CASE WHEN daily.schoolid IN (73255, 179901) AND daily.grade_level <= 2 THEN daily.color_mid ELSE NULL END AS color_mid
+      ,CASE WHEN daily.schoolid = 73255 AND daily.grade_level <= 2 THEN daily.color_mid ELSE NULL END AS color_mid
       ,CASE WHEN daily.schoolid IN (73255, 179901) THEN daily.color_pm ELSE NULL END AS color_pm
+      ,CASE WHEN daily.beyond_z_color = 'Yes' THEN 1.0 WHEN daily.beyond_z_color = 'No' THEN 0.0 ELSE NULL END AS bz_color_changed
       ,CASE WHEN daily.bip_status = 'On Track' THEN 1.0 WHEN daily.bip_status = 'Off Track' THEN 0.0 ELSE NULL END AS bip_ontrack
       ,CASE WHEN daily.hw = 'Yes' THEN 1.0 WHEN daily.hw = 'No' THEN 0.0 ELSE NULL END AS has_hw      
       ,CASE WHEN daily.uniform = 'Yes' THEN 1.0 WHEN daily.uniform = 'No' THEN 0.0 ELSE NULL END AS has_uniform
@@ -50,11 +52,12 @@ FROM
            ,d.field3 AS color_mid
            ,d.field4 AS color_pm        
            ,d.field5 AS uniform           
+           ,CASE WHEN d.schoolid = 73257 THEN d.field10 END AS bip_status
+           ,CASE WHEN d.SCHOOLID = 73255 THEN d.field10 END AS beyond_z_color
            ,d.field6
            ,d.field7
            ,d.field8
-           ,d.field9
-           ,d.field10 AS bip_status
+           ,d.field9           
            ,ROW_NUMBER() OVER(
               PARTITION BY d.studentid, d.att_date
                 ORDER BY d.unique_id DESC) AS rn

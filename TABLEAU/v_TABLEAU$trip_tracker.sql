@@ -29,6 +29,7 @@ SELECT s.student_number
       ,s.grade_level
       ,s.team
       ,s.advisor      
+      ,s.term
       ,s.date
       ,promo.promo_overall_rise AS promo_status_overall
       ,CASE
@@ -46,8 +47,10 @@ SELECT s.student_number
       ,promo.attendance_points
       ,rise_gpa.GPA_y1_all      
       ,rise_gpa.n_failing_all      
-      ,rise_hw.simple_avg AS hwc_y1
-      ,rise_hwq.simple_avg AS hwq_y1
+      ,ts.HY AS hwc_y1
+      ,ts.H_term AS hwc_term
+      ,ts.EY AS hwq_y1
+      ,ts.E_term AS hwq_term
       ,ISNULL(disc_count.silent_lunches,0) AS silent_lunches
       ,ISNULL(disc_count.detentions,0) AS detentions
       ,ISNULL(disc_count.bench_choices,0) AS bench_choices
@@ -59,18 +62,9 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH(NOLOCK)
   ON s.studentid = promo.studentid
 LEFT OUTER JOIN KIPP_NJ..GPA$detail#MS rise_gpa WITH(NOLOCK)
   ON s.studentid = rise_gpa.studentid
-LEFT OUTER JOIN KIPP_NJ..GRADES$elements rise_hw WITH(NOLOCK)
-  ON s.studentid = rise_hw.studentid
-AND s.schoolid = rise_hw.schoolid  
- AND rise_hw.pgf_type = 'H'
-AND rise_hw.yearid >= REPLACE(KIPP_NJ.dbo.fn_Global_Term_Id(),'00','')
-AND rise_hw.course_number = 'all_courses'
-LEFT OUTER JOIN KIPP_NJ..GRADES$elements rise_hwq WITH(NOLOCK)
-  ON s.studentid = rise_hwq.studentid
-AND s.schoolid = rise_hwq.schoolid
-AND rise_hwq.pgf_type = 'Q'
-AND rise_hwq.yearid >= REPLACE(KIPP_NJ.dbo.fn_Global_Term_Id(),'00','')
-AND rise_hwq.course_number = 'all_courses'
+LEFT OUTER JOIN KIPP_NJ..GRADES$time_series_wide ts WITH(NOLOCK)
+  ON s.student_number = ts.student_number
+ AND s.date = ts.date
 LEFT OUTER JOIN disc_count WITH(NOLOCK)
   ON s.studentid = disc_count.studentid
  AND s.date = disc_count.entry_date

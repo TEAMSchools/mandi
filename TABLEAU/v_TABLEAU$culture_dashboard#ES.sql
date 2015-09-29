@@ -18,6 +18,7 @@ SELECT co.year
       ,dt.week_num
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
+      ,dt.bz_color_changed
       ,dt.color_day AS color
       ,'Day' AS color_time
       ,CASE WHEN dt.color_day = 'Purple' THEN 1 ELSE 0 END AS purple      
@@ -26,7 +27,7 @@ SELECT co.year
       ,CASE WHEN dt.color_day = 'Yellow' THEN 1 ELSE 0 END AS yellow
       ,CASE WHEN dt.color_day = 'Orange' THEN 1 ELSE 0 END AS orange
       ,CASE WHEN dt.color_day = 'Red' THEN 1 ELSE 0 END AS red
-      ,CASE WHEN dt.color_day IS NULL THEN 1 ELSE 0 END AS no_color
+      ,CASE WHEN dt.color_day IS NULL THEN 1 ELSE 0 END AS no_color      
       ,supp.behavior_tier
       ,supp.plan_owner
       ,supp.admin_support
@@ -60,6 +61,7 @@ SELECT co.year
       ,dt.week_num
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
+      ,dt.bz_color_changed
       ,dt.color_am AS color
       ,'AM' AS color_time
       ,CASE WHEN dt.color_am = 'Purple' THEN 1 ELSE 0 END AS purple
@@ -102,6 +104,7 @@ SELECT co.year
       ,dt.week_num
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
+      ,dt.bz_color_changed
       ,dt.color_mid AS color
       ,'Mid' AS color_time
       ,CASE WHEN dt.color_mid = 'Purple' THEN 1 ELSE 0 END AS purple
@@ -142,6 +145,7 @@ SELECT co.year
       ,dt.week_num
       ,dt.has_hw AS hw
       ,dt.has_uniform AS uniform
+      ,dt.bz_color_changed
       ,dt.color_pm AS color
       ,'PM' AS color_time
       ,CASE WHEN dt.color_pm = 'Purple' THEN 1 ELSE 0 END AS purple

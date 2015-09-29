@@ -14,9 +14,10 @@ WITH curterm AS (
 SELECT s.LASTFIRST
       ,s.FIRST_NAME
       ,s.LAST_NAME
-      ,cs.ADVISOR
+      ,s.ADVISOR
       ,s.GRADE_LEVEL
-      ,cs.SPEDLEP
+      ,s.SPEDLEP
+      
       ,CASE WHEN ar_Q1.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,ar_q1.points_goal) END AS AR_goal_Q1
       ,CASE WHEN ar_q2.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,ar_q2.points_goal) END AS AR_goal_Q2
       ,CASE WHEN ar_q3.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,ar_q3.points_goal) END AS AR_goal_Q3
@@ -32,26 +33,30 @@ SELECT s.LASTFIRST
       ,CASE WHEN (ar_q3.points_goal - ar_q3.points) <= 0 THEN 0 ELSE (ar_q3.points_goal - ar_q3.points) END AS AR_pts_to_goal_Q3
       ,CASE WHEN (ar_q4.points_goal - ar_q4.points) <= 0 THEN 0 ELSE (ar_q4.points_goal - ar_q4.points) END AS AR_pts_to_goal_Q4
       ,CASE WHEN (ar_yr.points_goal - ar_yr.points) <= 0 THEN 0 ELSE (ar_yr.points_goal - ar_yr.points) END AS AR_pts_to_goal_Yr
-      ,CASE
-        WHEN ar_q1.points_goal = -1 THEN 'Exempt'
-        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q1.points / ar_q1.points_goal * 100),1)))
-       END AS AR_pct_of_goal_Q1
-      ,CASE
-        WHEN ar_q2.points_goal = -1 THEN 'Exempt'
-        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q2.points / ar_q2.points_goal * 100),1)))
-       END AS AR_pct_of_goal_q2
-      ,CASE
-        WHEN ar_q3.points_goal = -1 THEN 'Exempt'
-        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q3.points / ar_q3.points_goal * 100),1)))
-       END AS AR_pct_of_goal_q3
-      ,CASE
-        WHEN ar_q4.points_goal = -1 THEN 'Exempt'
-        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q4.points / ar_q4.points_goal * 100),1)))
-       END AS AR_pct_of_goal_q4
-      ,CASE
-        WHEN ar_yr.points_goal = -1 THEN 'Exempt'
-        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_yr.points / ar_yr.points_goal * 100),1)))
-       END AS AR_pct_of_goal_yr            
+      ,CASE WHEN ar_cur.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_cur.points / ar_cur.points_goal * 100),1))) END AS AR_progress_cur
+      ,CASE WHEN ar_q1.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q1.points / ar_q1.points_goal * 100),1))) END AS AR_pct_of_goal_Q1
+      ,CASE WHEN ar_q2.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q2.points / ar_q2.points_goal * 100),1))) END AS AR_pct_of_goal_q2
+      ,CASE WHEN ar_q3.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q3.points / ar_q3.points_goal * 100),1))) END AS AR_pct_of_goal_q3
+      ,CASE WHEN ar_q4.points_goal = -1 THEN 'Exempt' ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q4.points / ar_q4.points_goal * 100),1))) END AS AR_pct_of_goal_q4      
+      ,CASE WHEN ar_q1.points = 0 THEN 'Tied for last place with 0 points' ELSE CONVERT(VARCHAR,ar_q1.rank_points_grade_in_school) END AS AR_graderank_Q1
+      ,CASE WHEN ar_q2.points = 0 THEN 'Tied for last place with 0 points' ELSE CONVERT(VARCHAR,ar_q2.rank_points_grade_in_school) END AS AR_graderank_q2
+      ,CASE WHEN ar_q3.points = 0 THEN 'Tied for last place with 0 points' ELSE CONVERT(VARCHAR,ar_q3.rank_points_grade_in_school) END AS AR_graderank_q3
+      ,CASE WHEN ar_q4.points = 0 THEN 'Tied for last place with 0 points' ELSE CONVERT(VARCHAR,ar_q4.rank_points_grade_in_school) END AS AR_graderank_q4
+      ,CASE WHEN ar_yr.points = 0 THEN 'Tied for last place with 0 points' ELSE CONVERT(VARCHAR,ar_yr.rank_points_grade_in_school) END AS AR_graderank_yr
+      ,ar_q1.rank_points_overall_in_school AS AR_schoolrank_Q1
+      ,ar_q2.rank_points_overall_in_school AS AR_schoolrank_Q2
+      ,ar_q3.rank_points_overall_in_school AS AR_schoolrank_Q3
+      ,ar_q4.rank_points_overall_in_school AS AR_schoolrank_Q4
+      ,ar_yr.rank_points_overall_in_school AS AR_schoolrank_Yr      
+      
+      ,CASE WHEN ROUND(((ar_cur.points / ar_cur.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_cur
+      ,CASE WHEN ROUND(((ar_q1.points / ar_q1.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q1
+      ,CASE WHEN ROUND(((ar_q2.points / ar_q2.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q2
+      ,CASE WHEN ROUND(((ar_q3.points / ar_q3.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q3
+      ,CASE WHEN ROUND(((ar_q4.points / ar_q4.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q4
+      ,CASE WHEN ROUND(((ar_yr.points / ar_yr.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_yr            
+      ,ar_yr.mastery AS mastery_yr      
+
       ,base.lexile_score AS lexile_base
       ,base.lexile_score AS lexile_fall
       ,lex_winter.rittoreadingscore AS lexile_winter
@@ -62,78 +67,20 @@ SELECT s.LASTFIRST
       ,lex_winter.testritscore AS RIT_winter
       ,lex_spring.testritscore AS RIT_spr
       ,rr.keep_up_rit
-      ,rr.rutgers_ready_rit
-      ,ar_yr.mastery AS mastery_yr      
+      ,rr.rutgers_ready_rit      
+      
       ,eng1.COURSE_NAME AS eng1_course
       ,eng1.SECTION_NUMBER AS eng1_section
       ,eng1.period AS eng1_period
-      ,eng1.LASTFIRST AS eng1_teacher
+      ,eng1.teacher_name AS eng1_teacher
       ,eng2.COURSE_NAME AS eng2_course
       ,eng2.SECTION_NUMBER AS eng2_section
       ,eng2.period AS eng2_period
-      ,eng2.LASTFIRST AS eng2_teacher
-      ,diff.COURSE_NAME AS fourth_per_class
-      ,diff.LASTFIRST AS fourth_per_teacher
+      ,eng2.teacher_name AS eng2_teacher      
+      ,diff.teacher_name AS fourth_per_teacher
       ,diff.period AS diff_block_period
-      ,diff.COURSE_NAME AS diff_block_assignment
-      ,CASE
-        WHEN ar_q1.points = 0 THEN 'Tied for last place with 0 points'
-        ELSE CONVERT(VARCHAR,ar_q1.rank_points_grade_in_school)
-       END AS AR_graderank_Q1
-      ,CASE
-        WHEN ar_q2.points = 0 THEN 'Tied for last place with 0 points'
-        ELSE CONVERT(VARCHAR,ar_q2.rank_points_grade_in_school)
-       END AS AR_graderank_q2
-      ,CASE
-        WHEN ar_q3.points = 0 THEN 'Tied for last place with 0 points'
-        ELSE CONVERT(VARCHAR,ar_q3.rank_points_grade_in_school)
-       END AS AR_graderank_q3
-      ,CASE
-        WHEN ar_q4.points = 0 THEN 'Tied for last place with 0 points'
-        ELSE CONVERT(VARCHAR,ar_q4.rank_points_grade_in_school)
-       END AS AR_graderank_q4
-      ,CASE
-        WHEN ar_yr.points = 0 THEN 'Tied for last place with 0 points'
-        ELSE CONVERT(VARCHAR,ar_yr.rank_points_grade_in_school)
-       END AS AR_graderank_yr
-      ,ar_q1.rank_points_overall_in_school AS AR_schoolrank_Q1
-      ,ar_q2.rank_points_overall_in_school AS AR_schoolrank_Q2
-      ,ar_q3.rank_points_overall_in_school AS AR_schoolrank_Q3
-      ,ar_q4.rank_points_overall_in_school AS AR_schoolrank_Q4
-      ,ar_yr.rank_points_overall_in_school AS AR_schoolrank_Yr      
-      ,CASE
-        WHEN ar_cur.points_goal = -1 THEN 'Exempt'
-        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_cur.points / ar_cur.points_goal * 100),1)))
-       END AS AR_progress_cur
-      ,CASE
-        WHEN ar_q1.points_goal = -1 THEN 'Exempt'
-        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q1.points / ar_q1.points_goal * 100),1)))
-       END AS AR_progress_Q1
-      ,CASE
-        WHEN ar_q2.points_goal = -1 THEN 'Exempt'
-        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q2.points / ar_q2.points_goal * 100),1)))
-       END AS AR_progress_q2
-      ,CASE
-        WHEN ar_q3.points_goal = -1 THEN 'Exempt'
-        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q3.points / ar_q3.points_goal * 100),1)))
-       END AS AR_progress_q3
-      ,CASE
-        WHEN ar_q4.points_goal = -1 THEN 'Exempt'
-        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_q4.points / ar_q4.points_goal * 100),1)))
-       END AS AR_progress_q4
-      ,CASE
-        WHEN ar_yr.points_goal = -1 THEN 'Exempt'
-        ELSE CONVERT(VARCHAR,CONVERT(FLOAT,ROUND((ar_yr.points / ar_yr.points_goal * 100),1)))
-       END AS AR_progress_yr            
-      ,CASE WHEN ROUND(((ar_cur.points / ar_cur.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_cur
-      ,CASE WHEN ROUND(((ar_q1.points / ar_q1.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q1
-      ,CASE WHEN ROUND(((ar_q2.points / ar_q2.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q2
-      ,CASE WHEN ROUND(((ar_q3.points / ar_q3.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q3
-      ,CASE WHEN ROUND(((ar_q4.points / ar_q4.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_q4
-      ,CASE WHEN ROUND(((ar_yr.points / ar_yr.points_goal) * 100),0) >= 100 THEN 'Yes' ELSE 'No' END AS met_AR_goal_yr            
+      ,diff.COURSE_NAME AS diff_block_assignment      
 FROM KIPP_NJ..COHORT$identifiers_long#static s WITH (NOLOCK)
-LEFT OUTER JOIN PS$CUSTOM_STUDENTS#static cs WITH (NOLOCK)
-  ON s.studentid = cs.STUDENTID
 CROSS JOIN curterm  
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
   ON s.studentid = ar_yr.studentid 
@@ -184,71 +131,31 @@ LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_spring WITH (NOLOCK)
  AND lex_spring.measurementscale  = 'Reading' 
  AND lex_spring.term = 'Spring'
  AND lex_spring.rn = 1
-LEFT OUTER JOIN (
-                 SELECT cc.STUDENTID
-                       ,c.COURSE_NAME
-                       ,c.COURSE_NUMBER
-                       ,cc.SECTION_NUMBER
-                       ,cc.period
-                       ,t.LASTFIRST
-                       ,ROW_NUMBER() OVER
-                          (PARTITION BY cc.studentid
-                               ORDER BY c.course_name) AS rn
-                 FROM PS$COURSES#static c WITH (NOLOCK)
-                 JOIN PS$CC#static cc WITH (NOLOCK)
-                   ON c.COURSE_NUMBER = cc.COURSE_NUMBER
-                  AND cc.TERMID >= KIPP_NJ.dbo.fn_Global_Term_Id()
-                  AND cc.SCHOOLID = 73253
-                 JOIN KIPP_NJ..PS$TEACHERS#static t WITH (NOLOCK)
-                   ON cc.TEACHERID = t.ID
-                 WHERE CREDITTYPE = 'ENG'
-                   AND c.course_number NOT LIKE 'ENG0%'
-                ) eng1
+LEFT OUTER JOIN PS$course_enrollments#static eng1 WITH(NOLOCK)                 
   ON s.studentid = eng1.STUDENTID
- AND eng1.rn = 1
-LEFT OUTER JOIN (
-                 SELECT cc.STUDENTID
-                       ,c.COURSE_NAME
-                       ,c.COURSE_NUMBER
-                       ,cc.SECTION_NUMBER                       
-                       ,cc.period
-                       ,t.LASTFIRST
-                       ,ROW_NUMBER() OVER
-                          (PARTITION BY cc.studentid
-                               ORDER BY c.course_name) AS rn
-                 FROM PS$COURSES#static c WITH (NOLOCK)
-                 JOIN PS$CC#static cc WITH (NOLOCK)
-                   ON c.COURSE_NUMBER = cc.COURSE_NUMBER
-                  AND cc.TERMID >= KIPP_NJ.dbo.fn_Global_Term_Id()
-                  AND cc.SCHOOLID = 73253
-                 JOIN KIPP_NJ..PS$TEACHERS#static t WITH (NOLOCK)
-                   ON cc.TEACHERID = t.ID
-                 WHERE c.CREDITTYPE = 'ENG'
-                   AND c.course_number NOT LIKE 'ENG0%'
-                ) eng2
+ AND s.year = eng1.academic_year
+ AND eng1.CREDITTYPE = 'ENG'
+ AND eng1.course_number NOT LIKE 'ENG0%'                                      
+ AND eng1.rn_subject = 1
+LEFT OUTER JOIN PS$course_enrollments#static eng2 WITH(NOLOCK)                 
   ON s.studentid = eng2.STUDENTID
- AND eng2.rn = 2
+ AND s.year = eng2.academic_year
+ AND eng2.CREDITTYPE = 'ENG'
+ AND eng2.course_number NOT LIKE 'ENG0%'                                      
+ AND eng2.rn_subject = 2
 LEFT OUTER JOIN (
-                 SELECT cc.STUDENTID     
-                       ,cc.TERMID                         
+                 SELECT cc.STUDENTID                                                   
                        ,cc.COURSE_NUMBER
-                       ,c.COURSE_NAME                       
-                       ,cc.SECTION_NUMBER
-                       ,t.TEACHERNUMBER
-                       ,t.LASTFIRST
+                       ,cc.COURSE_NAME                                              
+                       ,cc.teacher_name
                        ,CC.period
-                       ,ROW_NUMBER() OVER
-                          (PARTITION BY cc.studentid
-                               ORDER BY cc.termid DESC) AS rn
-                 FROM PS$CC#static cc WITH (NOLOCK)   
-                 JOIN PS$COURSES#static c WITH(NOLOCK)
-                   ON cc.COURSE_NUMBER = c.COURSE_NUMBER
-                 JOIN KIPP_NJ..PS$TEACHERS#static t WITH (NOLOCK)
-                   ON cc.TEACHERID = t.ID                  
-                 WHERE cc.TERMID >= KIPP_NJ.dbo.fn_Global_Term_Id()
-                   AND cc.SCHOOLID = 73253
-                   AND cc.EXPRESSION IN ('5(A)','6(A)','7(A)','8(A)')
-                   AND (cc.COURSE_NUMBER LIKE 'ENG0%' OR cc.COURSE_NUMBER LIKE 'MATH0%')
+                       ,ROW_NUMBER() OVER (
+                          PARTITION BY cc.studentid
+                            ORDER BY cc.dateenrolled DESC) AS rn
+                 FROM PS$course_enrollments#static cc WITH (NOLOCK)                    
+                 WHERE cc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()                   
+                   AND cc.period LIKE '4%'
+                   AND (cc.COURSE_NUMBER LIKE 'ENG0%' OR cc.COURSE_NUMBER LIKE 'MATH0%')                   
                 ) diff
   ON s.studentid = diff.studentid
  AND diff.rn = 1

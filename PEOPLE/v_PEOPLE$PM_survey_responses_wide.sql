@@ -10,10 +10,11 @@ WITH response_agg AS (
         ,staff_member
         ,reporting_location
         ,team
-        ,manager_name
+        ,manager_name        
         ,KIPP_NJ.dbo.fn_StripCharacters(competency,'^A-Z') AS competency
         ,CASE WHEN question_code NOT LIKE 'q___' THEN question_code + '_1' ELSE question_code END AS question_code
         ,ROUND(AVG(CONVERT(FLOAT,response_value)),1) AS avg_response_value      
+        ,ROUND(MAX(CONVERT(FLOAT,CASE WHEN manager_name = surveyed_by THEN response_value END)),1) AS manager_response_value
         ,COUNT(response_value) AS N_responses        
   FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
   WHERE is_open_ended = 0 /* open ended treated separately*/
@@ -42,21 +43,15 @@ WITH response_agg AS (
         ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.reporting_location, s.team, s.competency),1) AS competency_team_avg
         ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.reporting_location, s.competency),1) AS competency_school_avg
         ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.competency),1) AS competency_network_avg
-        ,ROUND(AVG(m.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.competency),1) AS competency_manager_avg
+        ,ROUND(AVG(s.manager_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.competency),1) AS competency_manager_avg
         /* question level rollups */
         ,CONVERT(FLOAT,s.N_responses) AS N_responses
         ,CONVERT(FLOAT,s.avg_response_value) AS question_person_avg
         ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.reporting_location, s.team, s.question_code),1) AS question_team_avg
         ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.reporting_location, s.question_code),1) AS question_school_avg
         ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.question_code),1) AS question_network_avg
-        ,CONVERT(FLOAT,m.avg_response_value) AS question_manager_avg
-  FROM response_agg s
-  LEFT OUTER JOIN response_agg m
-    ON s.survey_type = m.survey_type
-   AND s.academic_year = m.academic_year
-   AND s.term = m.term
-   AND s.question_code = m.question_code
-   AND s.manager_name = m.staff_member
+        ,CONVERT(FLOAT,s.manager_response_value) AS question_manager_avg
+  FROM response_agg s  
  )
 
 ,question_unpivot AS (
