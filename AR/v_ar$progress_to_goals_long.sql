@@ -39,7 +39,7 @@ WITH long_goals AS (
         ,cohort.year AS academic_year
         ,CONVERT(VARCHAR,hex.yearid) + '00' AS yearid
         ,2 AS time_hierarchy
-        ,REPLACE(hex.time_per_name, 'Hexameter ', 'RT') AS time_period_name
+        ,hex.time_per_name AS time_period_name
         ,goals.words_goal
         ,goals.points_goal
         ,COALESCE(goals.time_period_start, hex.start_date) AS start_date_summer_bonus
@@ -49,11 +49,11 @@ WITH long_goals AS (
   LEFT OUTER JOIN KIPP_NJ..REPORTING$dates hex WITH(NOLOCK)
     ON cohort.year = hex.academic_year
    AND cohort.schoolid = hex.schoolid
-   AND ((cohort.year <= 2014 AND hex.identifier = 'HEX') OR (cohort.year >= 2015 AND hex.identifier = 'RT'))
+   AND hex.identifier = 'AR'
   LEFT OUTER JOIN KIPP_NJ..AR$goals goals WITH(NOLOCK)
      ON cohort.student_number = goals.student_number
     AND cohort.year = goals.academic_year
-    AND hex.time_per_name = REPLACE(REPLACE(REPLACE(goals.time_period_name, 'Trimester ', 'RT'), 'Reporting Term ', 'RT'), 'Hexameter ', 'RT')
+    AND hex.time_per_name = goals.time_period_name
   WHERE cohort.rn = 1    
     AND cohort.schoolid != 999999
  )

@@ -4,7 +4,7 @@ GO
 ALTER VIEW TABLEAU$lit_tracker#MS AS
 
 WITH term_map AS (
-  SELECT hex
+  SELECT REPLACE(hex,'Q','RT') AS hex
         ,lit
         ,map
         ,is_curterm
@@ -12,24 +12,24 @@ WITH term_map AS (
 
   UNION ALL
 
-  SELECT REPLACE(hex,'Hexameter ','RT') AS hex
-        ,lit
+  SELECT REPLACE([AR],'Round ','RT') AS hex
+        ,[LIT]
         ,NULL AS map
         ,1 AS is_curterm
   FROM
       (
-       SELECT DISTINCT identifier
+       SELECT DISTINCT 
+              identifier
              ,time_per_name
        FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
        WHERE start_date <= CONVERT(DATE,GETDATE())
          AND end_date >= CONVERT(DATE,GETDATE())
-         AND identifier IN ('HEX','LIT','MAP')
+         AND identifier IN ('HEX','LIT','MAP','AR')
          AND schoolid IN (73252,133570965)
-      ) sub
-  
+      ) sub  
   PIVOT (
     MAX(time_per_name)
-    FOR identifier IN ([LIT],[HEX])
+    FOR identifier IN ([LIT],[AR])
   ) p
  )
 
@@ -43,15 +43,15 @@ WITH term_map AS (
         ,co.SPEDLEP
         ,co.team
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
-  WHERE co.rn = 1
-    AND co.schoolid IN (73252,133570965)
+  WHERE co.schoolid IN (73252,133570965,73258,179902)
     AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND co.rn = 1    
 )
 
 -- AR data, long by term (including year)
 ,ar_data AS (
   SELECT student_number
-        ,(yearid + CONVERT(FLOAT, '1.990000e+05')) / 100 AS year
+        ,academic_year AS year
         ,time_period_name
         ,CASE WHEN words_goal < 0 THEN NULL ELSE words_goal END AS words_goal
         ,CASE WHEN points_goal < 0 THEN NULL ELSE points_goal END AS points_goal
@@ -136,17 +136,17 @@ WITH term_map AS (
    AND co.year = base.year
    AND base.measurementscale = 'Reading' 
   LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
-    ON base.studentid = rr.studentid
-   AND base.year = rr.year
+    ON co.studentid = rr.studentid
+   AND co.year = rr.year
    AND base.measurementscale = rr.measurementscale
-  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map WITH(NOLOCK)
-    ON base.studentid = map.ps_studentid
-   AND base.year = map.map_year_academic
+  LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map WITH(NOLOCK)
+    ON co.student_number = map.student_number
+   AND co.year = map.academic_year
    AND base.measurementscale = map.measurementscale
-   AND map_terms.map = map.fallwinterspring
+   AND map_terms.map = map.term
    AND map.rn = 1
-  LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers domain WITH(NOLOCK)
-    ON base.studentid = domain.ps_studentid   
+  LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static domain WITH(NOLOCK)
+    ON co.student_number = domain.student_number
    AND base.measurementscale = domain.measurementscale
    AND base.termname = domain.termname
    AND domain.rn = 1
@@ -283,7 +283,7 @@ WITH term_map AS (
 ,lit_rounds AS (
   SELECT studentid
         ,fp.academic_year        
-        ,test_round AS test_round
+        ,test_round
         ,read_lvl
         ,GLEQ
         ,fp_wpmrate

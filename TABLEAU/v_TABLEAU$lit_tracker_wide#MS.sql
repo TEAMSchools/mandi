@@ -12,9 +12,9 @@ WITH roster AS (
         ,co.grade_level
         ,co.SPEDLEP
         ,co.team
-  FROM COHORT$identifiers_long#static co WITH(NOLOCK)  
-  WHERE co.rn = 1
-    AND co.schoolid IN (73252,133570965)
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
+  WHERE co.schoolid IN (73252,133570965,73258,179902)
+    AND co.rn = 1
 )
 
 ,terms AS (      
@@ -26,10 +26,10 @@ WITH roster AS (
         ,ROW_NUMBER() OVER (
            PARTITION BY academic_year, schoolid
            ORDER BY start_date ASC) AS round_num
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'LIT'      
     AND school_level = 'MS'
-    AND academic_year = dbo.fn_Global_Academic_Year()
+    AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND start_date <= CONVERT(DATE,GETDATE())
  )
 
@@ -52,8 +52,7 @@ WITH roster AS (
              ,CONVERT(VARCHAR,CASE WHEN N_total > 0 THEN ROUND(CONVERT(FLOAT,N_passed) / CONVERT(FLOAT,N_total) * 100,0) ELSE NULL END) AS pct_pass
        FROM AR$progress_to_goals_long#static WITH(NOLOCK)
        WHERE words_goal > 0
-      ) sub
-  
+      ) sub  
   UNPIVOT (
      value
      FOR field IN (words, pct_goal, mastery_f, mastery_nf, mastery_all, pct_pass)
@@ -64,31 +63,31 @@ WITH roster AS (
 ,map_scores AS (
   SELECT year
         ,student_number
-        ,fallwinterspring + '_' + field AS header
+        ,term + '_' + field AS header
         ,value
   FROM
       (
        SELECT co.STUDENT_NUMBER
              ,co.year             
              ,CASE 
-               WHEN map.fallwinterspring IS NULL THEN 'B'
-               WHEN map.fallwinterspring = 'Fall' THEN 'B'
-               WHEN map.fallwinterspring = 'Winter' THEN 'W'
-               WHEN map.fallwinterspring = 'Spring' THEN 'S'
-              END AS fallwinterspring
+               WHEN map.term IS NULL THEN 'B'
+               WHEN map.term = 'Fall' THEN 'B'
+               WHEN map.term = 'Winter' THEN 'W'
+               WHEN map.term = 'Spring' THEN 'S'
+              END AS term
              ,CONVERT(VARCHAR,CASE 
-                               WHEN map.fallwinterspring IS NULL THEN base.testritscore
-                               WHEN map.fallwinterspring = 'Fall' THEN base.testritscore 
+                               WHEN map.term IS NULL THEN base.testritscore
+                               WHEN map.term = 'Fall' THEN base.testritscore 
                                ELSE map.testritscore 
                               END) AS rit
              ,CONVERT(VARCHAR,CASE 
-                               WHEN map.fallwinterspring IS NULL THEN base.testpercentile 
-                               WHEN map.fallwinterspring = 'Fall' THEN base.testpercentile
+                               WHEN map.term IS NULL THEN base.testpercentile 
+                               WHEN map.term = 'Fall' THEN base.testpercentile
                                ELSE map.testpercentile 
                               END) AS pct
              ,CONVERT(VARCHAR,CASE
-                               WHEN map.fallwinterspring IS NULL THEN REPLACE(base.lexile_score, 'BR', 0) 
-                               WHEN map.fallwinterspring = 'Fall' THEN REPLACE(base.lexile_score, 'BR', 0) 
+                               WHEN map.term IS NULL THEN REPLACE(base.lexile_score, 'BR', 0) 
+                               WHEN map.term = 'Fall' THEN REPLACE(base.lexile_score, 'BR', 0) 
                                ELSE REPLACE(map.rittoreadingscore, 'BR', 0) 
                               END) AS lexile
        FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
@@ -96,9 +95,9 @@ WITH roster AS (
          ON co.studentid = base.studentid
         AND co.year = base.year
         AND base.measurementscale = 'Reading'
-       LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
-         ON co.studentid = map.ps_studentid
-        AND co.year = map.map_year_academic
+       LEFT OUTER JOIN MAP$CDF#identifiers#static map WITH(NOLOCK)
+         ON co.student_number = map.student_number
+        AND co.year = map.academic_year
         AND base.measurementscale = map.measurementscale   
         AND map.rn = 1
        WHERE co.rn = 1         
@@ -173,25 +172,16 @@ WITH roster AS (
              ,CONVERT(VARCHAR,fp.indep_lvl) AS indep_lvl
              ,CONVERT(VARCHAR,fp.GLEQ) AS GLEQ      
              ,CONVERT(VARCHAR,ROUND(fp.GLEQ - gleq.GLEQ,1)) AS yrs_behind
-             ,CONVERT(VARCHAR,CASE WHEN fp.schoolid = 73252 THEN rl.wpm ELSE fp.fp_wpmrate END) AS wpm
+             ,CONVERT(VARCHAR,fp.fp_wpmrate) AS wpm
              ,CONVERT(VARCHAR,fp.fp_keylever) AS keylever            
-       FROM LIT$achieved_by_round#static fp WITH(NOLOCK)       
-       LEFT OUTER JOIN LIT$goals goals WITH(NOLOCK)
+       FROM KIPP_NJ..LIT$achieved_by_round#static fp WITH(NOLOCK)       
+       LEFT OUTER JOIN KIPP_NJ..LIT$goals goals WITH(NOLOCK)
          ON fp.GRADE_LEVEL = goals.grade_level
-        AND REPLACE(fp.test_round, 'EOY', 'T3') = goals.test_round
-       LEFT OUTER JOIN LIT$GLEQ gleq WITH(NOLOCK)
-         ON goals.read_lvl = gleq.read_lvl        
-       LEFT OUTER JOIN SRSLY_DIE_READLIVE rl WITH(NOLOCK)
-         ON fp.studentid = rl.studentid
-        AND CASE
-             WHEN fp.test_round = 'BOY' THEN 'Fall'
-             WHEN fp.test_round = 'T1' THEN 'Fall'
-             WHEN fp.test_round = 'T2' THEN 'Winter'
-             WHEN fp.test_round = 'T3' THEN 'Winter'
-             WHEN fp.test_round = 'EOY' THEN 'Spring'
-            END = rl.season       
-       WHERE ((fp.academic_year < dbo.fn_Global_Academic_Year()) 
-               OR (fp.academic_year = dbo.fn_Global_Academic_Year() AND fp.test_round IN (SELECT test_round FROM terms WITH(NOLOCK))))
+        AND fp.test_round = goals.test_round
+       LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
+         ON goals.read_lvl = gleq.read_lvl               
+       WHERE ((fp.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year()) 
+                 OR (fp.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND fp.test_round IN (SELECT test_round FROM terms WITH(NOLOCK))))
       ) sub  
   UNPIVOT (
     value
@@ -231,58 +221,57 @@ WITH roster AS (
 
 ,map_goals AS (
   SELECT year
-        ,studentid
+        ,student_number
         ,field AS header
         ,CONVERT(VARCHAR,value) AS value
   FROM
       (
-       SELECT map_year_academic AS year
-             ,ps_studentid AS studentid
-             ,teststartdate
-             ,goal1name
-             ,goal1ritscore
-             ,goal1stderr
-             ,goal1range
-             ,goal1adjective
-             ,goal2name
-             ,goal2ritscore
-             ,goal2stderr
-             ,goal2range
-             ,goal2adjective
-             ,goal3name
-             ,goal3ritscore
-             ,goal3stderr
-             ,goal3range
-             ,goal3adjective
-             ,goal4name
-             ,goal4ritscore
-             ,goal4stderr
-             ,goal4range
-             ,goal4adjective
-             ,goal5name
-             ,goal5ritscore
-             ,goal5stderr
-             ,goal5range
-             ,goal5adjective
-             ,goal6name
-             ,goal6ritscore
-             ,goal6stderr
-             ,goal6range
-             ,goal6adjective
-             ,goal7name
-             ,goal7ritscore
-             ,goal7stderr
-             ,goal7range
-             ,goal7adjective
-             ,goal8name
-             ,goal8ritscore
-             ,goal8stderr
-             ,goal8range
-             ,goal8adjective
+       SELECT academic_year AS year
+             ,student_number             
+             ,CONVERT(VARCHAR,goal1name) AS goal1name
+             ,CONVERT(VARCHAR,goal1ritscore) AS goal1ritscore
+             ,CONVERT(VARCHAR,goal1stderr) AS goal1stderr
+             ,CONVERT(VARCHAR,goal1range) AS goal1range
+             ,CONVERT(VARCHAR,goal1adjective) AS goal1adjective
+             ,CONVERT(VARCHAR,goal2name) AS goal2name
+             ,CONVERT(VARCHAR,goal2ritscore) AS goal2ritscore
+             ,CONVERT(VARCHAR,goal2stderr) AS goal2stderr
+             ,CONVERT(VARCHAR,goal2range) AS goal2range
+             ,CONVERT(VARCHAR,goal2adjective) AS goal2adjective
+             ,CONVERT(VARCHAR,goal3name) AS goal3name
+             ,CONVERT(VARCHAR,goal3ritscore) AS goal3ritscore
+             ,CONVERT(VARCHAR,goal3stderr) AS goal3stderr
+             ,CONVERT(VARCHAR,goal3range) AS goal3range
+             ,CONVERT(VARCHAR,goal3adjective) AS goal3adjective
+             ,CONVERT(VARCHAR,goal4name) AS goal4name
+             ,CONVERT(VARCHAR,goal4ritscore) AS goal4ritscore
+             ,CONVERT(VARCHAR,goal4stderr) AS goal4stderr
+             ,CONVERT(VARCHAR,goal4range) AS goal4range
+             ,CONVERT(VARCHAR,goal4adjective) AS goal4adjective
+             ,CONVERT(VARCHAR,goal5name) AS goal5name
+             ,CONVERT(VARCHAR,goal5ritscore) AS goal5ritscore
+             ,CONVERT(VARCHAR,goal5stderr) AS goal5stderr
+             ,CONVERT(VARCHAR,goal5range) AS goal5range
+             ,CONVERT(VARCHAR,goal5adjective) AS goal5adjective
+             ,CONVERT(VARCHAR,goal6name) AS goal6name
+             ,CONVERT(VARCHAR,goal6ritscore) AS goal6ritscore
+             ,CONVERT(VARCHAR,goal6stderr) AS goal6stderr
+             ,CONVERT(VARCHAR,goal6range) AS goal6range
+             ,CONVERT(VARCHAR,goal6adjective) AS goal6adjective
+             ,CONVERT(VARCHAR,goal7name) AS goal7name
+             ,CONVERT(VARCHAR,goal7ritscore) AS goal7ritscore
+             ,CONVERT(VARCHAR,goal7stderr) AS goal7stderr
+             ,CONVERT(VARCHAR,goal7range) AS goal7range
+             ,CONVERT(VARCHAR,goal7adjective) AS goal7adjective
+             ,CONVERT(VARCHAR,goal8name) AS goal8name
+             ,CONVERT(VARCHAR,goal8ritscore) AS goal8ritscore
+             ,CONVERT(VARCHAR,goal8stderr) AS goal8stderr
+             ,CONVERT(VARCHAR,goal8range) AS goal8range
+             ,CONVERT(VARCHAR,goal8adjective) AS goal8adjective
              ,ROW_NUMBER() OVER(
-                PARTITION BY map_year_academic, studentid
+                PARTITION BY academic_year, studentid
                   ORDER BY teststartdate DESC) AS rn_curr
-       FROM MAP$comprehensive#identifiers WITH(NOLOCK)
+       FROM KIPP_NJ..MAP$CDF#identifiers#static WITH(NOLOCK)
        WHERE rn = 1
          AND measurementscale = 'Reading'
       ) sub
@@ -502,7 +491,7 @@ FROM
            ,CONVERT(VARCHAR,goal.value) AS value
      FROM roster r
      JOIN map_goals goal
-       ON r.studentid = goal.studentid
+       ON r.student_number = goal.student_number
       AND r.year = goal.year
     ) sub
 
