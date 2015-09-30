@@ -3,9 +3,22 @@ GO
 
 ALTER VIEW TABLEAU$KTC_alumni_detail AS 
 
-WITH max_grade AS (
+WITH graduates AS (
+  SELECT co.student_number           
+        ,co.lastfirst
+        ,co.cohort
+        ,ROW_NUMBER() OVER(
+           PARTITION BY co.student_number
+             ORDER BY co.exitdate DESC) AS rn
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  WHERE co.rn = 1
+    AND co.exitcode = 'G1'       
+    AND co.student_number != 2026              
+ )
+
+,max_grade AS (
   SELECT co.year AS academic_year
-        ,co.studentid
+        ,co.student_number
         ,co.lastfirst
         ,co.grade_level
         ,co.cohort
@@ -19,10 +32,10 @@ WITH max_grade AS (
  )
 
 ,combined_roster AS (
-  SELECT co.year AS academic_year
+  SELECT KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
         ,co.STUDENT_NUMBER
         ,co.lastfirst
-        ,max_grade.grade_level + (co.year - max_grade.cohort) AS grade_level        
+        ,max_grade.grade_level + (KIPP_NJ.dbo.fn_Global_Academic_Year() - max_grade.cohort) AS grade_level        
         ,max_grade.cohort
         ,max_grade.schoolid        
         ,r.contact_id AS student_salesforce_id        
@@ -36,18 +49,16 @@ WITH max_grade AS (
         ,r.school_type
         ,r.school_enroll_date
         ,r.school_exit_date
-  FROM COHORT$identifiers_long#static co WITH(NOLOCK)
+  FROM graduates co WITH(NOLOCK)
   JOIN max_grade WITH(NOLOCK)
-    ON co.studentid = max_grade.studentid
-   AND co.year >= max_grade.cohort
+    ON co.student_number = max_grade.student_number
+   AND KIPP_NJ.dbo.fn_Global_Academic_Year() >= max_grade.cohort
    AND max_grade.rn = 1
   LEFT OUTER JOIN [AlumniMirror].[dbo].[vwRoster_Basic] r WITH(NOLOCK)
     ON co.student_number = r.sis_id
   LEFT OUTER JOIN AlumniMirror.dbo.User2 u WITH(NOLOCK)
     ON r.ktc_contact = u.name
-  WHERE co.rn = 1
-    AND co.schoolid = 999999
-    AND co.year = dbo.fn_Global_Academic_Year()
+  WHERE co.rn = 1    
  )
 
 ,enrollments AS (
