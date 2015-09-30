@@ -5,18 +5,18 @@ ALTER VIEW DEVFIN$enrollment_rollup AS
 
 SELECT SCHOOLID
       ,metric
-      ,[Sep_2014]
-      ,[Oct_2014]
-      ,[Nov_2014]
-      ,[Dec_2014]
-      ,[Jan_2014]
-      ,[Feb_2014]
-      ,[Mar_2014]
-      ,[Apr_2014]
-      ,[May_2014]
-      ,[Jun_2014]
-      ,[Jul_2014]
-      ,[Aug_2014]
+      ,[Sep_2015]
+      ,[Oct_2015]
+      ,[Nov_2015]
+      ,[Dec_2015]
+      ,[Jan_2015]
+      ,[Feb_2015]
+      ,[Mar_2015]
+      ,[Apr_2015]
+      ,[May_2015]
+      ,[Jun_2015]
+      ,[Jul_2015]
+      ,[Aug_2015]
 FROM
     (
      SELECT LEFT(DATENAME(MONTH,date),3) + '_' + CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) AS month
@@ -82,16 +82,16 @@ FROM
     
 PIVOT(
   MAX(value)
-  FOR month IN ([Sep_2014]
-               ,[Oct_2014]
-               ,[Nov_2014]
-               ,[Dec_2014]
-               ,[Jan_2014]
-               ,[Feb_2014]
-               ,[Mar_2014]
-               ,[Apr_2014]
-               ,[May_2014]
-               ,[Jun_2014]
-               ,[Jul_2014]
-               ,[Aug_2014])
+  FOR month IN ([Sep_2015]
+               ,[Oct_2015]
+               ,[Nov_2015]
+               ,[Dec_2015]
+               ,[Jan_2015]
+               ,[Feb_2015]
+               ,[Mar_2015]
+               ,[Apr_2015]
+               ,[May_2015]
+               ,[Jun_2015]
+               ,[Jul_2015]
+               ,[Aug_2015])
  ) piv
