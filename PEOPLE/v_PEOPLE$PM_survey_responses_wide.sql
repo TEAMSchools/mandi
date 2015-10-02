@@ -17,7 +17,7 @@ WITH response_agg AS (
         ,ROUND(MAX(CONVERT(FLOAT,CASE WHEN manager_name = surveyed_by THEN response_value END)),1) AS manager_response_value
         ,COUNT(response_value) AS N_responses        
   FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
-  WHERE is_open_ended = 0 /* open ended treated separately*/
+  WHERE is_open_ended = 0 /* open ended treated separately*/  
   GROUP BY survey_type
           ,academic_year
           ,term
@@ -39,18 +39,19 @@ WITH response_agg AS (
         ,s.manager_name            
         ,s.competency
         ,s.question_code            
+        ,CONVERT(FLOAT,s.N_responses) AS N_responses
         /* competency level rollups */
+        ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.staff_member, s.competency),1) AS competency_person_avg
+        ,ROUND(AVG(s.manager_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.staff_member, s.competency),1) AS competency_manager_avg
         ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.reporting_location, s.team, s.competency),1) AS competency_team_avg
         ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.reporting_location, s.competency),1) AS competency_school_avg
-        ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.competency),1) AS competency_network_avg
-        ,ROUND(AVG(s.manager_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.competency),1) AS competency_manager_avg
-        /* question level rollups */
-        ,CONVERT(FLOAT,s.N_responses) AS N_responses
+        ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.competency),1) AS competency_network_avg        
+        /* question level rollups */        
         ,CONVERT(FLOAT,s.avg_response_value) AS question_person_avg
+        ,CONVERT(FLOAT,s.manager_response_value) AS question_manager_avg
         ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.reporting_location, s.team, s.question_code),1) AS question_team_avg
         ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.reporting_location, s.question_code),1) AS question_school_avg
-        ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.question_code),1) AS question_network_avg
-        ,CONVERT(FLOAT,s.manager_response_value) AS question_manager_avg
+        ,ROUND(AVG(s.avg_response_value) OVER(PARTITION BY s.survey_type, s.academic_year, s.term, s.question_code),1) AS question_network_avg        
   FROM response_agg s  
  )
 
@@ -63,7 +64,7 @@ WITH response_agg AS (
         ,team
         ,manager_name
         ,CONCAT(question_code, '_', field) AS pivot_field
-        ,value AS pivot_value        
+        ,CONVERT(VARCHAR,value) AS pivot_value        
   FROM response_agg_all
   UNPIVOT(
     value
@@ -85,16 +86,39 @@ WITH response_agg AS (
         ,team
         ,manager_name
         ,CONCAT(competency, '_', field) AS pivot_field
-        ,value AS pivot_value
+        ,CONVERT(VARCHAR,value) AS pivot_value
   FROM response_agg_all  
   UNPIVOT(
     value
-    FOR field IN (competency_team_avg
+    FOR field IN (competency_person_avg
+                 ,competency_team_avg
                  ,competency_school_avg
                  ,competency_network_avg
                  ,competency_manager_avg)
    ) u
   WHERE survey_type != 'Manager'
+ )
+
+,comments AS (
+  SELECT survey_type
+        ,academic_year
+        ,term
+        ,staff_member        
+        ,reporting_location
+        ,team
+        ,manager_name
+        ,CONCAT(ISNULL(KIPP_NJ.dbo.fn_StripCharacters(competency,'^A-Z'), 'Manager_' + question_code), '_comments') AS pivot_field
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(REPLACE(LTRIM(RTRIM(response)),'"',''''''), CHAR(9) + '//' + CHAR(9)) AS pivot_value
+  FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
+  WHERE is_open_ended = 1
+  GROUP BY survey_type
+          ,academic_year
+          ,term
+          ,staff_member        
+          ,reporting_location
+          ,team
+          ,manager_name
+          ,CONCAT(ISNULL(KIPP_NJ.dbo.fn_StripCharacters(competency,'^A-Z'), 'Manager_' + question_code), '_comments')
  )
 
 SELECT *
@@ -105,33 +129,45 @@ FROM
      UNION ALL
      SELECT *
      FROM competency_unpivot
+     UNION ALL
+     SELECT *
+     FROM comments
     ) sub
 PIVOT(
   MAX(pivot_value)
-  FOR pivot_field IN ([BuildingRelationships_competency_manager_avg]
+  FOR pivot_field IN ([BuildingRelationships_competency_person_avg]
+                     ,[BuildingRelationships_competency_manager_avg]
                      ,[BuildingRelationships_competency_school_avg]
                      ,[BuildingRelationships_competency_team_avg]
+                     ,[BuildingRelationshipsStudents_competency_person_avg]
                      ,[BuildingRelationshipsStudents_competency_manager_avg]
                      ,[BuildingRelationshipsStudents_competency_school_avg]
                      ,[BuildingRelationshipsStudents_competency_team_avg]
+                     ,[Communication_competency_person_avg]
                      ,[Communication_competency_manager_avg]
                      ,[Communication_competency_school_avg]
                      ,[Communication_competency_team_avg]
+                     ,[CommunicationStudents_competency_person_avg]
                      ,[CommunicationStudents_competency_manager_avg]
                      ,[CommunicationStudents_competency_school_avg]
                      ,[CommunicationStudents_competency_team_avg]
+                     ,[ContinuousLearning_competency_person_avg]
                      ,[ContinuousLearning_competency_manager_avg]
                      ,[ContinuousLearning_competency_school_avg]
                      ,[ContinuousLearning_competency_team_avg]
+                     ,[CulturalCompetence_competency_person_avg]
                      ,[CulturalCompetence_competency_manager_avg]
                      ,[CulturalCompetence_competency_school_avg]
                      ,[CulturalCompetence_competency_team_avg]
+                     ,[CulturalCompetenceStudents_competency_person_avg]
                      ,[CulturalCompetenceStudents_competency_manager_avg]
                      ,[CulturalCompetenceStudents_competency_school_avg]
                      ,[CulturalCompetenceStudents_competency_team_avg]
+                     ,[SelfAwarenessandSelfAdjustment_competency_person_avg]
                      ,[SelfAwarenessandSelfAdjustment_competency_manager_avg]
                      ,[SelfAwarenessandSelfAdjustment_competency_school_avg]
                      ,[SelfAwarenessandSelfAdjustment_competency_team_avg]
+                     ,[Professionalism_competency_person_avg]
                      ,[Professionalism_competency_manager_avg]
                      ,[Professionalism_competency_school_avg]
                      ,[Professionalism_competency_team_avg]
@@ -310,5 +346,19 @@ PIVOT(
                      ,[q9_5_question_manager_avg]
                      ,[q9_5_question_person_avg]
                      ,[q9_5_question_school_avg]
-                     ,[q9_5_question_team_avg])
+                     ,[q9_5_question_team_avg]
+                     ,[BuildingRelationships_comments]
+                     ,[BuildingRelationshipsStudents_comments]
+                     ,[Communication_comments]
+                     ,[CommunicationStudents_comments]
+                     ,[ContinuousLearning_comments]
+                     ,[CulturalCompetence_comments]
+                     ,[CulturalCompetenceStudents_comments]
+                     ,[Professionalism_comments]
+                     ,[SelfAwarenessandSelfAdjustment_comments]
+                     ,[Manager_q14_comments]
+                     ,[Manager_q15_comments]
+                     ,[Manager_q16_comments]
+                     ,[Manager_q17_comments]
+                     ,[Manager_q18_comments])
  ) p

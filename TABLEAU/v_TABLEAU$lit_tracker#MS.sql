@@ -61,7 +61,7 @@ JOIN KIPP_NJ..REPORTING$term_map term WITH(NOLOCK)
   ON r.year BETWEEN term.min_year AND term.max_year
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
   ON r.STUDENT_NUMBER = ar.student_number
- AND r.year = ar.academic_Year
+ AND r.year = ar.academic_year
  AND term.hex = ar.time_period_name 
 LEFT OUTER JOIN KIPP_NJ..LIT$achieved_by_round#static lit_rounds WITH(NOLOCK)
   ON r.studentid = lit_rounds.studentid

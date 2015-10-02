@@ -27,7 +27,7 @@ SELECT s.STUDENT_NUMBER
       ,bus.BUS_INFO_BGC_CLOSED
       ,CASE 
         WHEN ch.studentid IS NOT NULL AND ch.subtype = '01' THEN 'School Event'
-        WHEN ch.studentid IS NOT NULL THEN 'Parent Pickup'
+        WHEN ch.studentid IS NOT NULL THEN 'Parent Transport'
         WHEN DATEPART(WEEKDAY,GETDATE()) = 4 THEN BUS_INFO_FRIDAYS 
         ELSE BUS_INFO_PM 
        END AS BUS_PM_TODAY      
