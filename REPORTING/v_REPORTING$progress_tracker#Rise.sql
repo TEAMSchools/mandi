@@ -49,6 +49,22 @@ WITH curterm AS (
     AND start_date <= CONVERT(DATE,GETDATE())
     AND end_date >= CONVERT(DATE,GETDATE())
  )
+
+,fandp AS (
+  SELECT STUDENTID
+        ,academic_year      
+        ,read_lvl
+        ,GLEQ
+        ,lvl_num            
+        ,ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year
+             ORDER BY start_date ASC) AS rn_base
+        ,ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year
+             ORDER BY start_date DESC) AS rn_curr
+  FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
+  WHERE read_lvl IS NOT NULL
+)
        
 SELECT ROW_NUMBER() OVER(
            ORDER BY roster.grade_level
@@ -362,28 +378,18 @@ SELECT ROW_NUMBER() OVER(
       END AS BASE_LEX_GLQ_CURRENT
 
      --F&P     
-     ,CASE
-       WHEN fp_base.read_lvl IS NOT NULL THEN fp_base.read_lvl
-       ELSE fp_curr.read_lvl
-      END AS start_letter
+     ,COALESCE(fp_base.read_lvl, fp_curr.read_lvl) AS start_letter
      ,fp_curr.read_lvl AS end_letter
-       --GLQ
-     ,CASE
-       WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ
-       ELSE fp_curr.GLEQ
-      END AS Start_GLEQ
+     --GLEQ
+     ,COALESCE(fp_base.GLEQ,fp_curr.GLEQ) AS Start_GLEQ
      ,fp_curr.GLEQ AS End_GLEQ
-     ,(fp_curr.GLEQ - CASE WHEN fp_base.GLEQ IS NOT NULL THEN fp_base.GLEQ ELSE fp_curr.GLEQ END) AS GLEQ_Growth
-       --Level #
-     ,CASE
-       WHEN fp_base.lvl_num IS NOT NULL THEN fp_base.lvl_num
-       ELSE fp_curr.lvl_num
-      END AS [Start_#]
+     ,(fp_curr.GLEQ - COALESCE(fp_base.GLEQ,fp_curr.GLEQ)) AS GLEQ_Growth
+     --Level #
+     ,COALESCE(fp_base.lvl_num, fp_curr.lvl_num) AS [Start_#]
      ,fp_curr.lvl_num AS [End_#]
-     ,(fp_curr.lvl_num - CASE WHEN fp_base.lvl_num IS NOT NULL THEN fp_base.lvl_num ELSE fp_curr.lvl_num END) AS [Levels_grown]
+     ,(fp_curr.lvl_num - COALESCE(fp_base.lvl_num, fp_curr.lvl_num)) AS [Levels_grown]
       
 --Accelerated Reader
---update terms in JOIN
 --AR year
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_yr.words),1),'.00','') AS words_read_yr
      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_yr.words_goal),1),'.00','') AS words_goal_yr      
@@ -674,15 +680,14 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH (NOLOCK)
   
 --LITERACY
   --F&P
-LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers fp_base WITH (NOLOCK)
-  ON roster.student_number = fp_base.STUDENT_NUMBER
+LEFT OUTER JOIN fandp fp_base WITH (NOLOCK)
+  ON roster.id = fp_base.studentid
  AND roster.year = fp_base.academic_year
- AND fp_base.base_yr = 1
- AND fp_base.status = 'Achieved'
-LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers fp_curr WITH (NOLOCK)
-  ON roster.student_number = fp_curr.STUDENT_NUMBER 
- AND fp_curr.curr_all = 1
- AND fp_base.status = 'Achieved'
+ AND fp_base.rn_base = 1 
+LEFT OUTER JOIN fandp fp_curr WITH (NOLOCK)
+  ON roster.id = fp_curr.studentid 
+ AND roster.year = fp_curr.academic_year
+ AND fp_curr.rn_curr = 1 
   --LEXILE
 LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_base WITH (NOLOCK)
   ON roster.student_number = lex_base.student_number
@@ -694,8 +699,7 @@ LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_curr WITH (NOLOCK)
  AND roster.year = lex_curr.academic_year
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
- 
-  
+   
 --ED TECH
   --ACCELERATED READER
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
@@ -706,25 +710,11 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.id = ar_curr.studentid 
  AND ar_curr.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
  AND ar_curr.time_period_name = (SELECT hex_a FROM cur_hex)
---LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_curr2 WITH (NOLOCK)
---  ON roster.id = ar_curr2.studentid 
--- AND ar_curr2.time_period_name = (SELECT hex_b FROM cur_hex)
--- AND ar_curr2.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
 
 --MAP
 LEFT OUTER JOIN KIPP_NJ..MAP$wide_all#static map_all WITH (NOLOCK)
   ON roster.id = map_all.studentid
   
-----NJASK
---LEFT OUTER JOIN KIPP_NJ..NJASK$ELA_WIDE njask_ela WITH (NOLOCK)
---  ON roster.id = njask_ela.studentid
--- AND njask_ela.schoolid = 73252
--- AND njask_ela.rn = 1
---LEFT OUTER JOIN KIPP_NJ..NJASK$MATH_WIDE njask_math WITH (NOLOCK)
---  ON roster.id = njask_math.studentid
--- AND njask_math.schoolid = 73252
--- AND njask_math.rn = 1
-
 --Discipline
 LEFT OUTER JOIN KIPP_NJ..DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
   ON roster.id = disc_recent.studentid
@@ -734,4 +724,4 @@ LEFT OUTER JOIN KIPP_NJ..DISC$counts_wide disc_count WITH (NOLOCK)
 --XC
 LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON roster.STUDENT_NUMBER = xc.student_number
- AND xc.academic_year = xc.academic_year
+ AND roster.year = xc.academic_year

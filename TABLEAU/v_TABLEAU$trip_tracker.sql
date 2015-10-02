@@ -71,3 +71,4 @@ LEFT OUTER JOIN disc_count WITH(NOLOCK)
 WHERE s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
   AND s.enroll_status = 0
   AND s.schoolid IN (73252,133570965)
+  AND s.date <= CONVERT(DATE,GETDATE())
