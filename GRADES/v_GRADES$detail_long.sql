@@ -8,7 +8,7 @@ WITH grades_long AS (
         ,CREDITTYPE
         ,COURSE_NUMBER
         ,COURSE_NAME
-        ,term
+        ,REPLACE(term,'T','Q') AS term
         ,[PCT] AS term_pct
         ,[LETTER] AS term_letter
         ,y1_pct
@@ -96,7 +96,7 @@ WITH grades_long AS (
         ,sub2.credittype
         ,sub2.course_number
         ,cou.COURSE_NAME        
-        ,sub2.term
+        ,REPLACE(sub2.term,'T','Q') AS term
         ,sec.section_number
         ,sub2.sectionid
         ,t.lastfirst AS teacher

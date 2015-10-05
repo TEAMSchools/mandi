@@ -11,8 +11,7 @@ SELECT studentid
       ,pgf_type      
       ,CASE
         WHEN term = 'simple_avg' THEN 'Y1'
-        WHEN schoolid = 73253 THEN 'Q' + CONVERT(VARCHAR,RIGHT(term, 1))
-        ELSE 'T' + CONVERT(VARCHAR,RIGHT(term, 1))
+        ELSE 'Q' + CONVERT(VARCHAR,RIGHT(term, 1))        
        END AS term
       ,grade
 FROM GRADES$elements WITH(NOLOCK)

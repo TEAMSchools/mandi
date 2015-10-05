@@ -78,8 +78,8 @@ FROM
            /* date stuff */
            ,COALESCE(rs.academic_year, dates.academic_year) AS academic_year
            ,CASE
-             WHEN co.grade_level < 5 AND COALESCE(rs.test_round, dates.time_per_name) = 'Diagnostic' THEN 'DR' 
-             WHEN rs.schoolid IN (133570965, 73252) AND COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR') THEN 'BOY' 
+             WHEN (co.grade_level >= 5 OR (co.grade_level = 4 AND co.schoolid = 73252)) AND COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR') THEN 'BOY' 
+             WHEN co.grade_level <= 4 AND COALESCE(rs.test_round, dates.time_per_name) = 'Diagnostic' THEN 'DR'              
              ELSE COALESCE(rs.test_round, dates.time_per_name)
             END AS test_round
            ,CASE
@@ -191,8 +191,8 @@ FROM
            /* date stuff */
            ,COALESCE(rs.academic_year, dates.academic_year) AS academic_year
            ,CASE
-             WHEN co.grade_level < 5 AND COALESCE(rs.test_round, dates.time_per_name) = 'Diagnostic' THEN 'DR' 
-             WHEN rs.schoolid IN (133570965, 73252) AND COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR') THEN 'BOY' 
+             WHEN (co.grade_level >= 5 OR (co.grade_level = 4 AND co.schoolid = 73252)) AND COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR') THEN 'BOY' 
+             WHEN co.grade_level <= 4 AND COALESCE(rs.test_round, dates.time_per_name) = 'Diagnostic' THEN 'DR'              
              ELSE COALESCE(rs.test_round, dates.time_per_name)
             END AS test_round
            ,CASE

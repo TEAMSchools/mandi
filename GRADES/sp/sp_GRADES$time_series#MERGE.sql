@@ -49,7 +49,9 @@ BEGIN
         ,KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,GETDATE())) AS academic_year
         ,CONVERT(DATE,GETDATE()) AS date
   INTO #ts_update
-  FROM ts_update;
+  FROM ts_update
+  WHERE moving_average IS NOT NULL
+    AND course_number IS NOT NULL;
 
   MERGE KIPP_NJ..GRADES$time_series AS TARGET
   USING #ts_update AS SOURCE

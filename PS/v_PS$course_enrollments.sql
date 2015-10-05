@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW PS$course_enrollments AS
+--ALTER VIEW PS$course_enrollments AS
 
 WITH coaches AS (
   SELECT 2014 AS academic_year

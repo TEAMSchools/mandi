@@ -92,7 +92,7 @@ WITH roster AS (
          ON (ts.moving_average >= scl.low_cut AND ts.moving_average < scl.high_cut)
         AND scl.scale_id = 1
        WHERE (ts.finalgradename = 'Y1' OR ts.finalgradename LIKE 'H%')
-         AND DATEPART(DW,ts.date) = 4 /* as of Wednesday */
+         AND (DATEPART(DW,ts.date) = 4 /* as of Wednesday */ OR ts.date = CONVERT(DATE,GETDATE()))
          AND ts.date IN (SELECT date FROM KIPP_NJ..REPORTING$Rise_weekly_dates#static dt WITH(NOLOCK))
          AND ts.schoolid = 73252
        GROUP BY ts.student_number
@@ -104,6 +104,7 @@ WITH roster AS (
   SELECT student_number        
         ,date
         ,att_pts
+        ,CONVERT(FLOAT,ROUND(((y1_mem - att_pts) / Y1_MEM) * 100,1)) AS att_pts_pct
         ,LAG(att_pts) OVER(PARTITION BY student_number ORDER BY date) AS prev_att_pts
         ,CASE
           WHEN att_pts < 20 THEN 'Met'
@@ -114,6 +115,7 @@ WITH roster AS (
       (
        SELECT co.student_number
              ,co.date      
+             ,mem.Y1_MEM
              ,FLOOR(SUM(CASE
                          WHEN att.ATT_CODE IN ('TE','AE') THEN 0.0
                          WHEN att.PRESENCE_STATUS_CD = 'Absent' THEN 1.0
@@ -123,6 +125,8 @@ WITH roster AS (
                                     ORDER BY co.date
                                     ROWS UNBOUNDED PRECEDING)) AS att_pts
        FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)
+       LEFT OUTER JOIN KIPP_NJ..ATT_MEM$membership_counts#static mem WITH(NOLOCK)
+         ON co.studentid = mem.STUDENTID
        LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
          ON co.studentid = att.STUDENTID
         AND co.date = att.ATT_DATE
@@ -131,7 +135,7 @@ WITH roster AS (
          AND co.grade_level = 7
          AND co.date <= CONVERT(DATE,GETDATE())
       ) sub
-  WHERE DATEPART(DW,date) = 4
+  WHERE (DATEPART(DW,date) = 4 OR date = CONVERT(DATE,GETDATE()))
 )
 
 SELECT *
@@ -142,11 +146,11 @@ FROM
            ,r.team
            ,(SELECT FORMAT(MIN(date),'M/dd/yyy') FROM KIPP_NJ..REPORTING$Rise_weekly_dates#static dt WITH(NOLOCK)) AS wk_start_date
            ,(SELECT FORMAT(MAX(date),'M/dd/yyy') FROM KIPP_NJ..REPORTING$Rise_weekly_dates#static dt WITH(NOLOCK)) AS wk_end_date
-           ,d.choices
-           ,d.detention
-           ,d.ISS
-           ,d.OSS
-           ,d.[Silent Lunch] AS silent_lunch           
+           ,ISNULL(d.choices,0) AS choices
+           ,ISNULL(d.detention,0) AS detention
+           ,ISNULL(d.ISS,0) AS ISS
+           ,ISNULL(d.OSS,0) AS OSS
+           ,ISNULL(d.[Silent Lunch],0) AS silent_lunch           
            ,g.gpa
            ,g.prev_gpa
            ,g.gpa_status
@@ -154,6 +158,7 @@ FROM
            ,g.prev_hwc_avg
            ,g.hwc_status
            ,a.att_pts
+           ,a.att_pts_pct
            ,a.prev_att_pts
            ,a.att_pts_status
            ,CASE

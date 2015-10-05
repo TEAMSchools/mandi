@@ -7,9 +7,8 @@ WITH assessments AS (
   SELECT academic_year
         ,assessment_id
         ,subject_area
-        ,short_title
-        ,grade_level
-        ,MIN(rn) OVER(PARTITION BY academic_year, grade_level, subject_area, short_title) AS rn
+        ,short_title        
+        ,MIN(rn) OVER(PARTITION BY academic_year, grade_level_tags, subject_area, short_title) AS rn
   FROM
       (
        SELECT a.academic_year
@@ -18,17 +17,19 @@ WITH assessments AS (
                WHEN a.subject_area IN ('English','Comprehension','Text Study') THEN 'ELA'
                WHEN a.subject_area IN ('Mathematics') THEN 'MATH'
               END AS subject_area             
+             ,title      
+      
              ,CASE
-               WHEN title LIKE '%Checkpoint%' THEN CONCAT('CHK',RIGHT(title, 1))
+               WHEN title LIKE '%Checkpoint%' THEN CONCAT('CHK',SUBSTRING(title, CHARINDEX('Checkpoint', title) + 11, 1))
                ELSE CONCAT('MOD',SUBSTRING(title, PATINDEX('%M[0-9]%',title) + 1, 1))
               END AS short_title
-             ,REPLACE(SUBSTRING(title, PATINDEX('%G[0-9]%',title) + 1, 1),'K',0) AS grade_level             
+             ,KIPP_NJ.dbo.fn_StripCharacters(tags,'^0-9,K') AS grade_level_tags
              ,ROW_NUMBER() OVER(
-                PARTITION BY a.subject_area, REPLACE(SUBSTRING(title, PATINDEX('% G_ %',title) + 2, 1),'K',0) /* temp fix until tags are correct*/
+                PARTITION BY a.subject_area, KIPP_NJ.dbo.fn_StripCharacters(tags,'^0-9,K')
                   ORDER BY a.administered_at) AS rn
        FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)       
        WHERE a.scope IN ('Common Module Assessment')    
-         AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()            
+         AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()    
       ) sub
  )
 

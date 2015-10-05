@@ -11,39 +11,23 @@ WITH curhex AS (
         ,end_date
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
-    AND identifier = 'RT'
+    AND identifier = 'AR'
     AND school_level = 'MS'
  )
 
 ,fp AS (
-  SELECT STUDENTID
-        ,base AS fp_base
-        ,COALESCE(curr, base) AS fp_curr
-  FROM
-      (
-       SELECT STUDENTID           
-             ,read_lvl
-             ,COALESCE(
-                CASE 
-                 WHEN ROW_NUMBER() OVER(
-                        PARTITION BY studentid, academic_year
-                          ORDER BY start_date ASC) = 1 THEN 'base'
-                 ELSE NULL
-                END
-               ,CASE
-                 WHEN ROW_NUMBER() OVER(
-                        PARTITION BY studentid, academic_year
-                          ORDER BY start_date DESC) = 1 THEN 'curr' 
-                 ELSE NULL
-                END) AS pivot_hash
-       FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
-       WHERE read_lvl IS NOT NULL
-         AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-      ) sub
-  PIVOT(
-    MAX(read_lvl)
-    FOR pivot_hash IN ([base],[curr])
-   ) p
+  SELECT STUDENTID           
+        ,read_lvl
+        ,CASE WHEN fp_wpmrate = 0 THEN NULL ELSE fp_wpmrate END AS fp_wpmrate
+        ,ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year
+             ORDER BY start_date ASC) AS rn_base
+        ,ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year
+             ORDER BY start_date DESC) AS rn_curr
+  FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
+  WHERE read_lvl IS NOT NULL
+    AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 )
 
 ,ar_wide AS (
@@ -139,6 +123,7 @@ SELECT roster.studentid
       ,roster.lastfirst
       ,roster.full_name AS name
       ,roster.school_name AS school     
+      ,roster.team
       ,enr.course_name + '|' + enr.section_number AS enr_hash
       ,enr.course_number
       ,enr.course_name
@@ -150,8 +135,8 @@ SELECT roster.studentid
       ,ele_y1.grade AS y1_rdg_hw_avg
       
       /* F&P */
-      ,fp.fp_base AS fp_base_letter
-      ,fp.fp_curr AS fp_cur_letter
+      ,fp_base.read_lvl AS fp_base_letter
+      ,fp_curr.read_lvl AS fp_cur_letter
       
       /* MAP */
       ,base.testritscore AS map_baseline
@@ -163,8 +148,8 @@ SELECT roster.studentid
       ,map_winter.rittoreadingscore AS lexile_winter       
       
       /* Readlive = ded */
-      ,NULL /*rl_base.wpm*/ AS starting_fluency
-      ,NULL /*COALESCE(rl_cur.wpm, rl_base.wpm)*/ AS cur_fluency      
+      ,fp_base.fp_wpmrate AS starting_fluency
+      ,fp_curr.fp_wpmrate AS cur_fluency      
  
        /* AR curterm */
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, AR_CUR.WORDS),1),'.00','') AS HEX_WORDS
@@ -240,20 +225,20 @@ SELECT roster.studentid
       ,map_goals.rutgers_ready_goal
       ,map_goals.rutgers_ready_rit      
 FROM KIPP_NJ..COHORT$identifiers_long#static roster WITH(NOLOCK)   
+LEFT OUTER JOIN curhex
+  ON roster.schoolid = curhex.schoolid  
 LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr
   ON roster.studentid = enr.studentid
  AND roster.year = enr.academic_year
- AND enr.credittype IN ('ENG','READ')
+ AND enr.credittype = 'ENG'
  AND CONVERT(DATE,GETDATE()) BETWEEN enr.dateenrolled AND enr.dateleft
-LEFT OUTER JOIN curhex
-  ON roster.schoolid = curhex.schoolid  
 LEFT OUTER JOIN KIPP_NJ..GRADES$DETAIL#MS gr WITH(NOLOCK)
   ON roster.studentid = gr.studentid
- AND gr.credittype LIKE '%ENG%'
-LEFT OUTER JOIN KIPP_NJ..GRADES$detail_long gr_cur WITH(NOLOCK)
+ AND enr.course_number = gr.course_number
+LEFT OUTER JOIN KIPP_NJ..GRADES$detail_long#static gr_cur WITH(NOLOCK)
   ON roster.studentid = gr_cur.studentid
- AND curhex.alt_name = gr_cur.term
- AND gr_cur.credittype LIKE '%ENG%'
+ AND enr.COURSE_NUMBER = gr_cur.course_number
+ AND curhex.alt_name = gr_cur.term 
 LEFT OUTER JOIN KIPP_NJ..GRADES$elements_long ele WITH(NOLOCK)
   ON roster.studentid = ele.studentid
  AND roster.year = ele.academic_year
@@ -266,8 +251,12 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$elements_long ele_y1 WITH(NOLOCK)
  AND gr.course_number = ele_y1.course_number  
  AND ele_y1.term = 'Y1'
  AND ele_y1.pgf_type = 'H'
-LEFT OUTER JOIN fp
-  ON roster.studentid = fp.STUDENTID
+LEFT OUTER JOIN fp fp_base
+  ON roster.studentid = fp_base.STUDENTID
+ AND fp_base.rn_base = 1
+LEFT OUTER JOIN fp fp_curr
+  ON roster.studentid = fp_curr.STUDENTID
+ AND fp_curr.rn_base = 1
 LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
   ON roster.studentid = base.studentid
  AND base.year = dbo.fn_Global_Academic_Year()
@@ -310,6 +299,6 @@ LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals map_goals WITH(NOLOCK)
  AND roster.year = map_goals.year
  AND map_goals.measurementscale = 'Reading'
 WHERE roster.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
-  AND roster.schoolid IN (73252, 133570965)
+  AND roster.schoolid IN (73252,133570965,73258,179902)
   AND roster.enroll_status = 0    
   AND roster.rn = 1    

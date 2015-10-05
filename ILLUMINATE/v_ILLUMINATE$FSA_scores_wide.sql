@@ -64,7 +64,7 @@ WITH standard_descriptions AS (
             JOIN KIPP_NJ..ILLUMINATE$assessments_long#static a WITH(NOLOCK)
               ON co.schoolid = a.schoolid             
              AND ovr.assessment_id = a.assessment_id
-             AND a.scope IN ('Common FSA','Exit Ticket','Common Module Assessment')
+             AND a.scope IN ('Common FSA','Exit Ticket','Common Module Assessment','Unit Assessment')
              AND a.subject_area IS NOT NULL
             LEFT OUTER JOIN standard_descriptions ltp WITH(NOLOCK)
               ON a.standard_code = ltp.standard_code

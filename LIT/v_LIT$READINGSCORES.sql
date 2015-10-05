@@ -17,8 +17,7 @@ SELECT unique_id
         ELSE CONVERT(INT,LEFT(LTRIM(RTRIM(academic_year)),4))
        END AS academic_year              
       ,CASE        
-        WHEN LTRIM(RTRIM(test_round)) = 'Diagnostic' THEN 'DR'
-        WHEN LTRIM(RTRIM(test_round)) = 'BOY' THEN 'DR'
+        WHEN LTRIM(RTRIM(test_round)) = 'Diagnostic' THEN 'DR'        
         ELSE CONVERT(VARCHAR(8),LTRIM(RTRIM(test_round)))
        END AS test_round
       ,CONVERT(INT,testid) AS testid

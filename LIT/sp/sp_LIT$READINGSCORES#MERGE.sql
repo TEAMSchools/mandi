@@ -138,8 +138,8 @@ BEGIN
             ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''field49'') AS field49
             ,PS_CUSTOMFIELDS.GETCF(''readingScores'',scores.unique_id,''field50'') AS field50
       FROM virtualtablesdata3 scores
-      WHERE related_to_table = ''readingScores''
-        AND (created_on >= TRUNC(SYSDATE - 2) OR last_modified >= TRUNC(SYSDATE - 2))        
+      WHERE related_to_table = ''readingScores''        
+        AND (created_on >= TRUNC(SYSDATE - 3) OR last_modified >= TRUNC(SYSDATE - 3))        
     ')
    )
 
