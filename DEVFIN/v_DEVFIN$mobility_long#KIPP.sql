@@ -106,3 +106,4 @@ LEFT OUTER JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
   ON denom.studentid = co.studentid
  AND denom.year = co.year
  AND co.rn = 1
+WHERE denom.year < KIPP_NJ.dbo.fn_Global_Academic_Year()

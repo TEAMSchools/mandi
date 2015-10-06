@@ -60,7 +60,7 @@ WITH disc_log AS (
         ,'Late to Class' AS discipline_details
         ,NULL AS actiontaken
         ,NULL AS followup      
-  FROM KIPP_NJ..ATT_MEM$meeting_attendance#static att WITH(NOLOCK)
+  FROM KIPP_NJ..ATT_MEM$PS_ATTENDANCE_MEETING att WITH(NOLOCK)
   JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
     ON att.sectionid = sec.ID
    AND att.schoolid = sec.SCHOOLID

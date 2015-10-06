@@ -93,7 +93,7 @@ WITH enrollments AS (
              ,DATEPART(WEEK,att_date) AS week
              ,att_code
              ,CASE WHEN att_code IS NULL OR att_code IN ('T','T10','TE') THEN 0.0 ELSE 1.0 END AS is_absent
-       FROM ATT_MEM$meeting_attendance#static WITH(NOLOCK)
+       FROM ATT_MEM$PS_ATTENDANCE_MEETING WITH(NOLOCK)
        WHERE schoolid = 73253
       ) sub
   GROUP BY sectionid

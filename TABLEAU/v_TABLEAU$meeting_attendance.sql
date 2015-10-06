@@ -28,9 +28,11 @@ WITH course_list AS (
    AND mem.date_value BETWEEN dt.start_date AND dt.end_date   
    AND dt.identifier = 'RT'
   WHERE mem.schoolid = 73253    
+    AND mem.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND mem.insession = 1
+    AND mem.date_value <= CONVERT(DATE,GETDATE())
  )
 
---SELECT c.SECTIONID
 SELECT co.STUDENTID      
       ,co.LASTFIRST
       ,co.GRADE_LEVEL
@@ -42,18 +44,20 @@ SELECT co.STUDENTID
       ,c.COURSE_NAME
       ,c.teacher_name
       ,m.att_code      
-      ,CASE WHEN m.att_code IN ('A','AD','OSS','ISS','CS','CR','PLE','EV') THEN 1.0 ELSE 0.0 END AS is_absent
-      ,CASE WHEN m.att_code IN ('T','T10') THEN 1.0 ELSE 0.0 END AS is_tardy      
+      ,CASE WHEN att.PRESENCE_STATUS_CD = 'Absent' OR m.att_code IN ('A','AD','OSS','ISS','CS','CR','PLE','EV') THEN 1.0 ELSE 0.0 END AS is_absent
+      ,CASE WHEN m.att_code IN ('T','T10') THEN 1.0 ELSE 0.0 END AS is_tardy            
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN dates dt WITH(NOLOCK)
   ON dt.date_value BETWEEN co.entrydate AND co.exitdate  
-LEFT OUTER JOIN course_list c WITH(NOLOCK)
+JOIN course_list c WITH(NOLOCK)
   ON co.studentid = c.studentid 
  AND dt.date_value BETWEEN c.dateenrolled AND c.dateleft
 LEFT OUTER JOIN ATT_MEM$PS_ATTENDANCE_MEETING m WITH(NOLOCK)  
   ON co.studentid = m.studentid 
  AND dt.date_value = m.att_date
  AND c.sectionid = m.sectionid
-WHERE co.schoolid = 73253
-  AND co.rn = 1
-  AND co.year >= (KIPP_NJ.dbo.fn_Global_Academic_Year() - 1)
+LEFT OUTER JOIN ATT_MEM$ATTENDANCE att WITH(NOLOCK)  
+  ON co.studentid = att.studentid 
+ AND dt.date_value = att.att_date 
+WHERE co.schoolid = 73253  
+  AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
