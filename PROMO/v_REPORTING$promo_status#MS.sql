@@ -131,7 +131,7 @@ FROM
            AND hw.course_number = 'all_courses'
            AND hw.yearid = LEFT(KIPP_NJ.dbo.fn_Global_Term_ID(), 2)
           WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-            AND co.schoolid IN (73252, 133570965)
+            AND co.schoolid IN (73252, 133570965, 73258, 179902)
             AND co.rn = 1
          ) sub
     ) sub2

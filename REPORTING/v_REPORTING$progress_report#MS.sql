@@ -154,30 +154,31 @@ SELECT co.student_number
       ,promo.y1_att_pts_pct
       ,promo.attendance_points      
       ,CASE
-        WHEN co.schoolid = 73252 THEN promo.promo_overall_rise 
+        WHEN co.schoolid IN (73252,179902) THEN promo.promo_overall_rise 
         WHEN co.schoolid = 133570965 THEN promo.promo_overall_team
        END AS promo_status_overall
       ,CASE
-        WHEN co.schoolid = 73252 THEN promo.promo_grades_gpa_rise 
+        WHEN co.schoolid IN (73252, 179902) THEN promo.promo_grades_gpa_rise 
         WHEN co.schoolid = 133570965 THEN promo.promo_grades_team
        END AS GPA_Promo_Status_Grades  
       ,CASE
-        WHEN co.schoolid = 73252 THEN promo.promo_att_rise 
+        WHEN co.schoolid IN (73252, 179902) THEN promo.promo_att_rise 
         WHEN co.schoolid = 133570965 THEN promo.promo_att_team
        END AS promo_status_att
       ,CASE
-        WHEN co.schoolid = 73252 THEN promo.promo_hw_rise 
+        WHEN co.schoolid IN (73252, 179902) THEN promo.promo_hw_rise 
         WHEN co.schoolid = 133570965 THEN promo.promo_hw_team
        END AS promo_status_hw
 
       /* Blended Learning */
       /*Accelerated Reader*/
-      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.Y1_words_read), 1), '.00', '') AS AR_Y1_words_read
-      ,NULL AS AR_Y1_goal
-      ,NULL AS AR_Y1_status
+      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.Y1_words_read), 1), '.00', '') AS AR_Y1_words_read                  
+      ,ar.[Y1_words_goal] AS AR_Y1_goal
+      ,ar.[Y1_words_status] AS AR_Y1_status
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.CUR_words_read), 1), '.00', '') AS AR_CUR_words_read 
-      ,NULL AS AR_CUR_goal
-      ,NULL AS AR_CUR_status
+      
+      ,ar.[CUR_words_goal] AS AR_CUR_goal
+      ,ar.[CUR_words_status] AS AR_CUR_status
       /* ST Math */
       ,NULL AS ST_Y1_progress
       ,NULL AS ST_Y1_goal
