@@ -77,11 +77,13 @@ WITH roster AS (
         ,cl.class
         ,CASE 
           WHEN s.GRADE_LEVEL = 8 AND dt.class = 'other' AND dt.ccr = 'S' THEN NULL 
+		  WHEN s.GRADE_LEVEL = 8 AND dt.class = 'history' THEN NULL
           WHEN s.GRADE_LEVEL = 7 AND dt.ccr IS NULL THEN 'S'
           ELSE dt.ccr 
          END AS ccr
         ,CASE 
           WHEN s.GRADE_LEVEL = 8 AND dt.class = 'other' AND dt.ccr = 'S' THEN NULL 
+		  WHEN s.GRADE_LEVEL = 8 AND dt.class = 'history' THEN NULL
           WHEN s.GRADE_LEVEL = 7 AND dt.ccr IS NULL THEN 5
           ELSE dt.ccr_score
          END AS ccr_score        
@@ -562,3 +564,4 @@ LEFT OUTER JOIN scores_wide WITH(NOLOCK)
   ON r.STUDENT_NUMBER = scores_wide.STUDENT_NUMBER
 LEFT OUTER JOIN scores_totals WITH(NOLOCK)
   ON r.STUDENT_NUMBER = scores_totals.STUDENT_NUMBER
+WHERE r.student_number = 11949
