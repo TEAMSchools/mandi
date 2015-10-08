@@ -172,10 +172,17 @@ SELECT co.student_number
 
       /* Blended Learning */
       /*Accelerated Reader*/
-      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.Y1_words_read), 1), '.00', '') AS AR_Y1_words_read                  
-      ,ar.[Y1_words_goal] AS AR_Y1_goal
+      
+	  --removed due to data type error 10/8 - Laz
+	  --,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.Y1_words_read), 1), '.00', '') AS AR_Y1_words_read                  
+      
+	  ,ar.[Y1_words_read] AS AR_Y1_words_read
+	  ,ar.[Y1_words_goal] AS AR_Y1_goal
       ,ar.[Y1_words_status] AS AR_Y1_status
-      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.CUR_words_read), 1), '.00', '') AS AR_CUR_words_read 
+	  ,ar.[CUR_words_read] AS AR_CUR_words_read
+
+	  --removed due to data type error 10/8 - Laz      
+	  --,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.CUR_words_read), 1), '.00', '') AS AR_CUR_words_read 
       
       ,ar.[CUR_words_goal] AS AR_CUR_goal
       ,ar.[CUR_words_status] AS AR_CUR_status
