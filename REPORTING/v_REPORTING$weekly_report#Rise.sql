@@ -564,4 +564,3 @@ LEFT OUTER JOIN scores_wide WITH(NOLOCK)
   ON r.STUDENT_NUMBER = scores_wide.STUDENT_NUMBER
 LEFT OUTER JOIN scores_totals WITH(NOLOCK)
   ON r.STUDENT_NUMBER = scores_totals.STUDENT_NUMBER
-WHERE r.student_number = 11949
