@@ -12,7 +12,8 @@ WITH year_order AS (
             ORDER BY year DESC) AS rn
   FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH(NOLOCK)
   WHERE co.grade_level BETWEEN 5 AND 12
-    AND rn = 1
+    AND co.year < KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND rn = 1   
 )
 
 ,long_data AS (     
@@ -52,8 +53,9 @@ WITH year_order AS (
          ON sg.STUDENTID = yr.studentid
         AND sg.academic_year = yr.year          
        WHERE sg.SCHOOLID = 73253
+         AND sg.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year()
          AND sg.STORECODE = 'Y1'     
-         AND ISNULL(EXCLUDEFROMTRANSCRIPTS,0) = 0         
+         AND ISNULL(sg.EXCLUDEFROMTRANSCRIPTS,0) = 0
       ) sub
   GROUP BY studentid          
           ,schoolid

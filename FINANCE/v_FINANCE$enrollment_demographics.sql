@@ -12,6 +12,7 @@ SELECT year + 1 AS fiscal_year
       ,SUM(CASE WHEN spedlep = 'SPED' THEN 1 ELSE 0 END) AS N_SPED
       ,SUM(CASE WHEN spedlep = 'SPED SPEECH' THEN 1 ELSE 0 END) AS N_SPEECH      
       ,SUM(CONVERT(INT,ISNULL(lep_status,0))) AS N_LEP      
+      ,SUM(CASE WHEN lep_status = 1 AND LUNCHSTATUS IN ('F','R') THEN 1 ELSE 0 END) AS N_LEPandAtRisk
       ,CASE WHEN CONVERT(DATE,date) LIKE '%-10-15' THEN 1 ELSE 0 END AS is_oct_15      
       ,CASE WHEN date = MAX(date) OVER(PARTITION BY school_name, grade_level) THEN 1 ELSE 0 END AS is_most_recent
 FROM KIPP_NJ..COHORT$identifiers_scaffold#static WITH(NOLOCK)

@@ -101,42 +101,49 @@ WITH roster AS (
  )
 
 ,att_pts AS (
-  SELECT student_number        
-        ,date
-        ,att_pts
-        ,CONVERT(FLOAT,ROUND(((y1_mem - att_pts) / Y1_MEM) * 100,1)) AS att_pts_pct
-        ,LAG(att_pts) OVER(PARTITION BY student_number ORDER BY date) AS prev_att_pts
-        ,CASE
-          WHEN att_pts < 20 THEN 'Met'
-          WHEN att_pts <= LAG(att_pts) OVER(PARTITION BY student_number ORDER BY date) THEN 'Improving'
+  SELECT *
+        ,LAG(att_pts_pct) OVER(PARTITION BY student_number ORDER BY date) AS prev_att_pts_pct
+        ,CASE          
+          WHEN ISNULL(att_pts_pct, 90) >= 90  THEN 'Met'
+          WHEN att_pts_pct > LAG(att_pts_pct) OVER(PARTITION BY student_number ORDER BY date) THEN 'Improving'
           ELSE 'Not Improving'
          END AS att_pts_status
   FROM
       (
-       SELECT co.student_number
-             ,co.date      
-             ,mem.Y1_MEM
-             ,FLOOR(SUM(CASE
-                         WHEN att.ATT_CODE IN ('TE','AE') THEN 0.0
-                         WHEN att.PRESENCE_STATUS_CD = 'Absent' THEN 1.0
-                         WHEN att.ATT_CODE IN ('T','T10') THEN (1.0/3.0) + 0.000001 /* pushes the 3rd tardy over te edge from .999... */
-                         ELSE 0.0
-                        END) OVER(PARTITION BY co.student_number
-                                    ORDER BY co.date
-                                    ROWS UNBOUNDED PRECEDING)) AS att_pts
-       FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)
-       LEFT OUTER JOIN KIPP_NJ..ATT_MEM$membership_counts#static mem WITH(NOLOCK)
-         ON co.studentid = mem.STUDENTID
-       LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
-         ON co.studentid = att.STUDENTID
-        AND co.date = att.ATT_DATE
-       WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND co.schoolid = 73252
-         AND co.grade_level = 7
-         AND co.date <= CONVERT(DATE,GETDATE())
+       SELECT student_number        
+             ,date
+             ,att_pts
+             ,CONVERT(FLOAT,ROUND(((mem - att_pts) / mem) * 100,1)) AS att_pts_pct        
+       FROM
+           (
+            SELECT co.student_number
+                  ,co.date      
+                  ,SUM(CONVERT(FLOAT,mem.membershipvalue)) OVER(PARTITION BY co.student_number
+                                                   ORDER BY co.date
+                                                   ROWS UNBOUNDED PRECEDING) AS mem
+                  ,FLOOR(SUM(CASE
+                              WHEN att.ATT_CODE IN ('TE','AE') THEN 0.0
+                              WHEN att.PRESENCE_STATUS_CD = 'Absent' THEN 1.0
+                              WHEN att.ATT_CODE IN ('T','T10') THEN (1.0/3.0) + 0.000001 /* pushes the 3rd tardy over te edge from .999... */
+                              ELSE 0.0
+                             END) OVER(PARTITION BY co.student_number
+                                         ORDER BY co.date
+                                         ROWS UNBOUNDED PRECEDING)) AS att_pts
+            FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)
+            LEFT OUTER JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
+              ON co.studentid = mem.STUDENTID
+             AND co.date = mem.CALENDARDATE
+            LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
+              ON co.studentid = att.STUDENTID
+             AND co.date = att.ATT_DATE
+            WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+              AND co.schoolid = 73252
+              AND co.grade_level = 7
+              AND co.date <= CONVERT(DATE,GETDATE())
+           ) sub
       ) sub
   WHERE (DATEPART(DW,date) = 4 OR date = CONVERT(DATE,GETDATE()))
-)
+ )
 
 SELECT *
       ,CASE WHEN CONCAT(ff_conduct_status,ff_promo_status) LIKE '%No%' THEN 'No' ELSE 'Yes' END AS ff_overall_status
@@ -159,7 +166,7 @@ FROM
            ,g.hwc_status
            ,a.att_pts
            ,a.att_pts_pct
-           ,a.prev_att_pts
+           ,a.prev_att_pts_pct
            ,a.att_pts_status
            ,CASE
              WHEN ISNULL(d.choices,0) + ISNULL(d.ISS,0) + ISNULL(d.OSS,0) > 0 THEN 'No'

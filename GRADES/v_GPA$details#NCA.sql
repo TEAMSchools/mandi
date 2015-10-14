@@ -39,4 +39,5 @@ SELECT studentid
       ,SUM(Promo_Test) AS num_failing
       ,dbo.GROUP_CONCAT(failing_y1) AS failing
 FROM KIPP_NJ..GRADES$detail#NCA WITH (NOLOCK)
+WHERE course_number != 'ENG05'
 GROUP BY studentid, student_number, schoolid, lastfirst, grade_level

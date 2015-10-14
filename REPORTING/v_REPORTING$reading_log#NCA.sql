@@ -77,7 +77,7 @@ SELECT s.LASTFIRST
       ,eng2.SECTION_NUMBER AS eng2_section
       ,eng2.period AS eng2_period
       ,eng2.teacher_name AS eng2_teacher      
-      ,diff.teacher_name AS fourth_per_teacher
+      ,diff.teacher_name AS diff_block_teacher
       ,diff.period AS diff_block_period
       ,diff.COURSE_NAME AS diff_block_assignment      
 FROM KIPP_NJ..COHORT$identifiers_long#static s WITH (NOLOCK)
@@ -143,22 +143,11 @@ LEFT OUTER JOIN PS$course_enrollments#static eng2 WITH(NOLOCK)
  AND eng2.CREDITTYPE = 'ENG'
  AND eng2.course_number NOT LIKE 'ENG0%'                                      
  AND eng2.rn_subject = 2
-LEFT OUTER JOIN (
-                 SELECT cc.STUDENTID                                                   
-                       ,cc.COURSE_NUMBER
-                       ,cc.COURSE_NAME                                              
-                       ,cc.teacher_name
-                       ,CC.period
-                       ,ROW_NUMBER() OVER (
-                          PARTITION BY cc.studentid
-                            ORDER BY cc.dateenrolled DESC) AS rn
-                 FROM PS$course_enrollments#static cc WITH (NOLOCK)                    
-                 WHERE cc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()                   
-                   AND cc.period LIKE '4%'
-                   AND (cc.COURSE_NUMBER LIKE 'ENG0%' OR cc.COURSE_NUMBER LIKE 'MATH0%')                   
-                ) diff
-  ON s.studentid = diff.studentid
- AND diff.rn = 1
+LEFT OUTER JOIN PS$course_enrollments#static diff WITH (NOLOCK)
+  ON s.studentid = diff.studentid 
+ AND s.year = diff.academic_year
+ AND diff.period IN ('LA','LB')
+ AND diff.drop_flags = 0        
 WHERE s.SCHOOLID = 73253
   AND s.ENROLL_STATUS = 0
   AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
