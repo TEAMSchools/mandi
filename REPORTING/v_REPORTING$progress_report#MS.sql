@@ -9,7 +9,10 @@ SELECT co.student_number
       ,REPLACE(CONVERT(VARCHAR,co.GRADE_LEVEL),'0','K') AS grade_level
       ,co.SCHOOLID
       ,co.TEAM
-      ,co.advisor
+      ,CASE 
+		WHEN co.schoolid = 133570965 THEN custom.advisor
+		ELSE co.advisor
+	   END AS advisor
       ,co.advisor_cell
       ,co.advisor_email
       ,co.student_web_id
@@ -243,6 +246,8 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_wide ar WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON co.student_number = xc.student_number
  AND co.year = xc.academic_year
+LEFT OUTER JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static custom WITH(NOLOCK)
+  ON co.studentid = custom.studentid
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1        
   AND co.schoolid IN (73252, 133570965, 179902)
