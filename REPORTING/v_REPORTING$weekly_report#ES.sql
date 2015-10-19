@@ -114,11 +114,11 @@ SELECT r.student_number
       ,mth_totals.status_mth AS status_mth
 
       /* word study */      
-      ,CASE WHEN sw.n_total IS NULL THEN NULL ELSE CONCAT(sw.pct_correct, '% (', sw.n_correct, '/', sw.n_total, ')') END AS sw_pct_wk
-      ,CASE WHEN sw.n_total IS NULL THEN NULL ELSE CONCAT(sw.pct_correct_yr, '% (', sw.n_correct_yr, '/', sw.n_total_yr, ')') END AS sw_pct_yr
+      ,CASE WHEN sw.n_total = 0 OR sw.n_total IS NULL THEN NULL ELSE CONCAT(sw.pct_correct, '% (', sw.n_correct, '/', sw.n_total, ')') END AS sw_pct_wk
+      ,CASE WHEN sw.n_total_yr = 0 OR sw.n_total_yr IS NULL THEN NULL ELSE CONCAT(sw.pct_correct_yr, '% (', sw.n_correct_yr, '/', sw.n_total_yr, ')') END AS sw_pct_yr
       ,sw.missed_words_yr AS sw_missedwords_yr      
-      ,CASE WHEN sp.n_total IS NULL THEN NULL ELSE CONCAT(sp.pct_correct, '% (', sp.n_correct, '/', sp.n_total, ')') END AS sp_pct_wk
-      ,CASE WHEN sp.n_total IS NULL THEN NULL ELSE CONCAT(sp.pct_correct_yr, '% (', sp.n_correct_yr, '/', sp.n_total_yr, ')') END AS sp_pct_yr      
+      ,CASE WHEN sp.n_total = 0 OR sp.n_total IS NULL THEN NULL ELSE CONCAT(sp.pct_correct, '% (', sp.n_correct, '/', sp.n_total, ')') END AS sp_pct_wk
+      ,CASE WHEN sp.n_total_yr = 0 OR sp.n_total_yr IS NULL THEN NULL ELSE CONCAT(sp.pct_correct_yr, '% (', sp.n_correct_yr, '/', sp.n_total_yr, ')') END AS sp_pct_yr      
       ,sp.missed_words_yr AS sp_missedwords_yr
 FROM KIPP_NJ..COHORT$identifiers_long#static r WITH(NOLOCK) 
 LEFT OUTER JOIN reporting_week rw WITH(NOLOCK)

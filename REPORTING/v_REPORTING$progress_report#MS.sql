@@ -174,21 +174,14 @@ SELECT co.student_number
        END AS promo_status_hw
 
       /* Blended Learning */
-      /*Accelerated Reader*/
-      
-	  --removed due to data type error 10/8 - Laz
-	  --,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.Y1_words_read), 1), '.00', '') AS AR_Y1_words_read                  
-      
-	  ,ar.[Y1_words_read] AS AR_Y1_words_read
-	  ,ar.[Y1_words_goal] AS AR_Y1_goal
-      ,ar.[Y1_words_status] AS AR_Y1_status
-	  ,ar.[CUR_words_read] AS AR_CUR_words_read
-
-	  --removed due to data type error 10/8 - Laz      
-	  --,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.CUR_words_read), 1), '.00', '') AS AR_CUR_words_read 
-      
+      /*Accelerated Reader*/      	     
+	     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CONVERT(INT,ar.Y1_words)), 1), '.00', '') AS AR_Y1_words_read                        	     
+	     ,ar.[Y1_words_goal] AS AR_Y1_goal
+      ,ar2.[Y1_words_status] AS AR_Y1_status	     
+	     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CONVERT(INT,ar.CUR_words)), 1), '.00', '') AS AR_CUR_words_read             
       ,ar.[CUR_words_goal] AS AR_CUR_goal
-      ,ar.[CUR_words_status] AS AR_CUR_status
+      ,ar2.[CUR_words_status] AS AR_CUR_status
+
       /* ST Math */
       ,NULL AS ST_Y1_progress
       ,NULL AS ST_Y1_goal
@@ -240,8 +233,10 @@ LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH(NOLOCK)
 --  ON co.studentid = disc_count.studentid
 /*ED TECH*/
 /*ACCELERATED READER*/
-LEFT OUTER JOIN KIPP_NJ..AR$progress_wide ar WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goal_wide ar WITH(NOLOCK)
   ON co.student_number = ar.student_number
+LEFT OUTER JOIN KIPP_NJ..AR$progress_wide ar2 WITH(NOLOCK)
+  ON co.student_number = ar2.student_number
 /* XC */
 LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON co.student_number = xc.student_number

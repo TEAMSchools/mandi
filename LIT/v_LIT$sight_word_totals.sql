@@ -42,9 +42,10 @@ WITH valid_tests AS (
    AND co.year = dt.academic_year 
    AND dt.start_date <= CONVERT(DATE,GETDATE())
    AND dt.identifier = 'REP'
-  WHERE co.rn = 1
+  WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND co.rn = 1
     AND co.grade_level <= 4
-    AND co.schoolid != 73252
+    AND co.schoolid != 73252    
  )
 
 ,week_totals AS (

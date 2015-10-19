@@ -110,9 +110,16 @@ FROM
            ,[iTeacherUserID]
            ,[DeviceUniqueID]
            ,[iUserActionID]
-           ,ROW_NUMBER() OVER(
-              PARTITION BY student_number, iQuizNumber
-                  ORDER BY school_progression ASC) AS rn
+           ,CASE
+             /* for failing attempts, valid row should be most recent */
+             WHEN tiPassed = 0 THEN ROW_NUMBER() OVER(
+                                      PARTITION BY student_number, iQuizNumber, tiPassed
+                                          ORDER BY iretakecount DESC) 
+             /* for passing attempts, valid row should be first */
+             WHEN tiPassed = 1 THEN ROW_NUMBER() OVER(
+                                      PARTITION BY student_number, iQuizNumber, tiPassed
+                                          ORDER BY dtTakenOriginal ASC) 
+            END AS rn
      FROM 
          (
           SELECT REPLACE(LEFT(rluser.[vchPreviousIDNum], 5), '-','') AS student_number

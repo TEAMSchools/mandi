@@ -3,63 +3,23 @@ GO
 
 ALTER VIEW DEVFIN$att_demographics_long AS
 
-WITH calendar AS(
-  SELECT CONVERT(DATE,date) AS date
-  FROM KIPP_NJ..UTIL$reporting_days#static WITH(NOLOCK)
-  WHERE date >= '2013-07-01'
-    AND date <= CONVERT(DATE,GETDATE())
- )
-
-,roster AS(
-  SELECT co.schoolid
-        ,co.grade_level
-        ,co.cohort
-        ,co.studentid
-        ,co.lastfirst
-        ,co.lunchstatus
-        ,CASE WHEN UPPER(co.spedlep) LIKE '%SPEECH%' THEN 'SPEECH' ELSE co.SPEDLEP END AS SPEDLEP
-        ,CASE WHEN co.LEP_STATUS = 1 THEN 'LEP' ELSE 'Not LEP' END AS LEP
-        ,co.ethnicity
-        ,co.gender
-        ,co.year
-        ,co.entrydate
-        ,co.exitdate
-        ,co.ENROLL_STATUS
-        ,co.rn
-  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
-  WHERE co.schoolid != 999999    
- )
-
-,attendance AS(
-  SELECT mem.studentid
-        ,CONVERT(DATE,mem.calendardate) AS date
-        ,mem.membershipvalue
-        ,mem.attendancevalue      
-  FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
-  WHERE mem.calendardate >= '2013-07-01'
-    AND mem.calendardate <= CONVERT(DATE,GETDATE())
-)
-
-SELECT calendar.date
-      ,roster.YEAR AS academic_year
-      ,roster.SCHOOLID
-      ,roster.GRADE_LEVEL
-      ,roster.COHORT
-      ,roster.STUDENTID      
-      ,roster.ENTRYDATE
-      ,roster.EXITDATE
-      ,roster.ENROLL_STATUS
-      ,CONVERT(INT,attendance.membershipvalue) AS membershipvalue
-      ,CONVERT(INT,attendance.attendancevalue) AS attendancevalue
-      ,roster.SPEDLEP
-      ,roster.LEP
-      ,roster.lunchstatus
-      ,roster.ethnicity
-      ,roster.gender
-FROM calendar WITH(NOLOCK)
-JOIN roster WITH(NOLOCK)
-  ON calendar.date >= roster.ENTRYDATE
- AND calendar.date <= roster.EXITDATE
-LEFT OUTER JOIN attendance WITH(NOLOCK)
-  ON calendar.date = attendance.date
- AND roster.studentid = attendance.studentid
+SELECT co.date
+      ,co.YEAR AS academic_year
+      ,co.SCHOOLID
+      ,co.GRADE_LEVEL      
+      ,co.STUDENTID
+      ,co.ENROLL_STATUS
+      ,CONVERT(INT,mem.membershipvalue) AS membershipvalue
+      ,CONVERT(INT,mem.attendancevalue) AS attendancevalue
+      ,CASE WHEN UPPER(co.spedlep) LIKE '%SPEECH%' THEN 'SPEECH' ELSE co.SPEDLEP END AS SPEDLEP
+      ,CASE WHEN co.LEP_STATUS = 1 THEN 'LEP' ELSE 'Not LEP' END AS LEP
+      ,co.lunchstatus
+      ,co.ethnicity
+      ,co.gender
+FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)            
+JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
+  ON co.studentid = mem.studentid
+ AND co.date = mem.calendardate
+ AND mem.calendardate >= '2013-07-01'
+ AND mem.calendardate <= CONVERT(DATE,GETDATE())
+WHERE co.schoolid != 999999

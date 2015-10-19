@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW AR$progress_to_goal_wide AS 
+--ALTER VIEW AR$progress_to_goal_wide AS 
 
 WITH long_data AS (
   SELECT student_number
@@ -13,53 +13,53 @@ WITH long_data AS (
        SELECT ar.student_number
              ,ar.academic_year
              ,CASE WHEN ar.time_period_name = 'Year' THEN 'Y1' ELSE ar.time_period_name END AS time_period_name
-             ,CONVERT(FLOAT,ar.words_goal) AS words_goal
-             ,CONVERT(FLOAT,ar.points_goal) AS points_goal
-             ,CONVERT(FLOAT,ar.words) AS words
-             ,CONVERT(FLOAT,ar.points) AS points
-             ,ROUND((CONVERT(FLOAT,ar.words) / CASE WHEN ar.words_goal = 0 THEN NULL ELSE CONVERT(FLOAT,ar.words_goal) END) * 100,1) AS pct_to_goal_words
-             ,ROUND((CONVERT(FLOAT,ar.points) / CASE WHEN ar.points_goal = 0 THEN NULL ELSE CONVERT(FLOAT,ar.points_goal) END) * 100,1) AS pct_to_goal_points
-             ,CONVERT(FLOAT,ar.mastery) AS mastery
-             ,CONVERT(FLOAT,ar.mastery_fiction) AS mastery_fiction
-             ,CONVERT(FLOAT,ar.mastery_nonfiction) AS mastery_nonfiction
-             ,CONVERT(FLOAT,ar.pct_fiction) AS pct_fiction
-             ,CONVERT(FLOAT,100 - ar.pct_fiction) AS pct_nonfiction
-             ,CONVERT(FLOAT,ar.avg_lexile) AS avg_lexile
-             ,ROUND((CONVERT(FLOAT,ar.N_passed) / CASE WHEN ar.N_total = 0 THEN NULL ELSE CONVERT(FLOAT,ar.N_total) END) * 100,1) AS pct_passed                 
-             ,CONVERT(FLOAT,ar.ontrack_words) AS ontrack_words
-             ,CONVERT(FLOAT,ar.ontrack_points) AS ontrack_points           
-             ,CONVERT(FLOAT,ar.words_needed) AS words_needed
-             ,CONVERT(FLOAT,ar.points_needed) AS points_needed
-             ,CONVERT(FLOAT,ar.rank_words_grade_in_school) AS rank_words_grade_in_school
-             ,CONVERT(FLOAT,ar.rank_words_overall_in_school) AS rank_words_overall_in_school
-             ,CONVERT(FLOAT,ar.rank_points_grade_in_school) AS rank_points_grade_in_school      
-             ,CONVERT(FLOAT,ar.rank_points_overall_in_school) AS rank_points_overall_in_school
+             ,LTRIM(RTRIM(STR(ar.words_goal))) AS words_goal
+             ,LTRIM(RTRIM(STR(ar.points_goal))) AS points_goal
+             ,LTRIM(RTRIM(STR(ar.words))) AS words
+             ,LTRIM(RTRIM(STR(ar.points))) AS points
+             ,LTRIM(RTRIM(STR(ROUND((CONVERT(FLOAT,ar.words) / CASE WHEN ar.words_goal = 0 THEN NULL ELSE CONVERT(FLOAT,ar.words_goal) END) * 100,1)))) AS pct_to_goal_words
+             ,LTRIM(RTRIM(STR(ROUND((CONVERT(FLOAT,ar.points) / CASE WHEN ar.points_goal = 0 THEN NULL ELSE CONVERT(FLOAT,ar.points_goal) END) * 100,1)))) AS pct_to_goal_points
+             ,LTRIM(RTRIM(STR(ar.mastery))) AS mastery
+             ,LTRIM(RTRIM(STR(ar.mastery_fiction))) AS mastery_fiction
+             ,LTRIM(RTRIM(STR(ar.mastery_nonfiction))) AS mastery_nonfiction
+             ,LTRIM(RTRIM(STR(ar.pct_fiction))) AS pct_fiction
+             ,LTRIM(RTRIM(STR(100 - ar.pct_fiction))) AS pct_nonfiction
+             ,LTRIM(RTRIM(STR(ar.avg_lexile))) AS avg_lexile
+             ,LTRIM(RTRIM(STR(ROUND((CONVERT(FLOAT,ar.N_passed) / CASE WHEN ar.N_total = 0 THEN NULL ELSE CONVERT(FLOAT,ar.N_total) END) * 100,1)))) AS pct_passed                 
+             ,LTRIM(RTRIM(STR(ar.ontrack_words))) AS ontrack_words
+             ,LTRIM(RTRIM(STR(ar.ontrack_points))) AS ontrack_points           
+             ,LTRIM(RTRIM(STR(ar.words_needed))) AS words_needed
+             ,LTRIM(RTRIM(STR(ar.points_needed))) AS points_needed
+             ,LTRIM(RTRIM(STR(ar.rank_words_grade_in_school))) AS rank_words_grade_in_school
+             ,LTRIM(RTRIM(STR(ar.rank_words_overall_in_school))) AS rank_words_overall_in_school
+             ,LTRIM(RTRIM(STR(ar.rank_points_grade_in_school))) AS rank_points_grade_in_school      
+             ,LTRIM(RTRIM(STR(ar.rank_points_overall_in_school))) AS rank_points_overall_in_school             
        FROM KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
        UNION ALL
        SELECT ar.student_number
              ,ar.academic_year
              ,'CUR' AS time_period_name
-             ,CONVERT(FLOAT,ar.words_goal) AS words_goal
-             ,CONVERT(FLOAT,ar.points_goal) AS points_goal
-             ,CONVERT(FLOAT,ar.words) AS words
-             ,CONVERT(FLOAT,ar.points) AS points
-             ,ROUND((CONVERT(FLOAT,ar.words) / CASE WHEN ar.words_goal = 0 THEN NULL ELSE CONVERT(FLOAT,ar.words_goal) END) * 100,1) AS pct_to_goal_words
-             ,ROUND((CONVERT(FLOAT,ar.points) / CASE WHEN ar.points_goal = 0 THEN NULL ELSE CONVERT(FLOAT,ar.points_goal) END) * 100,1) AS pct_to_goal_points
-             ,CONVERT(FLOAT,ar.mastery) AS mastery
-             ,CONVERT(FLOAT,ar.mastery_fiction) AS mastery_fiction
-             ,CONVERT(FLOAT,ar.mastery_nonfiction) AS mastery_nonfiction
-             ,CONVERT(FLOAT,ar.pct_fiction) AS pct_fiction
-             ,CONVERT(FLOAT,100 - ar.pct_fiction) AS pct_nonfiction
-             ,CONVERT(FLOAT,ar.avg_lexile) AS avg_lexile
-             ,ROUND((CONVERT(FLOAT,ar.N_passed) / CASE WHEN ar.N_total = 0 THEN NULL ELSE CONVERT(FLOAT,ar.N_total) END) * 100,1) AS pct_passed                 
-             ,CONVERT(FLOAT,ar.ontrack_words) AS ontrack_words
-             ,CONVERT(FLOAT,ar.ontrack_points) AS ontrack_points           
-             ,CONVERT(FLOAT,ar.words_needed) AS words_needed
-             ,CONVERT(FLOAT,ar.points_needed) AS points_needed
-             ,CONVERT(FLOAT,ar.rank_words_grade_in_school) AS rank_words_grade_in_school
-             ,CONVERT(FLOAT,ar.rank_words_overall_in_school) AS rank_words_overall_in_school
-             ,CONVERT(FLOAT,ar.rank_points_grade_in_school) AS rank_points_grade_in_school      
-             ,CONVERT(FLOAT,ar.rank_points_overall_in_school) AS rank_points_overall_in_school
+             ,LTRIM(RTRIM(STR(ar.words_goal))) AS words_goal
+             ,LTRIM(RTRIM(STR(ar.points_goal))) AS points_goal
+             ,LTRIM(RTRIM(STR(ar.words))) AS words
+             ,LTRIM(RTRIM(STR(ar.points))) AS points
+             ,LTRIM(RTRIM(STR(ROUND((CONVERT(FLOAT,ar.words) / CASE WHEN ar.words_goal = 0 THEN NULL ELSE CONVERT(FLOAT,ar.words_goal) END) * 100,1)))) AS pct_to_goal_words
+             ,LTRIM(RTRIM(STR(ROUND((CONVERT(FLOAT,ar.points) / CASE WHEN ar.points_goal = 0 THEN NULL ELSE CONVERT(FLOAT,ar.points_goal) END) * 100,1)))) AS pct_to_goal_points
+             ,LTRIM(RTRIM(STR(ar.mastery))) AS mastery
+             ,LTRIM(RTRIM(STR(ar.mastery_fiction))) AS mastery_fiction
+             ,LTRIM(RTRIM(STR(ar.mastery_nonfiction))) AS mastery_nonfiction
+             ,LTRIM(RTRIM(STR(ar.pct_fiction))) AS pct_fiction
+             ,LTRIM(RTRIM(STR(100 - ar.pct_fiction))) AS pct_nonfiction
+             ,LTRIM(RTRIM(STR(ar.avg_lexile))) AS avg_lexile
+             ,LTRIM(RTRIM(STR(ROUND((CONVERT(FLOAT,ar.N_passed) / CASE WHEN ar.N_total = 0 THEN NULL ELSE CONVERT(FLOAT,ar.N_total) END) * 100,1)))) AS pct_passed                 
+             ,LTRIM(RTRIM(STR(ar.ontrack_words))) AS ontrack_words
+             ,LTRIM(RTRIM(STR(ar.ontrack_points))) AS ontrack_points           
+             ,LTRIM(RTRIM(STR(ar.words_needed))) AS words_needed
+             ,LTRIM(RTRIM(STR(ar.points_needed))) AS points_needed
+             ,LTRIM(RTRIM(STR(ar.rank_words_grade_in_school))) AS rank_words_grade_in_school
+             ,LTRIM(RTRIM(STR(ar.rank_words_overall_in_school))) AS rank_words_overall_in_school
+             ,LTRIM(RTRIM(STR(ar.rank_points_grade_in_school))) AS rank_points_grade_in_school      
+             ,LTRIM(RTRIM(STR(ar.rank_points_overall_in_school))) AS rank_points_overall_in_school             
        FROM KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
        JOIN KIPP_NJ..REPORTING$dates dts WITH(NOLOCK)
          ON ar.schoolid = dts.schoolid
@@ -82,12 +82,9 @@ WITH long_data AS (
                  ,pct_fiction
                  ,pct_nonfiction
                  ,avg_lexile
-                 ,pct_passed
-                 --,last_book
+                 ,pct_passed                 
                  ,ontrack_words
-                 ,ontrack_points
-                 --,stu_status_words
-                 --,stu_status_points
+                 ,ontrack_points                 
                  ,words_needed
                  ,points_needed
                  ,rank_words_grade_in_school
@@ -121,7 +118,7 @@ PIVOT(
                      ,[CUR_rank_words_overall_in_school]
                      ,[CUR_words]
                      ,[CUR_words_goal]
-                     ,[CUR_words_needed]
+                     ,[CUR_words_needed]                     
                      ,[RT1_avg_lexile]
                      ,[RT1_mastery]
                      ,[RT1_mastery_fiction]
@@ -142,7 +139,7 @@ PIVOT(
                      ,[RT1_rank_words_overall_in_school]
                      ,[RT1_words]
                      ,[RT1_words_goal]
-                     ,[RT1_words_needed]
+                     ,[RT1_words_needed]                     
                      ,[RT2_avg_lexile]
                      ,[RT2_mastery]
                      ,[RT2_mastery_fiction]
@@ -161,7 +158,7 @@ PIVOT(
                      ,[RT2_rank_words_grade_in_school]
                      ,[RT2_rank_words_overall_in_school]
                      ,[RT2_words]
-                     ,[RT2_words_goal]
+                     ,[RT2_words_goal]                     
                      ,[RT3_avg_lexile]
                      ,[RT3_mastery]
                      ,[RT3_mastery_fiction]
@@ -180,7 +177,7 @@ PIVOT(
                      ,[RT3_rank_words_grade_in_school]
                      ,[RT3_rank_words_overall_in_school]
                      ,[RT3_words]
-                     ,[RT3_words_goal]
+                     ,[RT3_words_goal]                     
                      ,[RT4_avg_lexile]
                      ,[RT4_mastery]
                      ,[RT4_mastery_fiction]
@@ -199,7 +196,7 @@ PIVOT(
                      ,[RT4_rank_words_grade_in_school]
                      ,[RT4_rank_words_overall_in_school]
                      ,[RT4_words]
-                     ,[RT4_words_goal]
+                     ,[RT4_words_goal]                     
                      ,[RT5_avg_lexile]
                      ,[RT5_mastery]
                      ,[RT5_mastery_fiction]
@@ -215,7 +212,7 @@ PIVOT(
                      ,[RT5_rank_words_grade_in_school]
                      ,[RT5_rank_words_overall_in_school]
                      ,[RT5_words]
-                     ,[RT5_words_goal]
+                     ,[RT5_words_goal]                     
                      ,[RT6_avg_lexile]
                      ,[RT6_mastery]
                      ,[RT6_mastery_fiction]
@@ -231,7 +228,7 @@ PIVOT(
                      ,[RT6_rank_words_grade_in_school]
                      ,[RT6_rank_words_overall_in_school]
                      ,[RT6_words]
-                     ,[RT6_words_goal]
+                     ,[RT6_words_goal]                     
                      ,[Y1_avg_lexile]
                      ,[Y1_mastery]
                      ,[Y1_mastery_fiction]
