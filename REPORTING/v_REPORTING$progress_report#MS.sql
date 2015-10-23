@@ -235,6 +235,7 @@ LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH(NOLOCK)
 /*ACCELERATED READER*/
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goal_wide ar WITH(NOLOCK)
   ON co.student_number = ar.student_number
+ AND co.year = ar.academic_year
 LEFT OUTER JOIN KIPP_NJ..AR$progress_wide ar2 WITH(NOLOCK)
   ON co.student_number = ar2.student_number
 /* XC */
