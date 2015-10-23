@@ -16,6 +16,7 @@ WITH disc_log AS (
          END AS entry_date
         ,CASE 
           WHEN disc.entry_date = '0000-00-00' THEN NULL
+          WHEN disc.SCHOOLID = 73253 THEN CONVERT(DATE,disc.discipline_incidentdate) 
           ELSE CONVERT(DATE,disc.entry_date) 
          END AS consequence_date
         ,disc.logtypeid      

@@ -5,7 +5,7 @@ ALTER VIEW TABLEAU$KTC_alumni AS
 
 WITH max_grade AS (
   SELECT co.year AS academic_year
-        ,co.studentid
+        ,co.student_number
         ,co.lastfirst
         ,co.grade_level
         ,co.cohort
@@ -13,45 +13,30 @@ WITH max_grade AS (
         ,ROW_NUMBER() OVER(
            PARTITION BY co.studentid
              ORDER BY co.year DESC) AS rn
-  FROM COHORT$identifiers_long#static co WITH(NOLOCK)
-  WHERE co.schoolid != 999999         
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  WHERE co.student_number NOT IN (2026,3049,3012)
     AND co.rn = 1
  )
 
 ,combined_roster AS (
   SELECT co.year AS academic_year
         ,co.STUDENT_NUMBER
-        ,co.lastfirst
+        ,co.lastfirst        
         ,max_grade.grade_level + (co.year - max_grade.cohort) AS grade_level        
         ,max_grade.cohort
         ,max_grade.schoolid        
-        ,r.contact_id AS salesforce_id        
-        ,r.composite_status
+        ,r.Id AS salesforce_id                
         ,u.id AS counselor_id
-        ,ISNULL(r.ktc_contact,'Unassigned') AS counselor_name
-        ,r.last_advisor_activity
-        ,r.last_successful_contact        
-        ,r.school_id AS school_salesforce_id
-        ,c.type AS track
-        ,c.[X6_yr_minority_completion_rate__c] AS minority_grad_rate
-        --,c.[Adjusted_6_year_minority_graduation_rate__c] AS adj_minority_grad_rate
-        ,r.school_name
-        ,r.school_type
-        ,r.school_enroll_date
-        ,r.school_exit_date
-  FROM COHORT$identifiers_long#static co WITH(NOLOCK)
-  JOIN max_grade WITH(NOLOCK)
-    ON co.studentid = max_grade.studentid
-   AND co.year >= max_grade.cohort
-   AND max_grade.rn = 1
-  LEFT OUTER JOIN [AlumniMirror].[dbo].[vwRoster_Basic] r WITH(NOLOCK)
-    ON co.student_number = r.sis_id
-  LEFT OUTER JOIN [AlumniMirror].[dbo].[Account] c WITH(NOLOCK)
-    ON r.school_id = c.id
+        ,u.Name AS counselor_name
+  FROM max_grade WITH(NOLOCK)
+  JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
+    ON max_grade.student_number = co.student_number   
+   AND co.rn = 1
+  LEFT OUTER JOIN AlumniMirror.dbo.Contact r WITH(NOLOCK)
+    ON co.student_number = r.School_Specific_ID__c  
   LEFT OUTER JOIN AlumniMirror.dbo.User2 u WITH(NOLOCK)
-    ON r.ktc_contact = u.name
-  WHERE co.rn = 1
-    AND co.schoolid = 999999
+    ON r.OwnerId = u.Id
+  WHERE max_grade.rn = 1    
  )
 
 ,roster_scaffold AS (
@@ -63,13 +48,12 @@ WITH max_grade AS (
         ,year.year_part AS academic_year
         ,gen.n AS month
   FROM combined_roster r WITH(NOLOCK)
-  JOIN (
-        SELECT DISTINCT year_part
-        FROM UTIL$reporting_days#static WITH(NOLOCK)
-        WHERE year_part >= 2010
-          AND year_part <= dbo.fn_Global_Academic_Year()
-       ) year
-    ON 1 = 1
+  CROSS JOIN (
+              SELECT DISTINCT year_part
+              FROM UTIL$reporting_days#static WITH(NOLOCK)
+              WHERE year_part >= 2010
+                AND year_part <= dbo.fn_Global_Academic_Year()
+             ) year    
   JOIN UTIL$row_generator gen WITH(NOLOCK)
     ON gen.n BETWEEN 1 AND 12  
   WHERE r.counselor_id IS NOT NULL
@@ -93,63 +77,25 @@ WITH max_grade AS (
   WHERE isdeleted = 0
  )
 
-,perisisting AS (
-  SELECT Student__c
-        ,Name
-        ,Status__c
-        --,Pursuing_Degree_Type__c
-        --,CASE
-        --  WHEN Pursuing_Degree_Type__c = 'Bachelor''s (4-year)' THEN 4
-        --  WHEN Pursuing_Degree_Type__c = 'Associate''s (2 year)' THEN 2
-        -- END AS degree_length
-        --,Start_Date__c
-        --,DATEDIFF(YEAR,Start_Date__c,GETDATE()) + 1 AS yrs_enrolled
-        --,Actual_End_Date__c      
-        --,Anticipated_Graduation__c
-        --,Date_Last_Verified__c
-        --,Type__c
-        ,ROW_NUMBER() OVER(
-           PARTITION BY student__c
-             ORDER BY start_date__c DESC) AS rn
-  FROM [AlumniMirror].[dbo].[Enrollment__c] WITH(NOLOCK)
-  WHERE Type__c = 'College'
-    AND Pursuing_Degree_Type__c IN ('Bachelor''s (4-year)', 'Associate''s (2 year)')
-    AND Status__c NOT IN ('Did Not Enroll', 'Graduated', 'Deferred', 'Matriculated', 'Transferred out')
-    AND (Actual_End_Date__c IS NULL OR CONVERT(DATE,Actual_End_Date__c) >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(),'-08-01')))
-    AND CONVERT(DATE,Start_Date__c) <= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(),'-09-21'))
-  )
-
 SELECT scaff.academic_year
       ,scaff.month
       ,scaff.counselor_id
       ,scaff.counselor_name      
       ,r.student_number
-      ,r.lastfirst
-      --,r.grade_level
+      ,r.lastfirst      
       ,r.cohort
       ,r.schoolid
-      ,r.salesforce_id
-      ,r.composite_status
-      ,r.track
-      ,r.school_name
-      ,r.school_type
-      ,r.minority_grad_rate
-      --,r.school_enroll_date
-      --,r.school_exit_date
-      ,r.last_advisor_activity
-      ,r.last_successful_contact
+      ,r.salesforce_id      
       ,con.salesforce_id AS contact_student_id      
       ,con.contact_date
       ,con.Status__c
       ,con.Type__c
       ,con.Category__c
       ,con.Subject__c
-      ,con.Comments__c
-      ,CASE WHEN p.Status__c IS NOT NULL THEN 1 END AS is_persisting_baseline
-      ,CASE 
-        WHEN p.Status__c = 'Attending' THEN 1
-        WHEN p.Status__c = 'Withdrawn' THEN 0
-       END AS is_persisting
+      ,con.Comments__c      
+      ,ROW_NUMBER() OVER(
+         PARTITION BY r.student_number, r.academic_year, scaff.month
+           ORDER BY con.Status__c DESC) AS rn_month
 FROM roster_scaffold scaff WITH(NOLOCK)
 LEFT OUTER JOIN combined_roster r WITH(NOLOCK)
   ON scaff.counselor_id = r.counselor_id
@@ -160,6 +106,3 @@ LEFT OUTER JOIN contact_long con WITH(NOLOCK)
  AND scaff.salesforce_id = con.salesforce_id
  AND scaff.academic_year = con.academic_year
  AND scaff.month = con.month
-LEFT OUTER JOIN perisisting p WITH(NOLOCK)
-  ON scaff.salesforce_id = p.Student__c
- AND p.rn = 1

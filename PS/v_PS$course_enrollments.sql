@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW PS$course_enrollments AS
+ALTER VIEW PS$course_enrollments AS
 
 WITH coaches AS (
   SELECT 2014 AS academic_year
@@ -72,7 +72,7 @@ SELECT cc.academic_year
       ,ABS(cc.SECTIONID) AS sectionid
       ,sec.DCID AS sectionsDCID
       ,cc.SECTION_NUMBER      
-      ,CASE WHEN cc.schoolid = 73253 THEN cc.period ELSE NULL END AS period
+      ,cc.period
       ,t.TEACHERNUMBER
       ,t.lastfirst AS teacher_name      
       ,coaches.coach AS teacher_coach

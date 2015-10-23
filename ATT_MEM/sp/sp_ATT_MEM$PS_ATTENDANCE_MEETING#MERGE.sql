@@ -42,6 +42,7 @@ BEGIN
     USING #meeting_att AS SOURCE
        ON TARGET.studentid = SOURCE.studentid
       AND TARGET.sectionid = SOURCE.sectionid
+      AND TARGET.period_abbreviation = SOURCE.period_abbreviation
       AND TARGET.att_date = SOURCE.att_date    
     WHEN MATCHED THEN
      UPDATE

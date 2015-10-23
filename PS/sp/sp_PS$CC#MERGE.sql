@@ -12,8 +12,7 @@ BEGIN
 
   WITH cc_update AS (
     SELECT *
-          ,KIPP_NJ.dbo.fn_DateToSY(DATEENROLLED) AS academic_year
-          ,KIPP_NJ.dbo.fn_ExprToPeriod(EXPRESSION) AS period
+          ,KIPP_NJ.dbo.fn_DateToSY(DATEENROLLED) AS academic_year          
     FROM OPENQUERY(PS_TEAM,'
       SELECT ATTENDANCE_TYPE_CODE
             ,COURSE_NUMBER
@@ -43,9 +42,14 @@ BEGIN
     ')
    )
 
-  SELECT *
+  SELECT cc.*
+        ,p.ABBREVIATION AS period
   INTO #CC_UPDATE
-  FROM cc_update;
+  FROM cc_update cc
+  LEFT OUTER JOIN KIPP_NJ..PS$PERIOD#static p WITH(NOLOCK)
+    ON cc.academic_year = p.academic_year
+   AND cc.schoolid = p.SCHOOLID
+   AND KIPP_NJ.dbo.fn_StripCharacters(cc.expression,'^0-9') = p.PERIOD_NUMBER;
 
   MERGE KIPP_NJ..PS$CC#static AS TARGET
   USING #cc_update AS SOURCE

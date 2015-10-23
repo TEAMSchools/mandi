@@ -65,6 +65,7 @@ WITH roster AS (
 
 ,grades AS (
   SELECT student_number        
+        ,date
         ,gpa
         ,LAG(gpa) OVER(PARTITION BY student_number ORDER BY date) AS prev_gpa
         ,CASE
@@ -92,12 +93,12 @@ WITH roster AS (
          ON (ts.moving_average >= scl.low_cut AND ts.moving_average < scl.high_cut)
         AND scl.scale_id = 1
        WHERE (ts.finalgradename = 'Y1' OR ts.finalgradename LIKE 'H%')
-         AND (DATEPART(DW,ts.date) = 4 /* as of Wednesday */ OR ts.date = CONVERT(DATE,GETDATE()))
-         AND ts.date IN (SELECT date FROM KIPP_NJ..REPORTING$Rise_weekly_dates#static dt WITH(NOLOCK))
+         AND (DATEPART(DW,ts.date) = 4 /* as of Wednesday */ OR ts.date = CONVERT(DATE,GETDATE()))                  
+         AND ts.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
          AND ts.schoolid = 73252
        GROUP BY ts.student_number
                ,ts.date
-      ) sub
+      ) sub  
  )
 
 ,att_pts AS (
@@ -182,6 +183,7 @@ FROM
        ON r.studentid = d.studentid
      LEFT OUTER JOIN grades g
        ON r.student_number = g.student_number
+      AND g.date IN (SELECT date FROM KIPP_NJ..REPORTING$Rise_weekly_dates#static dt WITH(NOLOCK))
      LEFT OUTER JOIN att_pts a
        ON r.student_number = a.student_number
       AND a.date IN (SELECT date FROM KIPP_NJ..REPORTING$Rise_weekly_dates#static dt WITH(NOLOCK))

@@ -40,7 +40,7 @@ WITH valid_tests AS (
   JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
     ON co.schoolid = dt.schoolid   
    AND co.year = dt.academic_year 
-   AND dt.start_date <= CONVERT(DATE,GETDATE())
+   --AND dt.start_date <= CONVERT(DATE,GETDATE())
    AND dt.identifier = 'REP'
   WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND co.rn = 1
@@ -60,7 +60,7 @@ WITH valid_tests AS (
         ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct
         ,KIPP_NJ.dbo.GROUP_CONCAT_D(missed_word, ', ') AS missed_words
   FROM roster r WITH(NOLOCK)
-  JOIN scores_long res WITH(NOLOCK)
+  LEFT OUTER JOIN scores_long res WITH(NOLOCK)
     ON r.STUDENT_NUMBER = res.student_number
    AND r.time_per_name = res.listweek_num
   GROUP BY r.schoolid
@@ -81,7 +81,7 @@ WITH valid_tests AS (
         ,ROUND(SUM(CONVERT(FLOAT,value)) / COUNT(CONVERT(FLOAT,value)) * 100,0) AS pct_correct_yr
         ,KIPP_NJ.dbo.GROUP_CONCAT_D(missed_word, ', ') AS missed_words_yr
   FROM roster r WITH(NOLOCK)
-  JOIN scores_long res WITH(NOLOCK)
+  LEFT OUTER JOIN scores_long res WITH(NOLOCK)
     ON r.STUDENT_NUMBER = res.student_number
    AND r.time_per_name = res.listweek_num
   GROUP BY r.SCHOOLID
