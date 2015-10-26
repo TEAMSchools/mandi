@@ -90,9 +90,9 @@ SELECT co.schoolid
       ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunchstatus END AS lunchstatus      
       ,s.state_studentnumber AS SID
 
-      ,advisory.advisor AS advisor
-      ,adp.phone_mobile AS ADVISOR_CELL
-      ,dir.mail AS ADVISOR_EMAIL
+      ,CASE WHEN s.SCHOOLID = 133570965 THEN cs.ADVISOR ELSE advisory.advisor END AS advisor
+      ,CASE WHEN s.SCHOOLID = 133570965 THEN cs.ADVISOR_CELL ELSE adp.phone_mobile END AS ADVISOR_CELL
+      ,CASE WHEN s.SCHOOLID = 133570965 THEN cs.ADVISOR_EMAIL ELSE dir.mail END AS ADVISOR_EMAIL
       ,logins.student_web_id
       ,logins.STUDENT_WEB_PASSWORD
       ,logins.student_web_id + '.fam' AS FAMILY_WEB_ID

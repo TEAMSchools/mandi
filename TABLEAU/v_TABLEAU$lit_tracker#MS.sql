@@ -44,6 +44,9 @@ SELECT -- student identifiers
       
       /* F&P */
       ,lit_rounds.read_lvl
+      ,lit_rounds.lvl_num
+      ,lit_rounds.instruct_lvl
+      ,lit_rounds.instruct_lvl_num
       ,lit_rounds.GLEQ
       ,lit_rounds.fp_wpmrate
       ,lit_rounds.fp_keylever

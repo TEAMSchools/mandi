@@ -28,7 +28,7 @@ WITH assessments AS (
                 PARTITION BY a.subject_area, KIPP_NJ.dbo.fn_StripCharacters(tags,'^0-9,K')
                   ORDER BY a.administered_at) AS rn
        FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)       
-       WHERE a.scope IN ('Common Module Assessment')    
+       WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
          AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()    
       ) sub
  )

@@ -20,6 +20,7 @@ SELECT sub.assessment_id
       ,sub.standard_id
       ,sub.standard_code
       ,KIPP_NJ.dbo.fn_StripCharacters(LTRIM(RTRIM(sub.standard_description)),CHAR(10)+CHAR(13)) AS standard_description
+      ,sub.tags
       ,ROW_NUMBER() OVER (
           PARTITION BY sub.academic_year, sub.reporting_wk, sub.schoolid, sub.grade_level, sub.scope, sub.performance_band_set_id
               ORDER BY sub.performance_band_set_id, subject_area, standard_code ASC) AS weekly_stds_rn
@@ -89,6 +90,7 @@ FROM
            ,KIPP_NJ.dbo.ASCII_CONVERT(std.description) AS standard_description
            ,rpt_wks.time_per_name AS reporting_wk
            ,rt.alt_name AS term
+           ,a.tags
      FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
      LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessments_sites#static sch WITH(NOLOCK)
        ON a.assessment_id = sch.assessment_id

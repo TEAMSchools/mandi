@@ -19,7 +19,8 @@ SELECT co.schoolid
       ,a.title
       ,a.scope            
       ,a.subject_area AS subject
-      ,a.credittype      
+      ,a.credittype   
+      ,CASE WHEN CHARINDEX(REPLACE(co.grade_level, 0, 'K'), CONVERT(VARCHAR(128),a.tags)) = 0 THEN 1 ELSE 0 END AS is_replacement
       ,enr.COURSE_NAME
       ,enr.teacher_name
       ,COALESCE(enr.period, enr.section_number) AS section

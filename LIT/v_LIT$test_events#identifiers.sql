@@ -60,6 +60,10 @@ SELECT sub.unique_id
       ,ROW_NUMBER() OVER(
          PARTITION BY studentid, status, academic_year
            ORDER BY round_num DESC, lvl_num DESC) AS curr_yr
+      /* current letter for the year, regardless of status */
+      ,ROW_NUMBER() OVER(
+         PARTITION BY studentid, academic_year
+           ORDER BY round_num DESC, test_date DESC, lvl_num DESC) AS recent_yr
 
       /* base letter, all time */
       ,ROW_NUMBER() OVER(
