@@ -74,8 +74,8 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$SPED_comments#static comm WITH(NOLOCK)
   ON co.student_number = comm.student_number
  AND a.subject_area = comm.subject
  AND comm.rn = 1
-WHERE a.academic_year >= (KIPP_NJ.dbo.fn_Global_Academic_Year() - 1)
-
+WHERE a.academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
+  AND co.schoolid != 999999
 /*
 UNION ALL
 
