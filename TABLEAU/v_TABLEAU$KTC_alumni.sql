@@ -3,76 +3,127 @@ GO
 
 ALTER VIEW TABLEAU$KTC_alumni AS 
 
-WITH max_grade AS (
-  SELECT co.year AS academic_year
-        ,co.student_number
-        ,co.lastfirst
-        ,co.grade_level
-        ,co.cohort
-        ,co.schoolid        
-        ,ROW_NUMBER() OVER(
-           PARTITION BY co.studentid
-             ORDER BY co.year DESC) AS rn
-  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-  WHERE co.student_number NOT IN (2026,3049,3012)
-    AND co.rn = 1
- )
-
-,combined_roster AS (
-  SELECT co.year AS academic_year
+--/*
+WITH graduates AS (
+  SELECT co.year AS academic_year        
         ,co.STUDENT_NUMBER
         ,co.lastfirst        
-        ,max_grade.grade_level + (co.year - max_grade.cohort) AS grade_level        
-        ,max_grade.cohort
-        ,max_grade.schoolid        
+        ,sub.grade_level + (co.year - sub.cohort) AS grade_level        
+        ,sub.cohort
+        ,sub.schoolid        
         ,r.Id AS salesforce_id                
         ,u.id AS counselor_id
         ,u.Name AS counselor_name
-  FROM max_grade WITH(NOLOCK)
+        ,0 AS is_tf
+  FROM
+      (
+       SELECT co.year AS academic_year
+             ,co.student_number
+             ,co.lastfirst
+             ,co.grade_level
+             ,co.cohort        
+             ,co.schoolid                        
+             ,ROW_NUMBER() OVER(
+               PARTITION BY co.student_number
+                 ORDER BY co.year DESC) AS rn
+       FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+       WHERE co.rn = 1
+         AND co.exitcode = 'G1'       
+         AND co.student_number NOT IN (2026,3049,3012)
+      ) sub
   JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
-    ON max_grade.student_number = co.student_number   
+    ON sub.student_number = co.student_number   
+   AND co.schoolid = 999999
    AND co.rn = 1
   LEFT OUTER JOIN AlumniMirror.dbo.Contact r WITH(NOLOCK)
     ON co.student_number = r.School_Specific_ID__c  
   LEFT OUTER JOIN AlumniMirror.dbo.User2 u WITH(NOLOCK)
     ON r.OwnerId = u.Id
-  WHERE max_grade.rn = 1    
+  WHERE sub.rn = 1    
+ )  
+
+,team_and_fam AS (
+  SELECT KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
+        ,tf.student_number
+        ,tf.lastfirst
+        ,tf.approx_grade_level AS grade_level
+        ,tf.cohort
+        ,tf.schoolid         
+        ,r.Id AS salesforce_id                
+        ,u.id AS counselor_id
+        ,u.Name AS counselor_name
+        ,1 is_tf             
+  FROM KIPP_NJ..KTC$team_and_family_roster tf WITH(NOLOCK)     
+  LEFT OUTER JOIN AlumniMirror.dbo.Contact r WITH(NOLOCK)
+    ON tf.student_number = r.School_Specific_ID__c  
+  LEFT OUTER JOIN AlumniMirror.dbo.User2 u WITH(NOLOCK)
+    ON r.OwnerId = u.Id
+  WHERE tf.student_number NOT IN (SELECT student_number FROM graduates)
+ )
+--*/
+
+,combined_roster AS (
+  --/* temp fix */
+  --SELECT KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
+  --      ,r.School_Specific_ID__c AS student_number
+  --      ,r.Name AS lastfirst                
+  --      ,r.Id AS salesforce_id                
+  --      ,u.id AS counselor_id
+  --      ,u.Name AS counselor_name    
+  --FROM AlumniMirror.dbo.Contact r WITH(NOLOCK)  
+  --LEFT OUTER JOIN AlumniMirror.dbo.User2 u WITH(NOLOCK)
+  --  ON r.OwnerId = u.Id  
+
+  --/*
+  SELECT *
+        ,ROW_NUMBER() OVER(
+           PARTITION BY student_number, academic_year
+             ORDER BY academic_year) AS rn
+  FROM
+      (
+       SELECT *
+       FROM graduates
+       UNION ALL
+       SELECT *
+       FROM team_and_fam
+      ) sub
+  --*/
  )
 
 ,roster_scaffold AS (
-  SELECT DISTINCT 
-         r.counselor_id
+  SELECT r.counselor_id
         ,r.counselor_name
+        ,r.student_number
         ,r.salesforce_id
         ,r.lastfirst
-        ,year.year_part AS academic_year
-        ,gen.n AS month
+        ,r.cohort        
+        ,year.academic_year
+        ,year.month
   FROM combined_roster r WITH(NOLOCK)
-  CROSS JOIN (
-              SELECT DISTINCT year_part
-              FROM UTIL$reporting_days#static WITH(NOLOCK)
-              WHERE year_part >= 2010
-                AND year_part <= dbo.fn_Global_Academic_Year()
-             ) year    
-  JOIN UTIL$row_generator gen WITH(NOLOCK)
-    ON gen.n BETWEEN 1 AND 12  
-  WHERE r.counselor_id IS NOT NULL
-    AND r.salesforce_id IS NOT NULL
+  JOIN (
+        SELECT DISTINCT 
+               KIPP_NJ.dbo.fn_DateToSy(date) AS academic_year
+              ,month_part AS month
+        FROM UTIL$reporting_days#static WITH(NOLOCK)
+        WHERE KIPP_NJ.dbo.fn_DateToSy(date) = KIPP_NJ.dbo.fn_Global_Academic_Year()
+          AND date <= CONVERT(DATE,GETDATE())
+        --WHERE KIPP_NJ.dbo.fn_DateToSy(date) BETWEEN 2010 AND KIPP_NJ.dbo.fn_Global_Academic_Year()
+        --  AND date <= CONVERT(DATE,GETDATE())
+       ) year    
+    ON r.academic_year = year.academic_year  
  )
 
 ,contact_long AS (
   SELECT Contact__c AS salesforce_id        
-        ,LastModifiedById AS counselor_id        
-        ,KIPP_NJ.dbo.fn_DateToSY(COALESCE(date__c, lastmodifieddate)) AS academic_year        
-        ,DATEPART(MONTH,COALESCE(date__c, lastmodifieddate)) AS month                   
-        ,COALESCE(date__c, lastmodifieddate) AS contact_date
+        ,CreatedById AS counselor_id        
+        ,KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,COALESCE(date__c, lastmodifieddate))) AS academic_year        
+        ,DATEPART(MONTH,CONVERT(DATE,COALESCE(date__c, lastmodifieddate))) AS month                   
+        ,CONVERT(DATE,COALESCE(date__c, lastmodifieddate)) AS contact_date
         ,status__c        
         ,Type__c
         ,Category__c        
         ,Subject__c
-        ,Comments__c
-        --,id AS contact_record_id
-        --,CASE WHEN Type__c = 'School Visit' THEN 1.0 ELSE 0.0 END AS is_school_visit
+        ,Comments__c        
   FROM [AlumniMirror].[dbo].[Contact_Note__c] WITH(NOLOCK)
   WHERE isdeleted = 0
  )
@@ -81,11 +132,11 @@ SELECT scaff.academic_year
       ,scaff.month
       ,scaff.counselor_id
       ,scaff.counselor_name      
-      ,r.student_number
-      ,r.lastfirst      
-      ,r.cohort
-      ,r.schoolid
-      ,r.salesforce_id      
+      ,scaff.student_number
+      ,scaff.lastfirst      
+      ,scaff.cohort
+      ,NULL AS schoolid
+      ,scaff.salesforce_id      
       ,con.salesforce_id AS contact_student_id      
       ,con.contact_date
       ,con.Status__c
@@ -94,13 +145,9 @@ SELECT scaff.academic_year
       ,con.Subject__c
       ,con.Comments__c      
       ,ROW_NUMBER() OVER(
-         PARTITION BY r.student_number, r.academic_year, scaff.month
-           ORDER BY con.Status__c DESC) AS rn_month
+         PARTITION BY scaff.student_number, scaff.academic_year, scaff.month
+           ORDER BY con.Status__c DESC) AS rn_month /* Successful > Outreach */
 FROM roster_scaffold scaff WITH(NOLOCK)
-LEFT OUTER JOIN combined_roster r WITH(NOLOCK)
-  ON scaff.counselor_id = r.counselor_id
- AND scaff.salesforce_id = r.salesforce_id
- AND scaff.academic_year = r.academic_year
 LEFT OUTER JOIN contact_long con WITH(NOLOCK)
   ON scaff.counselor_id = con.counselor_id
  AND scaff.salesforce_id = con.salesforce_id

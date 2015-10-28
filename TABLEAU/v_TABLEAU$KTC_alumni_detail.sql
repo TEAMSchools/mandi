@@ -13,7 +13,7 @@ WITH graduates AS (
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   WHERE co.rn = 1
     AND co.exitcode = 'G1'       
-    AND co.student_number != 2026              
+    AND co.student_number NOT IN (2026,3049,3012)         
  )
 
 ,max_grade AS (
