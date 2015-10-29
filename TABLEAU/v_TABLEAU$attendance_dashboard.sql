@@ -22,7 +22,7 @@ SELECT co.year
       ,CASE WHEN att.att_code = 'TE' THEN 1 ELSE 0 END AS tardy_excused
       --absences
       ,CASE WHEN att.PRESENCE_STATUS_CD = 'Absent' THEN 1 ELSE 0 END AS absent_all
-      ,CASE WHEN att.att_code IN ('AD','AE') THEN 1 ELSE 0 END AS absent_doc
+      ,CASE WHEN att.att_code = 'AD' THEN 1 ELSE 0 END AS absent_doc
       ,CASE WHEN att.att_code = 'A' THEN 1 ELSE 0 END AS absent_undoc
       ,CASE WHEN att.att_code = 'AE' THEN 1 ELSE 0 END AS absent_excused
       --suspensions
