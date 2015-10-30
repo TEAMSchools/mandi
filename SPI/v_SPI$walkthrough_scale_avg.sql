@@ -4,7 +4,7 @@ GO
 ALTER VIEW SPI$walkthrough_scale_avg AS
 
 WITH prep AS (
-  SELECT r.rubric
+  SELECT DISTINCT r.rubric
         ,r.element
         ,r.school
         ,r.round
@@ -19,7 +19,8 @@ WITH prep AS (
           WHEN ISNULL(r.num_yes, 0.0) + ISNULL(r.num_no, 0.0) = 0.0 THEN 0.0
           WHEN (r.num_yes IS NOT NULL OR r.num_no IS NOT NULL) THEN CAST(r.num_yes / (r.num_yes + r.num_no) AS NUMERIC(4,2)) * 10
          END AS use_this
-  FROM SPI..walkthrough$raw_long r WITH(NOLOCK)
+  FROM SPI..walkthrough$raw_long r WITH (NOLOCK)
+  WHERE r.date >= '09-01-2015'
  )
 
 SELECT prep.school
