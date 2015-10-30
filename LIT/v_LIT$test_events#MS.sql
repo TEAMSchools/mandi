@@ -90,8 +90,8 @@ FROM
            ,achv.lvl_num AS indep_lvl_num
            ,instr.lvl_num AS instr_lvl_num
      FROM clean_data cd
-     JOIN KIPP_NJ..LIT$GLEQ achv
+     JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq achv
        ON cd.achieved_independent_level = achv.read_lvl
-     JOIN KIPP_NJ..LIT$GLEQ instr
+     JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq instr
        ON cd.instructional_level_tested = instr.read_lvl
     ) sub

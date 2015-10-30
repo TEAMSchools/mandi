@@ -41,7 +41,7 @@ WITH roster_scaffold AS (
         ,fp.fp_keylever
         ,fp.fp_wpmrate
   FROM KIPP_NJ..LIT$test_events#identifiers fp WITH(NOLOCK)
-  LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
     ON CASE WHEN fp.status = 'Achieved' AND fp.indep_lvl IS NULL THEN fp.read_lvl ELSE fp.indep_lvl END = gleq.read_lvl
    AND gleq.testid = 3273
   WHERE academic_year = 2014
@@ -190,8 +190,9 @@ FROM
            AND achv_prev.read_lvl IS NOT NULL                    
            AND tests.start_date <= CONVERT(DATE,GETDATE()) /* preserves the scaffold but will not carry scores to a future term */
          ) sub
-     LEFT OUTER JOIN KIPP_NJ..LIT$goals goals WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_normed_goals goals WITH(NOLOCK)
        ON sub.grade_level = goals.grade_level
+      AND CASE WHEN sub.academic_year >= 2015 THEN sub.academic_year ELSE 2014 END = goals.norms_year
       AND sub.test_round = goals.test_round
      LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
        ON sub.STUDENT_NUMBER = indiv.student_number

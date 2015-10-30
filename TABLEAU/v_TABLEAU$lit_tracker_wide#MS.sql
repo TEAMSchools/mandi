@@ -175,10 +175,11 @@ WITH roster AS (
              ,CONVERT(VARCHAR,fp.fp_wpmrate) AS wpm
              ,CONVERT(VARCHAR,fp.fp_keylever) AS keylever            
        FROM KIPP_NJ..LIT$achieved_by_round#static fp WITH(NOLOCK)       
-       LEFT OUTER JOIN KIPP_NJ..LIT$goals goals WITH(NOLOCK)
+       LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_normed_goals goals WITH(NOLOCK)
          ON fp.GRADE_LEVEL = goals.grade_level
         AND fp.test_round = goals.test_round
-       LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
+        AND goals. norms_year = 2014
+       LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
          ON goals.read_lvl = gleq.read_lvl               
        WHERE ((fp.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year()) 
                  OR (fp.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND fp.test_round IN (SELECT test_round FROM terms WITH(NOLOCK))))

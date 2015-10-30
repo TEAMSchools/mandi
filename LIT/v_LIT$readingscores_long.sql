@@ -216,7 +216,7 @@ FROM
               PARTITION BY rs.unique_id, prof.domain
                 ORDER BY rs.score ASC, prof.strand DESC) AS score_order
      FROM long_scores rs
-     JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
+     JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
        ON ((rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl) OR (rs.testid != 3273 AND rs.testid = gleq.testid AND gleq.lvl_num != -1))
      JOIN KIPP_NJ..LIT$prof_long prof WITH(NOLOCK)
        ON rs.testid = prof.testid

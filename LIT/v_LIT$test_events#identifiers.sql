@@ -118,9 +118,9 @@ FROM
              WHEN co.year >= 2015 AND rs.testid = 3273 THEN instr.lvl_num
              ELSE NULL 
             END AS dna_lvl_num
-           ,rs.instruct_lvl
+           ,instr.read_lvl AS instruct_lvl
            ,instr.lvl_num AS instruct_lvl_num
-           ,rs.indep_lvl
+           ,ind.read_lvl AS indep_lvl
            ,ind.lvl_num AS indep_lvl_num
 
            /* progress to goals */      
@@ -151,37 +151,32 @@ FROM
        ON rs.studentid = co.studentid
       AND COALESCE(rs.academic_year, dates.academic_year) = co.year /* before 2014-2015, rs.academic_year did not exist, so join to dates table */
       AND co.rn = 1
-     JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
+     JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
        ON ((co.year <= 2014 AND rs.testid != 3273 AND rs.testid = gleq.testid AND gleq.lvl_num > -1) /* before 2015-2016, JOIN Achieved STEP on testid */
               OR (co.year <= 2014 AND rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl) /* before 2015-2016, JOIN Achieved F&P on reading level */
               OR (co.year >= 2015 AND rs.read_lvl = gleq.read_lvl)) /* 2015-2016 onward, JOIN everything on reading level */
-     LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ stepdna WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq stepdna WITH(NOLOCK)
        ON (co.year >= 2015 AND rs.testid != 3273 AND rs.testid = stepdna.testid AND stepdna.lvl_num > -1)
-     LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ achv WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq achv WITH(NOLOCK)
        ON rs.read_lvl = achv.read_lvl      
-     LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ instr WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq instr WITH(NOLOCK)
        ON rs.instruct_lvl = instr.read_lvl
-     LEFT OUTER JOIN KIPP_NJ..LIT$GLEQ ind WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq ind WITH(NOLOCK)
        ON COALESCE(rs.indep_lvl, rs.read_lvl) = ind.read_lvl
-     LEFT OUTER JOIN KIPP_NJ..LIT$goals goals WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_normed_goals goals WITH(NOLOCK)
        ON co.grade_level = goals.grade_level
+      AND CASE WHEN co.year >= 2015 THEN co.year ELSE 2014 END = goals.norms_year
       AND CASE
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q1' THEN 'T1'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','Q2') THEN 'T2'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q3' THEN 'T3'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q4' THEN 'EOY'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'BOY') THEN 'DR'           
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = goals.test_round 
      LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
        ON co.STUDENT_NUMBER = indiv.student_number
       AND co.year = indiv.academic_year
       AND CASE
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q1' THEN 'T1'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','Q2') THEN 'T2'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q3' THEN 'T3'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q4' THEN 'EOY'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'BOY') THEN 'DR'           
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = indiv.test_round  
 
@@ -255,25 +250,20 @@ FROM
        ON rs.studentid = co.studentid
       AND COALESCE(rs.academic_year, dates.academic_year) = co.year 
       AND co.rn = 1     
-     LEFT OUTER JOIN KIPP_NJ..LIT$goals goals WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_normed_goals goals WITH(NOLOCK)
        ON co.grade_level = goals.grade_level
+      AND CASE WHEN co.year >= 2015 THEN co.year ELSE 2014 END = goals.norms_year
       AND CASE
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q1' THEN 'T1'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','Q2') THEN 'T2'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q3' THEN 'T3'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q4' THEN 'EOY'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'BOY') THEN 'DR'           
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = goals.test_round 
      LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
        ON co.STUDENT_NUMBER = indiv.student_number
       AND co.year = indiv.academic_year
       AND CASE
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'DR', 'BOY') THEN 'DR'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q1' THEN 'T1'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY','Q2') THEN 'T2'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q3' THEN 'T3'
-           WHEN COALESCE(rs.test_round, dates.time_per_name) = 'Q4' THEN 'EOY'
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('Diagnostic', 'BOY') THEN 'DR'           
+           WHEN COALESCE(rs.test_round, dates.time_per_name) IN ('MOY') THEN 'T2'           
            ELSE COALESCE(rs.test_round, dates.time_per_name)
           END = indiv.test_round  
      WHERE rs.testid = 3280

@@ -92,7 +92,7 @@ SELECT s.LASTFIRST
       ,lli.comment
       ,lli.date AS comment_date
 FROM running_record rr WITH(NOLOCK)
-JOIN KIPP_NJ..LIT$GLEQ gleq WITH(NOLOCK)
+JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
   ON rr.level_tested_join = gleq.read_lvl
 JOIN prof_wide WITH(NOLOCK)
   ON gleq.lvl_num = prof_wide.lvl_num

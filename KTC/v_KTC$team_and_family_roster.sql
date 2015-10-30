@@ -6,8 +6,8 @@ ALTER VIEW KTC$team_and_family_roster AS
 WITH grads AS (
   SELECT co.studentid
         ,co.student_number
-        ,co.lastfirst
-        ,co.schoolid
+        ,co.lastfirst        
+        ,co.schoolid        
         ,co.school_name
         ,co.grade_level                
         ,(KIPP_NJ.dbo.fn_Global_Academic_Year() - co.year) + co.grade_level AS curr_grade_level
@@ -21,24 +21,23 @@ WITH grads AS (
     AND co.exitcode = 'G1'           
     AND co.student_number NOT IN (2026,3049,3012)
     AND co.rn = 1
+    AND co.enroll_status != 0
  )
 
 ,transfers AS (
   SELECT sub.studentid
         ,sub.student_number
-        ,sub.lastfirst        
+        ,sub.lastfirst                
         ,sub.curr_grade_level
         ,sub.cohort
-        ,sub.highest_achieved
+        ,sub.highest_achieved        
         ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN s.SCHOOLID ELSE s.GRADUATED_SCHOOLID END AS schoolid       
         ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN sch2.ABBREVIATION ELSE sch.ABBREVIATION END AS school_name         
   FROM
       (
        SELECT co.studentid             
              ,co.student_number
-             ,co.lastfirst
-             --,co.schoolid
-             --,co.school_name
+             ,co.lastfirst                          
              ,MAX(co.cohort) AS cohort
              ,co.highest_achieved
              ,(KIPP_NJ.dbo.fn_Global_Academic_Year() - MAX(co.year)) + MAX(co.grade_level) AS curr_grade_level
@@ -47,9 +46,9 @@ WITH grads AS (
              ,MAX(co.exitdate) AS final_exitdate
              ,DATEPART(YEAR,MAX(co.exitdate)) AS year_final_exitdate
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-       WHERE co.grade_level != 99
-         AND co.studentid NOT IN (SELECT studentid FROM grads)
+       WHERE co.grade_level >= 9
          AND co.enroll_status != 0
+         AND co.studentid NOT IN (SELECT studentid FROM grads)         
        GROUP BY co.studentid, co.student_number, co.lastfirst, co.highest_achieved
       ) sub
   LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s

@@ -49,18 +49,13 @@ FROM
     (
      SELECT co.student_number           
            ,co.lastfirst
-           ,co.cohort
-           ,ROW_NUMBER() OVER(
-              PARTITION BY co.student_number
-                ORDER BY co.exitdate DESC) AS rn
-     FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-     WHERE co.rn = 1
-       AND co.exitcode = 'G1'       
-       AND co.student_number NOT IN (2026,3049,3012)
+           ,co.cohort           
+     FROM KIPP_NJ..KTC$combined_roster_long co WITH(NOLOCK)
+     WHERE co.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       AND co.rn = 1       
     ) sub
 LEFT OUTER JOIN sf_students sf
   ON sub.student_number = sf.student_number
 LEFT OUTER JOIN enrollments enr
   ON sf.student_sf_id = enr.Student__c
  AND enr.rn = 1
-WHERE sub.rn = 1

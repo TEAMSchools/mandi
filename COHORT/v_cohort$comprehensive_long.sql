@@ -151,8 +151,8 @@ WITH reenrollments AS (
        FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
        WHERE s.enroll_status = 3
          AND s.id NOT IN (171, 141, 45)          
-         -- 3 students back in the Dark Ages graduated 8th, didn't go to NCA in 9th, but came back and graduated from NCA with a different student record
-         -- these are their stories
+         /* 3 students back in the Dark Ages graduated 8th, didn't go to NCA in 9th, but came back and graduated from NCA with a different student record */
+         /* these are their stories */
       ) s_3
   LEFT OUTER JOIN KIPP_NJ..PS$terms#static terms WITH(NOLOCK)
     ON s_3.schoolid = terms.schoolid
