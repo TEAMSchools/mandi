@@ -47,7 +47,7 @@ WITH grads AS (
              ,DATEPART(YEAR,MAX(co.exitdate)) AS year_final_exitdate
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        WHERE co.grade_level >= 9
-         AND co.enroll_status != 0
+         AND co.enroll_status NOT IN (0,3)
          AND co.studentid NOT IN (SELECT studentid FROM grads)         
        GROUP BY co.studentid, co.student_number, co.lastfirst, co.highest_achieved
       ) sub
