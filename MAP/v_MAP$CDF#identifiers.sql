@@ -38,6 +38,17 @@ SELECT co.schoolid
                             END, 0)
         ELSE NULL
        END AS proj_ACT_subj_score
+      ,CASE
+        /* MATH ACT model */
+        WHEN sub.measurementscale = 'Mathematics'
+             THEN ROUND(
+               -28.193 + (0.307 * sub.testritscore) + ((-4.256 * 11) + (0.183 * (11 * 11))) + -2.346, 0)
+        /* READING ACT model */
+        WHEN sub.measurementscale = 'Reading'
+             THEN ROUND(
+              -52.748 + (0.417 * sub.testritscore) + ((-3.433 * 11) + (0.132 * (11 * 11))) + -1.655, 0)
+        ELSE NULL
+       END AS proj_ACT_subj_today
       ,ROW_NUMBER() OVER(
          PARTITION BY sub.student_number, sub.academic_year, sub.measurementscale
            ORDER BY sub.rn ASC, sub.teststartdate ASC, sub.teststarttime ASC) AS rn_base
