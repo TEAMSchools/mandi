@@ -110,6 +110,8 @@ SELECT roster.last_name AS slast
 
 FROM roster
 
+WHERE roster.ENTRYDATE >= '2015-09-23'
+
 ORDER BY roster.schoolid
 		,roster.grade_level
 		,roster.lastfirst
@@ -117,7 +119,7 @@ ORDER BY roster.schoolid
 */
 
 --FASTT MATH
---/*
+/*
 
 SELECT student_number AS SIS_ID
       ,grade_level AS GRADE
@@ -130,17 +132,19 @@ SELECT student_number AS SIS_ID
 
 FROM roster
 
-WHERE schoolid = 179902
+--WHERE schoolid = 179902
  -- AND entrydate > '2015-08-05'
 
---WHERE schoolid = 133570965
+WHERE schoolid = 133570965
+  AND entrydate > '2015-10-05'
+
 
 ORDER BY schoolid
         ,grade
 		,lastfirst
 
 
---*/
+*/
 
 --READ LIVE SERIOUSLY DIE
 --this gets a roster of all new students for Rise and TEAM... because you cannot update students via import to readlive, only add new students (!)
@@ -203,7 +207,8 @@ SELECT roster.student_number AS "Lexia id"
 	  
 FROM roster
 
-WHERE roster.schoolid = 73258
+WHERE entrydate > '2015-10-13'
+  AND grade_level < 6
 -- roster.schoolid IN (133570965,73252,73258,179902)
   -- WHERE entrydate >= '2015-09-08'
  
@@ -237,7 +242,7 @@ ORDER BY roster.ABBREVIATION, roster.section_number
 
 -- ST MATH STUDENTS
 
-/*
+--/*
 
 SELECT
 	 CASE 
@@ -288,12 +293,13 @@ SELECT
    ,roster.entrydate
 FROM roster
 
-WHERE schoolid = 73258
---   AND entrydate > '2015-09-10'
---   AND schoolid IN (133570965,73252,73258,179902)
+WHERE entrydate > '2015-10-23'
+	  --AND grade_level < 9
+	  --AND schoolid IN (133570965,73252,73258,179902)
+	  AND schoolid = 73254
 
 ORDER BY schoolid
         ,grade_level
 		,teacher_last_name
 
-*/
+--*/
