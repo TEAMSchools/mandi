@@ -20,6 +20,5 @@ FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)
 JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
  AND co.date = mem.calendardate
- AND mem.calendardate >= '2013-07-01'
- AND mem.calendardate <= CONVERT(DATE,GETDATE())
+ AND mem.calendardate BETWEEN '2013-07-01' AND CONVERT(DATE,GETDATE())
 WHERE co.schoolid != 999999
