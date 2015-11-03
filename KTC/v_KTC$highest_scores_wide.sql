@@ -2,10 +2,8 @@ USE KIPP_NJ
 GO
 
 ALTER VIEW KTC$highest_scores_wide AS
-SELECT s.student_number
-      ,s.lastfirst
-      ,s.grade_level
-      ,cs.advisor
+
+SELECT s.student_number            
       ,psat.highest_math AS PSAT_highest_math
       ,psat.highest_crit_reading AS PSAT_highest_verbal
       ,psat.highest_writing AS PSAT_highest_writing      
@@ -20,14 +18,10 @@ SELECT s.student_number
       ,act.highest_reading AS ACT_highest_reading
       ,act.highest_science AS ACT_highest_science
       ,act.highest_composite AS ACT_highest_composite
-FROM STUDENTS S WITH(NOLOCK)
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
-  ON s.id = cs.studentid
+FROM PS$students#static S WITH(NOLOCK)
 LEFT OUTER JOIN KTC$highest_PSAT psat WITH(NOLOCK)
   ON s.STUDENT_NUMBER = psat.student_number  
 LEFT OUTER JOIN KTC$highest_SAT sat WITH(NOLOCK)
   ON s.STUDENT_NUMBER = sat.student_number  
 LEFT OUTER JOIN KTC$highest_ACT act WITH(NOLOCK)
   ON s.STUDENT_NUMBER = act.student_number
-WHERE s.enroll_status = 0
-  AND s.GRADE_LEVEL >= 9

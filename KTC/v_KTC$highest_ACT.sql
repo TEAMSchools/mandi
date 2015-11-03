@@ -11,18 +11,15 @@ SELECT STUDENT_NUMBER
       ,highest_composite
 FROM
      (
-      SELECT s.student_number
+      SELECT act.student_number
             ,act.english AS highest_english
             ,act.math AS highest_math
             ,act.reading AS highest_reading
             ,act.science AS highest_science
             ,act.composite AS highest_composite
             ,ROW_NUMBER() OVER(
-                PARTITION BY s.student_number
+                PARTITION BY act.student_number
                     ORDER BY act.composite DESC) AS rn
-      FROM STUDENTS s      
-      JOIN NAVIANCE$ACT_clean act
-        ON s.STUDENT_NUMBER = act.student_number
-      WHERE act.is_plan = 0
+      FROM NAVIANCE$ACT_clean act              
      ) sub
-WHERE rn = 1     
+WHERE rn = 1

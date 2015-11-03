@@ -10,8 +10,7 @@ WITH curterm AS (
   WHERE identifier = 'RT'
     AND academic_year = dbo.fn_Global_Academic_Year()
     AND schoolid = 73253
-    AND start_date <= GETDATE()
-    AND end_date >= GETDATE()
+    AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
  )
 
 ,roster AS (
