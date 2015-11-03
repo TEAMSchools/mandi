@@ -162,28 +162,32 @@ WITH disc_log AS (
   WHERE is_perfect = 1
  )
 
-SELECT CONVERT(INT,all_logs.schoolid) AS schoolid
-      ,CONVERT(INT,all_logs.studentid) AS studentid
-      ,all_logs.entry_author
-      ,dbo.fn_DateToSY(all_logs.entry_date) AS academic_year
-      ,CONVERT(DATE,all_logs.entry_date) AS entry_date
-      ,CONVERT(DATE,all_logs.consequence_date) AS consequence_date
-      ,CONVERT(INT,all_logs.logtypeid) AS logtypeid
-      ,CONVERT(INT,all_logs.subtypeid) AS subtypeid
-      ,all_logs.n_days
-      ,all_logs.logtype
-      ,all_logs.subtype
-      ,all_logs.subject
-      ,all_logs.entry
-      ,all_logs.discipline_details
-      ,all_logs.actiontaken
-      ,all_logs.followup
-      ,dates.time_per_name AS RT
+SELECT *
       ,ROW_NUMBER() OVER(
-         PARTITION BY studentid, logtypeid
+         PARTITION BY studentid, academic_year, logtypeid
            ORDER BY CONVERT(DATE,entry_date) DESC) AS rn
-FROM all_logs WITH(NOLOCK)
-LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dates WITH (NOLOCK)
-  ON all_logs.entry_date BETWEEN dates.start_date AND dates.end_date
- AND all_logs.schoolid = dates.schoolid
- AND dates.identifier = 'RT'
+FROM
+    (
+     SELECT CONVERT(INT,all_logs.schoolid) AS schoolid
+           ,CONVERT(INT,all_logs.studentid) AS studentid
+           ,all_logs.entry_author
+           ,dbo.fn_DateToSY(all_logs.entry_date) AS academic_year
+           ,CONVERT(DATE,all_logs.entry_date) AS entry_date
+           ,CONVERT(DATE,all_logs.consequence_date) AS consequence_date
+           ,CONVERT(INT,all_logs.logtypeid) AS logtypeid
+           ,CONVERT(INT,all_logs.subtypeid) AS subtypeid
+           ,all_logs.n_days
+           ,all_logs.logtype
+           ,all_logs.subtype
+           ,all_logs.subject
+           ,all_logs.entry
+           ,all_logs.discipline_details
+           ,all_logs.actiontaken
+           ,all_logs.followup
+           ,dates.time_per_name AS RT    
+     FROM all_logs WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dates WITH (NOLOCK)
+       ON all_logs.entry_date BETWEEN dates.start_date AND dates.end_date
+      AND all_logs.schoolid = dates.schoolid
+      AND dates.identifier = 'RT'
+    ) sub

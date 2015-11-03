@@ -52,6 +52,6 @@ SELECT [Newark Collegiate Academy] AS [Name]
       ,[F47] AS [Gender]
       ,[F48] AS [Ethnicity]
       ,[F49] AS [Grade Level]
-      ,[F50] AS [Student Groups]      
+      ,[F50] AS [Student Groups]
 FROM [dbo].[AUTOLOAD$NAVIANCE_scholarship] WITH(NOLOCK)
 WHERE BINI_ID > 3
