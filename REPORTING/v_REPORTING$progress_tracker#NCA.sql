@@ -14,7 +14,8 @@ WITH curterm AS (
  )
 
 ,roster AS (
-  SELECT c.student_number
+  SELECT c.year
+        ,c.student_number
         ,c.studentid
         ,c.lastfirst
         ,c.first_name
@@ -712,17 +713,13 @@ FROM
       --ED TECH
         --ACCELERATED READER
       LEFT OUTER JOIN AR$progress_to_goals_long#static ar_cur WITH (NOLOCK)
-        ON roster.studentid = ar_cur.studentid      
-       AND ar_cur.schoolid = 73253
-       AND ar_cur.yearid = dbo.fn_Global_Term_Id()
-       AND GETDATE() >= ar_cur.start_date
-       AND GETDATE() <= ar_cur.end_date       
+        ON roster.studentid = ar_cur.studentid             
+       AND roster.year = ar_cur.academic_year       
+       AND GETDATE() BETWEEN ar_cur.start_date AND ar_cur.end_date       
        AND ar_cur.time_hierarchy = 2
       LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
         ON roster.studentid = ar_yr.studentid      
-       AND ar_yr.yearid = dbo.fn_Global_Term_Id()
-       AND GETDATE() >= ar_yr.start_date
-       AND GETDATE() <= ar_yr.end_date
+       AND roster.year = ar_yr.academic_year       
        AND ar_yr.time_hierarchy = 1 
        
       --MAP
@@ -758,9 +755,10 @@ FROM
       LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
         ON roster.studentid = merits.studentid
       LEFT OUTER JOIN DISC$log#static disc WITH (NOLOCK)
-        ON roster.studentid = disc.studentid
-       AND disc.rn = 1
+        ON roster.studentid = disc.studentid       
+       AND roster.year = disc.academic_year
        AND disc.logtypeid = 3023      
+       AND disc.rn = 1
       LEFT OUTER JOIN DISC$counts_wide dcounts WITH (NOLOCK)
         ON roster.studentid = dcounts.studentid             
       
