@@ -23,7 +23,7 @@ BEGIN
             ,note
       FROM CALENDAR_DAY
       WHERE date_value >= TO_DATE(''2015-07-01'',''YYYY-MM-DD'')
-        AND schoolid NOT IN (0, 999999)
+        AND schoolid NOT IN (999999)
     ');
   END
 

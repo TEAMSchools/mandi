@@ -5,7 +5,7 @@ ALTER PROCEDURE sp_StaleARDataNotify AS
 
 /* NOTE: You have to configure/set the following 3 variables */
 DECLARE @MailProfileToSendVia sysname = 'DataRobot';
-DECLARE @OperatorName sysname = 'cbini@kippnj.org;amartin@kippnj.org' --;ljoseph@kippnj.org;kdjones@kippnj.org;DGlaubinger@kippnj.org';
+DECLARE @OperatorName sysname = 'DataRescueTeam' --;ljoseph@kippnj.org;kdjones@kippnj.org;DGlaubinger@kippnj.org';
 -------------------------------------------------------------
 SET NOCOUNT ON;
 
@@ -29,10 +29,9 @@ The most recent quiz data is from ' + CONCAT(DATENAME(DW,@MostRecentQuiz),', ', 
 Check the integration scripts for errors, and reach out to RenLearning if necessary.
 ';
         
-  EXEC msdb..sp_send_dbmail
-          @profile_name = @MailProfileToSendVia,
-          @importance = 'High',
-          @recipients = @OperatorName,
+  EXEC msdb..sp_notify_operator
+          @profile_name = @MailProfileToSendVia,          
+          @name = @OperatorName,
           @body = @warning,
           @subject = @subject;  
         
