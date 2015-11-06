@@ -28,7 +28,7 @@ JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
 JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   ON co.year = a.academic_year
  AND CHARINDEX(REPLACE(co.grade_level,0,'K'), a.tags) != 0 
- AND a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')
+ AND a.scope IN ('CMA - End-of-Module','CMA - Mid-Module', 'Common FSA')
  AND a.administered_at BETWEEN dt.start_date AND dt.end_date
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
   ON co.student_number = ovr.local_student_id

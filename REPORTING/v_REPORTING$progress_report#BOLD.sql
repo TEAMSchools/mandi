@@ -21,6 +21,10 @@ SELECT co.student_number
       /* date stuff */
       ,FORMAT(GETDATE(),'MMMM dd, yyy') AS today_text
       ,d.alt_name AS curterm      
+      ,rw.time_per_name
+      ,ROW_NUMBER() OVER(
+         PARTITION BY co.student_number
+           ORDER BY rw.start_date DESC) AS rn_week
 
       /* Attendance & Tardies */    
       /* Year */
@@ -68,7 +72,8 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..REPORTING$dates rw WITH(NOLOCK)
   ON co.schoolid = rw.schoolid
  AND co.year = rw.academic_year
- AND DATEADD(DAY, -7, CONVERT(DATE,GETDATE())) BETWEEN rw.start_date AND rw.end_date
+ AND rw.start_date BETWEEN d.start_date AND d.end_date
+ --AND DATEADD(DAY, -7, CONVERT(DATE,GETDATE())) BETWEEN rw.start_date AND rw.end_date
  AND rw.identifier = 'REP'
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts#static att_counts WITH(NOLOCK)
   ON co.studentid = att_counts.studentid

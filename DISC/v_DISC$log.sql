@@ -104,6 +104,33 @@ WITH disc_log AS (
     AND att.schoolid = 73253    
  )
 
+,kickboard AS (
+  SELECT co.schoolid
+        ,co.studentid
+        --,bhv.external_id AS student_number
+        ,CONCAT(bhv.staff_last_name, ', ', bhv.staff_first_name) AS entry_author
+        ,KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,bhv.date)) AS academic_year
+        ,CONVERT(DATE,bhv.date) AS entry_date
+        ,NULL AS consequence_date
+        ,NULL AS logtypeid      
+        ,NULL AS subtypeid
+        ,NULL AS n_days
+        ,bhv.category AS logtype
+        ,bhv.behavior AS subtype
+        ,bhv.comments AS subject
+        ,NULL AS entry
+        ,NULL AS discipline_details
+        ,NULL AS actiontaken
+        ,NULL AS followup              
+        ,bhv.dollar_points AS point_value
+        ,bhv.daily_activity_group_name AS period
+  FROM KIPP_NJ..AUTOLOAD$KICKBOARD_behavior bhv WITH(NOLOCK)
+  JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+    ON bhv.external_id = co.student_number
+   AND co.year = KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,bhv.date))
+   AND co.rn = 1
+ )
+
 ,all_logs AS (
   SELECT schoolid
         ,studentid
@@ -120,6 +147,8 @@ WITH disc_log AS (
         ,discipline_details
         ,actiontaken
         ,followup
+        ,NULL AS point_value
+        ,NULL AS period
   FROM disc_log WITH(NOLOCK)  
 
   UNION ALL
@@ -139,6 +168,8 @@ WITH disc_log AS (
         ,discipline_details
         ,actiontaken
         ,followup
+        ,NULL AS point_value
+        ,NULL AS period
   FROM tardy_demerits WITH(NOLOCK)
   
   UNION ALL
@@ -158,13 +189,36 @@ WITH disc_log AS (
         ,NULL AS discipline_details
         ,NULL AS actiontaken
         ,NULL AS followup
+        ,NULL AS point_value
+        ,NULL AS period
   FROM KIPP_NJ..DISC$perfect_weeks#static WITH(NOLOCK)
   WHERE is_perfect = 1
+
+  UNION ALL 
+
+  SELECT schoolid
+        ,studentid
+        ,entry_author        
+        ,entry_date
+        ,consequence_date
+        ,logtypeid
+        ,subtypeid
+        ,n_days
+        ,logtype
+        ,subtype
+        ,subject
+        ,entry
+        ,discipline_details
+        ,actiontaken
+        ,followup
+        ,point_value
+        ,period
+  FROM kickboard WITH(NOLOCK)
  )
 
 SELECT *
       ,ROW_NUMBER() OVER(
-         PARTITION BY studentid, academic_year, logtypeid
+         PARTITION BY studentid, academic_year, logtype
            ORDER BY CONVERT(DATE,entry_date) DESC) AS rn
 FROM
     (
@@ -184,6 +238,8 @@ FROM
            ,all_logs.discipline_details
            ,all_logs.actiontaken
            ,all_logs.followup
+           ,all_logs.point_value
+           ,all_logs.period
            ,dates.time_per_name AS RT    
      FROM all_logs WITH(NOLOCK)
      LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dates WITH (NOLOCK)
