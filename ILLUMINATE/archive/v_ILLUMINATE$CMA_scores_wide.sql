@@ -106,7 +106,7 @@ FROM
 PIVOT(
   MAX(value)
   FOR pivot_field IN ([MATH_short_title]
-                   ,[MATH_percent_correct]
-                   ,[ELA_short_title]
-                   ,[ELA_percent_correct])
+                     ,[MATH_percent_correct]
+                     ,[ELA_short_title]
+                     ,[ELA_percent_correct])
  ) p
