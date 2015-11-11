@@ -3,7 +3,7 @@ GO
 
 ALTER VIEW LIT$readingscores AS
 
-SELECT unique_id
+SELECT CONCAT('PS', unique_id) AS unique_id
       ,studentid
       ,schoolid
       ,CONVERT(DATE,test_date) AS test_date      

@@ -4,12 +4,17 @@ GO
 ALTER VIEW LIT$test_entry_audit AS
 
 SELECT co.year AS academic_year
+      ,co.student_number
+      ,co.studentid
+      ,co.lastfirst
       ,co.schoolid
-      ,co.grade_level      
+      ,co.grade_level
       ,co.team
-      ,co.LASTFIRST
-      ,a.test_round      
-      ,CASE WHEN a.start_date <= GETDATE() THEN 1 ELSE 0 END AS is_current
+      ,co.enroll_status
+      ,a.test_round            
+      ,CASE WHEN a.start_date <= CONVERT(DATE,GETDATE()) THEN 1 ELSE 0 END AS is_current
+      ,a.read_lvl
+      ,a.met_goal
       ,rs.academic_year AS record_academic_year
       ,rs.test_round AS record_test_round
 FROM COHORT$identifiers_long#static co WITH(NOLOCK)

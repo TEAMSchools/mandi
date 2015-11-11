@@ -73,7 +73,7 @@ WITH ps_readingscores AS (
         ,rs.coaching_code
   FROM KIPP_NJ..LIT$readingscores#static rs WITH(NOLOCK)
   LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dates WITH(NOLOCK)
-    ON ((rs.test_date >= '2013-07-31' AND rs.schoolid = dates.schoolid) OR (rs.test_date < '2013-07-01' AND dates.schoolid IS NULL)) /* CROSS JOIN historical years */
+    ON rs.schoolid = dates.schoolid
    AND rs.test_date BETWEEN dates.start_date AND dates.end_date
    AND dates.identifier = 'LIT'
   JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
@@ -81,9 +81,10 @@ WITH ps_readingscores AS (
    AND COALESCE(rs.academic_year, dates.academic_year) = co.year /* before 2014-2015, rs.academic_year did not exist, so join to dates table */
    AND co.rn = 1
   JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
-    ON ((co.year <= 2014 AND rs.testid != 3273 AND rs.testid = gleq.testid AND gleq.lvl_num > -1) /* before 2015-2016, JOIN Achieved STEP on testid */
-           OR (co.year <= 2014 AND rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl) /* before 2015-2016, JOIN Achieved F&P on reading level */
-           OR (co.year >= 2015 AND rs.read_lvl = gleq.read_lvl)) /* 2015-2016 onward, JOIN everything on reading level */
+    ON ((co.year <= 2014 AND gleq.lvl_num > -1 AND ((rs.testid != 3273 AND rs.testid = gleq.testid) /* before 2015-2016, JOIN Achieved STEP on testid */
+                           OR (rs.testid = 3273 AND rs.read_lvl = gleq.read_lvl))) /* before 2015-2016, JOIN Achieved F&P on reading level */
+     OR (co.year >= 2015 AND rs.read_lvl = gleq.read_lvl)) /* 2015-2016 onward, JOIN everything on reading level */
+   
   LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq stepdna WITH(NOLOCK)
     ON (co.year >= 2015 AND rs.testid != 3273 AND rs.testid = stepdna.testid AND stepdna.lvl_num > -1)
   LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq achv WITH(NOLOCK)
@@ -172,7 +173,7 @@ WITH ps_readingscores AS (
         ,rs.coaching_code
   FROM KIPP_NJ..LIT$readingscores#static rs WITH(NOLOCK)
   LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dates WITH(NOLOCK)
-    ON ((rs.test_date >= '2013-07-31' AND rs.schoolid = dates.schoolid) OR (rs.test_date < '2013-07-01' AND dates.schoolid IS NULL))
+    ON rs.schoolid = dates.schoolid
    AND rs.test_date BETWEEN dates.start_date AND dates.end_date
    AND dates.identifier = 'LIT'
   JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
@@ -200,96 +201,87 @@ WITH ps_readingscores AS (
     AND rs.academic_year <= 2014
  )
 
-,uchicago AS (
-  SELECT DISTINCT 
-         step.[index] AS unique_id
-        ,CASE               
-          WHEN CONVERT(INT,step.step) = 0 THEN 3280
-          WHEN CONVERT(INT,step.step) = 1 THEN 3281
-          WHEN CONVERT(INT,step.step) = 2 THEN 3282
-          WHEN CONVERT(INT,step.step) = 3 THEN 3380
-          WHEN CONVERT(INT,step.step) = 4 THEN 3397
-          WHEN CONVERT(INT,step.step) = 5 THEN 3411
-          WHEN CONVERT(INT,step.step) = 6 THEN 3425
-          WHEN CONVERT(INT,step.step) = 7 THEN 3441
-          WHEN CONVERT(INT,step.step) = 8 THEN 3458
-          WHEN CONVERT(INT,step.step) = 9 THEN 3474
-          WHEN CONVERT(INT,step.step) = 10 THEN 3493
-          WHEN CONVERT(INT,step.step) = 11 THEN 3511
-          WHEN CONVERT(INT,step.step) = 12 THEN 3527
-         END AS testid
-        ,0 AS is_fp
-        ,KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,step.date)) AS academic_year
-        ,dt.time_per_name AS test_round
-        ,CASE
-          WHEN dt.time_per_name = 'DR' THEN 1
-          WHEN dt.time_per_name = 'Q1' THEN 2
-          WHEN dt.time_per_name = 'Q2' THEN 3
-          WHEN dt.time_per_name = 'Q3' THEN 4
-          WHEN dt.time_per_name = 'Q4' THEN 5
-         END AS round_num
-        ,CONVERT(DATE,step.date) AS test_date
-        ,co.schoolid
-        ,co.grade_level
-        ,co.cohort
-        ,co.studentid
-        ,step.studentid AS student_number      
-        ,co.lastfirst
-        ,CASE 
-          WHEN step.passed = 1 THEN 'Achieved'
-          WHEN step.passed = 0 THEN 'Did Not Achieve'
-         END AS status           
-        ,REPLACE(step.step, 0, 'Pre') AS read_lvl
-        ,CONVERT(INT,step.step) AS lvl_num
-        ,NULL AS dna_lvl
-        ,NULL AS dna_lvl_num
-        ,NULL AS instruct_lvl
-        ,NULL AS instruct_lvl_num
-        ,NULL AS indep_lvl
-        ,NULL AS indep_lvl_num
-        ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
-        ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num      
-        ,goals.read_lvl AS default_goal_lvl
-        ,goals.lvl_num AS default_goal_num
-        ,goals.read_lvl AS natl_goal_lvl
-        ,goals.lvl_num AS natl_goal_num
-        ,indiv.goal AS indiv_goal_lvl
-        ,indiv.lvl_num AS indiv_lvl_num
-        ,CASE WHEN CONVERT(INT,step.step) >= COALESCE(indiv.lvl_num, goals.lvl_num) THEN 1 ELSE 0 END AS met_goal
-        ,CONVERT(INT,step.step) - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind                 
-
-        ,NULL AS gleq
-        ,step.book AS color
-        ,NULL AS genre
-        ,NULL AS fp_wpmrate
-        ,NULL AS fp_keylever
-        ,NULL AS coaching_code
-  FROM KIPP_NJ..[AUTOLOAD$STEP_Level_Assessment_Data_long] step WITH(NOLOCK)
-  JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
-    ON step.schoolid = dt.schoolid
-   AND CONVERT(DATE,step.date) BETWEEN dt.start_date AND dt.end_date
-   AND dt.identifier = 'LIT'     
-  JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-    ON step.studentid = co.student_number
-   AND KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,step.date)) = co.year
-   AND co.rn = 1
-  LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_normed_goals goals WITH(NOLOCK)
-    ON co.grade_level = goals.grade_level
-   AND dt.time_per_name = goals.test_round
-   AND goals.norms_year = 2015
-  LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
-    ON co.student_number = indiv.student_number
-   AND co.year = indiv.academic_year
-   AND dt.time_per_name = indiv.test_round
- )
-
 ,all_systems AS (
-  SELECT * 
+  SELECT unique_id
+        ,testid
+        ,is_fp
+        ,academic_year
+        ,test_round
+        ,round_num
+        ,test_date
+        ,schoolid
+        ,grade_level
+        ,COHORT
+        ,studentid
+        ,student_number
+        ,LASTFIRST
+        ,status
+        ,read_lvl
+        ,lvl_num
+        ,dna_lvl
+        ,dna_lvl_num
+        ,instruct_lvl
+        ,instruct_lvl_num
+        ,indep_lvl
+        ,indep_lvl_num
+        ,goal_lvl
+        ,goal_num
+        ,default_goal_lvl
+        ,default_goal_num
+        ,natl_goal_lvl
+        ,natl_goal_num
+        ,indiv_goal_lvl
+        ,indiv_lvl_num
+        ,met_goal
+        ,levels_behind
+        ,GLEQ
+        ,color
+        ,genre
+        ,fp_wpmrate
+        ,fp_keylever
+        ,coaching_code
   FROM ps_readingscores 
   UNION ALL
-  SELECT * 
-  FROM uchicago
-)
+  SELECT unique_id
+        ,testid
+        ,is_fp
+        ,academic_year
+        ,test_round
+        ,round_num
+        ,test_date
+        ,schoolid
+        ,grade_level
+        ,COHORT
+        ,studentid
+        ,student_number
+        ,LASTFIRST
+        ,status
+        ,CONVERT(VARCHAR,read_lvl) AS read_lvl
+        ,lvl_num
+        ,CONVERT(VARCHAR,dna_lvl) AS dna_lvl
+        ,dna_lvl_num
+        ,CONVERT(VARCHAR,instruct_lvl) AS instruct_lvl
+        ,instruct_lvl_num
+        ,CONVERT(VARCHAR,indep_lvl) AS indep_lvl
+        ,indep_lvl_num
+        ,CONVERT(VARCHAR,goal_lvl) AS goal_lvl
+        ,goal_num
+        ,CONVERT(VARCHAR,default_goal_lvl) AS default_goal_lvl
+        ,default_goal_num
+        ,CONVERT(VARCHAR,natl_goal_lvl) AS natl_goal_lvl
+        ,natl_goal_num
+        ,CONVERT(VARCHAR,indiv_goal_lvl) AS indiv_goal_lvl
+        ,indiv_lvl_num
+        ,met_goal
+        ,levels_behind
+        ,GLEQ
+        ,color
+        ,CONVERT(VARCHAR,genre) AS genre
+        ,CONVERT(VARCHAR,fp_wpmrate) AS fp_wpmrate
+        ,CONVERT(VARCHAR,fp_keylever) AS fp_keylever
+        ,CONVERT(VARCHAR,coaching_code) AS coaching_code
+  FROM KIPP_NJ..LIT$STEP_Level_Assessment_Data#UChicago#static WITH(NOLOCK)
+ )
 
 SELECT unique_id
       ,testid
@@ -328,7 +320,7 @@ SELECT unique_id
       ,genre
       ,fp_wpmrate
       ,fp_keylever
-      ,coaching_code      
+      ,coaching_code            
        
       /* test sequence identifiers */      
       /* base letter for the round */
