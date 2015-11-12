@@ -47,7 +47,7 @@ SELECT co.student_number
       ,LEFT(l.label, (CHARINDEX(' ', l.label) - 1)) AS subject_area
       ,RIGHT(l.label, 1) AS comment_number
       ,res.value AS comment_text
-      --,l.repository_id
+      ,l.repository_id
       --,l.field_name      
       --,t.repository_row_id
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)

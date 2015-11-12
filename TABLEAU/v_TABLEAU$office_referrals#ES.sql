@@ -30,10 +30,9 @@ SELECT co.studentid
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..DISC$log#static disc WITH(NOLOCK)
   ON co.studentid = disc.studentid
- AND co.year = disc.academic_year
- AND disc.logtypeid = 3123
+ AND co.year = disc.academic_year 
 LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_SUPPORT_Master_List supp WITH(NOLOCK)
   ON co.student_number = supp.SN
  AND co.year = supp.academic_year
-WHERE co.grade_level < 5  
+WHERE (co.grade_level <= 4 AND co.schoolid != 73252)
   AND co.rn = 1  

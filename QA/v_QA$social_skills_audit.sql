@@ -54,7 +54,7 @@ SELECT co.student_number
       ,dt.alt_name AS term            
       ,l.label AS social_skill      
       ,res.value AS score
-      --,l.repository_id
+      ,l.repository_id
       --,l.field_name      
       --,t.repository_row_id
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
@@ -92,7 +92,7 @@ SELECT co.student_number
       ,dt.alt_name AS term                  
       ,l.label AS social_skill      
       ,res.value AS score
-      --,l.repository_id
+      ,l.repository_id
       --,l.field_name      
       --,t.repository_row_id
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)

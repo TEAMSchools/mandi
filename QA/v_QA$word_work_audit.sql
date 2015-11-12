@@ -33,6 +33,7 @@ SELECT co.student_number
       --,dt.start_date
       --,dt.end_date   
       ,rep.time_per_name
+      ,t.repository_id
       ,t.subject_area
       ,t.word
       ,CONVERT(FLOAT,res.value) AS value
