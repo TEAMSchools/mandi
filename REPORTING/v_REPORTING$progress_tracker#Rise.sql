@@ -10,8 +10,7 @@ WITH curterm AS (
   WHERE identifier = 'RT'
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 73252
-    AND start_date <= CONVERT(DATE,GETDATE())
-    AND end_date >= CONVERT(DATE,GETDATE())
+    AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
  )
 
 ,roster AS (
@@ -46,8 +45,7 @@ WITH curterm AS (
   WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 73252
     AND identifier = 'AR'
-    AND start_date <= CONVERT(DATE,GETDATE())
-    AND end_date >= CONVERT(DATE,GETDATE())
+    AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
  )
 
 ,fandp AS (
@@ -64,6 +62,8 @@ WITH curterm AS (
              ORDER BY start_date DESC) AS rn_curr
   FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
   WHERE read_lvl IS NOT NULL
+    AND SCHOOLID = 73252
+    AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 )
        
 SELECT ROW_NUMBER() OVER(
@@ -704,11 +704,11 @@ LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_curr WITH (NOLOCK)
   --ACCELERATED READER
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
   ON roster.id = ar_yr.studentid 
- AND ar_yr.time_period_name = 'Year'
- AND ar_yr.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
+ AND roster.year = ar_yr.academic_year
+ AND ar_yr.time_period_name = 'Year' 
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.id = ar_curr.studentid 
- AND ar_curr.yearid = KIPP_NJ.dbo.fn_Global_Term_Id()
+ AND roster.year = ar_curr.academic_year 
  AND ar_curr.time_period_name = (SELECT hex_a FROM cur_hex)
 
 --MAP
@@ -718,6 +718,7 @@ LEFT OUTER JOIN KIPP_NJ..MAP$wide_all#static map_all WITH (NOLOCK)
 --Discipline
 LEFT OUTER JOIN KIPP_NJ..DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
   ON roster.id = disc_recent.studentid
+ AND disc_recent.log_type = 'Discipline'
 LEFT OUTER JOIN KIPP_NJ..DISC$counts_wide disc_count WITH (NOLOCK)
   ON roster.id = disc_count.studentid
   

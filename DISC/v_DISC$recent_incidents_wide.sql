@@ -4,8 +4,12 @@ GO
 ALTER VIEW DISC$recent_incidents_wide AS
 
 WITH dlogs AS (
-  SELECT studentid
-        ,logtypeid
+  SELECT studentid        
+        ,CASE
+          WHEN logtypeid = 3023 THEN 'Merit'
+          WHEN logtypeid = 3223 THEN 'Demerit'
+          WHEN logtypeid = -100000 THEN 'Discipline'
+         END AS log_type
         ,subtype
         ,entry_author
         ,entry_date
@@ -16,68 +20,62 @@ WITH dlogs AS (
   WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
-SELECT s.id AS studentid
-      --this logtypeid determines what type of log goes into the rest of the row, see JOIN for the logic      
-      ,CASE
-        WHEN dlog01.logtypeid = 3023 THEN 'Merit'
-        WHEN dlog01.logtypeid = 3223 THEN 'Demerit'
-        WHEN dlog01.logtypeid = -100000 THEN 'Discipline'
-       END AS log_type
-      
-      --DISC_01      
-      ,SUBSTRING(dlog01.entry_author,1,CHARINDEX(',',dlog01.entry_author+',')-1) AS DISC_01_given_by
-      ,CONVERT(DATE,dlog01.entry_date) AS DISC_01_date_reported
-      ,dlog01.subject AS DISC_01_subject
-      ,dlog01.subtype AS DISC_01_subtype
-      ,dlog01.discipline_details AS DISC_01_incident
-      
-      --DISC_02
-      ,SUBSTRING(dlog02.entry_author,1,CHARINDEX(',',dlog02.entry_author+',')-1) AS DISC_02_given_by      
-      ,CONVERT(DATE,dlog02.entry_date) AS DISC_02_date_reported
-      ,dlog02.subject AS DISC_02_subject
-      ,dlog02.subtype AS DISC_02_subtype
-      ,dlog02.discipline_details AS DISC_02_incident
-      
-      --DISC_03
-      ,SUBSTRING(dlog03.entry_author,1,CHARINDEX(',',dlog03.entry_author+',')-1) AS DISC_03_given_by      
-      ,CONVERT(DATE,dlog03.entry_date) AS DISC_03_date_reported
-      ,dlog03.subject AS DISC_03_subject
-      ,dlog03.subtype AS DISC_03_subtype
-      ,dlog03.discipline_details AS DISC_03_incident
-      
-      --DISC_04
-      ,SUBSTRING(dlog04.entry_author,1,CHARINDEX(',',dlog04.entry_author+',')-1) AS DISC_04_given_by      
-      ,CONVERT(DATE,dlog04.entry_date) AS DISC_04_date_reported
-      ,dlog04.subject AS DISC_04_subject
-      ,dlog04.subtype AS DISC_04_subtype
-      ,dlog04.discipline_details AS DISC_04_incident
-      
-      --DISC_05
-      ,SUBSTRING(dlog05.entry_author,1,CHARINDEX(',',dlog05.entry_author+',')-1) AS DISC_05_given_by      
-      ,CONVERT(DATE,dlog05.entry_date) AS DISC_05_date_reported
-      ,dlog05.subject AS DISC_05_subject
-      ,dlog05.subtype AS DISC_05_subtype
-      ,dlog05.discipline_details AS DISC_05_incident
-      
-FROM PS$STUDENTS#static s WITH (NOLOCK)
-LEFT OUTER JOIN dlogs dlog01 WITH (NOLOCK)
-  ON s.id = dlog01.studentid
- AND dlog01.logtypeid IN (-100000,3023,3223)
- AND dlog01.rn = 1
-LEFT OUTER JOIN dlogs dlog02 WITH (NOLOCK)
-  ON s.id = dlog02.studentid
- AND dlog02.rn = 2
- AND dlog01.logtypeid = dlog02.logtypeid
-LEFT OUTER JOIN dlogs dlog03 WITH (NOLOCK)
-  ON s.id = dlog03.studentid
- AND dlog03.rn = 3
- AND dlog02.logtypeid = dlog03.logtypeid
-LEFT OUTER JOIN dlogs dlog04 WITH (NOLOCK)
-  ON s.id = dlog04.studentid
- AND dlog04.rn = 4
- AND dlog03.logtypeid = dlog04.logtypeid
-LEFT OUTER JOIN dlogs dlog05 WITH (NOLOCK)
-  ON s.id = dlog05.studentid
- AND dlog05.rn = 5
- AND dlog04.logtypeid = dlog05.logtypeid
-WHERE s.enroll_status = 0
+,incidents_long AS (
+  SELECT studentid
+        ,log_type
+        ,CONCAT('DISC_0', rn, '_', field) AS pivot_field
+        ,value
+  FROM
+      (
+       SELECT dlog01.studentid      
+             ,dlog01.log_type            
+             ,dlog01.rn
+             ,CONVERT(VARCHAR(256),SUBSTRING(dlog01.entry_author, 0, CHARINDEX(',',dlog01.entry_author+','))) AS given_by
+             ,CONVERT(VARCHAR(256),dlog01.entry_date) AS date_reported
+             ,CONVERT(VARCHAR(256),dlog01.subject) AS subject
+             ,CONVERT(VARCHAR(256),dlog01.subtype) AS subtype
+             ,CONVERT(VARCHAR(256),dlog01.discipline_details) AS incident
+       FROM dlogs dlog01 WITH (NOLOCK)       
+       WHERE dlog01.log_type IS NOT NULL
+      ) sub
+  UNPIVOT(
+    value
+    FOR field IN (given_by
+                 ,date_reported
+                 ,subject
+                 ,subtype
+                 ,incident)
+   ) u
+  WHERE rn <= 5
+ )
+
+SELECT *
+FROM incidents_long
+PIVOT(
+  MAX(value)
+  FOR pivot_field IN ([DISC_01_date_reported]
+                     ,[DISC_01_given_by]
+                     ,[DISC_01_incident]
+                     ,[DISC_01_subject]
+                     ,[DISC_01_subtype]
+                     ,[DISC_02_date_reported]
+                     ,[DISC_02_given_by]
+                     ,[DISC_02_incident]
+                     ,[DISC_02_subject]
+                     ,[DISC_02_subtype]
+                     ,[DISC_03_date_reported]
+                     ,[DISC_03_given_by]
+                     ,[DISC_03_incident]
+                     ,[DISC_03_subject]
+                     ,[DISC_03_subtype]
+                     ,[DISC_04_date_reported]
+                     ,[DISC_04_given_by]
+                     ,[DISC_04_incident]
+                     ,[DISC_04_subject]
+                     ,[DISC_04_subtype]
+                     ,[DISC_05_date_reported]
+                     ,[DISC_05_given_by]
+                     ,[DISC_05_incident]
+                     ,[DISC_05_subject]
+                     ,[DISC_05_subtype])
+ ) p

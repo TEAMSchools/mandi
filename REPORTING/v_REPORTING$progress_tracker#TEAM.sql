@@ -721,6 +721,7 @@ LEFT OUTER JOIN KIPP_NJ..MAP$wide_all#static map_all WITH (NOLOCK)
 --Discipline
 LEFT OUTER JOIN KIPP_NJ..DISC$recent_incidents_wide disc_recent WITH (NOLOCK)
   ON roster.id = disc_recent.studentid
+ AND disc_recent.log_type = 'Discipline'
 LEFT OUTER JOIN KIPP_NJ..DISC$counts_wide disc_count WITH (NOLOCK)
   ON roster.id = disc_count.studentid
 

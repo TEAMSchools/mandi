@@ -13,7 +13,7 @@ WITH roster AS (
   FROM KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
   WHERE s.ENROLL_STATUS = 0
     AND s.SCHOOLID = 73252
-    AND s.GRADE_LEVEL >= 7
+    AND s.GRADE_LEVEL = 8
     AND s.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND s.rn = 1
  )
@@ -95,7 +95,7 @@ WITH roster AS (
    AND rw.date = dt.att_date
    AND cl.class = dt.class
   WHERE s.SCHOOLID = 73252
-    AND s.GRADE_LEVEL >= 7
+    AND s.GRADE_LEVEL = 8
     AND s.ENROLL_STATUS = 0
  )
 
@@ -250,7 +250,7 @@ WITH roster AS (
     ON asmt.sectionid = sec.id
    AND sec.SCHOOLID = 73252
    AND sec.termid = KIPP_NJ.dbo.fn_Global_Term_Id()
-   AND sec.GRADE_LEVEL >= 7
+   --AND sec.GRADE_LEVEL >= 7
   JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
     ON sec.COURSE_NUMBER = cou.COURSE_NUMBER
   WHERE asmt.ASSIGN_DATE IN (SELECT date FROM reporting_week WITH(NOLOCK))

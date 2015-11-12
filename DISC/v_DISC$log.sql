@@ -218,7 +218,7 @@ WITH disc_log AS (
 
 SELECT *
       ,ROW_NUMBER() OVER(
-         PARTITION BY studentid, academic_year, logtype
+         PARTITION BY studentid, academic_year, logtypeid
            ORDER BY CONVERT(DATE,entry_date) DESC) AS rn
 FROM
     (

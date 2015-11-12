@@ -40,13 +40,13 @@ SELECT co.schoolid
        END AS proj_ACT_subj_score
       ,ROW_NUMBER() OVER(
          PARTITION BY sub.student_number, sub.academic_year, sub.measurementscale
-           ORDER BY sub.rn ASC, sub.teststartdate ASC, sub.teststarttime ASC) AS rn_base
-      ,ROW_NUMBER() OVER( 
-         PARTITION BY sub.student_number, sub.academic_year, sub.measurementscale
-           ORDER BY sub.rn ASC, sub.teststartdate DESC, sub.teststarttime DESC) AS rn_curr
+           ORDER BY sub.term_numeric, sub.rn ASC, sub.teststartdate ASC, sub.teststarttime ASC) AS rn_base
       ,ROW_NUMBER() OVER( 
          PARTITION BY sub.student_number, sub.measurementscale
-           ORDER BY sub.rn ASC, sub.teststartdate ASC, sub.teststarttime ASC) AS rn_asc
+           ORDER BY sub.academic_year DESC, sub.term_numeric DESC, sub.rn ASC, sub.teststartdate DESC, sub.teststarttime DESC) AS rn_curr
+      ,ROW_NUMBER() OVER( 
+         PARTITION BY sub.student_number, sub.measurementscale
+           ORDER BY sub.academic_year ASC, sub.term_numeric ASC, sub.rn ASC, sub.teststartdate ASC, sub.teststarttime ASC) AS rn_asc
 FROM
     (
      SELECT CONVERT(INT,SUBSTRING(TermName, CHARINDEX('-', TermName) - 4, 4)) AS academic_year
@@ -184,7 +184,11 @@ FROM
                         ,CONVERT(FLOAT,TestStandardError) ASC) AS rn
      FROM KIPP_NJ..MAP$CDF WITH (NOLOCK)                
      WHERE StudentID != '11XXX'
-       AND (TestID IS NULL OR TestID NOT IN (SELECT TestID FROM KIPP_NJ..MAP$exclusion_audit#static WITH(NOLOCK) WHERE is_excluded = 1))     
+       AND (
+            TestID IS NULL
+            OR (schoolname NOT IN ('Lanning Sq Middle','BOLD Academy') AND TestID NOT IN (SELECT TestID FROM KIPP_NJ..MAP$exclusion_audit#static WITH(NOLOCK) WHERE is_excluded = 1))
+            OR (schoolname IN ('Lanning Sq Middle','BOLD Academy'))
+           )
     ) sub
 LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
   ON sub.student_number = co.student_number
