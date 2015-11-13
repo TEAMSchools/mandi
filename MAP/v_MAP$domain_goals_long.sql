@@ -52,14 +52,13 @@ WITH map_tests AS (
              ,CONVERT(VARCHAR,goal8range) AS goal8range
              ,CONVERT(VARCHAR,goal8adjective) AS goal8adjective
        FROM KIPP_NJ..MAP$CDF#identifiers#static map WITH(NOLOCK)               
-       WHERE map.rn = 1
-         AND map.term IN ('Winter', 'Spring')
+       WHERE map.rn = 1         
 
        UNION ALL
        
        SELECT base.studentid
              ,base.year AS academic_year
-             ,'Fall' AS term
+             ,'Baseline' AS term
              ,base.measurementscale
              ,base.testritscore
              ,CONVERT(VARCHAR,goal1name) AS goal1name
@@ -167,7 +166,7 @@ WITH map_tests AS (
  
 SELECT domain.studentid      
       ,co.lastfirst
-      ,co.schoolid
+      ,CASE WHEN co.team LIKE '%pathways%' THEN 732570 ELSE co.schoolid END AS schoolid
       ,co.grade_level
       ,co.team
       ,co.spedlep
@@ -181,11 +180,7 @@ SELECT domain.studentid
       ,domain.value AS domain
       ,scores.ritscore
       ,scores.range
-      ,scores.adjective
-      --,map_curr.rit AS cur_rit
-      --,map_curr.pct AS cur_pct
-      --,map_curr.lexile AS cur_lex
-      --,map_curr.fallwinterspring AS cur_term
+      ,scores.adjective      
       ,enr.teacher_name
       ,enr.COURSE_NAME
       ,enr.COURSE_NUMBER
@@ -201,10 +196,6 @@ LEFT OUTER JOIN domain_scores scores
  AND domain.measurementscale = scores.measurementscale
  AND domain.term = scores.term
  AND domain.n = scores.n
---LEFT OUTER JOIN map_curr
---  ON domain.studentid = map_curr.studentid
--- AND domain.year = map_curr.year
--- AND domain.measurementscale = map_curr.measurementscale
 LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr
   ON domain.studentid = enr.STUDENTID
  AND domain.academic_year = enr.academic_year

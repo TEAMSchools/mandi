@@ -39,11 +39,17 @@ SELECT co.schoolid
         ELSE NULL
        END AS proj_ACT_subj_score
       ,ROW_NUMBER() OVER(
-         PARTITION BY sub.student_number, sub.academic_year, sub.measurementscale
-           ORDER BY sub.term_numeric, sub.rn ASC, sub.teststartdate ASC, sub.teststarttime ASC) AS rn_base
+         PARTITION BY sub.student_number, sub.measurementscale
+           ORDER BY sub.academic_year ASC, sub.term_numeric ASC, sub.rn ASC, sub.teststartdate DESC, sub.teststarttime DESC) AS rn_base
       ,ROW_NUMBER() OVER( 
          PARTITION BY sub.student_number, sub.measurementscale
            ORDER BY sub.academic_year DESC, sub.term_numeric DESC, sub.rn ASC, sub.teststartdate DESC, sub.teststarttime DESC) AS rn_curr
+      ,ROW_NUMBER() OVER(
+         PARTITION BY sub.student_number, sub.measurementscale, sub.academic_year
+           ORDER BY sub.term_numeric ASC, sub.rn ASC, sub.teststartdate DESC, sub.teststarttime DESC) AS rn_base_yr
+      ,ROW_NUMBER() OVER( 
+         PARTITION BY sub.student_number, sub.measurementscale, sub.academic_year
+           ORDER BY sub.term_numeric DESC, sub.rn ASC, sub.teststartdate DESC, sub.teststarttime DESC) AS rn_curr_yr
       ,ROW_NUMBER() OVER( 
          PARTITION BY sub.student_number, sub.measurementscale
            ORDER BY sub.academic_year ASC, sub.term_numeric ASC, sub.rn ASC, sub.teststartdate ASC, sub.teststarttime ASC) AS rn_asc

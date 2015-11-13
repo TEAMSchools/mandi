@@ -106,7 +106,7 @@ SELECT r.year
       ,r.studentid
       ,r.student_number
       ,r.lastfirst
-      ,r.schoolid
+      ,CASE WHEN r.team LIKE '%Pathways%' THEN 732579 ELSE r.schoolid END AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team        
@@ -220,7 +220,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
  AND subjects.measurementscale = enr.measurementscale 
 LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_curr WITH(NOLOCK)          
   ON r.studentid = map_curr.studentid
- AND r.year = map_curr.academic_year
+ --AND r.year = map_curr.academic_year
  AND subjects.measurementscale = map_curr.measurementscale
  AND map_curr.rn_curr = 1
 WHERE r.year >= 2008 /* first year of MAP data */
