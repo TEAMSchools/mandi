@@ -49,6 +49,7 @@ WITH standard_descriptions AS (
                    END AS subj_abbrev
                   ,d.time_per_name AS reporting_week
                   ,CONVERT(FLOAT,r.percent_correct) AS percent_correct 
+                  ,1 AS rn
             FROM KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
             JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
               ON ovr.local_student_id = co.student_number
@@ -90,7 +91,10 @@ WITH standard_descriptions AS (
                     ELSE 'SPEC'
                    END AS subj_abbrev
                   ,d.time_per_name AS reporting_week
-                  ,CONVERT(FLOAT,r.percent_correct) AS percent_correct 
+                  ,CONVERT(FLOAT,r.percent_correct) AS percent_correct       
+                  ,ROW_NUMBER() OVER(
+                     PARTITION BY ovr.local_student_id, d.time_per_name, a.subject_area, a.standard_id
+                       ORDER BY ovr.date_taken DESC) AS rn
             FROM KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
             JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
               ON ovr.local_student_id = co.student_number
@@ -115,6 +119,7 @@ WITH standard_descriptions AS (
             WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
               AND co.schoolid = 73258     
            ) sub
+       WHERE rn = 1
        GROUP BY academic_year
                ,local_student_id
                ,standard_description
