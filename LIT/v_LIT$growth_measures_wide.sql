@@ -30,7 +30,11 @@ WITH term_cur AS (
        FROM
            ( 
             SELECT academic_year
-                  ,REPLACE(test_round, 'BOY', 'DR') + '_cur' AS identifier
+                  ,CASE
+                    WHEN test_round = 'BOY' THEN 'DR'
+                    ELSE REPLACE(test_round, 'Q', 'T')
+                   END                    
+                    + '_cur' AS identifier
                   ,studentid
                   ,CONVERT(VARCHAR,read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,GLEQ) AS GLEQ
@@ -145,7 +149,10 @@ WITH term_cur AS (
        FROM
            ( 
             SELECT academic_year
-                  ,REPLACE(test_round, 'BOY', 'DR') + '_dna' AS identifier
+                  ,CASE
+                    WHEN test_round = 'BOY' THEN 'DR'
+                    ELSE REPLACE(test_round, 'Q', 'T')
+                   END + '_dna' AS identifier
                   ,rs.studentid
                   ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,dna.dna_reason) AS reason

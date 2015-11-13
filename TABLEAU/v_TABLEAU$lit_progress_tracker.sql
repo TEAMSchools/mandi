@@ -88,10 +88,10 @@ SELECT co.school_name /* student identifiers */
       ,growth.yr_growth_GLEQ
       ,CASE
         WHEN achv.test_round = 'DR' THEN NULL
-        WHEN achv.test_round = 'T1' AND growth.t1_growth_lvl > 0 THEN 1.0
-        WHEN achv.test_round = 'T2' AND growth.T1T2_growth_lvl > 0 THEN 1.0
-        WHEN achv.test_round = 'T3' AND growth.T2T3_growth_lvl > 0 THEN 1.0
-        WHEN achv.test_round = 'EOY' AND growth.T3EOY_growth_lvl > 0 THEN 1.0
+        WHEN achv.test_round IN ('Q1','T1') AND growth.t1_growth_lvl > 0 THEN 1.0
+        WHEN achv.test_round IN ('Q2', 'T2') AND growth.T1T2_growth_lvl > 0 THEN 1.0
+        WHEN achv.test_round IN ('Q3','T3') AND growth.T2T3_growth_lvl > 0 THEN 1.0
+        WHEN achv.test_round IN ('Q4','EOY') AND growth.T3EOY_growth_lvl > 0 THEN 1.0
         ELSE 0.0
        END AS moved_lvl
 
