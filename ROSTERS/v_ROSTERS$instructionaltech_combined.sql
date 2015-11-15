@@ -186,7 +186,7 @@ WHERE roster.boy_status IN ('Promoted')
 
 --LEXIA	STUDENTS
 
-/*
+--/*
 
 SELECT roster.student_number AS "Lexia id"
       ,roster.first_name AS "First Name"
@@ -207,15 +207,15 @@ SELECT roster.student_number AS "Lexia id"
 	  
 FROM roster
 
-WHERE entrydate > '2015-10-13'
-  AND grade_level < 6
+WHERE entrydate > '2015-10-25'
+  --AND grade_level < 6
 -- roster.schoolid IN (133570965,73252,73258,179902)
   -- WHERE entrydate >= '2015-09-08'
  
 
 ORDER BY roster.abbreviation, roster.grade_level, roster.teacherloginid, roster.lastfirst
 
-*/
+--*/
 
 --LEXA STAFF
 
@@ -242,7 +242,7 @@ ORDER BY roster.ABBREVIATION, roster.section_number
 
 -- ST MATH STUDENTS
 
---/*
+/*
 
 SELECT
 	 CASE 
@@ -293,13 +293,13 @@ SELECT
    ,roster.entrydate
 FROM roster
 
-WHERE entrydate > '2015-10-23'
+WHERE entrydate > '2015-11-01'
 	  --AND grade_level < 9
 	  --AND schoolid IN (133570965,73252,73258,179902)
-	  AND schoolid = 73254
+	  --AND schoolid = 73254
 
 ORDER BY schoolid
         ,grade_level
 		,teacher_last_name
 
---*/
+*/
