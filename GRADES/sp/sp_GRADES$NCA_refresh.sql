@@ -18,18 +18,18 @@ BEGIN
  DECLARE
    @v_termid               INT      = KIPP_NJ.dbo.fn_Global_Term_Id(),
    @v_grade_1              VARCHAR(2) = 'Q1',   
-   @v_grade_2              VARCHAR(2) = 'Q2',  
+   @v_grade_2              VARCHAR(2) = 'FOO',  
    /* 
    EXAMPLE FOR IN-BETWEEN TERMS CALCULATION (EG REPORT CARD PREP)
    EXAMPLE IS END OF Q2
    v_grade_3              VARCHAR2(2) := 'FOO'   ;
    v_grade_4              VARCHAR2(2) := 'FOO'   ;
    */
-   @v_grade_3              VARCHAR(2) = 'Q3',
-   @v_grade_4              VARCHAR(2) = 'Q4',
-   @v_grade_5              VARCHAR(2) = 'E1',
-   @v_grade_6              VARCHAR(2) = 'E2',
-   @v_grade_yr             VARCHAR(2) = 'BAR',
+   @v_grade_3              VARCHAR(2) = 'FOO',
+   @v_grade_4              VARCHAR(2) = 'FOO',
+   @v_grade_5              VARCHAR(2) = 'FOO',
+   @v_grade_6              VARCHAR(2) = 'FOO',
+   @v_grade_yr             VARCHAR(2) = 'FOO',
    @v_schoolly_d           INT     = 73253,
    
    --other variables
