@@ -33,6 +33,7 @@ SELECT co.schoolid
       ,NULL AS parent_standard
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS percent_correct
       ,CONVERT(FLOAT,res.mastered) AS mastered      
+      ,ovr.date_taken
       ,ovr.percent_correct AS overall_pct_correct
       ,comm.comment
       ,comm.date AS comment_date
@@ -44,6 +45,9 @@ SELECT co.schoolid
       ,ROW_NUMBER() OVER(
          PARTITION BY co.student_number, a.scope, a.standard_id
            ORDER BY a.administered_at DESC) AS rn_curr
+      ,ROW_NUMBER() OVER(
+         PARTITION BY co.student_number, co.year, a.standard_id
+           ORDER BY ovr.date_taken ASC) AS stu_std_attempt_rn
 FROM KIPP_NJ..ILLUMINATE$assessments_long#static a WITH (NOLOCK)
 JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK) 
   ON a.academic_year = co.year
@@ -52,7 +56,7 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK)
  AND co.rn = 1
 JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
   ON co.student_number = ovr.local_student_id
- AND a.assessment_id = ovr.assessment_id 
+ AND a.assessment_id = ovr.assessment_id  
 LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
  AND co.year = enr.academic_year
@@ -77,6 +81,8 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$SPED_comments#static comm WITH(NOLOCK)
  AND comm.rn = 1
 WHERE a.academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.schoolid != 999999
+  AND ((co.schoolid = 73258 AND ovr.answered > 0) OR (co.schoolid != 73258))
+
 /*
 UNION ALL
 

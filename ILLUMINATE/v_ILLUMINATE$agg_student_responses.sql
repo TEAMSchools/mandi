@@ -12,6 +12,8 @@ FROM OPENQUERY(ILLUMINATE, '
        ,r.performance_band_id
        ,r.performance_band_level
        ,r.percent_correct
+       ,r.answered
+       ,r.number_of_questions
  FROM dna_assessments.agg_student_responses r    
  JOIN public.students s
    ON s.student_id = r.student_id 

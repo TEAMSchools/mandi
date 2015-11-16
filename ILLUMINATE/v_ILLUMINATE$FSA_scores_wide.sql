@@ -69,7 +69,7 @@ WITH standard_descriptions AS (
               ON ovr.local_student_id = r.local_student_id
              AND ovr.assessment_id = r.assessment_id
              AND a.standard_id = r.standard_id      
-            WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+            WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()              
               AND co.schoolid != 73258     
               
             
@@ -117,6 +117,7 @@ WITH standard_descriptions AS (
              AND ovr.assessment_id = r.assessment_id
              AND a.standard_id = r.standard_id                        
             WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+              AND ovr.answered > 0
               AND co.schoolid = 73258     
            ) sub
        WHERE rn = 1
