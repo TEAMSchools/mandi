@@ -8,6 +8,7 @@ WITH roster AS (
         ,co.student_number
         ,co.lastfirst
         ,co.team        
+        ,co.advisor
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
   WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND co.schoolid = 73252
@@ -87,12 +88,12 @@ WITH roster AS (
        SELECT ts.student_number
              ,ts.date
              ,ROUND(AVG(CASE WHEN ts.finalgradename = 'Y1' THEN scl.grade_points ELSE NULL END),2) AS gpa
-             ,ROUND(AVG(CASE WHEN ts.finalgradename LIKE 'H%' THEN ts.moving_average ELSE NULL END),0) AS hwc_avg
+             ,ROUND(AVG(CASE WHEN ts.finalgradename = 'HY' THEN ts.moving_average ELSE NULL END),0) AS hwc_avg
        FROM KIPP_NJ..GRADES$time_series ts WITH(NOLOCK)
        JOIN KIPP_NJ..GRADES$grade_scales#static scl WITH(NOLOCK)
          ON (ts.moving_average >= scl.low_cut AND ts.moving_average < scl.high_cut)
         AND scl.scale_id = 1
-       WHERE (ts.finalgradename = 'Y1' OR ts.finalgradename LIKE 'H%')
+       WHERE (ts.finalgradename = 'Y1' OR ts.finalgradename LIKE 'HY')
          AND (DATEPART(DW,ts.date) = 4 /* as of Wednesday */ OR ts.date = CONVERT(DATE,GETDATE()))                  
          AND ts.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
          AND ts.schoolid = 73252
@@ -152,6 +153,7 @@ FROM
     (
      SELECT r.lastfirst
            ,r.team
+           ,r.advisor
            ,(SELECT FORMAT(MIN(date),'M/dd/yyy') FROM KIPP_NJ..REPORTING$Rise_weekly_dates#static dt WITH(NOLOCK)) AS wk_start_date
            ,(SELECT FORMAT(MAX(date),'M/dd/yyy') FROM KIPP_NJ..REPORTING$Rise_weekly_dates#static dt WITH(NOLOCK)) AS wk_end_date
            ,ISNULL(d.choices,0) AS choices

@@ -49,11 +49,7 @@ BEGIN
 						       ,state_id	
 						       ,CASE WHEN ISDATE(first_login_date) = 1 THEN CONVERT(DATE,first_login_date) ELSE NULL END AS first_login_date
 						       ,week_ending_date
-       FROM OPENROWSET(
-		       'MSDASQL'
-	       ,'Driver={Microsoft Access Text Driver (*.txt, *.csv)};'
-	       ,'SELECT * FROM C:\data_robot\st_math\for_nardo\progress.csv'
-       )
+       FROM KIPP_NJ..AUTOLOAD$STMATH_progress_completion
 					 ) sub;
 
   --a lot of work for a print statement...

@@ -36,8 +36,16 @@ WITH roster_scaffold AS (
         ,CASE WHEN fp.status = 'Achieved' AND fp.indep_lvl IS NULL THEN fp.read_lvl ELSE fp.indep_lvl END AS indep_lvl
         ,CASE WHEN fp.status = 'Achieved' AND fp.indep_lvl IS NULL THEN fp.lvl_num ELSE fp.indep_lvl_num END AS indep_lvl_num
         ,gleq.GLEQ
-        ,fp.instruct_lvl
-        ,fp.instruct_lvl_num
+        ,CASE
+          WHEN fp.status = 'Did Not Achieve' AND fp.instruct_lvl = fp.indep_lvl THEN fp.read_lvl
+          WHEN fp.status = 'Achieved' AND fp.instruct_lvl = fp.indep_lvl THEN gleq.instruct_lvl
+          ELSE COALESCE(fp.instruct_lvl, gleq.instruct_lvl)
+         END AS instruct_lvl
+        ,CASE
+          WHEN fp.status = 'Did Not Achieve' AND fp.instruct_lvl = fp.indep_lvl THEN fp.lvl_num
+          WHEN fp.status = 'Achieved' AND fp.instruct_lvl = fp.indep_lvl THEN (gleq.lvl_num + 1)
+          ELSE COALESCE(fp.instruct_lvl_num, (gleq.lvl_num + 1))
+         END AS instruct_lvl_num
         ,fp.fp_keylever
         ,fp.fp_wpmrate
   FROM KIPP_NJ..LIT$test_events#identifiers fp WITH(NOLOCK)
