@@ -3,47 +3,116 @@ GO
 
 ALTER VIEW REPORTING$social_skills#ES AS
 
-WITH valid_assessments AS (
-  SELECT repository_id
-  FROM ILLUMINATE$repositories#static WITH(NOLOCK)
-  WHERE scope = 'Reporting'
-    AND subject_area = 'Social Skills'
+WITH tests_long AS (
+  SELECT a.repository_id      
+        ,a.title
+        ,CASE
+          WHEN a.title LIKE '%SPARK%' THEN 73254
+          WHEN a.title LIKE '%THRIVE%' THEN 73255
+          WHEN a.title LIKE '%Seek%' THEN 73256
+          WHEN a.title LIKE '%Life%' THEN 73257
+          WHEN a.title LIKE '%Lanning%' THEN 179901          
+          WHEN a.title LIKE '%Pathways%' THEN 732570
+         END AS schoolid
+        ,f.label
+        ,f.name AS field_name
+  FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)    
+  JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
+    ON a.repository_id = f.repository_id     
+  WHERE a.scope = 'Reporting' 
+    AND a.subject_area = 'Social Skills'
+    AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ )
+ 
+,terms AS (
+  SELECT t.repository_id
+        ,t.schoolid        
+        ,res.student_id AS student_number
+        ,res.repository_row_id
+        ,CASE WHEN t.title LIKE '%Pathways%' THEN LEFT(t.title, 2) ELSE res.value END AS term
+  FROM tests_long t
+  JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
+    ON t.repository_id = res.repository_id
+   AND t.field_name = res.field
+  WHERE t.label = 'term'
+)
+
+,skills_long AS (
+  SELECT res.student_id AS student_number            
+        ,t.term
+        ,l.label AS social_skill      
+        ,res.value AS score      
+  FROM tests_long l       
+  JOIN terms t
+    ON l.schoolid = t.schoolid   
+   AND l.repository_id = t.repository_id
+  JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
+    ON l.repository_id = res.repository_id
+   AND l.field_name = res.field
+   AND t.repository_row_id = res.repository_row_id
+  WHERE l.label != 'Term'
+  
+  UNION ALL
+
+  SELECT res.student_id AS student_number                  
+        ,t.term                  
+        ,l.label AS social_skill      
+        ,res.value AS score      
+  FROM tests_long l
+  JOIN terms t
+    ON l.repository_id = t.repository_id
+   AND LEFT(l.title, 2) = t.term
+  JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
+    ON l.repository_id = res.repository_id
+   AND l.field_name = res.field
+   AND t.repository_row_id = res.repository_row_id  
+  WHERE l.label != 'Term'
+    AND l.schoolid = 732570 
  )
 
-,scores_long AS (  
-  SELECT repo.student_id AS student_number
-        ,repo.repository_row_id      
-        ,fields.label AS field
-        ,repo.value
-  FROM ILLUMINATE$repository_data repo WITH(NOLOCK)
-  JOIN ILLUMINATE$repository_fields#static fields WITH(NOLOCK)
-    ON repo.repository_id = fields.repository_id
-   AND repo.field = fields.name 
-  WHERE repo.repository_id IN (SELECT repository_id FROM valid_assessments WITH(NOLOCK))
- )
-
-SELECT student_number           
+SELECT student_number
       ,term
-      ,field AS soc_skill
-      ,value AS score
-      ,'soc_skill_descr_' + CONVERT(VARCHAR,soc_skill_rn) AS descr_pivot_hash
-      ,'soc_skill_' + term + '_score_' + CONVERT(VARCHAR,soc_skill_rn) AS score_pivot_hash
-      ,soc_skill_rn
+      ,MAX(skills_header) AS social_skills_header
+      ,KIPP_NJ.dbo.GROUP_CONCAT_D(skill_scores_concat, CHAR(10)) AS social_skills_grouped
 FROM
     (
-     SELECT term.student_number
-           ,term.repository_row_id
-           ,term.value AS term
-           ,data.field
-           ,data.value
-           ,ROW_NUMBER() OVER(
-              PARTITION BY term.student_number, term.repository_row_id
-                ORDER BY data.field) AS soc_skill_rn
-     FROM scores_long term WITH(NOLOCK)
-     JOIN scores_long data WITH(NOLOCK)
-       ON term.student_number = data.student_number
-      AND term.repository_row_id = data.repository_row_id
-      AND data.field NOT IN ('Term', 'Grade Level')
-      AND data.value IS NOT NULL
-     WHERE term.field = 'Term'
+     SELECT student_number
+           ,term
+           ,CONCAT(REPLICATE(' ', MAX(LEN(social_skill)) OVER(PARTITION BY student_number)), CHAR(9)
+                  ,'Q1', REPLICATE(' ', 4)
+                  ,'Q2', REPLICATE(' ', 4)
+                  ,'Q3', REPLICATE(' ', 4)
+                  ,'Q4') AS skills_header
+           ,CONCAT(social_skill, REPLICATE(' ', MAX(LEN(social_skill)) OVER(PARTITION BY student_number) - LEN(social_skill)), CHAR(9)
+                  ,[Q1], REPLICATE(' ', 4)
+                  ,[Q2], REPLICATE(' ', 4)
+                  ,[Q3], REPLICATE(' ', 4)
+                  ,[Q4]) AS skill_scores_concat           
+     FROM
+         (
+          SELECT co.student_number
+                ,dt.alt_name AS term
+                ,soc.term AS soc_term
+                ,soc.social_skill
+                ,soc.score
+          FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+          JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+            ON co.schoolid = dt.schoolid
+           AND co.year = dt.academic_year
+           AND dt.identifier = 'RT'
+           AND dt.alt_name != 'Summer School'
+          JOIN skills_long soc
+            ON co.student_number = soc.student_number
+           AND dt.alt_name = soc.term
+          WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
+            AND (co.grade_level <= 4 AND co.schoolid != 73252)
+            AND co.team NOT LIKE '%Pathways%'
+            AND co.rn = 1
+         ) sub     
+     PIVOT(
+       MAX(score)
+       FOR soc_term IN ([Q1],[Q2],[Q3],[Q4])
+      ) p
     ) sub
+GROUP BY student_number
+        ,term

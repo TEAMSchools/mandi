@@ -12,22 +12,26 @@ WITH valid_tests AS (
  )
 
 ,scores_long AS (
-  SELECT res.student_id AS student_number                     
-        ,'Week_' + SUBSTRING(label, CHARINDEX('_',label) + 1, 2) AS listweek_num
-        ,SUBSTRING(label, CHARINDEX('_',label,CHARINDEX('_',label) + 1) + 1, LEN(label) - CHARINDEX('_',label,CHARINDEX('_',label) + 1)) AS word
-        ,CASE WHEN CONVERT(FLOAT,value) = 9 THEN NULL ELSE CONVERT(FLOAT,value) END AS value                
-        ,CASE WHEN CONVERT(FLOAT,value) IN (0,9) AND 
-           ROW_NUMBER() OVER(
-             PARTITION BY res.student_id, res.value
-               ORDER BY SUBSTRING(label, CHARINDEX('_',label) + 1, 2)) <= 10 
-           THEN SUBSTRING(label, CHARINDEX('_',label,CHARINDEX('_',label) + 1) + 1, LEN(label) - CHARINDEX('_',label,CHARINDEX('_',label) + 1))
-          ELSE NULL
-         END AS missed_word 
-  FROM KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
-  JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
-    ON res.repository_id = f.repository_id
-   AND res.field = f.name
-  WHERE res.repository_id IN (SELECT repository_id FROM valid_tests WITH(NOLOCK))
+  SELECT student_number
+        ,listweek_num
+        ,word
+        ,CASE WHEN value = 9 THEN NULL ELSE value END AS value
+        ,CASE WHEN value IN (0, 9) AND rn <= 10 THEN word ELSE NULL END AS missed_word
+  FROM
+      (
+       SELECT res.student_id AS student_number                     
+             ,'Week_' + SUBSTRING(label, CHARINDEX('_',label) + 1, 2) AS listweek_num
+             ,SUBSTRING(label, CHARINDEX('_',label,CHARINDEX('_',label) + 1) + 1, LEN(label) - CHARINDEX('_',label,CHARINDEX('_',label) + 1)) AS word
+             ,CONVERT(FLOAT,value) AS value             
+             ,ROW_NUMBER() OVER(
+                PARTITION BY res.student_id, res.value
+                  ORDER BY SUBSTRING(label, CHARINDEX('_',label) + 1, 2)) AS rn             
+       FROM KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
+       JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
+         ON res.repository_id = f.repository_id
+        AND res.field = f.name
+       WHERE res.repository_id IN (SELECT repository_id FROM valid_tests WITH(NOLOCK))
+      ) sub
  )
  
 ,roster AS (
@@ -66,8 +70,9 @@ WITH valid_tests AS (
   GROUP BY r.schoolid
           ,r.grade_level
           ,r.STUDENT_NUMBER
-          ,r.time_per_name
           ,r.academic_year
+          ,CUBE(r.time_per_name)
+          
  )
  
 ,year_totals AS (

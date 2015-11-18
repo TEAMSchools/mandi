@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW LIT$STEP_Level_Assessment_Data AS
+ALTER VIEW LIT$STEP_Level_Assessment_Data#UCHICAGO AS
 
 SELECT DISTINCT 
        CONCAT('UC', step.[index]) AS unique_id
@@ -41,7 +41,7 @@ SELECT DISTINCT
         WHEN step.passed = 1 THEN 'Achieved'
         WHEN step.passed = 0 THEN 'Did Not Achieve'
        END AS status           
-      ,REPLACE(step.step, 0, 'Pre') AS read_lvl
+      ,CASE WHEN step.step = 0 THEN 'Pre' ELSE CONVERT(VARCHAR,step.step) END AS read_lvl
       ,CONVERT(INT,step.step) AS lvl_num
       ,NULL AS dna_lvl
       ,NULL AS dna_lvl_num

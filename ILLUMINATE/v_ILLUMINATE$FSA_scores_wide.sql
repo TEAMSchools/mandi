@@ -27,8 +27,8 @@ WITH standard_descriptions AS (
              ,reporting_week             
              ,ROUND(AVG(percent_correct),0) AS percent_correct
              ,CASE
-               WHEN ROUND(AVG(percent_correct),0) >= 80.0 THEN 'ADV'
-               WHEN ROUND(AVG(percent_correct),0) >= 65.0 THEN 'PROF'
+               WHEN ROUND(AVG(percent_correct),0) >= 90.0 THEN 'ADV'
+               WHEN ROUND(AVG(percent_correct),0) >= 80.0 THEN 'PROF'
                ELSE 'NY'
               END AS proficiency
        FROM

@@ -46,7 +46,7 @@ JOIN KIPP_NJ..REPORTING$dates rep WITH(NOLOCK)
   ON co.schoolid = rep.schoolid 
  AND rep.start_date BETWEEN dt.start_date AND dt.end_date
  AND rep.identifier = 'REP'
-JOIN tests_long t
+JOIN tests_long t WITH(NOLOCK)
   ON co.grade_level = t.grade_level
  AND rep.time_per_name = t.listweek_num
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)

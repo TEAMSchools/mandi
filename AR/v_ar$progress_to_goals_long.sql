@@ -153,68 +153,44 @@ SELECT totals.studentid
                END
        END AS ontrack_points
       ,CASE
-        --time period over
-        WHEN CONVERT(DATE,GETDATE()) > end_date THEN
-               CASE
-                WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-                WHEN words >= words_goal THEN 'Met Goal'
-                WHEN words < words_goal  THEN 'Missed Goal'
-               END
-        --during time period
-        WHEN CONVERT(DATE,GETDATE()) <= end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN
-               CASE
-                WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-                WHEN words >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 'On Track'
-                WHEN words < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 'Off Track'
-               END
+        /* any time */
+        WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
+        WHEN words >= words_goal THEN 'Met Goal'        
+        /* during term */
+        WHEN CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date AND words >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 'On Track'
+        WHEN CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date AND words < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 'Off Track'
+        /* after term */
+        WHEN CONVERT(DATE,GETDATE()) > end_date AND words < words_goal  THEN 'Missed Goal'
        END AS stu_status_words
       ,CASE
-        --time period over
-        WHEN CONVERT(DATE,GETDATE()) > end_date THEN
-               CASE
-                WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-                WHEN points >= points_goal THEN 'Met Goal'
-                WHEN points < points_goal  THEN 'Missed Goal'
-               END
-        --during time period
-        WHEN CONVERT(DATE,GETDATE()) <= end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN
-               CASE
-                WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-                WHEN points >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 'On Track'
-                WHEN points < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 'Off Track'
-               END
-       END AS stu_status_points      
+        /* any time */
+        WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
+        WHEN points >= points_goal THEN 'Met Goal'        
+        /* during term */
+        WHEN CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date AND points >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 'On Track'
+        WHEN CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date AND points < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 'Off Track'
+        /* after term */
+        WHEN CONVERT(DATE,GETDATE()) > end_date AND points < points_goal  THEN 'Missed Goal'
+       END AS stu_status_points
       ,CASE
-       --time period over
-        WHEN CONVERT(DATE,GETDATE()) > end_date THEN
-               CASE
-                WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-                WHEN words >= words_goal THEN 1
-                WHEN words < words_goal  THEN 0
-               END
-        --during time period
-        WHEN CONVERT(DATE,GETDATE()) <= end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN
-               CASE
-                WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-                WHEN words >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 1
-                WHEN words < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 0
-               END
+       /* any time */
+        WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
+        WHEN words >= words_goal THEN 1
+        /* during term */
+        WHEN CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date AND words >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 1
+        WHEN CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date AND words < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 0
+        /* after term */
+        WHEN CONVERT(DATE,GETDATE()) > end_date AND words < words_goal  THEN 0
        END AS stu_status_words_numeric      
       ,CASE
-        --time period over
-        WHEN CONVERT(DATE,GETDATE()) > end_date THEN
-               CASE
-                WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-                WHEN points >= points_goal THEN 1
-                WHEN points < points_goal  THEN 0
-               END
-        --during time period
-        WHEN CONVERT(DATE,GETDATE()) <= end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN
-               CASE
-                WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-                WHEN points >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 1
-                WHEN points < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 0
-               END      
+        /* any time */
+        WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
+        WHEN points >= points_goal THEN 1
+        /* during term */
+        WHEN CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date AND points >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 1
+        WHEN CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date AND points < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) THEN 0
+        /* after term */
+        WHEN CONVERT(DATE,GETDATE()) > end_date AND points < points_goal  THEN 0
        END AS stu_status_points_numeric      
       ,CASE
         --time period over
