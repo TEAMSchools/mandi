@@ -68,9 +68,11 @@ SELECT r.student_number
       ,std.ELA_ADV
       ,std.ELA_PROF
       ,std.ELA_NY
+      
       ,std.MATH_ADV
       ,std.MATH_PROF
       ,std.MATH_NY
+      
       ,std.SPEC_ADV
       ,std.SPEC_PROF
       ,std.SPEC_NY
@@ -81,6 +83,12 @@ SELECT r.student_number
       ,cma.ELA_short_title
       ,cma.ELA_percent_correct
       
+      /* writing rubric */
+      ,wrt.writing_header
+      ,wrt.Expository_Content 
+      ,wrt.Expository_Language
+      ,wrt.Narrative_Narrative
+
       /* hw totals */      
       ,CASE WHEN cur_totals.hw_complete_tri IS NULL THEN NULL ELSE CONCAT(ROUND(cur_totals.hw_complete_tri,0), '/', ROUND(cur_totals.n_hw_tri,0)) END AS n_hw_tri      
       ,ROUND(cur_totals.hw_pct_tri,0) AS hw_pct_tri
@@ -123,6 +131,17 @@ SELECT r.student_number
       /* social skills */
       ,soc.social_skills_header
       ,soc.social_skills_grouped
+
+      /* promo status */
+      ,promo.att_ARFR_status
+      ,promo.lit_ARFR_status
+      ,CASE WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%Off Track%' THEN 'At Risk for Retention' ELSE NULL END AS overall_arfr_status
+
+      /* comments */
+      ,comm.math_comments
+      ,comm.reading_comments
+      ,comm.writing_comments
+      ,comm.character_comments
 FROM KIPP_NJ..COHORT$identifiers_long#static r WITH(NOLOCK) 
 LEFT OUTER JOIN curterm rw WITH(NOLOCK)
   ON r.schoolid = rw.schoolid
@@ -154,6 +173,13 @@ LEFT OUTER JOIN KIPP_NJ..LIT$achieved_wide lit WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..REPORTING$social_skills#ES soc WITH(NOLOCK)
   ON r.student_number = soc.student_number
  AND rw.term = soc.term
+LEFT OUTER JOIN KIPP_NJ..PROMO$promo_status#ES promo WITH(NOLOCK)
+  ON r.student_number = promo.student_number
+LEFT OUTER JOIN KIPP_NJ..REPORTING$report_card_comments#ES comm WITH(NOLOCK)
+  ON r.student_number = comm.student_number
+ AND rw.term = comm.term
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$writing_scores_wide wrt WITH(NOLOCK)
+  ON r.student_number = wrt.student_number
 WHERE r.GRADE_LEVEL <= 4  
   AND r.schoolid != 73252
   AND r.RN = 1

@@ -3,54 +3,66 @@ GO
 
 ALTER VIEW REPORTING$report_card_comments#ES AS
 
-WITH valid_assessments AS (
-  SELECT repository_id
-  FROM KIPP_NJ..ILLUMINATE$repositories#static WITH(NOLOCK)
-  WHERE scope = 'Reporting'
-    AND subject_area = 'Comments'
+WITH tests_long AS (
+  SELECT a.repository_id                
+        ,a.title
+        ,f.label
+        ,f.name AS field_name
+  FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)
+  JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
+    ON a.repository_id = f.repository_id     
+  WHERE a.repository_id = 46
  )
 
+,terms AS (
+  SELECT t.repository_id        
+        ,res.student_id AS student_number
+        ,res.repository_row_id
+        ,res.value AS term
+  FROM tests_long t
+  JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
+    ON t.repository_id = res.repository_id
+   AND t.field_name = res.field
+  WHERE t.label = 'term'
+)
+
 SELECT student_number
-      ,repository_row_id
-      ,[Year_comment] AS academic_year
-      ,[Term_comment] AS term      
-      ,'ELA: ' + [ELA_comment] AS ela_comment
-      ,'Humanities: ' + [Humanities_comment] AS humanities_comment
-      ,'Math: ' + [Math_comment] AS math_comment
-      ,'Performing Arts: ' + [PerformingArts_comment] AS perfarts_comment
-      ,'Science: ' + [Science_comment] AS sci_comment
-      ,'Social Skills: ' + [SocialSkills_comment] AS socskills_comment
-      ,'Spanish: ' + [Spanish_comment] AS span_comment
-      ,'Visual Arts: ' + [VisualArts_comment] AS viz_comment
-      ,'Writing: ' + [Writing_comment] AS writing_comment
-      ,'Dance: ' + [Dance_comment] AS dance_comment
-FROM 
+      ,term
+      ,[Character] AS character_comments
+      ,[Math] AS math_comments
+      ,[Reading] AS reading_comments
+      ,[Writing] AS writing_comments
+FROM
     (
-     SELECT repo.student_id AS student_number
-           ,repo.repository_row_id           
-           ,CASE 
-             WHEN fields.label = 'Humanities (SSSL, Social Studies)' THEN 'Humanities_comment'
-             ELSE REPLACE(fields.label,' ','') + '_comment'
-            END AS field
-           ,repo.value
-     FROM KIPP_NJ..ILLUMINATE$repository_data repo WITH(NOLOCK)
-     JOIN KIPP_NJ..ILLUMINATE$repository_fields#static fields WITH(NOLOCK)
-       ON repo.repository_id = fields.repository_id
-      AND repo.field = fields.name      
-     WHERE repo.repository_id IN (SELECT repository_id FROM valid_assessments WITH(NOLOCK))
+     SELECT co.student_number      
+           ,t.term            
+           ,comm.subject
+           ,KIPP_NJ.dbo.GROUP_CONCAT_D(comm.comment, CHAR(10)) AS comments_grouped
+     FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+     JOIN tests_long l
+       ON l.label != 'Term'
+     JOIN terms t
+       ON co.student_number = t.student_number  
+      AND l.repository_id = t.repository_id
+     LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
+       ON co.student_number = res.student_id
+      AND l.repository_id = res.repository_id
+      AND l.field_name = res.field
+      AND t.repository_row_id = res.repository_row_id
+     LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_RC_comment_bank comm WITH(NOLOCK)
+       ON CONVERT(INT,CONVERT(FLOAT,res.value)) = comm.code
+      AND LEFT(l.label, (CHARINDEX(' ', l.label) - 1)) = comm.subject
+     WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       AND co.rn = 1
+       AND (co.grade_level <= 4 AND co.schoolid != 73252)
+     GROUP BY co.student_number      
+             ,t.term            
+             ,comm.subject
     ) sub
 PIVOT(
-  MAX(value)
-  FOR field IN ([ELA_comment]
-               ,[Humanities_comment]
-               ,[Math_comment]
-               ,[PerformingArts_comment]
-               ,[Science_comment]
-               ,[SocialSkills_comment]
-               ,[Spanish_comment]
-               ,[Term_comment]
-               ,[VisualArts_comment]
-               ,[Writing_comment]
-               ,[Dance_comment]
-               ,[Year_comment])
- ) p
+  MAX(comments_grouped)
+  FOR subject IN ([Character]
+                 ,[Math]
+                 ,[Reading]
+                 ,[Writing])
+ ) u

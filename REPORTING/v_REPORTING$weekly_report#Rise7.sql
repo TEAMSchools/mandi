@@ -121,8 +121,8 @@ WITH roster AS (
             SELECT co.student_number
                   ,co.date      
                   ,SUM(CONVERT(FLOAT,mem.membershipvalue)) OVER(PARTITION BY co.student_number
-                                                   ORDER BY co.date
-                                                   ROWS UNBOUNDED PRECEDING) AS mem
+                                                                  ORDER BY co.date
+                                                                  ROWS UNBOUNDED PRECEDING) AS mem
                   ,FLOOR(SUM(CASE
                               WHEN att.ATT_CODE IN ('TE','AE') THEN 0.0
                               WHEN att.PRESENCE_STATUS_CD = 'Absent' THEN 1.0

@@ -23,6 +23,10 @@ BEGIN
             ,r.performance_band_level
             ,r.mastered
             ,r.percent_correct        
+            ,r.points
+            ,r.points_possible	
+            ,r.answered	            
+            ,r.number_of_questions
       FROM dna_assessments.students_assessments sa    
       JOIN dna_assessments.agg_student_responses_standard r    
         ON sa.student_assessment_id = r.student_assessment_id
@@ -46,6 +50,10 @@ BEGIN
            ,TARGET.performance_band_level = SOURCE.performance_band_level
            ,TARGET.mastered = SOURCE.mastered
            ,TARGET.percent_correct = SOURCE.percent_correct
+           ,TARGET.points = SOURCE.points
+           ,TARGET.points_possible	 = SOURCE.points_possible	
+           ,TARGET.answered	= SOURCE.answered	           
+           ,TARGET.number_of_questions = SOURCE.number_of_questions
       WHEN NOT MATCHED BY TARGET THEN
        INSERT
         (student_assessment_id
@@ -56,7 +64,11 @@ BEGIN
         ,performance_band_id
         ,performance_band_level
         ,mastered
-        ,percent_correct)
+        ,percent_correct
+        ,points
+        ,points_possible	
+        ,answered	        
+        ,number_of_questions)
        VALUES
         (SOURCE.student_assessment_id
         ,SOURCE.updated_at
@@ -66,7 +78,11 @@ BEGIN
         ,SOURCE.performance_band_id
         ,SOURCE.performance_band_level
         ,SOURCE.mastered
-        ,SOURCE.percent_correct)
+        ,SOURCE.percent_correct
+        ,SOURCE.points
+        ,SOURCE.points_possible	
+        ,SOURCE.answered	        
+        ,SOURCE.number_of_questions)
       WHEN NOT MATCHED BY SOURCE AND CONVERT(DATE,TARGET.updated_at) >= '2015-07-01' THEN
        DELETE
       --OUTPUT $ACTION, deleted.*

@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW AR$progress_to_goal_wide AS 
+ALTER VIEW AR$progress_to_goal_wide AS 
 
 WITH long_data AS (
   SELECT student_number

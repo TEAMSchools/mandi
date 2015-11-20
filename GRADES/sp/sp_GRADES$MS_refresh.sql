@@ -18,9 +18,9 @@ BEGIN
    @v_sql                 VARCHAR(MAX),
    @v_termid              INT = dbo.fn_Global_Term_Id(),
    @v_grade_1             VARCHAR(2) = 'Q1',
-   @v_grade_2             VARCHAR(2) = 'Q2',
-   @v_grade_3             VARCHAR(2) = 'Q3',
-   @v_grade_yr            VARCHAR(2) = 'Y1',
+   @v_grade_2             VARCHAR(2) = 'FOO',
+   @v_grade_3             VARCHAR(2) = 'FOO',
+   @v_grade_yr            VARCHAR(2) = 'FOO',
   
    --PS$COURSES#static to exclude
    @v_course_ex_advisory  VARCHAR(8) = 'Adv',

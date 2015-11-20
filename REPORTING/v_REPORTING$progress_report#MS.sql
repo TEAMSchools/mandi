@@ -9,10 +9,7 @@ SELECT co.student_number
       ,REPLACE(CONVERT(VARCHAR,co.GRADE_LEVEL),'0','K') AS grade_level
       ,co.SCHOOLID
       ,co.TEAM
-      ,CASE 
-		WHEN co.schoolid = 133570965 THEN custom.advisor
-		ELSE co.advisor
-	   END AS advisor
+      ,co.advisor
       ,co.advisor_cell
       ,co.advisor_email
       ,co.student_web_id
@@ -144,14 +141,21 @@ SELECT co.student_number
       --,ele.rc8_Q AS rc8_cur_qual_pct     
 
       /* GPA - GPA$detail#MS*/     
-      ,CONVERT(VARCHAR,gpa.GPA_y1_all) + ' (' + CONVERT(VARCHAR,gpa.rank_gr_y1_all) + '/' + CONVERT(VARCHAR,gpa.n_gr) + ')' AS gpa_Y1     
-      ,gpa_long.GPA_all AS gpa_curterm
+      --,CONVERT(VARCHAR,gpa.GPA_y1_all) + ' (' + CONVERT(VARCHAR,gpa.rank_gr_y1_all) + '/' + CONVERT(VARCHAR,gpa.n_gr) + ')' AS gpa_Y1     
+      ,STUFF(REPLACE(LEFT((CONVERT(VARCHAR,gpa.gpa_y1_all) + '00'),4),'.',''), 2, 0, '.') AS gpa_y1
+      ,STUFF(REPLACE(LEFT((CONVERT(VARCHAR,gpa_long.GPA_all) + '00'),4),'.',''), 2, 0, '.') AS gpa_curterm
+      ,ISNULL(STUFF(REPLACE(LEFT((CONVERT(VARCHAR,gpacum.cumulative_Y1_gpa) + '00'),4),'.',''), 2, 0, '.'), 'n/a') AS gpa_cumulative      
 
       /* Attendance & Tardies - ATT_MEM$attendance_percentages, ATT_MEM$attendance_counts */    
-      ,CONCAT(att_counts.y1_abs_all, ' - ', ROUND(att_pct.Y1_att_pct_total,0), '%') AS Y1_absences_total
-      ,CONCAT(att_counts.y1_t_all, ' - ', ROUND(att_pct.Y1_tardy_pct_total,0), '%') AS Y1_tardies_total
-      ,CONCAT(att_counts.CUR_ABS_ALL, ' - ', ROUND(att_pct.cur_att_pct_total,0), '%') AS curterm_absences_total      
-      ,CONCAT(att_counts.CUR_T_ALL, ' - ', ROUND(att_pct.cur_tardy_pct_total,0), '%') AS curterm_tardies_total
+      ,CONCAT(att_counts.y1_abs_all, ' (', att_counts.y1_AE, ') ', ' - ', ROUND(att_pct.Y1_att_pct_total,0), '%') AS Y1_absences_total
+      ,CONCAT(att_counts.rt2_ABS_ALL, ' (', att_counts.RT2_AE, ') ', ' - ', ROUND(att_pct.cur_att_pct_total,0), '%') AS curterm_absences_total /* UPDATE - hardcoded for Q1 */
+      
+      ,CONCAT(att_counts.y1_t_all, ' (', att_counts.Y1_TE, ') ', ' - ', ROUND(att_pct.Y1_tardy_pct_total,0), '%') AS Y1_tardies_total      
+      ,CONCAT(att_counts.rt2_T_ALL, ' (', att_counts.RT2_TE, ') ', ' - ', ROUND(att_pct.rt2_tardy_pct_total,0), '%') AS curterm_tardies_total  /* UPDATE - hardcoded for Q1 */
+
+      ,CONCAT(att_counts.y1_oss, ' (', att_counts.Y1_iss, ')') AS Y1_suspensions_total      
+      ,CONCAT(att_counts.rt2_OSS, ' (', att_counts.RT2_iss, ')') AS curterm_suspensions_total  /* UPDATE - hardcoded for Q1 */
+      
       
       /*Promotional Criteria - REPORTING$promo_status#MS*/
       ,promo.y1_att_pts_pct
@@ -175,12 +179,12 @@ SELECT co.student_number
 
       /* Blended Learning */
       /*Accelerated Reader*/      	     
-	     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CONVERT(INT,ar.Y1_words)), 1), '.00', '') AS AR_Y1_words_read                        	     
-	     ,ar.[Y1_words_goal] AS AR_Y1_goal
-      ,ar2.[Y1_words_status] AS AR_Y1_status	     
-	     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CONVERT(INT,ar.CUR_words)), 1), '.00', '') AS AR_CUR_words_read             
-      ,ar.[CUR_words_goal] AS AR_CUR_goal
-      ,ar2.[CUR_words_status] AS AR_CUR_status
+	     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CONVERT(INT,ar.words)), 1), '.00', '') AS AR_Y1_words_read                        	     
+	     ,ar.words_goal AS AR_Y1_goal
+      ,ar.stu_status_words AS AR_Y1_status	     
+	     ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,CONVERT(INT,ar2.words)), 1), '.00', '') AS AR_CUR_words_read             
+      ,ar2.words_goal AS AR_CUR_goal
+      ,ar2.stu_status_words AS AR_CUR_status
 
       /* ST Math */
       ,NULL AS ST_Y1_progress
@@ -212,6 +216,9 @@ LEFT OUTER JOIN GRADES$wide_all#MS#static gr_wide WITH(NOLOCK)
 LEFT OUTER JOIN GRADES$rc_grades_by_term rc WITH(NOLOCK)
   ON co.studentid = rc.studentid
  AND REPLACE(curterm.alt_name,'Q','T') = rc.term  /* this needs to be fixed once we update the grades refresh */
+LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_cumulative#static gpacum WITH(NOLOCK)
+  ON co.studentid = gpacum.studentid
+ AND co.schoolid = gpacum.schoolid
 --LEFT OUTER JOIN GRADES$rc_elements_by_term ele WITH(NOLOCK)
 --  ON co.studentid = ele.studentid
 -- AND curterm.alt_name = ele.term
@@ -233,17 +240,18 @@ LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH(NOLOCK)
 --  ON co.studentid = disc_count.studentid
 /*ED TECH*/
 /*ACCELERATED READER*/
-LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goal_wide ar WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
   ON co.student_number = ar.student_number
  AND co.year = ar.academic_year
-LEFT OUTER JOIN KIPP_NJ..AR$progress_wide ar2 WITH(NOLOCK)
+ AND ar.time_period_name = 'Year'
+LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar2 WITH(NOLOCK)
   ON co.student_number = ar2.student_number
+ AND co.year = ar2.academic_year
+ AND REPLACE(curterm.alt_name, 'Q', 'RT') = ar2.time_period_name
 /* XC */
 LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON co.student_number = xc.student_number
  AND co.year = xc.academic_year
-LEFT OUTER JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static custom WITH(NOLOCK)
-  ON co.studentid = custom.studentid
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1        
   AND co.schoolid IN (73252, 133570965, 179902)

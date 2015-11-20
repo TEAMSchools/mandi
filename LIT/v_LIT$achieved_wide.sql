@@ -8,6 +8,7 @@ SELECT studentid
       ,[CUR_goal_lvl]
       ,[CUR_lvl_num]
       ,[CUR_read_lvl]
+      ,[CUR_gleq]
       ,[DR_goal_lvl]
       ,[DR_lvl_num]
       ,[DR_read_lvl]
@@ -25,10 +26,13 @@ SELECT studentid
       ,[Q4_read_lvl]                     
       ,[BOY_lvl_num]
       ,[BOY_read_lvl]
+      ,[BOY_gleq]
       ,[MOY_lvl_num]
       ,[MOY_read_lvl]
+      ,[MOY_gleq]
       ,[EOY_lvl_num]
       ,[EOY_read_lvl]      
+      ,[EOY_gleq]      
 FROM
     (
      SELECT STUDENTID
@@ -41,6 +45,7 @@ FROM
                 ,CONVERT(VARCHAR,read_lvl) AS read_lvl
                 ,CONVERT(VARCHAR,lvl_num) AS lvl_num
                 ,CONVERT(VARCHAR,goal_lvl) AS goal_lvl
+                ,CONVERT(VARCHAR,gleq) AS gleq
           FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
           WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
@@ -51,6 +56,7 @@ FROM
                 ,read_lvl
                 ,lvl_num
                 ,goal_lvl
+                ,gleq
           FROM
               (
                SELECT studentid      
@@ -58,6 +64,7 @@ FROM
                      ,CONVERT(VARCHAR,read_lvl) AS read_lvl
                      ,CONVERT(VARCHAR,lvl_num) AS lvl_num
                      ,CONVERT(VARCHAR,goal_lvl) AS goal_lvl
+                     ,CONVERT(VARCHAR,gleq) AS gleq
                      ,ROW_NUMBER() OVER(
                         PARTITION BY Studentid
                           ORDER BY start_date DESC) AS rn
@@ -69,7 +76,7 @@ FROM
          ) sub
      UNPIVOT(
        value
-       FOR field IN (read_lvl, lvl_num, goal_lvl)
+       FOR field IN (read_lvl, lvl_num, goal_lvl, gleq)
       ) u
     ) sub
 PIVOT(
@@ -77,6 +84,7 @@ PIVOT(
   FOR pivot_field IN ([CUR_goal_lvl]
                      ,[CUR_lvl_num]
                      ,[CUR_read_lvl]
+                     ,[CUR_gleq]
                      ,[DR_goal_lvl]
                      ,[DR_lvl_num]
                      ,[DR_read_lvl]
@@ -97,5 +105,8 @@ PIVOT(
                      ,[MOY_lvl_num]
                      ,[MOY_read_lvl]
                      ,[EOY_lvl_num]
-                     ,[EOY_read_lvl])
+                     ,[EOY_read_lvl]
+                     ,[BOY_gleq]
+                     ,[MOY_gleq]
+                     ,[EOY_gleq])
  ) p

@@ -46,7 +46,11 @@ SELECT co.student_number
       --,l.label AS comment_field
       ,LEFT(l.label, (CHARINDEX(' ', l.label) - 1)) AS subject_area
       ,RIGHT(l.label, 1) AS comment_number
-      ,res.value AS comment_text
+      ,CASE 
+        WHEN CONVERT(INT,CONVERT(FLOAT,res.value)) NOT BETWEEN 1 AND 225 THEN NULL
+        WHEN LEFT(l.label, (CHARINDEX(' ', l.label) - 1)) != comm.subject THEN NULL
+        ELSE res.value 
+       END AS comment_text
       ,l.repository_id
       --,l.field_name      
       --,t.repository_row_id
@@ -67,6 +71,8 @@ LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
  AND l.repository_id = res.repository_id
  AND l.field_name = res.field
  AND t.repository_row_id = res.repository_row_id
+LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_RC_comment_bank comm WITH(NOLOCK)
+  ON CONVERT(INT,CONVERT(FLOAT,res.value)) = comm.code
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1
   AND (co.grade_level <= 4 AND co.schoolid != 73252)

@@ -3,6 +3,18 @@ GO
 
 ALTER VIEW REPORTING$report_card#NCA AS
 
+WITH curterm AS (
+  SELECT alt_name
+        ,time_per_name
+        ,ROW_NUMBER() OVER(
+          ORDER BY end_date DESC) AS rn
+  FROM KIPP_NJ..REPORTING$dates curterm WITH(NOLOCK)
+  WHERE curterm.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+   AND curterm.schoolid = 73253
+   AND CONVERT(DATE,GETDATE()) > curterm.end_date
+   AND curterm.identifier = 'RT' 
+ )
+
 SELECT roster.schoolid
       ,roster.student_number AS base_student_number
       ,roster.studentid AS base_studentid
@@ -367,11 +379,8 @@ SELECT roster.schoolid
       ,merits.total_demerits_cur
 
 FROM KIPP_NJ..COHORT$identifiers_long#static roster WITH (NOLOCK)
-JOIN KIPP_NJ..REPORTING$dates curterm WITH(NOLOCK)
-  ON roster.schoolid = curterm.schoolid
- AND roster.year = curterm.academic_year 
- AND CONVERT(DATE,GETDATE()) BETWEEN curterm.start_date AND curterm.end_date
- AND curterm.identifier = 'RT' 
+JOIN curterm WITH(NOLOCK)
+  ON curterm.rn = 1
 
 --ATTENDANCE
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts#static att_counts WITH (NOLOCK)

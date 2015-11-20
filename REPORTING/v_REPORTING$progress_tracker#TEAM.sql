@@ -420,127 +420,122 @@ SELECT ROW_NUMBER() OVER(
         ELSE ar_curr.words_goal - ar_curr.words
        END,0) AS INT)),1),'.00','') AS words_needed_cur_term        
              
---MAP scores
-/*--UPDATE FIELDS FOR CURRENT YEAR--*/
---15-16
-      --reading
-      ,map_all.spr_2016_read_pctle
-      ,map_all.w_2016_read_pctle
-      ,map_all.f_2015_read_pctle      
-      ,map_all.spr_2016_read_rit
-      ,map_all.w_2016_read_rit
-      ,map_all.f_2015_read_rit                  
-      --math
-      ,map_all.spr_2016_math_pctle
-      ,map_all.w_2016_math_pctle
-      ,map_all.f_2015_math_pctle      
-      ,map_all.spr_2016_math_rit
-      ,map_all.w_2016_math_rit
-      ,map_all.f_2015_math_rit
-      --lang
-      ,map_all.spr_2016_lang_pctle
-      ,map_all.w_2016_lang_pctle
-      ,map_all.f_2015_lang_pctle
-      ,map_all.spr_2016_lang_rit
-      ,map_all.w_2016_lang_rit
-      ,map_all.f_2015_lang_rit            
-      --sci
-      ,map_all.spr_2016_gen_pctle
-      ,map_all.w_2016_GEN_pctle
-      ,map_all.f_2015_gen_pctle
-      ,map_all.spr_2016_gen_rit
-      ,map_all.w_2016_GEN_RIT
-      ,map_all.f_2015_gen_rit
+     --MAP scores
+     ,map_all.Y0_Spring_READ_percentile AS spr_2016_READ_pctle
+     ,map_all.Y0_Winter_READ_percentile AS w_2016_READ_pctle
+     ,map_all.Y0_Fall_READ_percentile AS f_2015_READ_pctle
+     ,map_all.Y0_Spring_READ_RIT AS spr_2016_READ_RIT
+     ,map_all.Y0_Winter_READ_RIT AS w_2016_READ_RIT
+     ,map_all.Y0_Fall_READ_RIT AS f_2015_READ_RIT
 
---14-15
-      --reading
-      ,map_all.spr_2015_read_pctle
-      ,map_all.w_2015_read_pctle
-      ,map_all.f_2014_read_pctle      
-      ,map_all.spr_2015_read_rit
-      ,map_all.w_2015_read_rit
-      ,map_all.f_2014_read_rit                  
-      --math
-      ,map_all.spr_2015_math_pctle
-      ,map_all.w_2015_math_pctle
-      ,map_all.f_2014_math_pctle      
-      ,map_all.spr_2015_math_rit
-      ,map_all.w_2015_math_rit
-      ,map_all.f_2014_math_rit
-      --lang
-      ,map_all.spr_2015_lang_pctle
-      ,map_all.w_2015_lang_pctle
-      ,map_all.f_2014_lang_pctle
-      ,map_all.spr_2015_lang_rit
-      ,map_all.w_2015_lang_rit
-      ,map_all.f_2014_lang_rit            
-      --sci
-      ,map_all.spr_2015_gen_pctle
-      ,map_all.w_2015_GEN_pctle
-      ,map_all.f_2014_gen_pctle
-      ,map_all.spr_2015_gen_rit
-      ,map_all.w_2015_GEN_RIT
-      ,map_all.f_2014_gen_rit
-     
- --13-14
-      --reading
-      ,map_all.spr_2014_read_pctle
-      ,map_all.w_2014_read_pctle
-      ,map_all.f_2013_read_pctle      
-      ,map_all.spr_2014_read_rit
-      ,map_all.w_2014_read_rit
-      ,map_all.f_2013_read_rit                  
-      --math
-      ,map_all.spr_2014_math_pctle
-      ,map_all.w_2014_math_pctle
-      ,map_all.f_2013_math_pctle      
-      ,map_all.spr_2014_math_rit
-      ,map_all.w_2014_math_rit
-      ,map_all.f_2013_math_rit
-      --lang
-      ,map_all.spr_2014_lang_pctle
-      ,map_all.w_2014_lang_pctle
-      ,map_all.f_2013_lang_pctle
-      ,map_all.spr_2014_lang_rit
-      ,map_all.w_2014_lang_rit
-      ,map_all.f_2013_lang_rit            
-      --sci
-      ,map_all.spr_2014_gen_pctle
-      ,map_all.w_2014_GEN_pctle
-      ,map_all.f_2013_gen_pctle
-      ,map_all.spr_2014_gen_rit
-      ,map_all.w_2014_GEN_RIT
-      ,map_all.f_2013_gen_rit
+     ,map_all.Y0_Spring_MATH_percentile AS spr_2016_MATH_pctle
+     ,map_all.Y0_Winter_MATH_percentile AS w_2016_MATH_pctle
+     ,map_all.Y0_Fall_MATH_percentile AS f_2015_MATH_pctle
+     ,map_all.Y0_Spring_MATH_RIT AS spr_2016_MATH_RIT
+     ,map_all.Y0_Winter_MATH_RIT AS w_2016_MATH_RIT
+     ,map_all.Y0_Fall_MATH_RIT AS f_2015_MATH_RIT
 
- --12-13
-      --reading
-      ,map_all.spr_2013_read_pctle
-      ,map_all.w_2013_read_pctle
-      ,map_all.f_2012_read_pctle      
-      ,map_all.spr_2013_read_rit
-      ,map_all.w_2013_read_rit
-      ,map_all.f_2012_read_rit                  
-      --math
-      ,map_all.spr_2013_math_pctle
-      ,map_all.w_2013_math_pctle
-      ,map_all.f_2012_math_pctle      
-      ,map_all.spr_2013_math_rit
-      ,map_all.w_2013_math_rit
-      ,map_all.f_2012_math_rit
-      --lang
-      ,map_all.spr_2013_lang_pctle
-      ,map_all.w_2013_lang_pctle
-      ,map_all.f_2012_lang_pctle
-      ,map_all.spr_2013_lang_rit
-      ,map_all.w_2013_lang_rit
-      ,map_all.f_2012_lang_rit            
-      --sci
-      ,map_all.spr_2013_gen_pctle
-      ,map_all.w_2013_GEN_pctle
-      ,map_all.f_2012_gen_pctle
-      ,map_all.spr_2013_gen_rit
-      ,map_all.w_2013_GEN_RIT
-      ,map_all.f_2012_gen_rit
+     ,map_all.Y0_Spring_LANG_percentile AS spr_2016_LANG_pctle
+     ,map_all.Y0_Winter_LANG_percentile AS w_2016_LANG_pctle
+     ,map_all.Y0_Fall_LANG_percentile AS f_2015_LANG_pctle
+     ,map_all.Y0_Spring_LANG_RIT AS spr_2016_LANG_RIT
+     ,map_all.Y0_Winter_LANG_RIT AS w_2016_LANG_RIT
+     ,map_all.Y0_Fall_LANG_RIT AS f_2015_LANG_RIT
+
+     ,map_all.Y0_Spring_GEN_percentile AS spr_2016_GEN_pctle
+     ,map_all.Y0_Winter_GEN_percentile AS w_2016_GEN_pctle
+     ,map_all.Y0_Fall_GEN_percentile AS f_2015_GEN_pctle
+     ,map_all.Y0_Spring_GEN_RIT AS spr_2016_GEN_RIT
+     ,map_all.Y0_Winter_GEN_RIT AS w_2016_GEN_RIT
+     ,map_all.Y0_Fall_GEN_RIT AS f_2015_GEN_RIT
+
+
+     ,map_all.Y1_Spring_READ_percentile AS spr_2015_READ_pctle
+     ,map_all.Y1_Winter_READ_percentile AS w_2015_READ_pctle
+     ,map_all.Y1_Fall_READ_percentile AS f_2014_READ_pctle
+     ,map_all.Y1_Spring_READ_RIT AS spr_2015_READ_RIT
+     ,map_all.Y1_Winter_READ_RIT AS w_2015_READ_RIT
+     ,map_all.Y1_Fall_READ_RIT AS f_2014_READ_RIT
+
+     ,map_all.Y1_Spring_MATH_percentile AS spr_2015_MATH_pctle
+     ,map_all.Y1_Winter_MATH_percentile AS w_2015_MATH_pctle
+     ,map_all.Y1_Fall_MATH_percentile AS f_2014_MATH_pctle
+     ,map_all.Y1_Spring_MATH_RIT AS spr_2015_MATH_RIT
+     ,map_all.Y1_Winter_MATH_RIT AS w_2015_MATH_RIT
+     ,map_all.Y1_Fall_MATH_RIT AS f_2014_MATH_RIT
+
+     ,map_all.Y1_Spring_LANG_percentile AS spr_2015_LANG_pctle
+     ,map_all.Y1_Winter_LANG_percentile AS w_2015_LANG_pctle
+     ,map_all.Y1_Fall_LANG_percentile AS f_2014_LANG_pctle
+     ,map_all.Y1_Spring_LANG_RIT AS spr_2015_LANG_RIT
+     ,map_all.Y1_Winter_LANG_RIT AS w_2015_LANG_RIT
+     ,map_all.Y1_Fall_LANG_RIT AS f_2014_LANG_RIT
+
+     ,map_all.Y1_Spring_GEN_percentile AS spr_2015_GEN_pctle
+     ,map_all.Y1_Winter_GEN_percentile AS w_2015_GEN_pctle
+     ,map_all.Y1_Fall_GEN_percentile AS f_2014_GEN_pctle
+     ,map_all.Y1_Spring_GEN_RIT AS spr_2015_GEN_RIT
+     ,map_all.Y1_Winter_GEN_RIT AS w_2015_GEN_RIT
+     ,map_all.Y1_Fall_GEN_RIT AS f_2014_GEN_RIT
+
+
+     ,map_all.Y2_Spring_READ_percentile AS spr_2014_READ_pctle
+     ,map_all.Y2_Winter_READ_percentile AS w_2014_READ_pctle
+     ,map_all.Y2_Fall_READ_percentile AS f_2013_READ_pctle
+     ,map_all.Y2_Spring_READ_RIT AS spr_2014_READ_RIT
+     ,map_all.Y2_Winter_READ_RIT AS w_2014_READ_RIT
+     ,map_all.Y2_Fall_READ_RIT AS f_2013_READ_RIT
+
+     ,map_all.Y2_Spring_MATH_percentile AS spr_2014_MATH_pctle
+     ,map_all.Y2_Winter_MATH_percentile AS w_2014_MATH_pctle
+     ,map_all.Y2_Fall_MATH_percentile AS f_2013_MATH_pctle
+     ,map_all.Y2_Spring_MATH_RIT AS spr_2014_MATH_RIT
+     ,map_all.Y2_Winter_MATH_RIT AS w_2014_MATH_RIT
+     ,map_all.Y2_Fall_MATH_RIT AS f_2013_MATH_RIT
+
+     ,map_all.Y2_Spring_LANG_percentile AS spr_2014_LANG_pctle
+     ,map_all.Y2_Winter_LANG_percentile AS w_2014_LANG_pctle
+     ,map_all.Y2_Fall_LANG_percentile AS f_2013_LANG_pctle
+     ,map_all.Y2_Spring_LANG_RIT AS spr_2014_LANG_RIT
+     ,map_all.Y2_Winter_LANG_RIT AS w_2014_LANG_RIT
+     ,map_all.Y2_Fall_LANG_RIT AS f_2013_LANG_RIT
+
+     ,map_all.Y2_Spring_GEN_percentile AS spr_2014_GEN_pctle
+     ,map_all.Y2_Winter_GEN_percentile AS w_2014_GEN_pctle
+     ,map_all.Y2_Fall_GEN_percentile AS f_2013_GEN_pctle
+     ,map_all.Y2_Spring_GEN_RIT AS spr_2014_GEN_RIT
+     ,map_all.Y2_Winter_GEN_RIT AS w_2014_GEN_RIT
+     ,map_all.Y2_Fall_GEN_RIT AS f_2013_GEN_RIT
+
+
+     ,map_all.Y3_Spring_READ_percentile AS spr_2013_READ_pctle
+     ,map_all.Y3_Winter_READ_percentile AS w_2013_READ_pctle
+     ,map_all.Y3_Fall_READ_percentile AS f_2012_READ_pctle
+     ,map_all.Y3_Spring_READ_RIT AS spr_2013_READ_RIT
+     ,map_all.Y3_Winter_READ_RIT AS w_2013_READ_RIT
+     ,map_all.Y3_Fall_READ_RIT AS f_2012_READ_RIT
+
+     ,map_all.Y3_Spring_MATH_percentile AS spr_2013_MATH_pctle
+     ,map_all.Y3_Winter_MATH_percentile AS w_2013_MATH_pctle
+     ,map_all.Y3_Fall_MATH_percentile AS f_2012_MATH_pctle
+     ,map_all.Y3_Spring_MATH_RIT AS spr_2013_MATH_RIT
+     ,map_all.Y3_Winter_MATH_RIT AS w_2013_MATH_RIT
+     ,map_all.Y3_Fall_MATH_RIT AS f_2012_MATH_RIT
+
+     ,map_all.Y3_Spring_LANG_percentile AS spr_2013_LANG_pctle
+     ,map_all.Y3_Winter_LANG_percentile AS w_2013_LANG_pctle
+     ,NULL AS f_2012_lang_pctle
+     ,map_all.Y3_Spring_LANG_RIT AS spr_2013_LANG_RIT
+     ,map_all.Y3_Winter_LANG_RIT AS w_2013_LANG_RIT
+     ,NULL AS f_2012_lang_RIT
+
+     ,map_all.Y3_Spring_GEN_percentile AS spr_2013_GEN_pctle
+     ,map_all.Y3_Winter_GEN_percentile AS w_2013_GEN_pctle
+     ,map_all.Y3_Fall_GEN_percentile AS f_2012_GEN_pctle
+     ,map_all.Y3_Spring_GEN_RIT AS spr_2013_GEN_RIT
+     ,map_all.Y3_Winter_GEN_RIT AS w_2013_GEN_RIT
+     ,map_all.Y3_Fall_GEN_RIT AS f_2012_GEN_RIT
+
      
 --NJASK scores
 --NJASK$ela_wide

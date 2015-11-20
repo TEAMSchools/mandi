@@ -65,10 +65,8 @@ SELECT studentid
 FROM
     (
      SELECT studentid
-           ,student_number           
-           --,LEFT(field, 3) AS class           
-           --,UPPER(SUBSTRING(REVERSE(field),2,1)) AS element
-           ,LEFT(field, 3) + '_' + UPPER(SUBSTRING(REVERSE(field),2,1)) AS pivot_hash
+           ,student_number                      
+           ,LEFT(field, LEN(field) - 1) AS pivot_hash
            ,CASE WHEN schoolid = 73253 THEN 'Q' ELSE 'T' END + CONVERT(VARCHAR,RIGHT(field, 1)) AS term           
            ,grade
      FROM
