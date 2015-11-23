@@ -16,6 +16,30 @@ WITH curterm AS (
     AND CONVERT(DATE,GETDATE()) >= end_date   
  )     
 
+,lexile_curr AS (
+  SELECT student_number
+        ,rittoreadingscore
+        ,CASE
+         WHEN rittoreadingscore  = 'BR' THEN 'Pre-K'
+         WHEN rittoreadingscore <= 100  THEN 'K'
+         WHEN rittoreadingscore BETWEEN 101 AND 300 THEN '1st'
+         WHEN rittoreadingscore BETWEEN 301 AND 500 THEN '2nd'
+         WHEN rittoreadingscore BETWEEN 501 AND 600 THEN '3rd'
+         WHEN rittoreadingscore BETWEEN 601 AND 700 THEN '4th'
+         WHEN rittoreadingscore BETWEEN 701 AND 800 THEN '5th'
+         WHEN rittoreadingscore BETWEEN 801 AND 900 THEN '6th'
+         WHEN rittoreadingscore BETWEEN 901 AND 1000 THEN '7th'
+         WHEN rittoreadingscore BETWEEN 1001 AND 1100 THEN '8th'
+         WHEN rittoreadingscore BETWEEN 1101 AND 1200 THEN '9th'
+         WHEN rittoreadingscore BETWEEN 1201 AND 1300 THEN '10th'
+         WHEN rittoreadingscore BETWEEN 1301 AND 1400 THEN '11th'
+         WHEN rittoreadingscore  > 1400 THEN '12th'
+        END AS lexile_gleq
+  FROM KIPP_NJ..MAP$CDF#identifiers#static WITH(NOLOCK)
+  WHERE measurementscale = 'Reading'
+    AND rn_curr = 1
+ )
+
 SELECT co.student_number
       ,co.year AS academic_year            
       ,co.LASTFIRST      
@@ -224,6 +248,26 @@ SELECT co.student_number
       ,lit.cur_read_lvl
       ,lit.cur_gleq
 
+      ,lexile_base.lexile_score AS lexile_base
+      ,CASE
+        WHEN lexile_base.lexile_score  = 'BR' THEN 'Pre-K'
+        WHEN lexile_base.lexile_score <= 100  THEN 'K'
+        WHEN lexile_base.lexile_score BETWEEN 101 AND 300 THEN '1st'
+        WHEN lexile_base.lexile_score BETWEEN 301 AND 500 THEN '2nd'
+        WHEN lexile_base.lexile_score BETWEEN 501 AND 600 THEN '3rd'
+        WHEN lexile_base.lexile_score BETWEEN 601 AND 700 THEN '4th'
+        WHEN lexile_base.lexile_score BETWEEN 701 AND 800 THEN '5th'
+        WHEN lexile_base.lexile_score BETWEEN 801 AND 900 THEN '6th'
+        WHEN lexile_base.lexile_score BETWEEN 901 AND 1000 THEN '7th'
+        WHEN lexile_base.lexile_score BETWEEN 1001 AND 1100 THEN '8th'
+        WHEN lexile_base.lexile_score BETWEEN 1101 AND 1200 THEN '9th'
+        WHEN lexile_base.lexile_score BETWEEN 1201 AND 1300 THEN '10th'
+        WHEN lexile_base.lexile_score BETWEEN 1301 AND 1400 THEN '11th'
+        WHEN lexile_base.lexile_score  > 1400 THEN '12th'
+       END AS lexile_base_gleq
+      ,lexile_curr.rittoreadingscore AS lexile_curr
+      ,lexile_curr.lexile_gleq AS lexile_curr_gleq      
+
       /* MAP */
       ,CONVERT(VARCHAR,map_all.Y0_Fall_GEN_RIT) + ' (' + CONVERT(VARCHAR,map_all.Y0_Fall_GEN_percentile) + '%ile)' AS MAP_Y0_FALL_GEN
       ,CONVERT(VARCHAR,map_all.Y0_Fall_LANG_RIT) + ' (' + CONVERT(VARCHAR,map_all.Y0_Fall_LANG_percentile) + '%ile)' AS MAP_Y0_FALL_LANG
@@ -316,6 +360,12 @@ LEFT OUTER JOIN KIPP_NJ..PS$comments_wide#static comm WITH(NOLOCK)
 /* MAP */
 LEFT OUTER JOIN KIPP_NJ..MAP$wide_all#static map_all WITH(NOLOCK)
   ON co.studentid = map_all.studentid
+LEFT OUTER JOIN lexile_curr
+  ON co.student_number = lexile_curr.student_number
+LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static lexile_base
+  ON co.studentid = lexile_base.studentid
+ AND co.year = lexile_base.year
+ AND lexile_base.measurementscale = 'Reading'
 /* lit */
 LEFT OUTER JOIN KIPP_NJ..LIT$achieved_wide lit WITH(NOLOCK)
   ON co.studentid = lit.studentid

@@ -37,13 +37,13 @@ WITH standard_descriptions AS (
                   ,ovr.local_student_id
                   ,a.standard_id
                   ,CASE                     
-                    WHEN a.subject_area NOT IN ('Comprehension','Writing','Text Study','Word Work','Phonics','Grammar','Mathematics') 
+                    WHEN a.subject_area NOT IN ('Comprehension','Text Study','Word Work','Phonics','Grammar','Mathematics') 
                          THEN CONCAT(a.subject_area, ' - ', a.standard_description)
                     ELSE a.standard_description
                    END AS standard_description
                   ,a.subject_area
                   ,CASE
-                    WHEN a.subject_area IN ('Comprehension','Writing','Text Study','Word Work','Phonics','Grammar') THEN 'ELA'                    
+                    WHEN a.subject_area IN ('Comprehension','Text Study','Word Work','Phonics','Grammar') THEN 'ELA'                    
                     WHEN a.subject_area = 'Mathematics' THEN 'MATH'
                     ELSE 'SPEC'
                    END AS subj_abbrev

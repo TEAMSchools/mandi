@@ -3,13 +3,41 @@ GO
 
 ALTER VIEW DAILY$tracking_totals#ES AS
 
-WITH valid_dates AS (
-  SELECT schoolid        
+WITH rc_term AS (
+  SELECT schoolid
         ,academic_year
         ,term
-        ,week_num        
-        ,date_value
-        ,is_curterm        
+        ,rt        
+  FROM
+      (
+       SELECT schoolid
+             ,academic_year
+             ,time_per_name AS rt
+             ,alt_name AS term
+             ,start_date
+             ,end_date             
+             ,COALESCE(report_name_long, CONCAT(REPLACE(alt_name,'_',' '), ': ', CONVERT(VARCHAR,start_date,1), ' - ', CONVERT(VARCHAR,end_date,1))) AS term_title
+             ,report_name_short AS term_end
+             ,ROW_NUMBER() OVER(
+               PARTITION BY academic_year, schoolid
+                 ORDER BY start_date DESC) AS term_rn
+       FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)    
+       WHERE identifier = 'RT'    
+         AND school_level = 'ES'           
+         AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND end_date <= CONVERT(DATE,GETDATE())
+         AND alt_name NOT IN ('Summer School','EOY','Capstone')
+      ) sub    
+ )
+
+,valid_dates AS (
+  SELECT sub.schoolid        
+        ,sub.academic_year
+        ,sub.term
+        ,sub.week_num        
+        ,sub.date_value
+        ,sub.is_curterm        
+        ,CASE WHEN sub.term = rc_term.rt THEN 1 ELSE 0 END AS is_rc_term
   FROM
       (
        SELECT daily.schoolid                          
@@ -27,8 +55,11 @@ WITH valid_dates AS (
          ON daily.schoolid = rt.schoolid
         AND daily.date_value BETWEEN rt.start_date AND rt.end_date
         AND rt.identifier = 'RT'
-       --WHERE daily.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       WHERE daily.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       ) sub
+  LEFT OUTER JOIN rc_term
+    ON sub.schoolid = rc_term.schoolid
+   AND sub.academic_year = rc_term.academic_year
  )
 
 ,tracking_long AS (
@@ -36,6 +67,7 @@ WITH valid_dates AS (
          ,valid_dates.term  
          ,valid_dates.date_value
          ,valid_dates.is_curterm         
+         ,valid_dates.is_rc_term 
          ,daily.schoolid
          ,daily.studentid      
          ,daily.week_num         
@@ -365,6 +397,79 @@ WITH valid_dates AS (
                ,daily.studentid        
                ,daily.academic_year                              
       ) sub  
+
+  UNION ALL
+
+  -- RC term
+  SELECT 'RC' AS identifier
+        ,schoolid
+        ,studentid       
+        ,academic_year 
+        ,NULL AS week_num
+        ,NULL AS month
+        ,CONVERT(VARCHAR,n_hw) AS n_hw
+        ,CONVERT(VARCHAR,hw_complete) AS hw_complete
+        ,CONVERT(VARCHAR,hw_missing) AS hw_missing
+        ,CONVERT(VARCHAR,hw_pct) AS hw_pct
+        ,CONVERT(VARCHAR,n_uni) AS n_uni
+        ,CONVERT(VARCHAR,uni_has) AS uni_has
+        ,CONVERT(VARCHAR,uni_missing) AS uni_missing
+        ,CONVERT(VARCHAR,uni_pct) AS uni_pct
+        ,CONVERT(VARCHAR,n_color) AS n_color
+        ,CONVERT(VARCHAR,purple_pink) AS purple_pink
+        ,CONVERT(VARCHAR,green) AS green
+        ,CONVERT(VARCHAR,yellow) AS yellow
+        ,CONVERT(VARCHAR,orange) AS orange
+        ,CONVERT(VARCHAR,red) AS red
+        ,CONVERT(FLOAT,ROUND((purple_pink + green) / CASE WHEN n_color = 0 THEN NULL ELSE n_color END * 100,0)) AS pct_ontrack
+        ,CASE
+          WHEN CONVERT(FLOAT,ROUND((purple_pink + green) / CASE WHEN n_color = 0 THEN NULL ELSE n_color END * 100,0)) >= 80 THEN 'On Track' 
+          ELSE 'Off Track'
+         END AS status
+  FROM
+      (
+       SELECT daily.schoolid
+             ,daily.studentid  
+             ,daily.academic_year                              
+             ,COUNT(hw) AS n_hw
+             ,SUM(has_hw) AS hw_complete
+             ,COUNT(hw) - SUM(has_hw) AS hw_missing
+             ,CONVERT(FLOAT,ROUND(SUM(has_hw) / COUNT(hw) * 100,0)) AS hw_pct
+             ,COUNT(uniform) AS n_uni
+             ,SUM(has_uniform) AS uni_has
+             ,COUNT(uniform) - SUM(has_uniform) AS uni_missing
+             ,CONVERT(FLOAT,ROUND(SUM(has_uniform) / COUNT(uniform) * 100,0)) AS uni_pct
+             ,ISNULL(COUNT(color_day),0)
+               + ISNULL(COUNT(color_am),0)
+               + ISNULL(COUNT(color_mid),0)
+               + ISNULL(COUNT(color_pm),0)
+               AS n_color
+             ,ISNULL(SUM(purple_pink),0)
+               + ISNULL(SUM(am_purple_pink),0)
+               + ISNULL(SUM(mid_purple_pink),0)
+               + ISNULL(SUM(pm_purple_pink),0) AS purple_pink
+             ,ISNULL(SUM(green),0)
+               + ISNULL(SUM(am_green),0)
+               + ISNULL(SUM(mid_green),0)
+               + ISNULL(SUM(pm_green),0) AS green
+             ,ISNULL(SUM(yellow),0)
+               + ISNULL(SUM(am_yellow),0)
+               + ISNULL(SUM(mid_yellow),0)
+               + ISNULL(SUM(pm_yellow),0) AS yellow
+             ,ISNULL(SUM(orange),0)
+               + ISNULL(SUM(am_orange),0)
+               + ISNULL(SUM(mid_orange),0)
+               + ISNULL(SUM(pm_orange),0) AS orange
+             ,ISNULL(SUM(red),0)
+               + ISNULL(SUM(am_red),0)
+               + ISNULL(SUM(mid_red),0)
+               + ISNULL(SUM(pm_red),0) AS red        
+       FROM tracking_long daily
+       WHERE is_rc_term = 1
+       GROUP BY daily.schoolid
+               ,daily.studentid        
+               ,daily.academic_year                              
+      ) sub  
  )
 
 SELECT schoolid
@@ -432,6 +537,22 @@ SELECT schoolid
       ,[red_tri]
       ,[pct_ontrack_tri]
       ,[status_tri]
+      ,[n_hw_rc]
+      ,[hw_complete_rc]
+      ,[hw_missing_rc]
+      ,[hw_pct_rc]
+      ,[n_uni_rc]
+      ,[uni_has_rc]
+      ,[uni_missing_rc]
+      ,[uni_pct_rc]
+      ,[n_color_rc]
+      ,[purple_pink_rc]
+      ,[green_rc]
+      ,[yellow_rc]
+      ,[orange_rc]
+      ,[red_rc]
+      ,[pct_ontrack_rc]
+      ,[status_rc]
 FROM
     (
      SELECT schoolid
@@ -552,5 +673,21 @@ PIVOT (
                ,[orange_tri]
                ,[red_tri]
                ,[pct_ontrack_tri]
-               ,[status_tri])
+               ,[status_tri]
+               ,[n_hw_rc]
+               ,[hw_complete_rc]
+               ,[hw_missing_rc]
+               ,[hw_pct_rc]
+               ,[n_uni_rc]
+               ,[uni_has_rc]
+               ,[uni_missing_rc]
+               ,[uni_pct_rc]
+               ,[n_color_rc]
+               ,[purple_pink_rc]
+               ,[green_rc]
+               ,[yellow_rc]
+               ,[orange_rc]
+               ,[red_rc]
+               ,[pct_ontrack_rc]
+               ,[status_rc])
  ) p

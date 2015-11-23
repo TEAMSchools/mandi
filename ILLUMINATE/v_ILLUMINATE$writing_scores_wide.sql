@@ -20,12 +20,12 @@ FROM
                 ,CONCAT(composition_type, '_', rubric_type) AS composition_type_rubric           
                 ,CONCAT(REPLICATE(' ', MAX(len_standard_description) OVER(PARTITION BY student_number))
                        ,REPLICATE(CHAR(9), 2)
-                       ,'M1', CHAR(9)
-                       ,'M2', CHAR(9)
-                       ,'M3', CHAR(9)
-                       ,'M4') AS writing_header
+                       ,'Q1', CHAR(9)
+                       ,'Q2', CHAR(9)
+                       ,'Q3', CHAR(9)
+                       ,'Q4') AS writing_header
                 ,CONCAT(standard_description
-                       ,REPLICATE(' ', MAX(len_standard_description) OVER(PARTITION BY student_number) - LEN(CONVERT(VARCHAR,standard_description)))
+                       ,REPLICATE(' ', MAX(len_standard_description) OVER(PARTITION BY student_number) - LEN(CONVERT(VARCHAR(MAX),standard_description)))
                        ,REPLICATE(CHAR(9), 2)
                        ,[M1], CHAR(9)
                        ,[M2], CHAR(9)
@@ -44,8 +44,8 @@ FROM
                        ELSE 'Narrative'
                       END AS rubric_type      
                      ,res.local_student_id AS student_number
-                     ,LEN(CONVERT(VARCHAR,std.description)) AS len_standard_description
-                     ,CONVERT(VARCHAR,std.description) AS standard_description            
+                     ,LEN(CONVERT(VARCHAR(MAX),std.description)) AS len_standard_description
+                     ,CONVERT(VARCHAR(MAX),std.description) AS standard_description            
                      ,CASE WHEN res.answered = 0 THEN NULL ELSE res.points END AS points      
                FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
                JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static astd WITH(NOLOCK)

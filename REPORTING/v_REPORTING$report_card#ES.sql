@@ -50,31 +50,29 @@ SELECT r.student_number
       ,REPLACE(CONVERT(NVARCHAR(MAX),r.GUARDIANEMAIL),',','; ') AS guardianemail
       
       /* reporting week and dates */      
+      ,rw.term
       ,rw.term_title      
       ,rw.term_rn
       
       /* attendance */
       ,CONCAT(att.Y1_ABS_ALL, ' (', att.Y1_AE, ')') AS cur_absences_total
       ,CONCAT(att.Y1_T_ALL, ' (', att.Y1_TE, ')') AS cur_tardies_total      
-      ,CONCAT(att.Y1_LE, ' (', att.Y1_LEX, ')') AS cur_early_dismiss  
-      ,ROUND(att.cur_trip_abs,1) AS trip_absences
-      ,CASE
-        WHEN r.schoolid = 73255 AND att.cur_trip_abs >= 10 THEN 'Off Track'
-        WHEN r.schoolid != 73255 AND att.cur_trip_abs >= 5 THEN 'Off Track'
-        ELSE 'On Track'
-       END AS trip_status
+      ,CONCAT(att.Y1_LE, ' (', att.Y1_LEX, ')') AS cur_early_dismiss        
       
       /* CMA standards */
       ,std.ELA_ADV
       ,std.ELA_PROF
+      ,std.ELA_APRO
       ,std.ELA_NY
       
       ,std.MATH_ADV
       ,std.MATH_PROF
+      ,std.MATH_APRO
       ,std.MATH_NY
       
       ,std.SPEC_ADV
       ,std.SPEC_PROF
+      ,std.SPEC_APRO
       ,std.SPEC_NY
 
       /* CMA data*/
@@ -90,19 +88,19 @@ SELECT r.student_number
       ,wrt.Narrative_Narrative
 
       /* hw totals */      
-      ,CASE WHEN cur_totals.hw_complete_tri IS NULL THEN NULL ELSE CONCAT(ROUND(cur_totals.hw_complete_tri,0), '/', ROUND(cur_totals.n_hw_tri,0)) END AS n_hw_tri      
-      ,ROUND(cur_totals.hw_pct_tri,0) AS hw_pct_tri
+      ,CASE WHEN cur_totals.hw_complete_rc IS NULL THEN NULL ELSE CONCAT(ROUND(cur_totals.hw_complete_rc,0), '/', ROUND(cur_totals.n_hw_rc,0)) END AS n_hw_tri
+      ,ROUND(cur_totals.hw_pct_rc,0) AS hw_pct_tri
       ,CASE WHEN cur_totals.hw_complete_yr IS NULL THEN NULL ELSE CONCAT(ROUND(cur_totals.hw_complete_yr,0), '/', ROUND(cur_totals.n_hw_yr,0)) END AS n_hw_yr      
       ,ROUND(cur_totals.hw_pct_yr,0) AS hw_pct_yr
       /* uni totals */      
-      ,ROUND(cur_totals.uni_pct_tri,0) AS uni_pct_tri
+      ,ROUND(cur_totals.uni_pct_rc,0) AS uni_pct_tri
       ,ROUND(cur_totals.uni_pct_yr,0) AS uni_pct_yr      
       /* color totals */      
-      ,ROUND(CONVERT(FLOAT,cur_totals.purple_pink_tri) / CASE WHEN cur_totals.n_color_tri = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_tri) END * 100, 0) AS purple_pink_tri
-      ,ROUND(CONVERT(FLOAT,cur_totals.green_tri) / CASE WHEN cur_totals.n_color_tri = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_tri) END * 100, 0) AS green_tri
-      ,ROUND(CONVERT(FLOAT,cur_totals.yellow_tri) / CASE WHEN cur_totals.n_color_tri = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_tri) END * 100, 0) AS yellow_tri
-      ,ROUND(CONVERT(FLOAT,cur_totals.orange_tri) / CASE WHEN cur_totals.n_color_tri = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_tri) END * 100, 0) AS orange_tri
-      ,ROUND(CONVERT(FLOAT,cur_totals.red_tri) / CASE WHEN cur_totals.n_color_tri = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_tri) END * 100, 0) AS red_tri      
+      ,ROUND(CONVERT(FLOAT,cur_totals.purple_pink_rc) / CASE WHEN cur_totals.n_color_rc = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_rc) END * 100, 0) AS purple_pink_tri
+      ,ROUND(CONVERT(FLOAT,cur_totals.green_rc) / CASE WHEN cur_totals.n_color_rc = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_rc) END * 100, 0) AS green_tri
+      ,ROUND(CONVERT(FLOAT,cur_totals.yellow_rc) / CASE WHEN cur_totals.n_color_rc = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_rc) END * 100, 0) AS yellow_tri
+      ,ROUND(CONVERT(FLOAT,cur_totals.orange_rc) / CASE WHEN cur_totals.n_color_rc = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_rc) END * 100, 0) AS orange_tri
+      ,ROUND(CONVERT(FLOAT,cur_totals.red_rc) / CASE WHEN cur_totals.n_color_rc = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_rc) END * 100, 0) AS red_tri
       ,ROUND(CONVERT(FLOAT,cur_totals.purple_pink_yr) / CASE WHEN cur_totals.n_color_yr = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_yr) END * 100, 0) AS purple_pink_yr
       ,ROUND(CONVERT(FLOAT,cur_totals.green_yr) / CASE WHEN cur_totals.n_color_yr = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_yr) END * 100, 0) AS green_yr
       ,ROUND(CONVERT(FLOAT,cur_totals.yellow_yr) / CASE WHEN cur_totals.n_color_yr = 0 THEN NULL ELSE CONVERT(FLOAT,cur_totals.n_color_yr) END * 100, 0) AS yellow_yr
@@ -133,9 +131,12 @@ SELECT r.student_number
       ,soc.social_skills_grouped
 
       /* promo status */
+      ,promo.offtrack_days_limit
       ,promo.att_ARFR_status
       ,promo.lit_ARFR_status
       ,CASE WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%Off Track%' THEN 'At Risk for Retention' ELSE NULL END AS overall_arfr_status
+      ,promo.att_pts
+      ,promo.att_pts_pct
 
       /* comments */
       ,comm.math_comments
@@ -184,4 +185,4 @@ WHERE r.GRADE_LEVEL <= 4
   AND r.schoolid != 73252
   AND r.RN = 1
   AND r.enroll_status = 0
-  AND r.year = 2015
+  AND r.year = KIPP_NJ.dbo.fn_Global_Academic_Year()

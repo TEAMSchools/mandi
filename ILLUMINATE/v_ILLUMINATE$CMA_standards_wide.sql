@@ -8,7 +8,7 @@ WITH standards_rollup AS (
         ,term
         ,local_student_id AS student_number
         ,CONCAT(subj_abbrev, '_', proficiency) AS subj_prof
-        ,KIPP_NJ.dbo.GROUP_CONCAT_D(standard_description, CHAR(10)+CHAR(13)) AS std
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(standard_description, CHAR(10)) AS std
   FROM
       (
        SELECT academic_year
@@ -18,8 +18,9 @@ WITH standards_rollup AS (
              ,term
              ,ROUND(AVG(percent_correct),0) AS percent_correct
              ,CASE
-               WHEN ROUND(AVG(percent_correct),0) >= 90.0 THEN 'ADV'
-               WHEN ROUND(AVG(percent_correct),0) >= 80.0 THEN 'PROF'
+               WHEN ROUND(AVG(percent_correct),0) >= 90 THEN 'ADV'
+               WHEN ROUND(AVG(percent_correct),0) >= 80 THEN 'PROF'
+               WHEN ROUND(AVG(percent_correct),0) BETWEEN 65 AND 79 THEN 'APRO'
                ELSE 'NY'
               END AS proficiency
        FROM
@@ -28,14 +29,15 @@ WITH standards_rollup AS (
                   ,ovr.local_student_id
                   ,a.standard_id
                   ,CASE                     
-                    WHEN a.subject_area NOT IN ('Comprehension','Text Study','Word Work','Phonics','Grammar','Mathematics') 
-                         THEN CONCAT(a.subject_area, ' - ', a.standard_description)
-                    ELSE a.standard_description
+                    WHEN a.subject_area NOT IN ('Text Study','Mathematics','Writing') 
+                         THEN CONCAT('- ', a.subject_area, ' - ', a.standard_description)
+                    ELSE CONCAT('- ', a.standard_description)
                    END AS standard_description
                   ,a.subject_area
                   ,CASE
-                    WHEN a.subject_area IN ('Comprehension','Text Study','Word Work','Phonics','Grammar') THEN 'ELA'                    
+                    WHEN a.subject_area = 'Text Study' THEN 'ELA'                    
                     WHEN a.subject_area = 'Mathematics' THEN 'MATH'
+                    WHEN a.subject_area = 'Writing' THEN 'WRIT'
                     ELSE 'SPEC'
                    END AS subj_abbrev
                   ,d.alt_name AS term
@@ -55,11 +57,13 @@ WITH standards_rollup AS (
              AND a.scope IN ('CMA - End-of-Module','Unit Assessment')
              AND a.subject_area != 'Writing'
              AND a.subject_area IS NOT NULL            
+             AND a.standard_code NOT LIKE 'TES.W.%'
             JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard r WITH(NOLOCK)
               ON ovr.local_student_id = r.local_student_id
              AND ovr.assessment_id = r.assessment_id
              AND a.standard_id = r.standard_id      
             WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()              
+              AND ovr.answered > 0
               AND co.grade_level <= 4
               AND co.schoolid != 73252
            ) sub       
@@ -81,23 +85,29 @@ SELECT academic_year
       ,student_number      
       ,[MATH_ADV]
       ,[MATH_PROF]
+      ,[MATH_APRO]
       ,[MATH_NY]
       ,[ELA_ADV]
       ,[ELA_PROF]
+      ,[ELA_APRO]
       ,[ELA_NY]
       ,[SPEC_ADV]
       ,[SPEC_PROF]
+      ,[SPEC_APRO]
       ,[SPEC_NY]
 FROM standards_rollup          
 PIVOT(
   MAX(std)
   FOR subj_prof IN ([MATH_ADV]
-                     ,[MATH_PROF]
-                     ,[MATH_NY]
-                     ,[ELA_ADV]
-                     ,[ELA_PROF]
-                     ,[ELA_NY]
-                     ,[SPEC_ADV]
-                     ,[SPEC_PROF]
-                     ,[SPEC_NY])
+                   ,[MATH_PROF]
+                   ,[MATH_APRO]
+                   ,[MATH_NY]
+                   ,[ELA_ADV]
+                   ,[ELA_PROF]
+                   ,[ELA_APRO]
+                   ,[ELA_NY]
+                   ,[SPEC_ADV]
+                   ,[SPEC_PROF]
+                   ,[SPEC_APRO]
+                   ,[SPEC_NY])
  ) p
