@@ -69,9 +69,9 @@ WITH standard_descriptions AS (
               ON ovr.local_student_id = r.local_student_id
              AND ovr.assessment_id = r.assessment_id
              AND a.standard_id = r.standard_id      
+             AND r.answered > 0
             WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()              
-              AND co.schoolid != 73258     
-              
+              AND co.schoolid != 73258                   
             
             UNION ALL
 
@@ -115,7 +115,8 @@ WITH standard_descriptions AS (
             JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard r WITH(NOLOCK)
               ON ovr.local_student_id = r.local_student_id
              AND ovr.assessment_id = r.assessment_id
-             AND a.standard_id = r.standard_id                        
+             AND a.standard_id = r.standard_id      
+             AND r.answered > 0                  
             WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
               AND ovr.answered > 0
               AND co.schoolid = 73258     

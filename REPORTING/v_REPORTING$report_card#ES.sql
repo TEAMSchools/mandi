@@ -134,7 +134,7 @@ SELECT r.student_number
       ,promo.offtrack_days_limit
       ,promo.att_ARFR_status
       ,promo.lit_ARFR_status
-      ,CASE WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%Off Track%' THEN 'At Risk for Retention' ELSE NULL END AS overall_arfr_status
+      ,CASE WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%Off Track%' THEN 'At Risk for Retention' ELSE 'On Track' END AS overall_arfr_status
       ,promo.att_pts
       ,promo.att_pts_pct
 

@@ -60,7 +60,10 @@ BEGIN
 
   ,extern AS (
     SELECT subject_area
-          ,module_num
+          ,CASE
+            WHEN ((GRADE_LEVEL <= 4 AND SCHOOLID != 73252) OR SCHOOLID = 73258) THEN module_num
+            WHEN ((GRADE_LEVEL = 4 AND SCHOOLID = 73252) OR GRADE_LEVEL >= 5) AND [EOM] IS NOT NULL THEN module_num            
+           END AS module_num
           ,rn_unit
           ,student_number
           ,CASE
