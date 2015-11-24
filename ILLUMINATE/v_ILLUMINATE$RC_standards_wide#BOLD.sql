@@ -29,7 +29,7 @@ WITH standard_descriptions AS (
              ,term
              ,percent_correct
              ,N_times_tested
-             ,prof_bucket
+             --,prof_bucket
              ,proficiency
              ,CONVERT(NVARCHAR(MAX),COUNT(standard_id) OVER(PARTITION BY academic_year, term, local_student_id, subj_abbrev, proficiency)) AS N
              ,ROW_NUMBER() OVER(
@@ -44,8 +44,8 @@ WITH standard_descriptions AS (
                   ,subj_abbrev
                   ,term
                   ,ROUND(AVG(percent_correct),0) AS percent_correct
-                  ,COUNT(local_student_id) AS N_times_tested
-                  ,CASE WHEN ROUND(AVG(percent_correct),0) >= 80 THEN 'GLOW' ELSE 'GROW' END AS prof_bucket
+                  ,MAX(rn) AS N_times_tested                  
+                  --,CASE WHEN ROUND(AVG(percent_correct),0) >= 80 THEN 'GLOW' ELSE 'GROW' END AS prof_bucket
                   ,CASE
                     --WHEN ROUND(AVG(percent_correct),0) >= 90 THEN 'ADV'
                     WHEN ROUND(AVG(percent_correct),0) >= 80 THEN 'PROF'
@@ -58,7 +58,7 @@ WITH standard_descriptions AS (
                        ,ovr.local_student_id
                        ,a.standard_id                  
                        ,COALESCE(ltp.studentfriendly_description, a.standard_description) AS standard_description
-                       --,a.subject_area
+                       ,a.subject_area
                        ,CASE
                          WHEN a.subject_area IN ('Comprehension','Text Study','Word Work','Phonics','Grammar') THEN 'ELA'                    
                          WHEN a.subject_area = 'Mathematics' THEN 'MATH'
@@ -84,8 +84,8 @@ WITH standard_descriptions AS (
                  JOIN KIPP_NJ..ILLUMINATE$assessments_long#static a WITH(NOLOCK)
                    ON co.schoolid = a.schoolid             
                   AND ovr.assessment_id = a.assessment_id
-                  AND a.scope IN ('Exit Ticket','Unit Assessment')
-                  AND a.subject_area IS NOT NULL                  
+                  AND ((a.subject_area = 'Performing Arts' AND a.scope IN ('Exit Ticket','Unit Assessment'))
+                       OR (a.subject_area != 'Performing Arts' AND a.scope = 'Exit Ticket'))
                  LEFT OUTER JOIN standard_descriptions ltp WITH(NOLOCK)
                    ON a.standard_code = ltp.standard_code
                   AND ltp.rn = 1
@@ -98,7 +98,7 @@ WITH standard_descriptions AS (
                    AND ovr.answered > 0
                    AND co.schoolid = 73258     
                 ) sub       
-            WHERE rn > 1
+            WHERE ((subject_area = 'Performing Arts') OR (subject_area != 'Performing Arts' AND rn > 1))
             GROUP BY academic_year
                     ,local_student_id
                     ,standard_id

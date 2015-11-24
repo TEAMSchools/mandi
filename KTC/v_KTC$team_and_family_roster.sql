@@ -3,13 +3,20 @@ GO
 
 ALTER VIEW KTC$team_and_family_roster AS 
 
-WITH grads AS (
+WITH hs_grads AS (
+  SELECT co.student_number        
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  WHERE co.grade_level = 12
+    AND co.exitcode = 'G1'               
+ ) 
+
+,ms_grads AS (
   SELECT co.studentid
         ,co.student_number
         ,co.lastfirst        
         ,co.schoolid        
         ,co.school_name
-        ,co.grade_level                
+        ,co.grade_level                        
         ,(KIPP_NJ.dbo.fn_Global_Academic_Year() - co.year) + co.grade_level AS curr_grade_level
         ,co.cohort
         ,co.highest_achieved
@@ -22,6 +29,7 @@ WITH grads AS (
     AND co.student_number NOT IN (2026,3049,3012)
     AND co.rn = 1
     AND co.enroll_status != 0
+    AND co.student_number NOT IN (SELECT student_number FROM hs_grads)
  )
 
 ,transfers AS (
@@ -48,7 +56,7 @@ WITH grads AS (
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        WHERE co.grade_level >= 9
          AND co.enroll_status NOT IN (0,3)
-         AND co.studentid NOT IN (SELECT studentid FROM grads)         
+         AND co.studentid NOT IN (SELECT studentid FROM ms_grads) 
        GROUP BY co.studentid, co.student_number, co.lastfirst, co.highest_achieved
       ) sub
   LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s
@@ -57,7 +65,7 @@ WITH grads AS (
     ON s.GRADUATED_SCHOOLID = sch.SCHOOL_NUMBER
   LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch2
     ON s.SCHOOLID = sch2.SCHOOL_NUMBER
-  WHERE ((years_enrolled = 1 AND final_exitdate >= CONVERT(DATE,CONVERT(VARCHAR,year_final_exitdate) + '-10-01')) OR (years_enrolled > 1))
+  WHERE (sub.cohort >= 2018 AND years_enrolled = 1 AND final_exitdate >= CONVERT(DATE,CONVERT(VARCHAR,year_final_exitdate) + '-10-01'))
  )
 
 ,roster AS (
@@ -69,7 +77,7 @@ WITH grads AS (
         ,curr_grade_level
         ,cohort
         ,highest_achieved
-  FROM grads  
+  FROM ms_grads
   
   UNION
   
@@ -84,6 +92,24 @@ WITH grads AS (
   FROM transfers    
  )
 
+,enrollments AS (
+  SELECT s.School_Specific_ID__c AS student_number        
+        ,u.Name AS ktc_counselor
+        ,enr.Type__c AS enrollment_type
+        ,enr.Status__c AS enrollment_status
+        ,enr.name AS enrollment_name        
+        ,ROW_NUMBER() OVER(
+          PARTITION BY s.School_Specific_ID__c
+            ORDER BY enr.Start_Date__c DESC) AS rn
+  FROM AlumniMirror..Contact s WITH(NOLOCK)
+  JOIN AlumniMirror..User2 u WITH(NOLOCK)
+    ON s.OwnerId = u.Id
+  JOIN AlumniMirror..Enrollment__c enr WITH(NOLOCK)
+    ON s.id = enr.Student__c
+  WHERE s.isdeleted = 0
+    AND s.School_Specific_ID__c IS NOT NULL
+ )
+
 SELECT r.student_number
       ,r.lastfirst
       ,r.schoolid
@@ -91,6 +117,10 @@ SELECT r.student_number
       ,r.curr_grade_level AS approx_grade_level      
       ,r.cohort
       ,CASE WHEN r.highest_achieved = 99 THEN 1 ELSE 0 END AS is_grad
+      ,enr.ktc_counselor
+      ,enr.enrollment_type
+      ,enr.enrollment_name
+      ,enr.enrollment_status
       ,con.HOME_PHONE
       ,con.MOTHER
       ,con.MOTHER_HOME
@@ -135,3 +165,6 @@ SELECT r.student_number
 FROM roster r
 LEFT OUTER JOIN KIPP_NJ..PS$student_contact#static con WITH(NOLOCK)
   ON r.studentid = con.STUDENTID
+LEFT OUTER JOIN enrollments enr
+  ON r.student_number = enr.student_number
+ AND enr.rn = 1

@@ -34,24 +34,21 @@ SELECT co.student_number
 
       /* date stuff */
       ,FORMAT(GETDATE(),'MMMM dd, yyy') AS today_text
-      ,d.alt_name AS curterm            
-      ,ROW_NUMBER() OVER(
-         PARTITION BY co.student_number
-           ORDER BY d.start_date DESC) AS rn_week
+      ,d.alt_name AS curterm                  
 
       /* Attendance & Tardies */    
       /* Year */
       ,CONCAT(att_counts.y1_abs_all, ' - ', ROUND(att_pct.Y1_att_pct_total,0), '%') AS Y1_absences_total
       ,CONCAT(att_counts.y1_t_all, ' - ', ROUND(att_pct.Y1_tardy_pct_total,0), '%') AS Y1_tardies_total
       /* Current */            
-      ,CONCAT(att_counts.CUR_ABS_ALL, ' - ', ROUND(att_pct.cur_att_pct_total,0), '%') AS curterm_absences_total      
-      ,CONCAT(att_counts.CUR_T_ALL, ' - ', ROUND(att_pct.cur_tardy_pct_total,0), '%') AS curterm_tardies_total
+      ,CONCAT(att_counts.RT2_ABS_ALL, ' - ', ROUND(att_pct.rt2_att_pct_total,0), '%') AS curterm_absences_total /* UPDATE - hard-coded for Q1*/
+      ,CONCAT(att_counts.RT2_T_ALL, ' - ', ROUND(att_pct.rt2_tardy_pct_total,0), '%') AS curterm_tardies_total /* UPDATE - hard-coded for Q1*/
       
       /* daily tracking */
-      ,dt.CUR_BOLD_points
-      ,dt.CUR_hw_comp_pct      
-      ,dt.CUR_hw_inc_pct
-      ,dt.CUR_uniform_pct
+      ,dt.rc_bold_points AS CUR_BOLD_points
+      ,dt.rc_hw_comp_pct AS CUR_hw_comp_pct      
+      ,dt.rc_hw_inc_pct AS CUR_hw_inc_pct
+      ,dt.rc_uniform_pct AS CUR_uniform_pct
       ,dt.Y1_BOLD_points
       ,dt.Y1_hw_comp_pct      
       ,dt.Y1_hw_inc_pct      

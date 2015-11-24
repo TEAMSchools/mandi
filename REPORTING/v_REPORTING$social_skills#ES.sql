@@ -70,49 +70,20 @@ WITH tests_long AS (
     AND l.schoolid = 732570 
  )
 
-SELECT student_number
-      ,term
-      ,MAX(skills_header) AS social_skills_header
-      ,KIPP_NJ.dbo.GROUP_CONCAT_D(skill_scores_concat, CHAR(10)) AS social_skills_grouped
-FROM
-    (
-     SELECT student_number
-           ,term
-           ,CONCAT(REPLICATE(' ', MAX(LEN(social_skill)) OVER(PARTITION BY student_number)), CHAR(9)
-                  ,'Q1', REPLICATE(' ', 4)
-                  ,'Q2', REPLICATE(' ', 4)
-                  ,'Q3', REPLICATE(' ', 4)
-                  ,'Q4') AS skills_header
-           ,CONCAT(social_skill, REPLICATE(' ', MAX(LEN(social_skill)) OVER(PARTITION BY student_number) - LEN(social_skill)), CHAR(9)
-                  ,[Q1], REPLICATE(' ', 4)
-                  ,[Q2], REPLICATE(' ', 4)
-                  ,[Q3], REPLICATE(' ', 4)
-                  ,[Q4]) AS skill_scores_concat           
-     FROM
-         (
-          SELECT co.student_number
-                ,dt.alt_name AS term
-                ,soc.term AS soc_term
-                ,soc.social_skill
-                ,soc.score
-          FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-          JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
-            ON co.schoolid = dt.schoolid
-           AND co.year = dt.academic_year
-           AND dt.identifier = 'RT'
-           AND dt.alt_name != 'Summer School'
-          JOIN skills_long soc
-            ON co.student_number = soc.student_number
-           AND dt.alt_name = soc.term
-          WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
-            AND (co.grade_level <= 4 AND co.schoolid != 73252)
-            AND co.team NOT LIKE '%Pathways%'
-            AND co.rn = 1
-         ) sub     
-     PIVOT(
-       MAX(score)
-       FOR soc_term IN ([Q1],[Q2],[Q3],[Q4])
-      ) p
-    ) sub
-GROUP BY student_number
-        ,term
+SELECT co.student_number
+      ,dt.alt_name AS term      
+      ,soc.social_skill
+      ,soc.score
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+  ON co.schoolid = dt.schoolid
+ AND co.year = dt.academic_year
+ AND dt.identifier = 'RT'
+ AND dt.alt_name != 'Summer School'
+JOIN skills_long soc
+  ON co.student_number = soc.student_number
+ AND dt.alt_name = soc.term
+WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
+  AND (co.grade_level <= 4 AND co.schoolid != 73252)
+  AND co.team NOT LIKE '%Pathways%'
+  AND co.rn = 1

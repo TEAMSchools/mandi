@@ -6,7 +6,7 @@ ALTER VIEW REPORTING$SPED_comments AS
 SELECT CONVERT(INT,student_id) AS student_number
       ,CASE
         WHEN [field_subject] = 'Math' THEN 'Mathematics'
-        WHEN [field_subject] = 'ELA' THEN 'Comprehension'
+        WHEN [field_subject] = 'ELA' THEN 'Text Study'
         ELSE [field_subject] 
        END AS subject
       ,[field_comment] AS comment      

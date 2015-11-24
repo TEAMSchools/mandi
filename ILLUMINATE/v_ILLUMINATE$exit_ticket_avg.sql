@@ -46,13 +46,13 @@ FROM
            AND d.identifier = 'RT'
           JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
             ON ovr.assessment_id = a.assessment_id
-           AND a.scope = 'Exit Ticket'
+           AND ((a.subject_area = 'Performing Arts' AND a.scope IN ('Exit Ticket','Unit Assessment'))
+                 OR (a.subject_area != 'Performing Arts' AND a.scope = 'Exit Ticket'))
            AND a.subject_area IS NOT NULL                  
           WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
             AND ovr.answered > 0
             AND co.schoolid = 73258
-         ) sub
-     WHERE rn > 1
+         ) sub     
      GROUP BY academic_year
              ,local_student_id
              ,subj_abbrev

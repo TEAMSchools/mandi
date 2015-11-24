@@ -255,7 +255,7 @@ WITH ps_readingscores AS (
         ,studentid
         ,student_number
         ,LASTFIRST
-        ,status
+        ,'Did Not Achieve' AS status /* temp fix -- DNA tests coming through as Achieved because of PS > STEP Tool change */
         ,CONVERT(VARCHAR,read_lvl) AS read_lvl
         ,lvl_num
         ,CONVERT(VARCHAR,dna_lvl) AS dna_lvl
@@ -281,6 +281,7 @@ WITH ps_readingscores AS (
         ,CONVERT(VARCHAR,fp_keylever) AS fp_keylever
         ,CONVERT(VARCHAR,coaching_code) AS coaching_code
   FROM KIPP_NJ..LIT$STEP_Level_Assessment_Data#UChicago#static WITH(NOLOCK)
+  WHERE status != 'Did Not Achieve' /* temp fix -- DNA tests coming through as Achieved because of PS > STEP Tool change */
  )
 
 SELECT unique_id

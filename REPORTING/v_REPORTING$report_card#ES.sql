@@ -171,7 +171,7 @@ LEFT OUTER JOIN KIPP_NJ..LIT$spelling_totals#static sp WITH(NOLOCK)
  AND sp.listweek_num IS NULL
 LEFT OUTER JOIN KIPP_NJ..LIT$achieved_wide lit WITH(NOLOCK)
   ON r.studentid = lit.studentid
-LEFT OUTER JOIN KIPP_NJ..REPORTING$social_skills#ES soc WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..REPORTING$social_skills_wide#ES soc WITH(NOLOCK)
   ON r.student_number = soc.student_number
  AND rw.term = soc.term
 LEFT OUTER JOIN KIPP_NJ..PROMO$promo_status#ES promo WITH(NOLOCK)

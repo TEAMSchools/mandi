@@ -3,7 +3,7 @@ GO
 
 ALTER VIEW QA$social_skills_audit AS
 
-WITH tests AS (
+WITH tests_long AS (
   SELECT a.repository_id      
         ,a.title
         ,CASE
@@ -14,34 +14,41 @@ WITH tests AS (
           WHEN a.title LIKE '%Lanning%' THEN 179901          
           WHEN a.title LIKE '%Pathways%' THEN 732570
          END AS schoolid
+        ,f.label
+        ,f.name AS field_name
   FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)    
+  JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
+    ON a.repository_id = f.repository_id     
   WHERE a.scope = 'Reporting' 
     AND a.subject_area = 'Social Skills'
     AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
  
-,tests_long AS (
-  SELECT a.repository_id        
-        ,a.schoolid
-        ,a.title
-        ,f.label
-        ,f.name AS field_name
-  FROM tests a
-  JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
-    ON a.repository_id = f.repository_id     
- )
-
 ,terms AS (
   SELECT t.repository_id
         ,t.schoolid        
         ,res.student_id AS student_number
         ,res.repository_row_id
-        ,CASE WHEN t.title LIKE '%Pathways%' THEN LEFT(t.title, 2) ELSE res.value END AS term
+        ,res.value AS term
   FROM tests_long t
   JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
     ON t.repository_id = res.repository_id
    AND t.field_name = res.field
   WHERE t.label = 'term'
+    AND t.schoolid != 732570
+
+  UNION ALL
+
+  SELECT t.repository_id
+        ,t.schoolid        
+        ,res.student_id AS student_number
+        ,res.repository_row_id
+        ,LEFT(t.title, 2) AS term
+  FROM tests_long t
+  JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
+    ON t.repository_id = res.repository_id
+   AND t.field_name = res.field
+  WHERE t.schoolid = 732570    
 )
 
 SELECT co.student_number
