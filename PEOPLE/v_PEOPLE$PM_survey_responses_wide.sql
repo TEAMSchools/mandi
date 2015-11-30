@@ -64,7 +64,7 @@ WITH response_agg AS (
         ,team
         ,manager_name
         ,CONCAT(question_code, '_', field) AS pivot_field
-        ,CONVERT(VARCHAR,value) AS pivot_value        
+        ,STR(value, 3, 1) AS pivot_value        
   FROM response_agg_all
   UNPIVOT(
     value
@@ -124,7 +124,19 @@ WITH response_agg AS (
 SELECT *
 FROM
     (
-     SELECT *
+     SELECT survey_type
+           ,academic_year
+           ,term
+           ,staff_member
+           ,reporting_location
+           ,team
+           ,manager_name
+           ,pivot_field
+           ,CASE
+             WHEN pivot_field LIKE '%question_person_avg' 
+                    THEN KIPP_NJ.dbo.GROUP_CONCAT_DS(CONCAT(term, ': ', pivot_value), CHAR(9), 1) OVER(PARTITION BY survey_type, staff_member, pivot_field)
+             ELSE pivot_value
+            END AS pivot_value
      FROM question_unpivot
      UNION ALL
      SELECT *

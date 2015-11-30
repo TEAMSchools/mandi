@@ -18,7 +18,7 @@ BEGIN
  DECLARE
    @v_termid               INT      = KIPP_NJ.dbo.fn_Global_Term_Id(),
    @v_grade_1              VARCHAR(2) = 'Q1',   
-   @v_grade_2              VARCHAR(2) = 'FOO',  
+   @v_grade_2              VARCHAR(2) = 'Q2',  
    /* 
    EXAMPLE FOR IN-BETWEEN TERMS CALCULATION (EG REPORT CARD PREP)
    EXAMPLE IS END OF Q2
