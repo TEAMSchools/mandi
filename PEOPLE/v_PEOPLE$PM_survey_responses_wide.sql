@@ -108,7 +108,7 @@ WITH response_agg AS (
         ,team
         ,manager_name
         ,CONCAT(ISNULL(KIPP_NJ.dbo.fn_StripCharacters(competency,'^A-Z'), 'Manager_' + question_code), '_comments') AS pivot_field
-        ,KIPP_NJ.dbo.GROUP_CONCAT_D(REPLACE(LTRIM(RTRIM(response)),'"',''''''), CHAR(9) + '//' + CHAR(9)) AS pivot_value
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(REPLACE(LTRIM(RTRIM(response)),'"',''''''), CHAR(10)) AS pivot_value
   FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
   WHERE is_open_ended = 1
   GROUP BY survey_type

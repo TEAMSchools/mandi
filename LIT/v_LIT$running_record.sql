@@ -69,6 +69,7 @@ WITH running_record AS (
 SELECT s.LASTFIRST
       ,s.SCHOOLID
       ,s.GRADE_LEVEL
+      ,s.team 
       ,s.SPEDLEP
       ,rr.student_number
       ,rr.academic_year
