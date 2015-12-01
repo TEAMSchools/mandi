@@ -216,7 +216,7 @@ SELECT co.student_number
       ,ar2.stu_status_words AS AR_CUR_status
 
       /* ST Math */
-      ,NULL AS ST_Y1_progress
+      ,ROUND(stm.total_completion,0) AS ST_Y1_progress
       ,NULL AS ST_Y1_goal
       ,NULL AS ST_Y1_status
       ,NULL AS ST_CUR_progress
@@ -369,6 +369,8 @@ LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static lexile_base
 /* lit */
 LEFT OUTER JOIN KIPP_NJ..LIT$achieved_wide lit WITH(NOLOCK)
   ON co.studentid = lit.studentid
+LEFT OUTER JOIN STMATH..summary_by_enrollment stm WITH(NOLOCK)
+  ON co.student_number = stm.student_number
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1        
   AND co.schoolid IN (73252, 133570965, 179902)
