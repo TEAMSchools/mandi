@@ -87,7 +87,7 @@ WITH roster_scaffold AS (
     ON r.STUDENTID = achv.studentid      
    AND r.academic_year = achv.academic_year
    AND r.test_round = achv.test_round
-   AND (achv.status = 'Achieved')
+   AND achv.status = 'Achieved'
    AND achv.curr_round = 1
   LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers dna WITH(NOLOCK)
     ON r.STUDENTID = dna.studentid      
