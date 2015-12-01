@@ -57,13 +57,21 @@ WITH attendance AS (
  )
 
 SELECT student_number            
+      ,studentid
       ,schoolid      
+      ,grade_level
+      ,SPEDLEP
+      ,retained_yr_flag
       ,term      
+      ,met_goal
       ,lvls_grown_term
-      ,CASE
-        WHEN SPEDLEP = 'SPED' OR retained_yr_flag = 1 THEN 'See Teacher'
-        WHEN (schoolid = 73257 AND entry_grade_level > 0) AND lvls_grown_term = 0 THEN 'Off Track' /* Life Upper students have different promo criteria */
-        WHEN (schoolid = 73257 AND entry_grade_level > 0) AND lvls_grown_term > 0 THEN 'On Track' /* Life Upper students have different promo criteria */
+      ,CASE        
+        WHEN SPEDLEP = 'SPED' OR retained_yr_flag = 1 THEN 'See Teacher'        
+        WHEN met_goal = 1 THEN 'On Track'
+        WHEN lvls_grown_term IS NULL THEN NULL
+        /* Life Upper students have different promo criteria */
+        WHEN (schoolid = 73257 AND (grade_level - (year - 2014)) > 0) AND lvls_grown_term > 0 THEN 'On Track'
+        WHEN (schoolid = 73257 AND (grade_level - (year - 2014)) > 0) AND lvls_grown_term = 0 THEN 'Off Track'
         WHEN met_goal = 0 THEN 'Off Track'
         ELSE 'On Track'
        END AS lit_ARFR_status
@@ -80,10 +88,14 @@ SELECT student_number
 FROM
     (
      SELECT co.STUDENT_NUMBER           
+           ,co.studentid
            ,co.schoolid
-           ,co.entry_grade_level
+           ,co.grade_level
+           ,co.year
+           --,co.entry_grade_level
+           --,co.year_in_network
            ,co.spedlep
-           ,co.retained_yr_flag
+           ,co.retained_yr_flag           
            ,dt.term           
            ,lit.met_goal
            --,lit.read_lvl
@@ -94,10 +106,10 @@ FROM
            ,COALESCE(achv.DR_read_lvl, achv.Q1_read_lvl, achv.Q2_read_lvl, achv.Q3_read_lvl, achv.Q4_read_lvl) AS base_read_lvl
            ,achv.lvls_grown_yr
            ,CASE
-             WHEN dt.term = 'Q1' THEN lit.lvl_num - achv.DR_lvl_num
-             WHEN dt.term = 'Q2' THEN lit.lvl_num - COALESCE(achv.DR_lvl_num, achv.Q1_lvl_num)
-             WHEN dt.term = 'Q3' THEN lit.lvl_num - COALESCE(achv.DR_lvl_num, achv.Q1_lvl_num, achv.Q2_lvl_num)
-             WHEN dt.term = 'Q4' THEN lit.lvl_num - COALESCE(achv.DR_lvl_num, achv.Q1_lvl_num, achv.Q2_lvl_num, achv.Q3_lvl_num)
+             WHEN dt.term = 'Q1' THEN lit.lvl_num - COALESCE(achv.DR_lvl_num, achv.Q1_lvl_num)
+             WHEN dt.term = 'Q2' THEN lit.lvl_num - COALESCE(achv.DR_lvl_num, achv.Q1_lvl_num, achv.Q2_lvl_num)
+             WHEN dt.term = 'Q3' THEN lit.lvl_num - COALESCE(achv.DR_lvl_num, achv.Q1_lvl_num, achv.Q2_lvl_num, achv.Q3_lvl_num)
+             WHEN dt.term = 'Q4' THEN lit.lvl_num - COALESCE(achv.DR_lvl_num, achv.Q1_lvl_num, achv.Q2_lvl_num, achv.Q3_lvl_num, achv.Q4_lvl_num)
             END AS lvls_grown_term
            ,att.offtrack_days_limit           
            ,att.att_pts

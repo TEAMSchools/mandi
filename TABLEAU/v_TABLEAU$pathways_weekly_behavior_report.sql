@@ -3,6 +3,16 @@ GO
 
 ALTER VIEW TABLEAU$pathways_weekly_behavior_report AS
 
+WITH social_skills AS (
+  SELECT CONVERT(DATE,week_of) AS week_of
+        ,DATEPART(MONTH,CONVERT(DATE,week_of)) AS month_of
+        ,social_skill
+        ,ROW_NUMBER() OVER(
+           PARTITION BY DATEPART(MONTH,CONVERT(DATE,week_of))
+             ORDER BY CONVERT(DATE,week_of) DESC) AS rn
+  FROM KIPP_NJ..AUTOLOAD$GDOCS_PATHWAYS_social_skill_of_the_week WITH(NOLOCK)
+ )
+
 SELECT co.year
       ,co.student_number      
       ,co.lastfirst            
@@ -52,8 +62,9 @@ LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_long#ES#static trk WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PATHWAYS_goal_tracking goals WITH(NOLOCK)
   ON co.lastfirst = goals.student_name
  AND goals.achieved_date IS NULL
-LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PATHWAYS_social_skill_of_the_week skwk WITH(NOLOCK)
-  ON DATEPART(MONTH,CONVERT(DATE,skwk.week_of)) = DATEPART(MONTH,cal.date_value)
+LEFT OUTER JOIN social_skills skwk WITH(NOLOCK)
+  ON DATEPART(MONTH,cal.date_value) = skwk.month_of
+ AND skwk.rn = 1
 WHERE co.rn = 1
   AND (co.grade_level <= 4 AND co.schoolid != 73252)
   AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
