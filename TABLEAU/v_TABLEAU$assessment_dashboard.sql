@@ -20,7 +20,11 @@ SELECT co.schoolid
       ,a.scope            
       ,a.subject_area AS subject
       ,a.credittype   
-      ,CASE WHEN CHARINDEX(REPLACE(co.grade_level, 0, 'K'), CONVERT(VARCHAR(128),a.tags)) = 0 THEN 1 ELSE 0 END AS is_replacement
+      ,CASE 
+        WHEN KIPP_NJ.dbo.fn_StripCharacters(REPLACE(CONVERT(VARCHAR,a.tags), ', K,', ', 0,'), '^0-9') = '' THEN 0 /* no grade tags */
+        WHEN CHARINDEX(REPLACE(co.grade_level, 0, 'K'), CONVERT(VARCHAR(128),a.tags)) = 0 THEN 1 
+        ELSE 0 
+       END AS is_replacement
       ,enr.COURSE_NAME
       ,enr.teacher_name
       ,COALESCE(enr.period, enr.section_number) AS section

@@ -8,7 +8,7 @@ WITH valid_tests AS (
   FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)    
   WHERE a.scope = 'Reporting' 
     AND a.subject_area = 'Word Work'
-    --AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
 ,scores_long AS (
