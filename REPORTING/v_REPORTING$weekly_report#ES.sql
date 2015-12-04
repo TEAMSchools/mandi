@@ -29,7 +29,7 @@ WITH reporting_week AS (
        WHERE identifier = 'REP'    
          AND school_level = 'ES'           
          --AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND end_date <= CONVERT(DATE,GETDATE())
+         AND end_date < CONVERT(DATE,GETDATE())
       ) sub  
  )
 

@@ -27,8 +27,8 @@ WITH gr_curr AS (
    ) u
  )
 
-SELECT co.school_name /* student identifiers */
-      ,co.student_number
+SELECT CASE WHEN co.TEAM LIKE '%pathways%' THEN 'Pathways' ELSE co.school_name END AS school_name /* student identifiers */
+      ,CASE WHEN achv.start_date >= CONVERT(DATE,GETDATE()) THEN NULL ELSE co.student_number END AS student_number
       ,co.lastfirst AS student_name
       ,co.grade_level
       ,co.cohort

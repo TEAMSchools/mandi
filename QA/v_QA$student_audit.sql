@@ -35,42 +35,44 @@ WITH dupe_enrollments AS (
   GROUP BY SCHOOLID
  )
 
-SELECT s.student_number
-      ,s.LASTFIRST
-      ,s.GRADE_LEVEL
-      ,s.SCHOOLID
-      ,s.enroll_status
-      ,s.lunchstatus -- F, R, P
-      ,s.ethnicity -- 'T','W','H','A','B','I','P'
-      ,s.gender -- 'M', 'F'
-      ,cs.spedlep -- 'No IEP', 'SPED', 'SPED SPEECH'
+SELECT co.year
+      ,co.student_number
+      ,co.LASTFIRST
+      ,co.GRADE_LEVEL
+      ,co.SCHOOLID
+      ,co.enroll_status
+      ,co.exitcode
+      ,co.highest_achieved
+      ,co.lunchstatus -- F, R, P
+      ,co.ethnicity -- 'T','W','H','A','B','I','P'
+      ,co.gender -- 'M', 'F'
+      ,co.spedlep -- 'No IEP', 'SPED', 'SPED SPEECH'
       ,s.state_studentnumber -- NOT NULL
-      ,s.TEAM -- NOT NULL
+      ,co.TEAM -- NOT NULL
       ,hr.sectionid AS hr_sectionid -- NOT NULL      
       ,dupe.dupe_enrollments -- IS NULL
       /* IS NOT NULL & LIKE school fteid if enrolled */
       ,s.fteid
-      ,fte.fte_id AS school_fteid
-      /**/
-      ,s.allowwebaccess -- =1 
-      ,s.student_allowwebaccess -- =1
+      ,fte.fte_id AS school_fteid      
+      
+      ,s.allowwebaccess -- = 1 
+      ,s.student_allowwebaccess -- = 1
       ,s.web_id -- IS NOT NULL
       ,s.student_web_id -- IS NOT NULL
-      --NEED TO ADD TO TABLE: ,s.enrollment_schoolid -- = schoolid (unless graduated)
+      ,s.enrollment_schoolid -- = schoolid (unless graduated)
       /* ENTRYDATE > EXITDATE */
-      ,s.ENTRYDATE
-      ,s.EXITDATE
-      /**/      
-FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
-JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
-  ON s.id = cs.STUDENTID
+      ,co.ENTRYDATE
+      ,co.EXITDATE            
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+  ON co.studentid = s.id
 LEFT OUTER JOIN KIPP_NJ..PS$CC#static hr WITH(NOLOCK)
   ON s.id = hr.STUDENTID
- AND hr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND co.year = hr.academic_year
 	AND CONVERT(DATE,GETDATE()) BETWEEN hr.dateenrolled AND hr.dateleft
 	AND hr.COURSE_NUMBER = 'HR'
 LEFT OUTER JOIN dupe_enrollments dupe
   ON s.id = dupe.STUDENTID
 LEFT OUTER JOIN fte WITH(NOLOCK)
-  ON s.SCHOOLID = fte.SCHOOLID 
---WHERE s.enroll_status = 0
+  ON s.SCHOOLID = fte.SCHOOLID
+WHERE co.rn = 1

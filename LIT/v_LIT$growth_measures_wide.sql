@@ -41,7 +41,6 @@ WITH term_cur AS (
                   ,CONVERT(VARCHAR,lvl_num) AS lvl_num
             FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)            
            ) sub
-
        UNPIVOT (
          value
          FOR field IN (read_lvl
@@ -99,7 +98,7 @@ WITH term_cur AS (
                   ,CONVERT(VARCHAR,fp_keylever) AS keylever
                   ,CONVERT(VARCHAR,fp_wpmrate) AS wpmrate                  
             FROM KIPP_NJ..LIT$test_events#identifiers WITH(NOLOCK)
-            WHERE status = 'Achieved'
+            WHERE ((academic_year < 2015 AND status = 'Achieved') OR (academic_year >= 2015 AND status = 'Did Not Achieve'))
               AND curr_yr = 1
            ) sub
 

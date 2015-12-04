@@ -60,7 +60,7 @@ SELECT DISTINCT
       ,CASE WHEN CONVERT(INT,step.step) >= COALESCE(indiv.lvl_num, goals.lvl_num) THEN 1 ELSE 0 END AS met_goal
       ,CONVERT(INT,step.step) - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind                 
 
-      ,NULL AS gleq
+      ,gleq.gleq
       ,step.book AS color
       ,NULL AS genre
       ,NULL AS fp_wpmrate
@@ -83,3 +83,19 @@ LEFT OUTER JOIN KIPP_NJ..LIT$individual_goals indiv WITH(NOLOCK)
   ON co.student_number = indiv.student_number
  AND co.year = indiv.academic_year
  AND dt.time_per_name = indiv.test_round
+LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
+  ON CASE               
+       WHEN CONVERT(INT,step.step) = 0 THEN 3280
+       WHEN CONVERT(INT,step.step) = 1 THEN 3281
+       WHEN CONVERT(INT,step.step) = 2 THEN 3282
+       WHEN CONVERT(INT,step.step) = 3 THEN 3380
+       WHEN CONVERT(INT,step.step) = 4 THEN 3397
+       WHEN CONVERT(INT,step.step) = 5 THEN 3411
+       WHEN CONVERT(INT,step.step) = 6 THEN 3425
+       WHEN CONVERT(INT,step.step) = 7 THEN 3441
+       WHEN CONVERT(INT,step.step) = 8 THEN 3458
+       WHEN CONVERT(INT,step.step) = 9 THEN 3474
+       WHEN CONVERT(INT,step.step) = 10 THEN 3493
+       WHEN CONVERT(INT,step.step) = 11 THEN 3511
+       WHEN CONVERT(INT,step.step) = 12 THEN 3527
+      END = gleq.testid
