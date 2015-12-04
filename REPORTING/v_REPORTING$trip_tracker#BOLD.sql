@@ -49,7 +49,8 @@ FROM
      WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
        AND co.schoolid = 73258
        AND co.enroll_status = 0
-       AND co.date BETWEEN '2015-09-24' AND CONVERT(DATE,GETDATE())
+       AND co.date BETWEEN '2015-11-06' AND CONVERT(DATE,GETDATE())
+--	   AND co.date BETWEEN '2015-09-24' AND CONVERT(DATE,GETDATE())
        AND co.date IN (SELECT cal.date_value
                        FROM KIPP_NJ..PS$CALENDAR_DAY cal WITH(NOLOCK)
                        WHERE cal.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
