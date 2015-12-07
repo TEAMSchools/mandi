@@ -42,6 +42,8 @@ FROM
            ,academic_year
            ,student_number
            ,lastfirst
+		   ,last_name
+		   ,first_name
            ,grade_level
            ,team
            ,advisor            
@@ -54,6 +56,8 @@ FROM
                 ,co.year AS academic_year
                 ,co.student_number
                 ,co.lastfirst
+				,co.last_name
+				,co.first_name
                 ,co.grade_level
                 ,co.team
                 ,co.advisor            
@@ -91,6 +95,8 @@ FROM
                 ,co.year
                 ,co.student_number
                 ,co.lastfirst
+				,co.last_name
+				,co.first_name
                 ,co.grade_level
                 ,co.team
                 ,co.advisor            
