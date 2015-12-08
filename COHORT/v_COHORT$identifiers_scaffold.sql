@@ -18,6 +18,8 @@ SELECT co.year
       ,co.SPEDLEP
       ,co.lep_status
       ,co.enroll_status
+      ,co.entrydate
+      ,co.exitdate
       ,CONVERT(DATE,rd.date) AS date
       ,rd.reporting_hash
       ,dt.alt_name AS term

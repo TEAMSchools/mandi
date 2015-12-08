@@ -44,18 +44,13 @@ FROM
            ,map_base.termname AS derived_from                 
            ,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
            ,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
-           ,CASE
-             WHEN rr_goals.RIT_target IS NOT NULL THEN ROUND(MIN(rr_goals.RIT_target), 0) - CAST(map_base.testritscore AS FLOAT)
-             --bottom quartile
-             WHEN rr_goals.RIT_target IS NULL AND CAST(status_norms.percentile AS INT) > 0   AND CAST(status_norms.percentile AS INT) < 25 THEN ROUND(CAST(norm.r22 AS FLOAT) * 2.0, 0)
-             --2nd quartile
-             WHEN rr_goals.RIT_target IS NULL AND CAST(status_norms.percentile AS INT) >= 25 AND CAST(status_norms.percentile AS INT) < 50 THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.75, 0)
-             --3rd quartile
-             WHEN rr_goals.RIT_target IS NULL AND CAST(status_norms.percentile AS INT) >= 50 AND CAST(status_norms.percentile AS INT) < 75 THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0)
-             --top quartile
-             WHEN rr_goals.RIT_target IS NULL AND CAST(status_norms.percentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100 THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)
-             ELSE NULL
-            END AS rutgers_ready_goal                 
+           ,COALESCE(ROUND(MIN(rr_goals.RIT_target), 0) - CAST(map_base.testritscore AS FLOAT)
+                    ,CASE                      
+                      WHEN CONVERT(INT,status_norms.percentile) BETWEEN 0 AND 24 THEN ROUND(CONVERT(FLOAT,norm.r22) * 2.0, 0) -- bottom quartile                      
+                      WHEN CONVERT(INT,status_norms.percentile) BETWEEN 25 AND 49 THEN ROUND(CONVERT(FLOAT,norm.r22) * 1.75, 0) -- 2nd quartile                      
+                      WHEN CONVERT(INT,status_norms.percentile) BETWEEN 50 AND 74 THEN ROUND(CONVERT(FLOAT,norm.r22) * 1.5, 0) -- 3rd quartile                      
+                      WHEN CONVERT(INT,status_norms.percentile) BETWEEN 75 AND 100 THEN ROUND(CONVERT(FLOAT,norm.r22) * 1.25, 0) -- top quartile
+                     END) AS rutgers_ready_goal                 
      FROM stu_roster
      CROSS JOIN math_read       
      --baseline (composite of Spring and Fall; pick best)
@@ -77,10 +72,8 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..MAP$norm_table#2011 status_norms
         ON math_read.measurementscale = status_norms.measurementscale
         AND map_base.testritscore = status_norms.RIT
-        AND (
-          (stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') OR
-          (stu_roster.grade_level = 0 AND stu_roster.grade_level = status_norms.grade AND status_norms.fallwinterspring='Fall')
-        )
+        AND ((stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') 
+               OR (stu_roster.grade_level = 0 AND stu_roster.grade_level = status_norms.grade AND status_norms.fallwinterspring='Fall'))
      WHERE stu_roster.grade_level >= 5      
      GROUP BY stu_roster.studentid
              ,stu_roster.schoolid
@@ -97,9 +90,7 @@ FROM
              ,norm.R22
     ) sub 
 
-
 UNION ALL
-
 
 --SCIENCE AND LANGUAGE FOR 4-12
 SELECT sub.*
@@ -113,15 +104,11 @@ FROM
            ,map_base.termname AS derived_from                      
            ,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
            ,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
-           ,CASE 
-             --bottom quartile
-             WHEN CAST(status_norms.percentile AS INT) > 0   AND CAST(status_norms.percentile AS INT) < 25 THEN ROUND(CAST(norm.r22 AS FLOAT) * 2.0, 0)
-             --2nd quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 25 AND CAST(status_norms.percentile AS INT) < 50 THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.75, 0)
-             --3rd quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 50 AND CAST(status_norms.percentile AS INT) < 75 THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0)
-             --top quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100 THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)
+           ,CASE                      
+             WHEN CONVERT(INT,status_norms.percentile) BETWEEN 0 AND 24 THEN ROUND(CONVERT(FLOAT,norm.r22) * 2.0, 0) -- bottom quartile                      
+             WHEN CONVERT(INT,status_norms.percentile) BETWEEN 25 AND 49 THEN ROUND(CONVERT(FLOAT,norm.r22) * 1.75, 0) -- 2nd quartile                      
+             WHEN CONVERT(INT,status_norms.percentile) BETWEEN 50 AND 74 THEN ROUND(CONVERT(FLOAT,norm.r22) * 1.5, 0) -- 3rd quartile                      
+             WHEN CONVERT(INT,status_norms.percentile) BETWEEN 75 AND 100 THEN ROUND(CONVERT(FLOAT,norm.r22) * 1.25, 0) -- top quartile
             END AS rutgers_ready_goal       
      FROM stu_roster
      CROSS JOIN sci_lang       
@@ -135,20 +122,14 @@ FROM
       AND map_base.testritscore = norm.startrit
       AND stu_roster.grade_level - 1 = norm.startgrade
      LEFT OUTER JOIN KIPP_NJ..MAP$norm_table#2011 status_norms
-        ON (
-          (map_base.measurementscale = status_norms.measurementscale) OR (sci_lang.alt_measurementscale = status_norms.measurementscale)
-        )
-        AND map_base.testritscore = status_norms.RIT
-        AND (
-          (stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') OR
-          (stu_roster.grade_level = 0 AND stu_roster.grade_level = status_norms.grade AND status_norms.fallwinterspring='Fall')
-        )
+        ON ((map_base.measurementscale = status_norms.measurementscale) OR (sci_lang.alt_measurementscale = status_norms.measurementscale))
+       AND map_base.testritscore = status_norms.RIT
+       AND ((stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') 
+              OR (stu_roster.grade_level = 0 AND stu_roster.grade_level = status_norms.grade AND status_norms.fallwinterspring='Fall'))
      WHERE stu_roster.grade_level >= 4       
     ) sub
 
-
 UNION ALL
-
 
 --SCIENCE AND LANGUAGE FOR K-3
 SELECT sub.*
@@ -162,40 +143,25 @@ FROM
            ,map_base.termname AS derived_from           
            ,COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_goal
            ,map_base.testritscore + COALESCE(map_base.typical_growth_fallorspring_to_spring, norm.r22) AS keep_up_rit
-           ,CASE 
-             --bottom quartile
-             WHEN CAST(status_norms.percentile AS INT) > 0   AND CAST(status_norms.percentile AS INT) < 25 
-              AND stu_roster.GRADE_LEVEL > 0
-              THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0)
-             --2nd quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 25 AND CAST(status_norms.percentile AS INT) < 50 
-              AND stu_roster.GRADE_LEVEL > 0
-              THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0)
-             --3rd quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 50 AND CAST(status_norms.percentile AS INT) < 75 
-              AND stu_roster.GRADE_LEVEL > 0
-              THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)
-             --top quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100
-              AND stu_roster.GRADE_LEVEL > 0
-              THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)
-             --K needs fall to spring norm
-             --bottom quartile
-             WHEN CAST(status_norms.percentile AS INT) > 0   AND CAST(status_norms.percentile AS INT) < 25 
-              AND stu_roster.GRADE_LEVEL = 0
-              THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.5, 0)
-             --2nd quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 25 AND CAST(status_norms.percentile AS INT) < 50 
-              AND stu_roster.GRADE_LEVEL = 0
-              THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.5, 0)
-             --3rd quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 50 AND CAST(status_norms.percentile AS INT) < 75 
-              AND stu_roster.GRADE_LEVEL = 0
-              THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.25, 0)
-             --top quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100
-              AND stu_roster.GRADE_LEVEL = 0
-              THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.25, 0)
+           ,CASE              
+             WHEN CAST(status_norms.percentile AS INT) > 0   AND CAST(status_norms.percentile AS INT) < 25 AND stu_roster.GRADE_LEVEL > 0 
+                    THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0) -- bottom quartile             
+             WHEN CAST(status_norms.percentile AS INT) >= 25 AND CAST(status_norms.percentile AS INT) < 50 AND stu_roster.GRADE_LEVEL > 0
+                    THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0) -- 2nd quartile             
+             WHEN CAST(status_norms.percentile AS INT) >= 50 AND CAST(status_norms.percentile AS INT) < 75 AND stu_roster.GRADE_LEVEL > 0
+                    THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0) -- 3rd quartile             
+             WHEN CAST(status_norms.percentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100 AND stu_roster.GRADE_LEVEL > 0
+                    THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0) -- top quartile
+             
+             --K needs fall to spring norm             
+             WHEN CAST(status_norms.percentile AS INT) > 0   AND CAST(status_norms.percentile AS INT) < 25 AND stu_roster.GRADE_LEVEL = 0
+                    THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.5, 0) --bottom quartile             
+             WHEN CAST(status_norms.percentile AS INT) >= 25 AND CAST(status_norms.percentile AS INT) < 50 AND stu_roster.GRADE_LEVEL = 0
+                    THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.5, 0) --2nd quartile             
+             WHEN CAST(status_norms.percentile AS INT) >= 50 AND CAST(status_norms.percentile AS INT) < 75 AND stu_roster.GRADE_LEVEL = 0
+                    THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.25, 0) --3rd quartile             
+             WHEN CAST(status_norms.percentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100 AND stu_roster.GRADE_LEVEL = 0
+                    THEN ROUND(CAST(norm.r42 AS FLOAT) * 1.25, 0) --top quartile
             END AS rutgers_ready_goal
      FROM stu_roster
      CROSS JOIN sci_lang       
@@ -207,25 +173,17 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
       ON sci_lang.alt_measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND (
-        (stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = norm.startgrade) OR
-        (stu_roster.grade_level = 0 AND stu_roster.grade_level = norm.startgrade)
-      )
+      AND ((stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = norm.startgrade)
+             OR (stu_roster.grade_level = 0 AND stu_roster.grade_level = norm.startgrade))
       LEFT OUTER JOIN KIPP_NJ..MAP$norm_table#2011 status_norms
-        ON (
-          (map_base.measurementscale = status_norms.measurementscale) OR (sci_lang.alt_measurementscale = status_norms.measurementscale)
-        )
-        AND map_base.testritscore = status_norms.RIT
-        AND (
-          (stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') OR
-          (stu_roster.grade_level = 0 AND stu_roster.grade_level = status_norms.grade AND status_norms.fallwinterspring='Fall')
-        )
+        ON ((map_base.measurementscale = status_norms.measurementscale) OR (sci_lang.alt_measurementscale = status_norms.measurementscale))
+       AND map_base.testritscore = status_norms.RIT
+       AND ((stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') 
+              OR (stu_roster.grade_level = 0 AND stu_roster.grade_level = status_norms.grade AND status_norms.fallwinterspring='Fall'))
      WHERE stu_roster.grade_level < 4
     ) sub
 
-
 UNION ALL
-
 
 --MATH AND READING FOR ES K-3
 SELECT sub.*
@@ -285,23 +243,17 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norm WITH(NOLOCK)
        ON math_read.measurementscale = norm.subject
       AND map_base.testritscore = norm.startrit
-      AND (
-        (stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = norm.startgrade ) OR
-        (stu_roster.grade_level = 0 AND stu_roster.grade_level = norm.startgrade)
-      )
-      LEFT OUTER JOIN KIPP_NJ..MAP$norm_table#2011 status_norms
-        ON math_read.measurementscale = status_norms.measurementscale
-        AND map_base.testritscore = status_norms.RIT
-        AND (
-          (stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') OR
-          (stu_roster.grade_level = 0 AND stu_roster.grade_level = status_norms.grade AND status_norms.fallwinterspring='Fall')
-        )
+      AND ((stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = norm.startgrade ) 
+             OR (stu_roster.grade_level = 0 AND stu_roster.grade_level = norm.startgrade))
+     LEFT OUTER JOIN KIPP_NJ..MAP$norm_table#2011 status_norms
+       ON math_read.measurementscale = status_norms.measurementscale
+      AND map_base.testritscore = status_norms.RIT
+      AND ((stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') 
+             OR (stu_roster.grade_level = 0 AND stu_roster.grade_level = status_norms.grade AND status_norms.fallwinterspring='Fall'))
      WHERE stu_roster.grade_level <= 3
     ) sub
 
-
 UNION ALL
-
 
 --MATH AND READING FOR ES 4
 SELECT sub.*
@@ -315,15 +267,11 @@ FROM
            ,map_base.termname AS derived_from           
            ,norm.r22 AS keep_up_goal
            ,map_base.testritscore + norm.r22 AS keep_up_rit
-           ,CASE 
-             --bottom quartile
-             WHEN CAST(status_norms.percentile AS INT) > 0   AND CAST(status_norms.percentile AS INT) < 25 THEN ROUND(CAST(norm.r22 AS FLOAT) * 2, 0)
-             --2nd quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 25 AND CAST(status_norms.percentile AS INT) < 50 THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.75, 0)
-             --3rd quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 50 AND CAST(status_norms.percentile AS INT) < 75 THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.5, 0)
-             --top quartile
-             WHEN CAST(status_norms.percentile AS INT) >= 75 AND CAST(status_norms.percentile AS INT) < 100 THEN ROUND(CAST(norm.r22 AS FLOAT) * 1.25, 0)
+           ,CASE                      
+             WHEN CONVERT(INT,status_norms.percentile) BETWEEN 0 AND 24 THEN ROUND(CONVERT(FLOAT,norm.r22) * 2.0, 0) -- bottom quartile                      
+             WHEN CONVERT(INT,status_norms.percentile) BETWEEN 25 AND 49 THEN ROUND(CONVERT(FLOAT,norm.r22) * 1.75, 0) -- 2nd quartile                      
+             WHEN CONVERT(INT,status_norms.percentile) BETWEEN 50 AND 74 THEN ROUND(CONVERT(FLOAT,norm.r22) * 1.5, 0) -- 3rd quartile                      
+             WHEN CONVERT(INT,status_norms.percentile) BETWEEN 75 AND 100 THEN ROUND(CONVERT(FLOAT,norm.r22) * 1.25, 0) -- top quartile
             END AS rutgers_ready_goal  
      FROM stu_roster
      CROSS JOIN math_read       
@@ -339,9 +287,7 @@ FROM
       LEFT OUTER JOIN KIPP_NJ..MAP$norm_table#2011 status_norms
         ON math_read.measurementscale = status_norms.measurementscale
         AND map_base.testritscore = status_norms.RIT
-        AND (
-          (stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') OR
-          (stu_roster.grade_level = 0 AND stu_roster.grade_level = status_norms.grade AND status_norms.fallwinterspring='Fall')
-        )
+        AND ((stu_roster.grade_level > 0 AND stu_roster.grade_level-1 = status_norms.grade AND status_norms.fallwinterspring='Spring') 
+               OR (stu_roster.grade_level = 0 AND stu_roster.grade_level = status_norms.grade AND status_norms.fallwinterspring='Fall'))
      WHERE stu_roster.grade_level = 4
     ) sub
