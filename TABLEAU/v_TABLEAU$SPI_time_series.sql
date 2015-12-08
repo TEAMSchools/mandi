@@ -109,6 +109,7 @@ SELECT co.year
       ,rt.alt_name AS term
 
       /* demographics */
+      ,co.GENDER
       ,co.ETHNICITY
       ,co.LUNCHSTATUS
       ,co.SPEDLEP
@@ -155,4 +156,5 @@ LEFT OUTER JOIN map_data map_math
  AND map_math.measurementscale = 'Mathematics'
 WHERE co.year = 2015
   AND co.schoolid != 999999
+  AND co.grade_level != 99
   AND co.rn = 1
