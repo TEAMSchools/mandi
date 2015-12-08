@@ -70,6 +70,28 @@ WITH map_data AS (
   WHERE year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
+,attendance AS (
+  SELECT mem.STUDENTID
+        ,mem.academic_year
+        ,MIN(CONVERT(DATE,mem.CALENDARDATE)) AS week_of
+        ,SUM(CONVERT(INT,mem.ATTENDANCEVALUE)) AS n_present
+        ,SUM(CASE 
+              WHEN mem.ATTENDANCEVALUE IS NOT NULL AND tdy.ATT_CODE IS NOT NULL THEN 0
+              WHEN mem.ATTENDANCEVALUE IS NOT NULL AND tdy.ATT_CODE IS NULL THEN 1
+             END) AS n_ontime
+        ,COUNT(mem.calendardate) AS n_attendance_days      
+  FROM KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)    
+  LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE tdy WITH(NOLOCK)
+    ON mem.studentid = tdy.STUDENTID
+   AND mem.academic_year = tdy.academic_year
+   AND mem.CALENDARDATE = tdy.ATT_DATE
+   AND tdy.ATT_CODE IN ('T','T10')
+  WHERE mem.academic_year = 2015
+  GROUP BY mem.STUDENTID
+          ,mem.academic_year
+          ,DATEPART(WEEK,mem.calendardate)        
+ )
+
 SELECT co.year            
       ,co.schoolid
       ,co.grade_level
@@ -81,7 +103,9 @@ SELECT co.year
       ,CASE WHEN co.entrydate <= CONVERT(DATE,CONCAT(co.year,'-10-15')) AND co.exitdate >= CONVERT(DATE,CONCAT(co.year,'-10-15')) THEN 1 ELSE 0 END AS is_baseline_10_15
 
       /* date stuff */      
-      ,dates.date
+      ,dates.date AS week_start_date
+      ,DATEADD(DAY, 6, dates.date) AS week_end_date
+      ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN dates.date AND DATEADD(DAY, 6, dates.date) THEN 1 ELSE 0 END AS is_current_week
       ,rt.alt_name AS term
 
       /* demographics */
@@ -95,20 +119,19 @@ SELECT co.year
       ,attr_kipp.attr_flag AS attrition_flag_KIPP
 
       /* attendance */
-      ,mem.ATTENDANCEVALUE AS is_present
-      ,CASE 
-        WHEN mem.ATTENDANCEVALUE IS NOT NULL AND tdy.ATT_CODE IS NOT NULL THEN 0
-        WHEN mem.ATTENDANCEVALUE IS NOT NULL AND tdy.ATT_CODE IS NULL THEN 1
-       END AS is_ontime
+      ,att.n_present
+      ,att.n_ontime
+      ,att.n_attendance_days      
 
-      /* MAP data */
-      ,map_read.met_typical_growth_target AS map_reading_met_keepup
-      ,map_read.growth_percentile AS map_reading_SGP
-      ,map_math.met_typical_growth_target AS map_math_met_keepup
-      ,map_math.growth_percentile AS map_math_SGP
+      /* MAP data -- n/a for dropped students */
+      ,CASE WHEN co.enroll_status = 0 THEN map_read.met_typical_growth_target ELSE NULL END AS map_reading_met_keepup
+      ,CASE WHEN co.enroll_status = 0 THEN map_read.growth_percentile ELSE NULL END AS map_reading_SGP
+      ,CASE WHEN co.enroll_status = 0 THEN map_math.met_typical_growth_target ELSE NULL END AS map_math_met_keepup
+      ,CASE WHEN co.enroll_status = 0 THEN map_math.growth_percentile ELSE NULL END AS map_math_SGP
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..UTIL$reporting_days#static dates WITH(NOLOCK)
   ON co.year = dates.academic_year
+ AND DATEPART(WEEKDAY,dates.date) = 1
  AND dates.date <= CONVERT(DATE,GETDATE())
 LEFT OUTER JOIN KIPP_NJ..REPORTING$dates rt WITH(NOLOCK)
   ON co.schoolid = rt.schoolid
@@ -117,15 +140,9 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$dates rt WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..DEVFIN$mobility_long#KIPP attr_kipp WITH(NOLOCK)
   ON co.studentid = attr_kipp.d_studentid
  AND co.year = attr_kipp.year
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
-  ON co.studentid = mem.STUDENTID
- AND co.year = mem.academic_year
- AND dates.date = mem.CALENDARDATE
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE tdy WITH(NOLOCK)
-  ON co.studentid = tdy.STUDENTID
- AND co.year = tdy.academic_year
- AND dates.date = tdy.ATT_DATE
- AND tdy.ATT_CODE IN ('T','T10')
+LEFT OUTER JOIN attendance att
+  ON co.studentid = att.STUDENTID
+ AND att.week_of BETWEEN dates.date AND DATEADD(DAY, 6, dates.date)
 LEFT OUTER JOIN map_data map_read
   ON co.studentid = map_read.studentid
  AND co.year = map_read.year
