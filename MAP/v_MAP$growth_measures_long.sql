@@ -165,6 +165,7 @@ FROM
                 ,map_end.termname AS end_term_verif
                 --norm study data
                 ,CASE
+                  WHEN base.start_term_numeric = 2 AND base.end_term_numeric = 1 THEN norms.R22 * base.goal_prorater /* Spring to Half-Spring */
                   WHEN base.period_numeric = 42 THEN norms.r42
                   WHEN base.period_numeric = 22 THEN norms.r22
                   WHEN base.period_numeric = 44 THEN norms.r44
@@ -172,6 +173,7 @@ FROM
                   WHEN base.period_numeric = 12 THEN norms.r12
                  END AS reported_growth_projection
                 ,CASE
+                  WHEN base.start_term_numeric = 2 AND base.end_term_numeric = 1 THEN norms.T22 * base.goal_prorater /* Spring to Half-Spring */
                   WHEN base.period_numeric = 42 THEN norms.t42
                   WHEN base.period_numeric = 22 THEN norms.t22
                   WHEN base.period_numeric = 44 THEN norms.t44
@@ -179,6 +181,7 @@ FROM
                   WHEN base.period_numeric = 12 THEN norms.t12
                  END AS true_growth_projection
                 ,CASE
+                  WHEN base.start_term_numeric = 2 AND base.end_term_numeric = 1 THEN norms.S22 * base.goal_prorater /* Spring to Half-Spring */
                   WHEN base.period_numeric = 42 THEN norms.s42
                   WHEN base.period_numeric = 22 THEN norms.s22
                   WHEN base.period_numeric = 44 THEN norms.s44

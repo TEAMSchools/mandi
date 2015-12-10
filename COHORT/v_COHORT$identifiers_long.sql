@@ -151,6 +151,9 @@ SELECT co.schoolid
 
       ,ret.retained_yr_flag
       ,ret.retained_ever_flag
+      ,ROW_NUMBER() OVER(
+         PARTITION BY co.studentid
+           ORDER BY co.year DESC, co.rn ASC) AS all_years_rn
 FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH (NOLOCK)
 JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH (NOLOCK)
   ON co.schoolid = sch.school_number
