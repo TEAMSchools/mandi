@@ -72,6 +72,49 @@ WITH map_data AS (
           ,mem.academic_year          
  )
 
+,offtrack_grades AS (
+  SELECT academic_year
+        ,student_number      
+        ,CASE
+          WHEN SUM(CASE 
+                    WHEN schoolid = 73253 AND moving_average < 70 THEN 1
+                    WHEN schoolid != 73253 AND moving_average < 65 THEN 1
+                    ELSE 0
+                   END) > 0 THEN 1
+          ELSE 0
+         END AS is_offtrack_grades
+  FROM KIPP_NJ..GRADES$time_series WITH(NOLOCK)
+  WHERE finalgradename = 'Y1'
+    AND date = CONVERT(DATE,GETDATE())
+  GROUP BY student_number
+          ,academic_year
+
+  UNION ALL
+
+  SELECT academic_year
+        ,student_number
+        ,CASE WHEN SUM(is_failing) > 0 THEN 1 ELSE 0 END AS is_offtrack_grades
+  FROM
+      (
+       SELECT academic_year
+             ,student_number                            
+             ,ROW_NUMBER() OVER(
+               PARTITION BY student_number, academic_year, course_number
+                 ORDER BY date DESC) AS rn
+             ,CASE 
+               WHEN schoolid = 73253 AND moving_average < 70 THEN 1
+               WHEN schoolid != 73253 AND moving_average < 65 THEN 1
+               ELSE 0
+              END AS is_failing
+       FROM KIPP_NJ..GRADES$time_series WITH(NOLOCK)
+       WHERE finalgradename = 'Y1'
+         AND academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year()  
+      ) sub
+  WHERE rn = 1
+  GROUP BY student_number
+          ,academic_year
+ )
+
 ,long_data AS (
   SELECT *
   FROM
@@ -110,6 +153,9 @@ WITH map_data AS (
              ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL ELSE CONVERT(FLOAT,map_read.growth_percentile) END AS map_reading_SGP
              ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL ELSE CONVERT(FLOAT,map_math.met_typical_growth_target) END * 100 AS map_math_met_keepup
              ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL ELSE CONVERT(FLOAT,map_math.growth_percentile) END AS map_math_SGP
+
+             /* grades off track */
+             ,CONVERT(FLOAT,gr.is_offtrack_grades * 100) AS is_offtrack_grades
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        LEFT OUTER JOIN KIPP_NJ..DEVFIN$mobility_long#KIPP attr_kipp WITH(NOLOCK)
          ON co.studentid = attr_kipp.d_studentid
@@ -127,6 +173,9 @@ WITH map_data AS (
         AND co.year = map_math.year 
         AND map_math.measurementscale = 'Mathematics'
         AND map_math.rn = 1
+       LEFT OUTER JOIN offtrack_grades gr
+         ON co.student_number = gr.student_number
+        AND co.year = gr.academic_year        
        WHERE co.year >= 2014
          AND co.schoolid != 999999
          AND co.grade_level != 99
@@ -144,7 +193,8 @@ WITH map_data AS (
                  ,map_reading_met_keepup
                  ,map_reading_SGP
                  ,map_math_met_keepup	
-                 ,map_math_SGP)
+                 ,map_math_SGP
+                 ,is_offtrack_grades)
    ) u
  )
 
