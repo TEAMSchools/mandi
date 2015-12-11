@@ -6,6 +6,7 @@ ALTER VIEW TABLEAU$grade_level_tracker#TEAM AS
 WITH roster AS (
   SELECT co.year
         ,co.schoolid
+        ,co.studentid
         ,co.student_number
         ,co.lastfirst
         ,co.grade_level
@@ -98,6 +99,17 @@ WITH roster AS (
    ) p
 )
 
+,attendance AS (
+  SELECT studentid
+        ,CONCAT(DATEPART(YEAR,CONVERT(DATE,calendardate)), DATEPART(WEEK,CONVERT(DATE,calendardate))) AS yr_week_hash
+        ,AVG(CONVERT(FLOAT,attendancevalue)) AS pct_present
+  FROM KIPP_NJ..ATT_MEM$MEMBERSHIP WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND schoolid = 133570965
+  GROUP BY studentid
+          ,CONCAT(DATEPART(YEAR,CONVERT(DATE,calendardate)), DATEPART(WEEK,CONVERT(DATE,calendardate)))
+ )
+
 SELECT co.year
       ,co.schoolid
       ,co.student_number
@@ -117,6 +129,7 @@ SELECT co.year
       ,ISNULL(con.[Bench],0) AS bench
       ,ISNULL(con.[ISS],0) AS ISS
       ,ISNULL(con.[OSS],0) AS OSS
+      ,att.pct_present
 FROM roster co WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..GPA$detail_long gpa WITH(NOLOCK)
   ON co.student_number = gpa.student_number
@@ -130,3 +143,6 @@ LEFT OUTER JOIN trans_talking_pts ttp
 LEFT OUTER JOIN conroster con
   ON co.student_number = con.student_number
  AND co.yr_week_hash = con.yr_week_hash
+LEFT OUTER JOIN attendance att
+  ON co.studentid = att.studentid
+ AND co.yr_week_hash = att.yr_week_hash
