@@ -20,6 +20,8 @@ WITH hs_grads AS (
         ,(KIPP_NJ.dbo.fn_Global_Academic_Year() - co.year) + co.grade_level AS curr_grade_level
         ,co.cohort
         ,co.highest_achieved
+        ,co.SPEDLEP
+        ,co.SPED_code
         ,ROW_NUMBER() OVER(
            PARTITION BY co.student_number
              ORDER BY co.exitdate DESC) AS rn
@@ -41,6 +43,8 @@ WITH hs_grads AS (
         ,sub.highest_achieved        
         ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN s.SCHOOLID ELSE s.GRADUATED_SCHOOLID END AS schoolid       
         ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN sch2.ABBREVIATION ELSE sch.ABBREVIATION END AS school_name         
+        ,ISNULL(cs.SPEDLEP,'No IEP') AS SPEDLEP
+        ,cs.SPEDLEP_CODE AS SPED_code
   FROM
       (
        SELECT co.studentid             
@@ -52,7 +56,7 @@ WITH hs_grads AS (
              ,DATEDIFF(YEAR, MIN(co.entrydate), MAX(co.exitdate)) AS years_enrolled             
              ,MIN(co.entrydate) AS orig_entrydate
              ,MAX(co.exitdate) AS final_exitdate
-             ,DATEPART(YEAR,MAX(co.exitdate)) AS year_final_exitdate
+             ,DATEPART(YEAR,MAX(co.exitdate)) AS year_final_exitdate             
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        WHERE co.grade_level >= 9
          AND co.enroll_status NOT IN (0,3)
@@ -61,6 +65,8 @@ WITH hs_grads AS (
       ) sub
   LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s
     ON sub.student_number = s.STUDENT_NUMBER
+  LEFT OUTER JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs
+    ON sub.studentid = cs.STUDENTID
   LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch
     ON s.GRADUATED_SCHOOLID = sch.SCHOOL_NUMBER
   LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch2
@@ -77,6 +83,8 @@ WITH hs_grads AS (
         ,curr_grade_level
         ,cohort
         ,highest_achieved
+        ,SPEDLEP
+        ,SPED_code
   FROM ms_grads
   
   UNION
@@ -89,6 +97,8 @@ WITH hs_grads AS (
         ,curr_grade_level
         ,cohort
         ,highest_achieved
+        ,SPEDLEP
+        ,SPED_code
   FROM transfers    
  )
 
@@ -117,6 +127,8 @@ SELECT r.student_number
       ,r.curr_grade_level AS approx_grade_level      
       ,r.cohort
       ,CASE WHEN r.highest_achieved = 99 THEN 1 ELSE 0 END AS is_grad
+      ,r.SPEDLEP
+      ,r.SPED_code
       ,enr.ktc_counselor
       ,enr.enrollment_type
       ,enr.enrollment_name

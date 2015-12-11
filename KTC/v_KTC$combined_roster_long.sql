@@ -7,9 +7,11 @@ WITH graduates AS (
   SELECT co.year AS academic_year        
         ,co.STUDENT_NUMBER
         ,co.lastfirst        
+        ,co.SPEDLEP
+        ,co.SPED_code
         ,sub.grade_level + (co.year - sub.cohort) AS grade_level        
         ,sub.cohort
-        ,sub.schoolid        
+        ,sub.schoolid                
         ,r.Id AS salesforce_id                
         ,u.id AS counselor_id
         ,u.Name AS counselor_name
@@ -45,6 +47,8 @@ WITH graduates AS (
   SELECT KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
         ,tf.student_number
         ,tf.lastfirst
+        ,tf.spedlep
+        ,tf.sped_code
         ,tf.approx_grade_level AS grade_level
         ,tf.cohort
         ,tf.schoolid         
@@ -72,15 +76,3 @@ FROM
      SELECT *
      FROM team_and_fam
     ) sub
-
---/* temp fix */
---SELECT KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
---      ,r.School_Specific_ID__c AS student_number
---      ,r.Name AS lastfirst                
---      ,r.Id AS salesforce_id                
---      ,u.id AS counselor_id
---      ,u.Name AS counselor_name    
---FROM AlumniMirror.dbo.Contact r WITH(NOLOCK)  
---LEFT OUTER JOIN AlumniMirror.dbo.User2 u WITH(NOLOCK)
---  ON r.OwnerId = u.Id  
---*/

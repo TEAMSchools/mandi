@@ -190,18 +190,18 @@ FROM
                  END AS std_dev_of_growth_projection
           FROM base
           --data for START of target period
-          LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_start WITH(NOLOCK)
-            ON base.studentid = map_start.ps_studentid
+          LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_start WITH(NOLOCK)
+            ON base.studentid = map_start.studentid
            AND base.measurementscale = map_start.measurementscale
-           AND base.period_start_year = map_start.map_year_academic
-           AND base.start_term_string = map_start.fallwinterspring
+           AND base.period_start_year = map_start.academic_year
+           AND base.start_term_string = map_start.term
            AND map_start.rn = 1
           --data for END of target period
-          LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_end WITH(NOLOCK)
-            ON base.studentid = map_end.ps_studentid
+          LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_end WITH(NOLOCK)
+            ON base.studentid = map_end.studentid
            AND base.measurementscale = map_end.measurementscale
-           AND base.year = map_end.map_year_academic
-           AND base.end_term_string = map_end.fallwinterspring
+           AND base.year = map_end.academic_year
+           AND base.end_term_string = map_end.term
            AND map_end.rn = 1
           --norms data
           LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norms WITH(NOLOCK)

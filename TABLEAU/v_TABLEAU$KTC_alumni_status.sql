@@ -37,6 +37,8 @@ WITH sf_students AS (
 SELECT sub.student_number
       ,sub.lastfirst      
       ,sub.cohort
+      ,sub.spedlep
+      ,sub.sped_code
       ,sf.counselor_name 
       ,enr.Status__c
       ,enr.Pursuing_Degree_Type__c
@@ -50,6 +52,8 @@ FROM
      SELECT co.student_number           
            ,co.lastfirst
            ,co.cohort           
+           ,co.spedlep
+           ,co.sped_code
      FROM KIPP_NJ..KTC$combined_roster_long co WITH(NOLOCK)
      WHERE co.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
        AND co.rn = 1       
