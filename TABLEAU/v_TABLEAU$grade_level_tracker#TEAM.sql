@@ -51,12 +51,13 @@ WITH roster AS (
 
 ,trans_talking_pts AS (
   SELECT bhv.external_id AS student_number              
-        ,CONCAT(DATEPART(YEAR,MIN(CONVERT(DATE,bhv.date))), DATEPART(WEEK,MIN(CONVERT(DATE,bhv.date)))) AS yr_week_hash
+        ,CONCAT(DATEPART(YEAR,CONVERT(DATE,bhv.date)), DATEPART(WEEK,CONVERT(DATE,bhv.date))) AS yr_week_hash
         ,SUM(CONVERT(FLOAT,bhv.dollar_points)) AS deduction_value
-        ,COUNT(bhv.external_id) AS N_deductions
+        ,COUNT(bhv.external_id) AS N_deductions        
   FROM KIPP_NJ..AUTOLOAD$KICKBOARD_behavior bhv WITH(NOLOCK)
   WHERE bhv.behavior = 'Talking in the hallway'
   GROUP BY bhv.external_id
+          ,CONCAT(DATEPART(YEAR,CONVERT(DATE,bhv.date)), DATEPART(WEEK,CONVERT(DATE,bhv.date)))
  )
 
 ,conroster AS (
