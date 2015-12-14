@@ -29,7 +29,7 @@ WITH map_data AS (
         AND base.measurementscale = growth.measurementscale
         AND base.termname = growth.start_term_verif
         AND growth.end_term_string != 'Fall'
-       WHERE base.year >= 2014
+       WHERE base.year >= 2013
          AND base.measurementscale IN ('Mathematics','Reading')
       ) sub
   LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dts WITH(NOLOCK)
@@ -67,7 +67,7 @@ WITH map_data AS (
    AND mem.academic_year = tdy.academic_year
    AND mem.CALENDARDATE = tdy.ATT_DATE
    AND tdy.ATT_CODE IN ('T','T10')  
-  WHERE mem.academic_year >= 2014
+  WHERE mem.academic_year >= 2013
   GROUP BY mem.STUDENTID
           ,mem.academic_year          
  )
@@ -158,7 +158,7 @@ WITH map_data AS (
              ,CONVERT(FLOAT,gr.is_offtrack_grades * 100) AS is_offtrack_grades
 
              /* TNTP Insight survey */
-             ,tntp.ici_pctile
+             ,(tntp.ici_pctile * 100) AS ici_pctile
              ,tntp.learning_environment_index
              ,tntp.observation_feedback_index
              ,tntp.peer_culture_index             
@@ -186,7 +186,7 @@ WITH map_data AS (
          ON co.schoolid = tntp.schoolid
         AND co.year = tntp.academic_year
         AND tntp.rn = 1
-       WHERE co.year >= 2014
+       WHERE co.year >= 2013
          AND co.schoolid != 999999
          AND co.grade_level != 99
          AND co.rn = 1
@@ -224,6 +224,7 @@ SELECT sub.year
       ,network_low_bar      
       ,network_below
       ,CASE
+        WHEN scoring IS NULL THEN NULL
         WHEN scoring = 'Higher' AND value >= network_above THEN 'Above'
         WHEN scoring = 'Higher' AND value >= network_target THEN 'Target'
         WHEN scoring = 'Higher' AND value >= network_low_bar THEN 'Low Bar'
@@ -235,6 +236,7 @@ SELECT sub.year
         ELSE 'Far Below'
        END AS SPI_status_network
       ,CASE
+        WHEN scoring IS NULL THEN NULL
         WHEN scoring = 'Higher' AND value >= network_above THEN points * above_multiplier
         WHEN scoring = 'Higher' AND value >= network_target THEN points * target_multiplier
         WHEN scoring = 'Higher' AND value >= network_low_bar THEN points * low_bar_multiplier
