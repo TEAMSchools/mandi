@@ -22,7 +22,7 @@ WITH disc_log AS (
         ,disc.logtypeid      
         ,disc.subtype AS subtypeid
         ,consequence AS n_days
-        ,subtype.logtype
+        ,logtype.logtype
         ,subtype.subtype
         ,disc.subject
         ,NULL AS [entry] -- for real, bro? this field adds on average 7 minutes to the query
@@ -30,9 +30,10 @@ WITH disc_log AS (
         ,action.detail AS actiontaken
         ,follow.detail AS followup  
   FROM KIPP_NJ..DISC$log#STAGING disc WITH(NOLOCK)
-  LEFT OUTER JOIN KIPP_NJ..DISC$logtypes#static subtype WITH(NOLOCK)
-    ON disc.logtypeid = subtype.logtypeid
-   AND disc.subtype = subtype.subtypeid
+  LEFT OUTER JOIN KIPP_NJ..DISC$logtypes#static logtype WITH(NOLOCK)
+    ON disc.logtypeid = logtype.logtypeid   
+  LEFT OUTER JOIN KIPP_NJ..DISC$subtypes#static subtype WITH(NOLOCK)
+    ON disc.SUBTYPE = subtype.subtypeid   
   LEFT OUTER JOIN KIPP_NJ..DISC$entrycodes#static details WITH(NOLOCK)
     ON disc.discipline_incidenttype = details.code
    AND details.field = 'discipline_incidenttype'
