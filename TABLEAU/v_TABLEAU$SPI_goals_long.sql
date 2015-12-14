@@ -156,6 +156,12 @@ WITH map_data AS (
 
              /* grades off track */
              ,CONVERT(FLOAT,gr.is_offtrack_grades * 100) AS is_offtrack_grades
+
+             /* TNTP Insight survey */
+             ,tntp.ici_pctile
+             ,tntp.learning_environment_index
+             ,tntp.observation_feedback_index
+             ,tntp.peer_culture_index             
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        LEFT OUTER JOIN KIPP_NJ..DEVFIN$mobility_long#KIPP attr_kipp WITH(NOLOCK)
          ON co.studentid = attr_kipp.d_studentid
@@ -176,6 +182,10 @@ WITH map_data AS (
        LEFT OUTER JOIN offtrack_grades gr
          ON co.student_number = gr.student_number
         AND co.year = gr.academic_year        
+       LEFT OUTER JOIN KIPP_NJ..TNTP$ici_scores_wide tntp WITH(NOLOCK)
+         ON co.schoolid = tntp.schoolid
+        AND co.year = tntp.academic_year
+        AND tntp.rn = 1
        WHERE co.year >= 2014
          AND co.schoolid != 999999
          AND co.grade_level != 99
@@ -194,7 +204,11 @@ WITH map_data AS (
                  ,map_reading_SGP
                  ,map_math_met_keepup	
                  ,map_math_SGP
-                 ,is_offtrack_grades)
+                 ,is_offtrack_grades
+                 ,ici_pctile
+                 ,learning_environment_index
+                 ,observation_feedback_index
+                 ,peer_culture_index)
    ) u
  )
 
