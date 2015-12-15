@@ -115,6 +115,111 @@ WITH map_data AS (
           ,academic_year
  )
 
+,curr_manager_survey AS (
+  SELECT academic_year
+        ,term        
+        ,ROW_NUMBER() OVER(
+           PARTITION BY academic_year
+             ORDER BY term DESC) AS rn
+  FROM
+      (
+       SELECT DISTINCT
+              academic_year
+             ,term       
+       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
+       WHERE survey_type = 'Manager'
+         AND is_open_ended = 0
+      ) sub
+ )
+
+,manager_survey AS (
+  SELECT academic_year
+        ,schoolid      
+        ,(AVG(CONVERT(FLOAT,is_topbox)) * 100) AS pct_topbox
+  FROM
+      (
+       SELECT academic_year
+             --,term
+             ,subject_name
+             --,question_code
+             ,CASE WHEN response_value IN (3,4) THEN 1.0 ELSE 0.0 END AS is_topbox
+             ,CASE
+               WHEN subject_reporting_location = 'Bold Academy' THEN 73258
+               WHEN subject_reporting_location = 'Lanning Square Middle School' THEN 179902
+               WHEN subject_reporting_location = 'Lanning Square Primary' THEN 179901
+               WHEN subject_reporting_location = 'Life Academy' THEN 73257
+               WHEN subject_reporting_location = 'Newark Collegiate Academy' THEN 73253
+               WHEN subject_reporting_location = 'Rise Academy' THEN 73252
+               WHEN subject_reporting_location = 'Seek Academy' THEN 73256
+               WHEN subject_reporting_location = 'SPARK Academy' THEN 73254
+               WHEN subject_reporting_location = 'TEAM Academy' THEN 133570965
+               WHEN subject_reporting_location = 'THRIVE Academy' THEN 73255
+              END AS schoolid
+       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
+       WHERE survey_type = 'Manager'
+         AND is_open_ended = 0
+         AND term IN (SELECT term FROM curr_manager_survey WHERE rn = 1)
+      ) sub
+  GROUP BY academic_year
+          ,schoolid           
+ )
+
+,curr_Q12 AS (
+  SELECT academic_year
+        ,term
+        ,ROW_NUMBER() OVER(
+           PARTITION BY academic_year
+             ORDER BY term DESC) AS rn
+  FROM
+      (
+       SELECT DISTINCT 
+              academic_year
+             ,term
+       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
+       WHERE survey_type = 'R9'
+         AND competency = 'Q12'
+      ) sub
+ )
+
+,q12_avg AS (
+  SELECT academic_year
+        ,CASE
+          WHEN responder_reporting_location = 'Bold Academy' THEN 73258        
+          WHEN responder_reporting_location = 'Lanning Square Middle School' THEN 179902        
+          WHEN responder_reporting_location IN ('Life Upper','Life Lower','Pathways','Life Academy') THEN 73257        
+          WHEN responder_reporting_location IN ('Newark Collegiate Academy','NCA') THEN 73253        
+          WHEN responder_reporting_location IN ('Revolution','Lanning Square Primary') THEN 179901
+          WHEN responder_reporting_location IN ('Rise Academy','Rise') THEN 73252        
+          WHEN responder_reporting_location IN ('Seek Academy','Seek') THEN 73256        
+          WHEN responder_reporting_location IN ('SPARK Academy','SPARK') THEN 73254        
+          WHEN responder_reporting_location IN ('TEAM Academy','TEAM') THEN 133570965        
+          WHEN responder_reporting_location IN ('THRIVE Academy','THRIVE') THEN 73255        
+         END AS schoolid
+        ,avg_response_value
+  FROM
+      (
+       SELECT academic_year
+             ,responder_reporting_location
+             ,AVG(CONVERT(FLOAT,response_value)) AS avg_response_value
+       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
+       WHERE survey_type = 'R9'
+         AND competency = 'Q12'
+         AND term IN (SELECT term FROM curr_Q12 WHERE rn = 1)
+       GROUP BY academic_year
+               ,responder_reporting_location
+
+       UNION ALL
+
+       SELECT academic_year      
+             ,school
+             ,AVG(CONVERT(FLOAT,response)) AS avg_response_value
+       FROM KIPP_NJ..AUTOLOAD$GDOCS_SURVEY_historical_q12 WITH(NOLOCK)
+       WHERE term_numeric = 3
+       GROUP BY academic_year      
+               ,school
+      ) sub
+ )
+
 ,long_data AS (
   SELECT *
   FROM
@@ -161,7 +266,13 @@ WITH map_data AS (
              ,(tntp.ici_pctile * 100) AS ici_pctile
              ,tntp.learning_environment_index
              ,tntp.observation_feedback_index
-             ,tntp.peer_culture_index             
+             ,tntp.peer_culture_index        
+             
+             /* manager survey */     
+             ,mgr.pct_topbox AS mgr_survey_pct_topbox
+
+             /* Q12 average */
+             ,q12.avg_response_value AS q12_avg_response
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        LEFT OUTER JOIN KIPP_NJ..DEVFIN$mobility_long#KIPP attr_kipp WITH(NOLOCK)
          ON co.studentid = attr_kipp.d_studentid
@@ -186,6 +297,12 @@ WITH map_data AS (
          ON co.schoolid = tntp.schoolid
         AND co.year = tntp.academic_year
         AND tntp.rn = 1
+       LEFT OUTER JOIN manager_survey mgr
+         ON co.schoolid = mgr.schoolid
+        AND co.year = mgr.academic_year
+       LEFT OUTER JOIN q12_avg q12
+         ON co.schoolid = q12.schoolid
+        AND co.year = q12.academic_year
        WHERE co.year >= 2013
          AND co.schoolid != 999999
          AND co.grade_level != 99
@@ -208,7 +325,9 @@ WITH map_data AS (
                  ,ici_pctile
                  ,learning_environment_index
                  ,observation_feedback_index
-                 ,peer_culture_index)
+                 ,peer_culture_index
+                 ,mgr_survey_pct_topbox
+                 ,q12_avg_response)
    ) u
  )
 
@@ -216,7 +335,11 @@ SELECT sub.year
       ,sub.schoolid
       ,ISNULL(CONVERT(VARCHAR,sub.grade_level),'All') AS grade_level
       ,sub.field
-      ,sub.value      
+      ,CASE
+        WHEN spi.type = 'pct' THEN ROUND(sub.value,0)
+        WHEN spi.type = 'index' THEN ROUND(sub.value,2)
+        ELSE sub.value
+       END AS value
       ,scoring
       ,points
       ,network_above
@@ -224,27 +347,43 @@ SELECT sub.year
       ,network_low_bar      
       ,network_below
       ,CASE
-        WHEN scoring IS NULL THEN NULL
-        WHEN scoring = 'Higher' AND value >= network_above THEN 'Above'
-        WHEN scoring = 'Higher' AND value >= network_target THEN 'Target'
-        WHEN scoring = 'Higher' AND value >= network_low_bar THEN 'Low Bar'
-        WHEN scoring = 'Higher' AND value >= network_below THEN 'Below'
-        WHEN scoring = 'Lower' AND value <= network_above THEN 'Above'
-        WHEN scoring = 'Lower' AND value <= network_target THEN 'Target'
-        WHEN scoring = 'Lower' AND value <= network_low_bar THEN 'Low Bar'
-        WHEN scoring = 'Lower' AND value <= network_below THEN 'Below'
+        WHEN network_target IS NULL THEN NULL       
+        WHEN spi.type = 'pct' AND scoring = 'Higher' AND ROUND(value,0) >= network_above THEN 'Above'
+        WHEN spi.type = 'pct' AND scoring = 'Higher' AND ROUND(value,0) >= network_target THEN 'Target'
+        WHEN spi.type = 'pct' AND scoring = 'Higher' AND ROUND(value,0) >= network_low_bar THEN 'Low Bar'
+        WHEN spi.type = 'pct' AND scoring = 'Higher' AND ROUND(value,0) >= network_below THEN 'Below'
+        WHEN spi.type = 'pct' AND scoring = 'Lower' AND ROUND(value,0) <= network_above THEN 'Above'
+        WHEN spi.type = 'pct' AND scoring = 'Lower' AND ROUND(value,0) <= network_target THEN 'Target'
+        WHEN spi.type = 'pct' AND scoring = 'Lower' AND ROUND(value,0) <= network_low_bar THEN 'Low Bar'
+        WHEN spi.type = 'pct' AND scoring = 'Lower' AND ROUND(value,0) <= network_below THEN 'Below'
+        WHEN spi.type = 'index' AND scoring = 'Higher' AND ROUND(value,2) >= network_above THEN 'Above'
+        WHEN spi.type = 'index' AND scoring = 'Higher' AND ROUND(value,2) >= network_target THEN 'Target'
+        WHEN spi.type = 'index' AND scoring = 'Higher' AND ROUND(value,2) >= network_low_bar THEN 'Low Bar'
+        WHEN spi.type = 'index' AND scoring = 'Higher' AND ROUND(value,2) >= network_below THEN 'Below'
+        WHEN spi.type = 'index' AND scoring = 'Lower' AND ROUND(value,2) <= network_above THEN 'Above'
+        WHEN spi.type = 'index' AND scoring = 'Lower' AND ROUND(value,2) <= network_target THEN 'Target'
+        WHEN spi.type = 'index' AND scoring = 'Lower' AND ROUND(value,2) <= network_low_bar THEN 'Low Bar'
+        WHEN spi.type = 'index' AND scoring = 'Lower' AND ROUND(value,2) <= network_below THEN 'Below'        
         ELSE 'Far Below'
        END AS SPI_status_network
       ,CASE
-        WHEN scoring IS NULL THEN NULL
-        WHEN scoring = 'Higher' AND value >= network_above THEN points * above_multiplier
-        WHEN scoring = 'Higher' AND value >= network_target THEN points * target_multiplier
-        WHEN scoring = 'Higher' AND value >= network_low_bar THEN points * low_bar_multiplier
-        WHEN scoring = 'Higher' AND value >= network_below THEN points * below_multiplier
-        WHEN scoring = 'Lower' AND value <= network_above THEN points * above_multiplier
-        WHEN scoring = 'Lower' AND value <= network_target THEN points * target_multiplier
-        WHEN scoring = 'Lower' AND value <= network_low_bar THEN points * low_bar_multiplier
-        WHEN scoring = 'Lower' AND value <= network_below THEN points * below_multiplier
+        WHEN network_target IS NULL THEN NULL                       
+        WHEN spi.type = 'pct' AND scoring = 'Higher' AND ROUND(value,0) >= network_above THEN points * above_multiplier
+        WHEN spi.type = 'pct' AND scoring = 'Higher' AND ROUND(value,0) >= network_target THEN points * target_multiplier
+        WHEN spi.type = 'pct' AND scoring = 'Higher' AND ROUND(value,0) >= network_low_bar THEN points * low_bar_multiplier
+        WHEN spi.type = 'pct' AND scoring = 'Higher' AND ROUND(value,0) >= network_below THEN points * below_multiplier
+        WHEN spi.type = 'pct' AND scoring = 'Lower' AND ROUND(value,0) <= network_above THEN points * above_multiplier
+        WHEN spi.type = 'pct' AND scoring = 'Lower' AND ROUND(value,0) <= network_target THEN points * target_multiplier
+        WHEN spi.type = 'pct' AND scoring = 'Lower' AND ROUND(value,0) <= network_low_bar THEN points * low_bar_multiplier
+        WHEN spi.type = 'pct' AND scoring = 'Lower' AND ROUND(value,0) <= network_below THEN points * below_multiplier
+        WHEN spi.type = 'index' AND scoring = 'Higher' AND ROUND(value,2) >= network_above THEN points * above_multiplier
+        WHEN spi.type = 'index' AND scoring = 'Higher' AND ROUND(value,2) >= network_target THEN points * target_multiplier
+        WHEN spi.type = 'index' AND scoring = 'Higher' AND ROUND(value,2) >= network_low_bar THEN points * low_bar_multiplier
+        WHEN spi.type = 'index' AND scoring = 'Higher' AND ROUND(value,2) >= network_below THEN points * below_multiplier
+        WHEN spi.type = 'index' AND scoring = 'Lower' AND ROUND(value,2) <= network_above THEN points * above_multiplier
+        WHEN spi.type = 'index' AND scoring = 'Lower' AND ROUND(value,2) <= network_target THEN points * target_multiplier
+        WHEN spi.type = 'index' AND scoring = 'Lower' AND ROUND(value,2) <= network_low_bar THEN points * low_bar_multiplier
+        WHEN spi.type = 'index' AND scoring = 'Lower' AND ROUND(value,2) <= network_below THEN points * below_multiplier        
         ELSE points * far_below_multiplier
        END AS SPI_points_network
 FROM
@@ -253,7 +392,7 @@ FROM
            ,long_data.schoolid
            ,long_data.grade_level           
            ,long_data.field
-           ,ROUND(AVG(long_data.value),0) AS value           
+           ,AVG(long_data.value) AS value           
      FROM long_data     
      GROUP BY long_data.year
              ,long_data.schoolid

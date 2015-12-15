@@ -33,7 +33,8 @@ WITH disc_log AS (
   LEFT OUTER JOIN KIPP_NJ..DISC$logtypes#static logtype WITH(NOLOCK)
     ON disc.logtypeid = logtype.logtypeid   
   LEFT OUTER JOIN KIPP_NJ..DISC$subtypes#static subtype WITH(NOLOCK)
-    ON disc.SUBTYPE = subtype.subtypeid   
+    ON disc.logtypeid = subtype.logtypeid   
+   AND disc.SUBTYPE = subtype.subtypeid   
   LEFT OUTER JOIN KIPP_NJ..DISC$entrycodes#static details WITH(NOLOCK)
     ON disc.discipline_incidenttype = details.code
    AND details.field = 'discipline_incidenttype'
