@@ -253,7 +253,7 @@ FROM
            ,long_data.schoolid
            ,long_data.grade_level           
            ,long_data.field
-           ,AVG(long_data.value) AS value           
+           ,ROUND(AVG(long_data.value),0) AS value           
      FROM long_data     
      GROUP BY long_data.year
              ,long_data.schoolid

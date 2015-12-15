@@ -7,24 +7,24 @@ WITH response_agg AS (
   SELECT survey_type
         ,academic_year
         ,term
-        ,staff_member
-        ,reporting_location
-        ,team
-        ,manager_name        
+        ,subject_name AS staff_member
+        ,subject_reporting_location AS reporting_location
+        ,subject_team AS team
+        ,subject_manager_name AS manager_name        
         ,KIPP_NJ.dbo.fn_StripCharacters(competency,'^A-Z') AS competency
         ,CASE WHEN question_code NOT LIKE 'q___' THEN question_code + '_1' ELSE question_code END AS question_code
         ,ROUND(AVG(CONVERT(FLOAT,response_value)),1) AS avg_response_value      
-        ,ROUND(MAX(CONVERT(FLOAT,CASE WHEN manager_name = surveyed_by THEN response_value END)),1) AS manager_response_value
+        ,ROUND(MAX(CONVERT(FLOAT,CASE WHEN subject_manager_name = responder_name THEN response_value END)),1) AS manager_response_value
         ,COUNT(response_value) AS N_responses        
   FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
   WHERE is_open_ended = 0 /* open ended treated separately*/  
   GROUP BY survey_type
           ,academic_year
           ,term
-          ,staff_member
-          ,reporting_location
-          ,team
-          ,manager_name
+          ,subject_name
+          ,subject_reporting_location
+          ,subject_team
+          ,subject_manager_name
           ,competency
           ,question_code          
  )
@@ -103,10 +103,10 @@ WITH response_agg AS (
   SELECT survey_type
         ,academic_year
         ,term
-        ,staff_member        
-        ,reporting_location
-        ,team
-        ,manager_name
+        ,subject_name AS staff_member        
+        ,subject_reporting_location AS reporting_location
+        ,subject_team AS team
+        ,subject_manager_name AS manager_name
         ,CONCAT(ISNULL(KIPP_NJ.dbo.fn_StripCharacters(competency,'^A-Z'), 'Manager_' + question_code), '_comments') AS pivot_field
         ,KIPP_NJ.dbo.GROUP_CONCAT_D(REPLACE(LTRIM(RTRIM(response)),'"',''''''), CHAR(10)) AS pivot_value
   FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
@@ -114,10 +114,10 @@ WITH response_agg AS (
   GROUP BY survey_type
           ,academic_year
           ,term
-          ,staff_member        
-          ,reporting_location
-          ,team
-          ,manager_name
+          ,subject_name
+          ,subject_reporting_location
+          ,subject_team
+          ,subject_manager_name
           ,CONCAT(ISNULL(KIPP_NJ.dbo.fn_StripCharacters(competency,'^A-Z'), 'Manager_' + question_code), '_comments')
  )
 
