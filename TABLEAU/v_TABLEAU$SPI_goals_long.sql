@@ -273,6 +273,12 @@ WITH map_data AS (
 
              /* Q12 average */
              ,q12.avg_response_value AS q12_avg_response
+
+             /* SPI walkthrough avgs -- some differences btw 2014 & 2015 scales */
+             ,wlk.classroom_engagement_overall
+             ,wlk.culture_schoolculture_overall            
+             ,COALESCE(wlk.classroom_instruction_overall, wlk.classroom_instructionaldelivery_overall) AS classroom_instruction_overall
+             ,COALESCE(wlk.classroom_routinesrules_overall, wlk.classroom_management_overall) AS classroom_management_overall
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        LEFT OUTER JOIN KIPP_NJ..DEVFIN$mobility_long#KIPP attr_kipp WITH(NOLOCK)
          ON co.studentid = attr_kipp.d_studentid
@@ -303,6 +309,10 @@ WITH map_data AS (
        LEFT OUTER JOIN q12_avg q12
          ON co.schoolid = q12.schoolid
         AND co.year = q12.academic_year
+       LEFT OUTER JOIN KIPP_NJ..SPI$walkthrough_avgs wlk WITH(NOLOCK)
+         ON co.schoolid = wlk.schoolid
+        AND co.year = wlk.academic_year
+        AND wlk.rn = 1
        WHERE co.year >= 2013
          AND co.schoolid != 999999
          AND co.grade_level != 99
@@ -327,7 +337,11 @@ WITH map_data AS (
                  ,observation_feedback_index
                  ,peer_culture_index
                  ,mgr_survey_pct_topbox
-                 ,q12_avg_response)
+                 ,q12_avg_response
+                 ,culture_schoolculture_overall
+                 ,classroom_engagement_overall                 
+                 ,classroom_instruction_overall
+                 ,classroom_management_overall)
    ) u
  )
 
