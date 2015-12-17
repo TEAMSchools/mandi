@@ -17,7 +17,14 @@ WITH map_data AS (
              ,base.measurementscale                         
              ,growth.end_term_string AS term                   
              ,growth.met_typical_growth_target
-             ,growth.growth_percentile
+             ,growth.end_npr AS testpercentile
+             --,growth.growth_percentile
+             ,PERCENTILE_DISC(0.5)
+                WITHIN GROUP (ORDER BY growth.growth_percentile)
+                  OVER(PARTITION BY base.year, growth.end_term_string, base.schoolid, base.grade_level, base.measurementscale) AS median_SGP_gr
+             ,PERCENTILE_DISC(0.5)
+                WITHIN GROUP (ORDER BY growth.growth_percentile)
+                  OVER(PARTITION BY base.year, growth.end_term_string, base.schoolid, base.measurementscale) AS median_SGP_school
        FROM KIPP_NJ..MAP$best_baseline base WITH(NOLOCK)
        LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals goals WITH(NOLOCK)
          ON base.studentid = goals.studentid
@@ -220,6 +227,65 @@ WITH map_data AS (
       ) sub
  )
 
+,GPA AS (
+  SELECT STUDENT_NUMBER
+        ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year /* this needs to be long by year */
+        ,CONVERT(FLOAT,GPA_is_above_30) AS GPA_is_above_30
+        ,CONVERT(FLOAT,GPA_is_above_35) AS GPA_is_above_35
+  FROM
+      (
+       SELECT student_number                      
+             ,CASE WHEN ROUND(GPA_y1_all,1) >= 3.0 THEN 100.0 ELSE 0.0 END AS GPA_is_above_30
+             ,CASE WHEN ROUND(GPA_y1_all,1) >= 3.5 THEN 100.0 ELSE 0.0 END AS GPA_is_above_35
+       FROM KIPP_NJ..GPA$detail#MS WITH(NOLOCK)
+       UNION ALL
+       SELECT student_number           
+             ,CASE WHEN ROUND(GPA_y1,1) >= 3.0 THEN 100.0 ELSE 0.0 END AS GPA_is_above_30
+             ,CASE WHEN ROUND(GPA_y1,1) >= 3.5 THEN 100.0 ELSE 0.0 END AS GPA_is_above_35
+       FROM KIPP_NJ..GPA$detail#NCA WITH(NOLOCK)
+      ) sub
+ )
+
+,es_lit_growth AS (
+  SELECT STUDENTID
+        ,academic_year              
+        ,CONVERT(FLOAT,met_goal * 100) AS met_goal
+        ,ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year
+             ORDER BY start_date DESC) AS rn
+  FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
+  WHERE read_lvl IS NOT NULL
+    AND start_date <= CONVERT(DATE,GETDATE())
+    AND GRADE_LEVEL <= 4
+    AND SCHOOLID != 73252
+ )
+
+,module_avg AS (
+  SELECT academic_year
+        ,student_number
+        ,subject_area
+        --,AVG(percent_correct) AS avg_pct_correct
+        ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(percent_correct),0) >= 65 THEN 100.0 ELSE 0.0 END) AS module_avg_above_65
+        ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(percent_correct),0) >= 80 THEN 100.0 ELSE 0.0 END) AS module_avg_above_80
+  FROM
+      (
+       SELECT a.academic_year
+             ,a.subject_area              
+             ,ovr.local_student_id AS student_number
+             ,ovr.percent_correct
+       FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)       
+       JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
+         ON a.assessment_id = ovr.assessment_id
+        AND ovr.answered > 0
+       WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')  
+         AND a.subject_area IN ('Text Study', 'Mathematics')
+         AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+      ) sub
+  GROUP BY academic_year
+          ,student_number
+          ,subject_area
+ )
+
 ,long_data AS (
   SELECT *
   FROM
@@ -254,10 +320,61 @@ WITH map_data AS (
              --,att.n_attendance_days
 
              /* MAP data -- n/a for dropped students */
-             ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL ELSE CONVERT(FLOAT,map_read.met_typical_growth_target) END * 100 AS map_reading_met_keepup
-             ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL ELSE CONVERT(FLOAT,map_read.growth_percentile) END AS map_reading_SGP
-             ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL ELSE CONVERT(FLOAT,map_math.met_typical_growth_target) END * 100 AS map_math_met_keepup
-             ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL ELSE CONVERT(FLOAT,map_math.growth_percentile) END AS map_math_SGP
+             /* MAP goals */
+             ,CASE 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL 
+               WHEN map_read.testpercentile >= 75 THEN NULL
+               ELSE CONVERT(FLOAT,map_read.met_typical_growth_target) 
+              END * 100 AS map_reading_met_keepup
+             ,CASE 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL 
+               WHEN map_math.testpercentile >= 75 THEN NULL
+               ELSE CONVERT(FLOAT,map_math.met_typical_growth_target) 
+              END * 100 AS map_math_met_keepup
+
+             /* MAP %ile distribution */
+             ,CONVERT(FLOAT,CASE 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL 
+               WHEN map_read.testpercentile IS NULL THEN NULL
+               WHEN map_read.testpercentile >= 75 THEN 1.0
+               ELSE 0.0
+              END * 100) AS map_reading_is_top_quartile
+             ,CONVERT(FLOAT,CASE 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL 
+               WHEN map_read.testpercentile IS NULL THEN NULL
+               WHEN map_read.testpercentile >= 50 THEN 1.0
+               ELSE 0.0
+              END * 100) AS map_reading_is_top_half
+             ,CONVERT(FLOAT,CASE 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL 
+               WHEN map_math.testpercentile IS NULL THEN NULL               
+               WHEN map_math.testpercentile >= 75 THEN 1.0
+               ELSE 0.0
+              END * 100) AS map_math_is_top_quartile
+             ,CONVERT(FLOAT,CASE 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL 
+               WHEN map_math.testpercentile IS NULL THEN NULL
+               WHEN map_math.testpercentile >= 50 THEN 1.0
+               ELSE 0.0
+              END * 100) AS map_math_is_top_half
+             
+             /* MAP SGP */
+             ,CASE 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL 
+               ELSE CONVERT(FLOAT,map_read.median_SGP_school) 
+              END AS map_reading_SGP_school
+             ,CASE 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL 
+               ELSE CONVERT(FLOAT,map_read.median_SGP_gr) 
+              END AS map_reading_SGP_gr             
+             ,CASE 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL 
+               ELSE CONVERT(FLOAT,map_math.median_SGP_school) 
+              END AS map_math_SGP_school
+             ,CASE 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.enroll_status != 0 THEN NULL 
+               ELSE CONVERT(FLOAT,map_math.median_SGP_gr) 
+              END AS map_math_SGP_gr
 
              /* grades off track */
              ,CONVERT(FLOAT,gr.is_offtrack_grades * 100) AS is_offtrack_grades
@@ -279,6 +396,25 @@ WITH map_data AS (
              ,wlk.culture_schoolculture_overall            
              ,COALESCE(wlk.classroom_instruction_overall, wlk.classroom_instructionaldelivery_overall) AS classroom_instruction_overall
              ,COALESCE(wlk.classroom_routinesrules_overall, wlk.classroom_management_overall) AS classroom_management_overall
+
+             /* state test date -- 2013 and below = NJASK/HSPA, 2014 and beyond = PARCC*/
+             ,nj.ELA_median_SGP
+             ,nj.ELA_diff_pct_proficient_weighted
+             ,nj.Math_median_SGP
+             ,nj.Math_diff_pct_proficient_weighted
+
+             /* GPA */
+             ,gpa.GPA_is_above_30
+             ,gpa.GPA_is_above_35
+
+             /* ES lit growth */
+             ,lit.met_goal AS met_lit_goal
+
+             /* Module assessments */
+             ,ela_mod.module_avg_above_65 AS ela_module_avg_above_65
+             ,ela_mod.module_avg_above_80 AS ela_module_avg_above_80
+             ,math_mod.module_avg_above_65 AS math_module_avg_above_65
+             ,math_mod.module_avg_above_80 AS math_module_avg_above_80
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        LEFT OUTER JOIN KIPP_NJ..DEVFIN$mobility_long#KIPP attr_kipp WITH(NOLOCK)
          ON co.studentid = attr_kipp.d_studentid
@@ -313,6 +449,23 @@ WITH map_data AS (
          ON co.schoolid = wlk.schoolid
         AND co.year = wlk.academic_year
         AND wlk.rn = 1
+       LEFT OUTER JOIN KIPP_NJ..SPI$state_test_scores nj WITH(NOLOCK)
+         ON co.schoolid = nj.schoolid
+        AND co.year = nj.academic_year
+       LEFT OUTER JOIN GPA
+         ON co.student_number = gpa.STUDENT_NUMBER
+        AND co.year = gpa.academic_year
+       LEFT OUTER JOIN es_lit_growth lit
+         ON co.studentid = lit.STUDENTID
+        AND co.year = lit.academic_year
+       LEFT OUTER JOIN module_avg ela_mod
+         ON co.student_number = ela_mod.student_number
+        AND co.year = ela_mod.academic_year
+        AND ela_mod.subject_area = 'Text Study'
+       LEFT OUTER JOIN module_avg math_mod
+         ON co.student_number = math_mod.student_number
+        AND co.year = math_mod.academic_year
+        AND math_mod.subject_area = 'Mathematics'
        WHERE co.year >= 2013
          AND co.schoolid != 999999
          AND co.grade_level != 99
@@ -328,9 +481,15 @@ WITH map_data AS (
                  ,pct_ontime
                  ,is_habitually_tardy                 
                  ,map_reading_met_keepup
-                 ,map_reading_SGP
+                 ,map_reading_SGP_school
+                 ,map_reading_SGP_gr
+                 ,map_reading_is_top_quartile
+                 ,map_reading_is_top_half
                  ,map_math_met_keepup	
-                 ,map_math_SGP
+                 ,map_math_SGP_school
+                 ,map_math_SGP_gr
+                 ,map_math_is_top_quartile
+                 ,map_math_is_top_half
                  ,is_offtrack_grades
                  ,ici_pctile
                  ,learning_environment_index
@@ -341,7 +500,18 @@ WITH map_data AS (
                  ,culture_schoolculture_overall
                  ,classroom_engagement_overall                 
                  ,classroom_instruction_overall
-                 ,classroom_management_overall)
+                 ,classroom_management_overall
+                 ,ELA_median_SGP
+                 ,ELA_diff_pct_proficient_weighted
+                 ,Math_median_SGP
+                 ,Math_diff_pct_proficient_weighted
+                 ,GPA_is_above_30
+                 ,GPA_is_above_35
+                 ,met_lit_goal
+                 ,ela_module_avg_above_65
+                 ,ela_module_avg_above_80
+                 ,math_module_avg_above_65
+                 ,math_module_avg_above_80)
    ) u
  )
 
