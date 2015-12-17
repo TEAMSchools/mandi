@@ -84,7 +84,7 @@ FROM
            AND co.year = goals.year
            AND map.measurementscale = goals.measurementscale
           WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-            AND co.grade_level <= 8
+            AND co.grade_level <= 11
             AND co.rn = 1
             AND co.enroll_status = 0
 
@@ -121,7 +121,7 @@ FROM
            AND co.year = goals.year
            AND base.measurementscale = goals.measurementscale
           WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-            AND co.grade_level <= 8
+            AND co.grade_level <= 11
             AND co.rn = 1
             AND co.enroll_status = 0
          ) sub
