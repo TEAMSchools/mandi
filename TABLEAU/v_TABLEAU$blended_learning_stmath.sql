@@ -93,7 +93,33 @@ WITH
 	  SELECT *
 	  FROM REPORTING$st_math_summary_by_enrollment#static WITH (NOLOCK)
 	)
-	
+
+	--st math usage
+	,st_usage AS 
+	(
+	  SELECT studentid
+	        ,school_student_id
+			,K_5_Progress
+			,K_5_Mastery
+	        ,num_lab_logins
+	   	    ,num_homework_logins
+			,objective_name
+			,cur_hurdle_num_tries
+			,minutes_logged_last_week
+			,fluency_progress
+			,fluency_mastery
+			,fluency_time_spent
+			,first_login_date
+			,last_login_date
+			,week_ending_date
+			,start_year
+			,ROW_NUMBER() OVER(
+			   PARTITION BY school_student_id,start_year
+			     ORDER BY week_ending_date DESC) AS rn
+
+	  FROM STMATH..progress_completion#identifiers st_usage WITH(NOLOCK)
+	)
+
 	--map math data
 
 	,map_math AS
@@ -130,6 +156,20 @@ SELECT roster.*
 	  ,st_math_lib_track.lib_5th
 	  ,st_math_lib_track.lib_6th
 
+	 ,st_usage.K_5_Progress
+	 ,st_usage.K_5_Mastery
+	 ,st_usage.num_lab_logins
+	 ,st_usage.num_homework_logins
+	 ,st_usage.objective_name
+	 ,st_usage.cur_hurdle_num_tries
+	 ,st_usage.minutes_logged_last_week
+	 ,st_usage.fluency_progress
+	 ,st_usage.fluency_mastery
+	 ,st_usage.fluency_time_spent
+	 ,st_usage.first_login_date
+	 ,st_usage.last_login_date
+	 ,st_usage.week_ending_date
+
 
 	  ,map_math.testritscore			AS  math_rit
 	  ,map_math.testpercentile			AS	math_pctile
@@ -145,8 +185,14 @@ JOIN st_math
 JOIN st_math_lib_track
   ON roster.base_studentid = st_math_lib_track.studentid
 
+JOIN st_usage
+  ON roster.base_studentid = st_usage.studentid
+ AND st_usage.rn = 1
+ AND st_usage.start_year = dbo.fn_Global_Academic_Year()	 
+
 LEFT OUTER JOIN enrollment
   ON roster.base_studentid = enrollment.studentid
+  
 
 LEFT OUTER JOIN map_math
   ON roster.base_studentid = map_math.studentid
