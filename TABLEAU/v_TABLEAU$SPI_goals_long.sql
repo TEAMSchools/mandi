@@ -306,9 +306,16 @@ WITH map_data AS (
 
              /* attrition */
              ,CASE
-               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN CONVERT(FLOAT,CASE WHEN co.entrydate <= CONVERT(DATE,CONCAT(co.year,'-10-15')) AND co.exitdate <= CONVERT(DATE,GETDATE()) THEN 100.0 ELSE 0.0 END)
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.entrydate <= CONVERT(DATE,CONCAT(co.year,'-10-15')) AND co.exitdate <= CONVERT(DATE,GETDATE()) THEN 100.0 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.entrydate <= CONVERT(DATE,CONCAT(co.year,'-10-15')) AND co.exitdate > CONVERT(DATE,GETDATE()) THEN 0.0
                ELSE CONVERT(FLOAT,attr_kipp.attr_flag) * 100
               END AS attrition_flag_10_15           
+             ,CASE
+               WHEN co.GENDER != 'M' THEN NULL
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.entrydate <= CONVERT(DATE,CONCAT(co.year,'-10-15')) AND co.exitdate <= CONVERT(DATE,GETDATE()) THEN 100.0 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.entrydate <= CONVERT(DATE,CONCAT(co.year,'-10-15')) AND co.exitdate > CONVERT(DATE,GETDATE()) THEN 0.0
+               ELSE CONVERT(FLOAT,attr_kipp.attr_flag) * 100
+              END AS male_attrition_flag
 
              /* attendance */
              --,att.n_present
@@ -415,6 +422,9 @@ WITH map_data AS (
              ,ela_mod.module_avg_above_80 AS ela_module_avg_above_80
              ,math_mod.module_avg_above_65 AS math_module_avg_above_65
              ,math_mod.module_avg_above_80 AS math_module_avg_above_80
+
+             /* enrollment targets */
+             ,enr.diff_from_target AS diff_from_target_enrollment
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        LEFT OUTER JOIN KIPP_NJ..DEVFIN$mobility_long#KIPP attr_kipp WITH(NOLOCK)
          ON co.studentid = attr_kipp.d_studentid
@@ -466,6 +476,9 @@ WITH map_data AS (
          ON co.student_number = math_mod.student_number
         AND co.year = math_mod.academic_year
         AND math_mod.subject_area = 'Mathematics'
+       LEFT OUTER JOIN KIPP_NJ..FINANCE$enrollment_targets enr WITH(NOLOCK)
+         ON co.year = enr.academic_year
+        AND co.schoolid = enr.schoolid
        WHERE co.year >= 2013
          AND co.schoolid != 999999
          AND co.grade_level != 99
@@ -475,7 +488,8 @@ WITH map_data AS (
     value
     FOR field IN (is_FR_lunch
                  ,is_SPED
-                 ,attrition_flag_10_15                                
+                 ,attrition_flag_10_15    
+                 ,male_attrition_flag                            
                  ,pct_present
                  ,is_habitually_absent                 
                  ,pct_ontime
@@ -511,7 +525,8 @@ WITH map_data AS (
                  ,ela_module_avg_above_65
                  ,ela_module_avg_above_80
                  ,math_module_avg_above_65
-                 ,math_module_avg_above_80)
+                 ,math_module_avg_above_80
+                 ,diff_from_target_enrollment)
    ) u
  )
 
