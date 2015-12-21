@@ -83,7 +83,7 @@ FROM
            ,r.academic_year
            ,r.measurementscale
            ,r.term
-           ,map.ps_studentid AS map_studentid
+           ,map.studentid AS map_studentid
            ,CONVERT(VARCHAR,map.teststartdate,101) AS test_date
            ,map.testritscore AS RIT
            ,map.percentile_2011_norms AS percentile
@@ -92,13 +92,13 @@ FROM
            ,base.testritscore AS base_RIT
            ,base.testpercentile AS base_percentile
            ,REPLACE(base.lexile_score, 'BR', 0) AS base_lexile                
-           ,COUNT(map.ps_studentid) OVER(PARTITION BY map.ps_studentid, map.map_year_academic, map.measurementscale, map.fallwinterspring) AS n_tests
+           ,COUNT(map.studentid) OVER(PARTITION BY map.studentid, map.academic_year, map.measurementscale, map.term) AS n_tests
      FROM scaffold r WITH(NOLOCK)
-     LEFT OUTER JOIN MAP$comprehensive#identifiers map WITH(NOLOCK)
-       ON r.studentid = map.ps_studentid
-      AND r.academic_year = map.map_year_academic
+     LEFT OUTER JOIN MAP$CDF#identifiers#static map WITH(NOLOCK)
+       ON r.student_number = map.student_number
+      AND r.academic_year = map.academic_year
       AND r.measurementscale = map.measurementscale
-      AND r.term = map.fallwinterspring
+      AND r.term = map.term
       --AND map.rn = 1
      LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
        ON r.studentid = base.studentid

@@ -35,7 +35,6 @@ BEGIN
             ,consequence
       FROM log    
       WHERE (log.entry_date >= TO_DATE(''2015-08-01'',''YYYY-MM-DD'') OR log.discipline_incidentdate >= TO_DATE(''2015-08-01'',''YYYY-MM-DD''))
-        AND log.entry_date <= TRUNC(SYSDATE)
     ') disc /*-- UPDATE QUERY FOR CURRENT SCHOOL YEAR --*/
    )
 
