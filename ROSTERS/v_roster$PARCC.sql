@@ -19,8 +19,7 @@ WITH students AS
 	  ,SPEDLEP
 	  ,year
 
-
-	FROM COHORT$identifiers_long#static
+	FROM COHORT$identifiers_long#static WITH(NOLOCK)
 
 	WHERE grade_level >= 3 
 	  AND grade_level <= 11
@@ -52,7 +51,7 @@ WITH students AS
 			PARTITION BY student_number, credittype
 			ORDER BY dateenrolled DESC) AS rn
 		  
-	FROM PS$course_enrollments#static
+	FROM PS$course_enrollments#static WITH(NOLOCK)
 
 	WHERE termid = 2500
 	  AND schoolid IN (133570965,73252,179902,73253)
@@ -85,7 +84,7 @@ WITH students AS
 			ORDER BY dateenrolled DESC) AS rn
 
 		  
-	FROM PS$course_enrollments#static
+	FROM PS$course_enrollments#static WITH(NOLOCK)
 
 	WHERE grade_level IN (3,4,5)
 	  AND schoolid NOT IN (73252,179902,133570965)
@@ -114,7 +113,7 @@ WITH students AS
 			PARTITION BY student_number, credittype
 			ORDER BY dateenrolled DESC) AS rn
 		  
-	FROM PS$course_enrollments#static
+	FROM PS$course_enrollments#static WITH(NOLOCK)
 
 	WHERE grade_level IN (3,4,5)
 	  AND schoolid NOT IN (73252,179902,133570965)
@@ -132,27 +131,29 @@ SELECT
 	  ,students.spedlep
 	  ,courses.credittype AS subject
 	  ,courses.course_name AS ps_course_name
-	  ,CASE WHEN courses.course_number IN ('MATH15','MATH10','M415','M400') 
+	  ,CASE WHEN courses.course_number IN ('MATH10','MATH71','MATH15','M415','M400') 
 					THEN 'ALG01'
 			WHEN courses.course_number IN ('MATH25','MATH20') 
 					THEN 'GEO01'
 			WHEN courses.course_number IN ('MATH32','MATH35') 
 					THEN 'ALG02'
-			WHEN courses.credittype = 'MAT' AND students.grade_level <10 
+			WHEN courses.credittype = 'MAT' AND students.grade_level <9 
 					THEN courses.credittype + CONVERT(VARCHAR(20),0) + CONVERT(VARCHAR(20),students.grade_level)
-			WHEN courses.credittype = 'MAT' AND students.grade_level >= 10 
-					THEN courses.credittype + CONVERT(VARCHAR(20),students.grade_level)
+			WHEN courses.course_number IN ('MATH13',',MATH72','MATH43','MATH40','MATH44')
+					THEN 'No Test'
 			WHEN courses.credittype = 'ELA' AND students.grade_level < 10 
 					THEN courses.credittype + CONVERT(VARCHAR(20),0) + CONVERT(VARCHAR(20),students.grade_level)
 			WHEN courses.credittype = 'ELA' AND students.grade_level >= 10 
 					THEN courses.credittype + CONVERT(VARCHAR(20),students.grade_level)
-			ELSE NULL 
+			ELSE 'No Test' 
 			END AS PARCC_testcode
 	  ,CASE WHEN ROW_NUMBER() OVER(
 				PARTITION BY students.student_number, courses.credittype
 					ORDER BY courses.dateenrolled DESC) > 1 THEN 'Multiple Enrollments' 
 			WHEN courses.credittype IS NULL THEN 'Not Enrolled in Courses'
 			ELSE NULL END AS 'Flag Enrollment'
+	  ,courses.teachernumber
+	  ,courses.teacher_name
 
 FROM students
 
