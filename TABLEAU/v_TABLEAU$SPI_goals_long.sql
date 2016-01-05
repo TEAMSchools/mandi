@@ -181,6 +181,27 @@ WITH map_data AS (
           ,subject_area
  )
 
+,hsr AS (
+  SELECT academic_year
+        ,schoolid
+        ,[Parent] AS hsr_parent_pct_recommend
+        ,[Student] AS hsr_student_pct_recommend
+  FROM
+      (
+       SELECT academic_year
+             ,schoolid
+             ,survey_type      
+             ,CONVERT(FLOAT,pct_top_box * 100) AS pct_top_box
+       FROM SURVEY$KIPP_HSR_survey_results WITH(NOLOCK)
+       WHERE survey_type IN ('Parent','Student')
+         AND question_id IN (471, 623) /* I would recommend KIPP... */
+      ) sub
+  PIVOT(
+    MAX(pct_top_box)
+    FOR survey_type IN ([Parent], [Student])
+   ) p
+)
+
 ,long_data AS (
   SELECT *
   FROM
@@ -330,6 +351,10 @@ WITH map_data AS (
              ,CONVERT(FLOAT,act.composite) AS act_composite
              ,CONVERT(FLOAT,act.is_22 * 100) AS act_pct_is_22
              ,CONVERT(FLOAT,act.is_25 * 100) AS act_pct_is_25
+
+             /* HSR survey results */
+             ,hsr.hsr_parent_pct_recommend
+             ,hsr.hsr_student_pct_recommend
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        LEFT OUTER JOIN KIPP_NJ..DEVFIN$mobility_long#KIPP attr_kipp WITH(NOLOCK)
          ON co.studentid = attr_kipp.d_studentid
@@ -391,6 +416,9 @@ WITH map_data AS (
          ON co.student_number = act.student_number
         AND co.year = act.academic_year
         AND act.rn_curr = 1
+       LEFT OUTER JOIN hsr
+         ON co.schoolid = hsr.schoolid
+        AND co.year = hsr.academic_year
        WHERE co.year >= 2013
          AND co.schoolid != 999999
          AND co.grade_level != 99
@@ -444,7 +472,9 @@ WITH map_data AS (
                  ,pct_wanted_attrition
                  ,act_composite
                  ,act_pct_is_22
-                 ,act_pct_is_25)
+                 ,act_pct_is_25
+                 ,hsr_parent_pct_recommend
+                 ,hsr_student_pct_recommend)
    ) u
  )
 
