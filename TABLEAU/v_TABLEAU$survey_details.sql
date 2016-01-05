@@ -3,7 +3,49 @@ GO
 
 ALTER VIEW TABLEAU$survey_details AS
 
-SELECT surveys.*
+SELECT 
+
+--survey responses long
+	   survey_type
+	  ,academic_year
+	  ,subject_name
+	  ,is_instructional
+	  ,question_code
+	  ,response
+	  ,response_value
+	  ,term
+	  ,subject_reporting_location
+	  ,subject_team
+	  ,subject_manager_name
+	  ,responder_name
+	  ,responder_reporting_location
+	  ,competency
+	  ,is_open_ended
+	  ,question_text
+	  ,exclude_from_agg
+	  ,exclude_location
+      ,exclude_department
+      ,exclude_role
+	  
+	  ,CASE WHEN exclude_location LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) > 0 THEN 'include'
+			WHEN exclude_location LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) = 0 THEN 'exclude'
+			WHEN exclude_location NOT LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) > 0 THEN 'exclude'
+			WHEN exclude_location NOT LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) = 0 THEN 'include'
+
+			WHEN exclude_department LIKE '%Include%' AND CHARINDEX(adp_responder.department, exclude_department) > 0 THEN 'include'
+			WHEN exclude_department LIKE '%Include%' AND CHARINDEX(adp_responder.department, exclude_department) = 0 THEN 'exclude'
+			WHEN exclude_department NOT LIKE '%Include%' AND CHARINDEX(adp_responder.department, exclude_department) > 0 THEN 'exclude'
+			WHEN exclude_department NOT LIKE '%Include%' AND CHARINDEX(adp_responder.department, exclude_department) = 0 THEN 'include'
+
+			WHEN exclude_role LIKE '%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) > 0 THEN 'include'
+			WHEN exclude_role LIKE '%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) = 0 THEN 'exclude'
+			WHEN exclude_role NOT LIKE '%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) > 0 THEN 'exclude'
+			WHEN exclude_role NOT LIKE '%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) = 0 THEN 'include'
+
+		 ELSE 'include' END AS exclude
+	
+
+--responder/subject details
 	  ,responder.associate_id AS responder_associate_id
 	  ,responder.gapps_email AS responder_gapps_email
 	  ,subject.associate_id AS subject_associate_id
@@ -34,4 +76,6 @@ LEFT OUTER JOIN PEOPLE$ADP_detail adp_responder WITH(NOLOCK)
 LEFT OUTER JOIN PEOPLE$ADP_detail adp_subject WITH(NOLOCK)
   ON subject.associate_id = adp_subject.associate_id
   AND adp_subject.rn_curr = 1
+
+
 
