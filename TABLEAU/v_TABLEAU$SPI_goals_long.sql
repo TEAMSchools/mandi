@@ -122,111 +122,6 @@ WITH map_data AS (
           ,academic_year
  )
 
-,curr_manager_survey AS (
-  SELECT academic_year
-        ,term        
-        ,ROW_NUMBER() OVER(
-           PARTITION BY academic_year
-             ORDER BY term DESC) AS rn
-  FROM
-      (
-       SELECT DISTINCT
-              academic_year
-             ,term       
-       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
-       WHERE survey_type = 'Manager'
-         AND is_open_ended = 0
-      ) sub
- )
-
-,manager_survey AS (
-  SELECT academic_year
-        ,schoolid      
-        ,(AVG(CONVERT(FLOAT,is_topbox)) * 100) AS pct_topbox
-  FROM
-      (
-       SELECT academic_year
-             --,term
-             ,subject_name
-             --,question_code
-             ,CASE WHEN response_value IN (3,4) THEN 1.0 ELSE 0.0 END AS is_topbox
-             ,CASE
-               WHEN subject_reporting_location = 'Bold Academy' THEN 73258
-               WHEN subject_reporting_location = 'Lanning Square Middle School' THEN 179902
-               WHEN subject_reporting_location = 'Lanning Square Primary' THEN 179901
-               WHEN subject_reporting_location = 'Life Academy' THEN 73257
-               WHEN subject_reporting_location = 'Newark Collegiate Academy' THEN 73253
-               WHEN subject_reporting_location = 'Rise Academy' THEN 73252
-               WHEN subject_reporting_location = 'Seek Academy' THEN 73256
-               WHEN subject_reporting_location = 'SPARK Academy' THEN 73254
-               WHEN subject_reporting_location = 'TEAM Academy' THEN 133570965
-               WHEN subject_reporting_location = 'THRIVE Academy' THEN 73255
-              END AS schoolid
-       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
-       WHERE survey_type = 'Manager'
-         AND is_open_ended = 0
-         AND term IN (SELECT term FROM curr_manager_survey WHERE rn = 1)
-      ) sub
-  GROUP BY academic_year
-          ,schoolid           
- )
-
-,curr_Q12 AS (
-  SELECT academic_year
-        ,term
-        ,ROW_NUMBER() OVER(
-           PARTITION BY academic_year
-             ORDER BY term DESC) AS rn
-  FROM
-      (
-       SELECT DISTINCT 
-              academic_year
-             ,term
-       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
-       WHERE survey_type = 'R9'
-         AND competency = 'Q12'
-      ) sub
- )
-
-,q12_avg AS (
-  SELECT academic_year
-        ,CASE
-          WHEN responder_reporting_location = 'Bold Academy' THEN 73258        
-          WHEN responder_reporting_location = 'Lanning Square Middle School' THEN 179902        
-          WHEN responder_reporting_location IN ('Life Upper','Life Lower','Pathways','Life Academy') THEN 73257        
-          WHEN responder_reporting_location IN ('Newark Collegiate Academy','NCA') THEN 73253        
-          WHEN responder_reporting_location IN ('Revolution','Lanning Square Primary') THEN 179901
-          WHEN responder_reporting_location IN ('Rise Academy','Rise') THEN 73252        
-          WHEN responder_reporting_location IN ('Seek Academy','Seek') THEN 73256        
-          WHEN responder_reporting_location IN ('SPARK Academy','SPARK') THEN 73254        
-          WHEN responder_reporting_location IN ('TEAM Academy','TEAM') THEN 133570965        
-          WHEN responder_reporting_location IN ('THRIVE Academy','THRIVE') THEN 73255        
-         END AS schoolid
-        ,avg_response_value
-  FROM
-      (
-       SELECT academic_year
-             ,responder_reporting_location
-             ,AVG(CONVERT(FLOAT,response_value)) AS avg_response_value
-       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
-       WHERE survey_type = 'R9'
-         AND competency = 'Q12'
-         AND term IN (SELECT term FROM curr_Q12 WHERE rn = 1)
-       GROUP BY academic_year
-               ,responder_reporting_location
-
-       UNION ALL
-
-       SELECT academic_year      
-             ,school
-             ,AVG(CONVERT(FLOAT,response)) AS avg_response_value
-       FROM KIPP_NJ..AUTOLOAD$GDOCS_SURVEY_historical_q12 WITH(NOLOCK)
-       WHERE term_numeric = 3
-       GROUP BY academic_year      
-               ,school
-      ) sub
- )
-
 ,GPA AS (
   SELECT STUDENT_NUMBER
         ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year /* this needs to be long by year */
@@ -425,6 +320,16 @@ WITH map_data AS (
 
              /* enrollment targets */
              ,enr.diff_from_target AS diff_from_target_enrollment
+
+             /* teacher attrition */
+             ,staff.pct_attrition
+             ,staff.pct_unwanted_attrition
+             ,staff.pct_wanted_attrition
+
+             /* ACT prep */
+             ,CONVERT(FLOAT,act.composite) AS act_composite
+             ,CONVERT(FLOAT,act.is_22 * 100) AS act_pct_is_22
+             ,CONVERT(FLOAT,act.is_25 * 100) AS act_pct_is_25
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        LEFT OUTER JOIN KIPP_NJ..DEVFIN$mobility_long#KIPP attr_kipp WITH(NOLOCK)
          ON co.studentid = attr_kipp.d_studentid
@@ -449,10 +354,10 @@ WITH map_data AS (
          ON co.schoolid = tntp.schoolid
         AND co.year = tntp.academic_year
         AND tntp.rn = 1
-       LEFT OUTER JOIN manager_survey mgr
+       LEFT OUTER JOIN KIPP_NJ..SURVEY$manager_survey_averages mgr WITH(NOLOCK)
          ON co.schoolid = mgr.schoolid
         AND co.year = mgr.academic_year
-       LEFT OUTER JOIN q12_avg q12
+       LEFT OUTER JOIN KIPP_NJ..SURVEY$Q12_averages q12 WITH(NOLOCK)
          ON co.schoolid = q12.schoolid
         AND co.year = q12.academic_year
        LEFT OUTER JOIN KIPP_NJ..SPI$walkthrough_avgs wlk WITH(NOLOCK)
@@ -479,6 +384,13 @@ WITH map_data AS (
        LEFT OUTER JOIN KIPP_NJ..FINANCE$enrollment_targets enr WITH(NOLOCK)
          ON co.year = enr.academic_year
         AND co.schoolid = enr.schoolid
+       LEFT OUTER JOIN KIPP_NJ..PEOPLE$staff_attrition_rates staff WITH(NOLOCK)
+         ON co.schoolid = staff.schoolid
+        AND co.year = staff.academic_year
+       LEFT OUTER JOIN KIPP_NJ..ACT$test_prep_scores_wide act WITH(NOLOCK)
+         ON co.student_number = act.student_number
+        AND co.year = act.academic_year
+        AND act.rn_curr = 1
        WHERE co.year >= 2013
          AND co.schoolid != 999999
          AND co.grade_level != 99
@@ -526,7 +438,13 @@ WITH map_data AS (
                  ,ela_module_avg_above_80
                  ,math_module_avg_above_65
                  ,math_module_avg_above_80
-                 ,diff_from_target_enrollment)
+                 ,diff_from_target_enrollment
+                 ,pct_attrition
+                 ,pct_unwanted_attrition
+                 ,pct_wanted_attrition
+                 ,act_composite
+                 ,act_pct_is_22
+                 ,act_pct_is_25)
    ) u
  )
 
