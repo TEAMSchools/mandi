@@ -52,3 +52,42 @@ LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_ACT_scale_score_key act WITH(NOLOCK)
  AND d.administration_round = act.administration_round
  AND d.subject_area = act.subject
  AND d.overall_number_correct = act.raw_score
+
+UNION ALL
+
+SELECT student_number
+      ,academic_year
+      ,administration_round
+      ,administered_at
+      ,'Composite' AS subject_area
+      ,NULL AS overall_number_correct
+      ,NULL AS overall_performance_band
+      ,NULL AS standard_code
+      ,NULL AS standard_description
+      ,NULL AS standard_percent_correct
+      ,ROUND(AVG(scale_score),0) AS scale_score
+      ,rn_dupe
+FROM
+    (
+     SELECT d.student_number
+           ,d.academic_year
+           ,d.administration_round      
+           ,d.administered_at
+           ,d.subject_area      
+           ,act.scale_score
+           ,ROW_NUMBER() OVER(
+              PARTITION BY d.academic_year, d.administration_round, d.subject_area, d.student_number
+                ORDER BY d.student_number) AS rn_dupe
+     FROM long_data d
+     LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_ACT_scale_score_key act WITH(NOLOCK)
+       ON d.academic_year = act.academic_year
+      AND d.administration_round = act.administration_round
+      AND d.subject_area = act.subject
+      AND d.overall_number_correct = act.raw_score
+    ) sub
+WHERE rn_dupe = 1
+GROUP BY student_number
+        ,academic_year
+        ,administration_round
+        ,administered_at        
+        ,rn_dupe
