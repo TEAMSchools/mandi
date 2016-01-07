@@ -69,4 +69,5 @@ FROM assessments a WITH(NOLOCK)
 JOIN test_metadata t WITH(NOLOCK)
   ON a.repository_id = t.repository_id
  AND a.repository_row_id = t.repository_row_id
+ AND t.term LIKE 'Q%'
 WHERE a.field_name NOT IN ('field_interim','field_year')
