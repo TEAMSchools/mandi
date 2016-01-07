@@ -101,9 +101,9 @@ WITH long_data AS (
 SELECT *
 	     ,CONCAT(exclude_location_status, exclude_department_status, exclude_role_status) AS exclude_audit
 	     ,CASE 
-        WHEN CONCAT(exclude_location_status, exclude_department_status, exclude_role_status) LIKE '%exclude%' THEN 'exclude' 
-        ELSE 'include' 
-       END AS exclude
+			WHEN CONCAT(exclude_location_status, exclude_department_status, exclude_role_status) LIKE '%exclude%' THEN 'exclude' 
+			ELSE 'include' 
+		  END AS exclude
 FROM 
     (
 	    SELECT survey_type
@@ -114,6 +114,16 @@ FROM
 	          ,response
 	          ,response_value
 	          ,term
+			  ,CASE 
+				WHEN term IN ('Q1','Q2') THEN 'Winter'
+				WHEN term IN ('Q3','Q4') THEN 'Spring'
+				ELSE term 
+			   END AS term_season
+			  ,CASE 
+				WHEN term IN ('Winter','Q2') THEN CONVERT(VARCHAR,academic_year) + '-12-01'
+				WHEN term IN ('Spring', 'Q4') THEN CONVERT(VARCHAR,academic_year +1 ) + '-06-01'
+				ELSE NULL 
+			   END AS dates
 	          ,subject_reporting_location
 	          ,subject_team
 	          ,subject_manager_name
@@ -129,21 +139,21 @@ FROM
            ,exclude_department
            ,exclude_role
 	          ,CASE 
-             WHEN exclude_location	LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) > 0 THEN 'include'
+				WHEN exclude_location	LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) > 0 THEN 'include'
 		           WHEN exclude_location	LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) = 0 THEN 'exclude'
 		           WHEN exclude_location	NOT LIKE	'%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) > 0 THEN 'exclude'
 		           WHEN exclude_location	NOT LIKE	'%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) = 0 THEN 'include'
 		           ELSE 'include' 
 	           END AS exclude_location_status
 	          ,CASE 
-             WHEN exclude_department	LIKE	'%Include%' AND CHARINDEX(adp_responder.department, exclude_department) > 0 THEN 'include'
+				WHEN exclude_department	LIKE	'%Include%' AND CHARINDEX(adp_responder.department, exclude_department) > 0 THEN 'include'
 		           WHEN exclude_department	LIKE '%Include%' AND CHARINDEX(adp_responder.department, exclude_department) = 0 THEN 'exclude'
 		           WHEN exclude_department	NOT LIKE	'%Include%' AND CHARINDEX(adp_responder.department, exclude_department) > 0 THEN 'exclude'
 		           WHEN exclude_department	NOT LIKE	'%Include%' AND CHARINDEX(adp_responder.department, exclude_department) = 0 THEN 'include'
 		           ELSE 'include' 
 	           END AS exclude_department_status
 	          ,CASE 
-             WHEN exclude_role		LIKE		'%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) > 0 THEN 'include'
+				WHEN exclude_role		LIKE		'%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) > 0 THEN 'include'
 		           WHEN exclude_role			LIKE		'%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) = 0 THEN 'exclude'
 		           WHEN exclude_role			NOT LIKE	'%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) > 0 THEN 'exclude'
 		           WHEN exclude_role			NOT LIKE	'%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) = 0 THEN 'include'
