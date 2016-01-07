@@ -3,70 +3,70 @@ GO
 
 ALTER VIEW ILLUMINATE$writing_scores_long AS
 
-WITH test_roster AS (
-  SELECT student_number
-        ,repository_id
-        ,title
+WITH assessments AS (
+  SELECT a.repository_id        
+        ,a.title
+        ,a.scope
+        ,a.subject_area              
+        ,a.date_administered
+        ,a.academic_year
+        ,LTRIM(RTRIM(f.label)) AS field_label
+        ,f.name AS field_name        
+        ,res.student_id AS student_number             
+        ,res.repository_row_id
+        ,res.value AS field_value           
+        ,d.alt_name AS term
+  FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)  
+  JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
+    ON a.repository_id = f.repository_id
+  JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
+    ON a.repository_id = res.repository_id
+   AND f.name = res.field     
+  LEFT OUTER JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
+    ON a.academic_year = d.academic_year
+   AND a.date_administered BETWEEN d.start_date AND d.end_date
+   AND d.identifier = 'RT'
+   AND d.schoolid = 73253
+  WHERE ((a.scope = 'Unit Assessment' AND a.subject_area = 'English') OR a.title = 'English OE - Quarterly Assessments')
+ )
+
+,test_metadata AS (
+  SELECT repository_id        
         ,repository_row_id
-        ,Year
-        ,COALESCE(interim, quarter) AS term
+        ,LEFT([year],4) AS academic_year                
+        ,CASE WHEN academic_year <= 2014 THEN REPLACE([quarter],'QE','Q') ELSE term END AS term
+        ,CONCAT('ENG',LEFT([course],2)) AS course_number
   FROM
       (
-       SELECT res.student_id AS student_number
-             ,a.repository_id
-             ,a.title             
-             ,f.label
-             ,res.repository_row_id
-             ,res.value AS field_value           
-       FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)
-       JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
-         ON a.repository_id = f.repository_id      
-        AND f.label IN ('Year','Interim','Quarter')
-       JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
-         ON a.repository_id = res.repository_id
-        AND f.name = res.field
-       WHERE a.title IN ('Writing - Interim - TEAM MS', 'English OE - Quarterly Assessments')
+       SELECT a.repository_id             
+             ,a.field_label             
+             ,a.repository_row_id
+             ,a.field_value           
+             ,a.academic_year
+             ,a.term             
+       FROM assessments a WITH(NOLOCK)                
+       WHERE a.field_name IN ('field_interim','field_year')
       ) sub
   PIVOT(
     MAX(field_value)
-    FOR label IN ([Year],[Interim],[Quarter])
+    FOR field_label IN ([year],[course],[quarter])
    ) p
  )
 
-,test_data AS (
-  SELECT res.student_id AS student_number
-        ,a.repository_id
-        ,a.title                     
-        ,CASE
-          WHEN f.label LIKE 'Prompt%' THEN LTRIM(RTRIM(SUBSTRING(f.label, CHARINDEX('-', f.label) + 2, 32)))
-          ELSE LTRIM(RTRIM(f.label))
-         END AS strand
-        ,f.label AS field_name
-        ,res.repository_row_id        
-        ,res.value AS field_value           
-  FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)
-  JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
-    ON a.repository_id = f.repository_id      
-   AND f.label NOT IN ('Year','Interim','Quarter','Test Type')
-  JOIN KIPP_NJ..ILLUMINATE$repository_data res WITH(NOLOCK)
-    ON a.repository_id = res.repository_id
-   AND f.name = res.field   
-  WHERE a.title IN ('Writing - Interim - TEAM MS', 'English OE - Quarterly Assessments')
- )
-
-SELECT t.student_number
-      ,t.repository_id
-      ,t.title
-      ,t.repository_row_id
-      ,LEFT(t.Year, 4) AS academic_year
+SELECT a.repository_id
+      ,a.title                                      
+      ,a.student_number                          
+      ,a.repository_row_id
+      ,a.field_label             
+      ,SUBSTRING(a.field_label, CHARINDEX('-', a.field_label) - 2, 1) AS prompt_number
+      ,SUBSTRING(a.field_label, CHARINDEX('-', a.field_label) + 2, LEN(a.field_label)) AS strand
+      ,CONVERT(FLOAT,a.field_value) AS field_value
       ,t.term
-      ,res.strand
-      ,t.term + '_' + res.strand AS pivot_hash
-      ,res.field_name      
-      ,CONVERT(FLOAT,res.field_value) AS field_value        
-      ,RIGHT(term,1) AS series
-FROM test_roster t WITH(NOLOCK)
-JOIN test_data res WITH(NOLOCK)
-  ON t.repository_row_id = res.repository_row_id  
- AND t.student_number = res.student_number
- AND t.repository_id = res.repository_id   
+      ,RIGHT(t.term,1) AS series
+      ,t.academic_year             
+      ,t.course_number
+FROM assessments a WITH(NOLOCK)                
+JOIN test_metadata t WITH(NOLOCK)
+  ON a.repository_id = t.repository_id
+ AND a.repository_row_id = t.repository_row_id
+WHERE a.field_name NOT IN ('field_interim','field_year')

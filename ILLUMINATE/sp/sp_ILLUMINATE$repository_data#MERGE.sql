@@ -35,7 +35,7 @@ BEGIN
   DECLARE illuminate_cursor CURSOR FOR
     SELECT repository_id            
     FROM KIPP_NJ..ILLUMINATE$repositories#static WITH(NOLOCK)
-    WHERE repository_id <= 144
+    WHERE repository_id <= 157
     ORDER BY repository_id DESC;
   		    
 -- 4.) Do work, son --

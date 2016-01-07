@@ -47,10 +47,6 @@ WITH standards_rollup AS (
               ON ovr.local_student_id = co.student_number
              AND ovr.academic_year = co.year
              AND co.rn = 1
-            JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
-              ON co.schoolid = d.schoolid
-             AND ovr.date_taken BETWEEN d.start_date AND d.end_date
-             AND d.identifier = 'RT'
             JOIN KIPP_NJ..ILLUMINATE$assessments_long#static a WITH(NOLOCK)
               ON co.schoolid = a.schoolid             
              AND ovr.assessment_id = a.assessment_id
@@ -58,6 +54,10 @@ WITH standards_rollup AS (
              AND a.subject_area != 'Writing'
              AND a.subject_area IS NOT NULL            
              AND a.standard_code NOT LIKE 'TES.W.%'
+            JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
+              ON co.schoolid = d.schoolid
+             AND a.administered_at BETWEEN d.start_date AND d.end_date
+             AND d.identifier = 'RT'            
             JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard r WITH(NOLOCK)
               ON ovr.local_student_id = r.local_student_id
              AND ovr.assessment_id = r.assessment_id
