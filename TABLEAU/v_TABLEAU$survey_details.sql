@@ -3,9 +3,14 @@ GO
 
 ALTER VIEW TABLEAU$survey_details AS
 
-SELECT 
+SELECT *
+	  ,exclude_location_status + exclude_department_status + exclude_role_status AS exclude_audit
+	  ,CASE WHEN exclude_location_status + exclude_department_status + exclude_role_status LIKE '%exclude%' THEN 'exclude' ELSE 'include' END AS exclude
+FROM 
 
---survey responses long
+	(
+	SELECT 
+	--survey responses long
 	   survey_type
 	  ,academic_year
 	  ,subject_name
@@ -23,29 +28,35 @@ SELECT
 	  ,is_open_ended
 	  ,question_text
 	  ,exclude_from_agg
+
+	--exclusions
+
 	  ,exclude_location
       ,exclude_department
       ,exclude_role
-	  
-	  ,CASE WHEN exclude_location LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) > 0 THEN 'include'
-			WHEN exclude_location LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) = 0 THEN 'exclude'
-			WHEN exclude_location NOT LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) > 0 THEN 'exclude'
-			WHEN exclude_location NOT LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) = 0 THEN 'include'
 
-			WHEN exclude_department LIKE '%Include%' AND CHARINDEX(adp_responder.department, exclude_department) > 0 THEN 'include'
-			WHEN exclude_department LIKE '%Include%' AND CHARINDEX(adp_responder.department, exclude_department) = 0 THEN 'exclude'
-			WHEN exclude_department NOT LIKE '%Include%' AND CHARINDEX(adp_responder.department, exclude_department) > 0 THEN 'exclude'
-			WHEN exclude_department NOT LIKE '%Include%' AND CHARINDEX(adp_responder.department, exclude_department) = 0 THEN 'include'
+	  ,CASE WHEN exclude_location	LIKE		'%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) > 0 THEN 'include'
+		WHEN exclude_location		LIKE		'%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) = 0 THEN 'exclude'
+		WHEN exclude_location		NOT LIKE	'%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) > 0 THEN 'exclude'
+		WHEN exclude_location		NOT LIKE	'%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) = 0 THEN 'include'
+		ELSE 'include' 
+	  END AS exclude_location_status
 
-			WHEN exclude_role LIKE '%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) > 0 THEN 'include'
-			WHEN exclude_role LIKE '%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) = 0 THEN 'exclude'
-			WHEN exclude_role NOT LIKE '%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) > 0 THEN 'exclude'
-			WHEN exclude_role NOT LIKE '%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) = 0 THEN 'include'
+	 ,CASE WHEN exclude_department	LIKE		'%Include%' AND CHARINDEX(adp_responder.department, exclude_department) > 0 THEN 'include'
+		WHEN exclude_department		LIKE		'%Include%' AND CHARINDEX(adp_responder.department, exclude_department) = 0 THEN 'exclude'
+		WHEN exclude_department		NOT LIKE	'%Include%' AND CHARINDEX(adp_responder.department, exclude_department) > 0 THEN 'exclude'
+		WHEN exclude_department		NOT LIKE	'%Include%' AND CHARINDEX(adp_responder.department, exclude_department) = 0 THEN 'include'
+		ELSE 'include' 
+	  END AS exclude_department_status
 
-		 ELSE 'include' END AS exclude
-	
-
---responder/subject details
+	 ,CASE WHEN exclude_role		LIKE		'%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) > 0 THEN 'include'
+		WHEN exclude_role			LIKE		'%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) = 0 THEN 'exclude'
+		WHEN exclude_role			NOT LIKE	'%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) > 0 THEN 'exclude'
+		WHEN exclude_role			NOT LIKE	'%Include%' AND CHARINDEX(adp_responder.job_title, exclude_role) = 0 THEN 'include'
+		ELSE 'include' 
+	  END AS exclude_role_status
+	 
+	--responder/subject details
 	  ,responder.associate_id AS responder_associate_id
 	  ,responder.gapps_email AS responder_gapps_email
 	  ,subject.associate_id AS subject_associate_id
@@ -61,21 +72,19 @@ SELECT
 	  ,adp_responder.hire_date AS adp_responder_hire_date
 	  ,DATEDIFF(DD,adp_responder.hire_date,GETDATE()) / 365 AS years_employed
 
-FROM PEOPLE$PM_survey_responses_long surveys WITH(NOLOCK)
+	FROM PEOPLE$PM_survey_responses_long surveys WITH(NOLOCK)
 
-LEFT OUTER JOIN AUTOLOAD$GDOCS_PM_survey_roster responder WITH(NOLOCK)
-  ON surveys.responder_name = responder.firstlast
+	LEFT OUTER JOIN AUTOLOAD$GDOCS_PM_survey_roster responder WITH(NOLOCK)
+	  ON surveys.responder_name = responder.firstlast
 
-LEFT OUTER JOIN AUTOLOAD$GDOCS_PM_survey_roster subject WITH(NOLOCK)
-  ON surveys.subject_name = subject.firstlast
+	LEFT OUTER JOIN AUTOLOAD$GDOCS_PM_survey_roster subject WITH(NOLOCK)
+	  ON surveys.subject_name = subject.firstlast
 
-LEFT OUTER JOIN PEOPLE$ADP_detail adp_responder WITH(NOLOCK)
-  ON responder.associate_id = adp_responder.associate_id
-  AND adp_responder.rn_curr = 1
+	LEFT OUTER JOIN PEOPLE$ADP_detail adp_responder WITH(NOLOCK)
+	  ON responder.associate_id = adp_responder.associate_id
+	  AND adp_responder.rn_curr = 1
 
-LEFT OUTER JOIN PEOPLE$ADP_detail adp_subject WITH(NOLOCK)
-  ON subject.associate_id = adp_subject.associate_id
-  AND adp_subject.rn_curr = 1
-
-
-
+	LEFT OUTER JOIN PEOPLE$ADP_detail adp_subject WITH(NOLOCK)
+      ON subject.associate_id = adp_subject.associate_id
+      AND adp_subject.rn_curr = 1
+	) sub
