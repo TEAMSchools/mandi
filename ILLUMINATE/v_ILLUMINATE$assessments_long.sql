@@ -100,11 +100,11 @@ FROM
        ON astd.standard_id = std.standard_id
      LEFT OUTER JOIN KIPP_NJ..PS$USERS#static u WITH(NOLOCK)
        ON a.state_id = u.teachernumber
-     LEFT OUTER JOIN REPORTING$dates rpt_wks WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..REPORTING$dates rpt_wks WITH(NOLOCK)
        ON a.administered_at BETWEEN rpt_wks.start_date AND rpt_wks.end_date
       AND sch.schoolid = rpt_wks.schoolid
       AND rpt_wks.identifier = 'REP'
-     LEFT OUTER JOIN REPORTING$dates rt WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..REPORTING$dates rt WITH(NOLOCK)
        ON a.administered_at BETWEEN rt.start_date AND rt.end_date
       AND ((a.academic_year >= 2015 AND rt.schoolid = 0) OR (a.academic_year < 2015 AND sch.schoolid = rt.schoolid)) /* district normed quarters as of 2015-2016 */
       AND rt.identifier = 'RT'

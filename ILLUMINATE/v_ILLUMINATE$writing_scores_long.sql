@@ -10,12 +10,13 @@ WITH assessments AS (
         ,a.subject_area              
         ,a.date_administered
         ,a.academic_year
+        ,CONCAT('Unit ', RIGHT(a.title,1)) AS unit_number
         ,LTRIM(RTRIM(f.label)) AS field_label
         ,f.name AS field_name        
         ,res.student_id AS student_number             
         ,res.repository_row_id
         ,res.value AS field_value           
-        ,d.alt_name AS term
+        ,d.alt_name AS term        
   FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)  
   JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
     ON a.repository_id = f.repository_id
@@ -35,6 +36,7 @@ WITH assessments AS (
         ,repository_row_id
         ,LEFT([year],4) AS academic_year                
         ,CASE WHEN academic_year <= 2014 THEN REPLACE([quarter],'QE','Q') ELSE term END AS term
+        ,CASE WHEN academic_year <= 2014 THEN [quarter] ELSE unit_number END AS unit_number
         ,CONCAT('ENG',LEFT([course],2)) AS course_number
   FROM
       (
@@ -44,6 +46,7 @@ WITH assessments AS (
              ,a.field_value           
              ,a.academic_year
              ,a.term             
+             ,a.unit_number
        FROM assessments a WITH(NOLOCK)                
        WHERE a.field_name IN ('field_interim','field_year')
       ) sub
@@ -62,7 +65,8 @@ SELECT a.repository_id
       ,SUBSTRING(a.field_label, CHARINDEX('-', a.field_label) + 2, LEN(a.field_label)) AS strand
       ,CONVERT(FLOAT,a.field_value) AS field_value
       ,t.term
-      ,RIGHT(t.term,1) AS series
+      ,t.unit_number
+      ,RIGHT(t.unit_number,1) AS series
       ,t.academic_year             
       ,t.course_number
 FROM assessments a WITH(NOLOCK)                

@@ -42,6 +42,7 @@ SELECT co.SCHOOLID
       ,w.title
       ,w.academic_year
       ,w.term
+      ,w.unit_number
       ,w.course_number            
       ,w.strand
       ,w.prompt_number
