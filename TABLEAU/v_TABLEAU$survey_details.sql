@@ -16,7 +16,9 @@ WITH long_data AS (
 	       ,subject_team
 	       ,subject_manager_name
 	       ,responder_name
-	       ,responder_reporting_location
+	       ,CASE WHEN responder_reporting_location LIKE '%Pathways%' THEN 'Life Academy'
+		    ELSE responder_reporting_location
+			END AS responder_reporting_location
 	       ,competency
 	       ,is_open_ended
 	       ,question_text
@@ -136,8 +138,8 @@ FROM
 
 	          /* exclusions */
 	          ,exclude_location
-           ,exclude_department
-           ,exclude_role
+			  ,exclude_department
+		      ,exclude_role
 	          ,CASE 
 				WHEN exclude_location	LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) > 0 THEN 'include'
 		           WHEN exclude_location	LIKE '%Include%' AND CHARINDEX(responder_reporting_location, exclude_location) = 0 THEN 'exclude'
