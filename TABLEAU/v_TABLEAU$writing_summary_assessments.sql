@@ -51,7 +51,7 @@ SELECT co.SCHOOLID
       ,enr.course_name
       ,enr.course_period
       ,enr.teacher_name
-FROM KIPP_NJ..ILLUMINATE$writing_scores_long#static w WITH(NOLOCK)
+FROM KIPP_NJ..ILLUMINATE$writing_scores_long w WITH(NOLOCK)
 JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   ON w.student_number = co.student_number
  AND w.academic_year = co.year

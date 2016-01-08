@@ -4,7 +4,8 @@ GO
 ALTER VIEW DISC$log AS
 
 WITH disc_log AS (
-  SELECT disc.schoolid
+  SELECT disc.DCID
+        ,disc.schoolid
         ,CAST(disc.studentid AS INT) AS studentid        
         ,disc.entry_author        
         ,CASE
@@ -134,7 +135,8 @@ WITH disc_log AS (
  )
 
 ,all_logs AS (
-  SELECT schoolid
+  SELECT DCID
+        ,schoolid
         ,studentid
         ,entry_author        
         ,entry_date
@@ -155,7 +157,8 @@ WITH disc_log AS (
 
   UNION ALL
   
-  SELECT schoolid
+  SELECT NULL AS DCID
+        ,schoolid
         ,studentid
         ,entry_author        
         ,entry_date
@@ -176,7 +179,8 @@ WITH disc_log AS (
   
   UNION ALL
 
-  SELECT 73253 AS schoolid
+  SELECT NULL AS DCID
+        ,73253 AS schoolid
         ,studentid
         ,'Data Robot' AS entry_author
         ,week_of AS entry_date
@@ -198,7 +202,8 @@ WITH disc_log AS (
 
   UNION ALL 
 
-  SELECT schoolid
+  SELECT NULL AS DCID
+        ,schoolid
         ,studentid
         ,entry_author        
         ,entry_date
@@ -224,7 +229,8 @@ SELECT *
            ORDER BY CONVERT(DATE,entry_date) DESC) AS rn
 FROM
     (
-     SELECT CONVERT(INT,all_logs.schoolid) AS schoolid
+     SELECT CONVERT(INT,all_logs.DCID) AS DCID
+           ,CONVERT(INT,all_logs.schoolid) AS schoolid
            ,CONVERT(INT,all_logs.studentid) AS studentid
            ,all_logs.entry_author
            ,dbo.fn_DateToSY(all_logs.entry_date) AS academic_year
