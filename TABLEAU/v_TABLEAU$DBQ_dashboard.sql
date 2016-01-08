@@ -18,6 +18,7 @@ WITH assessment_data AS (
               END AS course_number
              ,a.assessment_id
              ,a.title                   
+             ,CASE WHEN a.title LIKE '%modified%' THEN 1 ELSE 0 END AS is_modified
              ,ovr.local_student_id
              ,ovr.percent_correct AS overall_pct_correct             
              ,dbq.overall_index
@@ -102,6 +103,7 @@ SELECT co.student_number
       
       ,a.assessment_id
       ,a.title      
+      ,a.is_modified
       ,a.overall_pct_correct
       ,a.standard_code
       ,a.standard_description                  
