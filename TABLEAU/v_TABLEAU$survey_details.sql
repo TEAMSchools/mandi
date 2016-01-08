@@ -25,9 +25,10 @@ WITH long_data AS (
 	       ,exclude_from_agg
 	       /* exclusions */
 	       ,exclude_location
-        ,exclude_department
-        ,exclude_role	     
+		   ,exclude_department
+           ,exclude_role	     
   FROM KIPP_NJ..PEOPLE$PM_survey_responses_long WITH(NOLOCK)
+  WHERE responder_reporting_location IS NOT NULL
 
   UNION ALL
 
