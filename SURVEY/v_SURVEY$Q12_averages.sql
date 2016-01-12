@@ -14,7 +14,7 @@ WITH curr_Q12 AS (
        SELECT DISTINCT 
               academic_year
              ,term
-       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
+       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long WITH(NOLOCK)
        WHERE survey_type = 'R9'
          AND competency = 'Q12'
       ) sub
@@ -39,7 +39,7 @@ FROM
      SELECT academic_year
            ,responder_reporting_location
            ,AVG(CONVERT(FLOAT,response_value)) AS avg_response_value
-     FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
+     FROM KIPP_NJ..PEOPLE$PM_survey_responses_long WITH(NOLOCK)
      WHERE survey_type = 'R9'
        AND competency = 'Q12'
        AND term IN (SELECT term FROM curr_Q12 WHERE rn = 1)

@@ -172,7 +172,7 @@ WITH map_data AS (
        JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
          ON a.assessment_id = ovr.assessment_id
         AND ovr.answered > 0
-       WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')  
+       WHERE a.scope IN ('CMA - End-of-Module') --,'CMA - Mid-Module')           
          AND a.subject_area IN ('Text Study', 'Mathematics')
          AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       ) sub
@@ -314,7 +314,7 @@ WITH map_data AS (
              /* Q12 average */
              ,q12.avg_response_value AS q12_avg_response
 
-             /* SPI walkthrough avgs -- some differences btw 2014 & 2015 scales */
+             /* SPI walkthrough avgs -- some differences btw 2014 & 2015 naming conventions */
              ,wlk.classroom_engagement_overall
              ,wlk.culture_schoolculture_overall            
              ,COALESCE(wlk.classroom_instruction_overall, wlk.classroom_instructionaldelivery_overall) AS classroom_instruction_overall
@@ -402,10 +402,12 @@ WITH map_data AS (
          ON co.student_number = ela_mod.student_number
         AND co.year = ela_mod.academic_year
         AND ela_mod.subject_area = 'Text Study'
+        AND co.schoolid != 73253
        LEFT OUTER JOIN module_avg math_mod
          ON co.student_number = math_mod.student_number
         AND co.year = math_mod.academic_year
         AND math_mod.subject_area = 'Mathematics'
+        AND co.schoolid != 73253
        LEFT OUTER JOIN KIPP_NJ..FINANCE$enrollment_targets enr WITH(NOLOCK)
          ON co.year = enr.academic_year
         AND co.schoolid = enr.schoolid

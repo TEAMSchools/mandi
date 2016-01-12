@@ -23,10 +23,10 @@ SELECT co.year
       ,CONVERT(DATE,rd.date) AS date
       ,rd.reporting_hash
       ,dt.alt_name AS term
-FROM COHORT$identifiers_long#static co WITH(NOLOCK)
-JOIN UTIL$reporting_days#static rd WITH(NOLOCK)
-  ON rd.date BETWEEN co.entrydate AND co.exitdate
-LEFT OUTER JOIN REPORTING$dates dt WITH(NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..UTIL$reporting_days#static rd WITH(NOLOCK)
+  ON co.year = rd.academic_year
+LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON co.schoolid = dt.schoolid
  AND co.year = dt.academic_year
  AND dt.identifier = 'RT'
