@@ -17,11 +17,11 @@ WITH attendance AS (
        SELECT co.student_number
              ,cal.date_value
              ,CONVERT(FLOAT,cal.membershipvalue) AS membershipvalue
-             ,CONVERT(FLOAT,mem.ATTENDANCEVALUE) AS attendancevalue
-             ,CASE WHEN att.ATT_CODE IN ('A', 'AD') THEN 1 ELSE 0 END AS is_absent
+             ,CASE WHEN mem.membershipvalue = 1 AND (att.ATT_CODE != 'A' OR att. ATT_CODE IS NULL) THEN 1.0 ELSE 0.0 END AS attendancevalue
+             ,CASE WHEN att.ATT_CODE IN ('A') THEN 1 ELSE 0 END AS is_absent
              ,CASE WHEN att.ATT_CODE IN ('T', 'T10') THEN 1 ELSE 0 END AS is_tardy
              ,CASE
-               WHEN att.ATT_CODE IN ('A', 'AD') THEN 1.0
+               WHEN att.ATT_CODE IN ('A') THEN 1.0
                WHEN att.ATT_CODE IN ('T', 'T10') THEN (1.0/3.0) + 0.000001 /* pushes the 3rd tardy over the edge from .999... */
               END AS attendance_points
        FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)

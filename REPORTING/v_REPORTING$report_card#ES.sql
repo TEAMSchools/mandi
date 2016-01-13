@@ -55,7 +55,7 @@ SELECT r.student_number
       ,rw.term_rn
       
       /* attendance */
-      ,CONCAT(att.Y1_ABS_ALL, ' (', att.Y1_AE, ')') AS cur_absences_total
+      ,CONCAT(att.Y1_A, ' (', att.Y1_AD, ')') AS cur_absences_total
       ,CONCAT(att.Y1_T_ALL, ' (', att.Y1_TE, ')') AS cur_tardies_total      
       ,CONCAT(att.Y1_LE, ' (', att.Y1_LEX, ')') AS cur_early_dismiss        
       

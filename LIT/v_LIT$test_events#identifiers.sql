@@ -201,6 +201,63 @@ WITH ps_readingscores AS (
     AND rs.academic_year <= 2014
  )
 
+,illuminate AS (
+  SELECT CONCAT('IL',fp.BINI_ID) AS unique_id
+        ,3273 AS testid   
+        ,1 AS is_fp
+      
+        /* date stuff */
+        ,fp.academic_year
+        ,fp.test_round
+        ,fp.round_num
+        ,fp.date_administered AS test_Date
+           
+        /* student identifiers */
+        ,co.schoolid
+        ,co.grade_level
+        ,co.COHORT 
+        ,co.studentid
+        ,co.student_number
+        ,co.LASTFIRST
+      
+        /* test identifiers */      
+        /* In 2015-2016, we changed STEP entry to  only be DNA levels, so Achieved level doesn't correlate with testid anymore */           
+        ,'Did Not Achieve' AS status
+        ,fp.achieved_independent_level AS read_lvl
+        ,fp.indep_lvl_num AS lvl_num
+        ,fp.instructional_level_tested AS dna_lvl
+        ,fp.instr_lvl_num AS dna_lvl_num
+        ,fp.instructional_level_tested AS instruct_lvl
+        ,fp.instr_lvl_num AS instruct_lvl_num
+        ,fp.achieved_independent_level AS indep_lvl
+        ,fp.indep_lvl_num AS indep_lvl_num
+
+        /* progress to goals */      
+        ,NULL AS goal_lvl
+        ,NULL AS goal_num      
+        ,NULL AS default_goal_lvl
+        ,NULL AS default_goal_num
+        ,NULL AS natl_goal_lvl         
+        ,NULL AS natl_goal_num
+        ,NULL AS indiv_goal_lvl
+        ,NULL AS indiv_lvl_num           
+        ,NULL AS met_goal
+        ,NULL AS levels_behind                 
+
+        /* test metadata */
+        ,fp.GLEQ
+        ,NULL AS color
+        ,NULL AS genre
+        ,fp.reading_rate_wpm AS fp_wpmrate
+        ,fp.key_lever AS fp_keylever      
+        ,NULL AS coaching_code
+  FROM KIPP_NJ..LIT$test_events#MS#static fp WITH(NOLOCK)
+  JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+    ON fp.student_number = co.student_number
+   AND fp.academic_year = co.year
+   AND co.rn = 1
+ )
+
 ,all_systems AS (
   SELECT unique_id
         ,testid
@@ -282,6 +339,48 @@ WITH ps_readingscores AS (
         ,CONVERT(VARCHAR,coaching_code) AS coaching_code
   FROM KIPP_NJ..LIT$STEP_Level_Assessment_Data#UChicago#static WITH(NOLOCK)
   WHERE status != 'Did Not Achieve' /* temp fix -- DNA tests coming through as Achieved because of PS > STEP Tool change */
+  
+  UNION ALL
+  
+  SELECT unique_id
+        ,testid
+        ,is_fp
+        ,academic_year
+        ,test_round
+        ,round_num
+        ,test_date
+        ,schoolid
+        ,grade_level
+        ,COHORT
+        ,studentid
+        ,student_number
+        ,LASTFIRST
+        ,'Did Not Achieve' AS status /* temp fix -- DNA tests coming through as Achieved because of PS > STEP Tool change */
+        ,CONVERT(VARCHAR,read_lvl) AS read_lvl
+        ,lvl_num
+        ,CONVERT(VARCHAR,dna_lvl) AS dna_lvl
+        ,dna_lvl_num
+        ,CONVERT(VARCHAR,instruct_lvl) AS instruct_lvl
+        ,instruct_lvl_num
+        ,CONVERT(VARCHAR,indep_lvl) AS indep_lvl
+        ,indep_lvl_num
+        ,CONVERT(VARCHAR,goal_lvl) AS goal_lvl
+        ,goal_num
+        ,CONVERT(VARCHAR,default_goal_lvl) AS default_goal_lvl
+        ,default_goal_num
+        ,CONVERT(VARCHAR,natl_goal_lvl) AS natl_goal_lvl
+        ,natl_goal_num
+        ,CONVERT(VARCHAR,indiv_goal_lvl) AS indiv_goal_lvl
+        ,indiv_lvl_num
+        ,met_goal
+        ,levels_behind
+        ,GLEQ
+        ,color
+        ,CONVERT(VARCHAR,genre) AS genre
+        ,CONVERT(VARCHAR,fp_wpmrate) AS fp_wpmrate
+        ,CONVERT(VARCHAR,fp_keylever) AS fp_keylever
+        ,CONVERT(VARCHAR,coaching_code) AS coaching_code
+  FROM illuminate
  )
 
 SELECT unique_id
@@ -316,7 +415,7 @@ SELECT unique_id
       ,indiv_lvl_num
       ,met_goal
       ,levels_behind
-      ,GLEQ
+      ,ROUND(GLEQ,1) AS GLEQ
       ,color
       ,genre
       ,fp_wpmrate
