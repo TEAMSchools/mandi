@@ -82,14 +82,14 @@ SELECT -- student identifiers
       ,lit_rounds.fp_keylever
       ,LAG(lit_rounds.lvl_num, 1) OVER(PARTITION BY r.student_number, r.year ORDER BY term.hex) AS prev_lvl_num
 
-      /* F&P growth */
-      ,lit_growth.yr_growth_GLEQ
-      ,lit_growth.t1_growth_GLEQ
-      ,lit_growth.t2_growth_GLEQ
-      ,lit_growth.t3_growth_GLEQ
-      ,lit_growth.t1t2_growth_GLEQ
-      ,lit_growth.t2t3_growth_GLEQ
-      ,lit_growth.t3EOY_growth_GLEQ  
+      --/* F&P growth */
+      --,lit_growth.yr_growth_GLEQ
+      --,lit_growth.t1_growth_GLEQ
+      --,lit_growth.t2_growth_GLEQ
+      --,lit_growth.t3_growth_GLEQ
+      --,lit_growth.t1t2_growth_GLEQ
+      --,lit_growth.t2t3_growth_GLEQ
+      --,lit_growth.t3EOY_growth_GLEQ  
 
       /* most recent test for year */      
       ,mr.read_lvl AS curr_read_lvl
@@ -115,13 +115,15 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
   ON r.STUDENT_NUMBER = ar.student_number
  AND r.year = ar.academic_year
  AND term.hex = ar.time_period_name 
+ AND ar.start_date <= CONVERT(DATE,GETDATE())
 LEFT OUTER JOIN KIPP_NJ..LIT$achieved_by_round#static lit_rounds WITH(NOLOCK)
   ON r.studentid = lit_rounds.studentid
  AND r.year = lit_rounds.academic_year
  AND term.lit = lit_rounds.test_round
-LEFT OUTER JOIN KIPP_NJ..LIT$growth_measures_wide#static lit_growth WITH(NOLOCK)
-  ON r.studentid = lit_growth.studentid
- AND r.year = lit_growth.year
+ AND lit_rounds.start_date <= CONVERT(DATE,GETDATE())
+--LEFT OUTER JOIN KIPP_NJ..LIT$growth_measures_wide#static lit_growth WITH(NOLOCK)
+--  ON r.studentid = lit_growth.studentid
+-- AND r.year = lit_growth.year
 LEFT OUTER JOIN most_recent mr
   ON r.student_number = mr.student_number
  AND r.year = mr.academic_year
@@ -130,4 +132,6 @@ LEFT OUTER JOIN base_round br
  AND r.year = br.academic_year
 WHERE ((r.grade_level BETWEEN 5 AND 8) OR (r.schoolid = 73252 AND r.grade_level = 4))
   AND r.rn = 1    
-  AND r.year >= 2013 /* oldest AR data we have */
+  AND r.year >= 2010 /* oldest AR data we have */
+  
+  
