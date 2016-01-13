@@ -53,8 +53,8 @@ SELECT DISTINCT
       ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num      
       ,goals.read_lvl AS default_goal_lvl
       ,goals.lvl_num AS default_goal_num
-      ,goals.read_lvl AS natl_goal_lvl
-      ,goals.lvl_num AS natl_goal_num
+      ,goals.natl_read_lvl AS natl_goal_lvl
+      ,goals.natl_lvl_num AS natl_goal_num
       ,indiv.goal AS indiv_goal_lvl
       ,indiv.lvl_num AS indiv_lvl_num
       ,CASE WHEN CONVERT(INT,step.step) >= COALESCE(indiv.lvl_num, goals.lvl_num) THEN 1 ELSE 0 END AS met_goal

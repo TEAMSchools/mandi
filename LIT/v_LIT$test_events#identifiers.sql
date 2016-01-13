@@ -414,6 +414,11 @@ SELECT unique_id
       ,indiv_goal_lvl
       ,indiv_lvl_num
       ,met_goal
+      ,CASE
+        WHEN CONVERT(INT,lvl_num) >= CONVERT(INT,goal_num) THEN 'On Track'
+        WHEN CONVERT(INT,lvl_num) >= CONVERT(INT,natl_goal_num) THEN 'Off Track'
+        WHEN CONVERT(INT,lvl_num) < CONVERT(INT,natl_goal_num) THEN 'ARFR'
+       END AS goal_ontrack_status
       ,levels_behind
       ,ROUND(GLEQ,1) AS GLEQ
       ,color

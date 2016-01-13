@@ -133,6 +133,11 @@ SELECT academic_year
       ,natl_goal_lvl
       ,natl_goal_num      
       ,CASE WHEN lvl_num >= natl_goal_num THEN 1 ELSE 0 END AS met_natl_goal
+      ,CASE
+        WHEN lvl_num >= goal_num THEN 'On Track'
+        WHEN lvl_num >= natl_goal_num THEN 'Off Track'
+        WHEN lvl_num < natl_goal_num THEN 'ARFR'
+       END AS goal_status
       ,levels_behind
       ,unique_id
 FROM

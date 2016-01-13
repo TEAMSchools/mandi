@@ -66,14 +66,11 @@ SELECT student_number
       ,met_goal
       ,lvls_grown_term
       ,CASE        
-        WHEN SPEDLEP = 'SPED' OR retained_yr_flag = 1 THEN 'See Teacher'        
-        WHEN met_goal = 1 THEN 'On Track'
-        WHEN lvls_grown_term IS NULL THEN NULL
-        /* Life Upper students have different promo criteria */
-        WHEN (schoolid = 73257 AND (grade_level - (year - 2014)) > 0) AND lvls_grown_term > 0 THEN 'On Track'
-        WHEN (schoolid = 73257 AND (grade_level - (year - 2014)) > 0) AND lvls_grown_term = 0 THEN 'Off Track'
-        WHEN met_goal = 0 THEN 'Off Track'
-        ELSE 'On Track'
+        WHEN SPEDLEP = 'SPED' OR retained_yr_flag = 1 THEN 'See Teacher'                        
+        WHEN lvls_grown_term IS NULL THEN NULL        
+        WHEN (schoolid = 73257 AND (grade_level - (year - 2014)) > 0) AND lvls_grown_term > 0 THEN 'On Track' /* Life Upper students have different promo criteria */
+        WHEN (schoolid = 73257 AND (grade_level - (year - 2014)) > 0) AND lvls_grown_term = 0 THEN 'Off Track' /* Life Upper students have different promo criteria */                
+        ELSE goal_status
        END AS lit_ARFR_status
       
       /* attendance */
@@ -98,6 +95,7 @@ FROM
            ,co.retained_yr_flag           
            ,dt.term           
            ,lit.met_goal
+           ,lit.goal_status
            --,lit.read_lvl
            --,lit.goal_lvl      
            --,lit.lvl_num
