@@ -45,9 +45,9 @@ WITH long_data AS (
         ,NULL AS subject_manager_name
         ,NULL AS responder_name      
         ,CASE        
-          WHEN s.reporting_location IN ('Life Upper','Life Lower','Pathways','Life Academy') THEN 'Life Academy'
+          WHEN s.reporting_location IN ('Life','Life Upper','Life Lower','Pathways','Life Academy') THEN 'Life Academy'
           WHEN s.reporting_location IN ('Newark Collegiate Academy','NCA') THEN 'Newark Collegiate Academy'
-          WHEN s.reporting_location IN ('Revolution','Lanning Square Primary') THEN 'Lanning Square Primary'
+          WHEN s.reporting_location IN ('LSP','Revolution','Lanning Square Primary') THEN 'Lanning Square Primary'
           WHEN s.reporting_location IN ('Rise Academy','Rise') THEN 'Rise Academy'
           WHEN s.reporting_location IN ('Seek Academy','Seek') THEN 'Seek Academy'
           WHEN s.reporting_location IN ('SPARK Academy','SPARK') THEN 'SPARK Academy'
@@ -81,9 +81,9 @@ WITH long_data AS (
         ,NULL AS subject_manager_name
         ,NULL AS responder_name      
         ,CASE        
-          WHEN q12.school IN ('Life Upper','Life Lower','Pathways','Life Academy') THEN 'Life Academy'
+          WHEN q12.school IN ('Life','Life Upper','Life Lower','Pathways','Life Academy') THEN 'Life Academy'
           WHEN q12.school IN ('Newark Collegiate Academy','NCA') THEN 'Newark Collegiate Academy'
-          WHEN q12.school IN ('Revolution','Lanning Square Primary') THEN 'Lanning Square Primary'
+          WHEN q12.school IN ('LSP','Revolution','Lanning Square Primary') THEN 'Lanning Square Primary'
           WHEN q12.school IN ('Rise Academy','Rise') THEN 'Rise Academy'
           WHEN q12.school IN ('Seek Academy','Seek') THEN 'Seek Academy'
           WHEN q12.school IN ('SPARK Academy','SPARK') THEN 'SPARK Academy'

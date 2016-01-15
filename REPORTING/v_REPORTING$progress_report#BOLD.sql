@@ -47,8 +47,11 @@ SELECT co.student_number
       /* AR */
       ,ar.Y1_avg_pct_correct AS AR_Y1_avg_pct_correct 
       ,ar.CUR_avg_pct_correct AS AR_CUR_avg_pct_correct
-      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.Y1_words_read), 1), '.00', '') AS AR_Y1_words_read
-      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.CUR_words_read), 1), '.00', '') AS AR_CUR_words_read
+--    ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.Y1_words_read), 1), '.00', '') AS AR_Y1_words_read
+--    ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar.CUR_words_read), 1), '.00', '') AS AR_CUR_words_read
+      ,CONVERT(VARCHAR,ar.Y1_words_read) AS AR_Y1_words_read
+      ,CONVERT(VARCHAR,ar.CUR_words_read) AS AR_CUR_words_read
+
 
       /* Standards */
       ,fsa.ELA_ADV
