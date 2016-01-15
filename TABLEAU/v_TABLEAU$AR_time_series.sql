@@ -20,6 +20,21 @@ WITH ar_long AS (
           ,CONVERT(DATE,dtTaken)
  )
 
+,last_book AS (
+  SELECT student_number
+        ,academic_year
+        ,CASE 
+          WHEN academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN DATEDIFF(DAY, dttaken, CONVERT(DATE,CONCAT(academic_year,'-06-30')))
+          ELSE DATEDIFF(DAY, dttaken, GETDATE())
+         END AS n_days_ago
+        ,vchContentTitle AS book_title
+        ,ROW_NUMBER() OVER(
+           PARTITION BY student_number, academic_year
+             ORDER BY dttaken DESC) AS rn
+  FROM KIPP_NJ..AR$test_event_detail#static WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ )
+
 SELECT *
       ,CASE 
         WHEN COALESCE(ontrack_points_term, ontrack_words_term) IS NULL THEN NULL
@@ -78,7 +93,9 @@ FROM
            ,ar.n_fiction
            ,ar.avg_lexile
            ,ar.avg_pct_correct
-           ,NULL AS book_titles
+           
+           ,bk.book_title AS last_book_title
+           ,bk.n_days_ago AS last_book_days_ago 
 
            ,SUM(ar.n_words_read) OVER(
               PARTITION BY co.student_number, co.year, co.term
@@ -110,6 +127,10 @@ FROM
      LEFT OUTER JOIN ar_long ar
        ON co.student_number = ar.student_number
       AND co.date = ar.date_taken
+     LEFT OUTER JOIN last_book bk
+       ON co.student_number = bk.student_number
+      AND co.year = bk.academic_year
+      AND bk.rn = 1
      WHERE co.year >= 2013
        AND co.schoolid != 999999
        AND ((co.grade_level >= 5) OR (co.schoolid = 73252 AND co.grade_level = 4))

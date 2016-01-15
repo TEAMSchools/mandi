@@ -3,6 +3,15 @@ GO
 
 ALTER VIEW TABLEAU$assessment_dashboard AS
 
+WITH groups AS (
+  SELECT student_number
+        ,academic_year
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(group_name, ', ') AS groups
+  FROM ILLUMINATE$student_groups#static WITH(NOLOCK)
+  GROUP BY student_number
+          ,academic_year
+ )
+
 SELECT co.schoolid
       ,co.year AS academic_year
       ,co.grade_level
@@ -21,8 +30,8 @@ SELECT co.schoolid
       ,a.subject_area AS subject
       ,a.credittype   
       ,CASE 
-        WHEN KIPP_NJ.dbo.fn_StripCharacters(REPLACE(CONVERT(VARCHAR,a.tags), ', K,', ', 0,'), '^0-9') = '' THEN 0 /* no grade tags */
-        WHEN CHARINDEX(REPLACE(co.grade_level, 0, 'K'), CONVERT(VARCHAR(128),a.tags)) = 0 THEN 1 
+        WHEN a.tags IS NULL THEN 0
+        WHEN CHARINDEX(REPLACE(co.grade_level, 0, 'K'), a.tags) = 0 THEN 1 
         ELSE 0 
        END AS is_replacement
       ,enr.COURSE_NAME
@@ -66,15 +75,9 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
  AND co.year = enr.academic_year
  AND a.subject_area = enr.illuminate_subject
  AND enr.drop_flags = 0
-LEFT OUTER JOIN (
-                 SELECT DISTINCT 
-                        student_number
-                       --,academic_year
-                       ,illuminate_group AS groups
-                 FROM KIPP_NJ..PS$enrollments_rollup#static WITH(NOLOCK)  
-                 WHERE academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
-                ) groups
+LEFT OUTER JOIN groups
   ON co.STUDENT_NUMBER = groups.student_number 
+ AND co.year = groups.academic_year
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH (NOLOCK)
   ON co.student_number = res.local_student_id
  AND a.assessment_id = res.assessment_id

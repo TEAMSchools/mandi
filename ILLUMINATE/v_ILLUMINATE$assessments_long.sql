@@ -3,6 +3,20 @@ GO
 
 ALTER VIEW ILLUMINATE$assessments_long AS
 
+WITH grade_level_tags AS (
+  SELECT assessment_id
+        ,KIPP_NJ.dbo.GROUP_CONCAT(tag) AS grade_level_tags
+  FROM
+      (
+       SELECT assessment_id
+             ,CONVERT(VARCHAR(MAX),tag) AS tag
+       FROM KIPP_NJ..ILLUMINATE$tags#static WITH(NOLOCK)
+       WHERE CONVERT(VARCHAR(MAX),tag) IN ('K','1','2','3','4','5','6','7','8','9','10','11','12')
+         AND assessment_id IS NOT NULL
+      ) sub
+  GROUP BY assessment_id
+ )
+
 SELECT sub.assessment_id      
       ,sub.title
       ,sub.scope
@@ -90,7 +104,7 @@ FROM
            ,KIPP_NJ.dbo.ASCII_CONVERT(std.description) AS standard_description
            ,rpt_wks.time_per_name AS reporting_wk
            ,rt.alt_name AS term
-           ,a.tags
+           ,t.grade_level_tags AS tags
      FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
      LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessments_sites#static sch WITH(NOLOCK)
        ON a.assessment_id = sch.assessment_id
@@ -98,6 +112,8 @@ FROM
        ON a.assessment_id = astd.assessment_id
      LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
        ON astd.standard_id = std.standard_id
+     LEFT OUTER JOIN grade_level_tags t
+       ON a.assessment_id = t.assessment_id
      LEFT OUTER JOIN KIPP_NJ..PS$USERS#static u WITH(NOLOCK)
        ON a.state_id = u.teachernumber
      LEFT OUTER JOIN KIPP_NJ..REPORTING$dates rpt_wks WITH(NOLOCK)
