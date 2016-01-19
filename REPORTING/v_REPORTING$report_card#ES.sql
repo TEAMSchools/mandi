@@ -180,6 +180,7 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$social_skills_wide#ES soc WITH(NOLOCK)
  AND rw.term = soc.term
 LEFT OUTER JOIN KIPP_NJ..PROMO$promo_status#ES promo WITH(NOLOCK)
   ON r.student_number = promo.student_number
+ AND promo.is_curterm = 1
 LEFT OUTER JOIN KIPP_NJ..REPORTING$report_card_comments#ES comm WITH(NOLOCK)
   ON r.student_number = comm.student_number
  AND rw.term = comm.term
