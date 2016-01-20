@@ -12,6 +12,7 @@ WITH act_data AS (
           WHEN act.subject_area IN ('English','Reading') THEN 'ENG'
           WHEN act.subject_area IN ('Mathematics') THEN 'MATH'
           WHEN act.subject_area IN ('Science') THEN 'SCI'
+          ELSE act.subject_area
          END AS credittype
         ,act.overall_number_correct
         ,act.scale_score
@@ -78,7 +79,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
 LEFT OUTER JOIN act_data act WITH(NOLOCK)
   ON co.student_number = act.student_number
  AND co.year = act.academic_year
- AND enr.CREDITTYPE = act.credittype
+ AND ((enr.CREDITTYPE = act.credittype) OR (act.credittype = 'Composite'))
 WHERE co.rn = 1
   AND co.schoolid = 73253
   AND co.grade_level != 99
