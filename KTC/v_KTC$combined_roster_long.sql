@@ -7,8 +7,8 @@ WITH graduates AS (
   SELECT co.year AS academic_year        
         ,co.STUDENT_NUMBER
         ,co.lastfirst        
-        ,co.SPEDLEP
-        ,co.SPED_code
+        ,sub.SPEDLEP
+        ,sub.SPED_code
         ,sub.grade_level + (co.year - sub.cohort) AS grade_level        
         ,sub.cohort
         ,sub.schoolid                
@@ -23,6 +23,8 @@ WITH graduates AS (
              ,co.lastfirst
              ,co.grade_level
              ,co.cohort        
+             ,co.SPEDLEP
+             ,co.SPED_code
              ,co.schoolid                        
              ,ROW_NUMBER() OVER(
                PARTITION BY co.student_number

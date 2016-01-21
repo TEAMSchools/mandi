@@ -19,6 +19,31 @@ WITH paycheck_avg AS (
   GROUP BY student_number
  )
 
+,trust_scores AS (
+  SELECT student_number
+        ,term
+        ,responds
+        ,independence
+        ,ROW_NUMBER() OVER(
+           PARTITION BY student_number
+             ORDER BY term DESC) AS rn
+  FROM
+      (
+       SELECT student_number
+             ,term
+             ,domain
+             ,AVG(score) AS avg_score
+       FROM KIPP_NJ..DISC$trust_scores WITH(NOLOCK)
+       GROUP BY student_number
+               ,term
+               ,domain
+      ) sub
+  PIVOT(
+    MAX(avg_score)
+    FOR domain IN ([responds],[independence])
+   ) p  
+ )
+
 SELECT *
       ,ISNULL(gpa_pts,0)
          + ISNULL(hw_pts,0)
@@ -58,10 +83,26 @@ FROM
             END AS paycheck_pts
 
            /* Trust Scores = 12.5% each*/
-           ,NULL AS independence_avg
-           ,NULL AS independence_pts
-           ,NULL AS responds_avg
-           ,NULL AS responds_pts
+           ,t.independence AS independence_avg
+           ,CASE
+             WHEN t.independence >= 4.0 THEN 15
+             WHEN t.independence BETWEEN 3.5 AND 3.99 THEN 12.5
+             WHEN t.independence BETWEEN 3.0 AND 3.49 THEN 10
+             WHEN t.independence BETWEEN 2.5 AND 2.99 THEN 8
+             WHEN t.independence BETWEEN 2.0 AND 2.49 THEN 6
+             WHEN t.independence BETWEEN 1.0 AND 1.99 THEN 4
+             WHEN t.independence < 1.0 THEN 0        
+            END AS independence_pts
+           ,t.responds AS responds_avg
+           ,CASE
+             WHEN t.responds >= 4.0 THEN 15
+             WHEN t.responds BETWEEN 3.5 AND 3.99 THEN 12.5
+             WHEN t.responds BETWEEN 3.0 AND 3.49 THEN 10
+             WHEN t.responds BETWEEN 2.5 AND 2.99 THEN 8
+             WHEN t.responds BETWEEN 2.0 AND 2.49 THEN 6
+             WHEN t.responds BETWEEN 1.0 AND 1.99 THEN 4
+             WHEN t.responds < 1.0 THEN 0        
+            END AS responds_pts
      FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
      LEFT OUTER JOIN KIPP_NJ..GPA$detail#MS gpa WITH(NOLOCK)
        ON co.student_number = gpa.STUDENT_NUMBER
@@ -71,6 +112,9 @@ FROM
       AND ele.course_number = 'all_courses'
      LEFT OUTER JOIN paycheck_avg kb
        ON co.student_number = kb.student_number
+     LEFT OUTER JOIN trust_scores t
+       ON co.student_number = t.student_number
+      AND t.rn = 1
      WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
        AND co.enroll_status = 0
        AND co.schoolid = 133570965

@@ -78,7 +78,7 @@ WITH response_agg AS (
  )
 
 ,competency_unpivot AS (
-  SELECT survey_type
+  SELECT DISTINCT survey_type
         ,academic_year
         ,term
         ,staff_member
@@ -127,7 +127,7 @@ WITH response_agg AS (
         ,term
         ,subject_name AS staff_member      
         ,COUNT(DISTINCT responder_name) AS N_responses
-        ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT responder_name, CHAR(10)) AS responder_names
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT responder_name, ' // ') AS responder_names
   FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
   GROUP BY survey_type
           ,academic_year
@@ -148,7 +148,7 @@ WITH response_agg AS (
              ,manager_name
              ,pivot_field
              ,CASE
-               WHEN pivot_field LIKE '%_person_avg' OR pivot_field LIKE '%_manager_avg' 
+               WHEN survey_type IN ('Manager') AND (pivot_field LIKE '%_person_avg' OR pivot_field LIKE '%_manager_avg')
                       THEN KIPP_NJ.dbo.GROUP_CONCAT_DS(CONCAT(term, ': ', pivot_value), CHAR(9), 1) OVER(PARTITION BY survey_type, staff_member, pivot_field)
                ELSE pivot_value
               END AS pivot_value
