@@ -16,7 +16,8 @@ SELECT year + 1 AS fiscal_year
       ,CASE WHEN CONVERT(DATE,date) LIKE '%-10-15' THEN 1 ELSE 0 END AS is_oct_15      
       ,CASE WHEN date = MAX(date) OVER(PARTITION BY CASE WHEN team LIKE '%pathways%' THEN 'Pathways' ELSE school_name END, grade_level) THEN 1 ELSE 0 END AS is_most_recent
 FROM KIPP_NJ..COHORT$identifiers_scaffold#static WITH(NOLOCK)
-WHERE CONVERT(DATE,date) <= CONVERT(DATE,GETDATE())
+WHERE date BETWEEN entrydate AND exitdate
+  AND CONVERT(DATE,date) <= CONVERT(DATE,GETDATE())
   AND ((CONVERT(DATE,date) = CONVERT(DATE,CONVERT(VARCHAR,year) + '-10-15')) OR (DATEPART(DW,CONVERT(DATE,date)) = 6))
 GROUP BY year
         ,date
