@@ -65,7 +65,7 @@ SELECT student_number
       ,NULL AS standard_code
       ,NULL AS standard_description
       ,NULL AS standard_percent_correct
-      ,ROUND(AVG(scale_score),0) AS scale_score
+      ,CASE WHEN COUNT(student_number) = 4 THEN ROUND(AVG(scale_score),0) END AS scale_score
       ,rn_dupe
 FROM
     (
@@ -74,7 +74,7 @@ FROM
            ,d.administration_round      
            ,d.administered_at
            ,d.subject_area      
-           ,act.scale_score
+           ,CONVERT(FLOAT,act.scale_score) AS scale_score
            ,ROW_NUMBER() OVER(
               PARTITION BY d.academic_year, d.administration_round, d.subject_area, d.student_number
                 ORDER BY d.student_number) AS rn_dupe
@@ -83,7 +83,7 @@ FROM
        ON d.academic_year = act.academic_year
       AND d.administration_round = act.administration_round
       AND d.subject_area = act.subject
-      AND d.overall_number_correct = act.raw_score
+      AND d.overall_number_correct = act.raw_score     
     ) sub
 WHERE rn_dupe = 1
 GROUP BY student_number

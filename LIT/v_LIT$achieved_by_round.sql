@@ -43,8 +43,8 @@ WITH roster_scaffold AS (
          END AS instruct_lvl
         ,CASE
           WHEN fp.status = 'Did Not Achieve' AND fp.instruct_lvl = fp.indep_lvl THEN fp.lvl_num
-          WHEN fp.status = 'Achieved' AND fp.instruct_lvl = fp.indep_lvl THEN (gleq.lvl_num + 1)
-          ELSE COALESCE(fp.instruct_lvl_num, (gleq.lvl_num + 1))
+          WHEN fp.status = 'Achieved' AND fp.instruct_lvl = fp.indep_lvl THEN (gleq.fp_lvl_num + 1)
+          ELSE COALESCE(fp.instruct_lvl_num, (gleq.fp_lvl_num + 1))
          END AS instruct_lvl_num
         ,fp.fp_keylever
         ,fp.fp_wpmrate

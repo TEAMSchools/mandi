@@ -35,8 +35,16 @@ WITH ps_readingscores AS (
         /* test identifiers */      
         /* In 2015-2016, we changed STEP entry to  only be DNA levels, so Achieved level doesn't correlate with testid anymore */           
         ,COALESCE(rs.status,'Did Not Achieve') AS status           
-        ,CASE WHEN co.year >= 2015 THEN rs.read_lvl ELSE gleq.read_lvl END AS read_lvl
-        ,CASE WHEN co.year >= 2015 THEN achv.lvl_num ELSE gleq.lvl_num END AS lvl_num
+        ,CASE 
+          WHEN co.year >= 2015 THEN rs.read_lvl 
+          ELSE gleq.read_lvl 
+         END AS read_lvl
+        ,CASE           
+          WHEN co.year >= 2015 AND (co.grade_level >= 5 OR (co.schoolid = 73252 AND co.grade_level = 4)) THEN achv.fp_lvl_num
+          WHEN co.year >= 2015 AND co.grade_level <= 4 THEN achv.lvl_num
+          WHEN co.year <= 2014 AND (co.grade_level >= 5 OR (co.schoolid = 73252 AND co.grade_level = 4)) THEN gleq.fp_lvl_num
+          WHEN co.year <= 2014 AND co.grade_level <= 4 THEN gleq.lvl_num
+         END AS lvl_num
         ,CASE 
           WHEN co.year >= 2015 AND rs.testid != 3273 THEN stepdna.read_lvl 
           WHEN co.year >= 2015 AND rs.testid = 3273 THEN rs.instruct_lvl
@@ -46,11 +54,17 @@ WITH ps_readingscores AS (
           WHEN co.year >= 2015 AND rs.testid != 3273 THEN stepdna.lvl_num 
           WHEN co.year >= 2015 AND rs.testid = 3273 THEN instr.lvl_num
           ELSE NULL 
-         END AS dna_lvl_num
+         END AS dna_lvl_num        
         ,instr.read_lvl AS instruct_lvl
-        ,instr.lvl_num AS instruct_lvl_num
+        ,CASE
+          WHEN (co.grade_level >= 5 OR (co.schoolid = 73252 AND co.grade_level >= 4)) THEN instr.fp_lvl_num
+          ELSE instr.lvl_num 
+         END AS instruct_lvl_num
         ,ind.read_lvl AS indep_lvl
-        ,ind.lvl_num AS indep_lvl_num
+        ,CASE
+          WHEN (co.grade_level >= 5 OR (co.schoolid = 73252 AND co.grade_level >= 4)) THEN ind.fp_lvl_num
+          ELSE ind.lvl_num 
+         END AS indep_lvl_num
 
         /* progress to goals */      
         ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl

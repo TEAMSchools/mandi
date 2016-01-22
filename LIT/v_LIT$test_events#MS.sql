@@ -87,8 +87,8 @@ FROM
              WHEN test_round = 'EOY' THEN 3
             END AS round_num
            ,achv.GLEQ
-           ,achv.lvl_num AS indep_lvl_num
-           ,instr.lvl_num AS instr_lvl_num
+           ,achv.fp_lvl_num AS indep_lvl_num
+           ,instr.fp_lvl_num AS instr_lvl_num
      FROM clean_data cd
      JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq achv
        ON cd.achieved_independent_level = achv.read_lvl
