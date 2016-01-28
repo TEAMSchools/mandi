@@ -16,7 +16,8 @@ WITH disc_count AS (
         ,SUM(CASE WHEN subtype = 'ISS' THEN 1 ELSE 0 END) AS ISS
         ,SUM(CASE WHEN subtype = 'Class Removal' THEN 1 ELSE 0 END) AS class_removal
         ,SUM(CASE WHEN subtype = 'OSS' THEN 1 ELSE 0 END) AS OSS
-        ,SUM(CASE WHEN subtype = 'Paycheck' AND discipline_details = 'Paycheck Below $80' THEN 1 ELSE 0 END) AS paycheck        
+        ,SUM(CASE WHEN subtype = 'Paycheck' AND discipline_details = 'Paycheck Below $90' THEN 1 ELSE 0 END) AS paycheck_below_90
+        ,SUM(CASE WHEN subtype = 'Paycheck' AND discipline_details = 'Paycheck Below $80' THEN 1 ELSE 0 END) AS paycheck_below_80                
   FROM KIPP_NJ..DISC$log#static WITH(NOLOCK)
   WHERE schoolid IN (73252, 133570965, 179902, 73258)
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
@@ -62,7 +63,8 @@ SELECT s.student_number
       ,ISNULL(disc_count.ISS,0) AS ISS
       ,ISNULL(disc_count.OSS,0) AS OSS
       ,ISNULL(disc_count.class_removal,0) AS class_removal
-      ,ISNULL(disc_count.paycheck,0) AS paycheck
+      ,ISNULL(disc_count.paycheck_below_80,0) AS paycheck_below_80
+      ,ISNULL(disc_count.paycheck_below_90,0) AS paycheck_below_90
 FROM KIPP_NJ..COHORT$identifiers_scaffold#static s WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON s.schoolid = dt.schoolid

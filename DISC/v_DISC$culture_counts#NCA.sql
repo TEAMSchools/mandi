@@ -8,8 +8,7 @@ WITH curterm AS (
         ,time_per_name
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT' 
-    AND start_date <= CONVERT(DATE,GETDATE())
-    AND end_date >= CONVERT(DATE,GETDATE())
+    AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
     AND schoolid = 73253
  )
 

@@ -364,19 +364,19 @@ SELECT roster.schoolid
 --DISC$merits_demerits_count#NCA
     /*--Merits--*/
        /*--Year--*/
-      ,merits.teacher_merits_y1 AS teacher_merits_yr
-      ,merits.perfect_week_merits_y1 AS perfect_week_yr
-      ,merits.total_merits_y1 AS total_merits_yr
+      ,merits.n_logs_yr AS teacher_merits_yr
+      ,pw.perfect_week_merits_yr AS perfect_week_yr
+      ,ISNULL(merits.n_logs_yr,0) + ISNULL(pw.perfect_week_merits_yr,0) AS total_merits_yr
        /*--Current--*/       
-      ,merits.teacher_merits_cur AS teacher_merits_curr
-      ,merits.perfect_week_merits_cur AS perfect_week_curr
-      ,merits.total_merits_cur AS total_merits_curr
+      ,merits.n_logs_term AS teacher_merits_curr
+      ,pw.perfect_week_merits_term AS perfect_week_curr
+      ,ISNULL(merits.n_logs_term,0) + ISNULL(pw.perfect_week_merits_term,0) AS total_merits_curr
       
     /*--Demerits--*/
        /*--Year--*/
-      ,merits.total_demerits_y1
+      ,demerits.n_logs_yr AS total_demerits_y1
        /*--Current--*/       
-      ,merits.total_demerits_cur
+      ,demerits.n_logs_term AS total_demerits_cur
 
 FROM KIPP_NJ..COHORT$identifiers_long#static roster WITH (NOLOCK)
 JOIN curterm WITH(NOLOCK)
@@ -404,8 +404,22 @@ LEFT OUTER JOIN KIPP_NJ..GPA$detail_long gpa_long WITH(NOLOCK)
  AND curterm.alt_name = gpa_long.term
 
 --MERITS & DEMERITS
-LEFT OUTER JOIN KIPP_NJ..DISC$culture_counts#NCA merits WITH (NOLOCK)
-  ON roster.studentid = merits.studentid
+LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long merits WITH(NOLOCK)
+  ON roster.student_number = merits.student_number
+ AND roster.year = merits.academic_year
+ AND curterm.alt_name = merits.term
+ AND merits.logtypeid = 3023
+LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long demerits WITH(NOLOCK)
+  ON roster.student_number = demerits.student_number
+ AND roster.year = demerits.academic_year
+ AND curterm.alt_name = demerits.term
+ AND demerits.logtypeid = 3223
+LEFT OUTER JOIN DISC$perfect_weeks_long pw WITH(NOLOCK)
+  ON roster.student_number = pw.student_number
+ AND roster.year = pw.academic_year
+ AND curterm.time_per_name = pw.rt
+--LEFT OUTER JOIN KIPP_NJ..DISC$culture_counts#NCA merits WITH (NOLOCK)
+--  ON roster.studentid = merits.studentid
 
 --ED TECH
 --ACCELERATED READER

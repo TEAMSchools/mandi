@@ -10,7 +10,7 @@ WITH curterm AS (
         ,ROW_NUMBER() OVER(
            PARTITION BY schoolid
              ORDER BY end_date DESC) AS rn
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'   
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND CONVERT(DATE,GETDATE()) >= end_date   

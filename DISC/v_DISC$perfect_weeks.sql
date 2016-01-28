@@ -25,9 +25,9 @@ WITH roster AS (
        SELECT CONVERT(DATE,mem.date_value) AS calendardate
              ,DATEPART(WEEK,mem.date_value) AS wk
              ,mem.academic_year
-             ,dt.time_per_name AS rt                          
+             ,dt.time_per_name AS rt                                       
              ,CASE 
-               WHEN CONVERT(INT,CONCAT(DATEPART(YEAR,GETDATE()), DATEPART(WEEK,GETDATE()))) 
+               WHEN CONVERT(INT,CONCAT(DATEPART(YEAR,GETDATE()),RIGHT(CONCAT('0',DATEPART(WEEK,GETDATE())),2)))
                       > CONVERT(INT,CONCAT(DATEPART(YEAR,mem.date_value),RIGHT(CONCAT('0',DATEPART(WEEK,mem.date_value)),2))) THEN 1
                ELSE 0
               END AS is_past        

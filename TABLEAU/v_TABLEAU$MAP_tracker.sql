@@ -102,6 +102,15 @@ WITH map_long AS (
    AND prevspr.rn = 1 
  )
 
+,illuminate_groups AS (
+  SELECT DISTINCT 
+         student_number
+        ,academic_year
+        ,illuminate_group
+  FROM KIPP_NJ..PS$enrollments_rollup#static WITH(NOLOCK)
+  WHERE academic_year >= 2013
+ )
+
 SELECT r.year
       ,r.studentid
       ,r.student_number
@@ -115,6 +124,7 @@ SELECT r.year
       ,r.enroll_status
       ,r.retained_ever_flag
       ,r.retained_yr_flag
+      ,CASE WHEN r.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN 1 ELSE 0 END AS is_current_year
       ,terms.term AS fallwinterspring      
       ,subjects.measurementscale
       ,map_long.base_rit
@@ -168,9 +178,9 @@ SELECT r.year
         WHEN r.year_in_network = 1 THEN map_long.lex - map_long.base_lex        
         ELSE map_long.lex - map_long.prevspr_lex
        END AS term_lex_growth_prevspr
-      ,CASE WHEN map_long.term IN ('Fall','Baseline','Previous Spring') THEN NULL ELSE CONVERT(INT,map_curr.testritscore) - map_long.base_rit END AS ytd_rit_growth
-      ,CASE WHEN map_long.term IN ('Fall','Baseline','Previous Spring') THEN NULL ELSE CONVERT(INT,map_curr.percentile_2011_norms) - map_long.base_pct END AS ytd_pct_growth
-      ,CASE WHEN map_long.term IN ('Fall','Baseline','Previous Spring') THEN NULL ELSE CONVERT(INT,REPLACE(map_curr.rittoreadingscore, 'BR', 0)) - map_long.base_lex END AS ytd_lex_growth
+      ,CONVERT(INT,map_curr.testritscore) - map_long.base_rit AS ytd_rit_growth
+      ,CONVERT(INT,map_curr.percentile_2011_norms) - map_long.base_pct AS ytd_pct_growth
+      ,CONVERT(INT,REPLACE(map_curr.rittoreadingscore, 'BR', 0)) - map_long.base_lex AS ytd_lex_growth
       ,CASE 
         WHEN map_long.term IN ('Fall','Baseline','Previous Spring') THEN NULL
         WHEN r.year_in_network = 1 THEN CONVERT(INT,map_curr.testritscore) - map_long.base_rit
@@ -194,7 +204,8 @@ SELECT r.year
       ,enr.teacher_name AS teacher
       ,enr.teacher_coach
       ,enr.period      
-      ,NULL AS read_lvl              
+      ,NULL AS read_lvl 
+      ,ill.illuminate_group             
 FROM COHORT$identifiers_long#static r WITH(NOLOCK)
 CROSS JOIN (
             SELECT 'Baseline' UNION
@@ -218,11 +229,14 @@ LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
   ON r.studentid = enr.STUDENTID
  AND r.year = enr.academic_year
  AND subjects.measurementscale = enr.measurementscale 
+LEFT OUTER JOIN illuminate_groups ill WITH(NOLOCK)
+  ON r.student_number = ill.student_number
+ AND r.year = ill.academic_year 
 LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_curr WITH(NOLOCK)          
   ON r.studentid = map_curr.studentid
- --AND r.year = map_curr.academic_year
+ AND r.year = map_curr.academic_year
  AND subjects.measurementscale = map_curr.measurementscale
- AND map_curr.rn_curr = 1
+ AND map_curr.rn_curr_yr = 1
 WHERE r.year >= 2008 /* first year of MAP data */
   AND r.schoolid != 999999
   AND r.rn = 1
