@@ -48,6 +48,7 @@ SELECT co.year
       ,co.grade_level
       ,co.SPEDLEP
       ,co.enroll_status
+	  ,co.advisor
       ,enr.CREDITTYPE AS course_subject
       ,enr.COURSE_NUMBER
       ,enr.COURSE_NAME
