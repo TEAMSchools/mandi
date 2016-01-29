@@ -38,39 +38,44 @@ SELECT co.student_number
       ,co.schoolid
       ,co.grade_level
       ,co.team
-      ,co.enroll_status      
-      ,enr.sectionid
-      ,enr.sectionsDCID
-      ,cal.date_value
+      ,co.enroll_status            
+      
+      ,cal.CALENDARDATE AS date_value
+      --,cal.attendancevalue AS presence_status
+      
       ,dt.alt_name AS term
-      ,CONCAT('Week ', rep.alt_name) AS reporting_week
-      ,att.PRESENCE_STATUS_CD AS presence_status
+      ,CONCAT('Week ', rep.alt_name) AS reporting_week            
+      
+      ,enr.sectionid
+      ,enr.sectionsDCID      
+      
       ,u.tracking_field
-      ,CASE WHEN att.PRESENCE_STATUS_CD = 'Absent' THEN att.PRESENCE_STATUS_CD ELSE ISNULL(t.value,'MISSING') END AS tracking_value
+      ,CASE WHEN cal.ATTENDANCEVALUE = 0 THEN 'Absent' ELSE ISNULL(t.value,'MISSING') END AS tracking_value
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-JOIN KIPP_NJ..PS$CALENDAR_DAY cal WITH(NOLOCK)
-  ON co.schoolid = cal.schoolid
+JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP cal WITH(NOLOCK)
+  ON co.studentid = cal.studentid
+ AND co.schoolid = cal.schoolid
  AND co.year = cal.academic_year
- AND cal.insession = 1
- AND cal.date_value BETWEEN co.entrydate AND CONVERT(DATE,GETDATE())
+ AND cal.CALENDARDATE BETWEEN co.entrydate AND CONVERT(DATE,GETDATE())
+ AND cal.MEMBERSHIPVALUE = 1
+JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+  ON co.schoolid = dt.schoolid
+ AND cal.CALENDARDATE BETWEEN dt.start_date AND dt.end_date
+ AND dt.identifier = 'RT'
+LEFT OUTER JOIN KIPP_NJ..REPORTING$dates rep WITH(NOLOCK)
+  ON co.schoolid = rep.schoolid
+ AND cal.CALENDARDATE BETWEEN rep.start_date AND DATEADD(DAY, 2, rep.end_date) /* includes end of week in case of Saturday school */
+ AND rep.identifier = 'REP'
 JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.student_number = enr.student_number
  AND co.year = enr.academic_year
  AND enr.COURSE_NUMBER = 'HR'
  AND enr.drop_flags = 0
-JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
-  ON co.schoolid = dt.schoolid
- AND cal.date_value BETWEEN dt.start_date AND dt.end_date
- AND dt.identifier = 'RT'
-LEFT OUTER JOIN KIPP_NJ..REPORTING$dates rep WITH(NOLOCK)
-  ON co.schoolid = rep.schoolid
- AND cal.date_value BETWEEN rep.start_date AND DATEADD(DAY, 2, rep.end_date) /* includes end of week in case of Saturday school */
- AND rep.identifier = 'REP'
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
-  ON co.studentid = att.STUDENTID
- AND co.year = att.academic_year
- AND cal.date_value = att.ATT_DATE
- AND att.PRESENCE_STATUS_CD = 'Absent' 
+--LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
+--  ON co.studentid = att.STUDENTID
+-- AND co.year = att.academic_year
+-- AND cal.CALENDARDATE = att.ATT_DATE
+-- AND att.PRESENCE_STATUS_CD = 'Absent' 
 CROSS JOIN ( 
             SELECT 'hw' UNION ALL
             SELECT 'uniform' UNION ALL
@@ -81,7 +86,8 @@ CROSS JOIN (
            ) u (tracking_field)
 LEFT OUTER JOIN dailytracking t
   ON co.studentid = t.studentid
- AND cal.date_value = t.att_date
+ AND cal.CALENDARDATE = t.att_date
  AND u.tracking_field = t.field
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
   AND (co.grade_level <= 4 AND co.schoolid != 73252)
+  AND co.enroll_status = 0

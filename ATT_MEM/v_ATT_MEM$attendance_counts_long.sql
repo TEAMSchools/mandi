@@ -3,147 +3,157 @@ GO
 
 ALTER VIEW ATT_MEM$attendance_counts_long AS
 
-SELECT studentid      
-      ,LEFT(field, CHARINDEX('_', field) - 1) AS term
-      ,SUBSTRING(field, CHARINDEX('_', field) + 1, 8) AS code      
-      ,value
-FROM ATT_MEM$attendance_counts#static WITH(NOLOCK)
-UNPIVOT(
-  value
-  FOR field IN (Y1_A
-               ,Y1_AD
-               ,Y1_AE
-               ,Y1_CR
-               ,Y1_CS
-               ,Y1_EV
-               ,Y1_ISS
-               ,Y1_OSS
-               ,Y1_T
-               ,Y1_T10
-               ,Y1_TE
-               ,Y1_LE
-               ,Y1_LEX
-               ,Y1_UNI
-               ,Y1_ABS_ALL
-               ,Y1_T_ALL
-               ,CUR_A
-               ,CUR_AD
-               ,CUR_AE
-               ,CUR_CR
-               ,CUR_CS
-               ,CUR_EV
-               ,CUR_ISS
-               ,CUR_OSS
-               ,CUR_T
-               ,CUR_T10
-               ,CUR_TE
-               ,CUR_LE
-               ,CUR_LEX
-               ,CUR_UNI
-               ,CUR_ABS_ALL
-               ,CUR_T_ALL
-               ,RT1_A
-               ,RT1_AD
-               ,RT1_AE
-               ,RT1_CR
-               ,RT1_CS
-               ,RT1_EV
-               ,RT1_ISS
-               ,RT1_OSS
-               ,RT1_T
-               ,RT1_T10
-               ,RT1_TE
-               ,RT1_LE
-               ,RT1_LEX
-               ,RT1_UNI
-               ,RT1_ABS_ALL
-               ,RT1_T_ALL
-               ,RT2_A
-               ,RT2_AD
-               ,RT2_AE
-               ,RT2_CR
-               ,RT2_CS
-               ,RT2_EV
-               ,RT2_ISS
-               ,RT2_OSS
-               ,RT2_T
-               ,RT2_T10
-               ,RT2_TE
-               ,RT2_LE
-               ,RT2_LEX
-               ,RT2_UNI
-               ,RT2_ABS_ALL
-               ,RT2_T_ALL
-               ,RT3_A
-               ,RT3_AD
-               ,RT3_AE
-               ,RT3_CR
-               ,RT3_CS
-               ,RT3_EV
-               ,RT3_ISS
-               ,RT3_OSS
-               ,RT3_T
-               ,RT3_T10
-               ,RT3_TE
-               ,RT3_LE
-               ,RT3_LEX
-               ,RT3_UNI
-               ,RT3_ABS_ALL
-               ,RT3_T_ALL
-               ,RT4_A
-               ,RT4_AD
-               ,RT4_AE
-               ,RT4_CR
-               ,RT4_CS
-               ,RT4_EV
-               ,RT4_ISS
-               ,RT4_OSS
-               ,RT4_T
-               ,RT4_T10
-               ,RT4_TE
-               ,RT4_LE
-               ,RT4_LEX
-               ,RT4_UNI
-               ,RT4_ABS_ALL
-               ,RT4_T_ALL
-               ,RT5_A
-               ,RT5_AD
-               ,RT5_AE
-               ,RT5_CR
-               ,RT5_CS
-               ,RT5_EV
-               ,RT5_ISS
-               ,RT5_OSS
-               ,RT5_T
-               ,RT5_T10
-               ,RT5_TE
-               ,RT5_LE
-               ,RT5_LEX
-               ,RT5_UNI
-               ,RT5_ABS_ALL
-               ,RT5_T_ALL
-               ,RT6_A
-               ,RT6_AD
-               ,RT6_AE
-               ,RT6_CR
-               ,RT6_CS
-               ,RT6_EV
-               ,RT6_ISS
-               ,RT6_OSS
-               ,RT6_T
-               ,RT6_T10
-               ,RT6_TE
-               ,RT6_LE
-               ,RT6_LEX
-               ,RT6_UNI
-               ,RT6_ABS_ALL
-               ,RT6_T_ALL
-               ,CUR_TRIP_ABS
-               ,RT1_TRIP_ABS
-               ,RT2_TRIP_ABS
-               ,RT3_TRIP_ABS
-               ,RT4_TRIP_ABS
-               ,RT5_TRIP_ABS
-               ,RT6_TRIP_ABS
-               ,Y1_TRIP_ABS)
- ) u
+WITH att_counts AS (
+  SELECT STUDENTID
+        ,academic_year
+        ,rt        
+        ,ATT_CODE
+        ,counts_term        
+  FROM
+      (
+       SELECT STUDENTID
+             ,academic_year
+             ,rt             
+             ,att_code
+             ,COUNT(ID) AS counts_term
+       FROM
+           (
+            SELECT att.STUDENTID
+                  ,att.academic_year            
+                  ,dates.time_per_name AS rt                  
+                  ,CASE
+                    WHEN att.att_code IN ('X') THEN 'A'
+                    WHEN att.att_code IN ('A-E','D') THEN 'AD'
+                    WHEN att.att_code IN ('EA','E') THEN 'AE'
+                    WHEN att.att_code IN ('A-E','D') THEN 'AD'
+                    WHEN att.att_code IN ('S','Q') THEN 'ISS'
+                    WHEN att.att_code IN ('OS') THEN 'OSS'
+                    WHEN att.att_code IN ('TLE') THEN 'T'
+                    WHEN att.att_code IN ('ET') THEN 'TE'
+                    ELSE att.att_code
+                   END AS att_code
+                  ,att.ID                  
+            FROM KIPP_NJ..ATT_MEM$ATTENDANCE att WITH (NOLOCK)
+            JOIN KIPP_NJ..REPORTING$dates dates WITH (NOLOCK)
+              ON att.att_date BETWEEN dates.start_date AND dates.end_date
+             AND att.academic_year = dates.academic_year
+             AND att.schoolid = dates.schoolid
+             AND dates.identifier = 'RT' 
+            WHERE att.att_code IS NOT NULL /* present */
+              AND att.ATT_CODE NOT IN ('NM','OSSP','PLE','U','CS','CR','EV','SE') /* effectively present */
+           ) sub
+       GROUP BY STUDENTID
+               ,academic_year            
+               ,rt               
+               ,att_code
+      ) sub
+ )
+
+,scaffold AS (
+  SELECT co.studentid        
+        ,co.year AS academic_year
+        ,d.time_per_name AS rt
+        ,d.alt_name AS term
+        ,att.ATT_CODE
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
+    ON co.schoolid = d.schoolid
+   AND co.year = d.academic_year
+   AND d.identifier = 'RT'
+  JOIN KIPP_NJ..ATT_MEM$att_codes#static att WITH(NOLOCK)
+    ON co.schoolid  = att.SCHOOLID
+   AND att.YEARID = LEFT(KIPP_NJ.dbo.fn_Global_Term_Id(),2)
+   AND att.att_code IS NOT NULL /* present */
+   AND att.ATT_CODE NOT IN ('NM','OSSP','PLE','U','CS','CR','EV','SE') /* effectively present */
+  WHERE co.rn = 1
+ )
+
+,counts_long AS (
+  SELECT studentid
+        ,academic_year
+        ,rt
+        ,term
+        ,CONCAT(att_code,'_',field) AS pivot_field
+        ,counts
+  FROM
+      (
+       SELECT s.STUDENTID
+             ,s.academic_year
+             ,s.rt
+             ,s.term
+             ,s.att_code
+             ,ISNULL(a.counts_term,0) AS counts_term
+             ,SUM(ISNULL(a.counts_term,0)) OVER(PARTITION BY s.studentid, s.academic_year, s.att_code ORDER BY s.rt) AS counts_yr
+       FROM scaffold s
+       LEFT OUTER JOIN att_counts a
+         ON s.studentid = a.STUDENTID
+        AND s.academic_year = a.academic_year
+        AND s.rt = a.rt
+        AND s.ATT_CODE = a.att_code
+
+       UNION ALL
+
+       SELECT studentid
+             ,academic_year
+             ,rt
+             ,term
+             ,att_code
+             ,counts_term
+             ,SUM(counts_term) OVER(PARTITION BY studentid, academic_year ORDER BY rt) AS counts_year
+       FROM
+           (
+            SELECT co.studentid
+                  ,co.year AS academic_year      
+                  ,d.time_per_name AS rt
+                  ,d.alt_name AS term
+                  ,'MEM' AS att_code
+                  ,SUM(CONVERT(FLOAT,ISNULL(mem.membershipvalue,0))) AS counts_term      
+            FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+            JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
+              ON co.schoolid = d.schoolid 
+             AND co.year = d.academic_year
+             AND d.identifier = 'RT'
+            LEFT OUTER JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
+              ON co.studentid = mem.STUDENTID
+             AND co.year = mem.academic_year
+             AND CONVERT(DATE,mem.calendardate) BETWEEN d.start_date AND d.end_date
+            WHERE co.rn = 1
+            GROUP BY co.studentid
+                    ,co.year
+                    ,d.time_per_name
+                    ,d.alt_name
+           ) sub
+      ) sub
+  UNPIVOT(
+    counts
+    FOR field IN (counts_term, counts_yr)
+   ) u
+ )
+
+SELECT *
+      ,ISNULL(A_counts_yr,0) + ISNULL(AD_counts_yr,0) AS ABS_all_counts_yr
+      ,ISNULL(A_counts_term,0) + ISNULL(AD_counts_term,0) AS ABS_all_counts_term
+      ,ISNULL(T_counts_yr,0) + ISNULL(T10_counts_yr,0) AS TDY_all_counts_yr
+      ,ISNULL(T_counts_term,0) + ISNULL(T10_counts_term,0) AS TDY_all_counts_term      
+FROM counts_long
+PIVOT(
+  MAX(counts)
+  FOR pivot_field IN ([A_counts_term]
+                     ,[A_counts_yr]
+                     ,[AD_counts_term]
+                     ,[AD_counts_yr]
+                     ,[AE_counts_term]
+                     ,[AE_counts_yr]
+                     ,[ISS_counts_term]
+                     ,[ISS_counts_yr]
+                     ,[OSS_counts_term]
+                     ,[OSS_counts_yr]
+                     ,[T_counts_term]
+                     ,[T_counts_yr]
+                     ,[T10_counts_term]
+                     ,[T10_counts_yr]
+                     ,[TE_counts_term]
+                     ,[TE_counts_yr]
+                     ,[MEM_counts_term]
+                     ,[MEM_counts_yr])
+ ) p

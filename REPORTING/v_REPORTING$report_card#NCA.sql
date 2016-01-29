@@ -39,186 +39,150 @@ SELECT roster.schoolid
       ,roster.GUARDIANEMAIL           
       ,roster.SPEDLEP AS SPED
       ,roster.lunch_balance AS lunch_balance
+      
       ,curterm.alt_name AS curterm
       ,curterm.time_per_name AS rt
       ,CONVERT(VARCHAR,DATENAME(MONTH,GETDATE())) + ' ' + CONVERT(VARCHAR,DATEPART(DAY,GETDATE())) + ', ' + CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())) AS today_words
 
---Attendance & Tardies
---ATT_MEM$attendance_percentages
---ATT_MEM$attendance_counts      
-    
-    /*--Year--*/
-      ,att_counts.y1_abs_all AS Y1_absences_total
-      ,att_counts.y1_a AS Y1_absences_undoc
-      ,ROUND(att_pct.Y1_att_pct_total,0) AS Y1_att_pct_total
-      ,ROUND(att_pct.Y1_att_pct_undoc,0) AS Y1_att_pct_undoc      
-      ,att_counts.y1_t_all AS Y1_tardies_total
-      ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total      
-
-    /*--Current--*/            
-      --CUR--
-      ,att_counts.CUR_ABS_ALL AS curterm_absences_total
-      ,att_counts.CUR_A AS curterm_absences_undoc
-      ,ROUND(att_pct.cur_att_pct_total,0) AS curterm_att_pct_total
-      ,ROUND(att_pct.cur_att_pct_undoc,0) AS curterm_att_pct_undoc      
-      ,att_counts.CUR_T_ALL AS curterm_tardies_total
-      ,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total      
+      /* Attendance & Tardies */    
+      /* counts */
+      ,att_counts.ABS_all_counts_yr AS Y1_absences_total
+      ,ISNULL(att_counts.A_counts_yr,0) AS Y1_absences_undoc
+      ,att_counts.TDY_all_counts_yr AS Y1_tardies_total
+      ,att_counts.ABS_all_counts_term AS curterm_absences_total
+      ,ISNULL(att_counts.A_counts_term,0) AS curterm_absences_undoc
+      ,att_counts.TDY_all_counts_term AS curterm_tardies_total
       
---GPA
---GPA$detail#nca
---GRADES$GPA_cumulative#static
-    /*--Academic Year/Current Term--*/      
-      ,gpa_long.GPA_all AS gpa_curterm
-      ,nca_gpa.gpa_Y1
-      /*--Cumulative--*/
-      ,gpa_cumulative.cumulative_Y1_gpa      
+       /* GPA */      
+      ,gpa_long.GPA_all AS gpa_curterm -- current term
+      ,nca_gpa.gpa_Y1 -- current year
+      ,gpa_cumulative.cumulative_Y1_gpa -- cumulative
       
---Course Grades
---GRADES$wide_all
-    /*--RC1--*/
+      /* Course Grades */
+      /*--RC1--*/
       ,gr_wide.rc1_course_name
-      ,gr_wide.rc1_teacher_last      
-      
+      ,gr_wide.rc1_teacher_last            
       ,ROUND(gr_wide.rc1_q1,0) AS rc1_q1_term_pct
       ,ROUND(gr_wide.rc1_q2,0) AS rc1_q2_term_pct
       ,ROUND(gr_wide.rc1_q3,0) AS rc1_q3_term_pct
-      ,ROUND(gr_wide.rc1_q4,0) AS rc1_q4_term_pct
-            
+      ,ROUND(gr_wide.rc1_q4,0) AS rc1_q4_term_pct            
       ,ROUND(gr_wide.rc1_y1,0) AS rc1_y1_pct
       ,gr_wide.rc1_y1_ltr
       ,gr_wide.rc1_credit_hours_Y1
       ,gr_wide.rc1_gpa_points_Y1      
       --,CASE WHEN gr_wide.rc1_y1 >= 70 THEN gr_wide.rc1_credit_hours_Y1 ELSE NULL END AS rc1_earned_crhrs
 
-    /*--RC2--*/
+      /*--RC2--*/
       ,gr_wide.RC2_course_name
-      ,gr_wide.RC2_teacher_last      
-      
+      ,gr_wide.RC2_teacher_last            
       ,ROUND(gr_wide.RC2_q1,0) AS RC2_q1_term_pct
       ,ROUND(gr_wide.RC2_q2,0) AS RC2_q2_term_pct
       ,ROUND(gr_wide.RC2_q3,0) AS RC2_q3_term_pct
-      ,ROUND(gr_wide.RC2_q4,0) AS RC2_q4_term_pct
-      
+      ,ROUND(gr_wide.RC2_q4,0) AS RC2_q4_term_pct      
       ,ROUND(gr_wide.RC2_y1,0) AS RC2_y1_pct
       ,gr_wide.RC2_y1_ltr
       ,gr_wide.RC2_credit_hours_Y1
       ,gr_wide.RC2_gpa_points_Y1
       --,CASE WHEN gr_wide.RC2_y1 >= 70 THEN gr_wide.RC2_credit_hours_Y1 ELSE NULL END AS RC2_earned_crhrs
 
-    /*--RC3--*/
+      /*--RC3--*/
       ,gr_wide.RC3_course_name
-      ,gr_wide.RC3_teacher_last
-      
+      ,gr_wide.RC3_teacher_last      
       ,ROUND(gr_wide.RC3_q1,0) AS RC3_q1_term_pct
       ,ROUND(gr_wide.RC3_q2,0) AS RC3_q2_term_pct
       ,ROUND(gr_wide.RC3_q3,0) AS RC3_q3_term_pct
-      ,ROUND(gr_wide.RC3_q4,0) AS RC3_q4_term_pct
-      
+      ,ROUND(gr_wide.RC3_q4,0) AS RC3_q4_term_pct      
       ,ROUND(gr_wide.RC3_y1,0) AS RC3_y1_pct
       ,gr_wide.RC3_y1_ltr
       ,gr_wide.RC3_credit_hours_Y1
       ,gr_wide.RC3_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC3_y1 >= 70 THEN gr_wide.RC3_credit_hours_Y1 ELSE NULL END AS RC3_earned_crhrs
 
-    /*--RC4--*/
+      /*--RC4--*/
       ,gr_wide.RC4_course_name
-      ,gr_wide.RC4_teacher_last
-      
+      ,gr_wide.RC4_teacher_last      
       ,ROUND(gr_wide.RC4_q1,0) AS RC4_q1_term_pct
       ,ROUND(gr_wide.RC4_q2,0) AS RC4_q2_term_pct
       ,ROUND(gr_wide.RC4_q3,0) AS RC4_q3_term_pct
-      ,ROUND(gr_wide.RC4_q4,0) AS RC4_q4_term_pct
-      
+      ,ROUND(gr_wide.RC4_q4,0) AS RC4_q4_term_pct      
       ,ROUND(gr_wide.RC4_y1,0) AS RC4_y1_pct
       ,gr_wide.RC4_y1_ltr
       ,gr_wide.RC4_credit_hours_Y1
       ,gr_wide.RC4_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC4_y1 >= 70 THEN gr_wide.RC4_credit_hours_Y1 ELSE NULL END AS RC4_earned_crhrs
 
-    /*--RC5--*/
+      /*--RC5--*/
       ,gr_wide.RC5_course_name
-      ,gr_wide.RC5_teacher_last
-      
+      ,gr_wide.RC5_teacher_last      
       ,ROUND(gr_wide.RC5_q1,0) AS RC5_q1_term_pct
       ,ROUND(gr_wide.RC5_q2,0) AS RC5_q2_term_pct
       ,ROUND(gr_wide.RC5_q3,0) AS RC5_q3_term_pct
-      ,ROUND(gr_wide.RC5_q4,0) AS RC5_q4_term_pct
-      
+      ,ROUND(gr_wide.RC5_q4,0) AS RC5_q4_term_pct      
       ,ROUND(gr_wide.RC5_y1,0) AS RC5_y1_pct
       ,gr_wide.RC5_y1_ltr
       ,gr_wide.RC5_credit_hours_Y1
       ,gr_wide.RC5_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC5_y1 >= 70 THEN gr_wide.RC5_credit_hours_Y1 ELSE NULL END AS RC5_earned_crhrs
       
-    /*--RC6--*/
+      /*--RC6--*/
       ,gr_wide.RC6_course_name
-      ,gr_wide.RC6_teacher_last
-      
+      ,gr_wide.RC6_teacher_last      
       ,ROUND(gr_wide.RC6_q1,0) AS RC6_q1_term_pct
       ,ROUND(gr_wide.RC6_q2,0) AS RC6_q2_term_pct
       ,ROUND(gr_wide.RC6_q3,0) AS RC6_q3_term_pct
-      ,ROUND(gr_wide.RC6_q4,0) AS RC6_q4_term_pct
-      
+      ,ROUND(gr_wide.RC6_q4,0) AS RC6_q4_term_pct      
       ,ROUND(gr_wide.RC6_y1,0) AS RC6_y1_pct
       ,gr_wide.RC6_y1_ltr
       ,gr_wide.RC6_credit_hours_Y1
       ,gr_wide.RC6_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC6_y1 >= 70 THEN gr_wide.RC6_credit_hours_Y1 ELSE NULL END AS RC6_earned_crhrs      
 
-    /*--RC7--*/
+      /*--RC7--*/
       ,gr_wide.RC7_course_name
-      ,gr_wide.RC7_teacher_last
-            
+      ,gr_wide.RC7_teacher_last            
       ,ROUND(gr_wide.RC7_q1,0) AS RC7_q1_term_pct
       ,ROUND(gr_wide.RC7_q2,0) AS RC7_q2_term_pct
       ,ROUND(gr_wide.RC7_q3,0) AS RC7_q3_term_pct
-      ,ROUND(gr_wide.RC7_q4,0) AS RC7_q4_term_pct
-      
+      ,ROUND(gr_wide.RC7_q4,0) AS RC7_q4_term_pct      
       ,ROUND(gr_wide.RC7_y1,0) AS RC7_y1_pct
       ,gr_wide.RC7_y1_ltr
       ,gr_wide.RC7_credit_hours_Y1
       ,gr_wide.RC7_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC7_y1 >= 70 THEN gr_wide.RC7_credit_hours_Y1 ELSE NULL END AS RC7_earned_crhrs
       
-    /*--RC8--*/
+      /*--RC8--*/
       ,gr_wide.RC8_course_name
-      ,gr_wide.RC8_teacher_last
-      
+      ,gr_wide.RC8_teacher_last      
       ,ROUND(gr_wide.RC8_q1,0) AS RC8_q1_term_pct
       ,ROUND(gr_wide.RC8_q2,0) AS RC8_q2_term_pct
       ,ROUND(gr_wide.RC8_q3,0) AS RC8_q3_term_pct
-      ,ROUND(gr_wide.RC8_q4,0) AS RC8_q4_term_pct
-      
+      ,ROUND(gr_wide.RC8_q4,0) AS RC8_q4_term_pct      
       ,ROUND(gr_wide.RC8_y1,0) AS RC8_y1_pct
       ,gr_wide.RC8_y1_ltr
       ,gr_wide.RC8_credit_hours_Y1
       ,gr_wide.RC8_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC8_y1 >= 70 THEN gr_wide.RC8_credit_hours_Y1 ELSE NULL END AS RC8_earned_crhrs      
 
-    /*--RC9--*/
+      /*--RC9--*/
       ,gr_wide.RC9_course_name
-      ,gr_wide.RC9_teacher_last
-      
+      ,gr_wide.RC9_teacher_last      
       ,ROUND(gr_wide.RC9_q1,0) AS RC9_q1_term_pct
       ,ROUND(gr_wide.RC9_q2,0) AS RC9_q2_term_pct
       ,ROUND(gr_wide.RC9_q3,0) AS RC9_q3_term_pct
-      ,ROUND(gr_wide.RC9_q4,0) AS RC9_q4_term_pct
-      
+      ,ROUND(gr_wide.RC9_q4,0) AS RC9_q4_term_pct      
       ,ROUND(gr_wide.RC9_y1,0) AS RC9_y1_pct
       ,gr_wide.RC9_y1_ltr
       ,gr_wide.RC9_credit_hours_Y1
       ,gr_wide.RC9_gpa_points_Y1      
       --,CASE WHEN gr_wide.RC9_y1 >= 70 THEN gr_wide.RC9_credit_hours_Y1 ELSE NULL END AS RC9_earned_crhrs
       
-    /*--RC10--*/
+      /*--RC10--*/
       ,gr_wide.RC10_course_name
-      ,gr_wide.RC10_teacher_last      
-      
+      ,gr_wide.RC10_teacher_last            
       ,ROUND(gr_wide.RC10_q1,0) AS RC10_q1_term_pct
       ,ROUND(gr_wide.RC10_q2,0) AS RC10_q2_term_pct
       ,ROUND(gr_wide.RC10_q3,0) AS RC10_q3_term_pct
-      ,ROUND(gr_wide.RC10_q4,0) AS RC10_q4_term_pct      
-      
+      ,ROUND(gr_wide.RC10_q4,0) AS RC10_q4_term_pct            
       ,ROUND(gr_wide.RC10_y1,0) AS RC10_y1_pct
       ,gr_wide.RC10_y1_ltr
       ,gr_wide.RC10_credit_hours_Y1
@@ -271,8 +235,7 @@ SELECT roster.schoolid
       ,ele.rc9_p AS rc9_cur_p_pct
       ,ele.rc10_p AS rc10_cur_p_pct      
       
-      /*** EXAMS **/
-      /*--E1--*/ -- Exams
+      /* EXAMS */      
       ,gr_wide.rc1_E1 AS rc1_exam
       ,gr_wide.rc2_E1 AS rc2_exam
       ,gr_wide.rc3_E1 AS rc3_exam
@@ -282,8 +245,7 @@ SELECT roster.schoolid
       ,gr_wide.rc7_E1 AS rc7_exam
       ,gr_wide.rc8_E1 AS rc8_exam
       ,gr_wide.rc9_E1 AS rc9_exam
-      ,gr_wide.rc10_E1 AS rc10_exam
-      /*--E2--*/
+      ,gr_wide.rc10_E1 AS rc10_exam      
       ,gr_wide.rc1_E2 AS rc1_exam2
       ,gr_wide.rc2_E2 AS rc2_exam2
       ,gr_wide.rc3_E2 AS rc3_exam2
@@ -295,8 +257,7 @@ SELECT roster.schoolid
       ,gr_wide.rc9_E2 AS rc9_exam2
       ,gr_wide.rc10_E2 AS rc10_exam2
 
-    /*--YTD absents and tardies by class--*/
-       /*--Absences--*/
+      /* attendance by class */      
       ,gr_wide.rc1_current_absences
       ,gr_wide.rc2_current_absences
       ,gr_wide.rc3_current_absences
@@ -306,8 +267,7 @@ SELECT roster.schoolid
       ,gr_wide.rc7_current_absences
       ,gr_wide.rc8_current_absences
       ,gr_wide.rc9_current_absences
-      ,gr_wide.rc10_current_absences
-       /*--Tardies--*/
+      ,gr_wide.rc10_current_absences      
       ,gr_wide.rc1_current_tardies
       ,gr_wide.rc2_current_tardies
       ,gr_wide.rc3_current_tardies
@@ -319,35 +279,21 @@ SELECT roster.schoolid
       ,gr_wide.rc9_current_tardies
       ,gr_wide.rc10_current_tardies
       
---Ed Tech
---AR$progress_to_goals_long#static
-
-    /*--Accelerated Reader--*/
-      /*--AR year--*/
+      /* Accelerated Reader */      
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar_yr.words),1),'.00','') AS words_read_yr
       ,ar_yr.points AS points_yr
-      --,replace(convert(varchar,convert(Money, ar_curr.words_goal * 6),1),'.00','') AS words_goal_yr
-      --,ar_yr.points_goal AS points_goal_yr
-      
-      
-      /*--AR current--*/      
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY,ar_curr.words),1),'.00','') AS words_read_cur_term      
-      ,ar_curr.points AS points_curterm
-      --,replace(convert(varchar,convert(Money, ar_curr.words_goal),1),'.00','') AS words_goal_cur_term
+      ,ar_curr.points AS points_curterm      
 
---Literacy tracking
---MAP$comprehensive#identifiers
-      --Lexile (from MAP)
+      /* Lexile */
       --base for year
       ,COALESCE(REPLACE(map_base.lexile_score, 'BR', 'Beginning Reader'), REPLACE(lex_base.RITtoReadingScore, 'BR', 'Beginning Reader')) AS lexile_base      
-      ,COALESCE(map_base.testpercentile, lex_base.TestPercentile) AS lex_base_pct
-        
+      ,COALESCE(map_base.testpercentile, lex_base.TestPercentile) AS lex_base_pct        
       --current for year
       ,COALESCE(REPLACE(lex_curr.RITtoReadingScore, 'BR', 'Beginning Reader'), REPLACE(map_base.lexile_score, 'BR', 'Beginning Reader')) AS lexile_curr       
       ,COALESCE(lex_curr.TestPercentile, map_base.testpercentile) AS lex_curr_pct
 
---Comments
---PS$comments#static
+      /* comments */
       ,comm.rc1_comment
       ,comm.rc2_comment
       ,comm.rc3_comment
@@ -360,22 +306,16 @@ SELECT roster.schoolid
       ,comm.rc10_comment            
       ,comm.advisor_comment
     
---Discipline
---DISC$merits_demerits_count#NCA
-    /*--Merits--*/
-       /*--Year--*/
+      /* Discipline */
+      /*--Merits--*/      
       ,merits.n_logs_yr AS teacher_merits_yr
       ,pw.perfect_week_merits_yr AS perfect_week_yr
-      ,ISNULL(merits.n_logs_yr,0) + ISNULL(pw.perfect_week_merits_yr,0) AS total_merits_yr
-       /*--Current--*/       
+      ,ISNULL(merits.n_logs_yr,0) + ISNULL(pw.perfect_week_merits_yr,0) AS total_merits_yr      
       ,merits.n_logs_term AS teacher_merits_curr
       ,pw.perfect_week_merits_term AS perfect_week_curr
-      ,ISNULL(merits.n_logs_term,0) + ISNULL(pw.perfect_week_merits_term,0) AS total_merits_curr
-      
-    /*--Demerits--*/
-       /*--Year--*/
-      ,demerits.n_logs_yr AS total_demerits_y1
-       /*--Current--*/       
+      ,ISNULL(merits.n_logs_term,0) + ISNULL(pw.perfect_week_merits_term,0) AS total_merits_curr      
+      /* Demerits */      
+      ,demerits.n_logs_yr AS total_demerits_y1      
       ,demerits.n_logs_term AS total_demerits_cur
 
 FROM KIPP_NJ..COHORT$identifiers_long#static roster WITH (NOLOCK)
@@ -383,10 +323,10 @@ JOIN curterm WITH(NOLOCK)
   ON curterm.rn = 1
 
 --ATTENDANCE
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts#static att_counts WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH (NOLOCK)
   ON roster.studentid = att_counts.studentid
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$att_percentages att_pct WITH (NOLOCK)
-  ON roster.studentid = att_pct.studentid
+ AND roster.year = att_counts.academic_year
+ AND curterm.alt_name = att_counts.term
   
 --GRADES & GPA
 LEFT OUTER JOIN KIPP_NJ..GRADES$wide_all#NCA#static gr_wide WITH(NOLOCK)
@@ -418,8 +358,6 @@ LEFT OUTER JOIN DISC$perfect_weeks_long pw WITH(NOLOCK)
   ON roster.student_number = pw.student_number
  AND roster.year = pw.academic_year
  AND curterm.time_per_name = pw.rt
---LEFT OUTER JOIN KIPP_NJ..DISC$culture_counts#NCA merits WITH (NOLOCK)
---  ON roster.studentid = merits.studentid
 
 --ED TECH
 --ACCELERATED READER
