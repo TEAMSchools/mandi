@@ -147,15 +147,14 @@ SELECT co.student_number
       ,ISNULL(STUFF(REPLACE(LEFT((CONVERT(VARCHAR,gpacum.cumulative_Y1_gpa) + '00'),4),'.',''), 2, 0, '.'), 'n/a') AS gpa_cumulative      
 
       /* Attendance & Tardies - ATT_MEM$attendance_percentages, ATT_MEM$attendance_counts */    
-      ,CONCAT(att_counts.y1_abs_all, ' (', att_counts.y1_AE, ') ', ' - ', ROUND(att_pct.Y1_att_pct_total,0), '%') AS Y1_absences_total
-      ,CONCAT(att_counts.rt2_ABS_ALL, ' (', att_counts.RT2_AE, ') ', ' - ', ROUND(att_pct.cur_att_pct_total,0), '%') AS curterm_absences_total /* UPDATE - hardcoded for Q1 */
+      ,CONCAT(att_counts.ABS_all_counts_yr, ' (', att_counts.AE_counts_yr, ') ', ' - ', ROUND(att_pct.ABS_all_pct_yr,0), '%') AS Y1_absences_total
+      ,CONCAT(att_counts.ABS_all_counts_term, ' (', att_counts.AE_counts_term, ') ', ' - ', ROUND(att_pct.ABS_all_pct_term,0), '%') AS curterm_absences_total
       
-      ,CONCAT(att_counts.y1_t_all, ' (', att_counts.Y1_TE, ') ', ' - ', ROUND(att_pct.Y1_tardy_pct_total,0), '%') AS Y1_tardies_total      
-      ,CONCAT(att_counts.rt2_T_ALL, ' (', att_counts.RT2_TE, ') ', ' - ', ROUND(att_pct.rt2_tardy_pct_total,0), '%') AS curterm_tardies_total  /* UPDATE - hardcoded for Q1 */
+      ,CONCAT(att_counts.TDY_all_counts_yr, ' (', att_counts.TE_counts_yr, ') ', ' - ', ROUND(att_pct.TDY_all_pct_yr,0), '%') AS Y1_tardies_total      
+      ,CONCAT(att_counts.TDY_all_counts_term, ' (', att_counts.TE_counts_term, ') ', ' - ', ROUND(att_pct.TDY_all_pct_term,0), '%') AS curterm_tardies_total
 
-      ,CONCAT(att_counts.y1_oss, ' (', att_counts.Y1_iss, ')') AS Y1_suspensions_total      
-      ,CONCAT(att_counts.rt2_OSS, ' (', att_counts.RT2_iss, ')') AS curterm_suspensions_total  /* UPDATE - hardcoded for Q1 */
-      
+      ,CONCAT(att_counts.OSS_counts_yr, ' (', att_counts.ISS_counts_yr, ')') AS Y1_suspensions_total      
+      ,CONCAT(att_counts.oss_counts_term, ' (', att_counts.iss_counts_term, ')') AS curterm_suspensions_total
       
       /*Promotional Criteria - REPORTING$promo_status#MS*/
       ,promo.y1_att_pts_pct
@@ -228,10 +227,14 @@ LEFT OUTER JOIN GPA$detail_long gpa_long WITH(NOLOCK)
   ON co.studentid = gpa_long.studentid
  AND REPLACE(curterm.alt_name,'Q','T') = gpa_long.term /* this needs to be fixed once we update the grades refresh */
 /*ATTENDANCE*/
-LEFT OUTER JOIN ATT_MEM$attendance_counts#static att_counts WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH(NOLOCK)
   ON co.studentid = att_counts.studentid
-LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH(NOLOCK)
+ AND co.year = att_counts.academic_year
+ AND curterm.alt_name = att_counts.term
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_percentages_long att_pct WITH(NOLOCK)
   ON co.studentid = att_pct.studentid
+ AND co.year = att_pct.academic_year
+ AND curterm.alt_name = att_pct.term
 /*PROMO STATUS*/
 LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH(NOLOCK)
   ON co.studentid = promo.studentid

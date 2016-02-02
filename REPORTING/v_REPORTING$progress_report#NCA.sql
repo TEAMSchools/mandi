@@ -36,21 +36,15 @@ SELECT roster.schoolid
 --ATT_MEM$attendance_counts      
     
     /*--Year--*/
-      ,att_counts.y1_abs_all AS Y1_absences_total
-      ,att_counts.y1_a AS Y1_absences_undoc
-      ,ROUND(att_pct.Y1_att_pct_total,0) AS Y1_att_pct_total
-      ,ROUND(att_pct.Y1_att_pct_undoc,0) AS Y1_att_pct_undoc      
-      ,att_counts.y1_t_all AS Y1_tardies_total
-      ,ROUND(att_pct.Y1_tardy_pct_total,0) AS Y1_tardy_pct_total      
+      ,att_counts.abs_all_counts_yr AS Y1_absences_total
+      ,att_counts.a_counts_yr AS Y1_absences_undoc
+      ,att_counts.tdy_all_counts_yr AS Y1_tardies_total      
 
-    /*--Current--*/            
-      --CUR--
-      ,att_counts.CUR_ABS_ALL AS curterm_absences_total
-      ,att_counts.CUR_A AS curterm_absences_undoc
-      ,ROUND(att_pct.cur_att_pct_total,0) AS curterm_att_pct_total
-      ,ROUND(att_pct.cur_att_pct_undoc,0) AS curterm_att_pct_undoc      
-      ,att_counts.CUR_T_ALL AS curterm_tardies_total
-      ,ROUND(att_pct.cur_tardy_pct_total,0) AS curterm_tardy_pct_total      
+    /*--Current--*/                  
+      ,att_counts.abs_all_counts_term AS curterm_absences_total
+      ,att_counts.a_counts_term AS curterm_absences_undoc      
+      ,att_counts.tdy_all_counts_term AS curterm_tardies_total
+      
       
 --GPA
 --GPA$detail#nca
@@ -374,10 +368,10 @@ JOIN KIPP_NJ..REPORTING$dates curterm WITH(NOLOCK)
  AND curterm.identifier = 'RT' 
 
 --ATTENDANCE
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts#static att_counts WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH (NOLOCK)
   ON roster.studentid = att_counts.studentid
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$att_percentages att_pct WITH (NOLOCK)
-  ON roster.studentid = att_pct.studentid
+ AND roster.year = att_counts.academic_year
+ AND curterm.alt_name = att_counts.term
   
 --GRADES & GPA
 LEFT OUTER JOIN KIPP_NJ..GRADES$wide_all#NCA#static gr_wide WITH(NOLOCK)

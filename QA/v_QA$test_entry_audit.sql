@@ -33,7 +33,7 @@ SELECT co.year AS academic_year
       ,rs.test_round AS record_test_round
       ,l.read_lvl AS term_read_lvl
       ,l.unique_id AS term_unique_id
-FROM COHORT$identifiers_long#static co WITH(NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..LIT$achieved_by_round#static a WITH(NOLOCK)
   ON co.studentid = a.STUDENTID
  AND co.year = a.academic_year

@@ -3,24 +3,15 @@ GO
 
 ALTER VIEW QA$report_card_comment_audit AS
 
-WITH tests AS (
-  SELECT a.repository_id      
-        ,a.title        
-  FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)    
-  WHERE a.repository_id = 46
-    --AND a.scope = 'Reporting' 
-    --AND a.subject_area = 'Comments'    
-    --AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
- )
- 
-,tests_long AS (
+WITH tests_long AS (
   SELECT a.repository_id                
         ,a.title
         ,f.label
         ,f.name AS field_name
-  FROM tests a
+  FROM KIPP_NJ..ILLUMINATE$repositories#static a WITH(NOLOCK)
   JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
     ON a.repository_id = f.repository_id     
+  WHERE a.repository_id = 46    
  )
 
 ,terms AS (

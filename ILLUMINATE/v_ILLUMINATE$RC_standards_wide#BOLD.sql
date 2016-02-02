@@ -85,7 +85,7 @@ WITH standard_descriptions AS (
                    ON co.schoolid = a.schoolid             
                   AND ovr.assessment_id = a.assessment_id
                   AND ((a.subject_area = 'Performing Arts' AND a.scope IN ('Exit Ticket','Unit Assessment'))
-                       OR (a.subject_area != 'Performing Arts' AND a.scope = 'Exit Ticket'))
+                       OR (a.subject_area != 'Performing Arts' AND a.scope IN ('Exit Ticket','CMA - Mid-Module')))                  
                  LEFT OUTER JOIN standard_descriptions ltp WITH(NOLOCK)
                    ON a.standard_code = ltp.standard_code
                   AND ltp.rn = 1

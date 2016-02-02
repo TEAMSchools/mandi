@@ -10,7 +10,7 @@ WITH curterm AS (
         ,ROW_NUMBER() OVER(
            PARTITION BY schoolid
              ORDER BY end_date DESC) AS rn
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'   
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND CONVERT(DATE,GETDATE()) >= end_date   
@@ -38,11 +38,11 @@ SELECT co.student_number
 
       /* Attendance & Tardies */    
       /* Year */
-      ,CONCAT(att_counts.y1_abs_all, ' - ', ROUND(att_pct.Y1_att_pct_total,0), '%') AS Y1_absences_total
-      ,CONCAT(att_counts.y1_t_all, ' - ', ROUND(att_pct.Y1_tardy_pct_total,0), '%') AS Y1_tardies_total
+      ,CONCAT(att_counts.abs_all_counts_yr, ' - ', ROUND(att_pct.abs_all_pct_yr,0), '%') AS Y1_absences_total
+      ,CONCAT(att_counts.tdy_all_counts_yr, ' - ', ROUND(att_pct.tdy_all_pct_yr,0), '%') AS Y1_tardies_total
       /* Current */            
-      ,CONCAT(att_counts.RT2_ABS_ALL, ' - ', ROUND(att_pct.rt2_att_pct_total,0), '%') AS curterm_absences_total /* UPDATE - hard-coded for Q1*/
-      ,CONCAT(att_counts.RT2_T_ALL, ' - ', ROUND(att_pct.rt2_tardy_pct_total,0), '%') AS curterm_tardies_total /* UPDATE - hard-coded for Q1*/
+      ,CONCAT(att_counts.abs_all_counts_term, ' - ', ROUND(att_pct.abs_all_pct_term,0), '%') AS curterm_absences_total
+      ,CONCAT(att_counts.tdy_all_counts_term, ' - ', ROUND(att_pct.tdy_all_pct_term,0), '%') AS curterm_tardies_total
       
       /* daily tracking */
       ,dt.rc_bold_points AS CUR_BOLD_points
@@ -112,10 +112,14 @@ SELECT co.student_number
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN curterm d WITH(NOLOCK)
   ON d.rn = 1
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts#static att_counts WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH(NOLOCK)
   ON co.studentid = att_counts.studentid
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$att_percentages att_pct WITH(NOLOCK)
+ AND co.year = att_counts.academic_year
+ AND d.alt_name = att_counts.term
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_percentages_long att_pct WITH(NOLOCK)
   ON co.studentid = att_pct.studentid
+ AND co.year = att_pct.academic_year
+ AND d.alt_name = att_pct.term
 LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_totals#BOLD#static dt WITH(NOLOCK)
   ON co.studentid = dt.STUDENTID
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)

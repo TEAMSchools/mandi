@@ -45,7 +45,7 @@ WITH roster AS (
 ,curterm AS (
   SELECT academic_year
         ,time_per_name
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT' 
     AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
     AND schoolid = 73253

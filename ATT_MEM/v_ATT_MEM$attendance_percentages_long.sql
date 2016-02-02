@@ -8,10 +8,10 @@ SELECT studentid
       ,rt
       ,term
       
-      ,100 - ((ABS_all_counts_term / mem_counts_term) * 100) AS ABS_all_pct_term
-      ,100 - ((ABS_all_counts_yr / mem_counts_yr) * 100) AS ABS_all_pct_yr      
-      ,(TDY_all_counts_term / mem_counts_term) * 100 AS TDY_all_pct_term
-      ,(TDY_all_counts_yr / mem_counts_yr) * 100 AS TDY_all_pct_yr
+      ,ROUND(100 - ((ABS_all_counts_term / mem_counts_term) * 100),0) AS ABS_all_pct_term
+      ,ROUND(100 - ((ABS_all_counts_yr / mem_counts_yr) * 100),0) AS ABS_all_pct_yr      
+      ,ROUND((TDY_all_counts_term / mem_counts_term) * 100,0) AS TDY_all_pct_term
+      ,ROUND((TDY_all_counts_yr / mem_counts_yr) * 100,0) AS TDY_all_pct_yr
 
       ,(A_counts_term / mem_counts_term) * 100 AS A_pct_term
       ,(A_counts_yr / mem_counts_yr) * 100 AS A_pct_yr      

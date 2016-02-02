@@ -12,7 +12,7 @@ SELECT s.LASTFIRST AS Name
       ,disc.entry_author AS [Log Author]
       ,disc.logtype AS [Type]
       ,disc.Subtype
-      ,disc.subject
+      ,disc.Subject
       ,disc.rn AS [Count]
 FROM KIPP_NJ..COHORT$identifiers_long#static s WITH (NOLOCK)
 JOIN KIPP_NJ..DISC$log#static disc WITH(NOLOCK)

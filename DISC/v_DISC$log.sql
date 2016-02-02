@@ -233,7 +233,7 @@ FROM
            ,CONVERT(INT,all_logs.schoolid) AS schoolid
            ,CONVERT(INT,all_logs.studentid) AS studentid
            ,all_logs.entry_author
-           ,dbo.fn_DateToSY(all_logs.entry_date) AS academic_year
+           ,KIPP_NJ.dbo.fn_DateToSY(all_logs.entry_date) AS academic_year
            ,CONVERT(DATE,all_logs.entry_date) AS entry_date
            ,CONVERT(DATE,all_logs.consequence_date) AS consequence_date
            ,CONVERT(INT,all_logs.logtypeid) AS logtypeid
