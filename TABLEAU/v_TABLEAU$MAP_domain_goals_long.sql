@@ -163,6 +163,15 @@ WITH map_tests AS (
     FOR field IN ([ritscore], [range], [adjective])
    ) p
  )
+
+,illuminate_groups AS (
+  SELECT DISTINCT 
+         student_number
+        ,illuminate_group
+  FROM KIPP_NJ..PS$enrollments_rollup#static WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND illuminate_group IS NOT NULL
+ )
  
 SELECT domain.studentid      
       ,co.lastfirst
@@ -173,6 +182,7 @@ SELECT domain.studentid
       ,co.enroll_status
       ,co.retained_yr_flag
       ,co.retained_ever_flag
+      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN 1 ELSE 0 END AS is_current_year
       ,domain.academic_year AS year
       ,domain.term AS fallwinterspring
       ,domain.measurementscale
@@ -185,6 +195,7 @@ SELECT domain.studentid
       ,enr.COURSE_NAME
       ,enr.COURSE_NUMBER
       ,enr.period
+      ,ill.illuminate_group
 FROM map_tests domain
 JOIN COHORT$identifiers_long#static co WITH(NOLOCK)
   ON domain.studentid = co.studentid
@@ -200,4 +211,6 @@ LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr
   ON domain.studentid = enr.STUDENTID
  AND domain.academic_year = enr.academic_year
  AND domain.measurementscale = enr.measurementscale
+LEFT OUTER JOIN illuminate_groups ill
+  ON co.student_number = ill.student_number
 WHERE field = 'name'
