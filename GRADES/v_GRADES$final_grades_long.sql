@@ -9,7 +9,7 @@ WITH roster AS (
         ,co.year AS academic_year
         ,co.schoolid      
         ,co.grade_level      
-        ,d.time_per_name AS rt
+        ,CONCAT('RT',RIGHT(d.alt_name, 1)) AS rt
         ,d.alt_name AS term            
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
@@ -92,6 +92,7 @@ WITH roster AS (
         AND pgf.SECTIONID = sg.SECTIONID
         AND pgf.FINALGRADENAME = sg.STORECODE 
        WHERE enr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND enr.course_enr_status = 0
 
        UNION ALL
 

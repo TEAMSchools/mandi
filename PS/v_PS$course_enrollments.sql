@@ -37,6 +37,9 @@ SELECT co.STUDENTID
       ,rti.behavior_tier
       ,rti.behavior_tier_numeric                  
       ,CASE WHEN cc.termid < 0 THEN 1 ELSE 0 END AS drop_flags
+      ,SUM(CASE WHEN cc.termid < 0 THEN 1 ELSE 0 END) OVER(PARTITION BY co.studentid, co.year, cou.course_number) 
+        / COUNT(cc.termid) OVER(PARTITION BY co.studentid, co.year, cou.course_number) AS course_enr_status
+      
       ,CASE
         WHEN cc.course_number IN ('ENG10') THEN 'English 100'
         WHEN cc.course_number IN ('ENG20', 'ENG25') THEN 'English 200'
