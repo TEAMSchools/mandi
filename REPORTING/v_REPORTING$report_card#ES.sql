@@ -39,6 +39,7 @@ SELECT r.student_number
       ,r.LASTFIRST      
       ,REPLACE(CONVERT(VARCHAR,r.GRADE_LEVEL),'0','K') AS grade_level
       ,r.SCHOOLID
+  	  ,schools.abbreviation AS school_name
       ,r.TEAM
       ,r.LUNCH_BALANCE
       ,CONCAT(r.STREET, ' - ', r.CITY, ', ', r.STATE, ' ', r.ZIP) AS address
@@ -48,7 +49,12 @@ SELECT r.student_number
       ,r.FATHER AS parent_2_name
       ,CONCAT(r.FATHER_CELL + ' / ' , r.FATHER_DAY) AS parent_2_phone
       ,REPLACE(CONVERT(NVARCHAR(MAX),r.GUARDIANEMAIL),',','; ') AS guardianemail
-      
+	  ,CASE 
+	    WHEN r.gender = 'M' THEN 'his'
+	    WHEN r.gender = 'F' THEN 'her'
+		ELSE 'his/her'
+	   END AS gender_identifier      
+
       /* reporting week and dates */      
       ,rw.term
       ,rw.term_title      
@@ -186,6 +192,8 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$report_card_comments#ES comm WITH(NOLOCK)
  AND rw.term = comm.term
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$writing_scores_wide wrt WITH(NOLOCK)
   ON r.student_number = wrt.student_number
+LEFT OUTER JOIN KIPP_NJ..PS$schools#static schools WITH(NOLOCK)
+  ON r.schoolid = schools.school_number
 WHERE r.GRADE_LEVEL <= 4  
   AND r.schoolid != 73252
   AND r.RN = 1
