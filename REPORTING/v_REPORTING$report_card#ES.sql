@@ -39,7 +39,7 @@ SELECT r.student_number
       ,r.LASTFIRST      
       ,REPLACE(CONVERT(VARCHAR,r.GRADE_LEVEL),'0','K') AS grade_level
       ,r.SCHOOLID
-  	  ,schools.abbreviation AS school_name
+  	   ,schools.abbreviation AS school_name
       ,r.TEAM
       ,r.LUNCH_BALANCE
       ,CONCAT(r.STREET, ' - ', r.CITY, ', ', r.STATE, ' ', r.ZIP) AS address
@@ -49,11 +49,7 @@ SELECT r.student_number
       ,r.FATHER AS parent_2_name
       ,CONCAT(r.FATHER_CELL + ' / ' , r.FATHER_DAY) AS parent_2_phone
       ,REPLACE(CONVERT(NVARCHAR(MAX),r.GUARDIANEMAIL),',','; ') AS guardianemail
-	  ,CASE 
-	    WHEN r.gender = 'M' THEN 'his'
-	    WHEN r.gender = 'F' THEN 'her'
-		ELSE 'his/her'
-	   END AS gender_identifier      
+	     ,CASE WHEN r.gender = 'M' THEN 'his' WHEN r.gender = 'F' THEN 'her' ELSE 'his/her' END AS gender_identifier      
 
       /* reporting week and dates */      
       ,rw.term
@@ -141,8 +137,9 @@ SELECT r.student_number
       ,promo.att_ARFR_status
       ,promo.lit_ARFR_status
       ,CASE 
-        WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%See Teacher%' THEN NULL
-        WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%Off Track%' THEN 'At Risk for Retention' 
+        WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%See Teacher%' THEN 'See Teacher'
+        WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%ARFR%' THEN 'At Risk for Retention' 
+        WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%Off Track%' THEN 'Off Track' 
         ELSE 'On Track' 
        END AS overall_arfr_status
       ,promo.att_pts

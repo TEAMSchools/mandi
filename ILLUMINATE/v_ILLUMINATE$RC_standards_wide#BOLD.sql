@@ -60,7 +60,7 @@ WITH standard_descriptions AS (
                        ,COALESCE(ltp.studentfriendly_description, a.standard_description) AS standard_description
                        ,a.subject_area
                        ,CASE
-                         WHEN a.subject_area IN ('Comprehension','Text Study','Word Work','Phonics','Grammar') THEN 'ELA'                    
+                         WHEN a.subject_area = 'Text Study' THEN 'ELA'                    
                          WHEN a.subject_area = 'Mathematics' THEN 'MATH'
                          WHEN a.subject_area = 'History' THEN 'HIST'
                          WHEN a.subject_area = 'Science' THEN 'SCI'

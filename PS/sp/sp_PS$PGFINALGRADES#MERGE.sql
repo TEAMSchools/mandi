@@ -33,7 +33,7 @@ BEGIN
             ,LASTGRADEUPDATE        
       FROM PGFINALGRADES
       WHERE grade != ''--''    
-        AND LASTGRADEUPDATE >= (TRUNC(SYSDATE) - 3)
+        AND LASTGRADEUPDATE >= (TRUNC(SYSDATE) - 7)
     ');
   END
 
@@ -61,7 +61,8 @@ BEGIN
            ,TARGET.academic_year = SOURCE.academic_year
       WHEN NOT MATCHED BY TARGET THEN
        INSERT
-        (ID
+        (DCID
+        ,ID
         ,STUDENTID
         ,SECTIONID
         ,FINALGRADENAME
@@ -78,7 +79,8 @@ BEGIN
         ,LASTGRADEUPDATE
         ,academic_year)
        VALUES
-        (SOURCE.ID
+        (SOURCE.DCID
+        ,SOURCE.ID
         ,SOURCE.STUDENTID
         ,SOURCE.SECTIONID
         ,SOURCE.FINALGRADENAME

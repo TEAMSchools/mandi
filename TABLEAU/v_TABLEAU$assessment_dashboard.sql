@@ -46,7 +46,7 @@ SELECT co.schoolid
       ,NULL AS parent_standard
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS percent_correct
       ,CONVERT(FLOAT,res.mastered) AS mastered      
-      ,ovr.date_taken
+      ,CONVERT(DATE,ovr.date_taken) AS date_taken
       ,ovr.percent_correct AS overall_pct_correct
       ,comm.comment
       ,comm.date AS comment_date

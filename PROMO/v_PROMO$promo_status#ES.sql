@@ -108,10 +108,11 @@ SELECT co.STUDENT_NUMBER
       ,CASE        
         WHEN co.SPEDLEP = 'SPED' OR co.retained_yr_flag = 1 THEN 'See Teacher'                        
         WHEN lit.lvls_grown_term IS NULL OR lit.n_growth_rounds < 0 THEN NULL        
-        WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.goal_status = 'On Track' THEN 'On Track' /* Life Upper students have different promo criteria */
-        WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_term >= lit.n_growth_rounds THEN 'On Track' /* Life Upper students have different promo criteria */
-        WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.goal_status = 'Off Track' THEN 'Off Track' /* Life Upper students have different promo criteria */
-        WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_term < lit.n_growth_rounds THEN 'ARFR' /* Life Upper students have different promo criteria */                
+        /* Life Upper students have different promo criteria */
+        WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.goal_status IN ('On Track','Off Track') THEN 'On Track' /* if On Track, then On Track*/
+        WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_yr >= lit.n_growth_rounds THEN 'On Track' /* if grew 1 lvl per round overall, then On Track */
+        --WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.goal_status = 'Off Track' THEN 'Off Track' /**/
+        WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_term < lit.n_growth_rounds THEN 'ARFR'
         ELSE lit.goal_status
        END AS lit_ARFR_status
            

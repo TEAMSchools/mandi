@@ -70,7 +70,7 @@ WITH graduates AS (
         ,[School__c] AS school_id
         ,[Start_Date__c] AS start_date
         ,Type__c AS type
-        ,[Actual_End_Date__c]            
+        ,[Actual_End_Date__c] AS end_date
         ,[Date_Last_Verified__c]
         ,[Highest_SAT_Score__c]      
         ,[Notes__c]
@@ -114,7 +114,7 @@ SELECT r.student_number
       ,enr_base.n_enrollments
       ,CASE
         WHEN r.composite_status = 'College Withdrawn' THEN 'Dropped out of ' + enr_cur.degree_type
-        WHEN enr_base.n_enrollments > 1 AND enr_base.school_name = enr_cur.school_name THEN CONVERT(VARCHAR,DATEDIFF(MONTH,enr_base.start_date,enr_cur.start_date)) + ' month break'        
+        WHEN enr_base.n_enrollments > 1 AND enr_base.school_name = enr_cur.school_name THEN CONVERT(VARCHAR,DATEDIFF(MONTH,enr_base.end_date,enr_cur.start_date)) + ' month break'        
         WHEN enr_base.n_enrollments > 1 THEN ISNULL(enr_base.degree_type,'Unknown') + ' to ' + ISNULL(enr_cur.degree_type,'Unknown')
         ELSE NULL
        END AS transfer

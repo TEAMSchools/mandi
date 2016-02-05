@@ -34,18 +34,20 @@ WITH roster AS (
         ,credit_hours
         ,gradescaleid
         ,term
-        /* if stored grade exists, use that */
+        /* if stored grade exists, use that */                
+        ,COALESCE(stored_letter, pgf_letter) AS term_grade_letter
+        ,COALESCE(stored_pct, pgf_pct) AS term_grade_percent
         /* F* rule for NCA and TEAM */
         ,CASE 
           WHEN schoolid = 73253 AND COALESCE(stored_pct, pgf_pct) < 50 THEN 'F*' 
           WHEN schoolid = 133570965 AND COALESCE(stored_pct, pgf_pct) < 55 THEN 'F*' 
           ELSE COALESCE(stored_letter, pgf_letter)
-         END AS term_grade_letter
+         END AS term_grade_letter_adjusted
         ,CASE 
           WHEN schoolid = 73253 AND COALESCE(stored_pct, pgf_pct) < 50 THEN 50 
           WHEN schoolid = 133570965 AND COALESCE(stored_pct, pgf_pct) < 55 THEN 55
           ELSE COALESCE(stored_pct, pgf_pct)
-         END AS term_grade_percent                  
+         END AS term_grade_percent_adjusted          
         ,term_gpa_points
   FROM
       (
@@ -75,7 +77,7 @@ WITH roster AS (
              --,enr.dateleft
              ,ROW_NUMBER() OVER(
                 PARTITION BY enr.student_number, enr.academic_year, enr.course_number, pgf.finalgradename
-                  ORDER BY enr.drop_flags ASC, enr.dateenrolled DESC, enr.dateleft DESC) AS rn
+                  ORDER BY sg.PCT DESC, enr.drop_flags ASC, enr.dateenrolled DESC, enr.dateleft DESC) AS rn
        FROM KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
        JOIN KIPP_NJ..PS$PGFINALGRADES pgf WITH(NOLOCK)  
          ON enr.studentid = pgf.studentid       
@@ -163,6 +165,8 @@ WITH roster AS (
         ,gr.gradescaleid      
         ,gr.term_grade_percent
         ,gr.term_grade_letter
+        ,gr.term_grade_percent_adjusted
+        ,gr.term_grade_letter_adjusted
         ,gr.term_gpa_points
         
         /* exam grades for Y1 calc, only for applicable terms */
@@ -204,6 +208,8 @@ SELECT sub.student_number
       ,sub.term_gpa_points
       ,sub.term_grade_letter
       ,sub.term_grade_percent
+      ,sub.term_grade_letter_adjusted
+      ,sub.term_grade_percent_adjusted
       ,sub.e1
       ,sub.e2
       ,sub.weighted_grade_total
@@ -231,6 +237,8 @@ FROM
            ,term_gpa_points
            ,term_grade_letter
            ,term_grade_percent
+           ,term_grade_letter_adjusted
+           ,term_grade_percent_adjusted
            ,e1
            ,e2
            ,weighted_grade_total
@@ -256,13 +264,16 @@ FROM
                 ,term_gpa_points
                 ,term_grade_letter
                 ,term_grade_percent            
+                ,term_grade_letter_adjusted
+                ,term_grade_percent_adjusted
                 ,e1
                 ,e2
       
                 /* Y1 calc -- weighted avg */
+                /* uses F* adjusted grade */
                 /* (weighted term grade + weighted exam grades) / total weighted points possible */
                 ,SUM(
-                   (term_grade_percent * term_grade_weight) 
+                   (term_grade_percent_adjusted * term_grade_weight) 
                      + ISNULL((e1 * e1_grade_weight),0) 
                      + ISNULL((e2 * e2_grade_weight),0)
                   ) OVER(PARTITION BY student_number, course_number ORDER BY rt ASC) AS weighted_grade_total

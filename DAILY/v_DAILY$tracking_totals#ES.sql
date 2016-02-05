@@ -8,6 +8,9 @@ WITH rc_term AS (
         ,academic_year
         ,term
         ,rt        
+        ,ROW_NUMBER() OVER(
+           PARTITION BY schoolid, academic_year
+             ORDER BY rt DESC) AS rn
   FROM
       (
        SELECT schoolid
@@ -60,6 +63,7 @@ WITH rc_term AS (
   LEFT OUTER JOIN rc_term
     ON sub.schoolid = rc_term.schoolid
    AND sub.academic_year = rc_term.academic_year
+   AND rc_term.rn = 1
  )
 
 ,tracking_long AS (
