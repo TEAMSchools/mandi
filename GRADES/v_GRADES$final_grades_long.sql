@@ -11,6 +11,7 @@ WITH roster AS (
         ,co.grade_level      
         ,CONCAT('RT',RIGHT(d.alt_name, 1)) AS rt
         ,d.alt_name AS term            
+        ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN d.start_date AND d.end_date THEN 1 ELSE 0 END AS is_curterm
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
     ON co.schoolid = d.schoolid
@@ -156,6 +157,7 @@ WITH roster AS (
         ,r.grade_level
         ,r.rt
         ,r.term      
+        ,r.is_curterm
         ,gr.credittype
         ,gr.course_number
         ,gr.course_name
@@ -198,6 +200,7 @@ SELECT sub.student_number
       ,sub.grade_level
       ,sub.rt
       ,sub.term
+      ,sub.is_curterm
       ,sub.credittype
       ,sub.course_number
       ,sub.course_name
@@ -227,6 +230,7 @@ FROM
            ,grade_level
            ,rt
            ,term
+           ,is_curterm
            ,credittype
            ,course_number
            ,course_name
@@ -254,6 +258,7 @@ FROM
                 ,grade_level
                 ,rt
                 ,term
+                ,is_curterm
                 ,credittype
                 ,course_number
                 ,course_name
