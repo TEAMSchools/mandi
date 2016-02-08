@@ -133,6 +133,8 @@ WITH roster AS (
         ,COURSE_NUMBER     
         ,E1
         ,E2
+        ,CASE WHEN E1 < 50 THEN 50 ELSE E1 END AS E1_adjusted
+        ,CASE WHEN E2 < 50 THEN 50 ELSE E2 END AS E2_adjusted
   FROM
       (
        SELECT STUDENTID
@@ -174,7 +176,9 @@ WITH roster AS (
         
         /* exam grades for Y1 calc, only for applicable terms */
         ,CASE WHEN r.term = 'Q2' THEN e.E1 ELSE NULL END AS E1           
+        ,CASE WHEN r.term = 'Q2' THEN e.E1_adjusted ELSE NULL END AS E1_adjusted           
         ,CASE WHEN r.term = 'Q4' THEN e.E2 ELSE NULL END AS E2
+        ,CASE WHEN r.term = 'Q4' THEN e.E2_adjusted ELSE NULL END AS E2_adjusted
 
         ,CASE
           WHEN gr.term_grade_percent IS NULL THEN NULL
@@ -215,11 +219,18 @@ SELECT sub.student_number
       ,sub.term_grade_letter_adjusted
       ,sub.term_grade_percent_adjusted
       ,sub.e1
+      ,sub.e1_adjusted
       ,sub.e2
+      ,sub.e2_adjusted
       ,sub.weighted_grade_total
       ,sub.weighted_points_total
       ,sub.y1_grade_percent
-      ,scale.letter_grade AS y1_grade_letter
+      ,sub.y1_grade_percent_adjusted
+      ,CASE
+        WHEN sub.schoolid = 73253 AND sub.y1_grade_percent_adjusted = 50 AND sub.y1_grade_percent < 50 THEN 'F*'
+        WHEN sub.schoolid = 133570965 AND sub.y1_grade_percent_adjusted = 55 AND sub.y1_grade_percent < 55 THEN 'F*'
+        ELSE scale.letter_grade 
+       END AS y1_grade_letter
       ,scale.grade_points AS y1_gpa_points
 FROM
     (
@@ -245,10 +256,14 @@ FROM
            ,term_grade_letter_adjusted
            ,term_grade_percent_adjusted
            ,e1
+           ,e1_adjusted
            ,e2
+           ,e2_adjusted
            ,weighted_grade_total
+           ,weighted_grade_total_adjusted
            ,weighted_points_total
            ,ROUND((weighted_grade_total / weighted_points_total) * 100,0) AS y1_grade_percent
+           ,ROUND((weighted_grade_total_adjusted / weighted_points_total) * 100,0) AS y1_grade_percent_adjusted
      FROM
          (
           SELECT student_number
@@ -273,22 +288,28 @@ FROM
                 ,term_grade_letter_adjusted
                 ,term_grade_percent_adjusted
                 ,e1
+                ,e1_adjusted
                 ,e2
+                ,e2_adjusted
       
-                /* Y1 calc -- weighted avg */
-                /* uses F* adjusted grade */
+                /* Y1 calc -- weighted avg */                
                 /* (weighted term grade + weighted exam grades) / total weighted points possible */
                 ,SUM(
-                   (term_grade_percent_adjusted * term_grade_weight) 
+                   (term_grade_percent * term_grade_weight) 
                      + ISNULL((e1 * e1_grade_weight),0) 
                      + ISNULL((e2 * e2_grade_weight),0)
-                  ) OVER(PARTITION BY student_number, course_number ORDER BY rt ASC) AS weighted_grade_total
+                  ) OVER(PARTITION BY student_number, course_number ORDER BY rt ASC) AS weighted_grade_total /* does NOT use F* grades */
+                ,SUM(
+                   (term_grade_percent_adjusted * term_grade_weight) 
+                     + ISNULL((e1_adjusted * e1_grade_weight),0) 
+                     + ISNULL((e2_adjusted * e2_grade_weight),0)
+                  ) OVER(PARTITION BY student_number, course_number ORDER BY rt ASC) AS weighted_grade_total_adjusted /* uses F* adjusted grade */
                 ,SUM(
                    (term_grade_weight * 100)
                      + ISNULL((E1_grade_weight * 100),0)
                      + ISNULL((E2_grade_weight * 100),0)
                   ) OVER(PARTITION BY student_number, course_number ORDER BY rt ASC) AS weighted_points_total
-          FROM grades_long     
+          FROM grades_long               
          ) sub
     ) sub
 LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static scale WITH(NOLOCK)

@@ -51,8 +51,12 @@ WITH course_order AS (
         ,teacher_name
         ,credit_hours
         ,class_rn
+        ,y1_grade_letter
+        ,y1_grade_percent
+        ,e1_grade_percent
+        ,e2_grade_percent
         ,CONCAT(rt,'_',field) AS pivot_field
-        ,value
+        ,CONVERT(VARCHAR(64),value) AS value
   FROM
       (
        SELECT fg.student_number      
@@ -69,12 +73,16 @@ WITH course_order AS (
              ,fg.rt            
              ,o.class_rn     
 
-             ,CONVERT(VARCHAR(MAX),fg.term_grade_letter) AS term_grade_letter
-             ,CONVERT(VARCHAR(MAX),fg.term_grade_percent) AS term_grade_percent
-             ,CONVERT(VARCHAR(MAX),fg.term_grade_letter_adjusted) AS term_grade_letter_adjusted
-             ,CONVERT(VARCHAR(MAX),fg.term_grade_percent_adjusted) AS term_grade_percent_adjusted
-             ,CONVERT(VARCHAR(MAX),fg.y1_grade_letter) AS y1_grade_letter
-             ,CONVERT(VARCHAR(MAX),fg.y1_grade_percent) AS y1_grade_percent
+             ,CONVERT(VARCHAR(64),fg.e1_adjusted) AS e1_grade_percent /* using only F* adjusted, when applicable */
+             ,CONVERT(VARCHAR(64),fg.e2_adjusted) AS e2_grade_percent /* using only F* adjusted, when applicable */
+             --,CONVERT(VARCHAR(64),fg.y1_grade_percent) AS y1_grade_percent
+             ,CONVERT(VARCHAR(64),fg.y1_grade_percent_adjusted) AS y1_grade_percent /* using only F* adjusted, when applicable */             
+             ,CONVERT(VARCHAR(64),fg.y1_grade_letter) AS y1_grade_letter
+
+             ,CONVERT(VARCHAR(64),fg.term_grade_letter) AS term_grade_letter
+             ,CONVERT(VARCHAR(64),fg.term_grade_percent) AS term_grade_percent
+             ,CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted) AS term_grade_letter_adjusted
+             ,CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted) AS term_grade_percent_adjusted                          
        FROM KIPP_NJ..GRADES$final_grades_long#static fg WITH(NOLOCK)
        JOIN course_order o
          ON fg.student_number = o.student_number
@@ -89,9 +97,7 @@ WITH course_order AS (
     FOR field IN (term_grade_letter
                  ,term_grade_percent
                  ,term_grade_letter_adjusted
-                 ,term_grade_percent_adjusted                  
-                 ,y1_grade_letter
-                 ,y1_grade_percent)
+                 ,term_grade_percent_adjusted)                 
    ) u
  )
 
@@ -102,61 +108,49 @@ SELECT student_number
       ,class_rn      
       ,course_number      
       ,sectionid
-      ,CONVERT(VARCHAR(MAX),course_name) AS course_name
-      ,CONVERT(VARCHAR(MAX),teacher_name) AS teacher_name
-      ,CONVERT(VARCHAR(MAX),credit_hours) AS credit_hours
+      ,CONVERT(VARCHAR(64),course_name) AS course_name
+      ,CONVERT(VARCHAR(64),teacher_name) AS teacher_name
+      ,CONVERT(VARCHAR(64),credit_hours) AS credit_hours
+      ,y1_grade_letter
+      ,y1_grade_percent
+      ,MAX(e1_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS e1_grade_percent
+      ,MAX(e2_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS e2_grade_percent
       ,MAX(RT1_term_grade_letter) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT1_term_grade_letter
       ,MAX(RT1_term_grade_letter_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT1_term_grade_letter_adjusted
       ,MAX(RT1_term_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT1_term_grade_percent
-      ,MAX(RT1_term_grade_percent_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT1_term_grade_percent_adjusted
-      ,MAX(RT1_y1_grade_letter) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT1_y1_grade_letter
-      ,MAX(RT1_y1_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT1_y1_grade_percent
+      ,MAX(RT1_term_grade_percent_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT1_term_grade_percent_adjusted      
       
       ,MAX(RT2_term_grade_letter) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT2_term_grade_letter
       ,MAX(RT2_term_grade_letter_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT2_term_grade_letter_adjusted
       ,MAX(RT2_term_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT2_term_grade_percent
-      ,MAX(RT2_term_grade_percent_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT2_term_grade_percent_adjusted
-      ,MAX(RT2_y1_grade_letter) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT2_y1_grade_letter
-      ,MAX(RT2_y1_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT2_y1_grade_percent
+      ,MAX(RT2_term_grade_percent_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT2_term_grade_percent_adjusted      
       
       ,MAX(RT3_term_grade_letter) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT3_term_grade_letter
       ,MAX(RT3_term_grade_letter_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT3_term_grade_letter_adjusted
       ,MAX(RT3_term_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT3_term_grade_percent
-      ,MAX(RT3_term_grade_percent_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT3_term_grade_percent_adjusted
-      ,MAX(RT3_y1_grade_letter) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT3_y1_grade_letter
-      ,MAX(RT3_y1_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT3_y1_grade_percent
+      ,MAX(RT3_term_grade_percent_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT3_term_grade_percent_adjusted      
       
       ,MAX(RT4_term_grade_letter) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT4_term_grade_letter
       ,MAX(RT4_term_grade_letter_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT4_term_grade_letter_adjusted
       ,MAX(RT4_term_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT4_term_grade_percent
       ,MAX(RT4_term_grade_percent_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT4_term_grade_percent_adjusted
-      ,MAX(RT4_y1_grade_letter) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT4_y1_grade_letter
-      ,MAX(RT4_y1_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT4_y1_grade_percent
 FROM grades_unpivot
 PIVOT(
   MAX(value)
   FOR pivot_field IN ([RT1_term_grade_letter]
                      ,[RT1_term_grade_letter_adjusted]
                      ,[RT1_term_grade_percent]
-                     ,[RT1_term_grade_percent_adjusted]
-                     ,[RT1_y1_grade_letter]
-                     ,[RT1_y1_grade_percent]
+                     ,[RT1_term_grade_percent_adjusted]                     
                      ,[RT2_term_grade_letter]
                      ,[RT2_term_grade_letter_adjusted]
                      ,[RT2_term_grade_percent]
-                     ,[RT2_term_grade_percent_adjusted]
-                     ,[RT2_y1_grade_letter]
-                     ,[RT2_y1_grade_percent]
+                     ,[RT2_term_grade_percent_adjusted]                     
                      ,[RT3_term_grade_letter]
                      ,[RT3_term_grade_letter_adjusted]
                      ,[RT3_term_grade_percent]
-                     ,[RT3_term_grade_percent_adjusted]
-                     ,[RT3_y1_grade_letter]
-                     ,[RT3_y1_grade_percent]
+                     ,[RT3_term_grade_percent_adjusted]                     
                      ,[RT4_term_grade_letter]
                      ,[RT4_term_grade_letter_adjusted]
                      ,[RT4_term_grade_percent]
-                     ,[RT4_term_grade_percent_adjusted]
-                     ,[RT4_y1_grade_letter]
-                     ,[RT4_y1_grade_percent])
+                     ,[RT4_term_grade_percent_adjusted])
  ) p
