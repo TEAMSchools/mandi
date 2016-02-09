@@ -61,17 +61,21 @@ WITH roster AS (
              ,enr.sectionid           
              ,enr.teacher_name      
              ,enr.excludefromgpa
-             ,enr.credit_hours
+             ,CASE WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL ELSE enr.credit_hours END AS credit_hours
              ,enr.gradescaleid                  
       
              ,pgf.FINALGRADENAME AS term
-             ,ROUND(pgf.[PERCENT],0) AS pgf_pct
-             ,pgf.GRADE AS pgf_letter      
+             ,CASE WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL ELSE ROUND(pgf.[PERCENT],0) END AS pgf_pct
+             ,CASE WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL ELSE pgf.GRADE END AS pgf_letter      
       
              ,ROUND(sg.PCT,0) AS stored_pct
              ,sg.GRADE AS stored_letter      
              
-             ,COALESCE(sg.gpa_points, scale.grade_points) AS term_gpa_points      
+             ,CASE 
+               WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL                
+               ELSE COALESCE(sg_scale.grade_points, scale.grade_points) 
+              END AS term_gpa_points /* temp fix until stored grades are updated for honors courses */
+             --,COALESCE(sg.gpa_points, scale.grade_points) AS term_gpa_points      
       
              --,enr.drop_flags
              --,enr.dateenrolled
@@ -92,6 +96,10 @@ WITH roster AS (
          ON pgf.studentid = sg.STUDENTID 
         AND pgf.SECTIONID = sg.SECTIONID
         AND pgf.FINALGRADENAME = sg.STORECODE 
+       LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static sg_scale WITH(NOLOCK)
+         ON enr.GRADESCALEID = sg_scale.scale_id
+        AND sg.PCT >= sg_scale.low_cut
+        AND sg.PCT < sg_scale.high_cut
        WHERE enr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
          AND enr.course_enr_status = 0
 
