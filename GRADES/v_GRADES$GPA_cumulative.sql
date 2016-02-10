@@ -4,7 +4,7 @@ GO
 ALTER VIEW GRADES$GPA_cumulative AS
 
 SELECT studentid
-      ,ROUND(weighted_points / credit_hours,2) AS cumulative_Y1_gpa
+      ,CONVERT(FLOAT,ROUND(CONVERT(DECIMAL(4,3),(weighted_points / credit_hours)), 2)) AS cumulative_Y1_gpa
       ,earned_credits_cum      
       ,schoolid
 FROM

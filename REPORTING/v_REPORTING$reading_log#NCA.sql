@@ -146,6 +146,7 @@ LEFT OUTER JOIN PS$course_enrollments#static eng2 WITH(NOLOCK)
 LEFT OUTER JOIN PS$course_enrollments#static diff WITH (NOLOCK)
   ON s.studentid = diff.studentid 
  AND s.year = diff.academic_year
+ AND diff.course_number = 'Advisory'
  AND diff.period IN ('LA','LB')
  AND diff.drop_flags = 0        
 WHERE s.SCHOOLID = 73253

@@ -138,6 +138,7 @@ WITH roster AS (
 
 ,exams AS (
   SELECT STUDENTID
+        ,academic_year
         ,COURSE_NUMBER     
         ,E1
         ,E2
@@ -146,6 +147,7 @@ WITH roster AS (
   FROM
       (
        SELECT STUDENTID
+             ,academic_year
              ,COURSE_NUMBER           
              ,STORECODE
              ,PCT
@@ -190,7 +192,7 @@ WITH roster AS (
 
         ,CASE
           WHEN gr.term_grade_percent IS NULL THEN NULL
-          WHEN r.grade_level <= 8 THEN 1.0 / CONVERT(FLOAT,COUNT(r.student_number) OVER(PARTITION BY r.student_number, gr.course_number))
+          WHEN r.grade_level <= 8 THEN 1.0 / CONVERT(FLOAT,COUNT(r.student_number) OVER(PARTITION BY r.student_number, r.academic_year, gr.course_number))
           WHEN r.grade_level >= 9 THEN .225
          END AS term_grade_weight                 
         ,CASE WHEN r.term = 'Q2' AND e.E1 IS NOT NULL THEN 0.05 END AS E1_grade_weight
@@ -202,6 +204,7 @@ WITH roster AS (
    AND r.term = gr.term
   LEFT OUTER JOIN exams e
     ON r.studentid = e.STUDENTID
+   AND r.academic_year = e.academic_year
    AND gr.COURSE_NUMBER = e.COURSE_NUMBER
  )
 
@@ -306,17 +309,17 @@ FROM
                    (term_grade_percent * term_grade_weight) 
                      + ISNULL((e1 * e1_grade_weight),0) 
                      + ISNULL((e2 * e2_grade_weight),0)
-                  ) OVER(PARTITION BY student_number, course_number ORDER BY rt ASC) AS weighted_grade_total /* does NOT use F* grades */
+                  ) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY rt ASC) AS weighted_grade_total /* does NOT use F* grades */
                 ,SUM(
                    (term_grade_percent_adjusted * term_grade_weight) 
                      + ISNULL((e1_adjusted * e1_grade_weight),0) 
                      + ISNULL((e2_adjusted * e2_grade_weight),0)
-                  ) OVER(PARTITION BY student_number, course_number ORDER BY rt ASC) AS weighted_grade_total_adjusted /* uses F* adjusted grade */
+                  ) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY rt ASC) AS weighted_grade_total_adjusted /* uses F* adjusted grade */
                 ,SUM(
                    (term_grade_weight * 100)
                      + ISNULL((E1_grade_weight * 100),0)
                      + ISNULL((E2_grade_weight * 100),0)
-                  ) OVER(PARTITION BY student_number, course_number ORDER BY rt ASC) AS weighted_points_total
+                  ) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY rt ASC) AS weighted_points_total
           FROM grades_long               
          ) sub
     ) sub

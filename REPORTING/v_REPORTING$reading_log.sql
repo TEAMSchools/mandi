@@ -256,7 +256,7 @@ LEFT OUTER JOIN fp fp_base
  AND fp_base.rn_base = 1
 LEFT OUTER JOIN fp fp_curr
   ON roster.studentid = fp_curr.STUDENTID
- AND fp_curr.rn_base = 1
+ AND fp_curr.rn_curr = 1
 LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
   ON roster.studentid = base.studentid
  AND base.year = dbo.fn_Global_Academic_Year()
