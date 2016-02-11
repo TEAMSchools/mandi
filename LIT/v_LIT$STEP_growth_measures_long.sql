@@ -12,8 +12,8 @@ SELECT lit_base.studentid
       ,lit_base.lvl_num AS base_step
       ,lit_end.lvl_num AS end_step
       ,CONVERT(INT,lit_end.lvl_num) - CONVERT(INT,lit_base.lvl_num) AS step_change
-FROM LIT$test_events#identifiers lit_base WITH(NOLOCK)
-LEFT OUTER JOIN LIT$test_events#identifiers lit_end WITH(NOLOCK)
+FROM LIT$all_test_events#identifiers#static lit_base WITH(NOLOCK)
+LEFT OUTER JOIN LIT$all_test_events#identifiers#static lit_end WITH(NOLOCK)
   ON lit_base.studentid = lit_end.studentid
  AND lit_base.academic_year = lit_end.academic_year
  AND lit_end.status = 'Achieved'

@@ -27,85 +27,141 @@ WITH roster_scaffold AS (
     AND r.rn = 1  
  )
 
-,fp_end_2014 AS (
-  SELECT fp.academic_year
-        ,'T3' AS test_round
-        ,fp.student_number        
-        ,CASE WHEN fp.status = 'Achieved' AND fp.indep_lvl IS NULL THEN fp.read_lvl ELSE fp.indep_lvl END AS read_lvl
-        ,CASE WHEN fp.status = 'Achieved' AND fp.indep_lvl IS NULL THEN fp.lvl_num ELSE fp.indep_lvl_num END AS lvl_num
-        ,CASE WHEN fp.status = 'Achieved' AND fp.indep_lvl IS NULL THEN fp.read_lvl ELSE fp.indep_lvl END AS indep_lvl
-        ,CASE WHEN fp.status = 'Achieved' AND fp.indep_lvl IS NULL THEN fp.lvl_num ELSE fp.indep_lvl_num END AS indep_lvl_num
-        ,gleq.GLEQ
-        ,CASE
-          WHEN fp.status = 'Did Not Achieve' AND fp.instruct_lvl = fp.indep_lvl THEN fp.read_lvl
-          WHEN fp.status = 'Achieved' AND fp.instruct_lvl = fp.indep_lvl THEN gleq.instruct_lvl
-          ELSE COALESCE(fp.instruct_lvl, gleq.instruct_lvl)
-         END AS instruct_lvl
-        ,CASE
-          WHEN fp.status = 'Did Not Achieve' AND fp.instruct_lvl = fp.indep_lvl THEN fp.lvl_num
-          WHEN fp.status = 'Achieved' AND fp.instruct_lvl = fp.indep_lvl THEN (gleq.fp_lvl_num + 1)
-          ELSE COALESCE(fp.instruct_lvl_num, (gleq.fp_lvl_num + 1))
-         END AS instruct_lvl_num
-        ,fp.fp_keylever
-        ,fp.fp_wpmrate
-  FROM KIPP_NJ..LIT$test_events#identifiers fp WITH(NOLOCK)
-  LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
-    ON CASE WHEN fp.status = 'Achieved' AND fp.indep_lvl IS NULL THEN fp.read_lvl ELSE fp.indep_lvl END = gleq.read_lvl
-   AND gleq.testid = 3273
-  WHERE academic_year = 2014
-    AND schoolid = 133570965
-    AND recent_yr = 1
+,tests AS (
+  SELECT *
+        ,ROW_NUMBER() OVER(
+           PARTITION BY sub.studentid
+             ORDER BY sub.academic_year DESC, sub.round_num DESC) AS meta_achv_round
+  FROM
+      (
+       SELECT r.STUDENTID
+             ,r.student_number
+             ,r.SCHOOLID
+             ,r.GRADE_LEVEL
+             ,r.academic_year
+             ,r.test_round
+             ,r.round_num
+             ,r.start_date
+             ,achv.read_lvl
+             ,achv.lvl_num
+             ,achv.indep_lvl
+             ,achv.indep_lvl_num
+             ,achv.instruct_lvl
+             ,achv.instruct_lvl_num
+             ,achv.GLEQ
+             ,achv.fp_wpmrate
+             ,achv.fp_keylever
+             ,dna.read_lvl AS dna_lvl
+             ,dna.lvl_num AS dna_lvl_num
+             ,dna.unique_id             
+       FROM roster_scaffold r WITH(NOLOCK) 
+       LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static achv WITH(NOLOCK)
+         ON r.STUDENTID = achv.studentid      
+        AND r.academic_year = achv.academic_year
+        AND r.test_round = achv.test_round
+        AND achv.status = 'Achieved'
+        AND achv.curr_round = 1
+       LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static dna WITH(NOLOCK)
+         ON r.STUDENTID = dna.studentid      
+        AND r.academic_year = dna.academic_year
+        AND r.test_round = dna.test_round
+        AND dna.status = 'Did Not Achieve'
+        AND dna.curr_round = 1    
+       WHERE r.academic_year <= 2014
+         AND NOT (r.academic_year = 2014 AND r.schoolid = 133570965 AND r.test_round = 'T3')
+
+       UNION ALL
+
+       SELECT fp.STUDENTID
+             ,fp.student_number
+             ,fp.SCHOOLID
+             ,fp.GRADE_LEVEL
+             ,fp.academic_year
+             ,'T3' AS test_round
+             ,4 AS round_num
+             ,'2015-06-05' AS start_date
+             ,CASE WHEN fp.status = 'Achieved' THEN COALESCE(fp.read_lvl, fp.indep_lvl) ELSE fp.indep_lvl END AS read_lvl
+             ,CASE WHEN fp.status = 'Achieved' THEN COALESCE(fp.lvl_num, fp.indep_lvl_num) ELSE fp.indep_lvl_num END AS lvl_num
+             ,CASE WHEN fp.status = 'Achieved' THEN COALESCE(fp.read_lvl, fp.indep_lvl) ELSE fp.indep_lvl END AS indep_lvl
+             ,CASE WHEN fp.status = 'Achieved' THEN COALESCE(fp.lvl_num, fp.indep_lvl_num) ELSE fp.indep_lvl_num END AS indep_lvl_num        
+             ,CASE
+               WHEN fp.status = 'Did Not Achieve' AND fp.instruct_lvl = fp.indep_lvl THEN fp.read_lvl
+               WHEN fp.status = 'Achieved' AND fp.instruct_lvl = fp.indep_lvl THEN gleq.instruct_lvl
+               ELSE COALESCE(fp.instruct_lvl, gleq.instruct_lvl)
+              END AS instruct_lvl
+             ,CASE
+               WHEN fp.status = 'Did Not Achieve' AND fp.instruct_lvl = fp.indep_lvl THEN fp.lvl_num
+               WHEN fp.status = 'Achieved' AND fp.instruct_lvl = fp.indep_lvl THEN (gleq.fp_lvl_num + 1)
+               ELSE COALESCE(fp.instruct_lvl_num, (gleq.fp_lvl_num + 1))
+              END AS instruct_lvl_num
+             ,gleq.GLEQ        
+             ,fp.fp_wpmrate
+             ,fp.fp_keylever
+             ,CASE
+               WHEN fp.status = 'Did Not Achieve' AND fp.instruct_lvl = fp.indep_lvl THEN fp.read_lvl
+               WHEN fp.status = 'Achieved' AND fp.instruct_lvl = fp.indep_lvl THEN gleq.instruct_lvl
+               ELSE COALESCE(fp.instruct_lvl, gleq.instruct_lvl)
+              END AS dna_lvl
+             ,CASE
+               WHEN fp.status = 'Did Not Achieve' AND fp.instruct_lvl = fp.indep_lvl THEN fp.lvl_num
+               WHEN fp.status = 'Achieved' AND fp.instruct_lvl = fp.indep_lvl THEN (gleq.fp_lvl_num + 1)
+               ELSE COALESCE(fp.instruct_lvl_num, (gleq.fp_lvl_num + 1))
+              END AS dna_lvl_num
+             ,fp.unique_id             
+       FROM KIPP_NJ..LIT$all_test_events#identifiers#static fp WITH(NOLOCK)       
+       LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
+         ON CASE WHEN fp.status = 'Achieved' AND fp.indep_lvl IS NULL THEN fp.read_lvl ELSE fp.indep_lvl END = gleq.read_lvl
+        AND gleq.testid = 3273
+       WHERE fp.academic_year = 2014
+         AND fp.schoolid = 133570965
+         AND fp.recent_yr = 1    
+
+       UNION ALL
+
+       SELECT r.STUDENTID
+             ,r.student_number
+             ,r.SCHOOLID
+             ,r.GRADE_LEVEL
+             ,r.academic_year
+             ,r.test_round
+             ,r.round_num
+             ,r.start_date                
+        
+             ,COALESCE(achv.read_lvl, ps.read_lvl) AS read_lvl
+             ,COALESCE(achv.lvl_num, ps.lvl_num) AS lvl_num
+             ,COALESCE(achv.indep_lvl, ps.indep_lvl) AS indep_lvl
+             ,COALESCE(achv.indep_lvl_num, ps.indep_lvl_num) AS indep_lvl_num
+             ,COALESCE(achv.instruct_lvl, ps.instruct_lvl) AS instruct_lvl
+             ,COALESCE(achv.instruct_lvl_num, ps.instruct_lvl_num) AS instruct_lvl_num
+             ,COALESCE(achv.GLEQ, ps.GLEQ) AS GLEQ
+             ,COALESCE(achv.fp_wpmrate, ps.fp_wpmrate) AS fp_wpmrate
+             ,COALESCE(achv.fp_keylever, ps.fp_keylever) AS fp_keylever
+             ,COALESCE(dna.read_lvl, ps.dna_lvl) AS dna_lvl
+             ,COALESCE(dna.lvl_num, ps.dna_lvl_num) AS dna_lvl_num
+             ,COALESCE(dna.unique_id, ps.unique_id) AS unique_id
+       FROM roster_scaffold r WITH(NOLOCK) 
+       LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static ps WITH(NOLOCK)
+         ON r.STUDENTID = ps.studentid      
+        AND r.academic_year = ps.academic_year
+        AND r.test_round = ps.test_round
+        AND ps.status = 'Mixed'
+        AND ps.curr_round = 1
+       LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static achv WITH(NOLOCK)
+         ON r.STUDENTID = achv.studentid      
+        AND r.academic_year = achv.academic_year
+        AND r.test_round = achv.test_round
+        AND achv.status = 'Achieved'
+        AND achv.curr_round = 1
+       LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static dna WITH(NOLOCK)
+         ON r.STUDENTID = dna.studentid      
+        AND r.academic_year = dna.academic_year
+        AND r.test_round = dna.test_round
+        AND dna.status = 'Did Not Achieve'
+        AND dna.curr_round = 1
+       WHERE r.academic_year >= 2015
+      ) sub
  )
 
-/* highest acheived test per round for each student */
-,tests AS (
-  SELECT r.STUDENTID
-        ,r.student_number
-        ,r.SCHOOLID
-        ,r.GRADE_LEVEL
-        ,r.academic_year
-        ,r.test_round
-        ,r.round_num
-        ,r.start_date
-        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.achieved_independent_level, dna.read_lvl) ELSE COALESCE(zomg.read_lvl, achv.read_lvl) END AS read_lvl
-        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.indep_lvl_num, dna.lvl_num) ELSE COALESCE(zomg.lvl_num, achv.lvl_num) END AS lvl_num
-        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.achieved_independent_level, dna.indep_lvl) ELSE COALESCE(zomg.indep_lvl, achv.indep_lvl) END AS indep_lvl
-        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.indep_lvl_num, dna.indep_lvl_num) ELSE COALESCE(zomg.indep_lvl_num, achv.indep_lvl_num) END AS indep_lvl_num
-        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.instructional_level_tested, dna.instruct_lvl) ELSE COALESCE(zomg.instruct_lvl, achv.instruct_lvl) END AS instruct_lvl
-        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.instr_lvl_num, dna.instruct_lvl_num) ELSE COALESCE(zomg.instruct_lvl_num, achv.instruct_lvl_num) END AS instruct_lvl_num
-        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.GLEQ, dna.GLEQ) ELSE COALESCE(zomg.GLEQ, achv.GLEQ) END AS GLEQ
-        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.reading_rate_wpm, dna.fp_wpmrate) ELSE COALESCE(zomg.fp_wpmrate, achv.fp_wpmrate) END AS fp_wpmrate
-        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.key_lever, dna.fp_keylever) ELSE COALESCE(zomg.fp_keylever, achv.fp_keylever) END AS fp_keylever
-        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.instructional_level_tested, dna.dna_lvl) ELSE dna.read_lvl END AS dna_lvl
-        ,CASE WHEN r.academic_year >= 2015 THEN COALESCE(fp.instr_lvl_num, dna.dna_lvl_num) ELSE dna.lvl_num END AS dna_lvl_num
-        ,dna.unique_id --,CASE WHEN r.academic_year >= 2015 THEN dna.unique_id ELSE achv.unique_id END AS unique_id /* zomg */
-        ,ROW_NUMBER() OVER(
-           PARTITION BY r.studentid
-             ORDER BY r.academic_year DESC, r.round_num DESC) AS meta_achv_round
-  FROM roster_scaffold r WITH(NOLOCK) 
-  LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers achv WITH(NOLOCK)
-    ON r.STUDENTID = achv.studentid      
-   AND r.academic_year = achv.academic_year
-   AND r.test_round = achv.test_round
-   AND achv.status = 'Achieved'
-   AND achv.curr_round = 1
-  LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers dna WITH(NOLOCK)
-    ON r.STUDENTID = dna.studentid      
-   AND r.academic_year = dna.academic_year
-   AND r.test_round = dna.test_round
-   AND dna.status = 'Did Not Achieve'
-   AND dna.curr_round = 1
-  LEFT OUTER JOIN KIPP_NJ..LIT$test_events#MS#static fp WITH(NOLOCK)
-    ON r.student_number = fp.student_number
-   AND r.academic_year = fp.academic_year
-   AND r.test_round = fp.test_round
-   AND fp.curr_round = 1
-  LEFT OUTER JOIN fp_end_2014 zomg WITH(NOLOCK)
-    ON r.student_number = zomg.student_number
-   AND r.academic_year = zomg.academic_year
-   AND r.test_round = zomg.test_round
- )
- 
 /* falls back to most recently achieved reading level for each round, if NULL */
 SELECT academic_year
       ,SCHOOLID

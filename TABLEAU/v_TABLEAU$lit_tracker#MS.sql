@@ -13,7 +13,7 @@ WITH most_recent AS (
         ,indep_lvl
         ,indep_lvl_num
         ,fp_keylever
-  FROM KIPP_NJ..LIT$test_events#identifiers WITH(NOLOCK)
+  FROM KIPP_NJ..LIT$all_test_events#identifiers#static WITH(NOLOCK)
   WHERE curr_yr = 1
     AND ((academic_year >= 2015 AND status = 'Did Not Achieve') OR (academic_year <= 2014 AND status = 'Achieved'))
  )
@@ -28,7 +28,7 @@ WITH most_recent AS (
         ,indep_lvl
         ,indep_lvl_num
         ,fp_keylever
-  FROM KIPP_NJ..LIT$test_events#identifiers WITH(NOLOCK)
+  FROM KIPP_NJ..LIT$all_test_events#identifiers#static WITH(NOLOCK)
   WHERE base_yr = 1
     AND ((academic_year >= 2015 AND status = 'Did Not Achieve') OR (academic_year <= 2014 AND status = 'Achieved'))
 )

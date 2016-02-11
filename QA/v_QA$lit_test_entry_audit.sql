@@ -11,7 +11,7 @@ WITH latest_entry AS (
         ,ROW_NUMBER() OVER(
            PARTITION BY student_number, test_round
              ORDER BY status, lvl_num DESC, test_date DESC) AS rn
-  FROM KIPP_NJ..LIT$test_events#identifiers WITH(NOLOCK)
+  FROM KIPP_NJ..LIT$all_test_events#identifiers#static WITH(NOLOCK)
   WHERE curr_round = 1
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
@@ -37,7 +37,7 @@ FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..LIT$achieved_by_round#static a WITH(NOLOCK)
   ON co.studentid = a.STUDENTID
  AND co.year = a.academic_year
-LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers rs WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static rs WITH(NOLOCK)
   ON a.unique_id = rs.unique_id
 LEFT OUTER JOIN latest_entry l
   ON co.student_number = l.student_number

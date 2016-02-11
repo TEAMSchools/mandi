@@ -665,12 +665,12 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH (NOLOCK)
   
 --LITERACY -- upadate parameters for current term
   --F&P
-LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers fp_base WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static fp_base WITH (NOLOCK)
   ON roster.student_number = fp_base.STUDENT_NUMBER
  AND roster.year = fp_base.academic_year
  AND fp_base.base_yr = 1
  AND fp_base.status = 'Achieved'
-LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers fp_curr WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static fp_curr WITH (NOLOCK)
   ON roster.student_number = fp_curr.STUDENT_NUMBER 
  AND fp_curr.curr_all = 1
  AND fp_curr.status = 'Achieved'

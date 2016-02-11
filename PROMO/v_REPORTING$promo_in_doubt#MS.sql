@@ -171,7 +171,7 @@ WITH roster AS (
         ,read_lvl AS fp
         ,gleq AS fp_gleq
         ,met_goal
-  FROM LIT$test_events#identifiers WITH(NOLOCK)
+  FROM LIT$all_test_events#identifiers#static WITH(NOLOCK)
   WHERE achv_curr_all = 1
     AND schoolid in (133570965, 73252)
  )

@@ -6,7 +6,7 @@ ALTER VIEW TABLEAU$lit_tracker AS
 SELECT id.academic_year
       ,id.schoolid
       ,id.grade_level
-      ,id.cohort            
+      ,NULL AS cohort            
       ,id.test_round      
       ,id.test_date
       ,rs.testid
@@ -28,5 +28,5 @@ SELECT id.academic_year
       ,rs.is_prof
       ,rs.dna_reason      
 FROM LIT$readingscores_long rs WITH(NOLOCK)
-JOIN LIT$test_events#identifiers id WITH(NOLOCK)
+JOIN LIT$all_test_events#identifiers#static id WITH(NOLOCK)
   ON rs.unique_id = id.unique_id

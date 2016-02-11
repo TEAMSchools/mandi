@@ -97,7 +97,7 @@ WITH term_cur AS (
                   ,CONVERT(VARCHAR,genre) AS genre
                   ,CONVERT(VARCHAR,fp_keylever) AS keylever
                   ,CONVERT(VARCHAR,fp_wpmrate) AS wpmrate                  
-            FROM KIPP_NJ..LIT$test_events#identifiers WITH(NOLOCK)
+            FROM KIPP_NJ..LIT$all_test_events#identifiers#static WITH(NOLOCK)
             WHERE ((academic_year < 2015 AND status = 'Achieved') OR (academic_year >= 2015 AND status = 'Did Not Achieve'))
               AND curr_yr = 1
            ) sub
@@ -155,7 +155,7 @@ WITH term_cur AS (
                   ,rs.studentid
                   ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,dna.dna_reason) AS reason
-            FROM KIPP_NJ..LIT$test_events#identifiers rs WITH(NOLOCK)
+            FROM KIPP_NJ..LIT$all_test_events#identifiers#static rs WITH(NOLOCK)
             JOIN KIPP_NJ..LIT$dna_reasons#static dna WITH(NOLOCK)
               ON rs.unique_id = dna.unique_id
             WHERE rs.status = 'Did Not Achieve'
@@ -200,7 +200,7 @@ WITH term_cur AS (
                   ,rs.studentid
                   ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
                   ,CONVERT(VARCHAR,dna.dna_reason) AS reason
-            FROM KIPP_NJ..LIT$test_events#identifiers rs WITH(NOLOCK)
+            FROM KIPP_NJ..LIT$all_test_events#identifiers#static rs WITH(NOLOCK)
             JOIN KIPP_NJ..LIT$dna_reasons#static dna WITH(NOLOCK)
               ON rs.unique_id = dna.unique_id
             WHERE rs.status = 'Did Not Achieve'

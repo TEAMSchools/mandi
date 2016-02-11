@@ -110,7 +110,7 @@ FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..LIT$achieved_by_round#static achv WITH(NOLOCK)
   ON co.studentid = achv.STUDENTID
  AND co.year = achv.academic_year
-LEFT OUTER JOIN KIPP_NJ..LIT$test_events#identifiers testid WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static testid WITH(NOLOCK)
   ON co.studentid = testid.studentid
  AND achv.unique_id = testid.unique_id 
 LEFT OUTER JOIN KIPP_NJ..LIT$growth_measures_wide#static growth WITH(NOLOCK)
