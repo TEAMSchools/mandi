@@ -116,7 +116,7 @@ LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static testid WITH(NOLO
 LEFT OUTER JOIN KIPP_NJ..LIT$growth_measures_wide#static growth WITH(NOLOCK)
   ON co.studentid = growth.STUDENTID
  AND co.year = growth.YEAR
-LEFT OUTER JOIN KIPP_NJ..LIT$readingscores_long long WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..LIT$readingscores_long#static long WITH(NOLOCK)
   ON co.studentid = long.studentid
  AND achv.unique_id = long.unique_id
 LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)

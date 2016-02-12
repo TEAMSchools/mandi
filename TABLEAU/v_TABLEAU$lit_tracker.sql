@@ -27,6 +27,6 @@ SELECT id.academic_year
       ,rs.benchmark
       ,rs.is_prof
       ,rs.dna_reason      
-FROM LIT$readingscores_long rs WITH(NOLOCK)
+FROM LIT$readingscores_long#static rs WITH(NOLOCK)
 JOIN LIT$all_test_events#identifiers#static id WITH(NOLOCK)
   ON rs.unique_id = id.unique_id

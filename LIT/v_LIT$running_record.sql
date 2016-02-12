@@ -56,7 +56,7 @@ WITH running_record AS (
        SELECT lvl_num
              ,field_name
              ,score
-       FROM KIPP_NJ..LIT$prof_long WITH(NOLOCK)
+       FROM KIPP_NJ..AUTOLOAD$GDOCS_LIT_proficiency_long WITH(NOLOCK)
        WHERE testid = 3273
          AND field_name IN ('fp_accuracy','fp_comp_prof')
       ) sub

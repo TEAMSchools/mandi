@@ -8,7 +8,7 @@ SELECT unique_id
       ,studentid      
       ,status
       ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT dna_reason, ' | ') AS dna_reason
-FROM KIPP_NJ..LIT$readingscores_long WITH(NOLOCK)
+FROM KIPP_NJ..LIT$readingscores_long#static WITH(NOLOCK)
 GROUP BY unique_id
         ,testid
         ,studentid
