@@ -20,7 +20,7 @@ WITH roster AS (
   WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND co.schoolid = 133570965 
     AND co.date <= CONVERT(DATE,GETDATE())
-    AND DATEPART(DW,co.date) = 1
+    AND DATEPART(DW,co.date) = 6
 )
 
 ,kb_weekly AS (
@@ -30,8 +30,8 @@ WITH roster AS (
         --,SUM(points_denom) AS points_denom
         ,ISNULL(
             CASE 
-              WHEN ROUND(((SUM(points_denom) + SUM(points_num)) / SUM(points_denom)) * 100,0) < 0 THEN 0
-              ELSE ROUND(((SUM(points_denom) + SUM(points_num)) / SUM(points_denom)) * 100,0)
+              WHEN ROUND(((SUM(points_denom) + SUM(points_num)) / SUM(points_denom)) * 100,2) < 0 THEN 0
+              ELSE ROUND(((SUM(points_denom) + SUM(points_num)) / SUM(points_denom)) * 100,2)
              END
            ,SUM(points_denom)
           ) AS points_pct
