@@ -34,6 +34,7 @@ SELECT co.schoolid
 
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS std_percent_correct
       ,CONVERT(FLOAT,res.mastered) AS std_is_mastered
+      ,res.performance_band_level AS proficiency_band
             
       ,enr.teacher_name      
       ,enr.period
@@ -61,7 +62,9 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
  AND co.year = enr.academic_year
- AND enr.COURSE_NUMBER = 'HR'
+ /* ES and BOLD, JOIN to HR, otherwise JOIN to course */
+ AND (((co.grade_level <= 4 OR co.schoolid = 73258) AND enr.COURSE_NUMBER = 'HR') 
+          OR (co.schoolid != 73258 AND co.grade_level >= 5 AND a.subject_area = enr.illuminate_subject))
  AND enr.drop_flags = 0
 WHERE a.academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year()    
   AND a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')
