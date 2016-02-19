@@ -43,6 +43,9 @@ SELECT co.schoolid
       ,ROW_NUMBER() OVER(
          PARTITION BY co.student_number, a.assessment_id
            ORDER BY co.student_number) AS overall_rn      
+      ,ROW_NUMBER() OVER(
+         PARTITION BY co.student_number, astd.standard_id
+           ORDER BY ovr.date_taken ASC) AS std_assessment_order
 FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH (NOLOCK)
 JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
   ON a.assessment_id = ovr.assessment_id  
