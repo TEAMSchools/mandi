@@ -72,6 +72,7 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
  AND dt.identifier = 'RT'
 LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH(NOLOCK)
   ON s.studentid = promo.studentid
+ AND dt.alt_name = promo.term
 LEFT OUTER JOIN KIPP_NJ..GPA$detail#MS rise_gpa WITH(NOLOCK)
   ON s.studentid = rise_gpa.studentid
 LEFT OUTER JOIN KIPP_NJ..GRADES$time_series_wide ts WITH(NOLOCK)

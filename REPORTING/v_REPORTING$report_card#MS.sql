@@ -9,11 +9,12 @@ WITH curterm AS (
         ,time_per_name
         ,ROW_NUMBER() OVER(
            PARTITION BY schoolid
-             ORDER BY end_date DESC) AS rn
+             ORDER BY end_date DESC) AS term_rn
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'   
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND CONVERT(DATE,GETDATE()) >= end_date   
+    AND alt_name != 'Summer School'
  )     
 
 ,lexile_curr AS (
@@ -61,86 +62,104 @@ SELECT co.student_number
       ,co.FATHER AS parent_2_name
       ,CONCAT(co.FATHER_CELL + ' / ' , co.FATHER_DAY) AS parent_2_phone
       ,REPLACE(CONVERT(NVARCHAR(MAX),co.GUARDIANEMAIL),',','; ') AS guardianemail
+      
       ,curterm.alt_name AS curterm        
+      ,curterm.term_rn
+
       ,FORMAT(GETDATE(),'MMMM dd, yyy') AS today_text 
       
-      /*Course Grades - GRADES$wide_all*/
+      /* Course Grades */
       /*--RC1--*/
-      ,gr_wide.rc1_course_name
-      ,gr_wide.rc1_teacher_last
-      ,CONCAT(ROUND(gr_wide.RC1_y1,0), '    ', gr_wide.RC1_y1_ltr)  AS RC1_y1_pct    
-      ,ROUND(gr_wide.rc1_t1,0) AS rc1_t1_term_pct
-      ,ROUND(gr_wide.rc1_t2,0) AS rc1_t2_term_pct
-      ,ROUND(gr_wide.rc1_t3,0) AS rc1_t3_term_pct            
+      ,gr_wide.rc01_course_name AS rc1_course_name
+      ,gr_wide.rc01_teacher_name AS rc1_teacher_last
+      ,CONCAT(ROUND(gr_wide.RC01_y1_grade_percent,0), '    ', gr_wide.RC01_y1_grade_letter)  AS RC1_y1_pct    
+      ,ROUND(gr_wide.rc01_rt1_term_grade_percent,0) AS rc1_t1_term_pct
+      ,ROUND(gr_wide.rc01_rt2_term_grade_percent,0) AS rc1_t2_term_pct
+      ,ROUND(gr_wide.rc01_rt3_term_grade_percent,0) AS rc1_t3_term_pct      
+      ,ROUND(gr_wide.rc01_rt4_term_grade_percent,0) AS rc1_q4_term_pct      
+      
       /*--RC2--*/
-      ,gr_wide.RC2_course_name
-      ,gr_wide.RC2_teacher_last
-      ,CONCAT(ROUND(gr_wide.RC2_y1,0), '    ', gr_wide.RC2_y1_ltr)  AS RC2_y1_pct    
-      ,ROUND(gr_wide.RC2_t1,0) AS RC2_t1_term_pct
-      ,ROUND(gr_wide.RC2_t2,0) AS RC2_t2_term_pct
-      ,ROUND(gr_wide.RC2_t3,0) AS RC2_t3_term_pct      
+      ,gr_wide.rc02_course_name AS rc2_course_name
+      ,gr_wide.rc02_teacher_name AS rc2_teacher_last
+      ,CONCAT(ROUND(gr_wide.rc02_y1_grade_percent,0), '    ', gr_wide.rc02_y1_grade_letter)  AS RC2_y1_pct    
+      ,ROUND(gr_wide.rc02_rt1_term_grade_percent,0) AS rc2_t1_term_pct
+      ,ROUND(gr_wide.rc02_rt2_term_grade_percent,0) AS rc2_t2_term_pct
+      ,ROUND(gr_wide.rc02_rt3_term_grade_percent,0) AS rc2_t3_term_pct      
+      ,ROUND(gr_wide.rc02_rt4_term_grade_percent,0) AS rc02_q4_term_pct      
+      
       /*--RC3--*/
-      ,gr_wide.RC3_course_name
-      ,gr_wide.RC3_teacher_last
-      ,CONCAT(ROUND(gr_wide.RC3_y1,0), '    ', gr_wide.RC3_y1_ltr)  AS RC3_y1_pct    
-      ,ROUND(gr_wide.RC3_t1,0) AS RC3_t1_term_pct
-      ,ROUND(gr_wide.RC3_t2,0) AS RC3_t2_term_pct
-      ,ROUND(gr_wide.RC3_t3,0) AS RC3_t3_term_pct      
+      ,gr_wide.rc03_course_name AS rc3_course_name
+      ,gr_wide.rc03_teacher_name AS rc3_teacher_last
+      ,CONCAT(ROUND(gr_wide.rc03_y1_grade_percent,0), '    ', gr_wide.rc03_y1_grade_letter)  AS RC3_y1_pct    
+      ,ROUND(gr_wide.rc03_rt1_term_grade_percent,0) AS rc3_t1_term_pct
+      ,ROUND(gr_wide.rc03_rt2_term_grade_percent,0) AS rc3_t2_term_pct
+      ,ROUND(gr_wide.rc03_rt3_term_grade_percent,0) AS rc3_t3_term_pct      
+      ,ROUND(gr_wide.rc03_rt4_term_grade_percent,0) AS rc03_q4_term_pct      
+
       /*--RC4--*/
-      ,gr_wide.RC4_course_name
-      ,gr_wide.RC4_teacher_last
-      ,CONCAT(ROUND(gr_wide.RC4_y1,0), '    ', gr_wide.RC4_y1_ltr)  AS RC4_y1_pct    
-      ,ROUND(gr_wide.RC4_t1,0) AS RC4_t1_term_pct
-      ,ROUND(gr_wide.RC4_t2,0) AS RC4_t2_term_pct
-      ,ROUND(gr_wide.RC4_t3,0) AS RC4_t3_term_pct      
+      ,gr_wide.rc04_course_name AS rc4_course_name
+      ,gr_wide.rc04_teacher_name AS rc4_teacher_last
+      ,CONCAT(ROUND(gr_wide.rc04_y1_grade_percent,0), '    ', gr_wide.rc04_y1_grade_letter)  AS RC4_y1_pct    
+      ,ROUND(gr_wide.rc04_rt1_term_grade_percent,0) AS rc4_t1_term_pct
+      ,ROUND(gr_wide.rc04_rt2_term_grade_percent,0) AS rc4_t2_term_pct
+      ,ROUND(gr_wide.rc04_rt3_term_grade_percent,0) AS rc4_t3_term_pct      
+      ,ROUND(gr_wide.rc04_rt4_term_grade_percent,0) AS rc04_q4_term_pct      
+
       /*--RC5--*/
-      ,gr_wide.RC5_course_name
-      ,gr_wide.RC5_teacher_last
-      ,CONCAT(ROUND(gr_wide.RC5_y1,0), '    ', gr_wide.RC5_y1_ltr)  AS RC5_y1_pct    
-      ,ROUND(gr_wide.RC5_t1,0) AS RC5_t1_term_pct
-      ,ROUND(gr_wide.RC5_t2,0) AS RC5_t2_term_pct
-      ,ROUND(gr_wide.RC5_t3,0) AS RC5_t3_term_pct            
+      ,gr_wide.rc05_course_name AS rc5_course_name
+      ,gr_wide.rc05_teacher_name AS rc5_teacher_last
+      ,CONCAT(ROUND(gr_wide.rc05_y1_grade_percent,0), '    ', gr_wide.rc05_y1_grade_letter)  AS RC5_y1_pct    
+      ,ROUND(gr_wide.rc05_rt1_term_grade_percent,0) AS rc5_t1_term_pct
+      ,ROUND(gr_wide.rc05_rt2_term_grade_percent,0) AS rc5_t2_term_pct
+      ,ROUND(gr_wide.rc05_rt3_term_grade_percent,0) AS rc5_t3_term_pct      
+      ,ROUND(gr_wide.rc05_rt4_term_grade_percent,0) AS rc05_q4_term_pct      
+      
       /*--RC6--*/
-      ,gr_wide.RC6_course_name
-      ,gr_wide.RC6_teacher_last
-      ,CONCAT(ROUND(gr_wide.RC6_y1,0), '    ', gr_wide.RC6_y1_ltr)  AS RC6_y1_pct      
-      ,ROUND(gr_wide.RC6_t1,0) AS RC6_t1_term_pct
-      ,ROUND(gr_wide.RC6_t2,0) AS RC6_t2_term_pct
-      ,ROUND(gr_wide.RC6_t3,0) AS RC6_t3_term_pct      
+      ,gr_wide.rc06_course_name AS rc6_course_name
+      ,gr_wide.rc06_teacher_name AS rc6_teacher_last
+      ,CONCAT(ROUND(gr_wide.rc06_y1_grade_percent,0), '    ', gr_wide.rc06_y1_grade_letter)  AS RC6_y1_pct    
+      ,ROUND(gr_wide.rc06_rt1_term_grade_percent,0) AS rc6_t1_term_pct
+      ,ROUND(gr_wide.rc06_rt2_term_grade_percent,0) AS rc6_t2_term_pct
+      ,ROUND(gr_wide.rc06_rt3_term_grade_percent,0) AS rc6_t3_term_pct      
+      ,ROUND(gr_wide.rc06_rt4_term_grade_percent,0) AS rc06_q4_term_pct      
+      
       /*--RC7--*/
-      ,gr_wide.RC7_course_name
-      ,gr_wide.RC7_teacher_last
-      ,CONCAT(ROUND(gr_wide.RC7_y1,0), '    ', gr_wide.RC7_y1_ltr)  AS RC7_y1_pct    
-      ,ROUND(gr_wide.RC7_t1,0) AS RC7_t1_term_pct
-      ,ROUND(gr_wide.RC7_t2,0) AS RC7_t2_term_pct
-      ,ROUND(gr_wide.RC7_t3,0) AS RC7_t3_term_pct      
+      ,gr_wide.rc07_course_name AS rc7_course_name
+      ,gr_wide.rc07_teacher_name AS rc7_teacher_last
+      ,CONCAT(ROUND(gr_wide.rc07_y1_grade_percent,0), '    ', gr_wide.rc07_y1_grade_letter)  AS RC7_y1_pct    
+      ,ROUND(gr_wide.rc07_rt1_term_grade_percent,0) AS rc7_t1_term_pct
+      ,ROUND(gr_wide.rc07_rt2_term_grade_percent,0) AS rc7_t2_term_pct
+      ,ROUND(gr_wide.rc07_rt3_term_grade_percent,0) AS rc7_t3_term_pct      
+      ,ROUND(gr_wide.rc07_rt4_term_grade_percent,0) AS rc07_q4_term_pct      
+      
       /*--RC8--*/
-      ,gr_wide.RC8_course_name
-      ,gr_wide.RC8_teacher_last
-      ,CONCAT(ROUND(gr_wide.RC8_y1,0), '    ', gr_wide.RC8_y1_ltr)  AS RC8_y1_pct            
-      ,ROUND(gr_wide.RC8_t1,0) AS RC8_t1_term_pct
-      ,ROUND(gr_wide.RC8_t2,0) AS RC8_t2_term_pct
-      ,ROUND(gr_wide.RC8_t3,0) AS RC8_t3_term_pct    
+      ,gr_wide.rc08_course_name AS rc8_course_name
+      ,gr_wide.rc08_teacher_name AS rc8_teacher_last
+      ,CONCAT(ROUND(gr_wide.rc08_y1_grade_percent,0), '    ', gr_wide.rc08_y1_grade_letter)  AS RC8_y1_pct    
+      ,ROUND(gr_wide.rc08_rt1_term_grade_percent,0) AS rc8_t1_term_pct
+      ,ROUND(gr_wide.rc08_rt2_term_grade_percent,0) AS rc8_t2_term_pct
+      ,ROUND(gr_wide.rc08_rt3_term_grade_percent,0) AS rc8_t3_term_pct      
+      ,ROUND(gr_wide.rc08_rt4_term_grade_percent,0) AS rc08_q4_term_pct       
 
       /*-- Current term RC grades --*/
       ,CONCAT(
-         gr_wide.RC1_course_name + ': ' + CONVERT(VARCHAR,ROUND(rc.rc1,0)) + '%' + CHAR(10)
-        ,gr_wide.RC2_course_name + ': ' + CONVERT(VARCHAR,ROUND(rc.rc2,0)) + '%' + CHAR(10)
-        ,gr_wide.RC3_course_name + ': ' + CONVERT(VARCHAR,ROUND(rc.rc3,0)) + '%' + CHAR(10)
-        ,gr_wide.RC4_course_name + ': ' + CONVERT(VARCHAR,ROUND(rc.rc4,0)) + '%' + CHAR(10)
-        ,gr_wide.RC5_course_name + ': ' + CONVERT(VARCHAR,ROUND(rc.rc5,0)) + '%' + CHAR(10)
-        ,gr_wide.RC6_course_name + ': ' + CONVERT(VARCHAR,ROUND(rc.rc6,0)) + '%' + CHAR(10)
-        ,gr_wide.RC7_course_name + ': ' + CONVERT(VARCHAR,ROUND(rc.rc7,0)) + '%' + CHAR(10)
-        ,gr_wide.RC8_course_name + ': ' + CONVERT(VARCHAR,ROUND(rc.rc8,0)) + '%' + CHAR(10)
+         gr_wide.RC01_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc01_CUR_term_grade_percent,0)) + '%' + CHAR(10)
+        ,gr_wide.rc02_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc02_CUR_term_grade_percent,0)) + '%' + CHAR(10)
+        ,gr_wide.rc03_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc03_CUR_term_grade_percent,0)) + '%' + CHAR(10)
+        ,gr_wide.rc04_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc04_CUR_term_grade_percent,0)) + '%' + CHAR(10)
+        ,gr_wide.rc05_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc05_CUR_term_grade_percent,0)) + '%' + CHAR(10)
+        ,gr_wide.rc06_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc06_CUR_term_grade_percent,0)) + '%' + CHAR(10)
+        ,gr_wide.rc07_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc07_CUR_term_grade_percent,0)) + '%' + CHAR(10)
+        ,gr_wide.rc08_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc08_CUR_term_grade_percent,0)) + '%' + CHAR(10)
         ) AS gr_quick_view
 
       /*--current term component averages--*/       
       /*All classes element averages for the year*/
       ,CONCAT(
-         gr_wide.HY_all + '% Completion'
-        ,' / ' + gr_wide.QY_all + '% Quality'
-        ) AS homework_year_avg      
-      --,gr_wide.AY_all AS assess_year_avg       
+         CONVERT(VARCHAR,ele.H_Y1) + '% Completion'
+        ,' / ' + CONVERT(VARCHAR,ele.E_Y1) + '% Quality'
+        ) AS homework_year_avg            
+      ,ele.A_Y1 AS assess_year_avg
        
       --/*H*/
       --,ele.rc1_H AS rc1_cur_hw_pct
@@ -172,9 +191,9 @@ SELECT co.student_number
 
       /* GPA - GPA$detail#MS*/     
       --,CONVERT(VARCHAR,gpa.GPA_y1_all) + ' (' + CONVERT(VARCHAR,gpa.rank_gr_y1_all) + '/' + CONVERT(VARCHAR,gpa.n_gr) + ')' AS gpa_Y1     
-      ,STUFF(REPLACE(LEFT((CONVERT(VARCHAR,gpa.gpa_y1_all) + '00'),4),'.',''), 2, 0, '.') AS gpa_y1
-      ,STUFF(REPLACE(LEFT((CONVERT(VARCHAR,gpa_long.GPA_all) + '00'),4),'.',''), 2, 0, '.') AS gpa_curterm
-      ,ISNULL(STUFF(REPLACE(LEFT((CONVERT(VARCHAR,gpacum.cumulative_Y1_gpa) + '00'),4),'.',''), 2, 0, '.'), 'n/a') AS gpa_cumulative      
+      ,STUFF(REPLACE(LEFT((CONVERT(VARCHAR,gpa.GPA_Y1) + '00'),4),'.',''), 2, 0, '.') AS gpa_y1
+      ,STUFF(REPLACE(LEFT((CONVERT(VARCHAR,gpa.GPA_term) + '00'),4),'.',''), 2, 0, '.') AS gpa_curterm
+      ,ISNULL(STUFF(REPLACE(LEFT((CONVERT(VARCHAR,cumgpa.cumulative_Y1_gpa) + '00'),4),'.',''), 2, 0, '.'), 'n/a') AS gpa_cumulative      
 
       /* Attendance & Tardies - ATT_MEM$attendance_percentages, ATT_MEM$attendance_counts */    
       ,CONCAT(att_counts.abs_all_counts_yr, ' (', att_counts.ae_counts_yr, ') ', ' - ', ROUND(att_pct.abs_all_pct_yr,0), '%') AS Y1_absences_total
@@ -308,27 +327,31 @@ SELECT co.student_number
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK)    
 JOIN curterm WITH(NOLOCK)
   ON co.schoolid = curterm.schoolid
- AND curterm.rn = 1 
+ --AND curterm.rn = 1 
+
+/* CMAs */
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$CMA_scores_wide#static cma WITH(NOLOCK)
   ON co.student_number = cma.student_number
  AND co.year = cma.academic_year
+
 /*GRADES & GPA*/
-LEFT OUTER JOIN KIPP_NJ..GRADES$wide_all#MS#static gr_wide WITH(NOLOCK)
-  ON co.studentid = gr_wide.studentid
-LEFT OUTER JOIN KIPP_NJ..GRADES$rc_grades_by_term rc WITH(NOLOCK)
-  ON co.studentid = rc.studentid
- AND REPLACE(curterm.alt_name,'Q','T') = rc.term  /* this needs to be fixed once we update the grades refresh */
---LEFT OUTER JOIN GRADES$rc_elements_by_term ele WITH(NOLOCK)
---  ON co.studentid = ele.studentid
--- AND curterm.alt_name = ele.term
-LEFT OUTER JOIN KIPP_NJ..GPA$detail#MS gpa WITH(NOLOCK)
-  ON co.studentid = gpa.studentid
-LEFT OUTER JOIN KIPP_NJ..GPA$detail_long gpa_long WITH(NOLOCK)
-  ON co.studentid = gpa_long.studentid
- AND REPLACE(curterm.alt_name,'Q','T') = gpa_long.term /* this needs to be fixed once we update the grades refresh */
-LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_cumulative#static gpacum WITH(NOLOCK)
-  ON co.studentid = gpacum.studentid
- AND co.schoolid = gpacum.schoolid
+LEFT OUTER JOIN GRADES$final_grades_wide_course#static gr_wide WITH(NOLOCK)
+  ON co.student_number = gr_wide.student_number
+ AND co.year = gr_wide.academic_year
+ AND curterm.alt_name = gr_wide.term
+LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide#static ele WITH(NOLOCK)
+  ON co.student_number = ele.student_number
+ AND co.year = ele.academic_year
+ AND curterm.time_per_name = ele.reporting_term
+ AND ele.course_number = 'ALL'
+LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long gpa WITH (NOLOCK)
+  ON co.student_number = gpa.student_number
+ AND co.year = gpa.academic_year
+ AND curterm.alt_name = gpa.term
+LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_cumulative#static cumgpa WITH (NOLOCK)
+  ON co.studentid = cumgpa.studentid
+ AND co.schoolid = cumgpa.schoolid
+
 /*ATTENDANCE*/
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH(NOLOCK)
   ON co.studentid = att_counts.studentid
@@ -338,9 +361,12 @@ LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_percentages_long att_pct WITH(NOLOCK
   ON co.studentid = att_pct.studentid
  AND co.year = att_pct.academic_year
  AND curterm.alt_name = att_pct.term
+
 /*PROMO STATUS*/
 LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH(NOLOCK)
   ON co.studentid = promo.studentid
+ AND curterm.alt_name = promo.term
+
 /* ACCELERATED READER */
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
   ON co.student_number = ar.student_number
@@ -350,14 +376,17 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar2 WITH(NOLOCK)
   ON co.student_number = ar2.student_number
  AND co.year = ar2.academic_year
  AND REPLACE(curterm.alt_name, 'Q', 'RT') = ar2.time_period_name
+
 /* XC */
 LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON co.student_number = xc.student_number
  AND co.year = xc.academic_year
+
 /* GRADEBOOK COMMMENTS */
 LEFT OUTER JOIN KIPP_NJ..PS$comments_wide#static comm WITH(NOLOCK)
   ON co.studentid = comm.studentid
  AND curterm.alt_name = comm.term
+
 /* MAP */
 LEFT OUTER JOIN KIPP_NJ..MAP$wide_all#static map_all WITH(NOLOCK)
   ON co.studentid = map_all.studentid
@@ -367,11 +396,13 @@ LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static lexile_base
   ON co.studentid = lexile_base.studentid
  AND co.year = lexile_base.year
  AND lexile_base.measurementscale = 'Reading'
-/* lit */
+
+/* LIT */
 LEFT OUTER JOIN KIPP_NJ..LIT$achieved_wide lit WITH(NOLOCK)
   ON co.studentid = lit.studentid
 LEFT OUTER JOIN STMATH..summary_by_enrollment stm WITH(NOLOCK)
   ON co.student_number = stm.student_number
+
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1        
   AND co.schoolid IN (73252, 133570965, 179902)

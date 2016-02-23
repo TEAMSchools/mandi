@@ -3,135 +3,149 @@ GO
 
 ALTER VIEW REPORTING$promo_status#MS AS
 
+WITH final_grades AS (
+  SELECT *
+        ,CASE
+          WHEN N_below_65 > 0 THEN 'Off Track'
+          WHEN N_below_70 > 0 THEN 'Warning'
+          ELSE 'Satisfactory'
+         END AS promo_grades_rise
+        ,CASE WHEN N_below_65 > 0 THEN 'Promotion In Doubt' ELSE 'On Track' END AS promo_grades_team
+  FROM
+      (
+       SELECT gr.student_number
+             ,gr.term
+             ,SUM(CASE WHEN gr.y1_grade_percent_adjusted < 70 THEN 1 ELSE 0 END) AS N_below_70
+             ,SUM(CASE WHEN gr.y1_grade_percent_adjusted < 65 THEN 1 ELSE 0 END) AS N_below_65
+       FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
+       WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND gr.credittype != 'COCUR'  
+         AND gr.y1_grade_percent_adjusted IS NOT NULL
+       GROUP BY gr.student_number
+               ,gr.term
+      ) sub
+ )
+
+,attendance AS (
+  SELECT *
+        ,CASE WHEN sub.att_pts_pct <= 90 THEN 'Off Track' ELSE 'On Track' END AS promo_att_team
+        ,CASE 
+          WHEN sub.att_pts_pct >= 98 THEN 'Honors'
+          WHEN sub.att_pts_pct BETWEEN 89.5 AND 92 THEN 'Warning'
+          WHEN sub.att_pts_pct < 89.5 THEN 'Off Track'
+          ELSE 'Satisfactory' 
+         END AS promo_att_rise
+        ,ROUND((((sub.MEM_counts_yr * 0.105) - att_pts) / -0.105) + 0.5,0) AS days_to_90
+  FROM
+      (
+       SELECT att.studentid
+             ,att.term
+             ,att.MEM_counts_yr
+             ,att.ABS_all_counts_yr
+             ,att.TDY_all_counts_yr        
+             ,att.ABS_all_counts_yr + FLOOR(att.TDY_all_counts_yr / 3) AS att_pts
+             ,ROUND(((att.MEM_counts_yr - (att.ABS_all_counts_yr + FLOOR(att.TDY_all_counts_yr / 3))) / att.MEM_counts_yr) * 100, 1) AS att_pts_pct
+       FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
+       WHERE att.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND att.MEM_counts_yr > 0
+      ) sub
+ )
+
 SELECT studentid
       ,student_number      
-      ,attendance_points
-      ,y1_att_pts_pct
-      ,att_pts_string
+      
+      ,term
+      ,is_curterm
+      
+      ,att_pts AS attendance_points
+      ,att_pts_pct AS y1_att_pts_pct      
       ,days_to_90      
-      ,days_to_90_string
+      ,promo_att_team            
+      ,promo_att_rise
+
       ,promo_grades_team      
-      ,promo_att_team      
-      ,promo_hw AS promo_hw_team
+      ,promo_grades_rise
+      ,promo_grades_gpa_rise      
+      
+      ,H_Y1 AS hw_avg
+      ,promo_hw_rise
+      ,promo_hw_rise AS promo_hw_team
+      
+      ,GPA_Y1 AS GPA_y1_all
+      
+      ,CASE 
+        WHEN promo_grades_gpa_rise + promo_att_rise + promo_hw_rise LIKE '%Off Track%' THEN 'Off Track'
+        WHEN promo_grades_gpa_rise + promo_att_rise + promo_hw_rise LIKE '%Warning%' THEN 'Warning'
+        WHEN promo_grades_gpa_rise + promo_att_rise + promo_hw_rise LIKE '%High Honors%' THEN 'High Honors'
+        WHEN promo_grades_gpa_rise + promo_att_rise + promo_hw_rise LIKE '%Honors%' THEN 'Honors'        
+        ELSE 'Satisfactory' 
+       END AS promo_overall_rise
       ,CASE 
         WHEN (promo_grades_team + promo_att_team LIKE '%Off Track%' OR
               promo_grades_team + promo_att_team LIKE '%Warning%' OR
               promo_grades_team + promo_att_team LIKE '%Promotion In Doubt%') THEN 'Promotion In Doubt'
         ELSE 'On Track'
        END AS promo_overall_team
-      ,promo_grades_rise
-      ,promo_grades_gpa_rise
-      ,promo_att_rise
-      ,hw_avg
-      ,promo_hw AS promo_hw_rise
-      ,GPA_y1_all
-      ,CASE 
-        WHEN promo_grades_gpa_rise + promo_att_rise + promo_hw LIKE '%Off Track%' THEN 'Off Track'
-        WHEN promo_grades_gpa_rise + promo_att_rise + promo_hw LIKE '%Warning%' THEN 'Warning'
-        WHEN promo_grades_gpa_rise + promo_att_rise + promo_hw LIKE '%High Honors%' THEN 'High Honors'
-        WHEN promo_grades_gpa_rise + promo_att_rise + promo_hw LIKE '%Honors%' THEN 'Honors'        
-        ELSE 'Satisfactory' 
-       END AS promo_overall_rise
 FROM
     (
-     SELECT studentid
-           ,student_number
-           ,attendance_points
-           ,y1_att_pts_pct
-           ,CASE
-             WHEN ROUND((((Y1_MEM * .105) - attendance_points) / -.105) + 0.5, 0) <= 0 THEN NULL
-             ELSE ROUND((((Y1_MEM * .105) - attendance_points) / -.105) + 0.5, 0)
-            END AS days_to_90
-           ,'(' + CONVERT(VARCHAR,Y1_MEM) + ' * .105) - ' + CONVERT(VARCHAR,attendance_points) + ') / -.105 + 0.5' AS days_to_90_string
-           ,att_pts_string
-           ,promo_grades_team
-           ,promo_grades_rise
+     SELECT co.studentid
+           ,co.student_number
+           ,co.schoolid
+      
+           ,dt.alt_name AS term
+           ,dt.time_per_name AS reporting_term
+           ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date THEN 1 ELSE 0 END AS is_curterm
+      
+           ,fg.N_below_70
+           ,fg.N_below_65
+           ,fg.promo_grades_rise
+           ,fg.promo_grades_team
+
+           ,gpa.GPA_Y1
            ,CASE 
-             WHEN y1_att_pts_pct <= 90 THEN 'Off Track'           
-             ELSE 'On Track' 
-            END AS promo_att_team
-           ,CASE 
-             WHEN y1_att_pts_pct < 89.5 THEN 'Off Track'
-             WHEN y1_att_pts_pct < 92 AND y1_att_pts_pct >= 89.5 THEN 'Warning'
-             WHEN y1_att_pts_pct >= 98 THEN 'Honors'
-             ELSE 'Satisfactory' 
-            END AS promo_att_rise
-           ,simple_avg AS hw_avg
-           ,CASE 
-             WHEN simple_avg < 65 THEN 'Off Track'
-             WHEN simple_avg < 70 THEN 'Warning'
-             WHEN simple_avg >= 90 THEN 'Honors'
-             ELSE 'Satisfactory' 
-            END AS promo_hw
-           ,GPA_y1_all
-           ,CASE 
-             WHEN gpa_y1_all >= 3.5 AND promo_grades_rise NOT LIKE '%Warning%' THEN 'High Honors'
-             WHEN gpa_y1_all >= 3.0 AND promo_grades_rise NOT LIKE '%Warning%' THEN 'Honors'        
+             WHEN gpa.GPA_Y1 >= 3.5 AND promo_grades_rise NOT LIKE '%Warning%' THEN 'High Honors'
+             WHEN gpa.GPA_Y1 >= 3.0 AND promo_grades_rise NOT LIKE '%Warning%' THEN 'Honors'        
              ELSE promo_grades_rise
             END AS promo_grades_gpa_rise
-     FROM
-         (
-          SELECT co.studentid AS studentid
-                ,co.student_number
-                ,CASE 
-                  WHEN (CONVERT(FLOAT,gr_wide.rc1_y1) < 65.0 OR
-                        CONVERT(FLOAT,gr_wide.rc2_y1) < 65.0 OR
-                        CONVERT(FLOAT,gr_wide.rc3_y1) < 65.0 OR
-                        CONVERT(FLOAT,gr_wide.rc4_y1) < 65.0 OR
-                        CONVERT(FLOAT,gr_wide.rc5_y1) < 65.0 OR
-                        CONVERT(FLOAT,gr_wide.rc6_y1) < 65.0 OR
-                        CONVERT(FLOAT,gr_wide.rc7_y1) < 65.0 OR
-                        CONVERT(FLOAT,gr_wide.rc8_y1) < 65.0) 
-                    THEN 'Off Track'
-                  WHEN (CONVERT(FLOAT,gr_wide.rc1_y1) < 70.0 OR
-                        CONVERT(FLOAT,gr_wide.rc2_y1) < 70.0 OR
-                        CONVERT(FLOAT,gr_wide.rc3_y1) < 70.0 OR
-                        CONVERT(FLOAT,gr_wide.rc4_y1) < 70.0 OR
-                        CONVERT(FLOAT,gr_wide.rc5_y1) < 70.0 OR
-                        CONVERT(FLOAT,gr_wide.rc6_y1) < 70.0 OR
-                        CONVERT(FLOAT,gr_wide.rc7_y1) < 70.0 OR
-                        CONVERT(FLOAT,gr_wide.rc8_y1) < 70.0) 
-                    THEN 'Warning'                  
-                  ELSE 'Satisfactory' 
-                 END AS promo_grades_rise
-                ,CASE
-                  WHEN ((gr_wide.rc1_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc1_y1) < 65 AND gr_wide.rc1_credittype != 'COCUR') OR
-                        (gr_wide.rc2_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc2_y1) < 65 AND gr_wide.rc2_credittype != 'COCUR') OR 
-                        (gr_wide.rc3_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc3_y1) < 65 AND gr_wide.rc3_credittype != 'COCUR') OR
-                        (gr_wide.rc4_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc4_y1) < 65 AND gr_wide.rc4_credittype != 'COCUR') OR
-                        (gr_wide.rc5_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc5_y1) < 65 AND gr_wide.rc5_credittype != 'COCUR') OR
-                        (gr_wide.rc6_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc6_y1) < 65 AND gr_wide.rc6_credittype != 'COCUR') OR
-                        (gr_wide.rc7_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc7_y1) < 65 AND gr_wide.rc7_credittype != 'COCUR') OR
-                        (gr_wide.rc8_y1 IS NOT NULL AND CONVERT(FLOAT,gr_wide.rc8_y1) < 65 AND gr_wide.rc8_credittype != 'COCUR'))
-                        THEN 'Promotion In Doubt'
-                  ELSE 'On Track'
-                 END AS promo_grades_team
-                ,gpa.GPA_y1_all
-                ,gpa.GPA_y1_core
-                ,CONCAT(mem.Y1_MEM, ' - ('
-                       ,ac.Y1_ABS_ALL, ' + ('
-                       ,ac.Y1_T_ALL, ' / 3)) / '
-                       ,mem.y1_mem) AS att_pts_string
-                ,ac.Y1_ABS_ALL + FLOOR(ac.Y1_T_ALL / 3) AS attendance_points
-                ,ROUND(((mem.Y1_MEM - (ac.Y1_ABS_ALL + FLOOR(ac.Y1_T_ALL / 3))) / mem.Y1_MEM) * 100, 2) AS y1_att_pts_pct
-                ,hw.simple_avg
-                ,mem.Y1_MEM
-          FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH (NOLOCK)
-          LEFT OUTER JOIN KIPP_NJ..GRADES$wide_all#MS#static gr_wide WITH (NOLOCK)
-            ON co.studentid = gr_wide.studentid
-          LEFT OUTER JOIN KIPP_NJ..GPA$detail#MS gpa WITH (NOLOCK)
-            ON co.studentid = gpa.studentid
-          LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts#static ac WITH (NOLOCK)
-            ON co.studentid = ac.studentid
-          LEFT OUTER JOIN KIPP_NJ..ATT_MEM$membership_counts#static mem WITH (NOLOCK)
-            ON co.studentid = mem.studentid
-          LEFT OUTER JOIN KIPP_NJ..GRADES$elements hw WITH (NOLOCK)
-            ON co.studentid = hw.studentid
-           AND hw.pgf_type = 'H'
-           AND hw.course_number = 'all_courses'
-           AND hw.yearid = LEFT(KIPP_NJ.dbo.fn_Global_Term_ID(), 2)
-          WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-            AND co.schoolid IN (73252, 133570965, 73258, 179902)
-            AND co.rn = 1
-         ) sub
-    ) sub2
+
+           ,cat.H_Y1
+           ,CASE 
+             WHEN cat.H_Y1 >= 90 THEN 'Honors'
+             WHEN cat.H_Y1 < 65 THEN 'Off Track'
+             WHEN cat.H_Y1 < 70 THEN 'Warning'        
+             ELSE 'Satisfactory'
+            END AS promo_hw_rise
+
+           ,att.MEM_counts_yr
+           ,att.ABS_all_counts_yr
+           ,att.TDY_all_counts_yr
+           ,att.att_pts
+           ,att.att_pts_pct
+           ,att.promo_att_rise
+           ,att.promo_att_team
+           ,att.days_to_90
+     FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+     JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+       ON co.schoolid = dt.schoolid
+      AND co.year = dt.academic_year
+      AND dt.identifier = 'RT'
+      AND dt.alt_name != 'Summer School'
+     LEFT OUTER JOIN final_grades fg
+       ON co.student_number = fg.student_number
+      AND dt.alt_name = fg.term
+     LEFT OUTER JOIN attendance att
+       ON co.studentid = att.studentid
+      AND dt.alt_name = att.term
+     LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long gpa WITH(NOLOCK)
+       ON co.student_number = gpa.student_number
+      AND co.year = gpa.academic_year
+      AND dt.alt_name = gpa.term
+     LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide#static cat WITH(NOLOCK)
+       ON co.student_number = cat.student_number
+      AND co.year = cat.academic_year 
+      AND dt.time_per_name = cat.reporting_term
+      AND cat.CREDITTYPE = 'ALL' 
+     WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       AND ((co.grade_level BETWEEN 5 AND 8) OR (co.grade_level = 4 AND co.schoolid = 73252))
+       AND co.rn = 1 
+    ) sub

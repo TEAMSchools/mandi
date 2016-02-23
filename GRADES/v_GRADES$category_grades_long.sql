@@ -25,7 +25,7 @@ FROM
            ,enr.teacher_name            
       
            ,LEFT(pgf.FINALGRADENAME,1) AS grade_category
-           ,CONCAT('RT', RIGHT(pgf.FINALGRADENAME,1) + 1) AS reporting_term            
+           ,CONCAT('RT', RIGHT(pgf.FINALGRADENAME,1)) AS reporting_term            
            ,ROUND(pgf.[PERCENT],0) AS grade_category_pct               
       
            ,ROW_NUMBER() OVER(

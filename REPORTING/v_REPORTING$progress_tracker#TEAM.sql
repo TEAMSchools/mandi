@@ -662,6 +662,7 @@ LEFT OUTER JOIN KIPP_NJ..GPA$detail#MS gpa WITH (NOLOCK)
   ON roster.id = gpa.studentid
 LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH (NOLOCK)
   ON roster.id = promo.studentid
+ AND promo.is_curterm = 1
   
 --LITERACY -- upadate parameters for current term
   --F&P

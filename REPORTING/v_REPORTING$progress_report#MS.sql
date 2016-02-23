@@ -253,6 +253,7 @@ LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_percentages_long att_pct WITH(NOLOCK
 /*PROMO STATUS*/
 LEFT OUTER JOIN REPORTING$promo_status#MS promo WITH(NOLOCK)
   ON co.studentid = promo.studentid
+ AND curterm.alt_name = promo.term
 
 /*ACCELERATED READER*/
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
