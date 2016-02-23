@@ -80,6 +80,27 @@ FROM
       AND cat.academic_year = o.academic_year
       AND cat.COURSE_NUMBER = o.course_number
      WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+
+     UNION ALL
+
+     SELECT cat.student_number
+           ,cat.SCHOOLID
+           ,cat.academic_year
+           ,'ALL' AS CREDITTYPE
+           ,'ALL' AS COURSE_NUMBER
+           ,NULL AS sectionid
+           ,NULL AS teacher_name
+           ,cat.reporting_term      
+           ,cat.grade_category
+           ,ROUND(AVG(cat.grade_category_pct),0)
+           ,NULL AS class_rn
+     FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)     
+     WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+     GROUP BY cat.student_number
+             ,cat.SCHOOLID
+             ,cat.academic_year
+             ,cat.reporting_term      
+             ,cat.grade_category
     ) sub
 PIVOT(
   MAX(grade_category_pct)

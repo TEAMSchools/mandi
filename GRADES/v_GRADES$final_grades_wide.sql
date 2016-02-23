@@ -91,6 +91,42 @@ WITH course_order AS (
        WHERE fg.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
          AND fg.credittype NOT IN ('LOG')
          AND fg.course_number NOT IN ('')         
+
+       UNION ALL
+
+       SELECT fg.student_number      
+             ,fg.academic_year      
+             ,fg.term       
+             ,fg.is_curterm
+      
+             ,fg.credittype
+             ,fg.sectionid
+             ,fg.course_number
+             ,fg.course_name
+             ,fg.teacher_name
+             ,fg.credit_hours
+             ,'CUR' AS rt
+             ,o.class_rn     
+
+             ,CONVERT(VARCHAR(64),fg.e1_adjusted) AS e1_grade_percent /* using only F* adjusted, when applicable */
+             ,CONVERT(VARCHAR(64),fg.e2_adjusted) AS e2_grade_percent /* using only F* adjusted, when applicable */
+             --,CONVERT(VARCHAR(64),fg.y1_grade_percent) AS y1_grade_percent
+             ,CONVERT(VARCHAR(64),fg.y1_grade_percent_adjusted) AS y1_grade_percent /* using only F* adjusted, when applicable */             
+             ,CONVERT(VARCHAR(64),fg.y1_grade_letter) AS y1_grade_letter
+
+             ,CONVERT(VARCHAR(64),fg.term_grade_letter) AS term_grade_letter
+             ,CONVERT(VARCHAR(64),fg.term_grade_percent) AS term_grade_percent
+             ,CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted) AS term_grade_letter_adjusted
+             ,CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted) AS term_grade_percent_adjusted                          
+       FROM KIPP_NJ..GRADES$final_grades_long#static fg WITH(NOLOCK)
+       JOIN course_order o
+         ON fg.student_number = o.student_number
+        AND fg.academic_year = o.academic_year
+        AND fg.course_number = o.course_number
+       WHERE fg.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND fg.credittype NOT IN ('LOG')
+         AND fg.course_number NOT IN ('')         
+         --AND fg.is_curterm = 1
       ) sub
   UNPIVOT(
     value
@@ -134,6 +170,11 @@ SELECT student_number
       ,MAX(RT4_term_grade_letter_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT4_term_grade_letter_adjusted
       ,MAX(RT4_term_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT4_term_grade_percent
       ,MAX(RT4_term_grade_percent_adjusted) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT4_term_grade_percent_adjusted
+
+      ,[CUR_term_grade_letter]
+      ,[CUR_term_grade_letter_adjusted]
+      ,[CUR_term_grade_percent]
+      ,[CUR_term_grade_percent_adjusted]
 FROM grades_unpivot
 PIVOT(
   MAX(value)
@@ -152,5 +193,9 @@ PIVOT(
                      ,[RT4_term_grade_letter]
                      ,[RT4_term_grade_letter_adjusted]
                      ,[RT4_term_grade_percent]
-                     ,[RT4_term_grade_percent_adjusted])
+                     ,[RT4_term_grade_percent_adjusted]
+                     ,[CUR_term_grade_letter]
+                     ,[CUR_term_grade_letter_adjusted]
+                     ,[CUR_term_grade_percent]
+                     ,[CUR_term_grade_percent_adjusted])
  ) p

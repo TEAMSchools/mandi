@@ -322,13 +322,13 @@ FROM KIPP_NJ..COHORT$identifiers_long#static roster WITH (NOLOCK)
 JOIN curterm WITH(NOLOCK)
   ON curterm.rn = 1
 
---ATTENDANCE
+/* ATTENDANCE */
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH (NOLOCK)
   ON roster.studentid = att_counts.studentid
  AND roster.year = att_counts.academic_year
  AND curterm.alt_name = att_counts.term
   
---GRADES & GPA
+/* GRADES & GPA */
 LEFT OUTER JOIN KIPP_NJ..GRADES$wide_all#NCA#static gr_wide WITH(NOLOCK)
   ON roster.studentid = gr_wide.studentid
 LEFT OUTER JOIN KIPP_NJ..GRADES$rc_elements_by_term ele WITH(NOLOCK)
@@ -343,7 +343,7 @@ LEFT OUTER JOIN KIPP_NJ..GPA$detail_long gpa_long WITH(NOLOCK)
   ON roster.studentid = gpa_long.studentid
  AND curterm.alt_name = gpa_long.term
 
---MERITS & DEMERITS
+/* MERITS & DEMERITS */
 LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long merits WITH(NOLOCK)
   ON roster.student_number = merits.student_number
  AND roster.year = merits.academic_year
@@ -359,8 +359,7 @@ LEFT OUTER JOIN DISC$perfect_weeks_long pw WITH(NOLOCK)
  AND roster.year = pw.academic_year
  AND curterm.time_per_name = pw.rt
 
---ED TECH
---ACCELERATED READER
+/* ACCELERATED READER */
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
   ON roster.studentid = ar_yr.studentid 
  AND roster.year = ar_yr.academic_year
@@ -370,7 +369,7 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
  AND roster.year = ar_curr.academic_year
  AND ar_curr.time_period_name = curterm.time_per_name 
 
---LEXILE
+/* LEXILE */
 LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_base WITH (NOLOCK)
   ON roster.studentid = map_base.studentid
  AND roster.year = map_base.year
@@ -386,7 +385,7 @@ LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_curr WITH (NOLOCK)
  AND lex_curr.MeasurementScale = 'Reading'
  AND lex_curr.rn_curr = 1
 
---GRADEBOOK COMMMENTS
+/* GRADEBOOK COMMMENTS */
 LEFT OUTER JOIN KIPP_NJ..PS$comments_wide#static comm WITH(NOLOCK)
   ON roster.studentid = comm.studentid
  AND curterm.alt_name = comm.term

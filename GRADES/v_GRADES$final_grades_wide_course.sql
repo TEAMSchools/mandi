@@ -9,7 +9,7 @@ WITH course_unpivot AS (
         ,term      
         ,CONCAT('rc', RIGHT(CONCAT('0',class_rn),2), '_', field) AS pivot_field
         ,CONVERT(VARCHAR(64),value) AS value
-  FROM KIPP_NJ..GRADES$final_grades_wide#static
+  FROM KIPP_NJ..GRADES$final_grades_wide#static WITH(NOLOCK)
   UNPIVOT(
     value
     FOR field IN (course_name
@@ -31,6 +31,10 @@ WITH course_unpivot AS (
                  ,RT4_term_grade_letter_adjusted
                  ,RT4_term_grade_percent
                  ,RT4_term_grade_percent_adjusted                 
+                 ,CUR_term_grade_letter
+                 ,CUR_term_grade_letter_adjusted
+                 ,CUR_term_grade_percent
+                 ,CUR_term_grade_percent_adjusted                 
                  ,e1_grade_percent
                  ,e2_grade_percent
                  ,y1_grade_letter
@@ -62,6 +66,9 @@ PIVOT(
                      ,[rc01_RT4_term_grade_letter_adjusted]
                      ,[rc01_RT4_term_grade_percent]
                      ,[rc01_RT4_term_grade_percent_adjusted]                     
+                     ,[rc01_CUR_term_grade_letter_adjusted]
+                     ,[rc01_CUR_term_grade_percent]
+                     ,[rc01_CUR_term_grade_percent_adjusted]                     
                      ,[rc01_teacher_name]
                      ,[rc01_y1_grade_letter]
                      ,[rc01_y1_grade_percent]
@@ -85,6 +92,9 @@ PIVOT(
                      ,[rc02_RT4_term_grade_letter_adjusted]
                      ,[rc02_RT4_term_grade_percent]
                      ,[rc02_RT4_term_grade_percent_adjusted]
+                     ,[rc02_CUR_term_grade_letter_adjusted]
+                     ,[rc02_CUR_term_grade_percent]
+                     ,[rc02_CUR_term_grade_percent_adjusted]                     
                      ,[rc02_teacher_name]
                      ,[rc02_y1_grade_letter]
                      ,[rc02_y1_grade_percent]
@@ -108,6 +118,9 @@ PIVOT(
                      ,[rc03_RT4_term_grade_letter_adjusted]
                      ,[rc03_RT4_term_grade_percent]
                      ,[rc03_RT4_term_grade_percent_adjusted]
+                     ,[rc03_CUR_term_grade_letter_adjusted]
+                     ,[rc03_CUR_term_grade_percent]
+                     ,[rc03_CUR_term_grade_percent_adjusted]                     
                      ,[rc03_teacher_name]
                      ,[rc03_y1_grade_letter]
                      ,[rc03_y1_grade_percent]
@@ -131,6 +144,9 @@ PIVOT(
                      ,[rc04_RT4_term_grade_letter_adjusted]
                      ,[rc04_RT4_term_grade_percent]
                      ,[rc04_RT4_term_grade_percent_adjusted]
+                     ,[rc04_CUR_term_grade_letter_adjusted]
+                     ,[rc04_CUR_term_grade_percent]
+                     ,[rc04_CUR_term_grade_percent_adjusted]                     
                      ,[rc04_teacher_name]
                      ,[rc04_y1_grade_letter]
                      ,[rc04_y1_grade_percent]
@@ -154,6 +170,9 @@ PIVOT(
                      ,[rc05_RT4_term_grade_letter_adjusted]
                      ,[rc05_RT4_term_grade_percent]
                      ,[rc05_RT4_term_grade_percent_adjusted]
+                     ,[rc05_CUR_term_grade_letter_adjusted]
+                     ,[rc05_CUR_term_grade_percent]
+                     ,[rc05_CUR_term_grade_percent_adjusted]                     
                      ,[rc05_teacher_name]
                      ,[rc05_y1_grade_letter]
                      ,[rc05_y1_grade_percent]
@@ -177,6 +196,9 @@ PIVOT(
                      ,[rc06_RT4_term_grade_letter_adjusted]
                      ,[rc06_RT4_term_grade_percent]
                      ,[rc06_RT4_term_grade_percent_adjusted]
+                     ,[rc06_CUR_term_grade_letter_adjusted]
+                     ,[rc06_CUR_term_grade_percent]
+                     ,[rc06_CUR_term_grade_percent_adjusted]                     
                      ,[rc06_teacher_name]
                      ,[rc06_y1_grade_letter]
                      ,[rc06_y1_grade_percent]
@@ -200,6 +222,9 @@ PIVOT(
                      ,[rc07_RT4_term_grade_letter_adjusted]
                      ,[rc07_RT4_term_grade_percent]
                      ,[rc07_RT4_term_grade_percent_adjusted]
+                     ,[rc07_CUR_term_grade_letter_adjusted]
+                     ,[rc07_CUR_term_grade_percent]
+                     ,[rc07_CUR_term_grade_percent_adjusted]                     
                      ,[rc07_teacher_name]
                      ,[rc07_y1_grade_letter]
                      ,[rc07_y1_grade_percent]
@@ -223,6 +248,9 @@ PIVOT(
                      ,[rc08_RT4_term_grade_letter_adjusted]
                      ,[rc08_RT4_term_grade_percent]
                      ,[rc08_RT4_term_grade_percent_adjusted]
+                     ,[rc08_CUR_term_grade_letter_adjusted]
+                     ,[rc08_CUR_term_grade_percent]
+                     ,[rc08_CUR_term_grade_percent_adjusted]                     
                      ,[rc08_teacher_name]
                      ,[rc08_y1_grade_letter]
                      ,[rc08_y1_grade_percent]
@@ -246,6 +274,9 @@ PIVOT(
                      ,[rc09_RT4_term_grade_letter_adjusted]
                      ,[rc09_RT4_term_grade_percent]
                      ,[rc09_RT4_term_grade_percent_adjusted]
+                     ,[rc09_CUR_term_grade_letter_adjusted]
+                     ,[rc09_CUR_term_grade_percent]
+                     ,[rc09_CUR_term_grade_percent_adjusted]                     
                      ,[rc09_teacher_name]
                      ,[rc09_y1_grade_letter]
                      ,[rc09_y1_grade_percent]
@@ -269,6 +300,9 @@ PIVOT(
                      ,[rc10_RT4_term_grade_letter_adjusted]
                      ,[rc10_RT4_term_grade_percent]
                      ,[rc10_RT4_term_grade_percent_adjusted]
+                     ,[rc10_CUR_term_grade_letter_adjusted]
+                     ,[rc10_CUR_term_grade_percent]
+                     ,[rc10_CUR_term_grade_percent_adjusted]                     
                      ,[rc10_teacher_name]
                      ,[rc10_y1_grade_letter]
                      ,[rc10_y1_grade_percent]
@@ -292,6 +326,9 @@ PIVOT(
                      ,[rc11_RT4_term_grade_letter_adjusted]
                      ,[rc11_RT4_term_grade_percent]
                      ,[rc11_RT4_term_grade_percent_adjusted]
+                     ,[rc11_CUR_term_grade_letter_adjusted]
+                     ,[rc11_CUR_term_grade_percent]
+                     ,[rc11_CUR_term_grade_percent_adjusted]                     
                      ,[rc11_teacher_name]
                      ,[rc11_y1_grade_letter]
                      ,[rc11_y1_grade_percent]
@@ -315,6 +352,9 @@ PIVOT(
                      ,[rc12_RT4_term_grade_letter_adjusted]
                      ,[rc12_RT4_term_grade_percent]
                      ,[rc12_RT4_term_grade_percent_adjusted]
+                     ,[rc12_CUR_term_grade_letter_adjusted]
+                     ,[rc12_CUR_term_grade_percent]
+                     ,[rc12_CUR_term_grade_percent_adjusted]                     
                      ,[rc12_teacher_name]
                      ,[rc12_y1_grade_letter]
                      ,[rc12_y1_grade_percent])

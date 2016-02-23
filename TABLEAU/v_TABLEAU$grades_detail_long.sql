@@ -44,16 +44,12 @@ JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
  AND co.year = dt.academic_year 
  AND dt.identifier = 'RT'
  AND dt.alt_name != 'Summer School'
+JOIN KIPP_NJ..GRADES$detail_long#static gr WITH(NOLOCK)
+  ON co.student_number = gr.student_number
+ AND dt.alt_name = gr.term 
 JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.student_number = enr.student_number
- AND co.year = enr.academic_year
- AND dt.end_date BETWEEN enr.dateenrolled AND enr.dateleft
- AND enr.drop_flags = 0
- AND enr.COURSE_NUMBER != 'HR'
-LEFT OUTER JOIN KIPP_NJ..GRADES$detail_long#static gr WITH(NOLOCK)
-  ON co.student_number = gr.student_number
- AND dt.alt_name = gr.term
- AND enr.COURSE_NUMBER = gr.course_number
+ AND gr.sectionid = enr.sectionid
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.grade_level != 99
   AND co.rn = 1
