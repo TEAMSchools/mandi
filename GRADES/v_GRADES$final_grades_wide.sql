@@ -7,7 +7,7 @@ WITH course_order AS (
   SELECT student_number
         ,academic_year
         ,course_number
-        ,credittype
+        ,credittype        
         ,ROW_NUMBER() OVER(
            PARTITION BY student_number, academic_year
              ORDER BY CASE
@@ -36,7 +36,7 @@ WITH course_order AS (
        WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
          AND credittype NOT IN ('LOG')
          AND course_number NOT IN ('')
-      ) sub
+      ) sub  
  )
 
 ,grades_unpivot AS (
@@ -142,6 +142,7 @@ SELECT student_number
       ,term
       ,is_curterm
       ,class_rn      
+      ,credittype
       ,course_number      
       ,sectionid
       ,CONVERT(VARCHAR(64),course_name) AS course_name
@@ -175,6 +176,10 @@ SELECT student_number
       ,[CUR_term_grade_letter_adjusted]
       ,[CUR_term_grade_percent]
       ,[CUR_term_grade_percent_adjusted]
+
+      ,ROW_NUMBER() OVER(
+         PARTITION BY student_number, academic_year, term, credittype
+           ORDER BY course_number ASC) AS rn_credittype
 FROM grades_unpivot
 PIVOT(
   MAX(value)

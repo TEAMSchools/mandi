@@ -10,8 +10,7 @@ WITH curterm AS (
   WHERE identifier = 'RT'
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 133570965
-    AND start_date <= CONVERT(DATE,GETDATE())
-    AND end_date >= CONVERT(DATE,GETDATE())
+    AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
  )
 
 ,roster AS (

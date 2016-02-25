@@ -11,6 +11,7 @@ SELECT student_number
       ,sectionid
       ,teacher_name
       ,reporting_term
+      ,rt
       ,grade_category
       ,grade_category_pct
 FROM
@@ -26,6 +27,7 @@ FROM
       
            ,LEFT(pgf.FINALGRADENAME,1) AS grade_category
            ,CONCAT('RT', RIGHT(pgf.FINALGRADENAME,1)) AS reporting_term            
+           ,CONCAT('RT', RIGHT(pgf.FINALGRADENAME,1)) AS rt
            ,ROUND(pgf.[PERCENT],0) AS grade_category_pct               
       
            ,ROW_NUMBER() OVER(
@@ -56,6 +58,7 @@ FROM
              ELSE LEFT(pgf.FINALGRADENAME,1)
             END AS grade_category
            ,CONCAT('RT', RIGHT(pgf.FINALGRADENAME,1) + 1) AS reporting_term            
+           ,CONCAT('RT', RIGHT(pgf.FINALGRADENAME,1)) AS rt
            ,ROUND(pgf.[PERCENT],0) AS grade_category_pct               
       
            ,ROW_NUMBER() OVER(

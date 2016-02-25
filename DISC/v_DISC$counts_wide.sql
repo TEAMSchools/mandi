@@ -4,13 +4,11 @@ GO
 ALTER VIEW DISC$counts_wide AS
 
 WITH curterm AS (
-  SELECT DISTINCT time_per_name
+  SELECT schoolid
+        ,time_per_name
   FROM REPORTING$dates WITH(NOLOCK)
-  WHERE start_date <= GETDATE()
-    AND end_date >= GETDATE()
-    AND identifier = 'RT'
-    AND academic_year = dbo.fn_Global_Academic_Year()
-    AND school_level = 'MS'
+  WHERE CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
+    AND identifier = 'RT'    
  )
 
 SELECT log.studentid
@@ -129,6 +127,6 @@ SELECT log.studentid
 
 FROM DISC$log#static log WITH(NOLOCK)
 JOIN curterm WITH(NOLOCK)
-  ON 1 = 1
+  ON log.schoolid = curterm.schoolid
 WHERE log.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 GROUP BY log.studentid

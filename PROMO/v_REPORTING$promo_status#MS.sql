@@ -63,6 +63,8 @@ SELECT studentid
       ,promo_att_team            
       ,promo_att_rise
 
+      ,N_below_65
+      ,N_below_70
       ,promo_grades_team      
       ,promo_grades_rise
       ,promo_grades_gpa_rise      

@@ -21,12 +21,12 @@ WITH roster AS (
 -- most recently ACTIVE Thurs - Wed timespan
 -- can span multiple weeks in case of vacation
 ,reporting_week AS (
-  --/*
+  /*
   SELECT date
         ,day_of_week
   FROM KIPP_NJ..REPORTING$Rise_weekly_dates#static WITH(NOLOCK)  
   --*/
-  /*
+  --/*
   SELECT date
         ,CASE
           WHEN rn = 1 THEN 'Thursday'
@@ -42,7 +42,7 @@ WITH roster AS (
        FROM KIPP_NJ..PS$CALENDAR_DAY WITH(NOLOCK)
        WHERE schoolid = 73252
          AND insession = 1
-         AND date_value BETWEEN '2015-12-21' AND '2016-01-06'
+         AND date_value BETWEEN '2016-02-11' AND '2016-02-24'
       ) sub
   --*/
  )

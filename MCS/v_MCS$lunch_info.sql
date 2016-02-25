@@ -4,6 +4,8 @@ GO
 ALTER VIEW MCS$lunch_info AS
 
 SELECT StudentNumber
+      ,ReimbursableOnlyBalance
+      ,UnallocatedBalance
       ,Balance
       ,MealBenefitStatus
       ,shortdesc
@@ -11,6 +13,8 @@ SELECT StudentNumber
 FROM
     (
      SELECT CONVERT(INT,c.[StudentNumber]) AS [StudentNumber]
+           ,c.[ReimbursableOnlyBalance]
+           ,c.[UnallocatedBalance]
            ,c.[ReimbursableOnlyBalance] + c.[UnallocatedBalance] AS [Balance]
            ,LEFT(cat.[ShortDesc], 1) AS [MealBenefitStatus] /* Returns F.R,P*/
            ,cat.[ShortDesc]

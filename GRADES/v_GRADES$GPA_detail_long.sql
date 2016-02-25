@@ -4,8 +4,14 @@ GO
 ALTER VIEW GRADES$GPA_detail_long AS
 
 SELECT student_number
+      ,schoolid
+      ,grade_level
+      
       ,academic_year      
       ,term            
+      ,rt 
+      ,is_curterm
+      
       ,SUM(credit_hours) AS total_credit_hours
 
       ,ROUND(AVG(term_grade_percent),0) AS term_grade_avg      
@@ -22,3 +28,7 @@ WHERE excludefromgpa = 0
 GROUP BY student_number
         ,academic_year      
         ,term
+        ,rt 
+        ,is_curterm
+        ,schoolid
+        ,grade_level

@@ -202,49 +202,49 @@ SELECT roster.schoolid
 
       /* Current component averages */
       /*--H--*/
-      ,ele.rc01_h_term AS rc1_cur_hw_pct
-      ,ele.rc02_h_term AS rc2_cur_hw_pct
-      ,ele.rc03_h_term AS rc3_cur_hw_pct
-      ,ele.rc04_h_term AS rc4_cur_hw_pct
-      ,ele.rc05_h_term AS rc5_cur_hw_pct
-      ,ele.rc06_h_term AS rc6_cur_hw_pct
-      ,ele.rc07_h_term AS rc7_cur_hw_pct
-      ,ele.rc08_h_term AS rc8_cur_hw_pct
-      ,ele.rc09_h_term AS rc9_cur_hw_pct
-      ,ele.rc10_h_term AS rc10_cur_hw_pct      
+      ,ele.rc01_h_cur AS rc1_cur_hw_pct
+      ,ele.rc02_h_cur AS rc2_cur_hw_pct
+      ,ele.rc03_h_cur AS rc3_cur_hw_pct
+      ,ele.rc04_h_cur AS rc4_cur_hw_pct
+      ,ele.rc05_h_cur AS rc5_cur_hw_pct
+      ,ele.rc06_h_cur AS rc6_cur_hw_pct
+      ,ele.rc07_h_cur AS rc7_cur_hw_pct
+      ,ele.rc08_h_cur AS rc8_cur_hw_pct
+      ,ele.rc09_h_cur AS rc9_cur_hw_pct
+      ,ele.rc10_h_cur AS rc10_cur_hw_pct      
       /*--A--*/
-      ,ele.rc01_a_term AS rc1_cur_a_pct
-      ,ele.rc02_a_term AS rc2_cur_a_pct
-      ,ele.rc03_a_term AS rc3_cur_a_pct
-      ,ele.rc04_a_term AS rc4_cur_a_pct
-      ,ele.rc05_a_term AS rc5_cur_a_pct
-      ,ele.rc06_a_term AS rc6_cur_a_pct
-      ,ele.rc07_a_term AS rc7_cur_a_pct
-      ,ele.rc08_a_term AS rc8_cur_a_pct
-      ,ele.rc09_a_term AS rc9_cur_a_pct
-      ,ele.rc10_a_term AS rc10_cur_a_pct
+      ,ele.rc01_a_cur AS rc1_cur_a_pct
+      ,ele.rc02_a_cur AS rc2_cur_a_pct
+      ,ele.rc03_a_cur AS rc3_cur_a_pct
+      ,ele.rc04_a_cur AS rc4_cur_a_pct
+      ,ele.rc05_a_cur AS rc5_cur_a_pct
+      ,ele.rc06_a_cur AS rc6_cur_a_pct
+      ,ele.rc07_a_cur AS rc7_cur_a_pct
+      ,ele.rc08_a_cur AS rc8_cur_a_pct
+      ,ele.rc09_a_cur AS rc9_cur_a_pct
+      ,ele.rc10_a_cur AS rc10_cur_a_pct
       /*--CW--*/
-      ,ele.rc01_c_term AS rc1_cur_cw_pct
-      ,ele.rc02_c_term AS rc2_cur_cw_pct
-      ,ele.rc03_c_term AS rc3_cur_cw_pct
-      ,ele.rc04_c_term AS rc4_cur_cw_pct
-      ,ele.rc05_c_term AS rc5_cur_cw_pct
-      ,ele.rc06_c_term AS rc6_cur_cw_pct
-      ,ele.rc07_c_term AS rc7_cur_cw_pct
-      ,ele.rc08_c_term AS rc8_cur_cw_pct
-      ,ele.rc09_c_term AS rc9_cur_cw_pct
-      ,ele.rc10_c_term AS rc10_cur_cw_pct
+      ,ele.rc01_c_cur AS rc1_cur_cw_pct
+      ,ele.rc02_c_cur AS rc2_cur_cw_pct
+      ,ele.rc03_c_cur AS rc3_cur_cw_pct
+      ,ele.rc04_c_cur AS rc4_cur_cw_pct
+      ,ele.rc05_c_cur AS rc5_cur_cw_pct
+      ,ele.rc06_c_cur AS rc6_cur_cw_pct
+      ,ele.rc07_c_cur AS rc7_cur_cw_pct
+      ,ele.rc08_c_cur AS rc8_cur_cw_pct
+      ,ele.rc09_c_cur AS rc9_cur_cw_pct
+      ,ele.rc10_c_cur AS rc10_cur_cw_pct
       /*--P--*/
-      ,ele.rc01_p_term AS rc1_cur_p_pct
-      ,ele.rc02_p_term AS rc2_cur_p_pct
-      ,ele.rc03_p_term AS rc3_cur_p_pct
-      ,ele.rc04_p_term AS rc4_cur_p_pct
-      ,ele.rc05_p_term AS rc5_cur_p_pct
-      ,ele.rc06_p_term AS rc6_cur_p_pct
-      ,ele.rc07_p_term AS rc7_cur_p_pct
-      ,ele.rc08_p_term AS rc8_cur_p_pct
-      ,ele.rc09_p_term AS rc9_cur_p_pct
-      ,ele.rc10_p_term AS rc10_cur_p_pct      
+      ,ele.rc01_p_cur AS rc1_cur_p_pct
+      ,ele.rc02_p_cur AS rc2_cur_p_pct
+      ,ele.rc03_p_cur AS rc3_cur_p_pct
+      ,ele.rc04_p_cur AS rc4_cur_p_pct
+      ,ele.rc05_p_cur AS rc5_cur_p_pct
+      ,ele.rc06_p_cur AS rc6_cur_p_pct
+      ,ele.rc07_p_cur AS rc7_cur_p_pct
+      ,ele.rc08_p_cur AS rc8_cur_p_pct
+      ,ele.rc09_p_cur AS rc9_cur_p_pct
+      ,ele.rc10_p_cur AS rc10_cur_p_pct      
 
       /* attendance by class */      
       ,ccatt.rc01_current_absences AS rc1_current_absences
