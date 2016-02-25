@@ -11,8 +11,7 @@ WITH curterm AS (
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND identifier = 'RT'
-    AND start_date <= CONVERT(DATE,GETDATE())
-    AND end_date >= CONVERT(DATE,GETDATE())
+    AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
     AND school_level = 'MS'
  )
 
@@ -104,45 +103,37 @@ WITH curterm AS (
 			                    ,c.gender
 			                    ,c.schoolid
                        ,c.school_name	AS school
+      
                        ,CASE
-                         WHEN enr.credittype = 'MATH' THEN 'Mathematics'
-                         WHEN enr.credittype IN ('ENG','READ') THEN 'Reading'
-                         WHEN enr.credittype = 'RHET' THEN 'Language Usage'
-                         WHEN enr.credittype = 'SCI' THEN 'Science - General Science'
+                         WHEN fg.credittype = 'MATH' THEN 'Mathematics'
+                         WHEN fg.credittype IN ('ENG','READ') THEN 'Reading'
+                         WHEN fg.credittype = 'RHET' THEN 'Language Usage'
+                         WHEN fg.credittype = 'SCI' THEN 'Science - General Science'
                         END AS measurementscale
                        ,CASE 
-                         WHEN enr.credittype = 'ENG' THEN 'READ'
-                         WHEN enr.credittype = 'RHET' THEN 'LANG'
-                         ELSE enr.credittype 
+                         WHEN fg.credittype = 'ENG' THEN 'READ'
+                         WHEN fg.credittype = 'RHET' THEN 'LANG'
+                         ELSE fg.credittype 
                         END AS credittype
-                       ,enr.course_number
-                       ,ISNULL(sec.term,curterm.alt_name) AS term
-                       ,enr.SECTION_NUMBER
-                       ,enr.teacher_name AS teacher
-                       ,gr.y1_pct AS pct
+                       ,fg.course_number      
+                       ,sn.SECTION_NUMBER
+                       ,fg.teacher_name AS teacher
+
+                       ,REPLACE(fg.term,'Q','T') AS term
+                       ,CASE WHEN fg.term = curterm.alt_name THEN fg.y1_grade_percent_adjusted END AS pct
                  FROM KIPP_NJ..COHORT$identifiers_long#static c WITH(NOLOCK)                       
+                 JOIN KIPP_NJ..GRADES$final_grades_long#static fg WITH(NOLOCK)
+                   ON c.student_number = fg.student_number
+                  AND c.year = fg.academic_year
+                  AND fg.credittype IN ('MATH','ENG','SCI','RHET')                
                  JOIN curterm
-                   ON c.schoolid = curterm.schoolid
-                 JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
-                   ON c.studentid = enr.STUDENTID
-                  AND c.year = enr.academic_year
-                  AND enr.credittype IN ('MATH','ENG','SCI','RHET')                
-                 LEFT OUTER JOIN KIPP_NJ..GRADES$sections_by_term#static sec WITH(NOLOCK)
-                   ON c.studentid = sec.studentid
-                  AND enr.sectionid = sec.sectionid
+                   ON c.schoolid = curterm.schoolid 
                  LEFT OUTER JOIN KIPP_NJ..PS$SECTIONS#static sn WITH(NOLOCK)
-                   ON sec.sectionid = sn.id
-                 LEFT OUTER JOIN KIPP_NJ..GRADES$detail_long gr WITH(NOLOCK)
-                   ON c.studentid = gr.studentid
-                  AND sec.course_number = gr.course_number
-                  AND sec.sectionid = gr.sectionid                
-                  AND sec.term = gr.term
-                  AND gr.curterm_flag = 1
-                 WHERE c.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-                   AND c.rn = 1
+                   ON fg.sectionid = sn.id
+                 WHERE c.grade_level BETWEEN 5 AND 8
+                   AND c.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
                    AND c.enroll_status = 0
-     		            AND c.grade_level >= 5
-     		            AND c.grade_level <= 8
+                   AND c.rn = 1
                 ) sub
             LEFT OUTER JOIN MAP$best_baseline#static map WITH(NOLOCK)
               ON sub.base_studentid = map.studentid

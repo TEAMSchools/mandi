@@ -56,6 +56,12 @@ WITH advisory AS (
  )
 
 SELECT co.schoolid
+      ,CASE
+        WHEN co.schoolid = 73252 THEN 'MS'
+        WHEN co.grade_level <= 4 THEN 'ES'
+        WHEN co.grade_level BETWEEN 5 AND 8 THEN 'MS'
+        WHEN co.grade_level >= 9 THEN 'HS'
+       END AS school_level
       ,co.studentid
       ,co.student_number      
       ,co.lastfirst

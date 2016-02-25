@@ -87,10 +87,10 @@ WITH clean_data AS (
         ,NULL AS dna_lvl_num        
       
         ,instr.read_lvl AS instruct_lvl
-        ,instr.lvl_num AS instruct_lvl_num      
+        ,instr.fp_lvl_num AS instruct_lvl_num      
       
         ,ind.read_lvl AS indep_lvl      
-        ,ind.lvl_num AS indep_lvl_num
+        ,ind.fp_lvl_num AS indep_lvl_num
   FROM KIPP_NJ..LIT$readingscores#static rs WITH(NOLOCK)
   LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
     ON rs.read_lvl = gleq.read_lvl /* before 2015-2016, JOIN Achieved F&P on reading level */   
