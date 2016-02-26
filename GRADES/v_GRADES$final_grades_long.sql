@@ -195,8 +195,15 @@ WITH roster AS (
           WHEN r.grade_level <= 8 THEN 1.0 / CONVERT(FLOAT,COUNT(r.student_number) OVER(PARTITION BY r.student_number, r.academic_year, gr.course_number))
           WHEN r.grade_level >= 9 THEN .225
          END AS term_grade_weight                 
-        ,CASE WHEN r.term = 'Q2' AND e.E1 IS NOT NULL THEN 0.05 END AS E1_grade_weight
-        ,CASE WHEN r.term = 'Q4' AND e.E2 IS NOT NULL THEN 0.05 END AS E2_grade_weight
+        ,CASE WHEN r.grade_level >= 9 AND r.term = 'Q2' AND e.E1 IS NOT NULL THEN 0.05 END AS E1_grade_weight
+        ,CASE WHEN r.grade_level >= 9 AND r.term = 'Q4' AND e.E2 IS NOT NULL THEN 0.05 END AS E2_grade_weight
+
+        ,CASE          
+          WHEN r.grade_level <= 8 THEN 1.0 / CONVERT(FLOAT,COUNT(r.student_number) OVER(PARTITION BY r.student_number, r.academic_year, gr.course_number))
+          WHEN r.grade_level >= 9 THEN .225
+         END AS term_grade_weight_possible
+        ,CASE WHEN r.grade_level >= 9 AND r.term = 'Q2' THEN 0.05 END AS E1_grade_weight_possible
+        ,CASE WHEN r.grade_level >= 9 AND r.term = 'Q4' THEN 0.05 END AS E2_grade_weight_possible
   FROM roster r
   LEFT OUTER JOIN enr_grades gr
     ON r.studentid = gr.studentid
@@ -243,6 +250,11 @@ SELECT sub.student_number
         ELSE scale.letter_grade 
        END AS y1_grade_letter
       ,scale.grade_points AS y1_gpa_points
+
+      ,sub.need_90
+      ,sub.need_80
+      ,sub.need_70
+      ,sub.need_65
 FROM
     (
      SELECT student_number
@@ -273,8 +285,40 @@ FROM
            ,weighted_grade_total
            ,weighted_grade_total_adjusted
            ,weighted_points_total
+
+           /* Y1 calcs */
            ,ROUND((weighted_grade_total / weighted_points_total) * 100,0) AS y1_grade_percent
            ,ROUND((weighted_grade_total_adjusted / weighted_points_total) * 100,0) AS y1_grade_percent_adjusted
+
+           /* Need To Get calcs */
+           ,ROUND((((weighted_points_possible_total * 0.9) /* 90% of total possible points */
+                       - (weighted_grade_total_adjusted /* actual weighted grade, adjusted for F* */
+                            - ((term_grade_percent_adjusted * term_grade_weight_possible) 
+                                  + ISNULL((E1_adjusted * E1_grade_weight_possible),0) 
+                                  + ISNULL((E2_adjusted * E2_grade_weight_possible),0)))) /* current grades factored out */
+                   / (term_grade_weight_possible + ISNULL(E1_grade_weight_possible,0) + ISNULL(E2_grade_weight_possible,0))) /* points poss, assumes exam in Q2 & Q4 */
+                 ,0) AS need_90                
+           ,ROUND((((weighted_points_possible_total * 0.8) /* 80% of total possible points */
+                       - (weighted_grade_total_adjusted /* actual weighted grade, adjusted for F* */
+                            - ((term_grade_percent_adjusted * term_grade_weight_possible) 
+                                  + ISNULL((E1_adjusted * E1_grade_weight_possible),0) 
+                                  + ISNULL((E2_adjusted * E2_grade_weight_possible),0)))) /* current grades factored out */
+                   / (term_grade_weight_possible + ISNULL(E1_grade_weight_possible,0) + ISNULL(E2_grade_weight_possible,0))) /* points poss, assumes exam in Q2 & Q4 */ 
+                 ,0) AS need_80
+           ,ROUND((((weighted_points_possible_total * 0.7) /* 80% of total possible points */
+                       - (weighted_grade_total_adjusted /* actual weighted grade, adjusted for F* */
+                            - ((term_grade_percent_adjusted * term_grade_weight_possible) 
+                                  + ISNULL((E1_adjusted * E1_grade_weight_possible),0) 
+                                  + ISNULL((E2_adjusted * E2_grade_weight_possible),0)))) /* current grades factored out */
+                   / (term_grade_weight_possible + ISNULL(E1_grade_weight_possible,0) + ISNULL(E2_grade_weight_possible,0))) /* points poss, assumes exam in Q2 & Q4 */
+                 ,0) AS need_70
+           ,ROUND((((weighted_points_possible_total * 0.65) /* 80% of total possible points */
+                       - (weighted_grade_total_adjusted /* actual weighted grade, adjusted for F* */
+                            - ((term_grade_percent_adjusted * term_grade_weight_possible) 
+                                  + ISNULL((E1_adjusted * E1_grade_weight_possible),0) 
+                                  + ISNULL((E2_adjusted * E2_grade_weight_possible),0)))) /* current grades factored out */
+                   / (term_grade_weight_possible + ISNULL(E1_grade_weight_possible,0) + ISNULL(E2_grade_weight_possible,0))) /* points poss, assumes exam in Q2 & Q4 */
+                 ,0) AS need_65
      FROM
          (
           SELECT student_number
@@ -302,6 +346,10 @@ FROM
                 ,e1_adjusted
                 ,e2
                 ,e2_adjusted
+
+                ,term_grade_weight_possible 
+                ,E1_grade_weight_possible
+                ,E2_grade_weight_possible
       
                 /* Y1 calc -- weighted avg */                
                 /* (weighted term grade + weighted exam grades) / total weighted points possible */
@@ -320,6 +368,11 @@ FROM
                      + ISNULL((E1_grade_weight * 100),0)
                      + ISNULL((E2_grade_weight * 100),0)
                   ) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY rt ASC) AS weighted_points_total
+                ,SUM(
+                   (term_grade_weight_possible * 100)
+                     + ISNULL((E1_grade_weight_possible * 100),0)
+                     + ISNULL((E2_grade_weight_possible * 100),0)
+                  ) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY rt ASC) AS weighted_points_possible_total
           FROM grades_long               
          ) sub
     ) sub

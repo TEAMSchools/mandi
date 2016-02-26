@@ -55,6 +55,10 @@ WITH course_order AS (
         ,y1_grade_percent
         ,e1_grade_percent
         ,e2_grade_percent
+        ,need_90
+        ,need_80
+        ,need_70
+        ,need_65
         ,CONCAT(rt,'_',field) AS pivot_field
         ,CONVERT(VARCHAR(64),value) AS value
   FROM
@@ -83,6 +87,11 @@ WITH course_order AS (
              ,CONVERT(VARCHAR(64),fg.term_grade_percent) AS term_grade_percent
              ,CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted) AS term_grade_letter_adjusted
              ,CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted) AS term_grade_percent_adjusted                          
+
+             ,CONVERT(VARCHAR(64),fg.need_90) AS need_90
+             ,CONVERT(VARCHAR(64),fg.need_80) AS need_80
+             ,CONVERT(VARCHAR(64),fg.need_70) AS need_70
+             ,CONVERT(VARCHAR(64),fg.need_65) AS need_65
        FROM KIPP_NJ..GRADES$final_grades_long#static fg WITH(NOLOCK)
        JOIN course_order o
          ON fg.student_number = o.student_number
@@ -118,6 +127,11 @@ WITH course_order AS (
              ,CONVERT(VARCHAR(64),fg.term_grade_percent) AS term_grade_percent
              ,CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted) AS term_grade_letter_adjusted
              ,CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted) AS term_grade_percent_adjusted                          
+
+             ,CONVERT(VARCHAR(64),fg.need_90) AS need_90
+             ,CONVERT(VARCHAR(64),fg.need_80) AS need_80
+             ,CONVERT(VARCHAR(64),fg.need_70) AS need_70
+             ,CONVERT(VARCHAR(64),fg.need_65) AS need_65
        FROM KIPP_NJ..GRADES$final_grades_long#static fg WITH(NOLOCK)
        JOIN course_order o
          ON fg.student_number = o.student_number
@@ -150,6 +164,12 @@ SELECT student_number
       ,CONVERT(VARCHAR(64),credit_hours) AS credit_hours
       ,y1_grade_letter
       ,y1_grade_percent
+      
+      ,need_90
+      ,need_80
+      ,need_70
+      ,need_65
+
       ,MAX(e1_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS e1_grade_percent
       ,MAX(e2_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS e2_grade_percent
       ,MAX(RT1_term_grade_letter) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS RT1_term_grade_letter
