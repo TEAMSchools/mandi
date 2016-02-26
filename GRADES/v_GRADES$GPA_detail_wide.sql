@@ -7,17 +7,19 @@ WITH gpa_long AS (
   SELECT student_number
         ,academic_year
         ,term
-        ,CONCAT(field, '_', rt) AS pivot_field
+        ,CONCAT(field, '_', CASE WHEN field LIKE '%semester%' THEN semester ELSE rt END) AS pivot_field
         ,value
   FROM
       (
        SELECT student_number
              ,academic_year
              ,term
+             ,semester
              ,rt
              ,total_credit_hours                              
              ,GPA_term               
              ,GPA_Y1
+             ,GPA_semester
              ,CONVERT(FLOAT,RANK() OVER(PARTITION BY academic_year, term, schoolid, grade_level ORDER BY GPA_term DESC)) AS GPA_term_rank
              ,CONVERT(FLOAT,RANK() OVER(PARTITION BY academic_year, term, schoolid, grade_level ORDER BY GPA_y1 DESC)) AS GPA_y1_rank
        FROM KIPP_NJ..GRADES$GPA_detail_long#static WITH(NOLOCK)
@@ -27,10 +29,12 @@ WITH gpa_long AS (
        SELECT student_number
              ,academic_year
              ,term
+             ,semester
              ,'CUR' AS rt
              ,total_credit_hours                              
              ,GPA_term               
              ,GPA_Y1
+             ,GPA_semester
              ,CONVERT(FLOAT,RANK() OVER(PARTITION BY academic_year, term, schoolid, grade_level ORDER BY GPA_term DESC)) AS GPA_term_rank
              ,CONVERT(FLOAT,RANK() OVER(PARTITION BY academic_year, term, schoolid, grade_level ORDER BY GPA_y1 DESC)) AS GPA_y1_rank
        FROM KIPP_NJ..GRADES$GPA_detail_long#static WITH(NOLOCK)
@@ -41,6 +45,7 @@ WITH gpa_long AS (
     FOR field IN (total_credit_hours                              
                  ,GPA_term               
                  ,GPA_Y1
+                 ,GPA_semester
                  ,GPA_term_rank
                  ,GPA_y1_rank)
    ) u
@@ -59,6 +64,8 @@ SELECT student_number
       ,MAX([GPA_term_RT2]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_term_RT2
       ,MAX([GPA_term_RT3]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_term_RT3
       ,MAX([GPA_term_RT4]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_term_RT4
+      ,MAX([GPA_semester_S1]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_semester_S1
+      ,MAX([GPA_semester_S2]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_semester_S2
       ,MAX([GPA_Y1_CUR]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_Y1_CUR
       ,MAX([GPA_y1_rank_CUR]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_y1_rank_CUR
       ,MAX([GPA_y1_rank_RT1]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_y1_rank_RT1
@@ -87,6 +94,8 @@ PIVOT(
                      ,[GPA_term_RT2]
                      ,[GPA_term_RT3]
                      ,[GPA_term_RT4]
+                     ,[GPA_semester_S1]
+                     ,[GPA_semester_S2]                     
                      ,[GPA_Y1_CUR]
                      ,[GPA_y1_rank_CUR]
                      ,[GPA_y1_rank_RT1]

@@ -3,23 +3,6 @@ GO
 
 ALTER VIEW REPORTING$progress_tracker#MS AS
 
-WITH curterm AS (
-  SELECT time_per_name
-        ,alt_name AS term
-        ,schoolid
-  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
-  WHERE identifier = 'RT'    
-    AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
- )
-
-,cur_hex AS (
-  SELECT REPLACE(time_per_name,'Round ','Q') AS hex_a
-        ,schoolid
-  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
-  WHERE identifier = 'AR'
-    AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
- )
-       
 SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_level, roster.lastfirst) AS [count]      
       ,roster.studentid AS id
       ,roster.student_number
@@ -684,16 +667,20 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       
 FROM KIPP_NJ..COHORT$identifiers_long#static roster WITH (NOLOCK)
 
-JOIN curterm
+JOIN KIPP_NJ..REPORTING$dates curterm WITH(NOLOCK)
   ON roster.schoolid = curterm.schoolid
-JOIN cur_hex 
+ AND CONVERT(DATE,GETDATE()) BETWEEN curterm.start_date AND curterm.end_date
+ AND curterm.identifier = 'RT'    
+JOIN KIPP_NJ..REPORTING$dates cur_hex WITH(NOLOCK)
   ON roster.schoolid = cur_hex.schoolid
+ AND CONVERT(DATE,GETDATE()) BETWEEN cur_hex.start_date AND cur_hex.end_date
+ AND cur_hex.identifier = 'AR'
 
 /* ATTENDANCE */
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH (NOLOCK)
   ON roster.studentid = att_counts.studentid
  AND roster.year = att_counts.academic_year
- AND curterm.term = att_counts.term
+ AND curterm.alt_name = att_counts.term
 
 /* GRADES & GPA */
 LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_wide#static eng WITH(NOLOCK)
@@ -741,10 +728,10 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide#static all_cat WITH(NOLOCK)
  AND curterm.time_per_name = all_cat.reporting_term
  AND all_cat.credittype = 'ALL'
  AND all_cat.rn_credittype = 1
-LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_wide gpa WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_wide#static gpa WITH (NOLOCK)
   ON roster.student_number = gpa.student_number
  AND roster.year = gpa.academic_year
- AND curterm.term = gpa.term
+ AND curterm.alt_name = gpa.term
 
 /* PROMO STATUS */
 LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH (NOLOCK)
@@ -780,7 +767,7 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_curr WITH (NOLOCK)
   ON roster.studentid = ar_curr.studentid 
  AND roster.year = ar_curr.academic_year
- AND cur_hex.hex_a = ar_curr.time_period_name 
+ AND REPLACE(cur_hex.time_per_name,'Round ','Q') = ar_curr.time_period_name 
 
 /* MAP */
 LEFT OUTER JOIN KIPP_NJ..MAP$wide_all#static map_all WITH (NOLOCK)

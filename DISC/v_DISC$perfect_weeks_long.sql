@@ -10,6 +10,7 @@ FROM
      SELECT student_number
            ,studentid
            ,academic_year
+           ,term
            ,rt
            ,SUM(is_perfect) AS n_perfect_weeks
            ,SUM(is_perfect) * 3 AS perfect_week_merits_term
@@ -18,4 +19,5 @@ FROM
              ,studentid
              ,academic_year
              ,rt
+             ,term
     ) sub

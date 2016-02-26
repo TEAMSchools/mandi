@@ -232,7 +232,7 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide#static ele WITH(NOLOCK)
  AND co.year = ele.academic_year
  AND curterm.time_per_name = ele.reporting_term
  AND ele.course_number = 'ALL'
-LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long gpa WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long#static gpa WITH (NOLOCK)
   ON co.student_number = gpa.student_number
  AND co.year = gpa.academic_year
  AND curterm.alt_name = gpa.term

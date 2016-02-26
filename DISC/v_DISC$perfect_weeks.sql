@@ -15,6 +15,7 @@ WITH roster AS (
 
 ,weeks AS (  
   SELECT academic_year
+        ,term
         ,rt
         ,wk
         ,MIN(calendardate) OVER(PARTITION BY academic_year, wk) AS week_of
@@ -25,6 +26,7 @@ WITH roster AS (
        SELECT CONVERT(DATE,mem.date_value) AS calendardate
              ,DATEPART(WEEK,mem.date_value) AS wk
              ,mem.academic_year
+             ,dt.alt_name AS term
              ,dt.time_per_name AS rt                                       
              ,CASE 
                WHEN CONVERT(INT,CONCAT(DATEPART(YEAR,GETDATE()),RIGHT(CONCAT('0',DATEPART(WEEK,GETDATE())),2)))
@@ -68,6 +70,7 @@ SELECT DISTINCT
        r.student_number
       ,r.studentid
       ,r.academic_year
+      ,w.term
       ,w.rt           
       ,w.week_of
       ,CASE WHEN d.studentid IS NULL THEN 1 ELSE 0 END AS is_perfect

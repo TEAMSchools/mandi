@@ -138,7 +138,7 @@ FROM
      LEFT OUTER JOIN attendance att
        ON co.studentid = att.studentid
       AND dt.alt_name = att.term
-     LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long gpa WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long#static gpa WITH(NOLOCK)
        ON co.student_number = gpa.student_number
       AND co.year = gpa.academic_year
       AND dt.alt_name = gpa.term

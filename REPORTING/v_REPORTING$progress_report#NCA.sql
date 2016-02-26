@@ -335,7 +335,7 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide_course#static ele WITH(NOLO
   ON roster.student_number = ele.student_number
  AND roster.year = ele.academic_year
  AND curterm.time_per_name = ele.reporting_term
-LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long nca_gpa WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long#static nca_gpa WITH (NOLOCK)
   ON roster.student_number = nca_gpa.student_number
  AND roster.year = nca_gpa.academic_year
  AND curterm.alt_name = nca_gpa.term
@@ -344,17 +344,17 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_cumulative#static gpa_cumulative WITH (NOLOC
  AND roster.schoolid = gpa_cumulative.schoolid
 
 /* MERITS & DEMERITS */
-LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long merits WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long#static merits WITH(NOLOCK)
   ON roster.student_number = merits.student_number
  AND roster.year = merits.academic_year
  AND curterm.alt_name = merits.term
  AND merits.logtypeid = 3023
-LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long demerits WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long#static demerits WITH(NOLOCK)
   ON roster.student_number = demerits.student_number
  AND roster.year = demerits.academic_year
  AND curterm.alt_name = demerits.term
  AND demerits.logtypeid = 3223
-LEFT OUTER JOIN DISC$perfect_weeks_long pw WITH(NOLOCK)
+LEFT OUTER JOIN DISC$perfect_weeks_long#static pw WITH(NOLOCK)
   ON roster.student_number = pw.student_number
  AND roster.year = pw.academic_year
  AND curterm.time_per_name = pw.rt

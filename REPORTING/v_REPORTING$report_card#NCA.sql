@@ -328,7 +328,7 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide_course#static ele WITH(NOLO
   ON roster.student_number = ele.student_number
  AND roster.year = ele.academic_year
  AND curterm.time_per_name = ele.reporting_term
-LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long nca_gpa WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long#static nca_gpa WITH (NOLOCK)
   ON roster.student_number = nca_gpa.student_number
  AND roster.year = nca_gpa.academic_year
  AND curterm.alt_name = nca_gpa.term

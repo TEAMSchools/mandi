@@ -11,70 +11,70 @@ SELECT s.student_number AS SN
       ,s.SPEDLEP AS SPED
 
       --GPA      
-      ,nca_GPA.GPA_q1 AS GPA_Q1
-      ,nca_GPA.GPA_q2 AS GPA_Q2
-      ,nca_GPA.GPA_q3 AS GPA_Q3
-      ,nca_GPA.GPA_q4 AS GPA_Q4
-      ,nca_GPA.GPA_S1
-      ,nca_GPA.GPA_S2
-      ,nca_GPA.GPA_y1 AS GPA_Y1      
+      ,nca_gpa.GPA_term_RT1 AS GPA_Q1
+      ,nca_GPA.GPA_term_RT2 AS GPA_Q2
+      ,nca_GPA.GPA_term_RT3 AS GPA_Q3
+      ,nca_GPA.GPA_term_RT4 AS GPA_Q4
+      ,nca_GPA.GPA_semester_S1 AS GPA_S1
+      ,nca_GPA.GPA_semester_S2 AS GPA_S2
+      ,nca_GPA.GPA_y1_CUR AS GPA_Y1      
       --cumulative GPA
-      ,GPA_cum.cumulative_Y1_GPA AS GPA_cum
-      --,GPA_cumulative.audit_trail AS cumulative_GPA_audit_trail
+      ,gpa_cumulative.cumulative_Y1_gpa AS GPA_cum
+      
 
 --Attendance      
       --absences
-      ,att.Y1_ABS_ALL AS Abs_Y1
-      ,ROUND(att_Pct.y1_att_Pct_total,0) AS Abs_Y1_Pct      
-      ,att.RT1_abs_all AS Abs_Q1
-      ,att.RT2_abs_all AS Abs_Q2
-      ,att.RT3_abs_all AS Abs_Q3
-      ,att.RT4_abs_all AS Abs_Q4
-      ,ROUND(att_Pct.rt1_att_Pct_total,0) AS Abs_Q1_Pct
-      ,ROUND(att_Pct.rt2_att_Pct_total,0) AS Abs_Q2_Pct
-      ,ROUND(att_Pct.rt3_att_Pct_total,0) AS Abs_Q3_Pct
-      ,ROUND(att_Pct.rt4_att_Pct_total,0) AS Abs_Q4_Pct      
+      ,att.ABS_all_counts_yr AS Abs_Y1
+      ,ROUND(((att.MEM_counts_yr - att.ABS_all_counts_yr) / att.MEM_counts_yr) * 100, 0) AS Abs_Y1_Pct      
+      ,att_wide.ABS_all_counts_term_RT1 AS Abs_Q1
+      ,att_wide.ABS_all_counts_term_RT2 AS Abs_Q2
+      ,att_wide.ABS_all_counts_term_RT3 AS Abs_Q3
+      ,att_wide.ABS_all_counts_term_RT4 AS Abs_Q4
+      ,ROUND(((att_wide.MEM_counts_term_RT1 - att_wide.ABS_all_counts_term_RT1) / att_wide.MEM_counts_term_RT1) * 100, 0) AS Abs_Q1_Pct
+      ,ROUND(((att_wide.MEM_counts_term_RT2 - att_wide.ABS_all_counts_term_RT2) / att_wide.MEM_counts_term_RT2) * 100, 0) AS Abs_Q2_Pct
+      ,ROUND(((att_wide.MEM_counts_term_RT3 - att_wide.ABS_all_counts_term_RT3) / att_wide.MEM_counts_term_RT3) * 100, 0) AS Abs_Q3_Pct
+      ,ROUND(((att_wide.MEM_counts_term_RT4 - att_wide.ABS_all_counts_term_RT4) / att_wide.MEM_counts_term_RT4) * 100, 0) AS Abs_Q4_Pct
       --tardies
-      ,att.Y1_T_ALL AS T_Y1
-      ,ROUND(att_Pct.y1_tardy_Pct_total,0) AS T_Y1_Pct
-      ,att.RT1_t_all AS T_Q1
-      ,att.RT2_t_all AS T_Q2
-      ,att.RT3_t_all AS T_Q3
-      ,att.RT4_t_all AS T_Q4
-      ,ROUND(att_Pct.rt1_tardy_Pct_total,0) AS T_Q1_Pct
-      ,ROUND(att_Pct.rt2_tardy_Pct_total,0) AS T_Q2_Pct
-      ,ROUND(att_Pct.rt3_tardy_Pct_total,0) AS T_Q3_Pct
-      ,ROUND(att_Pct.rt4_tardy_Pct_total,0) AS T_Q4_Pct
+      ,att.TDY_ALL_counts_yr AS T_Y1
+      ,ROUND((att.TDY_all_counts_yr / att.MEM_counts_yr) * 100, 0) AS T_Y1_Pct
+      ,att_wide.TDY_all_counts_term_RT1 AS T_Q1
+      ,att_wide.TDY_all_counts_term_RT2 AS T_Q2
+      ,att_wide.TDY_all_counts_term_RT3 AS T_Q3
+      ,att_wide.TDY_all_counts_term_RT4 AS T_Q4
+      ,ROUND((att_wide.TDY_all_counts_term_RT1 / att_wide.MEM_counts_term_RT1) * 100, 0) AS T_Q1_Pct
+      ,ROUND((att_wide.TDY_all_counts_term_RT2 / att_wide.MEM_counts_term_RT2) * 100, 0) AS T_Q2_Pct
+      ,ROUND((att_wide.TDY_all_counts_term_RT3 / att_wide.MEM_counts_term_RT3) * 100, 0) AS T_Q3_Pct
+      ,ROUND((att_wide.TDY_all_counts_term_RT4 / att_wide.MEM_counts_term_RT4) * 100, 0) AS T_Q4_Pct
 
 --Behavior      
       --merits
-      ,merits.total_merits_y1 AS M_Y1_total
-      ,merits.teacher_merits_y1 AS M_Y1_teacher
-      ,merits.perfect_week_merits_y1 AS M_Y1_perfect
-      ,merits.total_merits_rt1 AS M_Q1_total
-      ,merits.total_merits_rt2 AS M_Q2_total
-      ,merits.total_merits_rt3 AS M_Q3_total
-      ,merits.total_merits_rt4 AS M_Q4_total            
+      ,m_wide.n_logs_y1 + p_wide.n_logs_y1 AS M_Y1_total
+      ,m_wide.n_logs_y1 AS M_Y1_teacher
+      ,p_wide.n_logs_Y1 AS M_Y1_perfect
+      ,m_wide.n_logs_RT1 + p_wide.n_logs_RT1 AS M_Q1_total
+      ,m_wide.n_logs_RT2 + p_wide.n_logs_RT2 AS M_Q2_total
+      ,m_wide.n_logs_RT3 + p_wide.n_logs_RT3 AS M_Q3_total
+      ,m_wide.n_logs_RT4 + p_wide.n_logs_RT4 AS M_Q4_total
       --merits by type
-      ,merits.teacher_merits_rt1 AS M_Q1_teacher
-      ,merits.perfect_week_merits_rt1 AS M_Q1_perfect
-      ,merits.teacher_merits_rt2 AS M_Q2_teacher
-      ,merits.perfect_week_merits_rt2 AS M_Q2_perfect
-      ,merits.teacher_merits_rt3 AS M_Q3_teacher
-      ,merits.perfect_week_merits_rt3 AS M_Q3_perfect
-      ,merits.teacher_merits_rt4 AS M_Q4_teacher
-      ,merits.perfect_week_merits_rt4 AS M_Q4_perfect
+      ,m_wide.n_logs_RT1 AS M_Q1_teacher
+      ,p_wide.n_logs_RT1 AS M_Q1_perfect
+      ,m_wide.n_logs_RT2 AS M_Q2_teacher
+      ,p_wide.n_logs_RT2 AS M_Q2_perfect
+      ,m_wide.n_logs_RT3 AS M_Q3_teacher
+      ,p_wide.n_logs_RT3 AS M_Q3_perfect
+      ,m_wide.n_logs_RT4 AS M_Q4_teacher
+      ,p_wide.n_logs_RT4 AS M_Q4_perfect
       --demerits      
-      ,merits.total_demerits_y1 AS Demerits_Y1
-      ,merits.total_demerits_rt1 AS Demerits_Q1
-      ,merits.total_demerits_rt2 AS Demerits_Q2
-      ,merits.total_demerits_rt3 AS Demerits_Q3
-      ,merits.total_demerits_rt4 AS Demerits_Q4
-      ,merits.detention_y1 AS Detentions_Y1
-      ,merits.detention_rt1 AS Detentions_Q1
-      ,merits.detention_rt2 AS Detentions_Q2
-      ,merits.detention_rt3 AS Detentions_Q3
-      ,merits.detention_rt4 AS Detentions_Q4
+      ,d_wide.n_logs_y1 AS Demerits_Y1
+      ,d_wide.n_logs_RT1 AS Demerits_Q1
+      ,d_wide.n_logs_RT2 AS Demerits_Q2
+      ,d_wide.n_logs_RT3 AS Demerits_Q3
+      ,d_wide.n_logs_RT4 AS Demerits_Q4
+      ,d_wide.n_logs_Y1 AS Detentions_Y1
+      ,d_wide.n_logs_RT1 AS Detentions_Q1
+      ,d_wide.n_logs_RT2 AS Detentions_Q2
+      ,d_wide.n_logs_RT3 AS Detentions_Q3
+      ,d_wide.n_logs_RT4 AS Detentions_Q4
 
 --Reading
       ,ar_Q1.points AS AR_Pts_Q1
@@ -94,19 +94,56 @@ SELECT s.student_number AS SN
       --,lex_cur.testpercentile AS map_pctl_curterm
 
 FROM COHORT$identifiers_long#static s WITH(NOLOCK)
-LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
-  ON s.studentid = merits.studentid
-LEFT OUTER JOIN ATT_MEM$attendance_counts#static att WITH (NOLOCK)
+JOIN KIPP_NJ..REPORTING$dates curterm WITH(NOLOCK)
+  ON s.schoolid = curterm.schoolid
+ AND s.year = curterm.academic_year 
+ AND CONVERT(DATE,GETDATE()) BETWEEN curterm.start_date AND curterm.end_date
+ AND curterm.identifier = 'RT' 
+
+/* MERITS & DEMERITS */
+LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_wide#static m_wide WITH(NOLOCK)
+  ON s.student_number = m_wide.student_number
+ AND s.year = m_wide.academic_year 
+ AND m_wide.logtypeid = 3023
+LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_wide#static d_wide WITH(NOLOCK)
+  ON s.student_number = d_wide.student_number
+ AND s.year = d_wide.academic_year 
+ AND d_wide.logtypeid = 3223
+LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_wide#static p_wide WITH(NOLOCK)
+  ON s.student_number = p_wide.student_number
+ AND s.year = p_wide.academic_year 
+ AND p_wide.logtype = 'Perfect Weeks'
+LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_wide#static dt_wide WITH(NOLOCK)
+  ON s.student_number = dt_wide.student_number
+ AND s.year = dt_wide.academic_year 
+ AND dt_wide.logtypeid = -100000
+
+/* ATTENDANCE */
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
   ON s.studentid = att.studentid
-LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
-  ON s.studentid = att_pct.studentid
-LEFT OUTER JOIN GRADES$wide_all#NCA#static gr_wide WITH (NOLOCK)
-  ON s.studentid = gr_wide.studentid
-LEFT OUTER JOIN GPA$detail#NCA nca_GPA WITH (NOLOCK)
-  ON s.studentid = nca_GPA.studentid
-LEFT OUTER JOIN GRADES$GPA_cumulative#static GPA_cum WITH (NOLOCK)
-  ON s.studentid = GPA_cum.studentid
- AND s.schoolid = GPA_cum.schoolid                 
+ AND s.year = att.academic_year
+ AND curterm.alt_name = att.term
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_wide#static att_wide WITH(NOLOCK)
+  ON s.studentid = att_wide.studentid
+ AND s.year = att_wide.academic_year
+
+/* GRADES & GPA */
+LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_wide_course#static gr_wide WITH(NOLOCK)
+  ON s.student_number = gr_wide.student_number
+ AND s.year = gr_wide.academic_year
+ AND curterm.alt_name = gr_wide.term
+LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide_course#static ele WITH(NOLOCK)
+  ON s.student_number = ele.student_number
+ AND s.year = ele.academic_year
+ AND curterm.time_per_name = ele.reporting_term
+LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_wide#static nca_gpa WITH (NOLOCK)
+  ON s.student_number = nca_gpa.student_number
+ AND s.year = nca_gpa.academic_year
+ AND curterm.alt_name = nca_gpa.term
+LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_cumulative#static gpa_cumulative WITH (NOLOCK)
+  ON s.studentid = gpa_cumulative.studentid
+ AND s.schoolid = gpa_cumulative.schoolid
+          
 LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
   ON s.studentid = ar_yr.studentid 
  AND ar_yr.time_period_name = 'Year'
@@ -127,6 +164,7 @@ LEFT OUTER JOIN AR$progress_to_goals_long#static ar_q4 WITH (NOLOCK)
   ON s.studentid = ar_q4.studentid
  AND ar_q4.time_period_name = 'RT4'
  AND ar_q4.yearid = dbo.fn_Global_Term_Id()                    
+
 LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_cur WITH (NOLOCK)
   ON s.student_number = lex_cur.student_number
  AND s.year = lex_cur.academic_year
@@ -137,6 +175,7 @@ LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_base WITH (NOLOCK)
  AND s.year = lex_base.academic_year
  AND lex_base.measurementscale  = 'Reading' 
  AND lex_base.rn_base = 1
+
 WHERE s.schoolid = 73253
   AND s.enroll_status = 0
   AND s.year = dbo.fn_Global_Academic_Year()
