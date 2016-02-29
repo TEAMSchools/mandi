@@ -46,10 +46,11 @@ WITH njask AS (
       (
        SELECT studentid
              ,credittype + '_' + term AS pivot_hash
-             ,term_pct
-       FROM KIPP_NJ..GRADES$detail_long WITH(NOLOCK)
+             ,term_grade_percent_adjusted AS term_pct
+       FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
        WHERE CREDITTYPE IN ('MATH','ENG','SCI','SOC')
          AND term IN ('T1','T2','Q1','Q2')
+         AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       ) sub
   PIVOT(
     MAX(term_pct)

@@ -19,9 +19,9 @@ WITH completed_terms AS (
         ,COURSE_NUMBER        
         ,COURSE_NAME
         ,term
-        ,term_letter
-        ,term_pct
-  FROM KIPP_NJ..GRADES$detail_long WITH(NOLOCK)
+        ,term_grade_letter AS term_letter
+        ,term_grade_percent AS term_pct
+  FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
   WHERE term IN (SELECT alt_name FROM completed_terms WITH(NOLOCK))
  )
 

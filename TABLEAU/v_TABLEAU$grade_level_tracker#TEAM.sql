@@ -121,7 +121,7 @@ SELECT co.year
       ,co.term
       ,co.yr_week_hash      
       ,co.week_of      
-      ,gpa.GPA_all
+      ,gpa.GPA_term AS GPA_all
       ,kb.points_total
       ,kb.points_pct
       ,ISNULL(ttp.N_deductions,0) AS ttp_deduction_count
@@ -131,9 +131,10 @@ SELECT co.year
       ,ISNULL(con.[OSS],0) AS OSS
       ,att.pct_present
 FROM roster co WITH(NOLOCK)
-LEFT OUTER JOIN KIPP_NJ..GPA$detail_long gpa WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long#static gpa WITH(NOLOCK)
   ON co.student_number = gpa.student_number
- AND co.term = REPLACE(gpa.term, 'T', 'Q')
+ AND co.year = gpa.academic_year
+ AND co.term = gpa.term
 LEFT OUTER JOIN kb_weekly kb
   ON co.student_number = kb.student_number
  AND co.yr_week_hash = kb.yr_week_hash

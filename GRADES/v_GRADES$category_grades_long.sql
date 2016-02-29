@@ -3,17 +3,19 @@ GO
 
 ALTER VIEW GRADES$category_grades_long AS
 
-SELECT student_number
-      ,SCHOOLID
-      ,academic_year
-      ,CREDITTYPE
-      ,COURSE_NUMBER
-      ,sectionid
-      ,teacher_name
-      ,reporting_term
-      ,rt
-      ,grade_category
-      ,grade_category_pct
+SELECT sub.student_number
+      ,sub.SCHOOLID
+      ,sub.academic_year
+      ,sub.CREDITTYPE
+      ,sub.COURSE_NUMBER
+      ,sub.sectionid
+      ,sub.teacher_name
+      ,sub.reporting_term
+      ,sub.rt      
+      ,sub.grade_category
+      ,sub.grade_category_pct
+      
+      ,CASE WHEN sub.academic_year = dt.academic_year AND sub.reporting_term = dt.time_per_name THEN 1 ELSE 0 END AS is_curterm
 FROM
     (
      /* NCA */
@@ -73,4 +75,8 @@ FROM
      WHERE enr.course_enr_status = 0
        AND enr.SCHOOLID != 73253
     ) sub
-WHERE rn = 1
+LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+  ON sub.schoolid = dt.schoolid
+ AND CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date
+ AND dt.identifier = 'RT'
+WHERE sub.rn = 1

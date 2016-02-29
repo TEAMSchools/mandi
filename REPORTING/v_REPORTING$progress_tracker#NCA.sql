@@ -3,42 +3,45 @@ GO
 
 ALTER VIEW REPORTING$progress_tracker#NCA AS
 
-WITH curterm AS (
-  SELECT time_per_name
-        ,alt_name AS term
-  FROM REPORTING$dates WITH(NOLOCK)
-  WHERE identifier = 'RT'
-    AND academic_year = dbo.fn_Global_Academic_Year()
-    AND schoolid = 73253
-    AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
+WITH exams AS (
+  SELECT student_number
+        ,ROUND(AVG(CONVERT(FLOAT,e1_grade_percent)),0) AS e1_all
+        ,ROUND(AVG(CONVERT(FLOAT,e2_grade_percent)),0) AS e2_all
+  FROM KIPP_NJ..GRADES$final_grades_wide#static
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  GROUP BY student_number
  )
 
-,roster AS (
-  SELECT c.year
-        ,c.student_number
-        ,c.studentid
-        ,c.lastfirst
-        ,c.first_name
-        ,c.last_name                        
-        ,c.gender
-        ,CONVERT(VARCHAR,c.DOB,101) AS dob
-        ,c.student_web_id
-        ,c.student_web_password
-        ,c.home_phone
-        ,c.mother_cell
-        ,c.father_cell
-        ,c.grade_level AS grade_level
-        ,c.cohort AS classof
-        ,c.guardianemail
-        ,c.advisor
-        ,c.SPEDLEP AS SPED
-        ,c.SID
-        ,COUNT(*) OVER(PARTITION BY c.grade_level) AS in_grade_denom
-  FROM KIPP_NJ..COHORT$identifiers_long#static c WITH (NOLOCK)  
-  WHERE c.year = dbo.fn_Global_Academic_Year()
-    AND c.rn = 1        
-    AND c.schoolid = 73253
-    AND c.enroll_status = 0
+,failing AS (
+  SELECT student_number
+        ,COUNT(sectionid) AS n_failing
+        ,KIPP_NJ.dbo.GROUP_CONCAT_DS(course_name, CHAR(10), 1) AS failing_courses
+  FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND is_curterm = 1
+    AND y1_grade_percent_adjusted < 70
+  GROUP BY student_number
+ )
+
+,disc_counts AS (
+  SELECT studentid
+        ,[Class Removal] AS n_removals_yr
+        ,[ISS] AS n_iss_yr
+        ,[OSS] AS n_oss_yr
+  FROM
+      (
+       SELECT studentid
+             ,subtype
+             ,COUNT(DCID) AS n_logs_yr
+       FROM KIPP_NJ..DISC$log#static WITH(NOLOCK)
+       WHERE academic_Year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       AND subtype IN ('Class Removal','ISS','OSS')
+       GROUP BY studentid, subtype
+      ) sub
+  PIVOT(
+    MAX(n_logs_yr)
+    FOR subtype IN ([Class Removal],[ISS],[OSS])
+   ) p
  )
 
 SELECT ROW_NUMBER() OVER(          
@@ -442,329 +445,317 @@ SELECT ROW_NUMBER() OVER(
         WHEN status_yr = 'Met Goal' THEN 4
        END AS points_yr_prof
 FROM
-     (
-      SELECT roster.*            
+    (
+     SELECT roster.year
+           ,roster.student_number
+           ,roster.studentid
+           ,roster.lastfirst
+           ,roster.first_name
+           ,roster.last_name                        
+           ,roster.gender
+           ,CONVERT(VARCHAR,roster.DOB,101) AS dob
+           ,roster.student_web_id
+           ,roster.student_web_password
+           ,roster.home_phone
+           ,roster.mother_cell
+           ,roster.father_cell
+           ,roster.grade_level AS grade_level
+           ,roster.cohort AS classof
+           ,roster.guardianemail
+           ,roster.advisor
+           ,roster.SPEDLEP AS SPED
+           ,roster.SID
+           ,COUNT(roster.student_number) OVER(PARTITION BY roster.grade_level) AS in_grade_denom
       
-      --Attendance
-      --ATT_MEM$attendance_percentages
-      --ATT_MEM$attendance_counts
-            --year
-            ,ROUND(att_pct.Y1_att_pct_total,0) AS att_pct_yr
-            ,ROUND(att_counts.Y1_ABS_ALL,0) AS att_counts_yr
-            ,CONVERT(VARCHAR,ROUND(att_pct.Y1_att_pct_total,0))
-              + '% ('
-              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.Y1_ABS_ALL))
-              + ')'                                     
-               AS att_pct_counts_yr
-            ,CONVERT(VARCHAR,(100 - ROUND(att_pct.Y1_tardy_pct_total,0)))
-              + '% ('
-              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.Y1_T_ALL))
-              + ')'                                     
-               AS on_time_pct
-            ,(100 - ROUND(att_pct.Y1_tardy_pct_total,0)) AS inv_tardy_pct_yr
-            ,att_counts.Y1_T_ALL AS tardy_count_yr
-            ,att_counts.Y1_OSS + Y1_ISS AS suspensions
-            ,att_counts.Y1_ISS AS ISS
-            ,att_counts.Y1_OSS AS OSS
+           /* ATTENDANCE */            
+           ,ROUND((att_counts.ABS_ALL_counts_yr / att_counts.MEM_counts_yr) * 100,0) AS att_pct_yr
+           ,ROUND(att_counts.ABS_ALL_counts_yr,0) AS att_counts_yr
+           ,CONVERT(VARCHAR,ROUND((att_counts.ABS_ALL_counts_yr / att_counts.MEM_counts_yr) * 100,0)) + '% ('
+              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.ABS_ALL_counts_yr)) + ')' AS att_pct_counts_yr
+           ,CONVERT(VARCHAR,ROUND((100 - (att_counts.TDY_all_counts_yr / att_counts.MEM_counts_yr)) * 100,0)) + '% ('
+              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.TDY_ALL_counts_yr)) + ')' AS on_time_pct
+           ,ROUND((100 - (att_counts.TDY_all_counts_yr / att_counts.MEM_counts_yr)) * 100,0) AS inv_tardy_pct_yr
+           ,att_counts.TDY_ALL_counts_yr AS tardy_count_yr
+           ,att_counts.OSS_counts_yr + ISS_counts_yr AS suspensions
+           ,att_counts.ISS_counts_yr AS ISS
+           ,att_counts.OSS_counts_yr AS OSS
            
-      --GPA
-      --GPA$detail#nca
-      --GRADES$GPA_cumulative#static
-            --current SY
-            ,nca_gpa.gpa_Y1 AS gpa_ytd      
-            --cumulative (all years)
-            ,gpa_cumulative.cumulative_Y1_gpa AS gpa_cum
-            ,earned_credits_cum
+           /* GPA */
+           ,nca_gpa.GPA_Y1 AS gpa_ytd                  
+           ,gpa_cumulative.cumulative_Y1_gpa AS gpa_cum
+           ,gpa_cumulative.earned_credits_cum
             
-      --Course Grades
-      --GRADES$wide_all     
-            ,gr_wide.AY_all                
-            ,gr_wide.HY_all     
-            ,gr_wide.PY_all
-            --,gr_wide.CY_all
-            ,gr_wide.E1_all
-            ,gr_wide.E2_all
-            ,gr_wide.rc1_course_name
-            ,gr_wide.rc1_Y1
-            ,gr_wide.rc1_Q1
-            ,gr_wide.rc1_Q2
-            ,gr_wide.rc1_Q3
-            ,gr_wide.rc1_Q4           
-            ,gr_wide.rc2_course_name
-            ,gr_wide.rc2_Y1
-            ,gr_wide.rc2_Q1
-            ,gr_wide.rc2_Q2
-            ,gr_wide.rc2_Q3
-            ,gr_wide.rc2_Q4
-            ,gr_wide.rc3_course_name
-            ,gr_wide.rc3_Y1
-            ,gr_wide.rc3_Q1
-            ,gr_wide.rc3_Q2
-            ,gr_wide.rc3_Q3
-            ,gr_wide.rc3_Q4
-            ,gr_wide.rc4_course_name
-            ,gr_wide.rc4_Y1
-            ,gr_wide.rc4_Q1
-            ,gr_wide.rc4_Q2
-            ,gr_wide.rc4_Q3
-            ,gr_wide.rc4_Q4
-            ,gr_wide.rc5_course_name
-            ,gr_wide.rc5_Y1
-            ,gr_wide.rc5_Q1
-            ,gr_wide.rc5_Q2
-            ,gr_wide.rc5_Q3
-            ,gr_wide.rc5_Q4
-            ,gr_wide.rc6_course_name
-            ,gr_wide.rc6_Y1
-            ,gr_wide.rc6_Q1
-            ,gr_wide.rc6_Q2
-            ,gr_wide.rc6_Q3
-            ,gr_wide.rc6_Q4
-            ,gr_wide.rc7_course_name
-            ,gr_wide.rc7_Y1
-            ,gr_wide.rc7_Q1
-            ,gr_wide.rc7_Q2
-            ,gr_wide.rc7_Q3
-            ,gr_wide.rc7_Q4
-            ,gr_wide.rc8_course_name
-            ,gr_wide.rc8_Y1
-            ,gr_wide.rc8_Q1
-            ,gr_wide.rc8_Q2
-            ,gr_wide.rc8_Q3
-            ,gr_wide.rc8_Q4
-            ,gr_wide.rc9_course_name
-            ,gr_wide.rc9_Y1
-            ,gr_wide.rc9_Q1
-            ,gr_wide.rc9_Q2
-            ,gr_wide.rc9_Q3
-            ,gr_wide.rc9_Q4
-            ,gr_wide.rc10_course_name
-            ,gr_wide.rc10_Y1
-            ,gr_wide.rc10_Q1
-            ,gr_wide.rc10_Q2
-            ,gr_wide.rc10_Q3
-            ,gr_wide.rc10_Q4
-            ,ele_a.grade_1 AS a1
-            ,ele_a.grade_2 AS a2
-            ,ele_a.grade_3 AS a3
-            ,ele_a.grade_4 AS a4
-            ,ele_c.grade_1 AS c1
-            ,ele_c.grade_2 AS c2
-            ,ele_c.grade_3 AS c3
-            ,ele_c.grade_4 AS c4
-            ,ele_e.grade_1 AS e1
-            ,ele_e.grade_2 AS e2
-            ,ele_e.grade_3 AS e3
-            ,ele_e.grade_4 AS e4
-            ,ele_h.grade_1 AS h1
-            ,ele_h.grade_2 AS h2
-            ,ele_h.grade_3 AS h3
-            ,ele_h.grade_4 AS h4
-            ,ele_p.grade_1 AS p1
-            ,ele_p.grade_2 AS p2
-            ,ele_p.grade_3 AS p3
-            ,ele_p.grade_4 AS p4
-            ,rc.rc1 AS rc1_cur
-            ,rc.rc2 AS rc2_cur
-            ,rc.rc3 AS rc3_cur
-            ,rc.rc4 AS rc4_cur
-            ,rc.rc5 AS rc5_cur
-            ,rc.rc6 AS rc6_cur
-            ,rc.rc7 AS rc7_cur
-            ,rc.rc8 AS rc8_cur
-            ,rc.rc9 AS rc9_cur
-            ,rc.rc10 AS rc10_cur
+           /* COURSE GRADES */
+           ,gr_wide.rc01_course_name AS rc1_course_name
+           ,gr_wide.rc01_y1_grade_percent AS rc1_Y1
+           ,gr_wide.rc01_RT1_term_grade_percent AS rc1_Q1
+           ,gr_wide.rc01_RT2_term_grade_percent AS rc1_Q2
+           ,gr_wide.rc01_RT3_term_grade_percent AS rc1_Q3
+           ,gr_wide.rc01_RT4_term_grade_percent AS rc1_Q4
+           ,gr_wide.rc01_CUR_term_grade_percent AS rc1_cur
             
-            --On-track?
-            ,fail.courses
-            ,CASE
-              WHEN fail.num_failing IS NULL THEN 0
-              ELSE fail.num_failing
-             END AS num_failing
+           ,gr_wide.rc02_course_name AS rc2_course_name
+           ,gr_wide.rc02_y1_grade_percent AS rc2_Y1
+           ,gr_wide.rc02_RT1_term_grade_percent AS rc2_Q1
+           ,gr_wide.rc02_RT2_term_grade_percent AS rc2_Q2
+           ,gr_wide.rc02_RT3_term_grade_percent AS rc2_Q3
+           ,gr_wide.rc02_RT4_term_grade_percent AS rc2_Q4
+           ,gr_wide.rc02_CUR_term_grade_percent AS rc2_cur
             
-      --Ed Tech
-      --AR$progress_to_goals_long#static
+           ,gr_wide.rc03_course_name AS rc3_course_name
+           ,gr_wide.rc03_y1_grade_percent AS rc3_Y1
+           ,gr_wide.rc03_RT1_term_grade_percent AS rc3_Q1
+           ,gr_wide.rc03_RT2_term_grade_percent AS rc3_Q2
+           ,gr_wide.rc03_RT3_term_grade_percent AS rc3_Q3
+           ,gr_wide.rc03_RT4_term_grade_percent AS rc3_Q4
+           ,gr_wide.rc03_CUR_term_grade_percent AS rc3_cur
+            
+           ,gr_wide.rc04_course_name AS rc4_course_name
+           ,gr_wide.rc04_y1_grade_percent AS rc4_Y1
+           ,gr_wide.rc04_RT1_term_grade_percent AS rc4_Q1
+           ,gr_wide.rc04_RT2_term_grade_percent AS rc4_Q2
+           ,gr_wide.rc04_RT3_term_grade_percent AS rc4_Q3
+           ,gr_wide.rc04_RT4_term_grade_percent AS rc4_Q4
+           ,gr_wide.rc04_CUR_term_grade_percent AS rc4_cur
+            
+           ,gr_wide.rc05_course_name AS rc5_course_name
+           ,gr_wide.rc05_y1_grade_percent AS rc5_Y1
+           ,gr_wide.rc05_RT1_term_grade_percent AS rc5_Q1
+           ,gr_wide.rc05_RT2_term_grade_percent AS rc5_Q2
+           ,gr_wide.rc05_RT3_term_grade_percent AS rc5_Q3
+           ,gr_wide.rc05_RT4_term_grade_percent AS rc5_Q4
+           ,gr_wide.rc05_CUR_term_grade_percent AS rc5_cur
+            
+           ,gr_wide.rc06_course_name AS rc6_course_name
+           ,gr_wide.rc06_y1_grade_percent AS rc6_Y1
+           ,gr_wide.rc06_RT1_term_grade_percent AS rc6_Q1
+           ,gr_wide.rc06_RT2_term_grade_percent AS rc6_Q2
+           ,gr_wide.rc06_RT3_term_grade_percent AS rc6_Q3
+           ,gr_wide.rc06_RT4_term_grade_percent AS rc6_Q4
+           ,gr_wide.rc06_CUR_term_grade_percent AS rc6_cur
+            
+           ,gr_wide.rc07_course_name AS rc7_course_name
+           ,gr_wide.rc07_y1_grade_percent AS rc7_Y1
+           ,gr_wide.rc07_RT1_term_grade_percent AS rc7_Q1
+           ,gr_wide.rc07_RT2_term_grade_percent AS rc7_Q2
+           ,gr_wide.rc07_RT3_term_grade_percent AS rc7_Q3
+           ,gr_wide.rc07_RT4_term_grade_percent AS rc7_Q4
+           ,gr_wide.rc07_CUR_term_grade_percent AS rc7_cur
+            
+           ,gr_wide.rc08_course_name AS rc8_course_name
+           ,gr_wide.rc08_y1_grade_percent AS rc8_Y1
+           ,gr_wide.rc08_RT1_term_grade_percent AS rc8_Q1
+           ,gr_wide.rc08_RT2_term_grade_percent AS rc8_Q2
+           ,gr_wide.rc08_RT3_term_grade_percent AS rc8_Q3
+           ,gr_wide.rc08_RT4_term_grade_percent AS rc8_Q4
+           ,gr_wide.rc08_CUR_term_grade_percent AS rc8_cur
+            
+           ,gr_wide.rc09_course_name AS rc9_course_name
+           ,gr_wide.rc09_y1_grade_percent AS rc9_Y1
+           ,gr_wide.rc09_RT1_term_grade_percent AS rc9_Q1
+           ,gr_wide.rc09_RT2_term_grade_percent AS rc9_Q2
+           ,gr_wide.rc09_RT3_term_grade_percent AS rc9_Q3
+           ,gr_wide.rc09_RT4_term_grade_percent AS rc9_Q4
+           ,gr_wide.rc09_CUR_term_grade_percent AS rc9_cur
+            
+           ,gr_wide.rc10_course_name AS rc10_course_name
+           ,gr_wide.rc10_y1_grade_percent AS rc10_Y1
+           ,gr_wide.rc10_RT1_term_grade_percent AS rc10_Q1
+           ,gr_wide.rc10_RT2_term_grade_percent AS rc10_Q2
+           ,gr_wide.rc10_RT3_term_grade_percent AS rc10_Q3
+           ,gr_wide.rc10_RT4_term_grade_percent AS rc10_Q4
+           ,gr_wide.rc10_CUR_term_grade_percent AS rc10_cur
 
-            --Accelerated Reader      
-            --AR year
-            ,CONVERT(FLOAT,ar_cur.points) AS points_cur
-            ,ar_cur.points_goal AS points_goal_cur
-            ,ar_cur.stu_status_points AS status_cur
-            ,CONVERT(FLOAT,ar_yr.points) AS points_yr
-            ,ar_yr.points_goal AS points_goal_yr
-            ,ar_yr.stu_status_points AS status_yr
-
-      --MAP & Lexile scores
-      --MAP$comprehensive#identifiers
-            ,COALESCE(map_sci_cur.percentile_2011_norms, map_sci_base.testpercentile) AS map_sci_pct
-            ,COALESCE(map_sci_cur.testritscore, map_sci_base.testritscore) AS map_sci_rit
-            ,COALESCE(map_math_cur.percentile_2011_norms, map_math_base.testpercentile) AS map_math_pct
-            ,COALESCE(map_math_cur.testritscore, map_math_base.testritscore) AS map_math_rit
-            ,COALESCE(map_read_cur.percentile_2011_norms, map_read_base.testpercentile) AS map_read_pct
-            ,COALESCE(map_read_cur.testritscore, map_read_base.testritscore) AS map_read_rit
-            ,COALESCE(map_read_cur.rittoreadingscore, map_read_base.lexile_score) AS lexile_cur
-            ,map_read_cur.rittoreadingmin AS lexile_min
-            ,map_read_cur.rittoreadingmax AS lexile_max
-          
-      --Discipline
-      --DISC$merits_demerits_count#NCA
-            --Merits
-            --year      
-            ,merits.total_merits_y1 AS merits_yr      
-            --current            
-            ,merits.total_merits_cur    AS merits_curr /*--UPDATE FIELD FOR CURRENT TERM--*/
+           ,exams.E1_all
+           ,exams.E2_all
             
-            --Demerits
-            --year
-            ,merits.total_demerits_y1 AS demerits_yr
-            --current
-            ,merits.total_demerits_cur AS demerits_curr /*--UPDATE FIELD FOR CURRENT TERM--*/
-            ,disc.subtype
-            ,disc.entry_date
-            ,merits.iss_y1 AS disc_ISS
-            ,merits.OSS_y1 AS disc_OSS
-            ,merits.detention_y1 AS detentions
-            ,dcounts.class_removal
+           ,cat.A_Y1 AS AY_all                
+           ,cat.H_Y1 AS HY_all     
+           ,cat.P_Y1 AS PY_all
+           ,cat.C_Y1 AS CY_all            
+           ,cat.A_RT1 AS a1
+           ,cat.A_RT2 AS a2
+           ,cat.A_RT3 AS a3
+           ,cat.A_RT4 AS a4
+           ,cat.C_RT1 AS c1
+           ,cat.C_RT2 AS c2
+           ,cat.C_RT3 AS c3
+           ,cat.C_RT4 AS c4            
+           ,cat.H_RT1 AS h1
+           ,cat.H_RT2 AS h2
+           ,cat.H_RT3 AS h3
+           ,cat.H_RT4 AS h4
+           ,cat.P_RT1 AS p1
+           ,cat.P_RT2 AS p2
+           ,cat.P_RT3 AS p3
+           ,cat.P_RT4 AS p4            
             
-      --College test scores
-      --KTC$highest_scores_wide
-            ,ktc.PSAT_highest_math
-            ,ktc.PSAT_highest_verbal
-            ,ktc.PSAT_highest_writing
-            ,ktc.PSAT_highest_combined
-            ,ktc.SAT_highest_math
-            ,ktc.SAT_highest_verbal
-            ,ktc.SAT_highest_writing
-            ,ktc.SAT_highest_math_verbal
-            ,ktc.SAT_highest_combined
-            ,ktc.ACT_highest_math
-            ,ktc.ACT_highest_english
-            ,ktc.ACT_highest_reading
-            ,ktc.ACT_highest_science
-            ,ktc.ACT_highest_composite
-      --HSPA
-            ,hspa.LAL_scale_score AS HSPA_LAL_scale
-            ,hspa.LAL_proficiency AS HSPA_LAL_prof
-            ,hspa.Math_scale_score AS HSPA_math_scale
-            ,hspa.Math_proficiency AS HSPA_math_prof
-
-      FROM roster WITH (NOLOCK)
-       
-      --ATTENDANCE
-      LEFT OUTER JOIN ATT_MEM$attendance_counts#static att_counts WITH (NOLOCK)
-        ON roster.studentid = att_counts.studentid
-      LEFT OUTER JOIN ATT_MEM$att_percentages att_pct WITH (NOLOCK)
-        ON roster.studentid = att_pct.studentid
-        
-      --GPA
-      LEFT OUTER JOIN GPA$detail#NCA nca_gpa WITH (NOLOCK)
-        ON roster.studentid = nca_gpa.studentid      
-      LEFT OUTER JOIN GRADES$GPA_cumulative#static gpa_cumulative WITH (NOLOCK)
-        ON roster.studentid = gpa_cumulative.studentid
-       AND gpa_cumulative.schoolid = 73253
-        
-      --GRADES
-      LEFT OUTER JOIN GRADES$wide_all#NCA#static gr_wide WITH (NOLOCK)
-        ON roster.studentid = gr_wide.studentid
-      LEFT OUTER JOIN (
-                       SELECT studentid
-                             ,COUNT(fail.y1) AS num_failing
-                             ,dbo.GROUP_CONCAT_DS(fail.course_name, CHAR(10), 1) AS courses
-                       FROM GRADES$DETAIL#NCA fail WITH (NOLOCK)
-                       WHERE fail.y1 < 70                         
-                       GROUP BY studentid
-                      ) fail
-        ON roster.studentid = fail.studentid
-      LEFT OUTER JOIN GRADES$elements ele_a WITH (NOLOCK)
-        ON roster.studentid = ele_a.studentid
-       AND ele_a.schoolid = 73253
-       AND ele_a.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
-       AND ele_a.course_number = 'all_courses'
-       AND ele_a.pgf_type = 'A'
-      LEFT OUTER JOIN GRADES$elements ele_c WITH (NOLOCK)
-        ON roster.studentid = ele_c.studentid
-       AND ele_c.schoolid = 73253
-       AND ele_c.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
-       AND ele_c.course_number = 'all_courses'
-       AND ele_c.pgf_type = 'C'
-      LEFT OUTER JOIN GRADES$elements ele_e WITH (NOLOCK)
-        ON roster.studentid = ele_e.studentid
-       AND ele_e.schoolid = 73253
-       AND ele_e.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
-       AND ele_e.course_number = 'all_courses'
-       AND ele_e.pgf_type = 'E'
-      LEFT OUTER JOIN GRADES$elements ele_h WITH (NOLOCK)
-        ON roster.studentid = ele_h.studentid
-       AND ele_h.schoolid = 73253
-       AND ele_h.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
-       AND ele_h.course_number = 'all_courses'
-       AND ele_h.pgf_type = 'H'
-      LEFT OUTER JOIN GRADES$elements ele_p WITH (NOLOCK)
-        ON roster.studentid = ele_p.studentid
-       AND ele_p.schoolid = 73253
-       AND ele_p.yearid = LEFT(dbo.fn_Global_Term_Id(),2)
-       AND ele_p.course_number = 'all_courses'
-       AND ele_p.pgf_type = 'P'
-      LEFT OUTER JOIN GRADES$rc_grades_by_term rc WITH(NOLOCK)
-        ON roster.studentid = rc.studentid
-       --AND rc.term IN (SELECT term FROM curterm WITH(NOLOCK))
-       AND rc.term = 'Q2'
-        
-      --ED TECH
-        --ACCELERATED READER
-      LEFT OUTER JOIN AR$progress_to_goals_long#static ar_cur WITH (NOLOCK)
-        ON roster.studentid = ar_cur.studentid             
-       AND roster.year = ar_cur.academic_year       
-       AND GETDATE() BETWEEN ar_cur.start_date AND ar_cur.end_date       
-       AND ar_cur.time_hierarchy = 2
-      LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
-        ON roster.studentid = ar_yr.studentid      
-       AND roster.year = ar_yr.academic_year       
-       AND ar_yr.time_hierarchy = 1 
-       
-      --MAP
-      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_read_cur WITH (NOLOCK)
-        ON roster.studentid = map_read_cur.ps_studentid
-       AND map_read_cur.measurementscale  = 'Reading'
-       AND map_read_cur.map_year_academic = dbo.fn_Global_Academic_Year()
-       AND map_read_cur.rn_curr = 1
-      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_read_base WITH (NOLOCK)
-        ON roster.studentid = map_read_base.studentid
-       AND map_read_base.measurementscale  = 'Reading'
-       AND map_read_base.year = dbo.fn_Global_Academic_Year()       
-      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_math_cur WITH (NOLOCK)
-        ON roster.studentid = map_math_cur.ps_studentid
-       AND map_math_cur.measurementscale = 'Mathematics'
-       AND map_math_cur.map_year_academic = dbo.fn_Global_Academic_Year()
-       AND map_math_cur.rn_curr = 1
-      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_math_base WITH (NOLOCK)
-        ON roster.studentid = map_math_base.studentid
-       AND map_math_base.measurementscale  = 'Mathematics'
-       AND map_math_base.year = dbo.fn_Global_Academic_Year()       
-      LEFT OUTER JOIN KIPP_NJ..MAP$comprehensive#identifiers map_sci_cur WITH (NOLOCK)
-        ON roster.studentid = map_sci_cur.ps_studentid
-       AND map_sci_cur.measurementscale = 'Science - General Science'
-       AND map_sci_cur.map_year_academic = dbo.fn_Global_Academic_Year()
-       AND map_sci_cur.rn_curr = 1
-      LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_sci_base WITH (NOLOCK)
-        ON roster.studentid = map_sci_base.studentid
-       AND map_sci_base.measurementscale  = 'Science - General Science'
-       AND map_sci_base.year = dbo.fn_Global_Academic_Year()       
-
-      --MERITS & DEMERITS
-      LEFT OUTER JOIN DISC$culture_counts#NCA merits WITH (NOLOCK)
-        ON roster.studentid = merits.studentid
-      LEFT OUTER JOIN DISC$log#static disc WITH (NOLOCK)
-        ON roster.studentid = disc.studentid       
-       AND roster.year = disc.academic_year
-       AND disc.logtypeid = 3023      
-       AND disc.rn = 1
-      LEFT OUTER JOIN DISC$counts_wide dcounts WITH (NOLOCK)
-        ON roster.studentid = dcounts.studentid             
+           /* PROMO */
+           ,failing.failing_courses AS courses
+           ,CASE WHEN failing.n_failing IS NULL THEN 0 ELSE failing.n_failing END AS num_failing            
       
-      --Test scores
-      LEFT OUTER JOIN KTC$highest_scores_wide ktc WITH(NOLOCK)
-        ON roster.student_number = ktc.student_number
-      LEFT OUTER JOIN HSPA$best_score hspa WITH(NOLOCK)
-        ON roster.SID = hspa.SID       
-     ) sub_1
+           /* AR */
+           ,CONVERT(FLOAT,ar_cur.points) AS points_cur
+           ,ar_cur.points_goal AS points_goal_cur
+           ,ar_cur.stu_status_points AS status_cur
+           ,CONVERT(FLOAT,ar_yr.points) AS points_yr
+           ,ar_yr.points_goal AS points_goal_yr
+           ,ar_yr.stu_status_points AS status_yr
+      
+           /* MAP */
+           ,COALESCE(map_sci_cur.percentile_2011_norms, map_sci_base.testpercentile) AS map_sci_pct
+           ,COALESCE(map_sci_cur.testritscore, map_sci_base.testritscore) AS map_sci_rit
+           ,COALESCE(map_math_cur.percentile_2011_norms, map_math_base.testpercentile) AS map_math_pct
+           ,COALESCE(map_math_cur.testritscore, map_math_base.testritscore) AS map_math_rit
+           ,COALESCE(map_read_cur.percentile_2011_norms, map_read_base.testpercentile) AS map_read_pct
+           ,COALESCE(map_read_cur.testritscore, map_read_base.testritscore) AS map_read_rit
+           ,COALESCE(map_read_cur.rittoreadingscore, map_read_base.lexile_score) AS lexile_cur
+           ,map_read_cur.rittoreadingmin AS lexile_min
+           ,map_read_cur.rittoreadingmax AS lexile_max          
+      
+           /* DISC */
+           ,merits.n_logs_yr AS merits_yr                  
+           ,merits.n_logs_term AS merits_curr
+           ,demerits.n_logs_yr AS demerits_yr                  
+           ,demerits.n_logs_term AS demerits_curr
+           ,detentions.n_logs_yr AS detentions
+            
+           ,disc.subtype
+           ,disc.entry_date
+            
+           ,ISNULL(disc_counts.n_removals_yr,0) AS class_removal
+           ,ISNULL(disc_counts.n_iss_yr,0) AS disc_ISS
+           ,ISNULL(disc_counts.n_oss_yr,0) AS disc_OSS
+            
+           /* STANDARDIZED TESTS */
+           ,ktc.PSAT_highest_math
+           ,ktc.PSAT_highest_verbal
+           ,ktc.PSAT_highest_writing
+           ,ktc.PSAT_highest_combined
+           ,ktc.SAT_highest_math
+           ,ktc.SAT_highest_verbal
+           ,ktc.SAT_highest_writing
+           ,ktc.SAT_highest_math_verbal
+           ,ktc.SAT_highest_combined
+           ,ktc.ACT_highest_math
+           ,ktc.ACT_highest_english
+           ,ktc.ACT_highest_reading
+           ,ktc.ACT_highest_science
+           ,ktc.ACT_highest_composite
+                        
+           ,hspa.LAL_scale_score AS HSPA_LAL_scale
+           ,hspa.LAL_proficiency AS HSPA_LAL_prof
+           ,hspa.Math_scale_score AS HSPA_math_scale
+           ,hspa.Math_proficiency AS HSPA_math_prof
+
+     FROM KIPP_NJ..COHORT$identifiers_long#static roster WITH(NOLOCK) 
+     JOIN KIPP_NJ..REPORTING$dates curterm WITH(NOLOCK)
+       ON roster.schoolid = curterm.schoolid
+      AND CONVERT(DATE,GETDATE()) BETWEEN curterm.start_date AND curterm.end_date 
+      AND curterm.identifier = 'RT'    
+
+     /* ATTENDANCE */
+     LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH(NOLOCK)
+       ON roster.studentid = att_counts.studentid     
+      AND roster.year = att_counts.academic_year
+      AND curterm.alt_name = att_counts.term
+        
+     /* GPA */
+     LEFT OUTER JOIN GRADES$GPA_detail_long#static nca_gpa WITH(NOLOCK)
+       ON roster.student_number = nca_gpa.student_number      
+      AND roster.year = nca_gpa.academic_year
+      AND nca_gpa.is_curterm = 1
+     LEFT OUTER JOIN GRADES$GPA_cumulative#static gpa_cumulative WITH(NOLOCK)
+       ON roster.studentid = gpa_cumulative.studentid
+      AND roster.schoolid = gpa_cumulative.schoolid
+        
+     /* GRADES */
+     LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_wide_course#static gr_wide WITH(NOLOCK)
+       ON roster.student_number = gr_wide.student_number
+      AND roster.year = gr_wide.academic_year
+      AND curterm.alt_name = gr_wide.term
+     LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide#static cat WITH(NOLOCK)
+       ON roster.student_number = cat.student_number
+      AND roster.year = cat.academic_year
+      AND curterm.time_per_name = cat.reporting_term
+      AND cat.COURSE_NUMBER = 'ALL'
+     LEFT OUTER JOIN exams
+       ON roster.student_number = exams.student_number        
+     LEFT OUTER JOIN failing
+       ON roster.student_number = failing.student_number
+      
+     /* ACCELERATED READER */
+     LEFT OUTER JOIN AR$progress_to_goals_long#static ar_cur WITH (NOLOCK)
+       ON roster.studentid = ar_cur.studentid             
+      AND roster.year = ar_cur.academic_year       
+      AND GETDATE() BETWEEN ar_cur.start_date AND ar_cur.end_date       
+      AND ar_cur.time_hierarchy = 2
+     LEFT OUTER JOIN AR$progress_to_goals_long#static ar_yr WITH (NOLOCK)
+       ON roster.studentid = ar_yr.studentid      
+      AND roster.year = ar_yr.academic_year       
+      AND ar_yr.time_hierarchy = 1 
+       
+     /* MAP */
+     LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_read_cur WITH (NOLOCK)
+       ON roster.student_number = map_read_cur.student_number       
+      AND roster.year = map_read_cur.academic_year
+      AND map_read_cur.measurementscale  = 'Reading'
+      AND map_read_cur.rn_curr = 1
+     LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_read_base WITH (NOLOCK)
+       ON roster.studentid = map_read_base.studentid
+      AND roster.year = map_read_base.year
+      AND map_read_base.measurementscale  = 'Reading'             
+     LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_math_cur WITH (NOLOCK)
+       ON roster.student_number = map_math_cur.student_number
+      AND roster.year = map_math_cur.academic_year
+      AND map_math_cur.measurementscale = 'Mathematics'       
+      AND map_math_cur.rn_curr = 1
+     LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_math_base WITH (NOLOCK)
+       ON roster.studentid = map_math_base.studentid
+      AND roster.year = map_math_base.year
+      AND map_math_base.measurementscale  = 'Mathematics'             
+     LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_sci_cur WITH (NOLOCK)
+       ON roster.student_number = map_sci_cur.student_number
+      AND roster.year = map_sci_cur.academic_Year
+      AND map_sci_cur.measurementscale = 'Science - General Science'       
+      AND map_sci_cur.rn_curr = 1
+     LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static map_sci_base WITH (NOLOCK)
+       ON roster.studentid = map_sci_base.studentid
+      AND roster.year = map_sci_base.year
+      AND map_sci_base.measurementscale  = 'Science - General Science'       
+
+     --MERITS & DEMERITS
+     LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long#static merits WITH(NOLOCK)
+       ON roster.student_number = merits.student_number
+      AND roster.year = merits.academic_year
+      AND curterm.alt_name = merits.term
+      AND merits.logtypeid = 3023
+     LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long#static demerits WITH(NOLOCK)
+       ON roster.student_number = demerits.student_number
+      AND roster.year = demerits.academic_year
+      AND curterm.alt_name = demerits.term
+      AND demerits.logtypeid = 3223
+     LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long#static detentions WITH(NOLOCK)
+       ON roster.student_number = detentions.student_number
+      AND roster.year = detentions.academic_year
+      AND curterm.alt_name = detentions.term
+      AND detentions.logtypeid = -100000
+     LEFT OUTER JOIN DISC$log#static disc WITH(NOLOCK)
+       ON roster.studentid = disc.studentid       
+      AND roster.year = disc.academic_year
+      AND disc.logtypeid = 3023      
+      AND disc.rn = 1
+     LEFT OUTER JOIN disc_counts
+       ON roster.studentid = disc_counts.studentid             
+      
+     /* STANDARDIZED TESTS */
+     LEFT OUTER JOIN KIPP_NJ..KTC$highest_scores_wide ktc WITH(NOLOCK)
+       ON roster.student_number = ktc.student_number
+     LEFT OUTER JOIN KIPP_NJ..HSPA$best_score hspa WITH(NOLOCK)
+       ON roster.SID = hspa.SID       
+
+     WHERE roster.year = dbo.fn_Global_Academic_Year()
+       AND roster.rn = 1        
+       AND roster.schoolid = 73253
+       AND roster.enroll_status = 0
+    ) sub_1

@@ -129,10 +129,10 @@ SELECT roster.studentid
       ,enr.course_name
 
       /* grades */
-      ,gr_cur.term_pct AS cur_term_rdg_gr
-      ,gr.Y1 AS y1_rdg_gr
-      ,ele.grade AS cur_term_rdg_hw_avg
-      ,ele_y1.grade AS y1_rdg_hw_avg
+      ,gr.term_grade_percent AS cur_term_rdg_gr
+      ,gr.y1_grade_percent_adjusted AS y1_rdg_gr
+      ,ele.H_CUR AS cur_term_rdg_hw_avg
+      ,ele.H_Y1 AS y1_rdg_hw_avg
       
       /* F&P */
       ,fp_base.read_lvl AS fp_base_letter
@@ -232,25 +232,15 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr
  AND roster.year = enr.academic_year
  AND enr.credittype = 'ENG'
  AND CONVERT(DATE,GETDATE()) BETWEEN enr.dateenrolled AND enr.dateleft
-LEFT OUTER JOIN KIPP_NJ..GRADES$DETAIL#MS gr WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
   ON roster.studentid = gr.studentid
  AND enr.course_number = gr.course_number
-LEFT OUTER JOIN KIPP_NJ..GRADES$detail_long#static gr_cur WITH(NOLOCK)
-  ON roster.studentid = gr_cur.studentid
- AND enr.COURSE_NUMBER = gr_cur.course_number
- AND curhex.alt_name = gr_cur.term 
-LEFT OUTER JOIN KIPP_NJ..GRADES$elements_long ele WITH(NOLOCK)
-  ON roster.studentid = ele.studentid
- AND roster.year = ele.academic_year
- AND curhex.alt_name = ele.term
- AND gr.course_number = ele.course_number  
- AND ele.pgf_type = 'H'
-LEFT OUTER JOIN KIPP_NJ..GRADES$elements_long ele_y1 WITH(NOLOCK)
-  ON roster.studentid = ele_y1.studentid
- AND roster.year = ele_y1.academic_year 
- AND gr.course_number = ele_y1.course_number  
- AND ele_y1.term = 'Y1'
- AND ele_y1.pgf_type = 'H'
+ AND gr.is_curterm = 1
+LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide#static ele WITH(NOLOCK)
+  ON roster.student_number = ele.student_number
+ AND roster.year = ele.academic_year 
+ AND gr.course_number = ele.course_number   
+ AND ele.is_curterm = 1
 LEFT OUTER JOIN fp fp_base
   ON roster.studentid = fp_base.STUDENTID
  AND fp_base.rn_base = 1

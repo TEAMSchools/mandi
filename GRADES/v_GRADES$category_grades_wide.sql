@@ -49,6 +49,7 @@ WITH course_order AS (
         ,cat.teacher_name
         ,cat.reporting_term
         ,cat.rt
+        ,cat.is_curterm
         ,cat.grade_category
         ,cat.grade_category_pct
         ,o.class_rn
@@ -70,6 +71,7 @@ WITH course_order AS (
         ,NULL AS teacher_name
         ,cat.reporting_term      
         ,cat.rt
+        ,cat.is_curterm
         ,cat.grade_category
         ,ROUND(AVG(cat.grade_category_pct),0)
         ,NULL AS class_rn
@@ -81,6 +83,7 @@ WITH course_order AS (
           ,cat.reporting_term      
           ,cat.rt
           ,cat.grade_category
+          ,cat.is_curterm
 
   UNION ALL
 
@@ -93,6 +96,7 @@ WITH course_order AS (
         ,cat.teacher_name
         ,cat.reporting_term
         ,'CUR' AS rt
+        ,cat.is_curterm
         ,cat.grade_category
         ,cat.grade_category_pct
         ,o.class_rn
@@ -114,6 +118,7 @@ WITH course_order AS (
         ,NULL AS teacher_name
         ,cat.reporting_term
         ,'CUR' AS rt
+        ,cat.is_curterm
         ,cat.grade_category
         ,ROUND(AVG(cat.grade_category_pct),0)
         ,NULL AS class_rn
@@ -124,6 +129,7 @@ WITH course_order AS (
           ,cat.academic_year
           ,cat.reporting_term      
           ,cat.grade_category
+          ,cat.is_curterm
  )
 
 SELECT student_number
@@ -135,19 +141,20 @@ SELECT student_number
       ,sectionid
       ,teacher_name
       ,reporting_term      
+      ,is_curterm
       ,[A_CUR] /* assessments */
       ,[C_CUR] /* classwork */      
       ,[H_CUR] /* homework */
       ,[P_CUR] /* class performance */
       ,[S_CUR] /* summative assessments */
-      ,CASE WHEN schoolid = 73253 THEN NULL ELSE [E_CUR] END AS E_CUR /* homework quality */      
+      ,[E_CUR] /* homework quality for MS, exams for HS */      
       
       ,ROUND(AVG([A_CUR]) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY reporting_term ASC),0) AS A_Y1 
       ,ROUND(AVG([C_CUR]) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY reporting_term ASC),0) AS C_Y1      
       ,ROUND(AVG([H_CUR]) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY reporting_term ASC),0) AS H_Y1      
       ,ROUND(AVG([P_CUR]) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY reporting_term ASC),0) AS P_Y1
       ,ROUND(AVG([S_CUR]) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY reporting_term ASC),0) AS S_Y1
-      ,CASE WHEN schoolid = 73253 THEN NULL ELSE ROUND(AVG([E_CUR]) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY reporting_term ASC),0) END AS E_Y1
+      ,ROUND(AVG([E_CUR]) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY reporting_term ASC),0) AS E_Y1
 
       ,MAX([A_RT1]) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY reporting_term ASC) AS [A_RT1]
       ,MAX([A_RT2]) OVER(PARTITION BY student_number, academic_year, course_number ORDER BY reporting_term ASC) AS [A_RT2]
@@ -188,6 +195,7 @@ FROM
            ,sectionid
            ,teacher_name
            ,reporting_term           
+           ,is_curterm
            ,CONCAT(grade_category, '_', rt) AS pivot_field
            ,grade_category_pct           
      FROM grades_long

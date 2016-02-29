@@ -130,14 +130,11 @@ WITH map_data AS (
   FROM
       (
        SELECT student_number                      
-             ,CASE WHEN ROUND(GPA_y1_all,1) >= 3.0 THEN 100.0 ELSE 0.0 END AS GPA_is_above_30
-             ,CASE WHEN ROUND(GPA_y1_all,1) >= 3.5 THEN 100.0 ELSE 0.0 END AS GPA_is_above_35
-       FROM KIPP_NJ..GPA$detail#MS WITH(NOLOCK)
-       UNION ALL
-       SELECT student_number           
              ,CASE WHEN ROUND(GPA_y1,1) >= 3.0 THEN 100.0 ELSE 0.0 END AS GPA_is_above_30
              ,CASE WHEN ROUND(GPA_y1,1) >= 3.5 THEN 100.0 ELSE 0.0 END AS GPA_is_above_35
-       FROM KIPP_NJ..GPA$detail#NCA WITH(NOLOCK)
+       FROM KIPP_NJ..GRADES$GPA_detail_long#static WITH(NOLOCK)
+       WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND is_curterm = 1       
       ) sub
  )
 

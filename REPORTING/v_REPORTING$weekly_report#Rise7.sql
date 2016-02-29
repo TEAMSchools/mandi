@@ -12,7 +12,7 @@ WITH roster AS (
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
   WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND co.schoolid = 73252
-    AND co.grade_level >= 8
+    AND co.grade_level >= 7
     AND co.enroll_status = 0
     AND co.rn = 1
  )  
@@ -140,7 +140,7 @@ WITH roster AS (
              AND co.date = att.ATT_DATE
             WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
               AND co.schoolid = 73252
-              AND co.grade_level = 7
+              AND co.grade_level >= 7
               AND co.date <= CONVERT(DATE,GETDATE())
            ) sub
       ) sub

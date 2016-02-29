@@ -34,7 +34,11 @@ SELECT s.student_number
       ,s.advisor      
       ,s.term
       ,s.date
-      ,promo.promo_overall_rise AS promo_status_overall
+      
+      ,dt.time_per_name
+      
+      ,promo.promo_overall_rise AS promo_status_overall      
+      ,promo.attendance_points
       ,CASE
         WHEN s.schoolid = 73252 THEN promo.promo_grades_gpa_rise
         WHEN s.schoolid = 133570965 THEN promo.promo_grades_team 
@@ -46,17 +50,19 @@ SELECT s.student_number
       ,CASE
         WHEN s.schoolid = 73252 THEN promo.promo_hw_rise 
         WHEN s.schoolid = 133570965 THEN promo.promo_hw_team
-       END AS promo_status_hw
-      ,promo.attendance_points
-      ,rise_gpa.GPA_y1_all      
-      ,rise_gpa.n_failing_all      
-      ,dt.time_per_name
-      ,hwc.grade AS hwc_term
-      ,hwq.grade AS hwq_term
+       END AS promo_status_hw      
+      
+      ,rise_gpa.GPA_Y1 AS GPA_y1_all      
+      ,rise_gpa.n_failing_y1 AS n_failing_all      
+      
+      ,cat.H_CUR AS hwc_term
+      ,cat.E_CUR AS hwq_term
+      
       --,ts.HY AS hwc_y1
       --,ts.H_term AS hwc_term
       --,ts.EY AS hwq_y1
       --,ts.E_term AS hwq_term
+      
       ,ISNULL(disc_count.silent_lunches,0) AS silent_lunches
       ,ISNULL(disc_count.detentions,0) AS detentions
       ,ISNULL(disc_count.bench_choices,0) AS bench_choices
@@ -66,32 +72,25 @@ SELECT s.student_number
       ,ISNULL(disc_count.paycheck_below_80,0) AS paycheck_below_80
       ,ISNULL(disc_count.paycheck_below_90,0) AS paycheck_below_90
 FROM KIPP_NJ..COHORT$identifiers_scaffold#static s WITH(NOLOCK)
+--LEFT OUTER JOIN KIPP_NJ..GRADES$time_series_wide#static ts WITH(NOLOCK)
+--  ON s.student_number = ts.student_number
+-- AND s.date = ts.date
 LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON s.schoolid = dt.schoolid
  AND s.date BETWEEN dt.start_date AND dt.end_date
  AND dt.identifier = 'RT'
 LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH(NOLOCK)
   ON s.studentid = promo.studentid
- AND dt.alt_name = promo.term
-LEFT OUTER JOIN KIPP_NJ..GPA$detail#MS rise_gpa WITH(NOLOCK)
-  ON s.studentid = rise_gpa.studentid
-LEFT OUTER JOIN KIPP_NJ..GRADES$time_series_wide ts WITH(NOLOCK)
-  ON s.student_number = ts.student_number
- AND s.date = ts.date
-LEFT OUTER JOIN KIPP_NJ..GRADES$elements_long hwc WITH(NOLOCK)
-  ON s.studentid = hwc.studentid
- AND s.year = hwc.academic_year
- AND s.term = hwc.term
- AND hwc.course_number = 'all_courses'
- AND hwc.pgf_type = 'H'
- AND hwc.term != 'Y1'
-LEFT OUTER JOIN KIPP_NJ..GRADES$elements_long hwq WITH(NOLOCK)
-  ON s.studentid = hwq.studentid
- AND s.year = hwq.academic_year
- AND s.term = hwq.term
- AND hwq.course_number = 'all_courses'
- AND hwq.pgf_type = 'E'
- AND hwq.term != 'Y1'
+ AND promo.is_curterm = 1
+LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long#static rise_gpa WITH(NOLOCK)
+  ON s.student_number = rise_gpa.student_number
+ AND s.year = rise_gpa.academic_year
+ AND rise_gpa.is_curterm = 1
+LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide#static cat WITH(NOLOCK)
+  ON s.student_number = cat.student_number
+ AND s.year = cat.academic_year
+ AND dt.time_per_name = cat.reporting_term
+ AND cat.course_number = 'ALL'
 LEFT OUTER JOIN disc_count WITH(NOLOCK)
   ON s.studentid = disc_count.studentid
  AND s.date = disc_count.entry_date
