@@ -65,12 +65,31 @@ WITH zscore AS (
     AND map_end.term = 'Spring' /* UPDATE THIS AS THE YEAR PROGRESSES eg winter, spring */
  )
 
+,last_tch AS (
+  SELECT cc.schoolid
+        ,cc.studentid
+        ,cc.teacherid
+        ,cc.course_number
+        ,cc.termid
+        ,cc.sectionid
+        ,t.last_name
+        ,t.first_name
+        ,t.lastfirst
+        ,ROW_NUMBER() OVER(
+            PARTITION BY cc.studentid, cc.course_number
+                ORDER BY cc.termid DESC) AS rn
+  FROM KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
+    ON cc.teacherid = t.id
+  WHERE cc.termid >= KIPP_NJ.dbo.fn_Global_Term_Id()
+ )
+
 ,cc AS (
   SELECT last_tch.*
         ,courses.credittype
         ,courses.course_name
   FROM KIPP_NJ..PS$CC#static c WITH (NOLOCK)
-  JOIN KIPP_NJ..PS$teacher_by_last_enrollment last_tch WITH (NOLOCK)
+  JOIN last_tch
     ON c.studentid = last_tch.studentid
    AND c.course_number = last_tch.course_number
    AND last_tch.rn = 1

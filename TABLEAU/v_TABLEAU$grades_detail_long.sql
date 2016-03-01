@@ -33,23 +33,26 @@ SELECT co.schoolid
       ,enr.GRADESCALEID
       ,enr.EXCLUDEFROMGPA      
       ,gr.term AS finalgradename
-      ,gr.term_pct
-      ,gr.term_letter
-      ,gr.y1_pct
-      ,gr.y1_letter
-      ,gr.curterm_flag
+      ,gr.term_grade_percent AS term_pct
+      ,gr.term_grade_letter AS term_letter
+      ,gr.y1_grade_percent_adjusted AS y1_pct
+      ,gr.y1_grade_letter AS y1_letter
+      ,gr.is_curterm AS curterm_flag
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON co.schoolid = dt.schoolid
  AND co.year = dt.academic_year 
  AND dt.identifier = 'RT'
  AND dt.alt_name != 'Summer School'
-JOIN KIPP_NJ..GRADES$detail_long#static gr WITH(NOLOCK)
+JOIN KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
   ON co.student_number = gr.student_number
+ AND co.year = gr.academic_year
  AND dt.alt_name = gr.term 
 JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.student_number = enr.student_number
  AND gr.sectionid = enr.sectionid
+ AND enr.drop_flags = 0
+ AND enr.course_enr_status = 0
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.grade_level != 99
   AND co.rn = 1
@@ -85,10 +88,10 @@ SELECT co.schoolid
       ,enr.behavior_tier_numeric            
       ,enr.GRADESCALEID
       ,enr.EXCLUDEFROMGPA      
-      ,ele.pgf_type AS finalgradename
-      ,ele.grade AS term_pct
+      ,ele.grade_category AS finalgradename
+      ,ele.grade_category_pct AS term_pct
       ,NULL AS term_letter
-      ,y1.grade AS y1_pct
+      ,ele.grade_category_pct_y1 AS y1_pct
       ,NULL AS y1_letter
       ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date THEN 1 ELSE 0 END AS curterm_flag
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
@@ -102,19 +105,13 @@ JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
  AND co.year = enr.academic_year
  AND dt.end_date BETWEEN enr.dateenrolled AND enr.dateleft
  AND enr.drop_flags = 0
+ AND enr.course_enr_status = 0
  AND enr.COURSE_NUMBER != 'HR'
-LEFT OUTER JOIN KIPP_NJ..GRADES$elements_long ele WITH(NOLOCK)
-  ON co.studentid = ele.studentid
+LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_long#static ele WITH(NOLOCK)
+  ON co.student_number = ele.student_number
  AND co.year = ele.academic_year
- AND dt.alt_name = ele.term
+ AND dt.time_per_name = ele.reporting_term
  AND enr.COURSE_NUMBER = ele.course_number
- AND ele.term != 'Y1'
-LEFT OUTER JOIN KIPP_NJ..GRADES$elements_long y1 WITH(NOLOCK)
-  ON co.studentid = y1.studentid 
- AND co.year = y1.academic_year 
- AND enr.COURSE_NUMBER = y1.course_number  
- AND ele.pgf_type = y1.pgf_type
- AND y1.term = 'Y1' 
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.grade_level != 99
   AND co.rn = 1

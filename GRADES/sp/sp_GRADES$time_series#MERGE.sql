@@ -15,8 +15,10 @@ BEGIN
           ,schoolid      
           ,course_number
           ,term AS finalgradename
-          ,term_pct AS moving_average
-    FROM KIPP_NJ..GRADES$detail_long#static WITH(NOLOCK)
+          ,term_grade_percent AS moving_average
+    FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
+    WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+      AND term_grade_percent IS NOT NULL
 
     UNION ALL
 
@@ -24,25 +26,23 @@ BEGIN
           ,schoolid
           ,course_number
           ,'Y1' AS finalgradename
-          ,AVG(CONVERT(FLOAT,y1_pct)) AS moving_average
-    FROM KIPP_NJ..GRADES$detail_long#static WITH(NOLOCK)
-    GROUP BY student_number
-            ,schoolid
-            ,course_number
+          ,y1_grade_percent_adjusted AS moving_average
+    FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
+    WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+      AND is_curterm = 1
+      AND y1_grade_percent_adjusted IS NOT NULL    
 
     UNION ALL
 
-    SELECT co.student_number
-          ,co.schoolid
+    SELECT e.student_number
+          ,e.schoolid
           ,e.course_number
-          ,e.pgf_type + CASE WHEN e.term LIKE 'Y%' THEN 'Y' ELSE RIGHT(e.term,1) END AS finalgradename
-          ,e.grade AS moving_average
-    FROM KIPP_NJ..GRADES$elements_long e WITH(NOLOCK)
-    JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-      ON e.studentid = co.studentid
-     AND e.academic_year = co.year
-     AND co.rn = 1
-    WHERE e.course_number != 'all_courses'
+          ,e.grade_category + RIGHT(e.rt,1) AS finalgradename
+          ,e.grade_category_pct AS moving_average
+    FROM KIPP_NJ..GRADES$category_grades_long#static e WITH(NOLOCK)    
+    WHERE e.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+      AND e.course_number != 'ALL'
+      AND e.grade_category_pct IS NOT NULL
    )
     
   SELECT *
