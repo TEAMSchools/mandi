@@ -81,13 +81,15 @@ WITH njask AS (
         ,[SOC_Y1_prev]
   FROM
       (
-       SELECT studentid
-             ,CREDITTYPE + '_Y1_prev' AS pivot_hash
-             ,grade_pct
-       FROM KIPP_NJ..GRADES$storedgrades#identifiers WITH(NOLOCK)
-       WHERE academic_year = (KIPP_NJ.dbo.fn_Global_Academic_Year() - 1)
-         AND CREDITTYPE IN ('MATH','ENG','SCI','SOC')
-         AND term = 'Y1'
+       SELECT sg.STUDENTID
+             ,c.CREDITTYPE + '_Y1_prev' AS pivot_hash
+             ,sg.PCT AS grade_pct
+       FROM KIPP_NJ..GRADES$storedgrades#static sg WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$COURSES#static c WITH(NOLOCK)
+         ON sg.COURSE_NUMBER = c.COURSE_NUMBER
+        AND CREDITTYPE IN ('MATH','ENG','SCI','SOC')
+       WHERE sg.academic_year = (KIPP_NJ.dbo.fn_Global_Academic_Year() - 1)         
+         AND sg.STORECODE = 'Y1'
       ) sub
   PIVOT(
     MAX(grade_pct)
