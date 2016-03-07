@@ -3,54 +3,14 @@ GO
 
 ALTER VIEW GRADES$final_grades_wide AS
 
-WITH course_order AS (
+WITH grades_unpivot AS (
   SELECT student_number
         ,academic_year
+        ,term              
+        ,rn_curterm                
         ,course_number
-        ,credittype        
-        ,ROW_NUMBER() OVER(
-           PARTITION BY student_number, academic_year
-             ORDER BY CASE
-                       WHEN credittype = 'ENG' THEN 01
-                       WHEN credittype = 'RHET' THEN 02
-                       WHEN credittype = 'MATH' THEN 03
-                       WHEN credittype = 'SCI' THEN 04
-                       WHEN credittype = 'SOC' THEN 05
-                       WHEN credittype = 'WLANG' THEN 11
-                       WHEN credittype = 'PHYSED' THEN 12
-                       WHEN credittype = 'ART' THEN 13
-                       WHEN credittype = 'STUDY' THEN 21
-                       WHEN credittype = 'COCUR' THEN 22
-                       WHEN credittype = 'ELEC' THEN 22
-                       WHEN credittype = 'LOG' THEN 22
-                      END
-                     ,course_number) AS class_rn      
-  FROM
-      (
-       SELECT DISTINCT
-              student_number      
-             ,academic_year            
-             ,course_number      
-             ,credittype      
-       FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
-       WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND credittype NOT IN ('LOG')
-         AND course_number NOT IN ('')
-      ) sub  
- )
-
-,grades_unpivot AS (
-  SELECT student_number
-        ,academic_year
-        ,term      
-        ,is_curterm        
-        ,credittype
-        ,course_number
-        ,course_name
         ,sectionid
         ,teacher_name
-        ,credit_hours
-        ,class_rn
         ,y1_grade_letter
         ,y1_grade_percent
         ,e1_grade_percent
@@ -65,21 +25,15 @@ WITH course_order AS (
       (
        SELECT fg.student_number      
              ,fg.academic_year      
-             ,fg.term       
-             ,fg.is_curterm
-      
-             ,fg.credittype
-             ,fg.sectionid
-             ,fg.course_number
-             ,fg.course_name
+             ,fg.term                    
+             ,fg.course_number                                       
+             ,fg.rt                                  
+             ,fg.rn_curterm                          
+             ,fg.sectionid                              
              ,fg.teacher_name
-             ,fg.credit_hours
-             ,fg.rt            
-             ,o.class_rn     
 
              ,CONVERT(VARCHAR(64),fg.e1_adjusted) AS e1_grade_percent /* using only F* adjusted, when applicable */
-             ,CONVERT(VARCHAR(64),fg.e2_adjusted) AS e2_grade_percent /* using only F* adjusted, when applicable */
-             --,CONVERT(VARCHAR(64),fg.y1_grade_percent) AS y1_grade_percent
+             ,CONVERT(VARCHAR(64),fg.e2_adjusted) AS e2_grade_percent /* using only F* adjusted, when applicable */             
              ,CONVERT(VARCHAR(64),fg.y1_grade_percent_adjusted) AS y1_grade_percent /* using only F* adjusted, when applicable */             
              ,CONVERT(VARCHAR(64),fg.y1_grade_letter) AS y1_grade_letter
 
@@ -92,34 +46,21 @@ WITH course_order AS (
              ,CONVERT(VARCHAR(64),fg.need_80) AS need_80
              ,CONVERT(VARCHAR(64),fg.need_70) AS need_70
              ,CONVERT(VARCHAR(64),fg.need_65) AS need_65
-       FROM KIPP_NJ..GRADES$final_grades_long#static fg WITH(NOLOCK)
-       JOIN course_order o
-         ON fg.student_number = o.student_number
-        AND fg.academic_year = o.academic_year
-        AND fg.course_number = o.course_number
-       WHERE fg.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND fg.credittype NOT IN ('LOG')
-         AND fg.course_number NOT IN ('')         
+       FROM KIPP_NJ..GRADES$final_grades_long#static fg WITH(NOLOCK)                
 
        UNION ALL
 
        SELECT fg.student_number      
              ,fg.academic_year      
-             ,fg.term       
-             ,fg.is_curterm
-      
-             ,fg.credittype
-             ,fg.sectionid
-             ,fg.course_number
-             ,fg.course_name
+             ,fg.term                    
+             ,fg.course_number                                       
+             ,'CUR' AS rt                                  
+             ,fg.rn_curterm                          
+             ,fg.sectionid                              
              ,fg.teacher_name
-             ,fg.credit_hours
-             ,'CUR' AS rt
-             ,o.class_rn     
 
              ,CONVERT(VARCHAR(64),fg.e1_adjusted) AS e1_grade_percent /* using only F* adjusted, when applicable */
-             ,CONVERT(VARCHAR(64),fg.e2_adjusted) AS e2_grade_percent /* using only F* adjusted, when applicable */
-             --,CONVERT(VARCHAR(64),fg.y1_grade_percent) AS y1_grade_percent
+             ,CONVERT(VARCHAR(64),fg.e2_adjusted) AS e2_grade_percent /* using only F* adjusted, when applicable */             
              ,CONVERT(VARCHAR(64),fg.y1_grade_percent_adjusted) AS y1_grade_percent /* using only F* adjusted, when applicable */             
              ,CONVERT(VARCHAR(64),fg.y1_grade_letter) AS y1_grade_letter
 
@@ -132,15 +73,7 @@ WITH course_order AS (
              ,CONVERT(VARCHAR(64),fg.need_80) AS need_80
              ,CONVERT(VARCHAR(64),fg.need_70) AS need_70
              ,CONVERT(VARCHAR(64),fg.need_65) AS need_65
-       FROM KIPP_NJ..GRADES$final_grades_long#static fg WITH(NOLOCK)
-       JOIN course_order o
-         ON fg.student_number = o.student_number
-        AND fg.academic_year = o.academic_year
-        AND fg.course_number = o.course_number
-       WHERE fg.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND fg.credittype NOT IN ('LOG')
-         AND fg.course_number NOT IN ('')         
-         --AND fg.is_curterm = 1
+       FROM KIPP_NJ..GRADES$final_grades_long#static fg WITH(NOLOCK)                
       ) sub
   UNPIVOT(
     value
@@ -155,16 +88,16 @@ SELECT student_number
       ,academic_year
       ,term
       ,is_curterm
-      ,class_rn      
+      ,rn_curterm
+      ,class_rn
       ,credittype
-      ,course_number      
+      ,course_number
       ,sectionid
-      ,CONVERT(VARCHAR(64),course_name) AS course_name
-      ,CONVERT(VARCHAR(64),teacher_name) AS teacher_name
-      ,CONVERT(VARCHAR(64),credit_hours) AS credit_hours
+      ,course_name
+      ,teacher_name
+      ,credit_hours
       ,y1_grade_letter
       ,y1_grade_percent
-      
       ,need_90
       ,need_80
       ,need_70
@@ -200,7 +133,41 @@ SELECT student_number
       ,ROW_NUMBER() OVER(
          PARTITION BY student_number, academic_year, term, credittype
            ORDER BY course_number ASC) AS rn_credittype
-FROM grades_unpivot
+FROM
+    (
+     SELECT o.student_number
+           ,o.academic_year
+           ,o.term
+           ,o.is_curterm
+           ,o.class_rn      
+           ,o.credittype
+           ,o.course_number      
+           ,CONVERT(VARCHAR(64),o.course_name) AS course_name
+           ,CONVERT(VARCHAR(64),o.credit_hours) AS credit_hours
+           
+           ,gr.rn_curterm           
+           ,gr.sectionid           
+           ,CONVERT(VARCHAR(64),gr.teacher_name) AS teacher_name                                 
+      
+           ,gr.e1_grade_percent
+           ,gr.e2_grade_percent           
+           ,gr.y1_grade_letter
+           ,gr.y1_grade_percent      
+           ,gr.need_90
+           ,gr.need_80
+           ,gr.need_70
+           ,gr.need_65
+
+           ,gr.pivot_field
+           ,gr.value
+     FROM KIPP_NJ..PS$course_order_scaffold#static o WITH(NOLOCK)
+     LEFT OUTER JOIN grades_unpivot gr
+       ON o.student_number = gr.student_number
+      AND o.academic_year = gr.academic_year
+      AND o.term = gr.term
+      AND o.COURSE_NUMBER = gr.COURSE_NUMBER
+     WHERE o.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    ) sub
 PIVOT(
   MAX(value)
   FOR pivot_field IN ([RT1_term_grade_letter]

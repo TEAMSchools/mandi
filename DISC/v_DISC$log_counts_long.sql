@@ -19,7 +19,7 @@ FROM
            ,d.alt_name AS term
            ,disc.logtype
            ,disc.logtypeid      
-           ,COUNT(disc.DCID) AS n_logs_term
+           ,COUNT(disc.studentid) AS n_logs_term
      FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
      JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
        ON co.year = d.academic_year

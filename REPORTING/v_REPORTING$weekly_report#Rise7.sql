@@ -94,7 +94,7 @@ WITH roster AS (
          ON (ts.moving_average >= scl.low_cut AND ts.moving_average < scl.high_cut)
         AND scl.scale_id = 1
        WHERE (ts.finalgradename = 'Y1' OR ts.finalgradename LIKE 'HY')
-         AND (DATEPART(DW,ts.date) = 4 /* as of Wednesday */ OR ts.date = CONVERT(DATE,GETDATE()))                  
+         AND (DATEPART(DW,ts.date) = 4 /* as of Wednesday */ OR (DATEPART(DW,ts.date) < 4 AND ts.date = CONVERT(DATE,GETDATE())))                  
          AND ts.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
          AND ts.schoolid = 73252
        GROUP BY ts.student_number

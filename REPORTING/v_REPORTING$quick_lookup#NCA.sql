@@ -47,7 +47,7 @@ SELECT s.student_number AS SN
       ,ROUND((att_wide.TDY_all_counts_term_RT4 / att_wide.MEM_counts_term_RT4) * 100, 0) AS T_Q4_Pct
 
 --Behavior      
-      --merits
+      /* merits */
       ,m_wide.n_logs_y1 + p_wide.n_logs_y1 AS M_Y1_total
       ,m_wide.n_logs_y1 AS M_Y1_teacher
       ,p_wide.n_logs_Y1 AS M_Y1_perfect
@@ -55,7 +55,7 @@ SELECT s.student_number AS SN
       ,m_wide.n_logs_RT2 + p_wide.n_logs_RT2 AS M_Q2_total
       ,m_wide.n_logs_RT3 + p_wide.n_logs_RT3 AS M_Q3_total
       ,m_wide.n_logs_RT4 + p_wide.n_logs_RT4 AS M_Q4_total
-      --merits by type
+      /* merits by type */
       ,m_wide.n_logs_RT1 AS M_Q1_teacher
       ,p_wide.n_logs_RT1 AS M_Q1_perfect
       ,m_wide.n_logs_RT2 AS M_Q2_teacher
@@ -64,17 +64,18 @@ SELECT s.student_number AS SN
       ,p_wide.n_logs_RT3 AS M_Q3_perfect
       ,m_wide.n_logs_RT4 AS M_Q4_teacher
       ,p_wide.n_logs_RT4 AS M_Q4_perfect
-      --demerits      
+      /* demerits */
       ,d_wide.n_logs_y1 AS Demerits_Y1
       ,d_wide.n_logs_RT1 AS Demerits_Q1
       ,d_wide.n_logs_RT2 AS Demerits_Q2
       ,d_wide.n_logs_RT3 AS Demerits_Q3
       ,d_wide.n_logs_RT4 AS Demerits_Q4
-      ,d_wide.n_logs_Y1 AS Detentions_Y1
-      ,d_wide.n_logs_RT1 AS Detentions_Q1
-      ,d_wide.n_logs_RT2 AS Detentions_Q2
-      ,d_wide.n_logs_RT3 AS Detentions_Q3
-      ,d_wide.n_logs_RT4 AS Detentions_Q4
+      /* detentions */
+      ,dt_wide.n_logs_Y1 AS Detentions_Y1
+      ,dt_wide.n_logs_RT1 AS Detentions_Q1
+      ,dt_wide.n_logs_RT2 AS Detentions_Q2
+      ,dt_wide.n_logs_RT3 AS Detentions_Q3
+      ,dt_wide.n_logs_RT4 AS Detentions_Q4
 
 --Reading
       ,ar_Q1.points AS AR_Pts_Q1
@@ -128,14 +129,6 @@ LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_wide#static att_wide WITH(NOL
  AND s.year = att_wide.academic_year
 
 /* GRADES & GPA */
-LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_wide_course#static gr_wide WITH(NOLOCK)
-  ON s.student_number = gr_wide.student_number
- AND s.year = gr_wide.academic_year
- AND curterm.alt_name = gr_wide.term
-LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide_course#static ele WITH(NOLOCK)
-  ON s.student_number = ele.student_number
- AND s.year = ele.academic_year
- AND curterm.time_per_name = ele.reporting_term
 LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_wide#static nca_gpa WITH (NOLOCK)
   ON s.student_number = nca_gpa.student_number
  AND s.year = nca_gpa.academic_year

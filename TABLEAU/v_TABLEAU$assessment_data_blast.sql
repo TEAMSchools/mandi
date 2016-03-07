@@ -23,20 +23,86 @@ FROM
            ,co.lastfirst
            ,co.spedlep  
            ,co.enroll_status    
-           ,co.gender
-           ,co.retained_yr_flag
-           ,co.retained_ever_flag
+           --,co.gender
+           --,co.retained_yr_flag
+           --,co.retained_ever_flag
 
            ,a.assessment_id
            ,a.title
            ,a.scope            
            ,a.subject_area AS subject      
            ,a.administered_at
-           ,CASE 
-             WHEN a.tags IS NULL THEN 0
-             WHEN CHARINDEX(REPLACE(co.grade_level, 0, 'K'), a.tags) = 0 THEN 1 
-             ELSE 0 
-            END AS is_replacement      
+           ,0 AS is_replacement
+      
+           ,ovr.date_taken
+           ,ovr.percent_correct AS overall_pct_correct            
+
+           ,std.custom_code AS standards_tested      
+           ,std.description AS standard_descr      
+
+           ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS std_percent_correct
+           ,CONVERT(FLOAT,res.mastered) AS std_is_mastered
+           ,res.performance_band_level AS proficiency_band
+            
+           ,enr.teacher_name      
+           ,enr.period
+           ,enr.section_number
+      
+           ,ROW_NUMBER() OVER(
+              PARTITION BY co.student_number, a.assessment_id
+                ORDER BY co.student_number) AS overall_rn      
+           ,ROW_NUMBER() OVER(
+              PARTITION BY co.student_number, astd.standard_id
+                ORDER BY ovr.date_taken ASC) AS std_assessment_order
+     FROM KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK)
+     JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH (NOLOCK)
+       ON co.year = a.academic_year
+      AND CHARINDEX(REPLACE(co.grade_level, 0, 'K'), a.tags) > 0 
+      AND a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')
+      AND a.subject_area IN ('Text Study','Mathematics')
+      AND (a.title NOT LIKE '%replacement%' AND a.title NOT LIKE '%modified%')
+     LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
+       ON co.studentid = enr.studentid
+      AND co.year = enr.academic_year
+      /* ES and BOLD, JOIN to HR, otherwise JOIN to course */
+      AND (((co.grade_level <= 4 OR co.schoolid = 73258) AND enr.COURSE_NUMBER = 'HR') 
+               OR (co.schoolid != 73258 AND co.grade_level >= 5 AND a.subject_area = enr.illuminate_subject))
+      AND enr.drop_flags = 0 
+     LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static astd WITH(NOLOCK)
+       ON a.assessment_id = astd.assessment_id
+     LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
+       ON astd.standard_id = std.standard_id
+     LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
+       ON co.student_number = ovr.local_student_id
+      AND a.assessment_id = ovr.assessment_id  
+     LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH (NOLOCK)
+       ON co.student_number = res.local_student_id
+      AND a.assessment_id = res.assessment_id
+      AND astd.standard_id = res.standard_id  
+     WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       AND co.enroll_status = 0  
+       AND co.rn = 1
+
+     UNION ALL
+
+     SELECT co.schoolid
+           ,co.year AS academic_year
+           ,co.grade_level
+           ,co.team      
+           ,co.student_number
+           ,co.lastfirst
+           ,co.spedlep  
+           ,co.enroll_status    
+           --,co.gender
+           --,co.retained_yr_flag
+           --,co.retained_ever_flag
+
+           ,a.assessment_id
+           ,a.title
+           ,a.scope            
+           ,a.subject_area AS subject      
+           ,a.administered_at
+           ,1 AS is_replacement
       
            ,ovr.date_taken
            ,ovr.percent_correct AS overall_pct_correct            
@@ -61,6 +127,12 @@ FROM
      FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH (NOLOCK)
      JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
        ON a.assessment_id = ovr.assessment_id  
+     JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK) 
+       ON ovr.local_student_id = co.student_number
+      AND a.academic_year = co.year 
+      AND ((CHARINDEX(REPLACE(co.grade_level, 0, 'K'), a.tags) = 0) OR ((a.title LIKE '%replacement%' OR a.title LIKE '%modified%')))
+      --AND a.schoolid = co.schoolid
+      AND co.rn = 1
      LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static astd WITH(NOLOCK)
        ON a.assessment_id = astd.assessment_id
      LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
@@ -69,11 +141,6 @@ FROM
        ON ovr.local_student_id = res.local_student_id
       AND a.assessment_id = res.assessment_id
       AND astd.standard_id = res.standard_id  
-     JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK) 
-       ON ovr.local_student_id = co.student_number
-      AND a.academic_year = co.year 
-      --AND a.schoolid = co.schoolid
-      AND co.rn = 1
      LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
        ON co.studentid = enr.studentid
       AND co.year = enr.academic_year
@@ -81,7 +148,7 @@ FROM
       AND (((co.grade_level <= 4 OR co.schoolid = 73258) AND enr.COURSE_NUMBER = 'HR') 
                OR (co.schoolid != 73258 AND co.grade_level >= 5 AND a.subject_area = enr.illuminate_subject))
       AND enr.drop_flags = 0
-     WHERE a.academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year()    
+     WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()    
        AND a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')
        AND a.subject_area IN ('Text Study','Mathematics')
     ) sub

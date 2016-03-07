@@ -468,13 +468,17 @@ FROM
            ,COUNT(roster.student_number) OVER(PARTITION BY roster.grade_level) AS in_grade_denom
       
            /* ATTENDANCE */            
-           ,ROUND((att_counts.ABS_ALL_counts_yr / att_counts.MEM_counts_yr) * 100,0) AS att_pct_yr
+           ,ROUND(((att_counts.MEM_counts_yr - att_counts.ABS_ALL_counts_yr) / att_counts.MEM_counts_yr) * 100,0) AS att_pct_yr
            ,ROUND(att_counts.ABS_ALL_counts_yr,0) AS att_counts_yr
-           ,CONVERT(VARCHAR,ROUND((att_counts.ABS_ALL_counts_yr / att_counts.MEM_counts_yr) * 100,0)) + '% ('
-              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.ABS_ALL_counts_yr)) + ')' AS att_pct_counts_yr
-           ,CONVERT(VARCHAR,ROUND((100 - (att_counts.TDY_all_counts_yr / att_counts.MEM_counts_yr)) * 100,0)) + '% ('
-              + CONVERT(VARCHAR,CONVERT(FLOAT,att_counts.TDY_ALL_counts_yr)) + ')' AS on_time_pct
-           ,ROUND((100 - (att_counts.TDY_all_counts_yr / att_counts.MEM_counts_yr)) * 100,0) AS inv_tardy_pct_yr
+           ,CONCAT(ROUND(((att_counts.MEM_counts_yr - att_counts.ABS_ALL_counts_yr) / att_counts.MEM_counts_yr) * 100,0)
+                  ,'% ('
+                  ,att_counts.ABS_ALL_counts_yr
+                  ,')') AS att_pct_counts_yr
+           ,CONCAT(ROUND(((att_counts.MEM_counts_yr - att_counts.TDY_all_counts_yr) / att_counts.MEM_counts_yr) * 100,0)
+                  ,'% ('
+                  ,att_counts.TDY_ALL_counts_yr
+                  ,')') AS on_time_pct
+           ,ROUND(((att_counts.MEM_counts_yr - att_counts.TDY_all_counts_yr) / att_counts.MEM_counts_yr) * 100,0) AS inv_tardy_pct_yr
            ,att_counts.TDY_ALL_counts_yr AS tardy_count_yr
            ,att_counts.OSS_counts_yr + ISS_counts_yr AS suspensions
            ,att_counts.ISS_counts_yr AS ISS

@@ -72,4 +72,5 @@ FROM
              ,is_curterm
              ,schoolid
              ,grade_level
+     HAVING SUM(credit_hours) > 0
     ) sub

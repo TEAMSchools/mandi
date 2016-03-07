@@ -14,14 +14,12 @@ SELECT s.LASTFIRST AS Name
       ,disc.Subtype
       ,disc.Subject
       ,disc.rn AS [Count]
-FROM KIPP_NJ..COHORT$identifiers_long#static s WITH (NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)
 JOIN KIPP_NJ..DISC$log#static disc WITH(NOLOCK)
-  ON s.studentid = disc.studentid
- --AND disc.logtype IS NOT NULL
+  ON s.studentid = disc.studentid 
  AND s.year = disc.academic_year
 JOIN KIPP_NJ..REPORTING$dates dates WITH(NOLOCK)
-  ON disc.entry_date >= dates.start_date
- AND disc.entry_date <= dates.end_date
+  ON disc.entry_date BETWEEN dates.start_date AND dates.end_date
  AND dates.identifier = 'RT'
  AND s.SCHOOLID = dates.schoolid
 WHERE s.SCHOOLID = 73253

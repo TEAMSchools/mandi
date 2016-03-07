@@ -59,7 +59,7 @@ SELECT roster.ID
       ,gr.RT3_term_grade_percent AS Q3
       ,gr.RT4_term_grade_percent AS Q4
       ,gr.e1_grade_percent AS E1
-      ,gr.e1_grade_percent AS E2
+      ,gr.e2_grade_percent AS E2
 
       ,CASE WHEN gr.y1_grade_percent >= 65 THEN NULL ELSE gr.need_65 END AS GET_D
       ,CASE WHEN gr.y1_grade_percent >= 70 THEN NULL ELSE gr.need_70 END AS GET_C

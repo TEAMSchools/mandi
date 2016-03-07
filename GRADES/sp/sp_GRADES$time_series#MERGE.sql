@@ -43,6 +43,19 @@ BEGIN
     WHERE e.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       AND e.course_number != 'ALL'
       AND e.grade_category_pct IS NOT NULL
+
+    UNION ALL
+
+        SELECT e.student_number
+          ,e.schoolid
+          ,e.course_number
+          ,CONCAT(e.grade_category, 'Y') AS finalgradename
+          ,e.grade_category_pct_y1 AS moving_average
+    FROM KIPP_NJ..GRADES$category_grades_long#static e WITH(NOLOCK)    
+    WHERE e.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+      AND e.course_number != 'ALL'
+      AND e.grade_category_pct_y1 IS NOT NULL
+      AND e.is_curterm = 1
    )
     
   SELECT *

@@ -255,6 +255,10 @@ SELECT sub.student_number
       ,sub.need_80
       ,sub.need_70
       ,sub.need_65
+
+      ,ROW_NUMBER() OVER(
+         PARTITION BY sub.student_number, sub.academic_year, sub.course_number
+           ORDER BY sub.term DESC) AS rn_curterm
 FROM
     (
      SELECT student_number
@@ -378,5 +382,5 @@ FROM
     ) sub
 LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static scale WITH(NOLOCK)
   ON sub.gradescaleid = scale.scale_id
- AND sub.y1_grade_percent >= scale.low_cut
- AND sub.y1_grade_percent < scale.high_cut
+ AND sub.y1_grade_percent_adjusted >= scale.low_cut
+ AND sub.y1_grade_percent_adjusted < scale.high_cut

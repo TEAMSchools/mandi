@@ -43,6 +43,7 @@ FROM
       AND pgf.finalgradename != 'Y1'       
       AND pgf.FINALGRADENAME NOT LIKE 'Q%'
      WHERE enr.course_enr_status = 0
+       AND enr.drop_flags = 0
        AND enr.SCHOOLID = 73253
 
      UNION ALL
@@ -74,6 +75,7 @@ FROM
       AND pgf.finalgradename != 'Y1'       
       AND ((pgf.academic_year <= 2014 AND  pgf.FINALGRADENAME NOT LIKE 'T%') OR (pgf.academic_year >= 2015 AND pgf.FINALGRADENAME NOT LIKE 'Q%'))
      WHERE enr.course_enr_status = 0
+       AND enr.drop_flags = 0
        AND enr.SCHOOLID != 73253
     ) sub
 LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)

@@ -3,43 +3,7 @@ GO
 
 ALTER VIEW GRADES$category_grades_wide AS
 
-WITH course_order AS (
-  SELECT student_number
-        ,academic_year
-        ,course_number
-        ,credittype
-        ,ROW_NUMBER() OVER(
-           PARTITION BY student_number, academic_year
-             ORDER BY CASE
-                       WHEN credittype = 'ENG' THEN 01
-                       WHEN credittype = 'RHET' THEN 02
-                       WHEN credittype = 'MATH' THEN 03
-                       WHEN credittype = 'SCI' THEN 04
-                       WHEN credittype = 'SOC' THEN 05
-                       WHEN credittype = 'WLANG' THEN 11
-                       WHEN credittype = 'PHYSED' THEN 12
-                       WHEN credittype = 'ART' THEN 13
-                       WHEN credittype = 'STUDY' THEN 21
-                       WHEN credittype = 'COCUR' THEN 22
-                       WHEN credittype = 'ELEC' THEN 22
-                       WHEN credittype = 'LOG' THEN 22
-                      END
-                     ,course_number) AS class_rn      
-  FROM
-      (
-       SELECT DISTINCT
-              student_number      
-             ,academic_year            
-             ,course_number      
-             ,credittype      
-       FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
-       WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND credittype NOT IN ('LOG')
-         AND course_number NOT IN ('')
-      ) sub
- )
-
-,grades_long AS (
+WITH grades_long AS (
   SELECT cat.student_number
         ,cat.SCHOOLID
         ,cat.academic_year
@@ -51,14 +15,8 @@ WITH course_order AS (
         ,cat.rt
         ,cat.is_curterm
         ,cat.grade_category
-        ,cat.grade_category_pct
-        ,o.class_rn
-  FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)
-  JOIN course_order o
-    ON cat.student_number = o.student_number
-   AND cat.academic_year = o.academic_year
-   AND cat.COURSE_NUMBER = o.course_number
-  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+        ,cat.grade_category_pct        
+  FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)  
 
   UNION ALL
 
@@ -73,10 +31,8 @@ WITH course_order AS (
         ,cat.rt
         ,cat.is_curterm
         ,cat.grade_category
-        ,ROUND(AVG(cat.grade_category_pct),0)
-        ,NULL AS class_rn
-  FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)     
-  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+        ,ROUND(AVG(cat.grade_category_pct),0)        
+  FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)       
   GROUP BY cat.student_number
           ,cat.SCHOOLID
           ,cat.academic_year
@@ -98,14 +54,8 @@ WITH course_order AS (
         ,'CUR' AS rt
         ,cat.is_curterm
         ,cat.grade_category
-        ,cat.grade_category_pct
-        ,o.class_rn
-  FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)
-  JOIN course_order o
-    ON cat.student_number = o.student_number
-   AND cat.academic_year = o.academic_year
-   AND cat.COURSE_NUMBER = o.course_number
-  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+        ,cat.grade_category_pct        
+  FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)    
 
   UNION ALL
 
@@ -120,10 +70,8 @@ WITH course_order AS (
         ,'CUR' AS rt
         ,cat.is_curterm
         ,cat.grade_category
-        ,ROUND(AVG(cat.grade_category_pct),0)
-        ,NULL AS class_rn
-  FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)     
-  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+        ,ROUND(AVG(cat.grade_category_pct),0)        
+  FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)       
   GROUP BY cat.student_number
           ,cat.SCHOOLID
           ,cat.academic_year
@@ -186,19 +134,27 @@ SELECT student_number
            ORDER BY course_number) AS rn_credittype
 FROM
     (
-     SELECT student_number
-           ,schoolid
-           ,academic_year
-           ,credittype
-           ,course_number
-           ,class_rn
-           ,sectionid
-           ,teacher_name
-           ,reporting_term           
-           ,is_curterm
-           ,CONCAT(grade_category, '_', rt) AS pivot_field
-           ,grade_category_pct           
-     FROM grades_long
+     SELECT o.student_number
+           ,o.academic_year
+           ,o.credittype
+           ,o.course_number
+           ,o.reporting_term           
+           ,o.is_curterm
+           ,o.class_rn
+           
+           ,MAX(gr.schoolid) OVER(PARTITION BY o.student_number, o.academic_year, o.course_number, o.reporting_term ORDER BY o.reporting_term ASC) AS schoolid
+           ,MIN(gr.sectionid) OVER(PARTITION BY o.student_number, o.academic_year, o.course_number, o.reporting_term ORDER BY o.reporting_term ASC) AS sectionid
+           ,gr.teacher_name           
+           ,CONCAT(gr.grade_category, '_', gr.rt) AS pivot_field
+           ,CASE WHEN gr.SCHOOLID = 73253 AND gr.grade_category = 'E' THEN NULL ELSE gr.grade_category_pct END AS grade_category_pct 
+     FROM KIPP_NJ..PS$course_order_scaffold#static o WITH(NOLOCK)
+     LEFT OUTER JOIN grades_long gr
+       ON o.student_number = gr.student_number
+      AND o.academic_year = gr.academic_year
+      AND o.course_number = gr.COURSE_NUMBER
+      AND o.reporting_term = gr.reporting_term      
+     WHERE o.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()     
+       AND gr.SCHOOLID IS NOT NULL
     ) sub
 PIVOT(
   MAX(grade_category_pct)
