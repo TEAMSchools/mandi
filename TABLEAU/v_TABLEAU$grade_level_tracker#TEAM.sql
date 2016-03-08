@@ -29,10 +29,7 @@ WITH roster AS (
         ,SUM(points_denom) + ISNULL(SUM(points_num),0) AS points_total
         --,SUM(points_denom) AS points_denom
         ,ISNULL(
-            CASE 
-              WHEN ROUND(((SUM(points_denom) + SUM(points_num)) / SUM(points_denom)) * 100,2) < 0 THEN 0
-              ELSE ROUND(((SUM(points_denom) + SUM(points_num)) / SUM(points_denom)) * 100,2)
-             END
+            ROUND(((SUM(points_denom) + SUM(points_num)) / SUM(points_denom)) * 100,2)
            ,SUM(points_denom)
           ) AS points_pct
   FROM
