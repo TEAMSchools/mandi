@@ -40,7 +40,7 @@ WITH roster AS (
         AND mem.date_value BETWEEN dt.start_date AND dt.end_date 
         AND dt.identifier = 'RT'        
        WHERE mem.schoolid = 73253       
-         AND mem.membershipvalue = 1
+         AND mem.insession = 1
       ) sub 
  )
 
