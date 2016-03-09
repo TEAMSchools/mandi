@@ -13,9 +13,9 @@ WITH disc_count AS (
               ELSE 0 
              END) AS silent_lunches
         ,SUM(CASE WHEN subtype LIKE '%Choices%' OR subtype LIKE 'Bench%' THEN 1 ELSE 0 END) AS bench_choices
-        ,SUM(CASE WHEN subtype = 'ISS' THEN 1 ELSE 0 END) AS ISS
+        ,SUM(CASE WHEN subtype LIKE '%ISS%' THEN 1 ELSE 0 END) AS ISS
         ,SUM(CASE WHEN subtype = 'Class Removal' THEN 1 ELSE 0 END) AS class_removal
-        ,SUM(CASE WHEN subtype = 'OSS' THEN 1 ELSE 0 END) AS OSS
+        ,SUM(CASE WHEN subtype LIKE '%OSS%' THEN 1 ELSE 0 END) AS OSS
         ,SUM(CASE WHEN subtype = 'Paycheck' AND discipline_details = 'Paycheck Below $90' THEN 1 ELSE 0 END) AS paycheck_below_90
         ,SUM(CASE WHEN subtype = 'Paycheck' AND discipline_details = 'Paycheck Below $80' THEN 1 ELSE 0 END) AS paycheck_below_80                
   FROM KIPP_NJ..DISC$log#static WITH(NOLOCK)
