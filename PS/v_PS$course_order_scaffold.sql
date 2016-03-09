@@ -56,25 +56,25 @@ FROM
       AND enr.course_enr_status = 0
       AND enr.drop_flags = 0
      WHERE co.rn = 1       
-
-     UNION ALL
-
-     SELECT DISTINCT 
-            co.student_number
-           ,co.year AS academic_year
-           ,dt.time_per_name AS reporting_term
-           ,dt.alt_name AS term
-           ,'ALL' AS COURSE_NUMBER
-           ,'ALL' AS CREDITTYPE
-           ,'ALL' AS COURSE_NAME             
-           ,NULL CREDIT_HOURS
-
-           ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date THEN 1 ELSE 0 END AS is_curterm
-     FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-     JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
-       ON co.schoolid = dt.schoolid
-      AND co.year = dt.academic_year
-      AND dt.identifier = 'RT'
-      AND dt.alt_name != 'Summer School'     
-     WHERE co.rn = 1       
     ) sub  
+
+UNION ALL
+
+SELECT DISTINCT 
+       co.student_number
+      ,co.year AS academic_year
+      ,dt.alt_name AS term
+      ,dt.time_per_name AS reporting_term      
+      ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date THEN 1 ELSE 0 END AS is_curterm
+      ,'ALL' AS CREDITTYPE
+      ,'ALL' AS COURSE_NUMBER      
+      ,'ALL' AS COURSE_NAME             
+      ,NULL CREDIT_HOURS
+      ,NULL AS class_rn      
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+  ON co.schoolid = dt.schoolid
+ AND co.year = dt.academic_year
+ AND dt.identifier = 'RT'
+ AND dt.alt_name != 'Summer School'     
+WHERE co.rn = 1       

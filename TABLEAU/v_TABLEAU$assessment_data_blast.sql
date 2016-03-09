@@ -61,6 +61,7 @@ FROM
       AND a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')
       AND a.subject_area IN ('Text Study','Mathematics')
       AND (a.title NOT LIKE '%replacement%' AND a.title NOT LIKE '%modified%')
+      AND a.administered_at <= CONVERT(DATE,GETDATE())
      LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
        ON co.studentid = enr.studentid
       AND co.year = enr.academic_year
