@@ -53,13 +53,13 @@ SELECT roster.schoolid
       ,gr_wide.rc01_course_name AS rc1_course_name
       ,gr_wide.rc01_teacher_name AS rc1_teacher_name
       ,LEFT(rc01_teacher_name, (CHARINDEX(',', rc01_teacher_name) - 1)) AS rc1_teacher_last      
-      ,ROUND(gr_wide.rc01_rt1_term_grade_percent,0) AS rc1_q1_term_pct
-      ,ROUND(gr_wide.rc01_rt2_term_grade_percent,0) AS rc1_q2_term_pct
-      ,ROUND(gr_wide.rc01_rt3_term_grade_percent,0) AS rc1_q3_term_pct
-      ,ROUND(gr_wide.rc01_rt4_term_grade_percent,0) AS rc1_q4_term_pct            
+      ,gr_wide.rc01_rt1_term_grade_percent AS rc1_q1_term_pct
+      ,gr_wide.rc01_rt2_term_grade_percent AS rc1_q2_term_pct
+      ,gr_wide.rc01_rt3_term_grade_percent AS rc1_q3_term_pct
+      ,gr_wide.rc01_rt4_term_grade_percent AS rc1_q4_term_pct            
       ,gr_wide.rc01_e1_grade_percent AS rc1_exam
       ,gr_wide.rc01_e2_grade_percent AS rc1_exam2
-      ,ROUND(gr_wide.rc01_y1_grade_percent,0) AS rc1_y1_pct
+      ,gr_wide.rc01_y1_grade_percent AS rc1_y1_pct
       ,gr_wide.rc01_y1_grade_letter AS rc1_y1_ltr
       ,gr_wide.rc01_credit_hours AS rc1_credit_hours_Y1      
 
@@ -67,13 +67,13 @@ SELECT roster.schoolid
       ,gr_wide.rc02_course_name AS rc2_course_name
       ,gr_wide.rc02_teacher_name AS rc2_teacher_name
       ,LEFT(rc02_teacher_name, (CHARINDEX(',', rc02_teacher_name) - 1)) AS rc2_teacher_last
-      ,ROUND(gr_wide.rc02_rt1_term_grade_percent,0) AS rc2_q1_term_pct
-      ,ROUND(gr_wide.rc02_rt2_term_grade_percent,0) AS rc2_q2_term_pct
-      ,ROUND(gr_wide.rc02_rt3_term_grade_percent,0) AS rc2_q3_term_pct
-      ,ROUND(gr_wide.rc02_rt4_term_grade_percent,0) AS rc2_q4_term_pct            
+      ,gr_wide.rc02_rt1_term_grade_percent AS rc2_q1_term_pct
+      ,gr_wide.rc02_rt2_term_grade_percent AS rc2_q2_term_pct
+      ,gr_wide.rc02_rt3_term_grade_percent AS rc2_q3_term_pct
+      ,gr_wide.rc02_rt4_term_grade_percent AS rc2_q4_term_pct            
       ,gr_wide.rc02_e1_grade_percent AS rc2_exam
       ,gr_wide.rc02_e2_grade_percent AS rc2_exam2
-      ,ROUND(gr_wide.rc02_y1_grade_percent,0) AS rc2_y1_pct
+      ,gr_wide.rc02_y1_grade_percent AS rc2_y1_pct
       ,gr_wide.rc02_y1_grade_letter AS rc2_y1_ltr
       ,gr_wide.rc02_credit_hours AS rc2_credit_hours_Y1      
 
@@ -81,13 +81,13 @@ SELECT roster.schoolid
       ,gr_wide.rc03_course_name AS rc3_course_name
       ,gr_wide.rc03_teacher_name AS rc3_teacher_name
       ,LEFT(rc03_teacher_name, (CHARINDEX(',', rc03_teacher_name) - 1)) AS rc3_teacher_last
-      ,ROUND(gr_wide.rc03_rt1_term_grade_percent,0) AS rc3_q1_term_pct
-      ,ROUND(gr_wide.rc03_rt2_term_grade_percent,0) AS rc3_q2_term_pct
-      ,ROUND(gr_wide.rc03_rt3_term_grade_percent,0) AS rc3_q3_term_pct
-      ,ROUND(gr_wide.rc03_rt4_term_grade_percent,0) AS rc3_q4_term_pct            
+      ,gr_wide.rc03_rt1_term_grade_percent AS rc3_q1_term_pct
+      ,gr_wide.rc03_rt2_term_grade_percent AS rc3_q2_term_pct
+      ,gr_wide.rc03_rt3_term_grade_percent AS rc3_q3_term_pct
+      ,gr_wide.rc03_rt4_term_grade_percent AS rc3_q4_term_pct            
       ,gr_wide.rc03_e1_grade_percent AS rc3_exam
       ,gr_wide.rc03_e2_grade_percent AS rc3_exam2
-      ,ROUND(gr_wide.rc03_y1_grade_percent,0) AS rc3_y1_pct
+      ,gr_wide.rc03_y1_grade_percent AS rc3_y1_pct
       ,gr_wide.rc03_y1_grade_letter AS rc3_y1_ltr
       ,gr_wide.rc03_credit_hours AS rc3_credit_hours_Y1      
 
@@ -95,13 +95,13 @@ SELECT roster.schoolid
       ,gr_wide.rc04_course_name AS rc4_course_name
       ,gr_wide.rc04_teacher_name AS rc4_teacher_name
       ,LEFT(rc04_teacher_name, (CHARINDEX(',', rc04_teacher_name) - 1)) AS rc4_teacher_last
-      ,ROUND(gr_wide.rc04_rt1_term_grade_percent,0) AS rc4_q1_term_pct
-      ,ROUND(gr_wide.rc04_rt2_term_grade_percent,0) AS rc4_q2_term_pct
-      ,ROUND(gr_wide.rc04_rt3_term_grade_percent,0) AS rc4_q3_term_pct
-      ,ROUND(gr_wide.rc04_rt4_term_grade_percent,0) AS rc4_q4_term_pct            
+      ,gr_wide.rc04_rt1_term_grade_percent AS rc4_q1_term_pct
+      ,gr_wide.rc04_rt2_term_grade_percent AS rc4_q2_term_pct
+      ,gr_wide.rc04_rt3_term_grade_percent AS rc4_q3_term_pct
+      ,gr_wide.rc04_rt4_term_grade_percent AS rc4_q4_term_pct            
       ,gr_wide.rc04_e1_grade_percent AS rc4_exam
       ,gr_wide.rc04_e2_grade_percent AS rc4_exam2
-      ,ROUND(gr_wide.rc04_y1_grade_percent,0) AS rc4_y1_pct
+      ,gr_wide.rc04_y1_grade_percent AS rc4_y1_pct
       ,gr_wide.rc04_y1_grade_letter AS rc4_y1_ltr
       ,gr_wide.rc04_credit_hours AS rc4_credit_hours_Y1      
 
@@ -109,13 +109,13 @@ SELECT roster.schoolid
       ,gr_wide.rc05_course_name AS rc5_course_name
       ,gr_wide.rc05_teacher_name AS rc5_teacher_name
       ,LEFT(rc05_teacher_name, (CHARINDEX(',', rc05_teacher_name) - 1)) AS rc5_teacher_last
-      ,ROUND(gr_wide.rc05_rt1_term_grade_percent,0) AS rc5_q1_term_pct
-      ,ROUND(gr_wide.rc05_rt2_term_grade_percent,0) AS rc5_q2_term_pct
-      ,ROUND(gr_wide.rc05_rt3_term_grade_percent,0) AS rc5_q3_term_pct
-      ,ROUND(gr_wide.rc05_rt4_term_grade_percent,0) AS rc5_q4_term_pct    
+      ,gr_wide.rc05_rt1_term_grade_percent AS rc5_q1_term_pct
+      ,gr_wide.rc05_rt2_term_grade_percent AS rc5_q2_term_pct
+      ,gr_wide.rc05_rt3_term_grade_percent AS rc5_q3_term_pct
+      ,gr_wide.rc05_rt4_term_grade_percent AS rc5_q4_term_pct    
       ,gr_wide.rc05_e1_grade_percent AS rc5_exam
       ,gr_wide.rc05_e2_grade_percent AS rc5_exam2        
-      ,ROUND(gr_wide.rc05_y1_grade_percent,0) AS rc5_y1_pct
+      ,gr_wide.rc05_y1_grade_percent AS rc5_y1_pct
       ,gr_wide.rc05_y1_grade_letter AS rc5_y1_ltr
       ,gr_wide.rc05_credit_hours AS rc5_credit_hours_Y1      
       
@@ -123,13 +123,13 @@ SELECT roster.schoolid
       ,gr_wide.rc06_course_name AS rc6_course_name
       ,gr_wide.rc06_teacher_name AS rc6_teacher_name
       ,LEFT(rc06_teacher_name, (CHARINDEX(',', rc06_teacher_name) - 1)) AS rc6_teacher_last
-      ,ROUND(gr_wide.rc06_rt1_term_grade_percent,0) AS rc6_q1_term_pct
-      ,ROUND(gr_wide.rc06_rt2_term_grade_percent,0) AS rc6_q2_term_pct
-      ,ROUND(gr_wide.rc06_rt3_term_grade_percent,0) AS rc6_q3_term_pct
-      ,ROUND(gr_wide.rc06_rt4_term_grade_percent,0) AS rc6_q4_term_pct            
+      ,gr_wide.rc06_rt1_term_grade_percent AS rc6_q1_term_pct
+      ,gr_wide.rc06_rt2_term_grade_percent AS rc6_q2_term_pct
+      ,gr_wide.rc06_rt3_term_grade_percent AS rc6_q3_term_pct
+      ,gr_wide.rc06_rt4_term_grade_percent AS rc6_q4_term_pct            
       ,gr_wide.rc06_e1_grade_percent AS rc6_exam
       ,gr_wide.rc06_e2_grade_percent AS rc6_exam2
-      ,ROUND(gr_wide.rc06_y1_grade_percent,0) AS rc6_y1_pct
+      ,gr_wide.rc06_y1_grade_percent AS rc6_y1_pct
       ,gr_wide.rc06_y1_grade_letter AS rc6_y1_ltr
       ,gr_wide.rc06_credit_hours AS rc6_credit_hours_Y1      
 
@@ -137,13 +137,13 @@ SELECT roster.schoolid
       ,gr_wide.rc07_course_name AS rc7_course_name
       ,gr_wide.rc07_teacher_name AS rc7_teacher_name
       ,LEFT(rc07_teacher_name, (CHARINDEX(',', rc07_teacher_name) - 1)) AS rc7_teacher_last
-      ,ROUND(gr_wide.rc07_rt1_term_grade_percent,0) AS rc7_q1_term_pct
-      ,ROUND(gr_wide.rc07_rt2_term_grade_percent,0) AS rc7_q2_term_pct
-      ,ROUND(gr_wide.rc07_rt3_term_grade_percent,0) AS rc7_q3_term_pct
-      ,ROUND(gr_wide.rc07_rt4_term_grade_percent,0) AS rc7_q4_term_pct     
+      ,gr_wide.rc07_rt1_term_grade_percent AS rc7_q1_term_pct
+      ,gr_wide.rc07_rt2_term_grade_percent AS rc7_q2_term_pct
+      ,gr_wide.rc07_rt3_term_grade_percent AS rc7_q3_term_pct
+      ,gr_wide.rc07_rt4_term_grade_percent AS rc7_q4_term_pct     
       ,gr_wide.rc07_e1_grade_percent AS rc7_exam
       ,gr_wide.rc07_e2_grade_percent AS rc7_exam2       
-      ,ROUND(gr_wide.rc07_y1_grade_percent,0) AS rc7_y1_pct
+      ,gr_wide.rc07_y1_grade_percent AS rc7_y1_pct
       ,gr_wide.rc07_y1_grade_letter AS rc7_y1_ltr
       ,gr_wide.rc07_credit_hours AS rc7_credit_hours_Y1      
       
@@ -151,13 +151,13 @@ SELECT roster.schoolid
       ,gr_wide.rc08_course_name AS rc8_course_name
       ,gr_wide.rc08_teacher_name AS rc8_teacher_name
       ,LEFT(rc08_teacher_name, (CHARINDEX(',', rc08_teacher_name) - 1)) AS rc8_teacher_last
-      ,ROUND(gr_wide.rc08_rt1_term_grade_percent,0) AS rc8_q1_term_pct
-      ,ROUND(gr_wide.rc08_rt2_term_grade_percent,0) AS rc8_q2_term_pct
-      ,ROUND(gr_wide.rc08_rt3_term_grade_percent,0) AS rc8_q3_term_pct
-      ,ROUND(gr_wide.rc08_rt4_term_grade_percent,0) AS rc8_q4_term_pct            
+      ,gr_wide.rc08_rt1_term_grade_percent AS rc8_q1_term_pct
+      ,gr_wide.rc08_rt2_term_grade_percent AS rc8_q2_term_pct
+      ,gr_wide.rc08_rt3_term_grade_percent AS rc8_q3_term_pct
+      ,gr_wide.rc08_rt4_term_grade_percent AS rc8_q4_term_pct            
       ,gr_wide.rc08_e1_grade_percent AS rc8_exam
       ,gr_wide.rc08_e2_grade_percent AS rc8_exam2
-      ,ROUND(gr_wide.rc08_y1_grade_percent,0) AS rc8_y1_pct
+      ,gr_wide.rc08_y1_grade_percent AS rc8_y1_pct
       ,gr_wide.rc08_y1_grade_letter AS rc8_y1_ltr
       ,gr_wide.rc08_credit_hours AS rc8_credit_hours_Y1        
 
@@ -165,13 +165,13 @@ SELECT roster.schoolid
       ,gr_wide.rc09_course_name AS rc9_course_name
       ,gr_wide.rc09_teacher_name AS rc9_teacher_name
       ,LEFT(rc09_teacher_name, (CHARINDEX(',', rc09_teacher_name) - 1)) AS rc9_teacher_last
-      ,ROUND(gr_wide.rc09_rt1_term_grade_percent,0) AS rc9_q1_term_pct
-      ,ROUND(gr_wide.rc09_rt2_term_grade_percent,0) AS rc9_q2_term_pct
-      ,ROUND(gr_wide.rc09_rt3_term_grade_percent,0) AS rc9_q3_term_pct
-      ,ROUND(gr_wide.rc09_rt4_term_grade_percent,0) AS rc9_q4_term_pct            
+      ,gr_wide.rc09_rt1_term_grade_percent AS rc9_q1_term_pct
+      ,gr_wide.rc09_rt2_term_grade_percent AS rc9_q2_term_pct
+      ,gr_wide.rc09_rt3_term_grade_percent AS rc9_q3_term_pct
+      ,gr_wide.rc09_rt4_term_grade_percent AS rc9_q4_term_pct            
       ,gr_wide.rc09_e1_grade_percent AS rc9_exam
       ,gr_wide.rc09_e2_grade_percent AS rc9_exam2
-      ,ROUND(gr_wide.rc09_y1_grade_percent,0) AS rc9_y1_pct
+      ,gr_wide.rc09_y1_grade_percent AS rc9_y1_pct
       ,gr_wide.rc09_y1_grade_letter AS rc9_y1_ltr
       ,gr_wide.rc09_credit_hours AS rc9_credit_hours_Y1      
       
@@ -179,13 +179,13 @@ SELECT roster.schoolid
       ,gr_wide.rc10_course_name AS rc10_course_name
       ,gr_wide.rc10_teacher_name AS rc10_teacher_name
       ,LEFT(rc10_teacher_name, (CHARINDEX(',', rc10_teacher_name) - 1)) AS rc10_teacher_last
-      ,ROUND(gr_wide.rc10_rt1_term_grade_percent,0) AS rc10_q1_term_pct
-      ,ROUND(gr_wide.rc10_rt2_term_grade_percent,0) AS rc10_q2_term_pct
-      ,ROUND(gr_wide.rc10_rt3_term_grade_percent,0) AS rc10_q3_term_pct
-      ,ROUND(gr_wide.rc10_rt4_term_grade_percent,0) AS rc10_q4_term_pct
+      ,gr_wide.rc10_rt1_term_grade_percent AS rc10_q1_term_pct
+      ,gr_wide.rc10_rt2_term_grade_percent AS rc10_q2_term_pct
+      ,gr_wide.rc10_rt3_term_grade_percent AS rc10_q3_term_pct
+      ,gr_wide.rc10_rt4_term_grade_percent AS rc10_q4_term_pct
       ,gr_wide.rc10_e1_grade_percent AS rc10_exam
       ,gr_wide.rc10_e2_grade_percent AS rc10_exam2            
-      ,ROUND(gr_wide.rc10_y1_grade_percent,0) AS rc10_y1_pct
+      ,gr_wide.rc10_y1_grade_percent AS rc10_y1_pct
       ,gr_wide.rc10_y1_grade_letter AS rc10_y1_ltr
       ,gr_wide.rc10_credit_hours AS rc10_credit_hours_Y1         
 

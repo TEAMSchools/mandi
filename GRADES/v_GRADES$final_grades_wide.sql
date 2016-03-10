@@ -37,10 +37,11 @@ WITH grades_unpivot AS (
              ,CONVERT(VARCHAR(64),fg.y1_grade_percent_adjusted) AS y1_grade_percent /* using only F* adjusted, when applicable */             
              ,CONVERT(VARCHAR(64),fg.y1_grade_letter) AS y1_grade_letter
 
-             ,CONVERT(VARCHAR(64),fg.term_grade_letter) AS term_grade_letter
-             ,CONVERT(VARCHAR(64),fg.term_grade_percent) AS term_grade_percent
-             ,CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted) AS term_grade_letter_adjusted
-             ,CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted) AS term_grade_percent_adjusted                          
+             /* empty strings preserve term structure when there aren't any grades */
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter),'') AS term_grade_letter
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent),'') AS term_grade_percent
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted),'') AS term_grade_letter_adjusted
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted),'') AS term_grade_percent_adjusted                          
 
              ,CONVERT(VARCHAR(64),fg.need_90) AS need_90
              ,CONVERT(VARCHAR(64),fg.need_80) AS need_80
@@ -64,10 +65,11 @@ WITH grades_unpivot AS (
              ,CONVERT(VARCHAR(64),fg.y1_grade_percent_adjusted) AS y1_grade_percent /* using only F* adjusted, when applicable */             
              ,CONVERT(VARCHAR(64),fg.y1_grade_letter) AS y1_grade_letter
 
-             ,CONVERT(VARCHAR(64),fg.term_grade_letter) AS term_grade_letter
-             ,CONVERT(VARCHAR(64),fg.term_grade_percent) AS term_grade_percent
-             ,CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted) AS term_grade_letter_adjusted
-             ,CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted) AS term_grade_percent_adjusted                          
+             /* empty strings preserve term structure when there aren't any grades */
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter),'') AS term_grade_letter
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent),'') AS term_grade_percent
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted),'') AS term_grade_letter_adjusted
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted),'') AS term_grade_percent_adjusted                          
 
              ,CONVERT(VARCHAR(64),fg.need_90) AS need_90
              ,CONVERT(VARCHAR(64),fg.need_80) AS need_80
@@ -92,16 +94,16 @@ SELECT student_number
       ,class_rn
       ,credittype
       ,course_number
-      ,MAX(sectionid) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS sectionid
+      ,sectionid
       ,course_name
-      ,MAX(teacher_name) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS teacher_name
+      ,teacher_name
       ,credit_hours
-      ,MAX(y1_grade_letter) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS y1_grade_letter
-      ,MAX(y1_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS y1_grade_percent
-      ,MAX(need_90) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS need_90
-      ,MAX(need_80) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS need_80
-      ,MAX(need_70) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS need_70
-      ,MAX(need_65) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS need_65
+      ,y1_grade_letter
+      ,y1_grade_percent
+      ,need_90
+      ,need_80
+      ,need_70
+      ,need_65
 
       ,MAX(e1_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS e1_grade_percent
       ,MAX(e2_grade_percent) OVER(PARTITION BY student_number, academic_year, course_name ORDER BY term ASC) AS e2_grade_percent

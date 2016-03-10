@@ -9,15 +9,28 @@ WITH roster AS (
         ,co.year AS academic_year
         ,co.schoolid      
         ,co.grade_level      
+        
         ,CONCAT('RT',RIGHT(d.alt_name, 1)) AS rt
         ,d.alt_name AS term            
         ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN d.start_date AND d.end_date THEN 1 ELSE 0 END AS is_curterm
+
+        ,c.course_number        
+        ,c.COURSE_NAME
+        ,c.credittype
+        ,c.CREDIT_HOURS
+        ,c.gradescaleid
+        ,c.excludefromgpa
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
     ON co.schoolid = d.schoolid
    AND co.year = d.academic_year
    AND d.identifier = 'RT'
    AND d.alt_name != 'Summer School'     
+  JOIN KIPP_NJ..PS$course_order_scaffold#static c WITH(NOLOCK)
+    ON co.student_number = c.student_number
+   AND co.year = c.academic_year 
+   AND d.alt_name = c.term
+   AND c.course_number != 'ALL'
   WHERE co.rn = 1
     AND co.schoolid != 999999
     AND ((co.grade_level >= 5) OR (co.grade_level = 4 AND co.schoolid = 73252))
@@ -26,14 +39,14 @@ WITH roster AS (
 ,enr_grades AS (
   SELECT studentid        
         ,academic_year
-        ,credittype
+        --,credittype
         ,course_number
-        ,course_name
+        --,course_name
         ,sectionid
         ,teacher_name
-        ,excludefromgpa
-        ,credit_hours
-        ,gradescaleid
+        --,excludefromgpa
+        --,credit_hours
+        --,gradescaleid
         ,term
         /* if stored grade exists, use that */                
         ,COALESCE(stored_letter, pgf_letter) AS term_grade_letter
@@ -55,14 +68,14 @@ WITH roster AS (
        SELECT enr.studentid                   
              ,enr.SCHOOLID
              ,enr.academic_year
-             ,enr.credittype      
+             --,enr.credittype      
              ,enr.course_number
-             ,enr.course_name      
+             --,enr.course_name      
              ,enr.sectionid           
              ,enr.teacher_name      
-             ,enr.excludefromgpa
-             ,CASE WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL ELSE enr.credit_hours END AS credit_hours
-             ,enr.gradescaleid                  
+             --,enr.excludefromgpa
+             --,CASE WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL ELSE enr.credit_hours END AS credit_hours
+             --,enr.gradescaleid                  
       
              ,pgf.FINALGRADENAME AS term
              ,CASE WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL ELSE ROUND(pgf.[PERCENT],0) END AS pgf_pct
@@ -108,14 +121,14 @@ WITH roster AS (
        SELECT enr.studentid                   
              ,enr.SCHOOLID
              ,enr.academic_year
-             ,enr.credittype      
+             --,enr.credittype      
              ,enr.course_number
-             ,enr.course_name      
+             --,enr.course_name      
              ,enr.sectionid           
              ,enr.teacher_name      
-             ,enr.excludefromgpa
-             ,enr.credit_hours
-             ,enr.gradescaleid            
+             --,enr.excludefromgpa
+             --,enr.credit_hours
+             --,enr.gradescaleid            
       
              ,sg.STORECODE AS term
              ,NULL AS pgf_pct
@@ -169,15 +182,16 @@ WITH roster AS (
         ,r.grade_level
         ,r.rt
         ,r.term      
-        ,r.is_curterm
-        ,gr.credittype
-        ,gr.course_number
-        ,gr.course_name
+        ,r.is_curterm        
+        ,r.credittype
+        ,r.course_number
+        ,r.course_name
+        ,r.credit_hours
+        ,r.gradescaleid 
+        ,r.excludefromgpa                     
+        
         ,gr.sectionid
-        ,gr.teacher_name
-        ,gr.excludefromgpa
-        ,gr.credit_hours
-        ,gr.gradescaleid      
+        ,gr.teacher_name        
         ,gr.term_grade_percent
         ,gr.term_grade_letter
         ,gr.term_grade_percent_adjusted
@@ -209,6 +223,7 @@ WITH roster AS (
     ON r.studentid = gr.studentid
    AND r.academic_year = gr.academic_year
    AND r.term = gr.term
+   AND r.course_number = gr.COURSE_NUMBER
   LEFT OUTER JOIN exams e
     ON r.studentid = e.STUDENTID
    AND r.academic_year = e.academic_year
@@ -244,6 +259,7 @@ SELECT sub.student_number
       ,sub.weighted_points_total
       ,sub.y1_grade_percent
       ,sub.y1_grade_percent_adjusted
+      /* these use the adjusted Y1 */
       ,CASE
         WHEN sub.schoolid = 73253 AND sub.y1_grade_percent_adjusted = 50 AND sub.y1_grade_percent < 50 THEN 'F*'
         WHEN sub.schoolid = 133570965 AND sub.y1_grade_percent_adjusted = 55 AND sub.y1_grade_percent < 55 THEN 'F*'

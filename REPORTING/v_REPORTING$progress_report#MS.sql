@@ -31,85 +31,85 @@ SELECT co.student_number
       /*--RC1--*/
       ,gr_wide.rc01_course_name AS rc1_course_name
       ,gr_wide.rc01_teacher_name AS rc1_teacher_last
-      ,CONCAT(ROUND(gr_wide.RC01_y1_grade_percent,0), '    ', gr_wide.RC01_y1_grade_letter)  AS RC1_y1_pct    
-      ,ROUND(gr_wide.rc01_rt1_term_grade_percent,0) AS rc1_t1_term_pct
-      ,ROUND(gr_wide.rc01_rt2_term_grade_percent,0) AS rc1_t2_term_pct
-      ,ROUND(gr_wide.rc01_rt3_term_grade_percent,0) AS rc1_t3_term_pct      
-      ,ROUND(gr_wide.rc01_rt4_term_grade_percent,0) AS rc1_q4_term_pct      
+      ,CONCAT(gr_wide.RC01_y1_grade_percent, '    ', gr_wide.RC01_y1_grade_letter)  AS RC1_y1_pct    
+      ,gr_wide.rc01_rt1_term_grade_percent AS rc1_t1_term_pct
+      ,gr_wide.rc01_rt2_term_grade_percent AS rc1_t2_term_pct
+      ,gr_wide.rc01_rt3_term_grade_percent AS rc1_t3_term_pct      
+      ,gr_wide.rc01_rt4_term_grade_percent AS rc1_q4_term_pct      
       
       /*--RC2--*/
       ,gr_wide.rc02_course_name AS rc2_course_name
       ,gr_wide.rc02_teacher_name AS rc2_teacher_last
-      ,CONCAT(ROUND(gr_wide.rc02_y1_grade_percent,0), '    ', gr_wide.rc02_y1_grade_letter)  AS RC2_y1_pct    
-      ,ROUND(gr_wide.rc02_rt1_term_grade_percent,0) AS rc2_t1_term_pct
-      ,ROUND(gr_wide.rc02_rt2_term_grade_percent,0) AS rc2_t2_term_pct
-      ,ROUND(gr_wide.rc02_rt3_term_grade_percent,0) AS rc2_t3_term_pct      
-      ,ROUND(gr_wide.rc02_rt4_term_grade_percent,0) AS rc02_q4_term_pct      
+      ,CONCAT(gr_wide.rc02_y1_grade_percent, '    ', gr_wide.rc02_y1_grade_letter)  AS RC2_y1_pct    
+      ,gr_wide.rc02_rt1_term_grade_percent AS rc2_t1_term_pct
+      ,gr_wide.rc02_rt2_term_grade_percent AS rc2_t2_term_pct
+      ,gr_wide.rc02_rt3_term_grade_percent AS rc2_t3_term_pct      
+      ,gr_wide.rc02_rt4_term_grade_percent AS rc02_q4_term_pct      
       
       /*--RC3--*/
       ,gr_wide.rc03_course_name AS rc3_course_name
       ,gr_wide.rc03_teacher_name AS rc3_teacher_last
-      ,CONCAT(ROUND(gr_wide.rc03_y1_grade_percent,0), '    ', gr_wide.rc03_y1_grade_letter)  AS RC3_y1_pct    
-      ,ROUND(gr_wide.rc03_rt1_term_grade_percent,0) AS rc3_t1_term_pct
-      ,ROUND(gr_wide.rc03_rt2_term_grade_percent,0) AS rc3_t2_term_pct
-      ,ROUND(gr_wide.rc03_rt3_term_grade_percent,0) AS rc3_t3_term_pct      
-      ,ROUND(gr_wide.rc03_rt4_term_grade_percent,0) AS rc03_q4_term_pct      
+      ,CONCAT(gr_wide.rc03_y1_grade_percent, '    ', gr_wide.rc03_y1_grade_letter)  AS RC3_y1_pct    
+      ,gr_wide.rc03_rt1_term_grade_percent AS rc3_t1_term_pct
+      ,gr_wide.rc03_rt2_term_grade_percent AS rc3_t2_term_pct
+      ,gr_wide.rc03_rt3_term_grade_percent AS rc3_t3_term_pct      
+      ,gr_wide.rc03_rt4_term_grade_percent AS rc03_q4_term_pct      
 
       /*--RC4--*/
       ,gr_wide.rc04_course_name AS rc4_course_name
       ,gr_wide.rc04_teacher_name AS rc4_teacher_last
-      ,CONCAT(ROUND(gr_wide.rc04_y1_grade_percent,0), '    ', gr_wide.rc04_y1_grade_letter)  AS RC4_y1_pct    
-      ,ROUND(gr_wide.rc04_rt1_term_grade_percent,0) AS rc4_t1_term_pct
-      ,ROUND(gr_wide.rc04_rt2_term_grade_percent,0) AS rc4_t2_term_pct
-      ,ROUND(gr_wide.rc04_rt3_term_grade_percent,0) AS rc4_t3_term_pct      
-      ,ROUND(gr_wide.rc04_rt4_term_grade_percent,0) AS rc04_q4_term_pct      
+      ,CONCAT(gr_wide.rc04_y1_grade_percent, '    ', gr_wide.rc04_y1_grade_letter)  AS RC4_y1_pct    
+      ,gr_wide.rc04_rt1_term_grade_percent AS rc4_t1_term_pct
+      ,gr_wide.rc04_rt2_term_grade_percent AS rc4_t2_term_pct
+      ,gr_wide.rc04_rt3_term_grade_percent AS rc4_t3_term_pct      
+      ,gr_wide.rc04_rt4_term_grade_percent AS rc04_q4_term_pct      
 
       /*--RC5--*/
       ,gr_wide.rc05_course_name AS rc5_course_name
       ,gr_wide.rc05_teacher_name AS rc5_teacher_last
-      ,CONCAT(ROUND(gr_wide.rc05_y1_grade_percent,0), '    ', gr_wide.rc05_y1_grade_letter)  AS RC5_y1_pct    
-      ,ROUND(gr_wide.rc05_rt1_term_grade_percent,0) AS rc5_t1_term_pct
-      ,ROUND(gr_wide.rc05_rt2_term_grade_percent,0) AS rc5_t2_term_pct
-      ,ROUND(gr_wide.rc05_rt3_term_grade_percent,0) AS rc5_t3_term_pct      
-      ,ROUND(gr_wide.rc05_rt4_term_grade_percent,0) AS rc05_q4_term_pct      
+      ,CONCAT(gr_wide.rc05_y1_grade_percent, '    ', gr_wide.rc05_y1_grade_letter)  AS RC5_y1_pct    
+      ,gr_wide.rc05_rt1_term_grade_percent AS rc5_t1_term_pct
+      ,gr_wide.rc05_rt2_term_grade_percent AS rc5_t2_term_pct
+      ,gr_wide.rc05_rt3_term_grade_percent AS rc5_t3_term_pct      
+      ,gr_wide.rc05_rt4_term_grade_percent AS rc05_q4_term_pct      
       
       /*--RC6--*/
       ,gr_wide.rc06_course_name AS rc6_course_name
       ,gr_wide.rc06_teacher_name AS rc6_teacher_last
-      ,CONCAT(ROUND(gr_wide.rc06_y1_grade_percent,0), '    ', gr_wide.rc06_y1_grade_letter)  AS RC6_y1_pct    
-      ,ROUND(gr_wide.rc06_rt1_term_grade_percent,0) AS rc6_t1_term_pct
-      ,ROUND(gr_wide.rc06_rt2_term_grade_percent,0) AS rc6_t2_term_pct
-      ,ROUND(gr_wide.rc06_rt3_term_grade_percent,0) AS rc6_t3_term_pct      
-      ,ROUND(gr_wide.rc06_rt4_term_grade_percent,0) AS rc06_q4_term_pct      
+      ,CONCAT(gr_wide.rc06_y1_grade_percent, '    ', gr_wide.rc06_y1_grade_letter)  AS RC6_y1_pct    
+      ,gr_wide.rc06_rt1_term_grade_percent AS rc6_t1_term_pct
+      ,gr_wide.rc06_rt2_term_grade_percent AS rc6_t2_term_pct
+      ,gr_wide.rc06_rt3_term_grade_percent AS rc6_t3_term_pct      
+      ,gr_wide.rc06_rt4_term_grade_percent AS rc06_q4_term_pct      
       
       /*--RC7--*/
       ,gr_wide.rc07_course_name AS rc7_course_name
       ,gr_wide.rc07_teacher_name AS rc7_teacher_last
-      ,CONCAT(ROUND(gr_wide.rc07_y1_grade_percent,0), '    ', gr_wide.rc07_y1_grade_letter)  AS RC7_y1_pct    
-      ,ROUND(gr_wide.rc07_rt1_term_grade_percent,0) AS rc7_t1_term_pct
-      ,ROUND(gr_wide.rc07_rt2_term_grade_percent,0) AS rc7_t2_term_pct
-      ,ROUND(gr_wide.rc07_rt3_term_grade_percent,0) AS rc7_t3_term_pct      
-      ,ROUND(gr_wide.rc07_rt4_term_grade_percent,0) AS rc07_q4_term_pct      
+      ,CONCAT(gr_wide.rc07_y1_grade_percent, '    ', gr_wide.rc07_y1_grade_letter)  AS RC7_y1_pct    
+      ,gr_wide.rc07_rt1_term_grade_percent AS rc7_t1_term_pct
+      ,gr_wide.rc07_rt2_term_grade_percent AS rc7_t2_term_pct
+      ,gr_wide.rc07_rt3_term_grade_percent AS rc7_t3_term_pct      
+      ,gr_wide.rc07_rt4_term_grade_percent AS rc07_q4_term_pct      
       
       /*--RC8--*/
       ,gr_wide.rc08_course_name AS rc8_course_name
       ,gr_wide.rc08_teacher_name AS rc8_teacher_last
-      ,CONCAT(ROUND(gr_wide.rc08_y1_grade_percent,0), '    ', gr_wide.rc08_y1_grade_letter)  AS RC8_y1_pct    
-      ,ROUND(gr_wide.rc08_rt1_term_grade_percent,0) AS rc8_t1_term_pct
-      ,ROUND(gr_wide.rc08_rt2_term_grade_percent,0) AS rc8_t2_term_pct
-      ,ROUND(gr_wide.rc08_rt3_term_grade_percent,0) AS rc8_t3_term_pct      
-      ,ROUND(gr_wide.rc08_rt4_term_grade_percent,0) AS rc08_q4_term_pct      
+      ,CONCAT(gr_wide.rc08_y1_grade_percent, '    ', gr_wide.rc08_y1_grade_letter)  AS RC8_y1_pct    
+      ,gr_wide.rc08_rt1_term_grade_percent AS rc8_t1_term_pct
+      ,gr_wide.rc08_rt2_term_grade_percent AS rc8_t2_term_pct
+      ,gr_wide.rc08_rt3_term_grade_percent AS rc8_t3_term_pct      
+      ,gr_wide.rc08_rt4_term_grade_percent AS rc08_q4_term_pct      
 
       /*-- Current term RC grades --*/
       ,CONCAT(
-         gr_wide.RC01_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc01_CUR_term_grade_percent,0)) + '%' + CHAR(10)
-        ,gr_wide.rc02_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc02_CUR_term_grade_percent,0)) + '%' + CHAR(10)
-        ,gr_wide.rc03_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc03_CUR_term_grade_percent,0)) + '%' + CHAR(10)
-        ,gr_wide.rc04_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc04_CUR_term_grade_percent,0)) + '%' + CHAR(10)
-        ,gr_wide.rc05_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc05_CUR_term_grade_percent,0)) + '%' + CHAR(10)
-        ,gr_wide.rc06_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc06_CUR_term_grade_percent,0)) + '%' + CHAR(10)
-        ,gr_wide.rc07_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc07_CUR_term_grade_percent,0)) + '%' + CHAR(10)
-        ,gr_wide.rc08_course_name + ': ' + CONVERT(VARCHAR,ROUND(gr_wide.rc08_CUR_term_grade_percent,0)) + '%' + CHAR(10)
+         gr_wide.RC01_course_name + ': ' + CONVERT(VARCHAR,gr_wide.rc01_CUR_term_grade_percent) + '%' + CHAR(10)
+        ,gr_wide.rc02_course_name + ': ' + CONVERT(VARCHAR,gr_wide.rc02_CUR_term_grade_percent) + '%' + CHAR(10)
+        ,gr_wide.rc03_course_name + ': ' + CONVERT(VARCHAR,gr_wide.rc03_CUR_term_grade_percent) + '%' + CHAR(10)
+        ,gr_wide.rc04_course_name + ': ' + CONVERT(VARCHAR,gr_wide.rc04_CUR_term_grade_percent) + '%' + CHAR(10)
+        ,gr_wide.rc05_course_name + ': ' + CONVERT(VARCHAR,gr_wide.rc05_CUR_term_grade_percent) + '%' + CHAR(10)
+        ,gr_wide.rc06_course_name + ': ' + CONVERT(VARCHAR,gr_wide.rc06_CUR_term_grade_percent) + '%' + CHAR(10)
+        ,gr_wide.rc07_course_name + ': ' + CONVERT(VARCHAR,gr_wide.rc07_CUR_term_grade_percent) + '%' + CHAR(10)
+        ,gr_wide.rc08_course_name + ': ' + CONVERT(VARCHAR,gr_wide.rc08_CUR_term_grade_percent) + '%' + CHAR(10)
         ) AS gr_quick_view
 
       /*--current term component averages--*/       

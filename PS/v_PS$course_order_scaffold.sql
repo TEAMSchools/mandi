@@ -12,6 +12,8 @@ SELECT student_number
       ,course_number
       ,COURSE_NAME
       ,CREDIT_HOURS
+      ,GRADESCALEID
+      ,EXCLUDEFROMGPA
       ,ROW_NUMBER() OVER(
          PARTITION BY student_number, academic_year, term
            ORDER BY CASE
@@ -40,6 +42,8 @@ FROM
            ,enr.CREDITTYPE
            ,enr.COURSE_NAME             
            ,enr.CREDIT_HOURS
+           ,enr.GRADESCALEID
+           ,enr.EXCLUDEFROMGPA
 
            ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date THEN 1 ELSE 0 END AS is_curterm
      FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
@@ -69,7 +73,9 @@ SELECT DISTINCT
       ,'ALL' AS CREDITTYPE
       ,'ALL' AS COURSE_NUMBER      
       ,'ALL' AS COURSE_NAME             
-      ,NULL CREDIT_HOURS
+      ,NULL AS CREDIT_HOURS
+      ,NULL AS gradescaleid
+      ,NULL AS excludefromgpa
       ,NULL AS class_rn      
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
