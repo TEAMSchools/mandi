@@ -14,7 +14,14 @@ WITH roster AS (
         ,co.advisor
         ,co.enroll_status      
         ,co.term
-        ,CONCAT(DATEPART(YEAR,co.date), DATEPART(WEEK,co.date)) AS yr_week_hash        
+        ,CONCAT(
+           CASE
+            WHEN DATEPART(ISOWK, co.date) = 1 AND MONTH(co.date) = 12 THEN YEAR(co.date) + 1
+            WHEN DATEPART(ISOWK, co.date)= 53 AND MONTH(co.date) = 1 THEN YEAR(co.date) - 1
+            WHEN DATEPART(ISOWK, co.date)= 52 AND MONTH(co.date) = 1 THEN YEAR(co.date) - 1             
+            ELSE YEAR(co.date)
+           END
+          ,DATEPART(ISO_WEEK,co.date)) AS yr_week_hash        
         ,co.date AS week_of            
   FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)
   WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
@@ -38,7 +45,14 @@ WITH roster AS (
              ,bhv.behavior
              ,bhv.category
              ,CONVERT(DATE,bhv.date) AS date
-             ,CONCAT(DATEPART(YEAR,CONVERT(DATE,bhv.date)), DATEPART(WEEK,CONVERT(DATE,bhv.date))) AS yr_week_hash
+             ,CONCAT(
+                CASE
+                 WHEN DATEPART(ISOWK, bhv.date) = 1 AND MONTH(bhv.date) = 12 THEN YEAR(bhv.date) + 1
+                 WHEN DATEPART(ISOWK, bhv.date)= 53 AND MONTH(bhv.date) = 1 THEN YEAR(bhv.date) - 1
+                 WHEN DATEPART(ISOWK, bhv.date)= 52 AND MONTH(bhv.date) = 1 THEN YEAR(bhv.date) - 1             
+                 ELSE YEAR(bhv.date)
+                END
+               ,DATEPART(ISO_WEEK,bhv.date)) AS yr_week_hash        
              ,CASE WHEN bhv.behavior != 'Deposit' THEN CONVERT(FLOAT,bhv.dollar_points) ELSE NULL END AS points_num
              ,CASE WHEN bhv.behavior = 'Deposit' THEN CONVERT(FLOAT,bhv.dollar_points) ELSE NULL END AS points_denom                 
        FROM KIPP_NJ..AUTOLOAD$KICKBOARD_behavior bhv WITH(NOLOCK)
@@ -49,13 +63,27 @@ WITH roster AS (
 
 ,trans_talking_pts AS (
   SELECT bhv.external_id AS student_number              
-        ,CONCAT(DATEPART(YEAR,CONVERT(DATE,bhv.date)), DATEPART(WEEK,CONVERT(DATE,bhv.date))) AS yr_week_hash
+        ,CONCAT(
+           CASE
+            WHEN DATEPART(ISOWK, bhv.date) = 1 AND MONTH(bhv.date) = 12 THEN YEAR(bhv.date) + 1
+            WHEN DATEPART(ISOWK, bhv.date)= 53 AND MONTH(bhv.date) = 1 THEN YEAR(bhv.date) - 1
+            WHEN DATEPART(ISOWK, bhv.date)= 52 AND MONTH(bhv.date) = 1 THEN YEAR(bhv.date) - 1             
+            ELSE YEAR(bhv.date)
+           END
+          ,DATEPART(ISO_WEEK,bhv.date)) AS yr_week_hash        
         ,SUM(CONVERT(FLOAT,bhv.dollar_points)) AS deduction_value
         ,COUNT(bhv.external_id) AS N_deductions        
   FROM KIPP_NJ..AUTOLOAD$KICKBOARD_behavior bhv WITH(NOLOCK)
   WHERE bhv.behavior = 'Talking in the hallway'
   GROUP BY bhv.external_id
-          ,CONCAT(DATEPART(YEAR,CONVERT(DATE,bhv.date)), DATEPART(WEEK,CONVERT(DATE,bhv.date)))
+          ,CONCAT(
+           CASE
+            WHEN DATEPART(ISOWK, bhv.date) = 1 AND MONTH(bhv.date) = 12 THEN YEAR(bhv.date) + 1
+            WHEN DATEPART(ISOWK, bhv.date)= 53 AND MONTH(bhv.date) = 1 THEN YEAR(bhv.date) - 1
+            WHEN DATEPART(ISOWK, bhv.date)= 52 AND MONTH(bhv.date) = 1 THEN YEAR(bhv.date) - 1             
+            ELSE YEAR(bhv.date)
+           END
+          ,DATEPART(ISO_WEEK,bhv.date))
  )
 
 ,conroster AS (
@@ -74,7 +102,14 @@ WITH roster AS (
        FROM
            (
             SELECT con.external_id AS student_number
-                  ,CONCAT(DATEPART(YEAR,CONVERT(DATE,con.assigned_date)), DATEPART(WEEK,CONVERT(DATE,con.assigned_date))) AS yr_week_hash
+                  ,CONCAT(
+                     CASE
+                      WHEN DATEPART(ISOWK, con.assigned_date) = 1 AND MONTH(con.assigned_date) = 12 THEN YEAR(con.assigned_date) + 1
+                      WHEN DATEPART(ISOWK, con.assigned_date)= 53 AND MONTH(con.assigned_date) = 1 THEN YEAR(con.assigned_date) - 1
+                      WHEN DATEPART(ISOWK, con.assigned_date)= 52 AND MONTH(con.assigned_date) = 1 THEN YEAR(con.assigned_date) - 1             
+                      ELSE YEAR(con.assigned_date)
+                     END
+                    ,DATEPART(ISO_WEEK,con.assigned_date)) AS yr_week_hash        
                   ,CONVERT(DATE,con.assigned_date) AS assigned_date
                   ,CASE
                     WHEN con.consequence_name LIKE '%Bench%' THEN 'Bench'
@@ -98,13 +133,27 @@ WITH roster AS (
 
 ,attendance AS (
   SELECT studentid
-        ,CONCAT(DATEPART(YEAR,CONVERT(DATE,calendardate)), DATEPART(WEEK,CONVERT(DATE,calendardate))) AS yr_week_hash
+        ,CONCAT(
+           CASE
+            WHEN DATEPART(ISOWK, calendardate) = 1 AND MONTH(calendardate) = 12 THEN YEAR(calendardate) + 1
+            WHEN DATEPART(ISOWK, calendardate)= 53 AND MONTH(calendardate) = 1 THEN YEAR(calendardate) - 1
+            WHEN DATEPART(ISOWK, calendardate)= 52 AND MONTH(calendardate) = 1 THEN YEAR(calendardate) - 1             
+            ELSE YEAR(calendardate)
+           END
+          ,DATEPART(ISO_WEEK,calendardate)) AS yr_week_hash        
         ,AVG(CONVERT(FLOAT,attendancevalue)) AS pct_present
   FROM KIPP_NJ..ATT_MEM$MEMBERSHIP WITH(NOLOCK)
   WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND schoolid = 133570965
   GROUP BY studentid
-          ,CONCAT(DATEPART(YEAR,CONVERT(DATE,calendardate)), DATEPART(WEEK,CONVERT(DATE,calendardate)))
+          ,CONCAT(
+             CASE
+              WHEN DATEPART(ISOWK, calendardate) = 1 AND MONTH(calendardate) = 12 THEN YEAR(calendardate) + 1
+              WHEN DATEPART(ISOWK, calendardate)= 53 AND MONTH(calendardate) = 1 THEN YEAR(calendardate) - 1
+              WHEN DATEPART(ISOWK, calendardate)= 52 AND MONTH(calendardate) = 1 THEN YEAR(calendardate) - 1             
+              ELSE YEAR(calendardate)
+             END
+            ,DATEPART(ISO_WEEK,calendardate))
  )
 
 SELECT co.year
