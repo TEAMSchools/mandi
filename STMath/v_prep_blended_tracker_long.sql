@@ -32,15 +32,15 @@ WITH st_libraries AS (
         ,6
         ,'lib_6th'
   UNION
-  SELECT 'Sixth Grade MSS'
+  SELECT 'Sixth MSS'
         ,7
         ,'lib_6th_MSS'
   UNION
-  SELECT 'Seventh Grade MSS'
+  SELECT 'Seventh MSS'
         ,8
         ,'lib_7th_MSS'
   UNION
-  SELECT 'Eighth Grade MSS'
+  SELECT 'Eighth MSS'
         ,9
         ,'lib_8th_MSS'
  )
