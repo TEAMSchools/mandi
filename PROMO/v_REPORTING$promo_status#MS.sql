@@ -43,7 +43,7 @@ WITH final_grades AS (
              ,att.MEM_counts_yr
              ,att.ABS_all_counts_yr
              ,att.TDY_all_counts_yr        
-             ,att.ABS_all_counts_yr + FLOOR(att.TDY_all_counts_yr / 3) AS att_pts
+             ,ROUND(att.ABS_all_counts_yr + (att.TDY_all_counts_yr / 3), 1, 1) AS att_pts
              ,ROUND(((att.MEM_counts_yr - (att.ABS_all_counts_yr + FLOOR(att.TDY_all_counts_yr / 3))) / att.MEM_counts_yr) * 100, 1) AS att_pts_pct
        FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
        WHERE att.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
