@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-CREATE VIEW KTC$match_data AS
+ALTER VIEW KTC$match_data AS
 WITH act_subj AS
     (SELECT s.id AS studentid,
             a.academic_year,
@@ -88,6 +88,8 @@ WITH act_subj AS
      AND c.grade_level < 99
    )
 SELECT TOP 100000000 roster.*,
+       s.student_number,
+       ktc.contact_id,
        p.best_act AS best_practice_act,
        n.best_act AS best_naviance_act,
        a.best_any_act,
@@ -102,4 +104,8 @@ LEFT OUTER JOIN best_any_act a
 LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_cumulative g
   ON roster.studentid = g.studentid
  AND g.schoolid = 73253
+LEFT OUTER JOIN KIPP_NJ..STUDENTS s
+  ON roster.studentid = s.id
+LEFT OUTER JOIN AlumniMirror..vwRoster_Basic ktc
+  ON s.student_number = ktc.sis_id
 ORDER BY roster.cur_grade, lastfirst
