@@ -17,7 +17,7 @@ SELECT co.date
       ,co.ethnicity
       ,co.gender
 FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)            
-JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
  AND co.date = mem.calendardate
  AND mem.calendardate <= CONVERT(DATE,GETDATE())
