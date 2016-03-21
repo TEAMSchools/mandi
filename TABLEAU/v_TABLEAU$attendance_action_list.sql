@@ -75,7 +75,7 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
        ON mem.STUDENTID = att.STUDENTID
       AND mem.CALENDARDATE = att.ATT_DATE
-     JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH(NOLOCK)
        ON mem.STUDENTID = promo.studentid
       AND promo.is_curterm = 1
      JOIN KIPP_NJ..COHORT$identifiers_long#static s WITH(NOLOCK)

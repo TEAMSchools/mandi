@@ -338,6 +338,8 @@ WITH map_data AS (
 
              /* enrollment targets */
              ,enr.diff_from_target AS diff_from_target_enrollment
+             ,enr.diff_from_target_fr AS diff_from_target_enrollment_fr
+             ,enr.diff_from_target_sped AS diff_from_target_enrollment_sped
 
              /* teacher attrition */
              ,staff.pct_attrition
@@ -466,6 +468,8 @@ WITH map_data AS (
                  ,math_module_avg_above_65
                  ,math_module_avg_above_80
                  ,diff_from_target_enrollment
+                 ,diff_from_target_enrollment_fr
+                 ,diff_from_target_enrollment_sped
                  ,pct_attrition
                  ,pct_unwanted_attrition
                  ,pct_wanted_attrition
