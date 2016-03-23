@@ -83,11 +83,12 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,CONVERT(FLOAT,eng.RT3_term_grade_percent) AS ENGLISH_t3
       ,CONVERT(FLOAT,eng.RT4_term_grade_percent) AS ENGLISH_t4
       ,CONVERT(FLOAT,eng.Y1_grade_percent) AS ENGLISH_y1
+      ,CONVERT(FLOAT,eng.need_70) AS ENGLISH_need_c
       ,eng.RT1_term_grade_letter AS ENGLISH_t1_ltr
       ,eng.RT2_term_grade_letter AS ENGLISH_t2_ltr
       ,eng.RT3_term_grade_letter AS ENGLISH_t3_ltr
       ,eng.RT4_term_grade_letter AS ENGLISH_t4_ltr
-      ,eng.Y1_grade_letter AS ENGLISH_y1_ltr
+      ,eng.Y1_grade_letter AS ENGLISH_y1_ltr      
       ,eng.sectionid AS ENGLISH_t1_enr_sectionid
       ,eng.sectionid AS ENGLISH_t2_enr_sectionid
       ,eng.sectionid AS ENGLISH_t3_enr_sectionid
@@ -180,6 +181,7 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,MATH.RT3_term_grade_letter AS MATH_t3_ltr
       ,MATH.RT4_term_grade_letter AS MATH_t4_ltr
       ,MATH.Y1_grade_letter AS MATH_y1_ltr
+      ,CONVERT(FLOAT,math.need_70) AS MATH_need_c
       ,MATH.sectionid AS MATH_t1_enr_sectionid
       ,MATH.sectionid AS MATH_t2_enr_sectionid
       ,MATH.sectionid AS MATH_t3_enr_sectionid
@@ -221,6 +223,7 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,CONVERT(FLOAT,SCIENCE.RT3_term_grade_percent) AS SCIENCE_t3
       ,CONVERT(FLOAT,SCIENCE.RT4_term_grade_percent) AS SCIENCE_t4
       ,CONVERT(FLOAT,SCIENCE.Y1_grade_percent) AS SCIENCE_y1
+      ,CONVERT(FLOAT,SCIENCE.need_70) AS SCIENCE_need_c
       ,SCIENCE.RT1_term_grade_letter AS SCIENCE_t1_ltr
       ,SCIENCE.RT2_term_grade_letter AS SCIENCE_t2_ltr
       ,SCIENCE.RT3_term_grade_letter AS SCIENCE_t3_ltr
@@ -267,6 +270,7 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,CONVERT(FLOAT,SOC.RT3_term_grade_percent) AS SOC_t3
       ,CONVERT(FLOAT,SOC.RT4_term_grade_percent) AS SOC_t4
       ,CONVERT(FLOAT,SOC.Y1_grade_percent) AS SOC_y1
+      ,CONVERT(FLOAT,SOC.need_70) AS SOC_need_c
       ,SOC.RT1_term_grade_letter AS SOC_t1_ltr
       ,SOC.RT2_term_grade_letter AS SOC_t2_ltr
       ,SOC.RT3_term_grade_letter AS SOC_t3_ltr
