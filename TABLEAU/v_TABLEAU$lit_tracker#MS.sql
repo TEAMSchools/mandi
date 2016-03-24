@@ -80,6 +80,7 @@ SELECT -- student identifiers
       ,lit_rounds.GLEQ
       ,lit_rounds.fp_wpmrate
       ,lit_rounds.fp_keylever
+      ,lit_rounds.is_new_test
       ,LAG(lit_rounds.lvl_num, 1) OVER(PARTITION BY r.student_number, r.year ORDER BY term.hex) AS prev_lvl_num
 
       --/* F&P growth */

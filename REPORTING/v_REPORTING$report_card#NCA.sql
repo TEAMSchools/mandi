@@ -315,7 +315,7 @@ LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH (
   ON roster.studentid = att_counts.studentid
  AND roster.year = att_counts.academic_year
  AND curterm.alt_name = att_counts.term
-LEFT OUTER JOIN ATT_MEM$cc_attendance_totals_wide_course ccatt WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ATT_MEM$cc_attendance_totals_wide_course ccatt WITH(NOLOCK)
   ON roster.student_number = ccatt.student_number
  AND curterm.alt_name = ccatt.term
    
@@ -347,7 +347,7 @@ LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long demerits WITH(NOLOCK)
  AND roster.year = demerits.academic_year
  AND curterm.alt_name = demerits.term
  AND demerits.logtypeid = 3223
-LEFT OUTER JOIN DISC$perfect_weeks_long pw WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..DISC$perfect_weeks_long pw WITH(NOLOCK)
   ON roster.student_number = pw.student_number
  AND roster.year = pw.academic_year
  AND curterm.time_per_name = pw.rt

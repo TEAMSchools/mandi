@@ -196,6 +196,7 @@ SELECT academic_year
        END AS goal_status
       ,levels_behind
       ,unique_id
+      ,is_new_test
 FROM
     (
      SELECT sub.academic_year
@@ -225,6 +226,7 @@ FROM
            ,sub.fp_keylever
            ,sub.lvl_num - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind
            ,sub.unique_id      
+           ,CASE WHEN sub.academic_year = lit.academic_year AND sub.round_num = lit.round_num THEN 1 ELSE 0 END AS is_new_test
      FROM
          (
           SELECT tests.academic_year
@@ -267,5 +269,7 @@ FROM
        ON sub.STUDENT_NUMBER = indiv.student_number
       AND sub.test_round = indiv.test_round
       AND sub.academic_year = indiv.academic_year
+     LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static lit WITH(NOLOCK)
+       ON sub.unique_id = lit.unique_id
      WHERE sub.rn = 1     
     ) sub
