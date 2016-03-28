@@ -685,6 +685,7 @@ LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH (
   ON roster.studentid = att_counts.studentid
  AND roster.year = att_counts.academic_year
  AND curterm.alt_name = att_counts.term
+ AND att_counts.MEM_counts_yr > 0
 
 /* GRADES & GPA */
 LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_wide#static eng WITH(NOLOCK)
