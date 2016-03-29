@@ -6,7 +6,7 @@ ALTER VIEW DISC$counts_wide AS
 WITH curterm AS (
   SELECT schoolid
         ,time_per_name
-  FROM REPORTING$dates WITH(NOLOCK)
+  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
     AND identifier = 'RT'    
  )
@@ -124,8 +124,7 @@ SELECT log.studentid
       ,SUM(CASE WHEN log.subtype = 'Bus Suspension' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_bus_suspensions
       ,SUM(CASE WHEN log.subtype = 'Class Removal' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_class_removal
       ,SUM(CASE WHEN log.subtype = 'Bullying' AND log.rt = curterm.time_per_name THEN 1 ELSE NULL END) cur_bullying
-
-FROM DISC$log#static log WITH(NOLOCK)
+FROM KIPP_NJ..DISC$log#static log WITH(NOLOCK)
 JOIN curterm WITH(NOLOCK)
   ON log.schoolid = curterm.schoolid
 WHERE log.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
