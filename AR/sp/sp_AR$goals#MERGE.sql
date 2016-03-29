@@ -15,7 +15,7 @@ USING (
              ,time_period_end
              ,time_period_hierarchy
              ,academic_year
-       FROM KIPP_NJ..AR$goals_staging       
+       FROM KIPP_NJ..AR$goals_staging#static WITH(NOLOCK)
        WHERE rn = 1
       ) AS SOURCE  
   (student_number
