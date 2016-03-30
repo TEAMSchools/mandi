@@ -8,6 +8,7 @@ SELECT co.student_number
       ,co.schoolid
       ,co.grade_level
       ,co.team
+      ,co.advisor
       ,co.enroll_status
       ,co.year
       ,dt.alt_name AS term
@@ -27,6 +28,7 @@ SELECT co.student_number
       ,gr.y1_grade_letter           
       
       ,sec.SECTION_NUMBER 
+      ,sec.EXPRESSION
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON co.schoolid = dt.schoolid
@@ -47,6 +49,7 @@ SELECT co.student_number
       ,co.schoolid
       ,co.grade_level
       ,co.team
+      ,co.advisor
       ,co.enroll_status
       ,co.year
       ,dt.alt_name AS term
@@ -66,6 +69,7 @@ SELECT co.student_number
       ,NULL AS y1_grade_letter            
 
       ,sec.SECTION_NUMBER
+      ,sec.EXPRESSION
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON co.schoolid = dt.schoolid
