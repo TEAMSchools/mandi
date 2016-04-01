@@ -146,11 +146,10 @@ FROM
            ,o.course_number      
            ,CONVERT(VARCHAR(64),o.course_name) AS course_name
            ,CONVERT(VARCHAR(64),o.credit_hours) AS credit_hours
-           
+           ,o.sectionid           
+           ,CONVERT(VARCHAR(64),o.teacher_name) AS teacher_name                                 
+
            ,gr.rn_curterm           
-           ,gr.sectionid           
-           ,CONVERT(VARCHAR(64),gr.teacher_name) AS teacher_name                                 
-      
            ,gr.e1_grade_percent
            ,gr.e2_grade_percent           
            ,gr.y1_grade_letter

@@ -58,7 +58,7 @@ SELECT co.student_number
       ,gr.grade_category AS finalgradename
       ,gr.credittype
       ,gr.course_number
-      ,NULL AS course_name            
+      ,cou.course_name            
       ,gr.teacher_name
       ,NULL AS excludefromgpa
       ,NULL AS credit_hours
@@ -81,5 +81,7 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
  AND dt.time_per_name = gr.reporting_term
 LEFT OUTER JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
   ON gr.sectionid = sec.ID
+LEFT OUTER JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
+  ON gr.COURSE_NUMBER = cou.COURSE_NUMBER
 WHERE co.rn = 1
   AND co.school_level IN ('MS','HS')

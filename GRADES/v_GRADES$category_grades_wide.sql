@@ -141,10 +141,10 @@ FROM
            ,o.reporting_term           
            ,o.is_curterm
            ,o.class_rn
-           
-           ,MAX(gr.schoolid) OVER(PARTITION BY o.student_number, o.academic_year, o.course_number, o.reporting_term ORDER BY o.reporting_term ASC) AS schoolid
-           ,MIN(gr.sectionid) OVER(PARTITION BY o.student_number, o.academic_year, o.course_number, o.reporting_term ORDER BY o.reporting_term ASC) AS sectionid
-           ,gr.teacher_name           
+           ,o.sectionid
+           ,o.teacher_name           
+
+           ,MAX(gr.schoolid) OVER(PARTITION BY o.student_number, o.academic_year, o.course_number, o.reporting_term ORDER BY o.reporting_term ASC) AS schoolid           
            ,CONCAT(gr.grade_category, '_', gr.rt) AS pivot_field
            ,CASE WHEN gr.SCHOOLID = 73253 AND gr.grade_category = 'E' THEN NULL ELSE gr.grade_category_pct END AS grade_category_pct 
      FROM KIPP_NJ..PS$course_order_scaffold#static o WITH(NOLOCK)

@@ -20,6 +20,8 @@ WITH roster AS (
         ,c.CREDIT_HOURS
         ,c.gradescaleid
         ,c.excludefromgpa
+        ,c.sectionid
+        ,c.teacher_name
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
     ON co.schoolid = d.schoolid
@@ -38,15 +40,8 @@ WITH roster AS (
 
 ,enr_grades AS (
   SELECT studentid        
-        ,academic_year
-        --,credittype
-        ,course_number
-        --,course_name
-        ,sectionid
-        ,teacher_name
-        --,excludefromgpa
-        --,credit_hours
-        --,gradescaleid
+        ,academic_year        
+        ,course_number                
         ,term
         /* if stored grade exists, use that */                
         ,COALESCE(stored_letter, pgf_letter) AS term_grade_letter
@@ -65,34 +60,23 @@ WITH roster AS (
         ,term_gpa_points
   FROM
       (
-       SELECT enr.studentid                   
+       SELECT enr.studentid
              ,enr.SCHOOLID
              ,enr.academic_year
-             --,enr.credittype      
-             ,enr.course_number
-             --,enr.course_name      
-             ,enr.sectionid           
-             ,enr.teacher_name      
-             --,enr.excludefromgpa
-             --,CASE WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL ELSE enr.credit_hours END AS credit_hours
-             --,enr.gradescaleid                  
+             ,enr.course_number             
       
              ,pgf.FINALGRADENAME AS term
              ,CASE WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL ELSE ROUND(pgf.[PERCENT],0) END AS pgf_pct
              ,CASE WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL ELSE pgf.GRADE END AS pgf_letter      
       
              ,ROUND(sg.PCT,0) AS stored_pct
-             ,sg.GRADE AS stored_letter      
              
+             ,sg.GRADE AS stored_letter                   
              ,CASE 
                WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL                
                ELSE COALESCE(sg_scale.grade_points, scale.grade_points) 
               END AS term_gpa_points /* temp fix until stored grades are updated for honors courses */
-             --,COALESCE(sg.gpa_points, scale.grade_points) AS term_gpa_points      
-      
-             --,enr.drop_flags
-             --,enr.dateenrolled
-             --,enr.dateleft
+             
              ,ROW_NUMBER() OVER(
                 PARTITION BY enr.student_number, enr.academic_year, enr.course_number, pgf.finalgradename
                   ORDER BY sg.PCT DESC, enr.drop_flags ASC, enr.dateenrolled DESC, enr.dateleft DESC) AS rn
@@ -120,15 +104,8 @@ WITH roster AS (
 
        SELECT enr.studentid                   
              ,enr.SCHOOLID
-             ,enr.academic_year
-             --,enr.credittype      
-             ,enr.course_number
-             --,enr.course_name      
-             ,enr.sectionid           
-             ,enr.teacher_name      
-             --,enr.excludefromgpa
-             --,enr.credit_hours
-             --,enr.gradescaleid            
+             ,enr.academic_year             
+             ,enr.course_number             
       
              ,sg.STORECODE AS term
              ,NULL AS pgf_pct
@@ -188,10 +165,10 @@ WITH roster AS (
         ,r.course_name
         ,r.credit_hours
         ,r.gradescaleid 
-        ,r.excludefromgpa                     
-        
-        ,gr.sectionid
-        ,gr.teacher_name        
+        ,r.excludefromgpa                             
+        ,r.sectionid
+        ,r.teacher_name        
+
         ,gr.term_grade_percent
         ,gr.term_grade_letter
         ,gr.term_grade_percent_adjusted

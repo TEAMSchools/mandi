@@ -3,38 +3,41 @@ GO
 
 ALTER VIEW PS$course_order_scaffold AS
 
-SELECT student_number
-      ,academic_year
-      ,term
-      ,reporting_term
-      ,is_curterm
-      ,credittype        
-      ,course_number
-      ,COURSE_NAME
-      ,CREDIT_HOURS
-      ,GRADESCALEID
-      ,EXCLUDEFROMGPA
+SELECT sub.student_number
+      ,sub.academic_year
+      ,sub.term
+      ,sub.reporting_term
+      ,sub.is_curterm
+      ,sub.credittype        
+      ,sub.course_number
+      ,sub.COURSE_NAME
+      ,sub.CREDIT_HOURS
+      ,sub.GRADESCALEID
+      ,sub.EXCLUDEFROMGPA
+      ,sec.sectionid
+      ,sec.teacher_name
       ,ROW_NUMBER() OVER(
-         PARTITION BY student_number, academic_year, term
+         PARTITION BY sub.student_number, sub.academic_year, sub.term
            ORDER BY CASE
-                     WHEN credittype = 'ENG' THEN 01
-                     WHEN credittype = 'RHET' THEN 02
-                     WHEN credittype = 'MATH' THEN 03
-                     WHEN credittype = 'SCI' THEN 04
-                     WHEN credittype = 'SOC' THEN 05
-                     WHEN credittype = 'WLANG' THEN 11
-                     WHEN credittype = 'PHYSED' THEN 12
-                     WHEN credittype = 'ART' THEN 13
-                     WHEN credittype = 'STUDY' THEN 21
-                     WHEN credittype = 'COCUR' THEN 22
-                     WHEN credittype = 'ELEC' THEN 22
-                     WHEN credittype = 'LOG' THEN 22
+                     WHEN sub.credittype = 'ENG' THEN 01
+                     WHEN sub.credittype = 'RHET' THEN 02
+                     WHEN sub.credittype = 'MATH' THEN 03
+                     WHEN sub.credittype = 'SCI' THEN 04
+                     WHEN sub.credittype = 'SOC' THEN 05
+                     WHEN sub.credittype = 'WLANG' THEN 11
+                     WHEN sub.credittype = 'PHYSED' THEN 12
+                     WHEN sub.credittype = 'ART' THEN 13
+                     WHEN sub.credittype = 'STUDY' THEN 21
+                     WHEN sub.credittype = 'COCUR' THEN 22
+                     WHEN sub.credittype = 'ELEC' THEN 22
+                     WHEN sub.credittype = 'LOG' THEN 22
                     END
-                   ,course_number) AS class_rn      
+                   ,sub.course_number) AS class_rn      
 FROM
     (
      SELECT DISTINCT 
             co.student_number
+           ,co.studentid
            ,co.year AS academic_year
            ,dt.time_per_name AS reporting_term
            ,dt.alt_name AS term
@@ -61,6 +64,11 @@ FROM
       AND enr.drop_flags = 0
      WHERE co.rn = 1       
     ) sub  
+LEFT OUTER JOIN KIPP_NJ..PS$course_section_scaffold#static sec
+  ON sub.studentid = sec.studentid
+ AND sub.academic_year = sec.year
+ AND sub.term = sec.term
+ AND sub.COURSE_NUMBER = sec.COURSE_NUMBER
 
 UNION ALL
 
@@ -76,6 +84,8 @@ SELECT DISTINCT
       ,NULL AS CREDIT_HOURS
       ,NULL AS gradescaleid
       ,NULL AS excludefromgpa
+      ,NULL AS sectionid
+      ,NULL AS teacher_name
       ,NULL AS class_rn      
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
