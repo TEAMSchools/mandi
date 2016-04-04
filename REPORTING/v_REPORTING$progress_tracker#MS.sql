@@ -687,7 +687,7 @@ LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH (
  AND curterm.alt_name = att_counts.term
  AND att_counts.MEM_counts_yr > 0
 
-/* GRADES & GPA */
+/* GRADES */
 LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_wide#static eng WITH(NOLOCK)
   ON roster.student_number = eng.student_number
  AND eng.is_curterm = 1
@@ -733,6 +733,8 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide#static all_cat WITH(NOLOCK)
  AND curterm.time_per_name = all_cat.reporting_term
  AND all_cat.credittype = 'ALL'
  AND all_cat.rn_credittype = 1
+
+/* GPA */
 LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_wide#static gpa WITH (NOLOCK)
   ON roster.student_number = gpa.student_number
  AND roster.year = gpa.academic_year

@@ -18,6 +18,7 @@ SELECT co.student_number
       ,gr.credittype
       ,gr.course_number
       ,gr.course_name      
+      ,gr.sectionid
       ,gr.teacher_name
       ,gr.excludefromgpa
       ,gr.credit_hours
@@ -59,6 +60,7 @@ SELECT co.student_number
       ,gr.credittype
       ,gr.course_number
       ,cou.course_name            
+      ,gr.sectionid
       ,gr.teacher_name
       ,NULL AS excludefromgpa
       ,NULL AS credit_hours

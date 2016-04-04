@@ -41,6 +41,51 @@ WITH roster_scaffold AS (
              ,r.academic_year
              ,r.test_round
              ,r.round_num
+             ,r.start_date                
+        
+             ,COALESCE(achv.read_lvl, ps.read_lvl) AS read_lvl
+             ,COALESCE(achv.lvl_num, ps.lvl_num) AS lvl_num
+             ,COALESCE(achv.indep_lvl, ps.indep_lvl) AS indep_lvl
+             ,COALESCE(achv.indep_lvl_num, ps.indep_lvl_num) AS indep_lvl_num
+             ,COALESCE(achv.instruct_lvl, ps.instruct_lvl) AS instruct_lvl
+             ,COALESCE(achv.instruct_lvl_num, ps.instruct_lvl_num) AS instruct_lvl_num
+             ,COALESCE(achv.GLEQ, ps.GLEQ) AS GLEQ
+             ,COALESCE(achv.fp_wpmrate, ps.fp_wpmrate) AS fp_wpmrate
+             ,COALESCE(achv.fp_keylever, ps.fp_keylever) AS fp_keylever
+             ,COALESCE(dna.read_lvl, ps.dna_lvl) AS dna_lvl
+             ,COALESCE(dna.lvl_num, ps.dna_lvl_num) AS dna_lvl_num
+             ,COALESCE(dna.unique_id, ps.unique_id) AS unique_id
+       FROM roster_scaffold r WITH(NOLOCK) 
+       LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static ps WITH(NOLOCK)
+         ON r.STUDENTID = ps.studentid      
+        AND r.academic_year = ps.academic_year
+        AND r.test_round = ps.test_round
+        AND ps.status = 'Mixed'
+        AND ps.curr_round = 1
+       LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static achv WITH(NOLOCK)
+         ON r.STUDENTID = achv.studentid      
+        AND r.academic_year = achv.academic_year
+        AND r.test_round = achv.test_round
+        AND achv.status = 'Achieved'
+        AND achv.curr_round = 1
+       LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static dna WITH(NOLOCK)
+         ON r.STUDENTID = dna.studentid      
+        AND r.academic_year = dna.academic_year
+        AND r.test_round = dna.test_round
+        AND dna.status = 'Did Not Achieve'
+        AND dna.curr_round = 1
+       WHERE r.academic_year >= 2015
+
+       UNION ALL
+
+       /* historical data */
+       SELECT r.STUDENTID
+             ,r.student_number
+             ,r.SCHOOLID
+             ,r.GRADE_LEVEL
+             ,r.academic_year
+             ,r.test_round
+             ,r.round_num
              ,r.start_date
              ,achv.read_lvl
              ,achv.lvl_num
@@ -115,50 +160,6 @@ WITH roster_scaffold AS (
        WHERE fp.academic_year = 2014
          AND fp.schoolid = 133570965
          AND fp.recent_yr = 1    
-
-       UNION ALL
-
-       SELECT r.STUDENTID
-             ,r.student_number
-             ,r.SCHOOLID
-             ,r.GRADE_LEVEL
-             ,r.academic_year
-             ,r.test_round
-             ,r.round_num
-             ,r.start_date                
-        
-             ,COALESCE(achv.read_lvl, ps.read_lvl) AS read_lvl
-             ,COALESCE(achv.lvl_num, ps.lvl_num) AS lvl_num
-             ,COALESCE(achv.indep_lvl, ps.indep_lvl) AS indep_lvl
-             ,COALESCE(achv.indep_lvl_num, ps.indep_lvl_num) AS indep_lvl_num
-             ,COALESCE(achv.instruct_lvl, ps.instruct_lvl) AS instruct_lvl
-             ,COALESCE(achv.instruct_lvl_num, ps.instruct_lvl_num) AS instruct_lvl_num
-             ,COALESCE(achv.GLEQ, ps.GLEQ) AS GLEQ
-             ,COALESCE(achv.fp_wpmrate, ps.fp_wpmrate) AS fp_wpmrate
-             ,COALESCE(achv.fp_keylever, ps.fp_keylever) AS fp_keylever
-             ,COALESCE(dna.read_lvl, ps.dna_lvl) AS dna_lvl
-             ,COALESCE(dna.lvl_num, ps.dna_lvl_num) AS dna_lvl_num
-             ,COALESCE(dna.unique_id, ps.unique_id) AS unique_id
-       FROM roster_scaffold r WITH(NOLOCK) 
-       LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static ps WITH(NOLOCK)
-         ON r.STUDENTID = ps.studentid      
-        AND r.academic_year = ps.academic_year
-        AND r.test_round = ps.test_round
-        AND ps.status = 'Mixed'
-        AND ps.curr_round = 1
-       LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static achv WITH(NOLOCK)
-         ON r.STUDENTID = achv.studentid      
-        AND r.academic_year = achv.academic_year
-        AND r.test_round = achv.test_round
-        AND achv.status = 'Achieved'
-        AND achv.curr_round = 1
-       LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static dna WITH(NOLOCK)
-         ON r.STUDENTID = dna.studentid      
-        AND r.academic_year = dna.academic_year
-        AND r.test_round = dna.test_round
-        AND dna.status = 'Did Not Achieve'
-        AND dna.curr_round = 1
-       WHERE r.academic_year >= 2015
       ) sub
  )
 

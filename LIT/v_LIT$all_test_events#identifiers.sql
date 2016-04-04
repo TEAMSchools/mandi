@@ -78,7 +78,7 @@ WITH all_systems AS (
         ,studentid
         ,student_number
         ,LASTFIRST
-        ,status
+        ,'Mixed' AS status
         ,achieved_independent_level AS read_lvl
         ,indep_lvl_num AS lvl_num
         ,instructional_level_tested AS dna_lvl

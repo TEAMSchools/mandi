@@ -54,8 +54,8 @@ WITH gpa_long AS (
 SELECT student_number
       ,academic_year
       ,term
-      ,MAX([GPA_term_CUR]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_term_CUR
-      ,MAX([GPA_term_rank_CUR]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_term_rank_CUR
+      ,[GPA_term_CUR]
+      ,[GPA_term_rank_CUR]
       ,MAX([GPA_term_rank_RT1]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_term_rank_RT1
       ,MAX([GPA_term_rank_RT2]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_term_rank_RT2
       ,MAX([GPA_term_rank_RT3]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_term_rank_RT3
@@ -66,8 +66,8 @@ SELECT student_number
       ,MAX([GPA_term_RT4]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_term_RT4
       ,MAX([GPA_semester_S1]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_semester_S1
       ,MAX([GPA_semester_S2]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_semester_S2
-      ,MAX([GPA_Y1_CUR]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_Y1_CUR
-      ,MAX([GPA_y1_rank_CUR]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_y1_rank_CUR
+      ,[GPA_Y1_CUR]
+      ,[GPA_y1_rank_CUR]
       ,MAX([GPA_y1_rank_RT1]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_y1_rank_RT1
       ,MAX([GPA_y1_rank_RT2]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_y1_rank_RT2
       ,MAX([GPA_y1_rank_RT3]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_y1_rank_RT3
@@ -76,7 +76,7 @@ SELECT student_number
       ,MAX([GPA_Y1_RT2]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_Y1_RT2
       ,MAX([GPA_Y1_RT3]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_Y1_RT3
       ,MAX([GPA_Y1_RT4]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS GPA_Y1_RT4      
-      ,MAX([total_credit_hours_CUR]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS total_credit_hours_CUR
+      ,[total_credit_hours_CUR]
       ,MAX([total_credit_hours_RT1]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS total_credit_hours_RT1
       ,MAX([total_credit_hours_RT2]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS total_credit_hours_RT2
       ,MAX([total_credit_hours_RT3]) OVER(PARTITION BY student_number, academic_year ORDER BY term ASC) AS total_credit_hours_RT3

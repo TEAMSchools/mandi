@@ -61,14 +61,14 @@ SELECT roster.ID
       ,gr.e1_grade_percent AS E1
       ,gr.e2_grade_percent AS E2
 
-      ,CASE WHEN gr.y1_grade_percent >= 65 THEN NULL ELSE gr.need_65 END AS GET_D
-      ,CASE WHEN gr.y1_grade_percent >= 70 THEN NULL ELSE gr.need_70 END AS GET_C
-      ,CASE WHEN gr.y1_grade_percent >= 80 THEN NULL ELSE gr.need_80 END AS GET_B
-      ,CASE WHEN gr.y1_grade_percent >= 90 THEN NULL ELSE gr.need_90 END AS GET_A      
+      ,CASE WHEN gr.y1_grade_percent >= 65 THEN NULL ELSE CONVERT(FLOAT,gr.need_65) END AS GET_D
+      ,CASE WHEN gr.y1_grade_percent >= 70 THEN NULL ELSE CONVERT(FLOAT,gr.need_70) END AS GET_C
+      ,CASE WHEN gr.y1_grade_percent >= 80 THEN NULL ELSE CONVERT(FLOAT,gr.need_80) END AS GET_B
+      ,CASE WHEN gr.y1_grade_percent >= 90 THEN NULL ELSE CONVERT(FLOAT,gr.need_90) END AS GET_A      
       ,CASE
-        WHEN gr.y1_grade_percent BETWEEN 70 AND 79 THEN need_70
-        WHEN gr.y1_grade_percent BETWEEN 80 AND 89 THEN need_80
-        WHEN gr.y1_grade_percent >= 90 THEN need_90
+        WHEN gr.y1_grade_percent BETWEEN 70 AND 79 THEN CONVERT(FLOAT,need_70)
+        WHEN gr.y1_grade_percent BETWEEN 80 AND 89 THEN CONVERT(FLOAT,need_80)
+        WHEN gr.y1_grade_percent >= 90 THEN CONVERT(FLOAT,need_90)
         ELSE NULL
        END AS MAINTAIN           
       
