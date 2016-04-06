@@ -5,6 +5,7 @@ ALTER VIEW MAP$best_baseline AS
 
 WITH roster AS (
   SELECT studentid
+        ,student_number
         ,grade_level
         ,schoolid
         ,cohort.school_name AS school

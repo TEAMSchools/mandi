@@ -8,26 +8,26 @@ SET QUOTED_IDENTIFIER ON
 GO
 
                   
-ALTER PROCEDURE [sp_ILLUMINATE$FSA_scores_wide#static|refresh] AS
+ALTER PROCEDURE [sp_AR$individual_goals#static|refresh] AS
 BEGIN
 
   DECLARE @sql AS VARCHAR(MAX)='';
 
   -- STEP 1: make sure no temp table
-		IF OBJECT_ID(N'tempdb..#ILLUMINATE$FSA_scores_wide#static|refresh') IS NOT NULL
+		IF OBJECT_ID(N'tempdb..#AR$individual_goals#static|refresh') IS NOT NULL
 		BEGIN
-						DROP TABLE [#ILLUMINATE$FSA_scores_wide#static|refresh]
+						DROP TABLE [#AR$individual_goals#static|refresh]
 		END
 
 
   -- STEP 2: load into a temporary staging table.
   SELECT *
-		INTO [#ILLUMINATE$FSA_scores_wide#static|refresh]
-  FROM ILLUMINATE$FSA_scores_wide;
+		INTO [#AR$individual_goals#static|refresh]
+  FROM AR$individual_goals;
          
 
   -- STEP 3: truncate destination table
-  EXEC('TRUNCATE TABLE KIPP_NJ..ILLUMINATE$FSA_scores_wide#static');
+  EXEC('TRUNCATE TABLE KIPP_NJ..AR$individual_goals#static');
 
 
   -- STEP 4: disable all nonclustered indexes on table
@@ -39,14 +39,14 @@ BEGIN
     ON sys.indexes.object_id = sys.objects.object_id
   WHERE sys.indexes.type_desc = 'NONCLUSTERED'
     AND sys.objects.type_desc = 'USER_TABLE'
-    AND sys.objects.name = 'ILLUMINATE$FSA_scores_wide#static';
+    AND sys.objects.name = 'AR$individual_goals#static';
   EXEC (@sql);
 
 
   -- STEP 5: insert into final destination
-  INSERT INTO [ILLUMINATE$FSA_scores_wide#static]
+  INSERT INTO [AR$individual_goals#static]
   SELECT *
-  FROM [#ILLUMINATE$FSA_scores_wide#static|refresh];
+  FROM [#AR$individual_goals#static|refresh];
  
 
   -- STEP 6: rebuld all nonclustered indexes on table
@@ -58,7 +58,7 @@ BEGIN
     ON sys.indexes.object_id = sys.objects.object_id
   WHERE sys.indexes.type_desc = 'NONCLUSTERED'
     AND sys.objects.type_desc = 'USER_TABLE'
-    AND sys.objects.name = 'ILLUMINATE$FSA_scores_wide#static';
+    AND sys.objects.name = 'AR$individual_goals#static';
   EXEC (@sql);
   
 END                  

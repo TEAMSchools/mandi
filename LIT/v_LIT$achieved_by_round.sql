@@ -168,6 +168,7 @@ SELECT academic_year
       ,SCHOOLID
       ,GRADE_LEVEL
       ,STUDENTID
+      ,student_number
       ,test_round
       ,start_date
       ,read_lvl
@@ -204,6 +205,7 @@ FROM
            ,sub.SCHOOLID
            ,sub.GRADE_LEVEL
            ,sub.STUDENTID
+           ,sub.student_number
            ,sub.test_round
            ,sub.start_date
            ,sub.read_lvl           

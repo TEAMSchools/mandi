@@ -8,6 +8,7 @@ SELECT *
 FROM OPENQUERY(PS_TEAM,'
   SELECT rt.NAME AS finalgradename
         ,rt.STARTDATE        
+        ,rt.ENDDATE
         
         ,fgsetup.FINALGRADESETUPTYPE    
         ,ssm.sectionsdcid    
