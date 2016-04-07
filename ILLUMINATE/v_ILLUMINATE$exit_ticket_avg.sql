@@ -39,6 +39,7 @@ FROM
           JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
             ON ovr.local_student_id = co.student_number
            AND ovr.academic_year = co.year
+           AND co.schoolid = 73258
            AND co.rn = 1
           JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
             ON co.schoolid = d.schoolid
@@ -46,12 +47,11 @@ FROM
            AND d.identifier = 'RT'
           JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
             ON ovr.assessment_id = a.assessment_id
-           AND ((a.subject_area = 'Performing Arts' AND a.scope IN ('Exit Ticket','Unit Assessment'))
-                 OR (a.subject_area != 'Performing Arts' AND a.scope = 'Exit Ticket'))
+           AND ((a.subject_area IN ('Performing Arts','History','Science') AND a.scope IN ('Exit Ticket','Unit Assessment'))
+                 OR (a.subject_area NOT IN ('Performing Arts','History','Science') AND a.scope = 'Exit Ticket'))
            AND a.subject_area IS NOT NULL                  
           WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-            AND ovr.answered > 0
-            AND co.schoolid = 73258
+            AND ovr.answered > 0            
          ) sub     
      GROUP BY academic_year
              ,local_student_id

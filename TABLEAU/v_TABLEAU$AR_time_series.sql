@@ -130,11 +130,11 @@ FROM
       AND hr.COURSE_NUMBER = 'HR'
       AND hr.drop_flags = 0      
       AND hr.rn_subject = 1
-     LEFT OUTER JOIN KIPP_NJ..AR$goals y1_goal WITH (NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..AR$goals y1_goal WITH(NOLOCK)
        ON co.student_number = y1_goal.student_number   
       AND co.date BETWEEN y1_goal.time_period_start AND y1_goal.time_period_end
       AND y1_goal.time_period_hierarchy = 1
-     LEFT OUTER JOIN KIPP_NJ..AR$goals term_goal WITH (NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..AR$goals term_goal WITH(NOLOCK)
        ON co.student_number = term_goal.student_number   
       AND co.date BETWEEN term_goal.time_period_start AND term_goal.time_period_end
       AND term_goal.time_period_hierarchy = 2

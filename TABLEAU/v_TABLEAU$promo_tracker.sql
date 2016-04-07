@@ -27,6 +27,7 @@ SELECT co.student_number
       ,gr.term_grade_letter_adjusted
       ,gr.y1_grade_percent_adjusted
       ,gr.y1_grade_letter           
+      ,gr.y1_gpa_points
       
       ,sec.SECTION_NUMBER 
       ,sec.EXPRESSION
@@ -42,6 +43,7 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
   ON gr.sectionid = sec.ID
 WHERE co.rn = 1
+  AND co.school_level IN ('MS','HS')
 
 UNION ALL
 
@@ -69,6 +71,7 @@ SELECT co.student_number
       ,NULL AS term_grade_letter_adjusted
       ,gr.grade_category_pct_y1 AS y1_grade_percent_adjusted
       ,NULL AS y1_grade_letter            
+      ,NULL AS y1_gpa_points
 
       ,sec.SECTION_NUMBER
       ,sec.EXPRESSION

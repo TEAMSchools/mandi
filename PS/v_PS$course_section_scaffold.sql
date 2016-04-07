@@ -23,7 +23,7 @@ WITH scaffold AS (
    AND co.date BETWEEN cc.DATEENROLLED AND cc.DATELEFT
   JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
     ON ABS(cc.SECTIONID) = sec.ID
-  JOIN KIPP_NJ..PS$TEACHERS#static t
+  JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
     ON sec.teacher = t.ID
   WHERE co.year >= 2011
  )

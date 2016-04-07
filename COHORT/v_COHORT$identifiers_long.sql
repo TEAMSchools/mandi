@@ -3,58 +3,6 @@ GO
 
 ALTER VIEW COHORT$identifiers_long AS
 
-WITH advisory AS (
-  SELECT STUDENTID
-        ,academic_year
-        ,teachernumber
-        ,advisor
-        ,SECTION_NUMBER
-        ,ROW_NUMBER() OVER(
-           PARTITION BY studentid, academic_year
-             ORDER BY dateleft DESC) AS rn
-  FROM
-      (
-       SELECT enr.STUDENTID           
-             ,enr.DATELEFT
-             ,enr.academic_year           
-             ,enr.TEACHERNUMBER
-             ,enr.teacher_name AS advisor      
-             ,KIPP_NJ.dbo.fn_StripCharacters(enr.section_number,'0-9') AS section_number
-       FROM KIPP_NJ..PS$course_enrollments#static enr wITH(NOLOCK)
-       WHERE enr.COURSE_NUMBER = 'HR'         
-      ) sub
- )
-
-,promo AS (
-  SELECT year 
-        ,year - 1 AS past_year
-        ,year + 1 AS future_year
-        ,student_number      
-        ,grade_level
-  FROM KIPP_NJ..COHORT$comprehensive_long#static WITH(NOLOCK)
-  WHERE rn = 1
- )
-
-,retention_flags AS (
-  SELECT sub.studentid
-        ,sub.year
-        ,retained_yr_flag
-        ,MAX(retained_yr_flag) OVER(PARTITION BY sub.studentid) AS retained_ever_flag
-  FROM
-      (
-       SELECT co.studentid      
-             ,co.year
-             --,co.grade_level
-             --,LAG(co.grade_level, 1) OVER(PARTITION BY co.studentid ORDER BY co.year ASC) AS prev_grade
-             ,CASE 
-               WHEN co.grade_level != 99 AND co.grade_level <= LAG(co.grade_level, 1) OVER(PARTITION BY co.studentid ORDER BY co.year ASC) THEN 1 
-               ELSE 0 
-              END AS retained_yr_flag
-       FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH(NOLOCK)
-       WHERE co.rn = 1       
-      ) sub
- )
-
 SELECT co.schoolid
       ,CASE
         WHEN co.schoolid = 73252 THEN 'MS'
@@ -172,9 +120,9 @@ LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info#static mcs WITH(NOLOCK)
   ON co.STUDENT_NUMBER = mcs.StudentNumber
 JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON co.studentid = cs.STUDENTID
-LEFT OUTER JOIN KIPP_NJ..ROSTERS$PS_access_accounts logins WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ROSTERS$PS_access_accounts#static logins WITH(NOLOCK)
   ON co.STUDENT_NUMBER = logins.STUDENT_NUMBER
-LEFT OUTER JOIN advisory WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$advisory_roster#static advisory WITH(NOLOCK)
   ON co.studentid = advisory.STUDENTID
  AND co.year = advisory.academic_year
  AND advisory.rn = 1
@@ -199,12 +147,12 @@ LEFT OUTER JOIN KIPP_NJ..PS$student_BLOBs#static blobs WITH(NOLOCK)
   ON co.studentid = blobs.STUDENTID
 LEFT OUTER JOIN KIPP_NJ..PS$student_contact#static emerg WITH(NOLOCK)
   ON co.studentid = emerg.STUDENTID
-LEFT OUTER JOIN promo future WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..COHORT$student_promo_order#static future WITH(NOLOCK)
   ON co.STUDENT_NUMBER = future.student_number
  AND co.year = future.past_year
-LEFT OUTER JOIN promo past WITH(NOLOCK)
+LEFT OUTER JOIN COHORT$student_promo_order#static past WITH(NOLOCK)
   ON co.STUDENT_NUMBER = past.student_number
  AND co.year = past.future_year
-LEFT OUTER JOIN retention_flags ret WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..COHORT$retention_flags#static ret WITH(NOLOCK)
   ON co.studentid = ret.studentid
  AND co.year = ret.year
