@@ -5,11 +5,10 @@ ALTER VIEW AR$individual_goals AS
 
 SELECT sn AS student_number
       ,REPLACE(cycle,'Q','RT') AS term
-      ,CONVERT(FLOAT,REPLACE(CASE WHEN adjusted_goal = '' THEN NULL ELSE adjusted_goal END,',','')) AS adjusted_goal
+      ,CONVERT(FLOAT,adjusted_goal) AS adjusted_goal
       ,ROW_NUMBER() OVER(
          PARTITION BY sn, cycle
-           ORDER BY adjusted_goal DESC) AS rn
-        
+           ORDER BY adjusted_goal DESC) AS rn        
 FROM
     (
      SELECT sn

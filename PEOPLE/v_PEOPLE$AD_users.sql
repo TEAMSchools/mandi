@@ -3,7 +3,8 @@ GO
 
 ALTER VIEW PEOPLE$AD_users AS
 
-SELECT employeenumber
+SELECT idautoPersonALternateID AS associate_id
+      ,employeenumber
       ,employeeID      
       ,idautostatus
       ,displayName      
@@ -46,6 +47,7 @@ FROM OPENQUERY(ADSI,'
         ,createTimeStamp                
         ,department                
         ,displayName        
+        ,idautoPersonALternateID 
         ,employeeID        
         ,employeenumber
         ,givenName        

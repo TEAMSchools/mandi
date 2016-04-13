@@ -3,6 +3,17 @@ GO
 
 ALTER VIEW TABLEAU$hiring_dashboard_positions AS
 
+WITH goals AS (
+  SELECT academic_year
+        ,quarter AS term
+        ,CONVERT(DATE,start_date) AS start_date
+        ,CONVERT(DATE,ends_on) AS end_date
+        --,type     
+        ,multiplier
+  FROM KIPP_NJ..AUTOLOAD$GDOCS_RECRUIT_jobpostinggoals WITH(NOLOCK)
+  WHERE type != 'Actual'
+ )
+
 SELECT pos.id AS position_id
       ,pos.Position_Name__c
       ,pos.CreatedDate AS position_createddate
@@ -36,9 +47,16 @@ SELECT pos.id AS position_id
       ,app.[Stage__c]
       ,app.[Selection_Status__c]
       ,app.[Primary_Interest_Grade_Level_General__c]
+      
+      ,goals.term
+      ,goals.multiplier
+      ,goals.start_date
+      ,goals.end_date
 FROM KIPPCareersMirror..Job_Position__c pos WITH(NOLOCK) 
 LEFT OUTER JOIN KIPPCareersMirror..Job_Application__c app WITH(NOLOCK)
   ON pos.Id = app.Job_Position__c
 LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_RECRUIT_jobpostingdrop post WITH(NOLOCK)
   ON LEFT(pos.Job_Posting__c, (LEN(pos.Job_Posting__c) - 3)) = post.job_posting_id
+LEFT OUTER JOIN goals
+  ON pos.CreatedDate BETWEEN goals.start_date AND goals.end_date
 WHERE pos.Region__c = 'New Jersey'
