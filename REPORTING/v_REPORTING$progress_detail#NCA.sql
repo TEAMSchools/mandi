@@ -61,6 +61,11 @@ SELECT roster.ID
       ,gr.e1_grade_percent AS E1
       ,gr.e2_grade_percent AS E2
 
+      --,NULL AS GET_D
+      --,NULL AS GET_C
+      --,NULL AS GET_B
+      --,NULL AS GET_A
+      --,NULL AS MAINTAIN
       ,CASE WHEN gr.y1_grade_percent >= 65 THEN NULL ELSE CONVERT(FLOAT,gr.need_65) END AS GET_D
       ,CASE WHEN gr.y1_grade_percent >= 70 THEN NULL ELSE CONVERT(FLOAT,gr.need_70) END AS GET_C
       ,CASE WHEN gr.y1_grade_percent >= 80 THEN NULL ELSE CONVERT(FLOAT,gr.need_80) END AS GET_B
@@ -179,6 +184,7 @@ FROM roster WITH(NOLOCK)
 CROSS JOIN curterm
 LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_wide#static gr WITH(NOLOCK)
   ON roster.ID = gr.student_number
+ AND gr.course_name != 'ALL'
  AND gr.is_curterm = 1
 LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide#static cat WITH(NOLOCK)
   ON roster.ID = cat.student_number

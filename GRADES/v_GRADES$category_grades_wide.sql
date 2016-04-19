@@ -80,6 +80,14 @@ WITH grades_long AS (
           ,cat.is_curterm
  )
 
+,grade_categories AS (
+  SELECT DISTINCT 
+         academic_year
+        ,SCHOOLID
+        ,grade_category
+  FROM KIPP_NJ..GRADES$category_grades_long#static WITH(NOLOCK)
+)
+
 SELECT student_number
       ,SCHOOLID
       ,academic_year
@@ -144,17 +152,20 @@ FROM
            ,o.sectionid
            ,o.teacher_name           
 
-           ,MAX(gr.schoolid) OVER(PARTITION BY o.student_number, o.academic_year, o.course_number, o.reporting_term ORDER BY o.reporting_term ASC) AS schoolid           
-           ,CONCAT(gr.grade_category, '_', gr.rt) AS pivot_field
+           ,CONCAT(cat.grade_category, '_', o.rt) AS pivot_field
+           ,MAX(o.schoolid) OVER(PARTITION BY o.student_number, o.academic_year, o.course_number, o.reporting_term ORDER BY o.reporting_term ASC) AS schoolid                      
            ,CASE WHEN gr.SCHOOLID = 73253 AND gr.grade_category = 'E' THEN NULL ELSE gr.grade_category_pct END AS grade_category_pct 
      FROM KIPP_NJ..PS$course_order_scaffold#static o WITH(NOLOCK)
+     JOIN grade_categories cat
+       ON o.academic_year = cat.academic_year
+      AND o.schoolid = cat.SCHOOLID
      LEFT OUTER JOIN grades_long gr
        ON o.student_number = gr.student_number
       AND o.academic_year = gr.academic_year
       AND o.course_number = gr.COURSE_NUMBER
       AND o.reporting_term = gr.reporting_term      
+      AND cat.grade_category = gr.grade_category
      WHERE o.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()     
-       AND gr.SCHOOLID IS NOT NULL
     ) sub
 PIVOT(
   MAX(grade_category_pct)

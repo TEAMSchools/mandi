@@ -4,9 +4,11 @@ GO
 ALTER VIEW PS$course_order_scaffold AS
 
 SELECT sub.student_number
+      ,sub.schoolid
       ,sub.academic_year
-      ,sub.term
-      ,sub.reporting_term
+      ,CONVERT(VARCHAR,sub.term) AS term
+      ,CONVERT(VARCHAR,sub.reporting_term) AS reporting_term
+      ,sub.rt
       ,sub.is_curterm
       ,sub.credittype        
       ,sub.course_number
@@ -38,8 +40,13 @@ FROM
      SELECT DISTINCT 
             co.student_number
            ,co.studentid
+           ,co.schoolid
            ,co.year AS academic_year
            ,dt.time_per_name AS reporting_term
+           ,CASE
+             WHEN co.schoolid = 73253 THEN dt.time_per_name
+             ELSE CONCAT('RT', RIGHT(dt.time_per_name,1) - 1) 
+            END AS rt
            ,dt.alt_name AS term
            ,enr.COURSE_NUMBER
            ,enr.CREDITTYPE
@@ -74,9 +81,14 @@ UNION ALL
 
 SELECT DISTINCT 
        co.student_number
-      ,co.year AS academic_year
-      ,dt.alt_name AS term
-      ,dt.time_per_name AS reporting_term      
+      ,co.schoolid
+      ,co.year AS academic_year      
+      ,CONVERT(VARCHAR,dt.alt_name) AS term
+      ,CONVERT(VARCHAR,dt.time_per_name) AS reporting_term      
+      ,CASE
+        WHEN co.schoolid = 73253 THEN dt.time_per_name
+        ELSE CONCAT('RT', RIGHT(dt.time_per_name,1) - 1) 
+       END AS rt
       ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date THEN 1 ELSE 0 END AS is_curterm
       ,'ALL' AS CREDITTYPE
       ,'ALL' AS COURSE_NUMBER      

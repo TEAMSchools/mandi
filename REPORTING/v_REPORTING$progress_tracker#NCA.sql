@@ -728,7 +728,7 @@ FROM
       AND roster.year = map_sci_base.year
       AND map_sci_base.measurementscale  = 'Science - General Science'       
 
-     --MERITS & DEMERITS
+     /* MERITS & DEMERITS */
      LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long#static merits WITH(NOLOCK)
        ON roster.student_number = merits.student_number
       AND roster.year = merits.academic_year
