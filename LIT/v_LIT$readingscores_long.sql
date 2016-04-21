@@ -300,7 +300,8 @@ SELECT sub.unique_id
       ,CASE 
         WHEN sub.testid != 3273 AND sub.is_prof = 0 THEN 1
         WHEN sub.testid = 3273 AND sub.domain != 'Comprehension' AND sub.is_prof = 0 THEN 1
-        WHEN sub.testid = 3273 AND sub.domain = 'Comprehension' AND MIN(sub.is_prof) OVER(PARTITION BY sub.unique_id, sub.domain) = 0 AND sub.score_order = 1 THEN 1 ELSE 0
+        WHEN sub.testid = 3273 AND sub.domain = 'Comprehension' AND MIN(sub.is_prof) OVER(PARTITION BY sub.unique_id, sub.domain) = 0 AND sub.score_order = 1 THEN 1
+        ELSE 0        
        END AS dna_filter
       ,CASE 
         WHEN sub.testid != 3273 AND sub.is_prof = 0 THEN sub.domain 

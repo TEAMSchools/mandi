@@ -11,33 +11,33 @@ SELECT sn AS student_number
            ORDER BY adjusted_goal DESC) AS rn        
 FROM
     (
-     SELECT sn
-           ,cycle
-           ,adjusted_goal
+     SELECT CONVERT(INT,sn) AS sn
+           ,CONVERT(VARCHAR,cycle) AS cycle
+           ,CONVERT(FLOAT,REPLACE(adjusted_goal,',','')) AS adjusted_goal
      FROM KIPP_NJ..AUTOLOAD$GDOCS_AR_NCA WITH(NOLOCK)
      WHERE sn IS NOT NULL  
      UNION ALL
-     SELECT sn
-           ,cycle
-           ,adjusted_goal
-     FROM KIPP_NJ..AUTOLOAD$GDOCS_AR_rise WITH(NOLOCK)
+     SELECT CONVERT(INT,sn) AS sn
+           ,CONVERT(VARCHAR,cycle) AS cycle
+           ,CONVERT(FLOAT,REPLACE(adjusted_goal,',','')) AS adjusted_goal
+     FROM KIPP_NJ..AUTOLOAD$GDOCS_AR_NCA WITH(NOLOCK)
      WHERE sn IS NOT NULL  
      UNION ALL
-     SELECT sn
-           ,cycle
-           ,adjusted_goal
+     SELECT CONVERT(INT,sn) AS sn
+           ,CONVERT(VARCHAR,cycle) AS cycle
+           ,CONVERT(FLOAT,REPLACE(adjusted_goal,',','')) AS adjusted_goal
      FROM KIPP_NJ..AUTOLOAD$GDOCS_AR_team WITH(NOLOCK)
      WHERE sn IS NOT NULL  
      UNION ALL
-     SELECT sn
-           ,cycle
-           ,adjusted_goal
+     SELECT CONVERT(INT,sn) AS sn
+           ,CONVERT(VARCHAR,cycle) AS cycle
+           ,CONVERT(FLOAT,REPLACE(adjusted_goal,',','')) AS adjusted_goal
      FROM KIPP_NJ..AUTOLOAD$GDOCS_AR_bold WITH(NOLOCK)
      WHERE sn IS NOT NULL  
      UNION ALL
-     SELECT sn
-           ,cycle
-           ,adjusted_goal
+     SELECT CONVERT(INT,sn) AS sn
+           ,CONVERT(VARCHAR,cycle) AS cycle
+           ,CONVERT(FLOAT,REPLACE(adjusted_goal,',','')) AS adjusted_goal
      FROM KIPP_NJ..AUTOLOAD$GDOCS_AR_lsm WITH(NOLOCK)
      WHERE sn IS NOT NULL    
     ) sub

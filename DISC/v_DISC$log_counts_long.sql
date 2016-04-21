@@ -25,7 +25,8 @@ FROM
        ON co.year = d.academic_year
       AND co.schoolid = d.schoolid
       AND d.identifier = 'RT'
-     CROSS JOIN KIPP_NJ..DISC$logtypes#static logtype WITH(NOLOCK)
+     JOIN KIPP_NJ..DISC$logtypes#static logtype WITH(NOLOCK)
+       ON logtype.logtypeid IN (3023, 3223, -100000)
      LEFT OUTER JOIN KIPP_NJ..DISC$log#static disc WITH(NOLOCK)
        ON co.studentid = disc.studentid
       AND co.year = disc.academic_year

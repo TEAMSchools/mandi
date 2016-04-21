@@ -37,7 +37,10 @@ WITH assessments AS (
         ,LEFT([year],4) AS academic_year                
         ,CASE WHEN academic_year <= 2014 THEN REPLACE([quarter],'QE','Q') ELSE term END AS term
         ,CASE WHEN academic_year <= 2014 THEN [quarter] ELSE unit_number END AS unit_number
-        ,CONCAT('ENG',LEFT([course],2)) AS course_number
+        ,CASE
+          WHEN RIGHT([course],1) = 'H' THEN CONCAT('ENG',LEFT([course],1), 5)
+          ELSE CONCAT('ENG',LEFT([course],2)) 
+         END AS course_number
   FROM
       (
        SELECT a.repository_id             

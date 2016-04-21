@@ -6,14 +6,16 @@ ALTER VIEW TABLEAU$writing_summary_assessments AS
 WITH enrollments AS (
   SELECT enr.student_number
         ,enr.academic_year
-        ,enr.COURSE_NUMBER
+        ,REPLACE(enr.COURSE_NUMBER,'ENG11','ENG10') AS course_number
         ,enr.course_name
         ,enr.period AS course_period
         ,enr.teacher_name      
+        ,ROW_NUMBER() OVER(
+           PARTITION BY student_number, academic_year, course_number
+             ORDER BY drop_flags DESC, dateenrolled DESC) AS rn
   FROM KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   WHERE enr.academic_year >= 2015
-    AND enr.CREDITTYPE = 'ENG'  
-    AND enr.drop_flags = 0  
+    AND enr.CREDITTYPE = 'ENG'      
     AND enr.SCHOOLID = 73253
   
   UNION ALL
@@ -24,6 +26,7 @@ WITH enrollments AS (
         ,enr.course_name
         ,enr.period AS course_period
         ,enr.teacher_name      
+        ,1 AS rn
   FROM KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   WHERE enr.academic_year <= 2014
     AND enr.CREDITTYPE = 'ENG'  
@@ -51,7 +54,7 @@ SELECT co.SCHOOLID
       ,enr.course_name
       ,enr.course_period
       ,enr.teacher_name
-FROM KIPP_NJ..ILLUMINATE$writing_scores_long w WITH(NOLOCK)
+FROM KIPP_NJ..ILLUMINATE$writing_scores_long#static w WITH(NOLOCK)
 JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   ON w.student_number = co.student_number
  AND w.academic_year = co.year
@@ -60,3 +63,4 @@ LEFT OUTER JOIN enrollments enr WITH(NOLOCK)
   ON co.student_number = enr.student_number
  AND co.year = enr.academic_year 
  AND w.course_number = enr.course_number 
+ AND enr.rn = 1
