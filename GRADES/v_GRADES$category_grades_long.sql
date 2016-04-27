@@ -8,6 +8,7 @@ SELECT sub.student_number
       ,sub.academic_year
       ,sub.CREDITTYPE
       ,sub.COURSE_NUMBER
+      ,sub.COURSE_NAME
       ,sub.sectionid
       ,sub.teacher_name
       ,sub.reporting_term
@@ -17,6 +18,9 @@ SELECT sub.student_number
       
       ,ROUND(AVG(sub.grade_category_pct) OVER(PARTITION BY sub.student_number, sub.academic_year, sub.course_number, sub.grade_category ORDER BY sub.reporting_term),0) AS grade_category_pct_y1
       ,CASE WHEN sub.academic_year = dt.academic_year AND sub.reporting_term = dt.time_per_name THEN 1 ELSE 0 END AS is_curterm
+      ,ROW_NUMBER() OVER(
+         PARTITION BY sub.student_number, sub.academic_year, sub.course_number, sub.grade_category
+           ORDER BY sub.reporting_term DESC) AS rn_curterm
 FROM
     (
      /* NCA */
@@ -25,6 +29,7 @@ FROM
            ,enr.academic_year
            ,enr.credittype      
            ,enr.course_number      
+           ,enr.COURSE_NAME
            ,enr.sectionid           
            ,enr.teacher_name            
       
@@ -42,6 +47,7 @@ FROM
       AND enr.sectionid = pgf.sectionid 
       AND pgf.finalgradename != 'Y1'       
       AND pgf.FINALGRADENAME NOT LIKE 'Q%'
+      AND pgf.FINALGRADENAME NOT LIKE 'E%'
      WHERE enr.course_enr_status = 0
        AND enr.drop_flags = 0
        AND enr.SCHOOLID = 73253
@@ -54,6 +60,7 @@ FROM
            ,enr.academic_year
            ,enr.credittype      
            ,enr.course_number      
+           ,enr.COURSE_NAME
            ,enr.sectionid           
            ,enr.teacher_name            
       

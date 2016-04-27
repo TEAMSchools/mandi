@@ -17,6 +17,7 @@ WITH grades_long AS (
         ,cat.grade_category
         ,cat.grade_category_pct        
   FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)  
+  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
   UNION ALL
 
@@ -33,6 +34,7 @@ WITH grades_long AS (
         ,cat.grade_category
         ,ROUND(AVG(cat.grade_category_pct),0)        
   FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)       
+  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY cat.student_number
           ,cat.SCHOOLID
           ,cat.academic_year
@@ -56,6 +58,7 @@ WITH grades_long AS (
         ,cat.grade_category
         ,cat.grade_category_pct        
   FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)    
+  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
   UNION ALL
 
@@ -70,8 +73,9 @@ WITH grades_long AS (
         ,'CUR' AS rt
         ,cat.is_curterm
         ,cat.grade_category
-        ,ROUND(AVG(cat.grade_category_pct),0)        
+        ,ROUND(AVG(cat.grade_category_pct),0) AS grade_category_pct
   FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)       
+  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY cat.student_number
           ,cat.SCHOOLID
           ,cat.academic_year
@@ -150,9 +154,9 @@ FROM
            ,o.is_curterm
            ,o.class_rn
            ,o.sectionid
-           ,o.teacher_name           
+           ,o.teacher_name                      
 
-           ,CONCAT(cat.grade_category, '_', o.rt) AS pivot_field
+           ,CONCAT(cat.grade_category, '_', COALESCE(gr.rt, o.rt)) AS pivot_field
            ,MAX(o.schoolid) OVER(PARTITION BY o.student_number, o.academic_year, o.course_number, o.reporting_term ORDER BY o.reporting_term ASC) AS schoolid                      
            ,CASE WHEN gr.SCHOOLID = 73253 AND gr.grade_category = 'E' THEN NULL ELSE gr.grade_category_pct END AS grade_category_pct 
      FROM KIPP_NJ..PS$course_order_scaffold#static o WITH(NOLOCK)
@@ -165,7 +169,7 @@ FROM
       AND o.course_number = gr.COURSE_NUMBER
       AND o.reporting_term = gr.reporting_term      
       AND cat.grade_category = gr.grade_category
-     WHERE o.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()     
+     WHERE o.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()          
     ) sub
 PIVOT(
   MAX(grade_category_pct)

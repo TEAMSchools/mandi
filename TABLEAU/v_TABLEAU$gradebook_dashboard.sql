@@ -1,0 +1,280 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW TABLEAU$gradebook_dashboard AS
+
+WITH section_teacher AS (
+  SELECT scaff.studentid
+        ,scaff.year
+        ,scaff.course_number
+        ,scaff.teacher_name
+        ,scaff.sectionid        
+        ,sec.SECTION_NUMBER        
+        ,p.ABBREVIATION AS period
+        ,ROW_NUMBER() OVER(
+           PARTITION BY scaff.studentid, scaff.year, scaff.course_number
+             ORDER BY scaff.term DESC) AS rn        
+  FROM KIPP_NJ..PS$course_section_scaffold#static scaff WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
+    ON scaff.sectionid = sec.ID
+  LEFT OUTER JOIN KIPP_NJ..PS$PERIOD#static p WITH(NOLOCK)
+    ON sec.academic_year = p.academic_year
+   AND sec.schoolid = p.SCHOOLID
+   AND KIPP_NJ.dbo.fn_StripCharacters(sec.expression,'^0-9') = p.PERIOD_NUMBER
+  WHERE scaff.teacher_name IS NOT NULL
+    AND scaff.term IS NOT NULL
+ )
+
+SELECT co.student_number
+      ,co.lastfirst
+      ,co.schoolid
+      ,co.grade_level
+      ,co.team
+      ,co.advisor
+      ,co.enroll_status
+      ,co.year
+      ,dt.alt_name AS term
+      
+      ,gr.is_curterm
+      ,gr.term AS finalgradename      
+      ,gr.credittype
+      ,gr.course_number
+      ,gr.course_name      
+      ,st.sectionid
+      ,st.teacher_name
+      ,gr.excludefromgpa
+      ,gr.credit_hours
+      ,gr.term_gpa_points
+      ,gr.term_grade_percent_adjusted
+      ,gr.term_grade_letter_adjusted
+      ,gr.y1_grade_percent_adjusted
+      ,gr.y1_grade_letter           
+      ,gr.y1_gpa_points
+      
+      ,st.SECTION_NUMBER       
+      ,st.period
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+  ON co.schoolid = dt.schoolid
+ AND co.year = dt.academic_year
+ AND dt.identifier = 'RT'
+LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
+  ON co.student_number = gr.student_number
+ AND co.year = gr.academic_year
+ AND dt.alt_name = gr.term
+LEFT OUTER JOIN section_teacher st
+  ON co.studentid = st.studentid
+ AND co.year = st.year
+ AND gr.course_number = st.COURSE_NUMBER
+ AND st.rn = 1
+WHERE co.rn = 1
+  AND co.school_level IN ('MS','HS')
+
+UNION ALL
+
+SELECT co.student_number
+      ,co.lastfirst
+      ,co.schoolid
+      ,co.grade_level
+      ,co.team
+      ,co.advisor
+      ,co.enroll_status
+      ,co.year
+      ,dt.alt_name AS term
+      
+      ,gr.is_curterm
+      ,CASE 
+        WHEN co.schoolid != 73253 AND gr.grade_category = 'E' THEN 'HWQ'
+        WHEN co.schoolid != 73253 AND co.year <= 2014 AND gr.grade_category = 'Q' THEN 'HWQ'
+        ELSE gr.grade_category
+       END AS finalgradename
+      ,gr.credittype
+      ,gr.course_number
+      ,cou.course_name            
+      ,st.sectionid
+      ,st.teacher_name
+      ,NULL AS excludefromgpa
+      ,NULL AS credit_hours
+      ,NULL AS term_gpa_points      
+      ,gr.grade_category_pct AS term_grade_percent_adjusted
+      ,NULL AS term_grade_letter_adjusted
+      ,gr.grade_category_pct_y1 AS y1_grade_percent_adjusted
+      ,NULL AS y1_grade_letter            
+      ,NULL AS y1_gpa_points
+
+      ,st.SECTION_NUMBER       
+      ,st.period
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+  ON co.schoolid = dt.schoolid
+ AND co.year = dt.academic_year
+ AND dt.identifier = 'RT'
+LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
+  ON co.student_number = gr.student_number
+ AND co.year = gr.academic_year
+ AND dt.time_per_name = gr.reporting_term 
+LEFT OUTER JOIN section_teacher st
+  ON co.studentid = st.studentid
+ AND co.year = st.year
+ AND gr.course_number = st.COURSE_NUMBER
+ AND st.rn = 1
+LEFT OUTER JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
+  ON gr.COURSE_NUMBER = cou.COURSE_NUMBER
+WHERE co.rn = 1
+  AND co.school_level IN ('MS','HS')
+
+/* Y1 grades as additional term */
+UNION ALL
+
+SELECT co.student_number
+      ,co.lastfirst
+      ,co.schoolid
+      ,co.grade_level
+      ,co.team
+      ,co.advisor
+      ,co.enroll_status
+      ,co.year
+      ,'Y1' AS term
+      
+      ,gr.is_curterm
+      ,'Y1' AS finalgradename      
+      ,gr.credittype
+      ,gr.course_number
+      ,gr.course_name      
+      ,st.sectionid
+      ,st.teacher_name
+      ,gr.excludefromgpa
+      ,gr.credit_hours
+      ,gr.y1_gpa_points AS term_gpa_points
+      ,gr.y1_grade_percent_adjusted AS term_grade_percent_adjusted
+      ,gr.y1_grade_letter AS term_grade_letter_adjusted
+      ,gr.y1_grade_percent_adjusted
+      ,gr.y1_grade_letter           
+      ,gr.y1_gpa_points
+      
+      ,st.SECTION_NUMBER       
+      ,st.period
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+  ON co.schoolid = dt.schoolid
+ AND co.year = dt.academic_year
+ AND dt.identifier = 'RT'
+LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
+  ON co.student_number = gr.student_number
+ AND co.year = gr.academic_year
+ AND dt.alt_name = gr.term
+ AND gr.rn_curterm = 1
+LEFT OUTER JOIN section_teacher st
+  ON co.studentid = st.studentid
+ AND co.year = st.year
+ AND gr.course_number = st.COURSE_NUMBER
+ AND st.rn = 1
+WHERE co.rn = 1
+  AND co.school_level IN ('MS','HS')
+
+UNION ALL
+
+SELECT co.student_number
+      ,co.lastfirst
+      ,co.schoolid
+      ,co.grade_level
+      ,co.team
+      ,co.advisor
+      ,co.enroll_status
+      ,co.year
+      ,'Y1' AS term
+      
+      ,gr.is_curterm
+      ,CONCAT(CASE 
+               WHEN co.schoolid != 73253 AND gr.grade_category = 'E' THEN 'HWQ'
+               WHEN co.schoolid != 73253 AND co.year <= 2014 AND gr.grade_category = 'Q' THEN 'HWQ'
+               ELSE gr.grade_category
+              END
+             ,'Y1') AS finalgradename
+      ,gr.credittype
+      ,gr.course_number
+      ,cou.course_name            
+      ,st.sectionid
+      ,st.teacher_name
+      ,NULL AS excludefromgpa
+      ,NULL AS credit_hours
+      ,NULL AS term_gpa_points      
+      ,gr.grade_category_pct_y1 AS term_grade_percent_adjusted
+      ,NULL AS term_grade_letter_adjusted
+      ,gr.grade_category_pct_y1 AS y1_grade_percent_adjusted
+      ,NULL AS y1_grade_letter            
+      ,NULL AS y1_gpa_points
+
+      ,st.SECTION_NUMBER       
+      ,st.period
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+  ON co.schoolid = dt.schoolid
+ AND co.year = dt.academic_year
+ AND dt.identifier = 'RT'
+LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
+  ON co.student_number = gr.student_number
+ AND co.year = gr.academic_year
+ AND dt.time_per_name = gr.reporting_term
+ AND gr.rn_curterm = 1 
+LEFT OUTER JOIN section_teacher st
+  ON co.studentid = st.studentid
+ AND co.year = st.year
+ AND gr.course_number = st.COURSE_NUMBER
+ AND st.rn = 1
+LEFT OUTER JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
+  ON gr.COURSE_NUMBER = cou.COURSE_NUMBER
+WHERE co.rn = 1
+  AND co.school_level IN ('MS','HS')
+
+UNION ALL
+
+/* NCA exam grades */
+SELECT co.student_number
+      ,co.lastfirst
+      ,co.schoolid
+      ,co.grade_level
+      ,co.team
+      ,co.advisor
+      ,co.enroll_status
+      ,co.year
+      ,CASE 
+        WHEN gr.e1 IS NOT NULL THEN 'Q2' 
+        WHEN gr.e2 IS NOT NULL THEN 'Q4'
+       END AS term
+      
+      ,gr.is_curterm
+      ,'E' AS finalgradename 
+      ,gr.credittype
+      ,gr.course_number
+      ,gr.course_name      
+      ,st.sectionid
+      ,st.teacher_name
+      ,gr.excludefromgpa
+      ,gr.credit_hours
+      ,NULL AS term_gpa_points
+      ,COALESCE(gr.e1, gr.e2) AS term_grade_percent_adjusted
+      ,NULL AS term_grade_letter_adjusted
+      ,NULL AS y1_grade_percent_adjusted
+      ,NULL AS y1_grade_letter           
+      ,NULL AS y1_gpa_points
+      
+      ,st.SECTION_NUMBER       
+      ,st.period
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+  ON co.schoolid = dt.schoolid
+ AND co.year = dt.academic_year
+ AND dt.identifier = 'RT'
+JOIN KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
+  ON co.student_number = gr.student_number
+ AND co.year = gr.academic_year
+ AND dt.alt_name = gr.term
+ AND (gr.e1 IS NOT NULL OR gr.e2 IS NOT NULL)
+LEFT OUTER JOIN section_teacher st
+  ON co.studentid = st.studentid
+ AND co.year = st.year
+ AND gr.course_number = st.COURSE_NUMBER
+ AND st.rn = 1
+WHERE co.rn = 1
+  AND co.schoolid = 73253

@@ -93,26 +93,26 @@ FROM
            ,bk.book_lexile AS last_book_lexile
            ,bk.book_pct_correct AS last_book_pct_correct
 
-           ,SUM(y1_goal.words_goal / DATEDIFF(DAY, y1_goal.time_period_start, y1_goal.time_period_end))  OVER(
+           ,SUM(y1_goal.words_goal / DATEDIFF(DAY, y1_goal.time_period_start, y1_goal.time_period_end)) OVER(
               PARTITION BY co.student_number, co.year
                 ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS ontrack_words_yr
-           ,SUM(y1_goal.points_goal / DATEDIFF(DAY, y1_goal.time_period_start, y1_goal.time_period_end))  OVER(
+           ,SUM(y1_goal.points_goal / DATEDIFF(DAY, y1_goal.time_period_start, y1_goal.time_period_end)) OVER(
               PARTITION BY co.student_number, co.year
                 ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS ontrack_points_yr  
-           ,SUM(term_goal.words_goal / DATEDIFF(DAY, term_goal.time_period_start, term_goal.time_period_end))  OVER(
-              PARTITION BY co.student_number, co.year, co.term
+           ,SUM(term_goal.words_goal / DATEDIFF(DAY, term_goal.time_period_start, term_goal.time_period_end)) OVER(
+              PARTITION BY co.student_number, co.year, term_goal.time_period_name
                 ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS ontrack_words_term
-           ,SUM(term_goal.points_goal / DATEDIFF(DAY, term_goal.time_period_start, term_goal.time_period_end))  OVER(
-              PARTITION BY co.student_number, co.year, co.term
+           ,SUM(term_goal.points_goal / DATEDIFF(DAY, term_goal.time_period_start, term_goal.time_period_end)) OVER(
+              PARTITION BY co.student_number, co.year, term_goal.time_period_name
                 ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS ontrack_points_term
            ,SUM(ar.n_words_read) OVER(
-              PARTITION BY co.student_number, co.year, co.term
+              PARTITION BY co.student_number, co.year, term_goal.time_period_name
                 ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS n_words_read_running_term
            ,SUM(ar.n_words_read) OVER(
               PARTITION BY co.student_number, co.year
                 ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS n_words_read_running_yr
            ,SUM(ar.n_points_earned) OVER(
-              PARTITION BY co.student_number, co.year, co.term
+              PARTITION BY co.student_number, co.year, term_goal.time_period_name
                 ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS n_points_earned_running_term
            ,SUM(ar.n_points_earned) OVER(
               PARTITION BY co.student_number, co.year
@@ -149,7 +149,7 @@ FROM
        AND co.schoolid != 999999
        AND ((co.grade_level >= 5) OR (co.schoolid = 73252 AND co.grade_level = 4))
        AND co.date <= CONVERT(DATE,GETDATE())
-       AND co.enroll_status = 0
+       AND co.enroll_status = 0       
     ) sub
 
 UNION ALL

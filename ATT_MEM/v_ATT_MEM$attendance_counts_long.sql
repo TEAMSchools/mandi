@@ -135,6 +135,10 @@ SELECT *
       ,ISNULL(A_counts_term,0) + ISNULL(AD_counts_term,0) AS ABS_all_counts_term
       ,ISNULL(T_counts_yr,0) + ISNULL(T10_counts_yr,0) AS TDY_all_counts_yr
       ,ISNULL(T_counts_term,0) + ISNULL(T10_counts_term,0) AS TDY_all_counts_term      
+
+      ,ROW_NUMBER() OVER(
+         PARTITION BY studentid, academic_year
+           ORDER BY rt DESC) AS rn_curterm
 FROM counts_long
 PIVOT(
   MAX(counts)

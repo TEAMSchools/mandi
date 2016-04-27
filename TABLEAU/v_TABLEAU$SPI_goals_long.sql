@@ -347,9 +347,9 @@ WITH map_data AS (
              ,staff.pct_wanted_attrition
 
              /* ACT prep */
-             ,CONVERT(FLOAT,act.composite) AS act_composite
-             ,CONVERT(FLOAT,act.is_22 * 100) AS act_pct_is_22
-             ,CONVERT(FLOAT,act.is_25 * 100) AS act_pct_is_25
+             ,CONVERT(FLOAT,COALESCE(act_real.composite, act.composite)) AS act_composite
+             ,CONVERT(FLOAT,COALESCE(act_real.is_22, act.is_22) * 100) AS act_pct_is_22
+             ,CONVERT(FLOAT,COALESCE(act_real.is_25, act.is_25) * 100) AS act_pct_is_25
 
              /* HSR survey results */
              ,hsr.hsr_parent_pct_recommend
@@ -417,6 +417,9 @@ WITH map_data AS (
          ON co.student_number = act.student_number
         AND co.year = act.academic_year
         AND act.rn_curr = 1
+       LEFT OUTER JOIN KIPP_NJ..ACT$test_scores act_real WITH(NOLOCK)
+         ON co.student_number = act_real.student_number
+        AND act_real.rn = 1
        LEFT OUTER JOIN hsr
          ON co.schoolid = hsr.schoolid
         AND co.year = hsr.academic_year

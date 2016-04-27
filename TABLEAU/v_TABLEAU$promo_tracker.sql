@@ -1,92 +1,427 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW TABLEAU$promo_tracker AS
+ALTER VIEW TABLEAU$promo_tracker AS 
 
-SELECT co.student_number
-      ,co.lastfirst
-      ,co.schoolid
-      ,co.grade_level
-      ,co.team
-      ,co.advisor
-      ,co.enroll_status
-      ,co.year
-      ,dt.alt_name AS term
-      
-      ,gr.is_curterm
-      ,gr.term AS finalgradename      
-      ,gr.credittype
-      ,gr.course_number
-      ,gr.course_name      
-      ,gr.sectionid
-      ,gr.teacher_name
-      ,gr.excludefromgpa
-      ,gr.credit_hours
-      ,gr.term_gpa_points
-      ,gr.term_grade_percent_adjusted
-      ,gr.term_grade_letter_adjusted
-      ,gr.y1_grade_percent_adjusted
-      ,gr.y1_grade_letter           
-      ,gr.y1_gpa_points
-      
-      ,sec.SECTION_NUMBER 
-      ,sec.EXPRESSION
-FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
-  ON co.schoolid = dt.schoolid
- AND co.year = dt.academic_year
- AND dt.identifier = 'RT'
-LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
-  ON co.student_number = gr.student_number
- AND co.year = gr.academic_year
- AND dt.alt_name = gr.term
-LEFT OUTER JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
-  ON gr.sectionid = sec.ID
-WHERE co.rn = 1
-  AND co.school_level IN ('MS','HS')
+WITH roster AS (
+  SELECT co.studentid
+        ,co.student_number
+        ,co.lastfirst      
+        ,co.year
+        ,co.schoolid
+        ,co.grade_level
+        ,co.cohort
+        ,co.team
+        ,co.advisor         
+        ,co.HOME_PHONE
+        ,co.MOTHER_CELL
+        ,co.FATHER_CELL   
+        ,co.spedlep
+
+        ,dt.alt_name AS term
+        ,dt.time_per_name AS reporting_term
+        ,CONVERT(DATE,dt.start_date) AS term_start_date
+        ,CONVERT(DATE,dt.end_date) AS term_end_date
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  JOIN KIPP_NJ..AUTOLOAD$GDOCS_REP_reporting_dates dt WITH(NOLOCK)
+    ON co.year = dt.academic_year
+   AND co.schoolid = dt.schoolid
+   AND dt.identifier = 'RT'
+   AND dt.alt_name != 'Summer School'
+  WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND co.rn = 1
+    AND co.enroll_status = 0
+    AND co.grade_level != 99    
+  
+  UNION ALL
+
+  SELECT co.studentid
+        ,co.student_number
+        ,co.lastfirst      
+        ,co.year
+        ,co.schoolid
+        ,co.grade_level
+        ,co.cohort
+        ,co.team
+        ,co.advisor         
+        ,co.HOME_PHONE
+        ,co.MOTHER_CELL
+        ,co.FATHER_CELL   
+        ,co.spedlep
+
+        ,'Y1' AS term
+        ,dt.time_per_name AS reporting_term
+        ,CONVERT(DATE,dt.start_date) AS term_start_date
+        ,CONVERT(DATE,dt.end_date) AS term_end_date
+  FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  JOIN KIPP_NJ..AUTOLOAD$GDOCS_REP_reporting_dates dt WITH(NOLOCK)
+    ON co.year = dt.academic_year   
+   AND dt.identifier = 'SY'   
+  WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND co.rn = 1
+    AND co.enroll_status = 0
+    AND co.grade_level != 99    
+ )
+
+,grades AS (
+  /* term grades */
+  SELECT gr.student_number
+        ,'GRADES' AS domain
+        ,'TERM' AS subdomain
+        ,gr.academic_year            
+        ,gr.rt AS reporting_term
+        ,LEFT(gr.term,1) AS finalgradename
+        ,gr.credittype
+        ,gr.course_name
+        ,gr.term_grade_percent_adjusted
+  FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
+  WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  UNION ALL
+  SELECT gr.student_number
+        ,'GRADES' AS domain
+        ,'TERM' AS subdomain
+        ,gr.academic_year      
+        ,'Y1' AS reporting_term
+        ,'Y' AS finalgradename
+        ,gr.credittype
+        ,gr.course_name
+        ,gr.y1_grade_percent_adjusted AS term_grade_percent_adjusted
+  FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
+  WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND gr.rn_curterm = 1
+
+  UNION ALL
+  
+  SELECT gr.student_number
+        ,'GRADES' AS domain
+        ,'CATEGORY' AS subdomain
+        ,gr.academic_year            
+        ,'Y1' AS reporting_term
+        ,gr.grade_category AS finalgradename
+        ,gr.credittype
+        ,gr.course_name
+        ,ROUND(AVG(gr.grade_category_pct),0) AS term_grade_percent_adjusted
+  FROM KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
+  WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  GROUP BY gr.student_number
+          ,gr.academic_year
+          ,gr.grade_category
+          ,gr.credittype
+          ,gr.course_name
+  
+  UNION ALL
+
+  /* HS exams */
+  SELECT gr.student_number
+        ,'GRADES' AS domain
+        ,'EXAMS' AS subdomain
+        ,gr.academic_year
+        ,gr.rt AS reporting_term
+        ,'E' AS finalgradename
+        ,gr.credittype
+        ,gr.course_name
+        ,COALESCE(gr.e1, gr.e2) AS term_grade_percent_adjusted
+  FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)   
+  WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND gr.schoolid = 73253
+    AND (gr.e1 IS NOT NULL OR gr.e2 IS NOT NULL)
+
+  /* category grades by course */
+  --SELECT gr.student_number
+  --      ,'GRADES' AS domain
+  --      ,'CATEGORY' AS subdomain
+  --      ,gr.academic_year            
+  --      ,gr.reporting_term
+  --      ,gr.grade_category AS finalgradename
+  --      ,gr.credittype
+  --      ,gr.course_name
+  --      ,gr.grade_category_pct AS term_grade_percent_adjusted
+  --FROM KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
+  --WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
+  --UNION ALL
+  --/* category grades overall */
+  --SELECT gr.student_number
+  --      ,'GRADES' AS domain
+  --      ,'CATEGORY' AS subdomain
+  --      ,gr.academic_year            
+  --      ,gr.reporting_term
+  --      ,gr.grade_category AS finalgradename
+  --      ,'All' AS credittype
+  --      ,'All' AS course_name
+  --      ,ROUND(AVG(gr.grade_category_pct),0) AS term_grade_percent_adjusted
+  --FROM KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
+  --WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  --GROUP BY gr.student_number
+  --        ,gr.academic_year
+  --        ,gr.reporting_term
+  --        ,gr.grade_category
+  --UNION ALL
+  --SELECT gr.student_number
+  --      ,'GRADES' AS domain
+  --      ,'CATEGORY' AS subdomain
+  --      ,gr.academic_year            
+  --      ,'Y1' AS reporting_term
+  --      ,gr.grade_category AS finalgradename
+  --      ,'ALL' AS credittype
+  --      ,'ALL' AS course_name
+  --      ,ROUND(AVG(gr.grade_category_pct),0) AS term_grade_percent_adjusted
+  --FROM KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
+  --WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  --GROUP BY gr.student_number
+  --        ,gr.academic_year
+  --        ,gr.grade_category  
+ )
+
+,attendance AS (
+  SELECT studentid
+        ,'ATTENDANCE' AS domain
+        ,CASE
+          WHEN field = 'presentpct_term' THEN 'ABSENT'
+          WHEN field = 'ontimepct_term' THEN 'TARDY'
+          WHEN field IN ('attpts_term', 'attptspct_term') THEN 'PROMO'
+          WHEN field LIKE 'A%' THEN 'ABSENT'
+          WHEN field LIKE 'T%' THEN 'TARDY'
+          WHEN field LIKE '%SS%' THEN 'SUSPENSION'
+         END AS subdomain
+        ,academic_year
+        ,reporting_term
+        ,LEFT(field, CHARINDEX('_', field) - 1) AS att_code
+        ,value AS att_counts
+  FROM 
+      (
+       SELECT att.studentid
+             ,att.academic_year
+             ,att.rt AS reporting_term           
+             ,att.A_counts_term
+             ,att.AD_counts_term
+             ,att.AE_counts_term
+             ,att.ISS_counts_term
+             ,att.OSS_counts_term
+             ,att.T_counts_term
+             ,att.T10_counts_term
+             ,att.TE_counts_term           
+             ,att.ABS_all_counts_term
+             ,att.TDY_all_counts_term
+
+             ,ROUND(((att.MEM_counts_term - att.ABS_all_counts_term) / att.MEM_counts_term) * 100,0) AS presentpct_term
+             ,ROUND(((att.MEM_counts_term - att.ABS_all_counts_term - att.TDY_all_counts_term) / (att.MEM_counts_term - att.ABS_all_counts_term)) * 100,0) AS ontimepct_term
+
+             ,att.ABS_all_counts_term + ROUND((att.TDY_all_counts_term / 3),1,1) AS attpts_term
+             ,ROUND(((att.MEM_counts_term - (att.ABS_all_counts_term + ROUND((att.TDY_all_counts_term / 3),1,1))) / att.MEM_counts_term) * 100,0) AS attptspct_term
+       FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
+       WHERE att.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND att.MEM_counts_term > 0
+         AND att.MEM_counts_term != att.ABS_all_counts_term
+
+       UNION ALL
+
+       SELECT att.studentid
+             ,att.academic_year
+             ,'Y1' AS reporting_term
+             ,att.A_counts_yr
+             ,att.AD_counts_yr
+             ,att.AE_counts_yr
+             ,att.ISS_counts_yr
+             ,att.OSS_counts_yr
+             ,att.T_counts_yr
+             ,att.T10_counts_yr
+             ,att.TE_counts_yr           
+             ,att.ABS_all_counts_yr
+             ,att.TDY_all_counts_yr
+
+             ,ROUND(((att.MEM_counts_yr - att.ABS_all_counts_yr) / att.MEM_counts_yr) * 100,0) AS presentpct_yr
+             ,ROUND(((att.MEM_counts_yr - att.ABS_all_counts_yr - att.TDY_all_counts_yr) / (att.MEM_counts_yr - att.ABS_all_counts_yr)) * 100,0) AS ontimepct_yr
+
+             ,att.ABS_all_counts_yr + ROUND((att.TDY_all_counts_yr / 3),1,1) AS attpts_yr
+             ,ROUND(((att.MEM_counts_yr - (att.ABS_all_counts_yr + ROUND((att.TDY_all_counts_yr / 3),1,1))) / att.MEM_counts_yr) * 100,0) AS attptspct_yr
+       FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
+       WHERE att.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND att.MEM_counts_term > 0
+         AND att.MEM_counts_yr != att.ABS_all_counts_yr
+         AND att.rn_curterm = 1
+      ) sub
+  UNPIVOT(
+    value
+    FOR field IN (A_counts_term       
+                 ,AD_counts_term
+                 ,AE_counts_term
+                 ,ABS_all_counts_term               
+                 ,T_counts_term
+                 ,T10_counts_term
+                 ,TE_counts_term     
+                 ,TDY_all_counts_term
+                 ,ISS_counts_term
+                 ,OSS_counts_term
+                 ,presentpct_term
+                 ,ontimepct_term
+                 ,attpts_term
+                 ,attptspct_term)
+   ) u
+ )
+
+,modules AS (
+  SELECT a.subject_area        
+        ,a.title
+        ,a.administered_at      
+        ,a.scope            
+        ,a.academic_year        
+        ,res.local_student_id AS student_number
+        ,res.percent_correct
+        ,'Y1' AS reporting_term
+        ,'MODULES' AS domain
+        ,NULL AS subdomain
+  FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
+  JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static res WITH(NOLOCK)
+    ON a.assessment_id = res.assessment_id
+  WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
+    AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ )
+
+,gpa AS (
+  SELECT student_number
+        ,'GPA' AS domain
+        ,'GPA Y1' AS subdomain
+        ,academic_year      
+        ,'Y1' AS reporting_term
+        ,schoolid
+        ,GPA_Y1 AS GPA
+  FROM
+      (
+       SELECT student_number
+             ,academic_year
+             ,schoolid           
+             ,GPA_Y1
+             ,ROW_NUMBER() OVER(
+                PARTITION BY student_number, academic_year
+                  ORDER BY rt DESC) AS rn
+       FROM KIPP_NJ..GRADES$GPA_detail_long#static WITH(NOLOCK)
+      ) sub
+  WHERE rn = 1
+
+  UNION ALL
+
+  SELECT s.STUDENT_NUMBER
+        ,'GPA' AS domain
+        ,'GPA CUMULATIVE' AS subdomain
+        ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
+        ,'Y1' AS reporting_Term
+        ,gpa.schoolid           
+        ,gpa.cumulative_Y1_gpa AS GPA
+  FROM KIPP_NJ..GRADES$GPA_cumulative#static gpa WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+    ON gpa.studentid = s.ID
+ )
+
+SELECT r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.year
+      ,r.schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team
+      ,r.advisor
+      ,r.HOME_PHONE
+      ,r.MOTHER_CELL
+      ,r.FATHER_CELL
+      ,r.spedlep
+      ,r.term
+      ,r.reporting_term      
+      ,gr.domain
+      ,gr.subdomain      
+      ,gr.credittype AS subject
+      ,gr.course_name
+      ,gr.finalgradename AS measure_name
+      ,gr.term_grade_percent_adjusted AS measure_value
+FROM roster r
+LEFT OUTER JOIN grades gr
+  ON r.student_number = gr.student_number
+ AND r.year = gr.academic_year
+ AND r.reporting_term = gr.reporting_term
 
 UNION ALL
 
-SELECT co.student_number
-      ,co.lastfirst
-      ,co.schoolid
-      ,co.grade_level
-      ,co.team
-      ,co.advisor
-      ,co.enroll_status
-      ,co.year
-      ,dt.alt_name AS term
-      
-      ,gr.is_curterm
-      ,gr.grade_category AS finalgradename
-      ,gr.credittype
-      ,gr.course_number
-      ,cou.course_name            
-      ,gr.sectionid
-      ,gr.teacher_name
-      ,NULL AS excludefromgpa
-      ,NULL AS credit_hours
-      ,NULL AS term_gpa_points      
-      ,gr.grade_category_pct AS term_grade_percent_adjusted
-      ,NULL AS term_grade_letter_adjusted
-      ,gr.grade_category_pct_y1 AS y1_grade_percent_adjusted
-      ,NULL AS y1_grade_letter            
-      ,NULL AS y1_gpa_points
+SELECT r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.year
+      ,r.schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team
+      ,r.advisor
+      ,r.HOME_PHONE
+      ,r.MOTHER_CELL
+      ,r.FATHER_CELL
+      ,r.spedlep
+      ,r.term
+      ,r.reporting_term      
+      ,att.domain
+      ,att.subdomain      
+      ,NULL AS subject
+      ,NULL AS course_name
+      ,att.att_code AS measure_name
+      ,att.att_counts AS measure_value
+FROM roster r
+LEFT OUTER JOIN attendance att
+  ON r.studentid = att.studentid
+ AND r.year = att.academic_year
+ AND r.reporting_term = att.reporting_term
 
-      ,sec.SECTION_NUMBER
-      ,sec.EXPRESSION
-FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
-  ON co.schoolid = dt.schoolid
- AND co.year = dt.academic_year
- AND dt.identifier = 'RT'
-LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
-  ON co.student_number = gr.student_number
- AND co.year = gr.academic_year
- AND dt.time_per_name = gr.reporting_term
-LEFT OUTER JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
-  ON gr.sectionid = sec.ID
-LEFT OUTER JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
-  ON gr.COURSE_NUMBER = cou.COURSE_NUMBER
-WHERE co.rn = 1
-  AND co.school_level IN ('MS','HS')
+UNION ALL
+
+SELECT r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.year
+      ,r.schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team
+      ,r.advisor
+      ,r.HOME_PHONE
+      ,r.MOTHER_CELL
+      ,r.FATHER_CELL
+      ,r.spedlep
+      ,r.term
+      ,r.reporting_term      
+      ,cma.domain
+      ,cma.subdomain      
+      ,cma.subject_area AS subject
+      ,cma.title AS course_name
+      ,cma.scope AS measure_name
+      ,cma.percent_correct AS measure_value
+FROM roster r
+LEFT OUTER JOIN modules cma
+  ON r.student_number = cma.student_number
+ AND r.year = cma.academic_year
+ AND r.reporting_term = cma.reporting_term
+
+UNION ALL
+
+SELECT r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.year
+      ,r.schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team
+      ,r.advisor
+      ,r.HOME_PHONE
+      ,r.MOTHER_CELL
+      ,r.FATHER_CELL
+      ,r.spedlep
+      ,r.term
+      ,r.reporting_term      
+      ,gpa.domain
+      ,gpa.subdomain      
+      ,NULL AS subject
+      ,CONVERT(VARCHAR,gpa.schoolid) AS course_name
+      ,CONVERT(VARCHAR,gpa.academic_year) AS measure_name
+      ,gpa.GPA AS measure_value
+FROM roster r
+LEFT OUTER JOIN gpa
+  ON r.student_number = gpa.student_number 
+ AND r.schoolid = gpa.schoolid
+ AND r.reporting_term = gpa.reporting_term

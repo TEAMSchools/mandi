@@ -26,6 +26,7 @@ WITH scaffold AS (
   JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
     ON sec.teacher = t.ID
   WHERE co.year >= 2011
+    AND co.term != 'Summer School'
  )
 
 SELECT s1.studentid

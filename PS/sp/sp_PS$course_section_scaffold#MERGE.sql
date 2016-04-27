@@ -27,7 +27,8 @@ BEGIN
     ON ABS(cc.SECTIONID) = sec.ID
   JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
     ON sec.teacher = t.ID
-  WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year();
+  WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND co.term != 'Summer School';
 
   /* SELECT most recent enrollments by term and year INTO another temp table */
   IF OBJECT_ID(N'tempdb..#sections_scaffold_rn') IS NOT NULL
