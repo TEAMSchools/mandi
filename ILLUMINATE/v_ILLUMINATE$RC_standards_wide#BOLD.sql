@@ -84,8 +84,8 @@ WITH standard_descriptions AS (
                  JOIN KIPP_NJ..ILLUMINATE$assessments_long#static a WITH(NOLOCK)
                    ON co.schoolid = a.schoolid             
                   AND ovr.assessment_id = a.assessment_id
-                  AND ((a.subject_area = 'Performing Arts' AND a.scope IN ('Exit Ticket','Unit Assessment'))
-                       OR (a.subject_area != 'Performing Arts' AND a.scope IN ('Exit Ticket','CMA - Mid-Module')))                  
+                  AND ((a.subject_area IN ('Performing Arts','History','Science') AND a.scope IN ('Exit Ticket','Unit Assessment'))
+                       OR (a.subject_area NOT IN ('Performing Arts','History','Science') AND a.scope IN ('Exit Ticket','CMA - Mid-Module')))                  
                  LEFT OUTER JOIN standard_descriptions ltp WITH(NOLOCK)
                    ON a.standard_code = ltp.standard_code
                   AND ltp.rn = 1
@@ -98,7 +98,7 @@ WITH standard_descriptions AS (
                    AND ovr.answered > 0
                    AND co.schoolid = 73258     
                 ) sub       
-            WHERE ((subject_area = 'Performing Arts') OR (subject_area != 'Performing Arts' AND rn > 1))
+            WHERE ((subject_area IN ('Performing Arts','History','Science')) OR (subject_area NOT IN ('Performing Arts','History','Science') AND rn > 1))
             GROUP BY academic_year
                     ,local_student_id
                     ,standard_id

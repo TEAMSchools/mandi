@@ -36,6 +36,7 @@ WITH final_grades AS (
           ELSE 'Satisfactory' 
          END AS promo_att_rise
         ,ROUND((((sub.MEM_counts_yr * 0.105) - att_pts) / -0.105) + 0.5,0) AS days_to_90
+        ,ROUND((((sub.MEM_counts_yr * 0.105) - ABS_all_counts_yr) / -0.105) + 0.5,0) AS days_to_90_abs_only
   FROM
       (
        SELECT att.studentid
@@ -60,6 +61,7 @@ SELECT studentid
       ,att_pts AS attendance_points
       ,att_pts_pct AS y1_att_pts_pct      
       ,days_to_90      
+      ,days_to_90_abs_only
       ,promo_att_team            
       ,promo_att_rise
 
@@ -88,6 +90,10 @@ SELECT studentid
               promo_grades_team + promo_att_team LIKE '%Promotion In Doubt%') THEN 'Promotion In Doubt'
         ELSE 'On Track'
        END AS promo_overall_team
+
+      ,ROW_NUMBER() OVER(
+         PARTITION BY studentid
+           ORDER BY term DESC) AS rn_curterm
 FROM
     (
      SELECT co.studentid
@@ -126,6 +132,7 @@ FROM
            ,att.promo_att_rise
            ,att.promo_att_team
            ,att.days_to_90
+           ,att.days_to_90_abs_only
      FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
      JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
        ON co.schoolid = dt.schoolid

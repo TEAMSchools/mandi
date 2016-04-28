@@ -42,7 +42,10 @@ BEGIN
                 END AS subject_area                 
                ,a.title                           
                ,a.administered_at
-               ,CASE WHEN PATINDEX('%M[0-9]%', a.title) = 0 THEN NULL ELSE SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title) + 1, 1) END AS module_num
+               ,CASE 
+                 WHEN PATINDEX('%M[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title) + 1, 1) 
+                 WHEN PATINDEX('%U[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]%', a.title) + 1, 1)                  
+                END AS module_num
                ,CASE 
                  WHEN a.scope LIKE '%End-of-Module%' THEN 'EOM'
                  WHEN a.scope LIKE '%Mid-Module%' AND a.title LIKE '%Checkpoint%' THEN CONCAT('MID',SUBSTRING(a.title, CHARINDEX('Checkpoint', a.title) + 11, 1))
@@ -51,7 +54,10 @@ BEGIN
                ,KIPP_NJ.dbo.fn_StripCharacters(tags,'^0-9,K') AS grade_level_tags      
                ,ROW_NUMBER() OVER(
                   PARTITION BY a.subject_area, KIPP_NJ.dbo.fn_StripCharacters(tags,'^0-9,K')
-                    ORDER BY CASE WHEN PATINDEX('%M[0-9]%', a.title) = 0 THEN NULL ELSE SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title) + 1, 1) END) AS rn
+                    ORDER BY CASE 
+                              WHEN PATINDEX('%M[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title) + 1, 1) 
+                              WHEN PATINDEX('%U[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]%', a.title) + 1, 1)                  
+                             END) AS rn
          FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)       
          WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
            AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()

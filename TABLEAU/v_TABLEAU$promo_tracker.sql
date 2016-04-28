@@ -125,51 +125,6 @@ WITH roster AS (
   WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND gr.schoolid = 73253
     AND (gr.e1 IS NOT NULL OR gr.e2 IS NOT NULL)
-
-  /* category grades by course */
-  --SELECT gr.student_number
-  --      ,'GRADES' AS domain
-  --      ,'CATEGORY' AS subdomain
-  --      ,gr.academic_year            
-  --      ,gr.reporting_term
-  --      ,gr.grade_category AS finalgradename
-  --      ,gr.credittype
-  --      ,gr.course_name
-  --      ,gr.grade_category_pct AS term_grade_percent_adjusted
-  --FROM KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
-  --WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
-  --UNION ALL
-  --/* category grades overall */
-  --SELECT gr.student_number
-  --      ,'GRADES' AS domain
-  --      ,'CATEGORY' AS subdomain
-  --      ,gr.academic_year            
-  --      ,gr.reporting_term
-  --      ,gr.grade_category AS finalgradename
-  --      ,'All' AS credittype
-  --      ,'All' AS course_name
-  --      ,ROUND(AVG(gr.grade_category_pct),0) AS term_grade_percent_adjusted
-  --FROM KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
-  --WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  --GROUP BY gr.student_number
-  --        ,gr.academic_year
-  --        ,gr.reporting_term
-  --        ,gr.grade_category
-  --UNION ALL
-  --SELECT gr.student_number
-  --      ,'GRADES' AS domain
-  --      ,'CATEGORY' AS subdomain
-  --      ,gr.academic_year            
-  --      ,'Y1' AS reporting_term
-  --      ,gr.grade_category AS finalgradename
-  --      ,'ALL' AS credittype
-  --      ,'ALL' AS course_name
-  --      ,ROUND(AVG(gr.grade_category_pct),0) AS term_grade_percent_adjusted
-  --FROM KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
-  --WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  --GROUP BY gr.student_number
-  --        ,gr.academic_year
-  --        ,gr.grade_category  
  )
 
 ,attendance AS (
@@ -266,8 +221,7 @@ WITH roster AS (
         ,a.scope            
         ,a.academic_year        
         ,res.local_student_id AS student_number
-        ,res.percent_correct
-        ,'Y1' AS reporting_term
+        ,res.percent_correct        
         ,'MODULES' AS domain
         ,NULL AS subdomain
   FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
@@ -278,6 +232,17 @@ WITH roster AS (
  )
 
 ,gpa AS (
+  SELECT student_number
+        ,'GPA' AS domain
+        ,'GPA Y1 - TERM' AS subdomain
+        ,academic_year      
+        ,rt AS reporting_term
+        ,schoolid
+        ,GPA_Y1 AS GPA
+  FROM KIPP_NJ..GRADES$GPA_detail_long#static WITH(NOLOCK)    
+
+  UNION ALL
+
   SELECT student_number
         ,'GPA' AS domain
         ,'GPA Y1' AS subdomain
@@ -310,6 +275,109 @@ WITH roster AS (
   FROM KIPP_NJ..GRADES$GPA_cumulative#static gpa WITH(NOLOCK)
   JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
     ON gpa.studentid = s.ID
+
+  UNION ALL
+
+  SELECT s.STUDENT_NUMBER
+        ,'GPA' AS domain
+        ,'CREDITS EARNED' AS subdomain
+        ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
+        ,'Y1' AS reporting_Term
+        ,gpa.schoolid           
+        ,gpa.earned_credits_cum AS GPA
+  FROM KIPP_NJ..GRADES$GPA_cumulative#static gpa WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+    ON gpa.studentid = s.ID
+  WHERE gpa.schoolid = 73253
+ )
+
+,lit AS (
+  SELECT student_number
+        ,'LIT' AS domain
+        ,'ACHIEVED' AS subdomain
+        ,academic_year        
+        ,test_round      
+        ,read_lvl
+        ,lvl_num        
+  FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
+  WHERE read_lvl IS NOT NULL
+    AND goal_lvl IS NOT NULL
+    AND start_date <= CONVERT(DATE,GETDATE())
+  UNION ALL
+  SELECT student_number
+        ,'LIT' AS domain
+        ,'GOAL' AS subdomain
+        ,academic_year        
+        ,test_round      
+        ,goal_lvl
+        ,goal_num
+  FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
+  WHERE read_lvl IS NOT NULL
+    AND goal_lvl IS NOT NULL
+    AND start_date <= CONVERT(DATE,GETDATE())
+  
+  UNION ALL
+
+  SELECT student_number
+        ,'LIT' AS domain
+        ,'ACHIEVED' AS subdomain
+        ,academic_year        
+        ,term AS test_round        
+        ,CONCAT(rittoreadingscore,'L') AS read_lvl
+        ,CASE
+          WHEN rittoreadingscore = 'BR' THEN -1
+          WHEN rittoreadingscore BETWEEN 0 AND 100 THEN 1
+          WHEN rittoreadingscore BETWEEN 100 AND 200 THEN 5
+          WHEN rittoreadingscore BETWEEN 200 AND 300 THEN 10
+          WHEN rittoreadingscore BETWEEN 300 AND 400 THEN 14
+          WHEN rittoreadingscore BETWEEN 400 AND 500 THEN 17
+          WHEN rittoreadingscore BETWEEN 500 AND 600 THEN 20
+          WHEN rittoreadingscore BETWEEN 600 AND 700 THEN 22
+          WHEN rittoreadingscore BETWEEN 700 AND 800 THEN 25
+          WHEN rittoreadingscore BETWEEN 800 AND 900 THEN 27
+          WHEN rittoreadingscore BETWEEN 900 AND 1000 THEN 28
+          WHEN rittoreadingscore BETWEEN 1000 AND 1100 THEN 29
+          WHEN rittoreadingscore BETWEEN 1100 AND 1200 THEN 30
+          WHEN rittoreadingscore >= 1200 THEN 31
+         END AS lvl_num        
+  FROM KIPP_NJ..MAP$CDF#identifiers#static WITH(NOLOCK)
+  WHERE measurementscale = 'Reading'
+    AND schoolid = 73253    
+    AND rn = 1
+  UNION ALL
+  SELECT student_number
+        ,'LIT' AS domain
+        ,'GOAL' AS subdomain
+        ,academic_year        
+        ,term AS test_round        
+        ,CASE
+          WHEN grade_level = 9 THEN '900L'
+          WHEN grade_level = 10 THEN '1000L'
+          WHEN grade_level = 11 THEN '1100L'
+          WHEN grade_level = 12 THEN '1200L'
+         END AS goal_lvl
+        ,CASE
+          WHEN grade_level = 9 THEN 28
+          WHEN grade_level = 10 THEN 29
+          WHEN grade_level = 11 THEN 30
+          WHEN grade_level = 12 THEN 31
+         END AS goal_num
+  FROM KIPP_NJ..MAP$CDF#identifiers#static WITH(NOLOCK)
+  WHERE measurementscale = 'Reading'
+    AND schoolid = 73253    
+    AND rn = 1
+ )
+
+,map AS (
+  SELECT student_number
+        ,'MAP' AS domain
+        ,CONVERT(VARCHAR,academic_year) AS subdomain                
+        ,term
+        ,measurementscale
+        ,testritscore
+        ,testpercentile
+  FROM KIPP_NJ..MAP$CDF#identifiers#static WITH(NOLOCK)
+  WHERE rn = 1
  )
 
 SELECT r.studentid
@@ -395,7 +463,7 @@ FROM roster r
 LEFT OUTER JOIN modules cma
   ON r.student_number = cma.student_number
  AND r.year = cma.academic_year
- AND r.reporting_term = cma.reporting_term
+WHERE r.reporting_term = 'Y1' 
 
 UNION ALL
 
@@ -425,3 +493,59 @@ LEFT OUTER JOIN gpa
   ON r.student_number = gpa.student_number 
  AND r.schoolid = gpa.schoolid
  AND r.reporting_term = gpa.reporting_term
+
+UNION ALL
+
+SELECT r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.year
+      ,r.schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team
+      ,r.advisor
+      ,r.HOME_PHONE
+      ,r.MOTHER_CELL
+      ,r.FATHER_CELL
+      ,r.spedlep
+      ,r.term
+      ,r.reporting_term      
+      ,lit.domain
+      ,lit.subdomain      
+      ,CONVERT(VARCHAR,lit.academic_year) AS subject
+      ,lit.test_round AS course_name
+      ,lit.read_lvl AS measure_name
+      ,lit.lvl_num AS measure_value
+FROM roster r
+LEFT OUTER JOIN lit
+  ON r.student_number = lit.student_number
+WHERE r.reporting_term = 'Y1' 
+
+UNION ALL
+
+SELECT r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.year
+      ,r.schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team
+      ,r.advisor
+      ,r.HOME_PHONE
+      ,r.MOTHER_CELL
+      ,r.FATHER_CELL
+      ,r.spedlep
+      ,r.term
+      ,map.term AS reporting_term      
+      ,map.domain
+      ,map.subdomain      
+      ,map.measurementscale AS subject
+      ,NULL AS course_name
+      ,CONVERT(VARCHAR,map.testritscore) AS measure_name
+      ,map.testpercentile AS measure_value
+FROM roster r
+LEFT OUTER JOIN map
+  ON r.student_number = map.student_number
+WHERE r.reporting_term = 'Y1' 
