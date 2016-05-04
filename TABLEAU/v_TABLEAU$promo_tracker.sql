@@ -234,8 +234,10 @@ WITH roster AS (
         ,res.percent_correct        
         ,a.assessment_id
         ,'MODULES' AS domain
-        ,a.scope AS subdomain
+        ,'OVERALL' AS subdomain
+        ,a.scope
         ,m.standards
+        ,res.date_taken AS measure_date
   FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static res WITH(NOLOCK)
     ON a.assessment_id = res.assessment_id
@@ -254,7 +256,9 @@ WITH roster AS (
         ,a.assessment_id
         ,'MODULES' AS domain        
         ,'STANDARDS' AS subdomain
+        ,a.scope
         ,std.custom_code AS standards
+        ,res.updated_at AS measure_date
   FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)
     ON a.assessment_id = res.assessment_id  
@@ -702,14 +706,115 @@ WITH roster AS (
                  ,pm_green
                  ,pm_yellow
                  ,pm_orange
-                 ,pm_red
-                 ,has_hw
+                 ,pm_red)
+  ) u
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  GROUP BY studentid
+          ,term
+          ,field
+
+  UNION ALL
+
+  SELECT studentid
+        ,term
+        ,'BEHVAIOR - DAILY TRACKING' AS domain
+        ,CASE
+          WHEN field LIKE 'am%' THEN 'AM'
+          WHEN field LIKE 'mid%' THEN 'MID'
+          WHEN field LIKE 'pm%' THEN 'PM'
+          ELSE 'DAY'
+         END AS time_of_day
+        ,field
+        ,AVG(value) AS n_counts
+  FROM KIPP_NJ..DAILY$tracking_long#ES#static WITH(NOLOCK)
+  UNPIVOT(
+    value
+    FOR field IN (has_hw
                  ,has_uniform)
   ) u
   WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY studentid
           ,term
           ,field
+ )
+
+,promo_status AS (
+  SELECT student_number
+        ,'PROMO STATUS' AS domain
+        ,field AS subdomain
+        ,CASE WHEN field LIKE '%status%' THEN value ELSE NULL END AS text_value
+        ,CASE WHEN field LIKE '%status%' THEN NULL ELSE CONVERT(FLOAT,value) END AS numeric_value
+  FROM
+      (
+       SELECT student_number
+             ,schoolid
+             ,CONVERT(VARCHAR,days_to_90) AS days_to_90
+             ,CONVERT(VARCHAR,days_to_90_abs_only) AS days_to_90_abs_only
+             ,CASE
+               WHEN schoolid = 73253 THEN CONVERT(VARCHAR,N_below_70)
+               ELSE CONVERT(VARCHAR,N_below_65)
+              END AS n_failing
+             ,CASE
+               WHEN schoolid IN (73252,179902,73253) THEN CONVERT(VARCHAR,promo_overall_rise)
+               WHEN schoolid = 133570965 THEN CONVERT(VARCHAR,promo_overall_team)
+              END AS promo_status_overall
+             ,CASE
+               WHEN schoolid IN (73252, 179902,73253) THEN CONVERT(VARCHAR,promo_grades_gpa_rise)
+               WHEN schoolid = 133570965 THEN CONVERT(VARCHAR,promo_grades_team)
+              END AS promo_status_grades
+             ,CASE
+               WHEN schoolid IN (73252, 179902,73253) THEN CONVERT(VARCHAR,promo_att_rise)
+               WHEN schoolid = 133570965 THEN CONVERT(VARCHAR,promo_att_team)
+              END AS promo_status_att
+             ,CASE
+               WHEN schoolid IN (73252, 179902,73253) THEN CONVERT(VARCHAR,promo_hw_rise)
+               WHEN schoolid = 133570965 THEN CONVERT(VARCHAR,promo_hw_team)
+              END AS promo_status_hw      
+       FROM KIPP_NJ..REPORTING$promo_status#MS WITH(NOLOCK)
+       WHERE rn_curterm = 1
+      ) sub
+  UNPIVOT(
+    value
+    FOR field IN (days_to_90
+                 ,days_to_90_abs_only
+                 ,n_failing
+                 ,promo_status_overall
+                 ,promo_status_grades
+                 ,promo_status_att
+                 ,promo_status_hw)
+   ) u
+
+  UNION ALL
+
+  SELECT STUDENT_NUMBER
+        ,'PROMO STATUS' AS domain
+        ,field AS subdomain
+        ,CASE WHEN field LIKE '%status%' THEN value ELSE NULL END AS text_value
+        ,CASE WHEN field LIKE '%status%' THEN NULL ELSE CONVERT(FLOAT,value) END AS numeric_value
+  FROM
+      (
+       SELECT STUDENT_NUMBER                        
+             ,CONVERT(VARCHAR,days_to_90) AS days_to_90
+             ,CONVERT(VARCHAR,days_to_90_abs_only) AS days_to_90_abs_only
+             ,CONVERT(VARCHAR,lit_ARFR_status) AS lit_ARFR_status      
+             ,CONVERT(VARCHAR,att_ARFR_status) AS att_ARFR_status
+             ,CONVERT(VARCHAR,CASE 
+               WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%See Teacher%' THEN 'See Teacher'
+               WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%ARFR%' THEN 'At Risk for Retention' 
+               WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%Off Track%' THEN 'Off Track' 
+               ELSE 'On Track' 
+              END) AS overall_arfr_status
+       FROM KIPP_NJ..PROMO$promo_status#ES WITH(NOLOCK)
+       WHERE is_curterm = 1
+      ) sub
+  UNPIVOT(
+    value
+    FOR field IN (days_to_90
+                 ,days_to_90_abs_only
+                 ,lit_ARFR_status      
+                 ,att_ARFR_status
+                 ,overall_arfr_status)
+   ) u
  )
 
 SELECT r.studentid
@@ -789,7 +894,7 @@ SELECT r.studentid
       ,r.MOTHER_CELL
       ,r.FATHER_CELL
       ,r.spedlep
-      ,r.term
+      ,cma.scope AS term
       ,r.reporting_term      
       ,cma.domain
       ,cma.subdomain      
@@ -797,7 +902,7 @@ SELECT r.studentid
       ,cma.title AS course_name
       ,cma.standards AS measure_name
       ,cma.percent_correct AS measure_value
-      ,NULL AS measure_date
+      ,cma.measure_date
       ,NULL AS performance_level
       ,CONVERT(VARCHAR,cma.assessment_id) AS performance_level_label
 FROM roster r
@@ -1025,3 +1130,61 @@ LEFT OUTER JOIN daily_tracking daily
   ON r.studentid = daily.studentid
  AND r.term = daily.term
 WHERE r.term != 'Y1'
+
+UNION ALL
+
+SELECT r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.year
+      ,r.schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team
+      ,r.advisor
+      ,r.HOME_PHONE
+      ,r.MOTHER_CELL
+      ,r.FATHER_CELL
+      ,r.spedlep
+      ,r.term
+      ,r.reporting_term      
+      ,promo.domain
+      ,promo.subdomain
+      ,NULL AS subject
+      ,NULL AS course_name
+      ,NULL AS measure_name
+      ,NULL AS measure_value
+      ,NULL AS measure_date
+      ,promo.numeric_value AS performance_level
+      ,promo.text_value AS performance_level_label
+FROM roster r
+LEFT OUTER JOIN promo_status promo
+  ON r.student_number = promo.student_number 
+WHERE r.term = 'Y1'
+
+UNION ALL
+
+SELECT NULL AS studentid
+      ,NULL AS student_number
+      ,'None' AS lastfirst
+      ,NULL AS year
+      ,0 AS schoolid
+      ,NULL AS grade_level
+      ,NULL AS cohort
+      ,NULL AS team
+      ,NULL AS advisor
+      ,NULL AS HOME_PHONE
+      ,NULL AS MOTHER_CELL
+      ,NULL AS FATHER_CELL
+      ,NULL AS spedlep
+      ,NULL AS term
+      ,NULL AS reporting_term      
+      ,NULL AS domain
+      ,NULL AS subdomain
+      ,NULL AS subject
+      ,NULL AS course_name
+      ,NULL AS measure_name
+      ,NULL AS measure_value
+      ,NULL AS measure_date
+      ,NULL AS performance_level
+      ,NULL AS performance_level_label

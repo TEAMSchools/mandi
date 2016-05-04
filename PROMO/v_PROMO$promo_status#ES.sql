@@ -55,6 +55,8 @@ WITH curterm AS (
         ,SUM(is_absent) AS abs_days
         ,SUM(is_tardy) AS tardy_days
         ,ROUND((AVG(ATTENDANCEVALUE) * 100), 0) AS overall_ada
+        ,ROUND((((SUM(membershipvalue) * 0.105) - SUM(ISNULL(attendance_points, 0))) / -0.105) + 0.5,0) AS days_to_90
+        ,ROUND((((SUM(membershipvalue) * 0.105) - SUM(is_absent)) / -0.105) + 0.5,0) AS days_to_90_abs_only
   FROM
       (
        SELECT co.student_number
@@ -124,6 +126,8 @@ SELECT co.STUDENT_NUMBER
       ,att.offtrack_days_limit           
       ,att.att_pts
       ,att.att_pts_pct
+      ,att.days_to_90
+      ,att.days_to_90_abs_only
       ,CASE 
         WHEN co.SPEDLEP = 'SPED' OR co.retained_yr_flag = 1 THEN 'See Teacher'
         WHEN att.att_pts_pct < 90 THEN 'ARFR'

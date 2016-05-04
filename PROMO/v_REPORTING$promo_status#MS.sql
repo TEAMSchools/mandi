@@ -54,6 +54,7 @@ WITH final_grades AS (
 
 SELECT studentid
       ,student_number      
+      ,schoolid
       
       ,term
       ,is_curterm
@@ -155,6 +156,6 @@ FROM
       AND dt.time_per_name = cat.reporting_term
       AND cat.CREDITTYPE = 'ALL' 
      WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-       AND ((co.grade_level BETWEEN 5 AND 8) OR (co.grade_level = 4 AND co.schoolid = 73252))
+       AND ((co.grade_level >= 5) OR (co.grade_level = 4 AND co.schoolid = 73252))
        AND co.rn = 1 
     ) sub
