@@ -13,9 +13,6 @@ WITH roster AS (
         ,co.cohort
         ,co.team
         ,co.advisor         
-        ,co.HOME_PHONE
-        ,co.MOTHER_CELL
-        ,co.FATHER_CELL   
         ,co.spedlep
 
         ,dt.alt_name AS term
@@ -43,10 +40,7 @@ WITH roster AS (
         ,co.grade_level
         ,co.cohort
         ,co.team
-        ,co.advisor         
-        ,co.HOME_PHONE
-        ,co.MOTHER_CELL
-        ,co.FATHER_CELL   
+        ,co.advisor                 
         ,co.spedlep
 
         ,'Y1' AS term
@@ -61,6 +55,115 @@ WITH roster AS (
     AND co.rn = 1
     AND co.enroll_status = 0
     AND co.grade_level != 99    
+ )
+
+,contact AS (
+  SELECT studentid
+        ,'CONTACT' AS domain      
+        ,LEFT(field, CHARINDEX('_',field) - 1) AS person
+        ,RIGHT(field, LEN(field) - CHARINDEX('_',field)) AS type
+        ,value      
+  FROM
+      (
+       SELECT con.STUDENTID
+             ,CONVERT(VARCHAR,'Home') AS HOME_NAME           
+             ,CONVERT(VARCHAR,con.HOME_PHONE) AS HOME_PHONE
+             ,CONVERT(VARCHAR,blob.GUARDIANEMAIL) AS HOME_EMAIL
+             ,CONVERT(VARCHAR,con.MOTHER) AS PARENT1_NAME
+             ,CASE WHEN CONCAT(con.mother_home, con.mother_cell, con.mother_day) != '' THEN CONVERT(VARCHAR,'Mother') END AS PARENT1_RELATION
+             ,CONVERT(VARCHAR,con.MOTHER_HOME) AS PARENT1_HOME
+             ,CONVERT(VARCHAR,con.MOTHER_CELL) AS PARENT1_CELL
+             ,CONVERT(VARCHAR,con.MOTHER_DAY) AS PARENT1_DAY           
+             ,CONVERT(VARCHAR,con.FATHER) AS PARENT2_NAME
+             ,CASE WHEN CONCAT(con.FATHER_HOME, con.FATHER_CELL, con.FATHER_DAY) != '' THEN CONVERT(VARCHAR,'Father') END AS PARENT2_RELATION
+             ,CONVERT(VARCHAR,con.FATHER_HOME) AS PARENT2_HOME
+             ,CONVERT(VARCHAR,con.FATHER_CELL) AS PARENT2_CELL
+             ,CONVERT(VARCHAR,con.FATHER_DAY) AS PARENT2_DAY
+             ,CONVERT(VARCHAR,con.DOCTOR_NAME) AS DOCTOR_NAME
+             ,CASE WHEN CONCAT(con.DOCTOR_NAME, con.DOCTOR_PHONE) != '' THEN CONVERT(VARCHAR,'Doctor') END AS DOCTOR_RELATION
+             ,CONVERT(VARCHAR,con.DOCTOR_PHONE) AS DOCTOR_PHONE
+             ,CONVERT(VARCHAR,con.EMERG_CONTACT_1) AS EMERG1_NAME
+             ,CONVERT(VARCHAR,con.EMERG_1_REL) AS EMERG1_RELATION
+             ,CONVERT(VARCHAR,con.EMERG_PHONE_1) AS EMERG1_PHONE
+             ,CONVERT(VARCHAR,con.EMERG_CONTACT_2) AS EMERG2_NAME
+             ,CONVERT(VARCHAR,con.EMERG_2_REL) AS EMERG2_RELATION
+             ,CONVERT(VARCHAR,con.EMERG_PHONE_2) AS EMERG2_PHONE
+             ,CONVERT(VARCHAR,con.EMERG_CONTACT_3) AS EMERG3_NAME
+             ,CONVERT(VARCHAR,con.EMERG_3_REL) AS EMERG3_RELATION
+             ,CONVERT(VARCHAR,con.EMERG_3_PHONE) AS EMERG3_PHONE
+             ,CONVERT(VARCHAR,con.EMERG_4_NAME) AS EMERG4_NAME
+             ,CONVERT(VARCHAR,con.EMERG_4_REL) AS EMERG4_RELATION
+             ,CONVERT(VARCHAR,con.EMERG_4_PHONE) AS EMERG4_PHONE
+             ,CONVERT(VARCHAR,con.EMERG_5_NAME) AS EMERG5_NAME
+             ,CONVERT(VARCHAR,con.EMERG_5_REL) AS EMERG5_RELATION
+             ,CONVERT(VARCHAR,con.EMERG_5_PHONE) AS EMERG5_PHONE
+             ,CONVERT(VARCHAR,con.RELEASE_1_NAME) AS RELEASE1_NAME
+             ,CONVERT(VARCHAR,con.RELEASE_1_RELATION) AS RELEASE1_RELATION
+             ,CONVERT(VARCHAR,con.RELEASE_1_PHONE) AS RELEASE1_PHONE           
+             ,CONVERT(VARCHAR,con.RELEASE_2_NAME) AS RELEASE2_NAME
+             ,CONVERT(VARCHAR,con.RELEASE_2_RELATION) AS RELEASE2_RELATION
+             ,CONVERT(VARCHAR,con.RELEASE_2_PHONE) AS RELEASE2_PHONE           
+             ,CONVERT(VARCHAR,con.RELEASE_3_NAME) AS RELEASE3_NAME
+             ,CONVERT(VARCHAR,con.RELEASE_3_RELATION) AS RELEASE3_RELATION
+             ,CONVERT(VARCHAR,con.RELEASE_3_PHONE) AS RELEASE3_PHONE           
+             ,CONVERT(VARCHAR,con.RELEASE_4_NAME) AS RELEASE4_NAME
+             ,CONVERT(VARCHAR,con.RELEASE_4_RELATION) AS RELEASE4_RELATION
+             ,CONVERT(VARCHAR,con.RELEASE_4_PHONE) AS RELEASE4_PHONE           
+             ,CONVERT(VARCHAR,con.RELEASE_5_NAME) AS RELEASE5_NAME
+             ,CONVERT(VARCHAR,con.RELEASE_5_RELATION) AS RELEASE5_RELATION
+             ,CONVERT(VARCHAR,con.RELEASE_5_PHONE) AS RELEASE5_PHONE                      
+       FROM KIPP_NJ..PS$student_contact#static con WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$student_BLObs#static blob WITH(NOLOCK)
+         ON con.STUDENTID = blob.STUDENTID
+      ) sub
+  UNPIVOT(
+    value
+    FOR field IN (HOME_NAME
+                 ,HOME_PHONE
+                 ,HOME_EMAIL
+                 ,PARENT1_NAME
+                 ,PARENT1_RELATION
+                 ,PARENT1_HOME
+                 ,PARENT1_CELL
+                 ,PARENT1_DAY
+                 ,PARENT2_NAME
+                 ,PARENT2_RELATION
+                 ,PARENT2_HOME
+                 ,PARENT2_CELL
+                 ,PARENT2_DAY
+                 ,DOCTOR_NAME
+                 ,DOCTOR_PHONE
+                 ,EMERG1_NAME
+                 ,EMERG1_RELATION
+                 ,EMERG1_PHONE
+                 ,EMERG2_NAME
+                 ,EMERG2_RELATION
+                 ,EMERG2_PHONE
+                 ,EMERG3_NAME
+                 ,EMERG3_RELATION
+                 ,EMERG3_PHONE
+                 ,EMERG4_NAME
+                 ,EMERG4_RELATION
+                 ,EMERG4_PHONE
+                 ,EMERG5_NAME
+                 ,EMERG5_RELATION
+                 ,EMERG5_PHONE
+                 ,RELEASE1_NAME
+                 ,RELEASE1_RELATION
+                 ,RELEASE1_PHONE
+                 ,RELEASE2_NAME
+                 ,RELEASE2_RELATION
+                 ,RELEASE2_PHONE
+                 ,RELEASE3_NAME
+                 ,RELEASE3_RELATION
+                 ,RELEASE3_PHONE
+                 ,RELEASE4_NAME
+                 ,RELEASE4_RELATION
+                 ,RELEASE4_PHONE
+                 ,RELEASE5_NAME
+                 ,RELEASE5_RELATION
+                 ,RELEASE5_PHONE)
+   ) u
  )
 
 ,grades AS (
@@ -214,17 +317,17 @@ WITH roster AS (
    ) u
  )
 
-,module_standards AS (
-  SELECT a.assessment_id
-        ,KIPP_NJ.dbo.GROUP_CONCAT_D(std.custom_code,CHAR(10)) AS standards
-  FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
-  JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static ast WITH(NOLOCK)
-    ON a.assessment_id = ast.assessment_id
-  JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
-    ON ast.standard_id = std.standard_id
-  WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
-  GROUP BY a.assessment_id
- )
+--,module_standards AS (
+--  SELECT a.assessment_id
+--        ,KIPP_NJ.dbo.GROUP_CONCAT_D(std.custom_code,CHAR(10)) AS standards
+--  FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
+--  JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static ast WITH(NOLOCK)
+--    ON a.assessment_id = ast.assessment_id
+--  JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
+--    ON ast.standard_id = std.standard_id
+--  WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
+--  GROUP BY a.assessment_id
+-- )
 
 ,modules AS (
   SELECT a.subject_area        
@@ -236,14 +339,14 @@ WITH roster AS (
         ,'MODULES' AS domain
         ,'OVERALL' AS subdomain
         ,a.scope
-        ,m.standards
+        ,NULL standards
         ,res.date_taken AS measure_date
   FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static res WITH(NOLOCK)
     ON a.assessment_id = res.assessment_id
-  LEFT OUTER JOIN module_standards m
-    ON a.assessment_id = m.assessment_id
-  WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
+  --LEFT OUTER JOIN module_standards m
+  --  ON a.assessment_id = m.assessment_id
+  WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')        
     AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
   UNION ALL
@@ -265,6 +368,31 @@ WITH roster AS (
   JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
     ON res.standard_id = std.standard_id
   WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
+    AND a.subject_area != 'Writing'
+    AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+
+  UNION ALL
+
+  SELECT a.subject_area        
+        ,a.title        
+        ,a.academic_year        
+        ,res.local_student_id AS student_number
+        ,res.points AS percent_correct        
+        ,a.assessment_id
+        ,'MODULES' AS domain        
+        ,'WRITING RUBRIC' AS subdomain
+        ,a.scope
+        ,std.description AS standards
+        ,res.updated_at AS measure_date
+  FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
+  JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)
+    ON a.assessment_id = res.assessment_id  
+   AND res.answered > 0
+  JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
+    ON res.standard_id = std.standard_id
+   AND std.custom_code LIKE 'T_S.W.%'
+  WHERE a.scope = 'CMA - End-of-Module'
+    AND a.subject_area = 'Writing'  
     AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
@@ -604,55 +732,42 @@ WITH roster AS (
  )
 
 ,collegeapps AS (
-  SELECT *
-  FROM
-      (
-       SELECT app.hs_student_id AS student_number
-             ,app.collegename              
-             ,app.level       
-             ,CASE WHEN app.result_code IN ('unknown') OR app.result_code IS NULL THEN app.stage ELSE app.result_code END AS result_code
-             ,app.inst_control        
-             ,app.attending      
-             ,app.initial_transcript_sent
-             ,app.midyear_transcript_sent
-             ,app.final_transcript_sent
-             ,app.comments
+  SELECT app.hs_student_id AS student_number
+        ,app.collegename              
+        ,app.level       
+        ,CASE WHEN app.result_code IN ('unknown') OR app.result_code IS NULL THEN app.stage ELSE app.result_code END AS result_code
+        ,CONCAT('Type:', CHAR(9), REPLACE(app.inst_control,'p','P'), CHAR(10)
+               ,'Attending?', CHAR(9), app.attending, CHAR(10)
+               --,app.initial_transcript_sent
+               --,app.midyear_transcript_sent
+               --,app.final_transcript_sent
+               ,app.comments) AS value
         
-             ,ROW_NUMBER() OVER(                                
-                  ORDER BY CASE
-                            WHEN Competitiveness_Ranking__c = 'Most Competitive+' THEN 7
-                            WHEN Competitiveness_Ranking__c = 'Most Competitive' THEN 6
-                            WHEN Competitiveness_Ranking__c = 'Highly Competitive' THEN 5
-                            WHEN Competitiveness_Ranking__c = 'Very Competitive' THEN 4
-                            WHEN Competitiveness_Ranking__c = 'Noncompetitive' THEN 1
-                            WHEN Competitiveness_Ranking__c = 'Competitive' THEN 3
-                            WHEN Competitiveness_Ranking__c = 'Less Competitive' THEN 2
-                           END DESC, a.Competitiveness_Index__c DESC) AS Competitiveness_Index__c 
-             /* potentially useful but not sure what they all mean */
-             --,type
-             --,waitlisted
-             --,deferred      
-             --,spec
-             --,leg
-             --,intv
-             --,vis
-             --,urg
-       FROM KIPP_NJ..AUTOLOAD$NAVIANCE_1_college_applications app WITH(NOLOCK)
-       LEFT OUTER JOIN AlumniMirror..Account a WITH(NOLOCK)
-         ON app.ceeb_code = a.ceeb_code__C
-        AND a.RecordTypeId = '01280000000BQEkAAO'
-        AND a.Competitiveness_Index__c IS NOT NULL
-       WHERE ISNUMERIC(app.ceeb_code) = 1
-      ) sub
-  UNPIVOT(
-    value
-    FOR field IN (inst_control        
-                 ,attending      
-                 ,initial_transcript_sent
-                 ,midyear_transcript_sent
-                 ,final_transcript_sent
-                 ,comments)
-   ) u
+        ,ROW_NUMBER() OVER(                                
+             ORDER BY CASE
+                       WHEN Competitiveness_Ranking__c = 'Most Competitive+' THEN 7
+                       WHEN Competitiveness_Ranking__c = 'Most Competitive' THEN 6
+                       WHEN Competitiveness_Ranking__c = 'Highly Competitive' THEN 5
+                       WHEN Competitiveness_Ranking__c = 'Very Competitive' THEN 4
+                       WHEN Competitiveness_Ranking__c = 'Noncompetitive' THEN 1
+                       WHEN Competitiveness_Ranking__c = 'Competitive' THEN 3
+                       WHEN Competitiveness_Ranking__c = 'Less Competitive' THEN 2
+                      END DESC, a.Competitiveness_Index__c DESC) AS Competitiveness_Index__c 
+        /* potentially useful but not sure what they all mean */
+        --,type
+        --,waitlisted
+        --,deferred      
+        --,spec
+        --,leg
+        --,intv
+        --,vis
+        --,urg
+  FROM KIPP_NJ..AUTOLOAD$NAVIANCE_1_college_applications app WITH(NOLOCK)
+  LEFT OUTER JOIN AlumniMirror..Account a WITH(NOLOCK)
+    ON app.ceeb_code = a.ceeb_code__C
+   AND a.RecordTypeId = '01280000000BQEkAAO'
+   AND a.Competitiveness_Index__c IS NOT NULL
+  WHERE ISNUMERIC(app.ceeb_code) = 1
  )
 
 ,disc_logs AS (
@@ -817,6 +932,18 @@ WITH roster AS (
    ) u
  )
 
+,blended AS (
+  SELECT student_number
+        ,CASE WHEN time_period_name = 'Year' THEN 'Y1' ELSE time_period_name END AS reporting_term
+        ,'BLENDED LEARNING' AS domain
+        ,'AR' AS subdomain      
+        ,CASE WHEN schoolid = 73253 THEN points ELSE words END AS progress
+        ,CASE WHEN schoolid = 73253 THEN points_goal ELSE words_goal END AS goal
+        ,CASE WHEN schoolid = 73253 THEN stu_status_points ELSE stu_status_words END AS goal_status
+  FROM KIPP_NJ..AR$progress_to_goals_long#static WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ )
+
 SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
@@ -825,10 +952,7 @@ SELECT r.studentid
       ,r.grade_level
       ,r.cohort
       ,r.team
-      ,r.advisor
-      ,r.HOME_PHONE
-      ,r.MOTHER_CELL
-      ,r.FATHER_CELL
+      ,r.advisor      
       ,r.spedlep
       ,CASE WHEN gr.finalgradename = 'Exam' THEN REPLACE(r.term,'Q','X') ELSE r.term END AS term
       ,r.reporting_term      
@@ -857,10 +981,7 @@ SELECT r.studentid
       ,r.grade_level
       ,r.cohort
       ,r.team
-      ,r.advisor
-      ,r.HOME_PHONE
-      ,r.MOTHER_CELL
-      ,r.FATHER_CELL
+      ,r.advisor      
       ,r.spedlep
       ,r.term
       ,r.reporting_term      
@@ -889,10 +1010,7 @@ SELECT r.studentid
       ,r.grade_level
       ,r.cohort
       ,r.team
-      ,r.advisor
-      ,r.HOME_PHONE
-      ,r.MOTHER_CELL
-      ,r.FATHER_CELL
+      ,r.advisor      
       ,r.spedlep
       ,cma.scope AS term
       ,r.reporting_term      
@@ -921,10 +1039,7 @@ SELECT r.studentid
       ,r.grade_level
       ,r.cohort
       ,r.team
-      ,r.advisor
-      ,r.HOME_PHONE
-      ,r.MOTHER_CELL
-      ,r.FATHER_CELL
+      ,r.advisor      
       ,r.spedlep
       ,r.term
       ,r.reporting_term      
@@ -953,10 +1068,7 @@ SELECT r.studentid
       ,r.grade_level
       ,r.cohort
       ,r.team
-      ,r.advisor
-      ,r.HOME_PHONE
-      ,r.MOTHER_CELL
-      ,r.FATHER_CELL
+      ,r.advisor      
       ,r.spedlep
       ,lit.test_round AS term
       ,r.reporting_term      
@@ -984,10 +1096,7 @@ SELECT r.studentid
       ,r.grade_level
       ,r.cohort
       ,r.team
-      ,r.advisor
-      ,r.HOME_PHONE
-      ,r.MOTHER_CELL
-      ,r.FATHER_CELL
+      ,r.advisor      
       ,r.spedlep
       ,map.term
       ,r.reporting_term      
@@ -1015,10 +1124,7 @@ SELECT r.studentid
       ,r.grade_level
       ,r.cohort
       ,r.team
-      ,r.advisor
-      ,r.HOME_PHONE
-      ,r.MOTHER_CELL
-      ,r.FATHER_CELL
+      ,r.advisor      
       ,r.spedlep
       ,r.term
       ,r.reporting_term      
@@ -1046,10 +1152,7 @@ SELECT r.studentid
       ,r.grade_level
       ,r.cohort
       ,r.team
-      ,r.advisor
-      ,r.HOME_PHONE
-      ,r.MOTHER_CELL
-      ,r.FATHER_CELL
+      ,r.advisor      
       ,r.spedlep
       ,r.term
       ,r.reporting_term      
@@ -1057,7 +1160,7 @@ SELECT r.studentid
       ,apps.level AS subdomain
       ,apps.result_code AS subject
       ,apps.collegename AS course_name
-      ,apps.field AS measure_name
+      ,NULL AS measure_name
       ,NULL AS measure_value
       ,NULL AS measure_date
       ,apps.competitiveness_index__c AS performance_level
@@ -1077,10 +1180,7 @@ SELECT r.studentid
       ,r.grade_level
       ,r.cohort
       ,r.team
-      ,r.advisor
-      ,r.HOME_PHONE
-      ,r.MOTHER_CELL
-      ,r.FATHER_CELL
+      ,r.advisor      
       ,r.spedlep
       ,r.term
       ,r.reporting_term      
@@ -1109,10 +1209,7 @@ SELECT r.studentid
       ,r.grade_level
       ,r.cohort
       ,r.team
-      ,r.advisor
-      ,r.HOME_PHONE
-      ,r.MOTHER_CELL
-      ,r.FATHER_CELL
+      ,r.advisor      
       ,r.spedlep
       ,r.term
       ,r.reporting_term      
@@ -1141,10 +1238,7 @@ SELECT r.studentid
       ,r.grade_level
       ,r.cohort
       ,r.team
-      ,r.advisor
-      ,r.HOME_PHONE
-      ,r.MOTHER_CELL
-      ,r.FATHER_CELL
+      ,r.advisor      
       ,r.spedlep
       ,r.term
       ,r.reporting_term      
@@ -1164,18 +1258,102 @@ WHERE r.term = 'Y1'
 
 UNION ALL
 
+SELECT r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.year
+      ,r.schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team
+      ,r.advisor      
+      ,r.spedlep
+      ,ss.term
+      ,r.reporting_term      
+      ,'SOCIAL SKILLS' AS domain
+      ,NULL AS subdomain
+      ,NULL AS subject
+      ,NULL AS course_name
+      ,ss.social_skill AS measure_name
+      ,CONVERT(FLOAT,ss.score) AS measure_value
+      ,NULL AS measure_date
+      ,NULL AS performance_level
+      ,NULL AS performance_level_label
+FROM roster r
+JOIN KIPP_NJ..REPORTING$social_skills#ES ss WITH(NOLOCK)
+  ON r.student_number = ss.student_number 
+ AND r.term = ss.term
+ AND ISNUMERIC(ss.score) = 1
+WHERE r.term != 'Y1'
+
+UNION ALL
+
+SELECT r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.year
+      ,r.schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team
+      ,r.advisor      
+      ,r.spedlep
+      ,r.term
+      ,r.reporting_term      
+      ,c.domain
+      ,c.type AS subdomain
+      ,c.person AS subject
+      ,NULL AS course_name
+      ,c.value AS measure_name
+      ,NULL AS measure_value
+      ,NULL AS measure_date
+      ,NULL AS performance_level
+      ,NULL AS performance_level_label
+FROM roster r
+JOIN contact c
+  ON r.STUDENTID = c.STUDENTID  
+WHERE r.term = 'Y1'
+
+UNION ALL
+
+SELECT r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.year
+      ,r.schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team
+      ,r.advisor      
+      ,r.spedlep
+      ,r.term
+      ,r.reporting_term      
+      ,b.domain
+      ,b.subdomain
+      ,NULL AS subject
+      ,NULL AS course_name
+      ,NULL AS measure_name
+      ,b.progress AS measure_value
+      ,NULL AS measure_date
+      ,b.goal AS performance_level
+      ,b.goal_status AS performance_level_label
+FROM roster r
+JOIN blended b
+  ON r.student_number = b.student_number
+ AND r.reporting_term = b.reporting_term
+
+/* blank row for default */
+UNION ALL
+
 SELECT NULL AS studentid
       ,NULL AS student_number
-      ,'None' AS lastfirst
+      ,' Choose a student...' AS lastfirst
       ,NULL AS year
-      ,0 AS schoolid
-      ,NULL AS grade_level
+      ,schoolid
+      ,grade_level
       ,NULL AS cohort
       ,NULL AS team
-      ,NULL AS advisor
-      ,NULL AS HOME_PHONE
-      ,NULL AS MOTHER_CELL
-      ,NULL AS FATHER_CELL
+      ,advisor      
       ,NULL AS spedlep
       ,NULL AS term
       ,NULL AS reporting_term      
@@ -1188,3 +1366,7 @@ SELECT NULL AS studentid
       ,NULL AS measure_date
       ,NULL AS performance_level
       ,NULL AS performance_level_label
+FROM KIPP_NJ..COHORT$identifiers_long#static WITH(NOLOCK)
+WHERE year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  AND enroll_status = 0
+  AND rn = 1  
