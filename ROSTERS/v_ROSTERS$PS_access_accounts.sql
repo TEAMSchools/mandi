@@ -46,6 +46,7 @@ SELECT STUDENT_NUMBER
       ,CASE
         WHEN student_number = 11085 THEN first_name_clean + dob_month /* manual override of passwords */
         WHEN student_number = 10611 THEN first_name_clean + dob_month /* manual override of passwords */
+        WHEN student_number = 15343 THEN first_name_clean + CONVERT(VARCHAR(20),student_number) /* manual override of passwords */
         WHEN GRADE_LEVEL >= 2 THEN last_name_clean + dob_year 
         ELSE LOWER(school_name) + '1'
        END AS student_web_password
