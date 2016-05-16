@@ -189,7 +189,7 @@ WITH map_data AS (
              ,schoolid
              ,survey_type      
              ,CONVERT(FLOAT,pct_top_box * 100) AS pct_top_box
-       FROM SURVEY$KIPP_HSR_survey_results WITH(NOLOCK)
+       FROM KIPP_NJ..SURVEY$KIPP_HSR_survey_results WITH(NOLOCK)
        WHERE survey_type IN ('Parent','Student')
          AND question_id IN (471, 623) /* I would recommend KIPP... */
       ) sub

@@ -3,29 +3,29 @@ GO
 
 ALTER VIEW TABLEAU$lit_progress_tracker AS
 
-WITH gr_curr AS (
-  SELECT student_number
-        ,academic_year
-        ,CASE 
-          WHEN term = 'eoy_teach' THEN 'EOY'
-          ELSE UPPER(LEFT(term,2)) 
-         END AS term
-        ,gr_teacher
-  FROM
-      ( 
-       SELECT CONVERT(FLOAT,sn) AS student_number
-             ,academic_year
-             ,q1_gr_teacher
-             ,q2_gr_teacher
-             ,q3_gr_teacher
-             ,q4gr_teacher AS q4_gr_teacher                                       
-       FROM [AUTOLOAD$GDOCS_LIT_GR_Group] WITH(NOLOCK)
-      ) sub
-  UNPIVOT(
-    gr_teacher
-    FOR term IN (q1_gr_teacher, q2_gr_teacher, q3_gr_teacher, q4_gr_teacher)
-   ) u
- )
+--WITH gr_curr AS (
+--  SELECT student_number
+--        ,academic_year
+--        ,CASE 
+--          WHEN term = 'eoy_teach' THEN 'EOY'
+--          ELSE UPPER(LEFT(term,2)) 
+--         END AS term
+--        ,gr_teacher
+--  FROM
+--      ( 
+--       SELECT CONVERT(FLOAT,sn) AS student_number
+--             ,academic_year
+--             ,q1_gr_teacher
+--             ,q2_gr_teacher
+--             ,q3_gr_teacher
+--             ,q4gr_teacher AS q4_gr_teacher                                       
+--       FROM [AUTOLOAD$GDOCS_LIT_GR_Group] WITH(NOLOCK)
+--      ) sub
+--  UNPIVOT(
+--    gr_teacher
+--    FOR term IN (q1_gr_teacher, q2_gr_teacher, q3_gr_teacher, q4_gr_teacher)
+--   ) u
+-- )
 
 SELECT CASE WHEN co.TEAM LIKE '%pathways%' THEN 'Pathways' ELSE co.school_name END AS school_name /* student identifiers */
       ,CASE WHEN achv.start_date >= CONVERT(DATE,GETDATE()) THEN NULL ELSE co.student_number END AS student_number
@@ -42,11 +42,16 @@ SELECT CASE WHEN co.TEAM LIKE '%pathways%' THEN 'Pathways' ELSE co.school_name E
       
       /* enrollments */
       ,enr.illuminate_group
-      ,gr.q1_gr_teacher AS t1_teach /* UPDATE FIELD NAMES IN TABLEAU AFTER SCHOOL STARTUP*/
-      ,gr.q2_gr_teacher AS t2_teach /* UPDATE FIELD NAMES IN TABLEAU AFTER SCHOOL STARTUP*/
-      ,gr.q3_gr_teacher AS t3_teach /* UPDATE FIELD NAMES IN TABLEAU AFTER SCHOOL STARTUP*/
-      ,gr.q4gr_teacher AS q4_gr_teacher
-      ,gr_curr.gr_teacher AS curr_gr_teach
+      ,NULL AS t1_teach
+      ,NULL AS t2_teach
+      ,NULL AS t3_teach
+      ,NULL AS q4_gr_teacher
+      ,NULL AS curr_gr_teach
+      --,gr.q1_gr_teacher AS t1_teach /* UPDATE FIELD NAMES IN TABLEAU AFTER SCHOOL STARTUP*/
+      --,gr.q2_gr_teacher AS t2_teach /* UPDATE FIELD NAMES IN TABLEAU AFTER SCHOOL STARTUP*/
+      --,gr.q3_gr_teacher AS t3_teach /* UPDATE FIELD NAMES IN TABLEAU AFTER SCHOOL STARTUP*/
+      --,gr.q4gr_teacher AS q4_gr_teacher
+      --,gr_curr.gr_teacher AS curr_gr_teach
       
       /* test identifiers */
       ,achv.test_round
@@ -112,23 +117,23 @@ JOIN KIPP_NJ..LIT$achieved_by_round#static achv WITH(NOLOCK)
  AND co.year = achv.academic_year
 LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static testid WITH(NOLOCK)
   ON co.studentid = testid.studentid
- AND achv.unique_id = testid.unique_id 
+ AND achv.achv_unique_id = testid.unique_id 
 LEFT OUTER JOIN KIPP_NJ..LIT$growth_measures_wide#static growth WITH(NOLOCK)
   ON co.studentid = growth.STUDENTID
  AND co.year = growth.YEAR
 LEFT OUTER JOIN KIPP_NJ..LIT$readingscores_long#static long WITH(NOLOCK)
   ON co.studentid = long.studentid
- AND achv.unique_id = long.unique_id
+ AND achv.dna_unique_id = long.unique_id
 LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static enr WITH(NOLOCK)
   ON co.studentid = enr.STUDENTID
  AND co.year = enr.academic_year 
  AND enr.course_number LIKE '%HR%'
-LEFT OUTER JOIN KIPP_NJ..[AUTOLOAD$GDOCS_LIT_GR_Group] gr WITH(NOLOCK)
-  ON co.student_number = gr.sn
- AND co.year = gr.academic_year
-LEFT OUTER JOIN gr_curr
-  ON co.student_number = gr_curr.student_number
- AND co.year = gr.academic_year
- AND achv.test_round = gr_curr.term
+--LEFT OUTER JOIN KIPP_NJ..[AUTOLOAD$GDOCS_LIT_GR_Group] gr WITH(NOLOCK)
+--  ON co.student_number = gr.sn
+-- AND co.year = gr.academic_year
+--LEFT OUTER JOIN gr_curr
+--  ON co.student_number = gr_curr.student_number
+-- AND co.year = gr.academic_year
+-- AND achv.test_round = gr_curr.term
 WHERE co.rn = 1
   AND co.grade_level <= 4

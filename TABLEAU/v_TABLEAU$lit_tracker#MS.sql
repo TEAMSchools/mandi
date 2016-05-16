@@ -83,15 +83,6 @@ SELECT -- student identifiers
       ,lit_rounds.is_new_test
       ,LAG(lit_rounds.lvl_num, 1) OVER(PARTITION BY r.student_number, r.year ORDER BY term.hex) AS prev_lvl_num
 
-      --/* F&P growth */
-      --,lit_growth.yr_growth_GLEQ
-      --,lit_growth.t1_growth_GLEQ
-      --,lit_growth.t2_growth_GLEQ
-      --,lit_growth.t3_growth_GLEQ
-      --,lit_growth.t1t2_growth_GLEQ
-      --,lit_growth.t2t3_growth_GLEQ
-      --,lit_growth.t3EOY_growth_GLEQ  
-
       /* most recent test for year */      
       ,mr.read_lvl AS curr_read_lvl
       ,mr.GLEQ AS curr_GLEQ
@@ -122,9 +113,6 @@ LEFT OUTER JOIN KIPP_NJ..LIT$achieved_by_round#static lit_rounds WITH(NOLOCK)
  AND r.year = lit_rounds.academic_year
  AND term.lit = lit_rounds.test_round
  AND lit_rounds.start_date <= CONVERT(DATE,GETDATE())
---LEFT OUTER JOIN KIPP_NJ..LIT$growth_measures_wide#static lit_growth WITH(NOLOCK)
---  ON r.studentid = lit_growth.studentid
--- AND r.year = lit_growth.year
 LEFT OUTER JOIN most_recent mr
   ON r.student_number = mr.student_number
  AND r.year = mr.academic_year

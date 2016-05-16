@@ -23,8 +23,8 @@ BEGIN
             ,GRADE
             ,GRADEBOOKTYPE        
             ,OVERRIDEFG
-            ,PERCENT
-            ,POINTS
+            ,CASE WHEN grade = ''--'' THEN NULL ELSE PERCENT END AS PERCENT
+            ,CASE WHEN grade = ''--'' THEN NULL ELSE POINTS END AS POINTS
             ,POINTSPOSSIBLE        
             ,VARCREDIT
             ,CITIZENSHIP
@@ -32,8 +32,7 @@ BEGIN
             ,ENDDATE
             ,LASTGRADEUPDATE        
       FROM PGFINALGRADES
-      WHERE grade != ''--''    
-        AND LASTGRADEUPDATE >= TO_DATE(''2015-08-01'',''YYYY-MM-DD'')
+      WHERE LASTGRADEUPDATE >= TO_DATE(''2015-08-01'',''YYYY-MM-DD'')
     ');
   END
 

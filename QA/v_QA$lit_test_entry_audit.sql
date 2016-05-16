@@ -28,7 +28,7 @@ SELECT co.year AS academic_year
       ,CASE WHEN a.start_date <= CONVERT(DATE,GETDATE()) THEN 1 ELSE 0 END AS is_current
       ,a.read_lvl
       ,a.met_goal
-      ,a.unique_id
+      ,a.achv_unique_id AS unique_id
       ,rs.academic_year AS record_academic_year
       ,rs.test_round AS record_test_round
       ,l.read_lvl AS term_read_lvl
@@ -38,7 +38,7 @@ JOIN KIPP_NJ..LIT$achieved_by_round#static a WITH(NOLOCK)
   ON co.studentid = a.STUDENTID
  AND co.year = a.academic_year
 LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static rs WITH(NOLOCK)
-  ON a.unique_id = rs.unique_id
+  ON a.achv_unique_id = rs.unique_id
 LEFT OUTER JOIN latest_entry l
   ON co.student_number = l.student_number
  AND a.test_round = l.test_round

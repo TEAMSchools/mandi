@@ -90,8 +90,8 @@ WITH roster AS (
         AND pgf.[PERCENT] >= scale.low_cut
         AND pgf.[PERCENT] < scale.high_cut
        LEFT OUTER JOIN KIPP_NJ..GRADES$STOREDGRADES#static sg WITH(NOLOCK)
-         ON pgf.studentid = sg.STUDENTID 
-        AND pgf.SECTIONID = sg.SECTIONID
+         ON enr.studentid = sg.STUDENTID 
+        AND enr.SECTIONID = sg.SECTIONID
         AND pgf.FINALGRADENAME = sg.STORECODE 
        LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static sg_scale WITH(NOLOCK)
          ON enr.GRADESCALEID = sg_scale.scale_id

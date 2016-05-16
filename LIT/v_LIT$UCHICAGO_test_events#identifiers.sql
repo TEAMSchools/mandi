@@ -56,6 +56,6 @@ LEFT OUTER JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
  AND KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,step.date)) = co.year
  AND co.rn = 1
 LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
-  ON step.schoolid = dt.schoolid
+  ON co.schoolid = dt.schoolid
  AND CONVERT(DATE,step.date) BETWEEN dt.start_date AND dt.end_date
  AND dt.identifier = 'LIT'

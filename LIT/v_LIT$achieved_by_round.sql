@@ -54,7 +54,8 @@ WITH roster_scaffold AS (
              ,COALESCE(achv.fp_keylever, ps.fp_keylever) AS fp_keylever
              ,COALESCE(dna.read_lvl, ps.dna_lvl) AS dna_lvl
              ,COALESCE(dna.lvl_num, ps.dna_lvl_num) AS dna_lvl_num
-             ,COALESCE(dna.unique_id, ps.unique_id) AS unique_id
+             ,COALESCE(achv.unique_id, ps.unique_id) AS achv_unique_id
+             ,COALESCE(dna.unique_id, ps.unique_id) AS dna_unique_id
        FROM roster_scaffold r WITH(NOLOCK) 
        LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static ps WITH(NOLOCK)
          ON r.STUDENTID = ps.studentid      
@@ -98,7 +99,8 @@ WITH roster_scaffold AS (
              ,achv.fp_keylever
              ,dna.read_lvl AS dna_lvl
              ,dna.lvl_num AS dna_lvl_num
-             ,dna.unique_id             
+             ,achv.unique_id AS achv_unique_id
+             ,dna.unique_id AS dna_unique_id
        FROM roster_scaffold r WITH(NOLOCK) 
        LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static achv WITH(NOLOCK)
          ON r.STUDENTID = achv.studentid      
@@ -152,7 +154,8 @@ WITH roster_scaffold AS (
                WHEN fp.status = 'Achieved' AND fp.instruct_lvl = fp.indep_lvl THEN (gleq.fp_lvl_num + 1)
                ELSE COALESCE(fp.instruct_lvl_num, (gleq.fp_lvl_num + 1))
               END AS dna_lvl_num
-             ,fp.unique_id             
+             ,fp.unique_id AS achv_unique_id
+             ,fp.unique_id AS dna_unique_id            
        FROM KIPP_NJ..LIT$all_test_events#identifiers#static fp WITH(NOLOCK)       
        LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
          ON CASE WHEN fp.status = 'Achieved' AND fp.indep_lvl IS NULL THEN fp.read_lvl ELSE fp.indep_lvl END = gleq.read_lvl
@@ -178,26 +181,42 @@ SELECT academic_year
       ,indep_lvl_num
       ,dna_lvl
       ,dna_lvl_num
+      ,prev_read_lvl
+      ,prev_lvl_num
+      ,CASE 
+        WHEN lvl_num > prev_lvl_num THEN 1 
+        WHEN lvl_num <= prev_lvl_num THEN 0        
+       END AS moved_levels
       ,GLEQ      
       ,lvl_num      
       ,fp_wpmrate
       ,fp_keylever
       ,goal_lvl      
       ,goal_num   
-      ,CASE WHEN lvl_num >= goal_num THEN 1 ELSE 0 END AS met_goal
+      ,CASE         
+        WHEN lvl_num >= goal_num THEN 1 
+        WHEN lvl_num < goal_num THEN 0        
+       END AS met_goal
       ,default_goal_lvl      
       ,default_goal_num   
-      ,CASE WHEN lvl_num >= default_goal_num THEN 1 ELSE 0 END AS met_default_goal
+      ,CASE
+        WHEN lvl_num >= default_goal_num THEN 1 
+        WHEN lvl_num < default_goal_num THEN 0
+       END AS met_default_goal
       ,natl_goal_lvl
       ,natl_goal_num      
-      ,CASE WHEN lvl_num >= natl_goal_num THEN 1 ELSE 0 END AS met_natl_goal
+      ,CASE 
+        WHEN lvl_num >= natl_goal_num THEN 1 
+        WHEN lvl_num < natl_goal_num THEN 0
+       END AS met_natl_goal
       ,CASE
         WHEN lvl_num >= goal_num THEN 'On Track'
         WHEN lvl_num >= natl_goal_num THEN 'Off Track'
         WHEN lvl_num < natl_goal_num THEN 'ARFR'
        END AS goal_status
       ,levels_behind
-      ,unique_id
+      ,achv_unique_id
+      ,dna_unique_id
       ,is_new_test
 FROM
     (
@@ -209,13 +228,15 @@ FROM
            ,sub.test_round
            ,sub.start_date
            ,sub.read_lvl           
-           ,sub.lvl_num 
+           ,sub.lvl_num            
            ,sub.instruct_lvl
            ,sub.instruct_lvl_num     
            ,sub.indep_lvl
            ,sub.indep_lvl_num
            ,sub.dna_lvl
            ,sub.dna_lvl_num
+           ,LAG(sub.read_lvl, 1) OVER(PARTITION BY sub.student_number ORDER BY sub.academic_year ASC, sub.start_date ASC) AS prev_read_lvl
+           ,LAG(sub.lvl_num, 1) OVER(PARTITION BY sub.student_number ORDER BY sub.academic_year ASC, sub.start_date ASC) AS prev_lvl_num
            ,sub.GLEQ           
            ,COALESCE(indiv.goal, goals.read_lvl) AS goal_lvl
            ,COALESCE(indiv.lvl_num, goals.lvl_num) AS goal_num                           
@@ -228,7 +249,8 @@ FROM
            ,sub.fp_wpmrate
            ,sub.fp_keylever
            ,sub.lvl_num - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind
-           ,sub.unique_id      
+           ,sub.achv_unique_id      
+           ,sub.dna_unique_id      
            ,CASE WHEN sub.academic_year = lit.academic_year AND sub.round_num = lit.round_num THEN 1 ELSE 0 END AS is_new_test
      FROM
          (
@@ -251,7 +273,8 @@ FROM
                 ,COALESCE(tests.fp_keylever,achv_prev.fp_keylever) AS fp_keylever
                 ,COALESCE(tests.dna_lvl,achv_prev.dna_lvl) AS dna_lvl
                 ,COALESCE(tests.dna_lvl_num,achv_prev.dna_lvl_num) AS dna_lvl_num
-                ,COALESCE(tests.unique_id,achv_prev.unique_id) AS unique_id
+                ,COALESCE(tests.achv_unique_id,achv_prev.achv_unique_id) AS achv_unique_id
+                ,COALESCE(tests.dna_unique_id,achv_prev.dna_unique_id) AS dna_unique_id
                 --,tests.meta_achv_round
                 --,achv_prev.meta_achv_round AS prev_rn
                 ,ROW_NUMBER() OVER(
@@ -273,6 +296,6 @@ FROM
       AND sub.test_round = indiv.test_round
       AND sub.academic_year = indiv.academic_year
      LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static lit WITH(NOLOCK)
-       ON sub.unique_id = lit.unique_id
+       ON sub.achv_unique_id = lit.unique_id
      WHERE sub.rn = 1     
     ) sub

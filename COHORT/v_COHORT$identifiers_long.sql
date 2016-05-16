@@ -55,8 +55,14 @@ SELECT co.schoolid
       ,cs.STATUS_504
       ,cs.LEP_STATUS
       ,cs.NEWARK_ENROLLMENT_NUMBER
-      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN ISNULL(cs.SPEDLEP,'No IEP') ELSE ISNULL(COALESCE(sped.SPEDLEP, cs.spedlep),'No IEP') END AS SPEDLEP
-      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE ELSE COALESCE(sped.SPEDCODE, cs.spedlep) END AS SPED_code
+      ,CASE 
+        WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN ISNULL(cs.SPEDLEP,'No IEP') 
+        ELSE ISNULL(COALESCE(sped.SPEDLEP, cs.spedlep),'No IEP') 
+       END AS SPEDLEP
+      ,CASE 
+        WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE 
+        ELSE COALESCE(sped.SPEDCODE, cs.spedlep) 
+       END AS SPED_code
       
       ,ms.school_name AS entry_school_name
       ,ms.schoolid AS entry_schoolid
