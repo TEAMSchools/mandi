@@ -78,11 +78,11 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,eng.credit_hours AS ENGLISH_credit_hours_Y1
       ,eng.teacher_name AS ENGLISH_teacher_last
       ,eng.teacher_name AS ENGLISH_teacher_lastfirst
-      ,CONVERT(FLOAT,eng.RT1_term_grade_percent) AS ENGLISH_t1
-      ,CONVERT(FLOAT,eng.RT2_term_grade_percent) AS ENGLISH_t2
-      ,CONVERT(FLOAT,eng.RT3_term_grade_percent) AS ENGLISH_t3
-      ,CONVERT(FLOAT,eng.RT4_term_grade_percent) AS ENGLISH_t4
-      ,CONVERT(FLOAT,eng.Y1_grade_percent) AS ENGLISH_y1
+      ,CONVERT(FLOAT,CASE WHEN eng.RT1_term_grade_percent = '' THEN NULL ELSE eng.RT1_term_grade_percent END) AS ENGLISH_t1
+      ,CONVERT(FLOAT,CASE WHEN eng.RT2_term_grade_percent = '' THEN NULL ELSE eng.RT2_term_grade_percent END) AS ENGLISH_t2
+      ,CONVERT(FLOAT,CASE WHEN eng.RT3_term_grade_percent = '' THEN NULL ELSE eng.RT3_term_grade_percent END) AS ENGLISH_t3
+      ,CONVERT(FLOAT,CASE WHEN eng.RT4_term_grade_percent = '' THEN NULL ELSE eng.RT4_term_grade_percent END) AS ENGLISH_t4
+      ,CONVERT(FLOAT,CASE WHEN eng.Y1_grade_percent = '' THEN NULL ELSE eng.Y1_grade_percent END) AS ENGLISH_y1
       ,CASE WHEN CONVERT(FLOAT,eng.need_65) < 65 THEN 65 ELSE CONVERT(FLOAT,eng.need_65) END AS ENGLISH_need_c
       ,eng.RT1_term_grade_letter AS ENGLISH_t1_ltr
       ,eng.RT2_term_grade_letter AS ENGLISH_t2_ltr
@@ -100,21 +100,21 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,NULL AS ENGLISH_weighted_points_t2
       ,NULL AS ENGLISH_weighted_points_t3
       ,NULL AS ENGLISH_weighted_points_y1
-      ,CONVERT(FLOAT,eng_cat.H_RT1) AS ENGLISH_H1 
-      ,CONVERT(FLOAT,eng_cat.H_RT2) AS ENGLISH_H2 
-      ,CONVERT(FLOAT,eng_cat.H_RT3) AS ENGLISH_H3 
-      ,CONVERT(FLOAT,eng_cat.H_RT4) AS ENGLISH_H4 
-      ,CONVERT(FLOAT,eng_cat.H_Y1) AS ENGLISH_HY1
-      ,CONVERT(FLOAT,eng_cat.E_RT1) AS ENGLISH_Q1 
-      ,CONVERT(FLOAT,eng_cat.E_RT2) AS ENGLISH_Q2 
-      ,CONVERT(FLOAT,eng_cat.E_RT3) AS ENGLISH_Q3 
-      ,CONVERT(FLOAT,eng_cat.E_RT4) AS ENGLISH_Q4 
-      ,CONVERT(FLOAT,eng_cat.E_Y1) AS ENGLISH_QY1
-      ,CONVERT(FLOAT,eng_cat.S_RT1) AS ENGLISH_S1 
-      ,CONVERT(FLOAT,eng_cat.S_RT2) AS ENGLISH_S2 
-      ,CONVERT(FLOAT,eng_cat.S_RT3) AS ENGLISH_S3 
-      ,CONVERT(FLOAT,eng_cat.S_RT4) AS ENGLISH_S4 
-      ,CONVERT(FLOAT,eng_cat.S_Y1) AS ENGLISH_SY1
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.H_RT1 = '' THEN NULL ELSE eng_cat.H_RT1 END) AS ENGLISH_H1 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.H_RT2 = '' THEN NULL ELSE eng_cat.H_RT2 END) AS ENGLISH_H2 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.H_RT3 = '' THEN NULL ELSE eng_cat.H_RT3 END) AS ENGLISH_H3 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.H_RT4 = '' THEN NULL ELSE eng_cat.H_RT4 END) AS ENGLISH_H4 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.H_Y1 = '' THEN NULL ELSE eng_cat.H_Y1 END) AS ENGLISH_HY1
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.E_RT1 = '' THEN NULL ELSE eng_cat.E_RT1 END) AS ENGLISH_Q1 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.E_RT2 = '' THEN NULL ELSE eng_cat.E_RT2 END) AS ENGLISH_Q2 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.E_RT3 = '' THEN NULL ELSE eng_cat.E_RT3 END) AS ENGLISH_Q3 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.E_RT4 = '' THEN NULL ELSE eng_cat.E_RT4 END) AS ENGLISH_Q4 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.E_Y1 = '' THEN NULL ELSE eng_cat.E_Y1 END) AS ENGLISH_QY1
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.S_RT1 = '' THEN NULL ELSE eng_cat.S_RT1 END) AS ENGLISH_S1 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.S_RT2 = '' THEN NULL ELSE eng_cat.S_RT2 END) AS ENGLISH_S2 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.S_RT3 = '' THEN NULL ELSE eng_cat.S_RT3 END) AS ENGLISH_S3 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.S_RT4 = '' THEN NULL ELSE eng_cat.S_RT4 END) AS ENGLISH_S4 
+      ,CONVERT(FLOAT,CASE WHEN eng_cat.S_Y1 = '' THEN NULL ELSE eng_cat.S_Y1 END) AS ENGLISH_SY1
       
       ,NULL AS RHET_course_number
       ,NULL AS RHET_credittype
@@ -171,11 +171,11 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,MATH.credit_hours AS MATH_credit_hours_Y1
       ,MATH.teacher_name AS MATH_teacher_last
       ,MATH.teacher_name AS MATH_teacher_lastfirst
-      ,CONVERT(FLOAT,MATH.RT1_term_grade_percent) AS MATH_t1
-      ,CONVERT(FLOAT,MATH.RT2_term_grade_percent) AS MATH_t2
-      ,CONVERT(FLOAT,MATH.RT3_term_grade_percent) AS MATH_t3
-      ,CONVERT(FLOAT,MATH.RT4_term_grade_percent) AS MATH_t4
-      ,CONVERT(FLOAT,MATH.Y1_grade_percent) AS MATH_y1
+      ,CONVERT(FLOAT,CASE WHEN math.RT1_term_grade_percent = '' THEN NULL ELSE math.RT1_term_grade_percent END) AS math_t1
+      ,CONVERT(FLOAT,CASE WHEN math.RT2_term_grade_percent = '' THEN NULL ELSE math.RT2_term_grade_percent END) AS math_t2
+      ,CONVERT(FLOAT,CASE WHEN math.RT3_term_grade_percent = '' THEN NULL ELSE math.RT3_term_grade_percent END) AS math_t3
+      ,CONVERT(FLOAT,CASE WHEN math.RT4_term_grade_percent = '' THEN NULL ELSE math.RT4_term_grade_percent END) AS math_t4
+      ,CONVERT(FLOAT,CASE WHEN math.Y1_grade_percent = '' THEN NULL ELSE math.Y1_grade_percent END) AS math_y1
       ,MATH.RT1_term_grade_letter AS MATH_t1_ltr
       ,MATH.RT2_term_grade_letter AS MATH_t2_ltr
       ,MATH.RT3_term_grade_letter AS MATH_t3_ltr
@@ -193,21 +193,21 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,NULL AS MATH_weighted_points_t2
       ,NULL AS MATH_weighted_points_t3
       ,NULL AS MATH_weighted_points_y1
-      ,CONVERT(FLOAT,MATH_cat.H_RT1) AS MATH_H1 
-      ,CONVERT(FLOAT,MATH_cat.H_RT2) AS MATH_H2 
-      ,CONVERT(FLOAT,MATH_cat.H_RT3) AS MATH_H3 
-      ,CONVERT(FLOAT,MATH_cat.H_RT4) AS MATH_H4 
-      ,CONVERT(FLOAT,MATH_cat.H_Y1) AS MATH_HY1
-      ,CONVERT(FLOAT,MATH_cat.E_RT1) AS MATH_Q1 
-      ,CONVERT(FLOAT,MATH_cat.E_RT2) AS MATH_Q2 
-      ,CONVERT(FLOAT,MATH_cat.E_RT3) AS MATH_Q3 
-      ,CONVERT(FLOAT,MATH_cat.E_RT4) AS MATH_Q4 
-      ,CONVERT(FLOAT,MATH_cat.E_Y1) AS MATH_QY1
-      ,CONVERT(FLOAT,MATH_cat.S_RT1) AS MATH_S1 
-      ,CONVERT(FLOAT,MATH_cat.S_RT2) AS MATH_S2 
-      ,CONVERT(FLOAT,MATH_cat.S_RT3) AS MATH_S3 
-      ,CONVERT(FLOAT,MATH_cat.S_RT4) AS MATH_S4 
-      ,CONVERT(FLOAT,MATH_cat.S_Y1) AS MATH_SY1
+      ,CONVERT(FLOAT,CASE WHEN math_cat.H_RT1 = '' THEN NULL ELSE math_cat.H_RT1 END) AS math_H1 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.H_RT2 = '' THEN NULL ELSE math_cat.H_RT2 END) AS math_H2 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.H_RT3 = '' THEN NULL ELSE math_cat.H_RT3 END) AS math_H3 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.H_RT4 = '' THEN NULL ELSE math_cat.H_RT4 END) AS math_H4 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.H_Y1 = '' THEN NULL ELSE math_cat.H_Y1 END) AS math_HY1
+      ,CONVERT(FLOAT,CASE WHEN math_cat.E_RT1 = '' THEN NULL ELSE math_cat.E_RT1 END) AS math_Q1 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.E_RT2 = '' THEN NULL ELSE math_cat.E_RT2 END) AS math_Q2 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.E_RT3 = '' THEN NULL ELSE math_cat.E_RT3 END) AS math_Q3 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.E_RT4 = '' THEN NULL ELSE math_cat.E_RT4 END) AS math_Q4 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.E_Y1 = '' THEN NULL ELSE math_cat.E_Y1 END) AS math_QY1
+      ,CONVERT(FLOAT,CASE WHEN math_cat.S_RT1 = '' THEN NULL ELSE math_cat.S_RT1 END) AS math_S1 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.S_RT2 = '' THEN NULL ELSE math_cat.S_RT2 END) AS math_S2 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.S_RT3 = '' THEN NULL ELSE math_cat.S_RT3 END) AS math_S3 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.S_RT4 = '' THEN NULL ELSE math_cat.S_RT4 END) AS math_S4 
+      ,CONVERT(FLOAT,CASE WHEN math_cat.S_Y1 = '' THEN NULL ELSE math_cat.S_Y1 END) AS math_SY1
       
       ,SCIENCE.course_number AS SCIENCE_course_number
       ,SCIENCE.credittype AS SCIENCE_credittype
@@ -218,11 +218,11 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,SCIENCE.credit_hours AS SCIENCE_credit_hours_Y1
       ,SCIENCE.teacher_name AS SCIENCE_teacher_last
       ,SCIENCE.teacher_name AS SCIENCE_teacher_lastfirst
-      ,CONVERT(FLOAT,SCIENCE.RT1_term_grade_percent) AS SCIENCE_t1
-      ,CONVERT(FLOAT,SCIENCE.RT2_term_grade_percent) AS SCIENCE_t2
-      ,CONVERT(FLOAT,SCIENCE.RT3_term_grade_percent) AS SCIENCE_t3
-      ,CONVERT(FLOAT,SCIENCE.RT4_term_grade_percent) AS SCIENCE_t4
-      ,CONVERT(FLOAT,SCIENCE.Y1_grade_percent) AS SCIENCE_y1
+      ,CONVERT(FLOAT,CASE WHEN science.RT1_term_grade_percent = '' THEN NULL ELSE science.RT1_term_grade_percent END) AS science_t1
+      ,CONVERT(FLOAT,CASE WHEN science.RT2_term_grade_percent = '' THEN NULL ELSE science.RT2_term_grade_percent END) AS science_t2
+      ,CONVERT(FLOAT,CASE WHEN science.RT3_term_grade_percent = '' THEN NULL ELSE science.RT3_term_grade_percent END) AS science_t3
+      ,CONVERT(FLOAT,CASE WHEN science.RT4_term_grade_percent = '' THEN NULL ELSE science.RT4_term_grade_percent END) AS science_t4
+      ,CONVERT(FLOAT,CASE WHEN science.Y1_grade_percent = '' THEN NULL ELSE science.Y1_grade_percent END) AS science_y1
       ,CASE WHEN CONVERT(FLOAT,science.need_65) < 65 THEN 65 ELSE CONVERT(FLOAT,science.need_65) END AS science_need_c
       ,SCIENCE.RT1_term_grade_letter AS SCIENCE_t1_ltr
       ,SCIENCE.RT2_term_grade_letter AS SCIENCE_t2_ltr
@@ -240,21 +240,21 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,NULL AS SCIENCE_weighted_points_t2
       ,NULL AS SCIENCE_weighted_points_t3
       ,NULL AS SCIENCE_weighted_points_y1
-      ,CONVERT(FLOAT,SCIENCE_cat.H_RT1) AS SCIENCE_H1 
-      ,CONVERT(FLOAT,SCIENCE_cat.H_RT2) AS SCIENCE_H2 
-      ,CONVERT(FLOAT,SCIENCE_cat.H_RT3) AS SCIENCE_H3 
-      ,CONVERT(FLOAT,SCIENCE_cat.H_RT4) AS SCIENCE_H4 
-      ,CONVERT(FLOAT,SCIENCE_cat.H_Y1) AS SCIENCE_HY1
-      ,CONVERT(FLOAT,SCIENCE_cat.E_RT1) AS SCIENCE_Q1 
-      ,CONVERT(FLOAT,SCIENCE_cat.E_RT2) AS SCIENCE_Q2 
-      ,CONVERT(FLOAT,SCIENCE_cat.E_RT3) AS SCIENCE_Q3 
-      ,CONVERT(FLOAT,SCIENCE_cat.E_RT4) AS SCIENCE_Q4 
-      ,CONVERT(FLOAT,SCIENCE_cat.E_Y1) AS SCIENCE_QY1
-      ,CONVERT(FLOAT,SCIENCE_cat.S_RT1) AS SCIENCE_S1 
-      ,CONVERT(FLOAT,SCIENCE_cat.S_RT2) AS SCIENCE_S2 
-      ,CONVERT(FLOAT,SCIENCE_cat.S_RT3) AS SCIENCE_S3 
-      ,CONVERT(FLOAT,SCIENCE_cat.S_RT4) AS SCIENCE_S4 
-      ,CONVERT(FLOAT,SCIENCE_cat.S_Y1) AS SCIENCE_SY1
+      ,CONVERT(FLOAT,CASE WHEN science_cat.H_RT1 = '' THEN NULL ELSE science_cat.H_RT1 END) AS science_H1 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.H_RT2 = '' THEN NULL ELSE science_cat.H_RT2 END) AS science_H2 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.H_RT3 = '' THEN NULL ELSE science_cat.H_RT3 END) AS science_H3 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.H_RT4 = '' THEN NULL ELSE science_cat.H_RT4 END) AS science_H4 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.H_Y1 = '' THEN NULL ELSE science_cat.H_Y1 END) AS science_HY1
+      ,CONVERT(FLOAT,CASE WHEN science_cat.E_RT1 = '' THEN NULL ELSE science_cat.E_RT1 END) AS science_Q1 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.E_RT2 = '' THEN NULL ELSE science_cat.E_RT2 END) AS science_Q2 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.E_RT3 = '' THEN NULL ELSE science_cat.E_RT3 END) AS science_Q3 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.E_RT4 = '' THEN NULL ELSE science_cat.E_RT4 END) AS science_Q4 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.E_Y1 = '' THEN NULL ELSE science_cat.E_Y1 END) AS science_QY1
+      ,CONVERT(FLOAT,CASE WHEN science_cat.S_RT1 = '' THEN NULL ELSE science_cat.S_RT1 END) AS science_S1 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.S_RT2 = '' THEN NULL ELSE science_cat.S_RT2 END) AS science_S2 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.S_RT3 = '' THEN NULL ELSE science_cat.S_RT3 END) AS science_S3 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.S_RT4 = '' THEN NULL ELSE science_cat.S_RT4 END) AS science_S4 
+      ,CONVERT(FLOAT,CASE WHEN science_cat.S_Y1 = '' THEN NULL ELSE science_cat.S_Y1 END) AS science_SY1
       
       ,SOC.course_number AS SOC_course_number
       ,SOC.credittype AS SOC_credittype
@@ -265,11 +265,11 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,SOC.credit_hours AS SOC_credit_hours_Y1
       ,SOC.teacher_name AS SOC_teacher_last
       ,SOC.teacher_name AS SOC_teacher_lastfirst
-      ,CONVERT(FLOAT,SOC.RT1_term_grade_percent) AS SOC_t1
-      ,CONVERT(FLOAT,SOC.RT2_term_grade_percent) AS SOC_t2
-      ,CONVERT(FLOAT,SOC.RT3_term_grade_percent) AS SOC_t3
-      ,CONVERT(FLOAT,SOC.RT4_term_grade_percent) AS SOC_t4
-      ,CONVERT(FLOAT,SOC.Y1_grade_percent) AS SOC_y1
+      ,CONVERT(FLOAT,CASE WHEN soc.RT1_term_grade_percent = '' THEN NULL ELSE soc.RT1_term_grade_percent END) AS soc_t1
+      ,CONVERT(FLOAT,CASE WHEN soc.RT2_term_grade_percent = '' THEN NULL ELSE soc.RT2_term_grade_percent END) AS soc_t2
+      ,CONVERT(FLOAT,CASE WHEN soc.RT3_term_grade_percent = '' THEN NULL ELSE soc.RT3_term_grade_percent END) AS soc_t3
+      ,CONVERT(FLOAT,CASE WHEN soc.RT4_term_grade_percent = '' THEN NULL ELSE soc.RT4_term_grade_percent END) AS soc_t4
+      ,CONVERT(FLOAT,CASE WHEN soc.Y1_grade_percent = '' THEN NULL ELSE soc.Y1_grade_percent END) AS soc_y1
       ,CASE WHEN CONVERT(FLOAT,soc.need_65) < 65 THEN 65 ELSE CONVERT(FLOAT,soc.need_65) END AS soc_need_c
       ,SOC.RT1_term_grade_letter AS SOC_t1_ltr
       ,SOC.RT2_term_grade_letter AS SOC_t2_ltr
@@ -287,21 +287,21 @@ SELECT ROW_NUMBER() OVER(PARTITION BY roster.schoolid ORDER BY roster.grade_leve
       ,NULL AS SOC_weighted_points_t2
       ,NULL AS SOC_weighted_points_t3
       ,NULL AS SOC_weighted_points_y1
-      ,CONVERT(FLOAT,SOC_cat.H_RT1) AS SOC_H1 
-      ,CONVERT(FLOAT,SOC_cat.H_RT2) AS SOC_H2 
-      ,CONVERT(FLOAT,SOC_cat.H_RT3) AS SOC_H3 
-      ,CONVERT(FLOAT,SOC_cat.H_RT4) AS SOC_H4 
-      ,CONVERT(FLOAT,SOC_cat.H_Y1) AS SOC_HY1
-      ,CONVERT(FLOAT,SOC_cat.E_RT1) AS SOC_Q1 
-      ,CONVERT(FLOAT,SOC_cat.E_RT2) AS SOC_Q2 
-      ,CONVERT(FLOAT,SOC_cat.E_RT3) AS SOC_Q3 
-      ,CONVERT(FLOAT,SOC_cat.E_RT4) AS SOC_Q4 
-      ,CONVERT(FLOAT,SOC_cat.E_Y1) AS SOC_QY1
-      ,CONVERT(FLOAT,SOC_cat.S_RT1) AS SOC_S1 
-      ,CONVERT(FLOAT,SOC_cat.S_RT2) AS SOC_S2 
-      ,CONVERT(FLOAT,SOC_cat.S_RT3) AS SOC_S3 
-      ,CONVERT(FLOAT,SOC_cat.S_RT4) AS SOC_S4 
-      ,CONVERT(FLOAT,SOC_cat.S_Y1) AS SOC_SY1
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.H_RT1 = '' THEN NULL ELSE soc_cat.H_RT1 END) AS soc_H1 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.H_RT2 = '' THEN NULL ELSE soc_cat.H_RT2 END) AS soc_H2 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.H_RT3 = '' THEN NULL ELSE soc_cat.H_RT3 END) AS soc_H3 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.H_RT4 = '' THEN NULL ELSE soc_cat.H_RT4 END) AS soc_H4 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.H_Y1 = '' THEN NULL ELSE soc_cat.H_Y1 END) AS soc_HY1
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.E_RT1 = '' THEN NULL ELSE soc_cat.E_RT1 END) AS soc_Q1 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.E_RT2 = '' THEN NULL ELSE soc_cat.E_RT2 END) AS soc_Q2 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.E_RT3 = '' THEN NULL ELSE soc_cat.E_RT3 END) AS soc_Q3 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.E_RT4 = '' THEN NULL ELSE soc_cat.E_RT4 END) AS soc_Q4 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.E_Y1 = '' THEN NULL ELSE soc_cat.E_Y1 END) AS soc_QY1
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.S_RT1 = '' THEN NULL ELSE soc_cat.S_RT1 END) AS soc_S1 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.S_RT2 = '' THEN NULL ELSE soc_cat.S_RT2 END) AS soc_S2 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.S_RT3 = '' THEN NULL ELSE soc_cat.S_RT3 END) AS soc_S3 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.S_RT4 = '' THEN NULL ELSE soc_cat.S_RT4 END) AS soc_S4 
+      ,CONVERT(FLOAT,CASE WHEN soc_cat.S_Y1 = '' THEN NULL ELSE soc_cat.S_Y1 END) AS soc_SY1
       
       ,((CONVERT(FLOAT,ISNULL(eng.y1_grade_percent,0))           
            --+ CONVERT(FLOAT,ISNULL(rhet.y1_grade_percent,0)) 

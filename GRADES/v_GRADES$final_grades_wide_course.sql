@@ -8,7 +8,7 @@ WITH course_unpivot AS (
         ,academic_year
         ,term      
         ,CONCAT('rc', RIGHT(CONCAT('0',class_rn),2), '_', field) AS pivot_field
-        ,CONVERT(VARCHAR(64),value) AS value
+        ,CONVERT(VARCHAR(64),CASE WHEN value = '' THEN NULL ELSE value END) AS value
   FROM KIPP_NJ..GRADES$final_grades_wide#static WITH(NOLOCK)  
   UNPIVOT(
     value

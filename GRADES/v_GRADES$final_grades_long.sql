@@ -305,7 +305,7 @@ FROM
            ,ROUND((weighted_grade_total_adjusted / weighted_points_total) * 100,0) AS y1_grade_percent_adjusted
 
            ,(CASE WHEN term_grade_percent_adjusted IS NULL THEN ISNULL(weighted_points_total,0) + (term_grade_weight_possible * 100) ELSE weighted_points_total END) + ISNULL(E1_grade_weight,0) + ISNULL(E2_grade_weight,0) AS weighted_points_possible_total
-           ,(term_grade_percent * term_grade_weight) AS term_grade_weighted
+           ,(term_grade_percent_adjusted * term_grade_weight) AS term_grade_weighted
            ,ISNULL((e1 * e1_grade_weight),0) AS e1_grade_weighted
            ,ISNULL((e2 * e2_grade_weight),0) AS e2_grade_weighted                      
      FROM
