@@ -154,10 +154,8 @@ WITH term_cur AS (
                    END + '_dna' AS identifier
                   ,rs.studentid
                   ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
-                  ,CONVERT(VARCHAR,dna.dna_reason) AS reason
-            FROM KIPP_NJ..LIT$all_test_events#identifiers#static rs WITH(NOLOCK)
-            JOIN KIPP_NJ..LIT$dna_reasons#static dna WITH(NOLOCK)
-              ON rs.unique_id = dna.unique_id
+                  ,CONVERT(VARCHAR,'') AS reason
+            FROM KIPP_NJ..LIT$all_test_events#identifiers#static rs WITH(NOLOCK)            
             WHERE rs.status = 'Did Not Achieve'
               AND rs.curr_round = 1
            ) sub
@@ -199,10 +197,8 @@ WITH term_cur AS (
                   ,'yr_dna' AS identifier
                   ,rs.studentid
                   ,CONVERT(VARCHAR,rs.read_lvl) AS read_lvl
-                  ,CONVERT(VARCHAR,dna.dna_reason) AS reason
-            FROM KIPP_NJ..LIT$all_test_events#identifiers#static rs WITH(NOLOCK)
-            JOIN KIPP_NJ..LIT$dna_reasons#static dna WITH(NOLOCK)
-              ON rs.unique_id = dna.unique_id
+                  ,CONVERT(VARCHAR,'') AS reason
+            FROM KIPP_NJ..LIT$all_test_events#identifiers#static rs WITH(NOLOCK)            
             WHERE rs.status = 'Did Not Achieve'
               AND rs.curr_yr = 1
            ) sub

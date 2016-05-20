@@ -232,6 +232,46 @@ WITH ps_scores_long AS (
     ON step.studentid = s.student_number
  )
 
+,illuminate_fp AS (
+  SELECT unique_id
+        ,studentid           
+        ,testid
+        ,status
+        ,field
+        ,score           
+        ,read_lvl
+        ,lvl_num           
+  FROM
+      (
+       SELECT rs.unique_id
+             ,rs.studentid           
+             ,3273 AS testid
+             ,rs.status      
+             ,rs.achieved_independent_level AS read_lvl
+             ,rs.indep_lvl_num AS lvl_num
+             ,rs.about_the_text AS fp_comp_about   
+             ,rs.beyond_the_text AS fp_comp_beyond
+             ,rs.within_the_text AS fp_comp_within
+             ,rs.accuracy AS fp_accuracy
+             ,rs.fluency AS fp_fluency
+             ,rs.reading_rate_wpm AS fp_wpmrate    
+             ,rs.comp_overall AS fp_comp_prof
+       FROM KIPP_NJ..LIT$ILLUMINATE_test_events#identifiers#static rs WITH(NOLOCK)
+       LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+         ON rs.studentid = s.student_number
+      ) sub
+  UNPIVOT(
+    score
+    FOR field IN (fp_wpmrate
+                 ,fp_fluency
+                 ,fp_accuracy
+                 ,fp_comp_within
+                 ,fp_comp_beyond
+                 ,fp_comp_about
+                 ,fp_comp_prof)
+   ) u
+ )
+
 ,all_scores AS (
   SELECT rs.unique_id
         ,rs.studentid           
@@ -275,6 +315,18 @@ WITH ps_scores_long AS (
         ,rs.read_lvl
         ,rs.lvl_num           
   FROM uc_scores_long rs     
+
+  UNION ALL
+
+  SELECT rs.unique_id
+        ,rs.studentid           
+        ,rs.testid
+        ,rs.status
+        ,rs.field
+        ,rs.score           
+        ,rs.read_lvl
+        ,rs.lvl_num           
+  FROM illuminate_fp rs     
  )
 
 SELECT sub.unique_id

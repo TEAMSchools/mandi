@@ -64,6 +64,10 @@ SELECT cd.unique_id
       ,cd.about_the_text
       ,cd.beyond_the_text
       ,cd.within_the_text
+      ,CASE 
+        WHEN cd.about_the_text IS NULL AND cd.beyond_the_text IS NULL AND cd.within_the_text IS NULL THEN NULL
+        ELSE ISNULL(cd.within_the_text,0) + ISNULL(cd.about_the_text,0) + ISNULL(cd.beyond_the_text,0) 
+       END AS comp_overall
       ,cd.accuracy
       ,cd.fluency
       ,cd.reading_rate_wpm

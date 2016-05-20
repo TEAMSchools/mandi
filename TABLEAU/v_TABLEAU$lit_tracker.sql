@@ -35,8 +35,12 @@ SELECT CASE WHEN co.TEAM LIKE '%pathways%' THEN 'Pathways' ELSE co.school_name E
       ,achv.fp_keylever
       ,achv.is_new_test
       ,achv.moved_levels      
+      ,SUM(CASE 
+            WHEN achv.test_round IN ('DR','BOY') THEN NULL 
+            ELSE achv.moved_levels 
+           END) OVER(PARTITION BY co.student_number, co.year ORDER BY achv.start_date ASC) AS n_levels_moved_y1
 
-      
+      ,testid.test_date
       ,testid.status
       ,testid.color
       ,testid.genre
@@ -54,38 +58,38 @@ SELECT CASE WHEN co.TEAM LIKE '%pathways%' THEN 'Pathways' ELSE co.school_name E
       ,CONVERT(FLOAT,achv.met_natl_goal) AS met_natl_goal
       ,CONVERT(FLOAT,achv.met_default_goal) AS met_default_goal  
       ,achv.achv_unique_id AS unique_id
+      ,achv.dna_unique_id
       
       /* component data */      
-      --,long.domain AS component_domain
-      --,long.label AS component_strand
-      --,long.specific_label AS component_strand_specific
-      --,long.score AS component_score
-      --,long.benchmark AS component_benchmark
-      --,long.is_prof AS component_prof
-      --,long.margin AS component_margin      
-      --,long.dna_reason
-      --,long.dna_filter
+      ,long.domain AS component_domain
+      ,long.label AS component_strand
+      ,long.specific_label AS component_strand_specific
+      ,long.score AS component_score
+      ,long.benchmark AS component_benchmark
+      ,long.is_prof AS component_prof
+      ,long.margin AS component_margin            
+      ,long.dna_filter
 
       /* AR */
       ,CASE WHEN ar.words_goal < 0 THEN NULL ELSE ar.words_goal END AS words_goal
-      ,CASE WHEN ar.points_goal < 0 THEN NULL ELSE ar.points_goal END AS points_goal
       ,ar.words
-      ,ar.points
       ,ar.mastery
-      ,ar.mastery_fiction
-      ,ar.mastery_nonfiction
       ,ar.pct_fiction
-      ,ar.n_fiction
-      ,ar.n_nonfic
       ,ar.avg_lexile
       ,ar.N_passed
-      ,ar.N_total      
-      ,ar.last_book
-      ,ar.stu_status_points AS status_points
-      ,ar.stu_status_words AS status_words              
+      ,ar.N_total
+      ,ar.stu_status_words AS status_words
+      --,ar.mastery_fiction
+      --,ar.mastery_nonfiction
+      --,ar.n_fiction
+      --,ar.n_nonfic
+      --,ar.last_book      
+      --,ar.stu_status_points AS status_points
+      --,ar.points
+      --,CASE WHEN ar.points_goal < 0 THEN NULL ELSE ar.points_goal END AS points_goal
 
       ,ROW_NUMBER() OVER(
-         PARTITION BY co.student_number, co.year, term.hex, achv.achv_unique_id
+         PARTITION BY co.student_number, co.year, term.lit, term.hex, achv.achv_unique_id
            ORDER BY achv.achv_unique_id) AS rn_test
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..AUTOLOAD$GDOCS_REP_term_map term WITH(NOLOCK)
@@ -99,9 +103,9 @@ LEFT OUTER JOIN KIPP_NJ..LIT$achieved_by_round#static achv WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static testid WITH(NOLOCK)
   ON co.studentid = testid.studentid
  AND achv.achv_unique_id = testid.unique_id 
---LEFT OUTER JOIN KIPP_NJ..LIT$readingscores_long#static long WITH(NOLOCK)
---  ON co.studentid = long.studentid
--- AND achv.dna_unique_id = long.unique_id
+LEFT OUTER JOIN KIPP_NJ..LIT$readingscores_long#static long WITH(NOLOCK)
+  ON co.studentid = long.studentid
+ AND achv.dna_unique_id = long.unique_id
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
   ON co.STUDENT_NUMBER = ar.student_number
  AND co.year = ar.academic_year
@@ -109,3 +113,4 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
  AND ar.start_date <= CONVERT(DATE,GETDATE())
 WHERE co.rn = 1
   AND co.grade_level != 99
+  AND co.year >= 2010
