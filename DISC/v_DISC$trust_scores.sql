@@ -44,6 +44,27 @@ UNPIVOT(
                ,independence_8_q2
                ,independence_8_q3
                ,independence_8_q4
+               ,independence_9_q1
+               ,independence_9_q2
+               ,independence_9_q3
+               ,independence_9_q4
+               ,independence_10_q1
+               ,independence_10_q2
+               ,independence_10_q3
+               ,independence_10_q4
+               ,independence_11_q1
+               ,independence_11_q2
+               ,independence_11_q3
+               ,independence_11_q4
+               ,independence_12_q1
+               ,independence_12_q2
+               ,independence_12_q3
+               ,independence_12_q4
+               ,independence_13_q1
+               ,independence_13_q2
+               ,independence_13_q3
+               ,independence_13_q4
+
                ,responds_1_q1
                ,responds_1_q2
                ,responds_1_q3
@@ -75,5 +96,25 @@ UNPIVOT(
                ,responds_8_q1
                ,responds_8_q2
                ,responds_8_q3
-               ,responds_8_q4)
+               ,responds_8_q4
+               ,responds_9_q1
+               ,responds_9_q2
+               ,responds_9_q3
+               ,responds_9_q4
+               ,responds_10_q1
+               ,responds_10_q2
+               ,responds_10_q3
+               ,responds_10_q4
+               ,responds_11_q1
+               ,responds_11_q2
+               ,responds_11_q3
+               ,responds_11_q4
+               ,responds_12_q1
+               ,responds_12_q2
+               ,responds_12_q3
+               ,responds_12_q4
+               ,responds_13_q1
+               ,responds_13_q2
+               ,responds_13_q3
+               ,responds_13_q4)
  ) u

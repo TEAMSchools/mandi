@@ -25,16 +25,16 @@ SELECT pos.id AS position_id
       ,pos.Status__c
       ,pos.LastModifiedDate
       
-      ,post.job_posting_job_posting_name
-      ,CONVERT(DATE,post.job_posting_created_date) AS job_posting_created_date
+      ,post.name AS job_posting_job_posting_name
+      ,CONVERT(DATE,post.createddate) AS job_posting_created_date
       
-      ,post.primary_contact
-      ,post.job_posting_id
-      ,post.city
-      ,post.job_type
-      ,post.job_subtype
-      ,post.grade_level
-      ,post.job_posting_url
+      ,post.primary_contact__c AS primary_contact
+      ,post.id AS job_posting_id
+      ,post.city__c AS city
+      ,post.job_type__c AS job_type
+      ,post.job_sub_type__c AS job_subtype
+      ,post.grade_level__c AS grade_level
+      ,post.job_posting_url__c AS job_posting_url
 
       ,app.[Name] AS app_name
       ,app.[Profile_Application__c]
@@ -55,8 +55,8 @@ SELECT pos.id AS position_id
 FROM KIPPCareersMirror..Job_Position__c pos WITH(NOLOCK) 
 LEFT OUTER JOIN KIPPCareersMirror..Job_Application__c app WITH(NOLOCK)
   ON pos.Id = app.Job_Position__c
-LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_RECRUIT_jobpostingdrop post WITH(NOLOCK)
-  ON LEFT(pos.Job_Posting__c, (LEN(pos.Job_Posting__c) - 3)) = post.job_posting_id
+LEFT OUTER JOIN KIPPCareersMirror..Job_Posting__c post WITH(NOLOCK)
+  ON pos.Job_Posting__c = post.id
 LEFT OUTER JOIN goals
   ON pos.CreatedDate BETWEEN goals.start_date AND goals.end_date
 WHERE pos.Region__c = 'New Jersey'
