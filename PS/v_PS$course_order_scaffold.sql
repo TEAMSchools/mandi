@@ -57,7 +57,7 @@ FROM
 
            ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date THEN 1 ELSE 0 END AS is_curterm
      FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-     JOIN KIPP_NJ..AUTOLOAD$GDOCS_REP_reporting_dates dt WITH(NOLOCK)
+     JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
        ON co.schoolid = dt.schoolid
       AND co.year = dt.academic_year
       AND dt.identifier = 'RT'
@@ -100,7 +100,7 @@ SELECT DISTINCT
       ,NULL AS teacher_name
       ,NULL AS class_rn      
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-JOIN KIPP_NJ..AUTOLOAD$GDOCS_REP_reporting_dates dt WITH(NOLOCK)
+JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON co.schoolid = dt.schoolid
  AND co.year = dt.academic_year
  AND dt.identifier = 'RT'

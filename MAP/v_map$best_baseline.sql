@@ -25,8 +25,20 @@ WITH roster AS (
   UNION
   SELECT 'Science - General Science'
  )
+
+,roster_subj_scaffold AS ( 
+  SELECT roster.*
+        ,subj.*
+  FROM roster
+  CROSS JOIN subj       
+ )
   
 SELECT sub.*
+      ,CASE
+        WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.TestID
+        WHEN map_spr.testritscore IS NULL THEN map_fall.TestID
+        ELSE map_spr.TestID
+       END AS testid
       ,CASE
         WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.termname
         WHEN map_spr.testritscore IS NULL THEN map_fall.termname
@@ -52,13 +64,7 @@ SELECT sub.*
         WHEN map_spr.testritscore IS NULL THEN map_fall.rittoreadingscore
         ELSE map_spr.rittoreadingscore
        END AS lexile_score
-FROM
-    (
-     SELECT roster.*
-           ,subj.*
-     FROM roster
-     CROSS JOIN subj       
-    ) sub
+FROM roster_subj_scaffold sub
 LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_fall WITH(NOLOCK) /* THIS YEAR FALL */
   ON sub.studentid = map_fall.studentid
  AND sub.measurementscale = map_fall.MeasurementScale

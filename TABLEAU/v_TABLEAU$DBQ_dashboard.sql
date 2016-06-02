@@ -4,10 +4,13 @@ GO
 ALTER VIEW TABLEAU$DBQ_dashboard AS
 
 WITH assessment_data AS (
-  SELECT sub.*
-        ,std.custom_code AS standard_code
-        ,std.description AS standard_description
-        ,res.percent_correct AS standard_pct_correct
+  SELECT *        
+        ,LAG(indexed_overall_score, 1) OVER(
+           PARTITION BY local_student_id, academic_year 
+             ORDER BY administered_at ASC) AS prev_indexed_overall_score                        
+        ,LAG(indexed_overall_score, CASE WHEN rn = 1 THEN NULL ELSE rn - 1 END) OVER(
+           PARTITION BY local_student_id, academic_year 
+             ORDER BY administered_at ASC) AS first_indexed_overall_score                        
   FROM
       (
        SELECT a.academic_year
@@ -19,6 +22,9 @@ WITH assessment_data AS (
              ,a.assessment_id
              ,a.title                   
              ,CASE WHEN a.title LIKE '%modified%' THEN 1 ELSE 0 END AS is_modified
+             ,COUNT(a.assessment_id) OVER(PARTITION BY ovr.local_student_id, a.academic_year) AS n_dbq_possible             
+             ,COUNT(CASE WHEN ovr.percent_correct < 20 THEN NULL ELSE ovr.percent_correct END) OVER(PARTITION BY ovr.local_student_id, a.academic_year) AS n_dbq_taken            
+
              ,ovr.local_student_id
              ,ovr.percent_correct AS overall_pct_correct             
              ,dbq.overall_index
@@ -32,10 +38,10 @@ WITH assessment_data AS (
              ,dbq.[time] AS time_given
              ,dbq.preteaching_scaffolds
              
-             ,ovr.percent_correct * ISNULL(dbq.overall_index,1) AS indexed_overall_score        
-             ,LAG((ovr.percent_correct * ISNULL(dbq.overall_index,1)), 1) OVER(
+             ,CONVERT(FLOAT,ovr.percent_correct) * ISNULL(dbq.overall_index, 1.0) AS indexed_overall_score                     
+             ,ROW_NUMBER() OVER(
                 PARTITION BY ovr.local_student_id, a.academic_year 
-                  ORDER BY a.administered_at ASC) AS prev_indexed_overall_score        
+                  ORDER BY a.administered_at ASC) AS rn             
        FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
        JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
          ON a.assessment_id = ovr.assessment_id
@@ -48,15 +54,7 @@ WITH assessment_data AS (
                                                                                                                               ,'History'
                                                                                                                               ,'Modern World History'
                                                                                                                               ,'US History')))
-                               ) sub
-  LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static astd
-    ON sub.assessment_id = astd.assessment_id
-  LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std
-    ON astd.standard_id = std.standard_id
-  LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)
-    ON sub.assessment_id = res.assessment_id
-   AND sub.local_student_id = res.local_student_id
-   AND astd.standard_id = res.standard_id   
+      ) sub
  )
 
 ,enrollments AS (
@@ -104,10 +102,12 @@ SELECT co.student_number
       ,a.assessment_id
       ,a.title      
       ,a.is_modified
+      ,a.n_dbq_taken
+      ,a.n_dbq_possible
       ,a.overall_pct_correct
-      ,a.standard_code
-      ,a.standard_description                  
-      ,a.standard_pct_correct
+      ,std.custom_code AS standard_code
+      ,std.description AS standard_description                  
+      ,res.percent_correct AS standard_pct_correct      
       
       ,a.overall_index
       ,a.n_total_docs
@@ -122,9 +122,14 @@ SELECT co.student_number
       ,a.indexed_overall_score      
       ,a.prev_indexed_overall_score
       ,CASE
-        WHEN a.indexed_overall_score >= a.prev_indexed_overall_score THEN 1
-        WHEN a.indexed_overall_score < a.prev_indexed_overall_score THEN 0
+        WHEN a.indexed_overall_score > a.prev_indexed_overall_score THEN 1
+        WHEN a.indexed_overall_score <= a.prev_indexed_overall_score THEN 0
        END AS is_positive_growth
+      ,a.first_indexed_overall_score
+      ,CASE
+        WHEN a.indexed_overall_score > a.first_indexed_overall_score THEN 1
+        WHEN a.indexed_overall_score <= a.first_indexed_overall_score THEN 0
+       END AS is_positive_growth_ytd
 
       ,ROW_NUMBER() OVER(
          PARTITION BY a.assessment_id, co.student_number
@@ -143,6 +148,14 @@ LEFT OUTER JOIN assessment_data a
  AND co.year = a.academic_year
  AND a.administered_at BETWEEN d.start_date AND d.end_date
  AND enr.COURSE_NUMBER = a.course_number
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static astd
+  ON a.assessment_id = astd.assessment_id
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std
+  ON astd.standard_id = std.standard_id
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)
+  ON a.assessment_id = res.assessment_id
+ AND a.local_student_id = res.local_student_id
+ AND astd.standard_id = res.standard_id   
 WHERE co.year >= 2013
   AND co.schoolid = 73253
   AND co.enroll_status IN (0,3)

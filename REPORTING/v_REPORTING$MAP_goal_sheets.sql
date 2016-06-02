@@ -4,37 +4,37 @@ GO
 ALTER VIEW REPORTING$MAP_goal_sheets AS
 
 SELECT *
-	  ,Baseline_Reading_keep_up_goal / 2 AS Winter_Reading_keep_up_goal
-	  ,Baseline_Reading_keep_up_rit - (Baseline_Reading_keep_up_goal / 2) AS Winter_Reading_keep_up_rit
-	  ,Baseline_Reading_rutgers_ready_goal / 2 AS Winter_Reading_rutgers_ready_goal
-	  ,Baseline_Reading_rutgers_ready_rit - (Baseline_Reading_rutgers_ready_goal / 2) AS Winter_Reading_rutgers_ready_rit
-	  ,Baseline_Mathematics_keep_up_goal / 2 AS Winter_Mathematics_keep_up_goal
-	  ,Baseline_Mathematics_keep_up_rit - (Baseline_Mathematics_keep_up_goal / 2) AS Winter_Mathematics_keep_up_rit
-	  ,Baseline_Mathematics_rutgers_ready_goal / 2 AS Winter_Mathematics_rutgers_ready_goal
-	  ,Baseline_Mathematics_rutgers_ready_rit - (Baseline_Mathematics_rutgers_ready_goal / 2) AS Winter_Mathematics_rutgers_ready_rit
-	  ,Baseline_Language_keep_up_goal / 2 AS Winter_Language_keep_up_goal
-	  ,Baseline_Language_keep_up_rit - (Baseline_Language_keep_up_goal / 2) AS Winter_Language_keep_up_rit
-	  ,Baseline_Language_rutgers_ready_goal / 2 AS Winter_Language_rutgers_ready_goal
-	  ,Baseline_Language_rutgers_ready_rit - (Baseline_Language_rutgers_ready_goal / 2) AS Winter_Language_rutgers_ready_rit
-	  ,Baseline_Science_keep_up_goal / 2 AS Winter_Science_keep_up_goal
-	  ,Baseline_Science_keep_up_rit - (Baseline_Science_keep_up_goal / 2) AS Winter_Science_keep_up_rit
-	  ,Baseline_Science_rutgers_ready_goal / 2 AS Winter_Science_rutgers_ready_goal
-	  ,Baseline_Science_rutgers_ready_rit - (Baseline_Science_rutgers_ready_goal / 2) AS Winter_Science_rutgers_ready_rit
-	  ,CASE WHEN grade_level = 0 THEN 'Kindergarten'
-	        WHEN grade_level = 1 THEN '1st'
-			WHEN grade_level = 2 THEN '2nd'
-			WHEN grade_level = 3 THEN '3rd'
-			WHEN grade_level = 4 THEN '4th'
-			WHEN grade_level = 5 THEN '5th'
-			WHEN grade_level = 6 THEN '6th'
-			WHEN grade_level = 7 THEN '7th'
-			WHEN grade_level = 8 THEN '8th'
-			WHEN grade_level = 9 THEN '9th'
-			WHEN grade_level = 10 THEN '10th'
-			WHEN grade_level = 11 THEN '11th'
-	   ELSE NULL 
-	   END AS grade_level_name
-
+	     ,Baseline_Reading_keep_up_goal / 2 AS Winter_Reading_keep_up_goal
+	     ,Baseline_Reading_keep_up_rit - (Baseline_Reading_keep_up_goal / 2) AS Winter_Reading_keep_up_rit
+	     ,Baseline_Reading_rutgers_ready_goal / 2 AS Winter_Reading_rutgers_ready_goal
+	     ,Baseline_Reading_rutgers_ready_rit - (Baseline_Reading_rutgers_ready_goal / 2) AS Winter_Reading_rutgers_ready_rit
+	     ,Baseline_Mathematics_keep_up_goal / 2 AS Winter_Mathematics_keep_up_goal
+	     ,Baseline_Mathematics_keep_up_rit - (Baseline_Mathematics_keep_up_goal / 2) AS Winter_Mathematics_keep_up_rit
+	     ,Baseline_Mathematics_rutgers_ready_goal / 2 AS Winter_Mathematics_rutgers_ready_goal
+	     ,Baseline_Mathematics_rutgers_ready_rit - (Baseline_Mathematics_rutgers_ready_goal / 2) AS Winter_Mathematics_rutgers_ready_rit
+	     ,Baseline_Language_keep_up_goal / 2 AS Winter_Language_keep_up_goal
+	     ,Baseline_Language_keep_up_rit - (Baseline_Language_keep_up_goal / 2) AS Winter_Language_keep_up_rit
+	     ,Baseline_Language_rutgers_ready_goal / 2 AS Winter_Language_rutgers_ready_goal
+	     ,Baseline_Language_rutgers_ready_rit - (Baseline_Language_rutgers_ready_goal / 2) AS Winter_Language_rutgers_ready_rit
+	     ,Baseline_Science_keep_up_goal / 2 AS Winter_Science_keep_up_goal
+	     ,Baseline_Science_keep_up_rit - (Baseline_Science_keep_up_goal / 2) AS Winter_Science_keep_up_rit
+	     ,Baseline_Science_rutgers_ready_goal / 2 AS Winter_Science_rutgers_ready_goal
+	     ,Baseline_Science_rutgers_ready_rit - (Baseline_Science_rutgers_ready_goal / 2) AS Winter_Science_rutgers_ready_rit
+	     ,CASE 
+        WHEN grade_level = 0 THEN 'Kindergarten'
+	       WHEN grade_level = 1 THEN '1st'
+			     WHEN grade_level = 2 THEN '2nd'
+			     WHEN grade_level = 3 THEN '3rd'
+			     WHEN grade_level = 4 THEN '4th'
+			     WHEN grade_level = 5 THEN '5th'
+			     WHEN grade_level = 6 THEN '6th'
+			     WHEN grade_level = 7 THEN '7th'
+			     WHEN grade_level = 8 THEN '8th'
+			     WHEN grade_level = 9 THEN '9th'
+			     WHEN grade_level = 10 THEN '10th'
+			     WHEN grade_level = 11 THEN '11th'
+	       ELSE NULL 
+	      END AS grade_level_name
 FROM
     (
      SELECT schoolid                  
@@ -42,8 +42,8 @@ FROM
            ,academic_year
            ,student_number
            ,lastfirst
-		   ,last_name
-		   ,first_name
+		         ,last_name
+		         ,first_name
            ,grade_level
            ,team
            ,advisor            
@@ -56,8 +56,8 @@ FROM
                 ,co.year AS academic_year
                 ,co.student_number
                 ,co.lastfirst
-				,co.last_name
-				,co.first_name
+				            ,co.last_name
+				            ,co.first_name
                 ,co.grade_level
                 ,co.team
                 ,co.advisor            
@@ -76,7 +76,7 @@ FROM
                    PARTITION BY co.student_number, map.academic_year, map.term, map.measurementscale
                      ORDER BY map.testritscore DESC) AS rn_high
           FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-          LEFT OUTER JOIN MAP$CDF#identifiers#static map WITH(NOLOCK)
+          LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map WITH(NOLOCK)
             ON co.student_number = map.student_number                                                       
            AND co.year = map.academic_year
           LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals goals WITH(NOLOCK)
@@ -95,8 +95,8 @@ FROM
                 ,co.year
                 ,co.student_number
                 ,co.lastfirst
-				,co.last_name
-				,co.first_name
+				            ,co.last_name
+				            ,co.first_name
                 ,co.grade_level
                 ,co.team
                 ,co.advisor            
@@ -162,15 +162,14 @@ PIVOT(
                      ,[Baseline_Science_keep_up_rit]
                      ,[Baseline_Science_rutgers_ready_goal]
                      ,[Baseline_Science_rutgers_ready_rit]      
-					 ,[Fall_Reading_TestPercentile]
+               					 ,[Fall_Reading_TestPercentile]
                      ,[Fall_Reading_TestRITScore]                     
                      ,[Fall_Mathematics_TestPercentile]
                      ,[Fall_Mathematics_TestRITScore]                     
                      ,[Fall_Language_TestPercentile]
                      ,[Fall_Language_TestRITScore]                     
                      ,[Fall_Science_TestPercentile]
-                     ,[Fall_Science_TestRITScore]                     
-                     
+                     ,[Fall_Science_TestRITScore]                                          
                      ,[Winter_Language_TestPercentile]
                      ,[Winter_Language_TestRITScore]                     
                      ,[Winter_Mathematics_TestPercentile]
@@ -178,9 +177,8 @@ PIVOT(
                      ,[Winter_Reading_TestPercentile]
                      ,[Winter_Reading_TestRITScore]
                      ,[Winter_Science_TestPercentile]
-                     ,[Winter_Science_TestRITScore]
-					 
- 					 ,[Spring_Reading_TestPercentile]
+                     ,[Winter_Science_TestRITScore]					 
+ 					               ,[Spring_Reading_TestPercentile]
                      ,[Spring_Reading_TestRITScore]
                      ,[Spring_Mathematics_TestPercentile]
                      ,[Spring_Mathematics_TestRITScore]

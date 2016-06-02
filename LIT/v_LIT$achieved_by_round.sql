@@ -13,6 +13,7 @@ WITH roster_scaffold AS (
           WHEN terms.school_level = 'MS' AND terms.time_per_name = 'DR' THEN 'BOY' 
           ELSE REPLACE(terms.time_per_name, 'Diagnostic', 'DR')
          END AS test_round
+        ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN terms.start_date AND terms.end_date THEN 1 ELSE 0 END AS is_curterm
         ,ROW_NUMBER() OVER (
            PARTITION BY r.studentid, r.year
              ORDER BY terms.start_date ASC) AS round_num
@@ -42,6 +43,7 @@ WITH roster_scaffold AS (
              ,r.test_round
              ,r.round_num
              ,r.start_date                
+             ,r.is_curterm
         
              ,COALESCE(achv.read_lvl, ps.read_lvl) AS read_lvl
              ,COALESCE(achv.lvl_num, ps.lvl_num) AS lvl_num
@@ -88,6 +90,8 @@ WITH roster_scaffold AS (
              ,r.test_round
              ,r.round_num
              ,r.start_date
+             ,0 AS is_curterm
+
              ,achv.read_lvl
              ,achv.lvl_num
              ,achv.indep_lvl
@@ -127,6 +131,8 @@ WITH roster_scaffold AS (
              ,'T3' AS test_round
              ,4 AS round_num
              ,'2015-06-05' AS start_date
+             ,0 AS is_curterm
+
              ,CASE WHEN fp.status = 'Achieved' THEN COALESCE(fp.read_lvl, fp.indep_lvl) ELSE fp.indep_lvl END AS read_lvl
              ,CASE WHEN fp.status = 'Achieved' THEN COALESCE(fp.lvl_num, fp.indep_lvl_num) ELSE fp.indep_lvl_num END AS lvl_num
              ,CASE WHEN fp.status = 'Achieved' THEN COALESCE(fp.read_lvl, fp.indep_lvl) ELSE fp.indep_lvl END AS indep_lvl
@@ -174,6 +180,8 @@ SELECT academic_year
       ,student_number
       ,test_round
       ,start_date
+      ,is_curterm
+
       ,read_lvl
       ,instruct_lvl
       ,instruct_lvl_num
@@ -227,6 +235,8 @@ FROM
            ,sub.student_number
            ,sub.test_round
            ,sub.start_date
+           ,sub.is_curterm
+
            ,sub.read_lvl           
            ,sub.lvl_num            
            ,sub.instruct_lvl
@@ -262,6 +272,8 @@ FROM
                 ,tests.test_round 
                 ,tests.round_num     
                 ,tests.start_date
+                ,tests.is_curterm
+
                 ,COALESCE(tests.read_lvl,achv_prev.read_lvl) AS read_lvl
                 ,COALESCE(tests.lvl_num,achv_prev.lvl_num) AS lvl_num
                 ,COALESCE(tests.indep_lvl,achv_prev.indep_lvl) AS indep_lvl
@@ -297,5 +309,6 @@ FROM
       AND sub.academic_year = indiv.academic_year
      LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static lit WITH(NOLOCK)
        ON sub.achv_unique_id = lit.unique_id
+      AND lit.status != 'Did Not Achieve'
      WHERE sub.rn = 1     
     ) sub

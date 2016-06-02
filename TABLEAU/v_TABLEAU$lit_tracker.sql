@@ -47,6 +47,7 @@ SELECT CASE WHEN co.TEAM LIKE '%pathways%' THEN 'Pathways' ELSE co.school_name E
       ,testid.is_fp
 
       /* progress to goals */
+      ,achv.is_curterm
       ,achv.goal_lvl
       ,achv.goal_num
       ,achv.natl_goal_lvl

@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW MAP$domain_goals_long AS
+ALTER VIEW TABLEAU$MAP_domain_goals_long AS
 
 WITH map_tests AS (
   SELECT studentid

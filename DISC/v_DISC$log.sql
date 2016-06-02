@@ -138,7 +138,7 @@ FROM
            ,all_logs.period
            ,dates.time_per_name AS RT    
      FROM all_logs WITH(NOLOCK)
-     LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_REP_reporting_dates dates WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dates WITH(NOLOCK)
        ON all_logs.entry_date BETWEEN dates.start_date AND dates.end_date
       AND all_logs.schoolid = dates.schoolid
       AND dates.identifier = 'RT'

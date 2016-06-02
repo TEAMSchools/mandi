@@ -8,7 +8,7 @@ with locations to create a long view of all students + locations
 
 ALTER VIEW OPS$students_locations#long AS
 
-WITH students AS (
+WITH roster AS (
   SELECT s.student_number
         ,s.schoolid
         ,s.grade_level
@@ -17,6 +17,7 @@ WITH students AS (
 			     ,s.street
 			     ,s.city
 			     ,s.zip
+        ,0 AS is_new
   FROM PS$students#static s 
   WHERE s.enroll_status = 0
     AND s.grade_level <= 3
@@ -33,6 +34,7 @@ WITH students AS (
 			     ,street
 			     ,city
 			     ,zip
+        ,1 AS is_new
 	 FROM AUTOLOAD$GDOCS_OPS_students_new WITH(NOLOCK)
  )
 
@@ -44,11 +46,12 @@ SELECT	s.student_number
       ,s.street
       ,s.city
       ,s.zip
+      ,s.is_new
       ,l.type AS location_type
       ,l.name AS location_name
       ,l.address AS location_address
-      ,l.zip AS location_zip
+      --,l.zip AS location_zip
 FROM KIPP_NJ..AUTOLOAD$GDOCS_OPS_locations l WITH(NOLOCK)
-CROSS JOIN students s
+CROSS JOIN roster s
 WHERE l.name NOT LIKE '%Boys and Girls%' 
   AND l.name NOT LIKE '%Parent%'
