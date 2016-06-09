@@ -70,7 +70,7 @@ FROM
            ,TermName
            ,StudentID AS student_number
            ,SchoolName
-           ,MeasurementScale
+           ,CASE WHEN MeasurementScale LIKE 'Language%' THEN 'Language Usage' ELSE MeasurementScale END AS measurementscale
            ,Discipline
            ,CASE 
              WHEN GrowthMeasureYN = 'TRUE' THEN 1

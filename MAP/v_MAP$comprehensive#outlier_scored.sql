@@ -3,139 +3,85 @@ GO
 
 ALTER VIEW MAP$comprehensive#outlier_scored AS
 
-WITH global_min_tested AS (
-  SELECT grade_level
-        ,measurementscale
-        ,AVG(CAST(testdurationminutes AS int)) AS mean_min_tested
-        ,STDEV(CAST(testdurationminutes AS int)) AS stdev_min_tested
-  FROM KIPP_NJ..MAP$CDF#identifiers#static m WITH(NOLOCK)
-  WHERE m.measurementscale != 'Science - Concepts and Processes'
-    AND m.grade_level IS NOT NULL
-    AND m.rn = 1
-  GROUP BY grade_level
-          ,measurementscale
+WITH map_long AS (
+  SELECT sub.*      
+        ,AVG(CONVERT(FLOAT,testdurationminutes)) OVER(PARTITION BY grade_level, measurementscale) AS global_mean_testdurationminutes
+        ,STDEV(CONVERT(FLOAT,testdurationminutes)) OVER(PARTITION BY grade_level, measurementscale) AS global_stdev_testdurationminutes             
+        ,AVG(CONVERT(FLOAT,student_TestDurationMinutes)) OVER(PARTITION BY student_number, measurementscale) AS student_mean_testdurationminutes
+        ,STDEV(CONVERT(FLOAT,student_TestDurationMinutes)) OVER(PARTITION BY student_number, measurementscale) AS student_stdev_testdurationminutes
+        
+        ,SUM(student_N) OVER(PARTITION BY sub.measurementscale, sub.grade_level, sub.term, sub.prev_term) AS global_prev_N
+        ,SUM(student_N) OVER(PARTITION BY sub.measurementscale, sub.grade_level, sub.term, sub.next_term) AS global_next_N
+  FROM
+      (
+       SELECT m.student_number
+             ,m.lastfirst                
+             ,m.schoolid
+             ,m.grade_level
+             ,m.academic_year                
+             ,m.term                
+             ,m.MeasurementScale
+             ,m.TestRITScore
+             ,CONVERT(FLOAT,m.percentile_2011_norms) AS npr
+             ,m.TestDurationMinutes
+             ,CASE WHEN COUNT(m.student_number) OVER(PARTITION BY m.student_number, m.measurementscale) < 4 THEN NULL ELSE m.TestDurationMinutes END AS student_TestDurationMinutes
+                
+             ,LAG(m.academic_year, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS prev_academic_year
+             ,LAG(m.term, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS prev_term
+             ,LAG(m.TestRITScore, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS prev_rit
+             ,LAG(m.percentile_2011_norms, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS prev_npr
+
+             ,LEAD(m.academic_year, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS next_academic_year
+             ,LEAD(m.term, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS next_term
+             ,LEAD(m.TestRITScore, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS next_rit
+             ,LEAD(m.percentile_2011_norms, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS next_npr                
+                
+             ,COUNT(m.student_number) OVER(PARTITION BY m.student_number, m.measurementscale) AS student_N                                
+       FROM KIPP_NJ..MAP$CDF#identifiers#static m WITH(NOLOCK)          
+       WHERE m.rn = 1       
+      ) sub
  )
 
-,stu_min_tested AS ( 
-  SELECT studentid
-        ,measurementscale
-        ,AVG(CAST(testdurationminutes AS int) + 0.0) AS mean_min_tested
-        ,STDEV(CAST(testdurationminutes AS int)) AS stdev_min_tested
-  FROM KIPP_NJ..MAP$CDF#identifiers#static m WITH(NOLOCK)
-  WHERE m.measurementscale != 'Science - Concepts and Processes'
-    AND m.grade_level IS NOT NULL
-    AND m.rn=1
-  GROUP BY studentid
-          ,measurementscale
-  HAVING COUNT(*) >= 4
- )
-
-,npr_ahead AS (
-  SELECT m.measurementscale
-        ,m.grade_level
-        ,m.term AS fws
-        ,m_next.term AS fws_next
-        ,AVG(m_next.percentile_2011_norms - m.percentile_2011_norms + 0.0) AS mean_npr_change
-        ,STDEV(m_next.percentile_2011_norms - m.percentile_2011_norms + 0.0) AS stdev_npr_change
-        ,COUNT(*) AS n
-  FROM KIPP_NJ..MAP$CDF#identifiers#static m WITH(NOLOCK)
-  JOIN KIPP_NJ..MAP$CDF#identifiers#static m_next WITH(NOLOCK)
-    ON m.studentid = m_next.studentid
-   AND m.measurementscale = m_next.measurementscale
-   AND m.rn_asc + 1 = m_next.rn_asc
-   AND m.term != m_next.term
-   AND m_next.academic_year - m.academic_year <= 1
-   AND m_next.rn = 1
-  WHERE m.measurementscale != 'Science - Concepts and Processes'
-    AND m.grade_level IS NOT NULL
-    AND m.rn=1
-  GROUP BY m.measurementscale
-          ,m.grade_level
-          ,m.term
-          ,m_next.term 
-  HAVING COUNT(*) >= 100
- )
-
-,npr_behind AS (
-  SELECT m.measurementscale
-        ,m.grade_level
-        ,m.term AS fws
-        ,m_prev.term fws_prev
-        ,AVG(m.percentile_2011_norms - m_prev.percentile_2011_norms + 0.0) AS mean_npr_change
-        ,STDEV(m.percentile_2011_norms - m_prev.percentile_2011_norms + 0.0) AS stdev_npr_change
-        ,COUNT(*) AS n
-  FROM KIPP_NJ..MAP$CDF#identifiers#static m WITH(NOLOCK)
-  JOIN KIPP_NJ..MAP$CDF#identifiers#static m_prev WITH(NOLOCK)
-    ON m.studentid = m_prev.studentid
-   AND m.measurementscale = m_prev.measurementscale
-   AND m.rn_asc - 1 = m_prev.rn_asc
-   AND m.term != m_prev.term
-   AND m.academic_year - m_prev.academic_year >= 1
-   AND m_prev.rn = 1
-  WHERE m.measurementscale != 'Science - Concepts and Processes'
-    AND m.grade_level IS NOT NULL
-    AND m.rn = 1
-  GROUP BY m.measurementscale
-          ,m.grade_level
-          ,m.term
-          ,m_prev.term 
-  HAVING COUNT(*) >= 100
- )
-
-SELECT sub.*
-      ,CAST(ISNULL(global_min_tested_z, 0) + 2*ISNULL(stu_min_tested_z, 0) + ISNULL(npr_behind_z, 0) + 2*ISNULL(v_dip_signature_z,0) AS NUMERIC(5,3)) AS total_z
+SELECT *
+      ,ISNULL(global_testdurationminutes_z,0) 
+        + ISNULL(prev_npr_z, 0) 
+        + 2 * ISNULL(student_testdurationminutes_z,0)        
+        + 2 * ISNULL(CASE WHEN prev_npr_z < 0 AND next_npr_z < 0 THEN prev_npr_z + next_npr_z ELSE NULL END,0)
+       AS total_z      
 FROM
     (
-     SELECT sub.*
-           ,CASE WHEN npr_behind_z < 0 AND npr_ahead_z < 0 THEN npr_behind_z + npr_ahead_z ELSE NULL END AS v_dip_signature_z
+     SELECT *      
+           ,(student_testdurationminutes - global_mean_testdurationminutes) 
+              / CASE WHEN global_stdev_testdurationminutes = 0 THEN NULL ELSE global_stdev_testdurationminutes END AS global_testdurationminutes_z
+           ,(student_testdurationminutes - student_mean_testdurationminutes) 
+              / CASE WHEN student_stdev_testdurationminutes = 0 THEN NULL ELSE student_stdev_testdurationminutes END AS student_testdurationminutes_z
+           ,(prev_npr_change - mean_prev_npr_change)
+              / CASE WHEN stdev_prev_npr_change = 0 THEN NULL ELSE stdev_prev_npr_change END AS prev_npr_z
+           ,-1 * (next_npr_change - mean_next_npr_change) 
+              / CASE WHEN stdev_next_npr_change = 0 THEN NULL ELSE stdev_next_npr_change END AS next_npr_z
      FROM
          (
-          SELECT m.*
-                ,m_next.termname AS next_term
-                ,m_next.testritscore AS next_rit
-                ,m_next.percentile_2011_norms AS next_npr
-                ,m_prev.termname AS prev_term
-                ,m_prev.testritscore AS prev_rit
-                ,m_prev.percentile_2011_norms AS prev_npr
-                ,CAST((m.testdurationminutes - global_min_tested.mean_min_tested) / 
-                   global_min_tested.stdev_min_tested AS numeric(5,3)) AS global_min_tested_z
-                ,CAST((m.testdurationminutes - stu_min_tested.mean_min_tested) / 
-                   stu_min_tested.stdev_min_tested AS numeric(5,3)) AS stu_min_tested_z
-                ,((m.percentile_2011_norms - m_prev.percentile_2011_norms) - npr_behind.mean_npr_change) / 
-                    npr_behind.stdev_npr_change AS npr_behind_z
-                ,-1*((m_next.percentile_2011_norms - m.percentile_2011_norms) - npr_ahead.mean_npr_change) / 
-                    npr_ahead.stdev_npr_change AS npr_ahead_z
-          FROM KIPP_NJ..MAP$CDF#identifiers#static m
-          LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static m_next
-            ON m.studentid = m_next.studentid
-           AND m.measurementscale = m_next.measurementscale
-           AND m.rn_asc + 1 = m_next.rn_asc
-           AND m.term != m_next.term
-           AND m_next.academic_year - m.academic_year <= 1
-           AND m_next.rn = 1
-          LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static m_prev
-            ON m.studentid = m_prev.studentid
-           AND m.measurementscale = m_prev.measurementscale
-           AND m.rn_asc - 1 = m_prev.rn_asc
-           AND m.term != m_prev.term
-           AND m.academic_year - m_prev.academic_year >= 1
-           AND m_prev.rn = 1
-          LEFT OUTER JOIN global_min_tested
-            ON m.measurementscale = global_min_tested.measurementscale
-           AND m.grade_level = global_min_tested.grade_level
-          LEFT OUTER JOIN stu_min_tested
-            ON m.measurementscale = stu_min_tested.measurementscale
-           AND m.studentid = stu_min_tested.studentid
-          LEFT OUTER JOIN npr_ahead
-            ON m_next.measurementscale = npr_ahead.measurementscale
-           AND m.grade_level = npr_ahead.grade_level
-           AND m.term = npr_ahead.fws
-           AND m_next.term = npr_ahead.fws_next
-          LEFT OUTER JOIN npr_behind
-            ON m_next.measurementscale = npr_behind.measurementscale
-           AND m.grade_level = npr_behind.grade_level
-           AND m.term = npr_behind.fws
-           AND m_prev.term = npr_behind.fws_prev
-          WHERE m.rn = 1
-         ) sub
+          SELECT *
+                ,AVG(prev_npr_change) OVER(PARTITION BY grade_level, measurementscale, term, prev_term) AS mean_prev_npr_change
+                ,STDEV(prev_npr_change) OVER(PARTITION BY grade_level, measurementscale, term, prev_term) AS stdev_prev_npr_change
+                ,AVG(next_npr_change) OVER(PARTITION BY grade_level, measurementscale, term, next_term) AS mean_next_npr_change
+                ,STDEV(next_npr_change) OVER(PARTITION BY grade_level, measurementscale, term, next_term) AS stdev_next_npr_change
+          FROM
+              (
+               SELECT *
+                     ,CASE 
+                       WHEN global_prev_N < 100 THEN NULL 
+                       WHEN academic_year - prev_academic_year < 1 THEN NULL /* previous NPR should be from at least 1 year ago -- this seems weird*/
+                       WHEN term = prev_term THEN NULL
+                       ELSE npr - prev_npr
+                      END AS prev_npr_change
+                     ,CASE 
+                       WHEN global_next_N < 100 THEN NULL
+                       WHEN next_academic_year - academic_year > 1 THEN NULL
+                       WHEN term = next_term THEN NULL
+                       ELSE next_npr - npr
+                      END AS next_npr_change
+               FROM map_long               
+              ) sub    
+         ) sub       
     ) sub

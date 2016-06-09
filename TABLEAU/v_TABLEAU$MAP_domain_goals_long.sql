@@ -5,6 +5,7 @@ ALTER VIEW TABLEAU$MAP_domain_goals_long AS
 
 WITH map_tests AS (
   SELECT studentid
+        ,student_number
         ,academic_year
         ,term
         ,measurementscale           
@@ -15,6 +16,7 @@ WITH map_tests AS (
   FROM
       (
        SELECT studentid
+             ,student_number
              ,academic_year
              ,term
              ,map.measurementscale             
@@ -57,6 +59,7 @@ WITH map_tests AS (
        UNION ALL
        
        SELECT base.studentid
+             ,base.student_number
              ,base.year AS academic_year
              ,'Baseline' AS term
              ,base.measurementscale
@@ -139,6 +142,7 @@ WITH map_tests AS (
 
 ,domain_scores AS (
   SELECT studentid
+        ,student_number
         ,academic_year
         ,term
         ,measurementscale
@@ -149,6 +153,7 @@ WITH map_tests AS (
   FROM
       (
        SELECT studentid
+             ,student_number
              ,academic_year
              ,term
              ,MeasurementScale
@@ -174,6 +179,7 @@ WITH map_tests AS (
  )
  
 SELECT domain.studentid      
+      ,domain.student_number
       ,co.lastfirst
       ,CASE WHEN co.team LIKE '%pathways%' THEN 732570 ELSE co.schoolid END AS schoolid
       ,co.grade_level

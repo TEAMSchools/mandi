@@ -42,6 +42,7 @@ SELECT co.schoolid
       ,s.STATE
       ,s.ZIP        
       ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunchstatus END AS lunchstatus      
+      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN mcs.description ELSE lunch.lunchstatus END AS lunch_app_status     
       ,s.state_studentnumber AS SID
 
       ,CASE WHEN s.SCHOOLID = 133570965 THEN cs.ADVISOR ELSE advisory.advisor END AS advisor

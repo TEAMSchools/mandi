@@ -41,7 +41,7 @@ SELECT co.schoolid
       ,a.term
       ,a.reporting_wk AS fsa_week
       ,a.administered_at
-      ,CONVERT(VARCHAR,a.standard_code) AS standards_tested      
+      ,a.standard_code AS standards_tested      
       ,a.standard_description AS standard_descr
       ,NULL AS parent_standard
       ,ROUND(CONVERT(FLOAT,res.percent_correct),1) AS percent_correct
