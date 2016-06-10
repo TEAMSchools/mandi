@@ -10,6 +10,7 @@ WITH enr_targets AS (
         ,fr_enrollment
         ,sped_enrollment
   FROM KIPP_NJ..AUTOLOAD$GDOCS_FINANCE_enrollment_targets WITH(NOLOCK)
+  WHERE grade_level IS NULL
  )
 
 ,enr_actual AS (
