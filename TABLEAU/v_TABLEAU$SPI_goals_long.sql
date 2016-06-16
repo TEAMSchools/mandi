@@ -317,7 +317,7 @@ WITH map_data AS (
              ,COALESCE(wlk.classroom_instruction_overall, wlk.classroom_instructionaldelivery_overall) AS classroom_instruction_overall
              ,COALESCE(wlk.classroom_routinesrules_overall, wlk.classroom_management_overall) AS classroom_management_overall
 
-             /* state test date -- 2013 and below = NJASK/HSPA, 2014 and beyond = PARCC*/
+             /* state test date -- 2013 and below = NJASK/HSPA, 2014 and beyond = PARCC */
              ,nj.ELA_median_SGP
              ,nj.ELA_diff_pct_proficient_weighted
              ,nj.Math_median_SGP

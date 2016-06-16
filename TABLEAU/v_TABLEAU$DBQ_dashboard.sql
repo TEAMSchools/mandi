@@ -16,7 +16,7 @@ WITH assessment_data AS (
        SELECT a.academic_year
              ,a.administered_at
              ,CASE
-               WHEN a.academic_year >= 2015 THEN LEFT(a.title,6) 
+               WHEN a.academic_year >= 2015 THEN LEFT(LTRIM(RTRIM(a.title)),6) 
                ELSE 'SOC'
               END AS course_number
              ,a.assessment_id

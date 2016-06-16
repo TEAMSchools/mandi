@@ -93,6 +93,11 @@ WITH roster AS (
          ON enr.studentid = sg.STUDENTID 
         AND enr.SECTIONID = sg.SECTIONID
         AND pgf.FINALGRADENAME = sg.STORECODE 
+       LEFT OUTER JOIN KIPP_NJ..GRADES$STOREDGRADES#static y1 WITH(NOLOCK)
+         ON enr.studentid = y1.STUDENTID 
+        AND enr.SECTIONID = y1.SECTIONID
+        AND pgf.FINALGRADENAME = 'Q4'
+        AND y1.STORECODE = 'Y1'
        LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static sg_scale WITH(NOLOCK)
          ON enr.GRADESCALEID = sg_scale.scale_id
         AND sg.PCT >= sg_scale.low_cut
@@ -223,26 +228,31 @@ SELECT sub.student_number
       ,sub.excludefromgpa
       ,sub.gradescaleid
       ,sub.credit_hours
+      
       ,sub.term_gpa_points
       ,sub.term_grade_letter
       ,sub.term_grade_percent
       ,sub.term_grade_letter_adjusted
       ,sub.term_grade_percent_adjusted
+      
       ,sub.e1
       ,sub.e1_adjusted
       ,sub.e2
       ,sub.e2_adjusted
+      
       ,sub.weighted_grade_total
-      ,sub.weighted_points_total
-      ,sub.y1_grade_percent
-      ,sub.y1_grade_percent_adjusted
+      ,sub.weighted_points_total      
+      
+      ,sub.y1_grade_percent AS y1_grade_percent
+      ,COALESCE(y1.pct, sub.y1_grade_percent_adjusted) AS y1_grade_percent_adjusted
       /* these use the adjusted Y1 */
       ,CASE
+        WHEN y1.GRADE IS NOT NULL THEN y1.GRADE
         WHEN sub.schoolid = 73253 AND sub.y1_grade_percent_adjusted = 50 AND sub.y1_grade_percent < 50 THEN 'F*'
         WHEN sub.schoolid = 133570965 AND sub.y1_grade_percent_adjusted = 55 AND sub.y1_grade_percent < 55 THEN 'F*'
         ELSE scale.letter_grade 
        END AS y1_grade_letter
-      ,scale.grade_points AS y1_gpa_points
+      ,COALESCE(y1.gpa_points, scale.grade_points) AS y1_gpa_points
 
       /* Need To Get calcs */
       ,ROUND((((weighted_points_possible_total * 0.9) /* 90% of total points possible */
@@ -361,6 +371,12 @@ FROM
           FROM grades_long               
          ) sub
     ) sub
+LEFT OUTER JOIN KIPP_NJ..GRADES$STOREDGRADES#static y1 WITH(NOLOCK)
+  ON sub.studentid = y1.STUDENTID
+ AND sub.academic_year = y1.academic_year
+ AND sub.course_number = y1.COURSE_NUMBER
+ AND sub.term = 'Q4'
+ AND y1.STORECODE = 'Y1'
 LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static scale WITH(NOLOCK)
   ON sub.gradescaleid = scale.scale_id
  AND sub.y1_grade_percent_adjusted >= scale.low_cut
