@@ -43,8 +43,7 @@ ALTER VIEW TABLEAU$assessment_data_blast AS
             
            ,enr.teacher_name      
            ,enr.period
-           ,enr.section_number
-           ,ill.illuminate_group
+           ,enr.section_number           
       
            ,ROW_NUMBER() OVER(
               PARTITION BY co.student_number, a.assessment_id
@@ -77,11 +76,7 @@ ALTER VIEW TABLEAU$assessment_data_blast AS
      LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)
        ON co.student_number = res.local_student_id
       AND a.assessment_id = res.assessment_id
-      AND astd.standard_id = res.standard_id  
-     LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static ill WITH(NOLOCK)
-       ON co.student_number = ill.student_number
-      AND co.year = ill.academic_year
-      AND ill.illuminate_group IS NOT NULL
+      AND astd.standard_id = res.standard_id       
      WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
        AND co.enroll_status = 0  
        AND co.rn = 1       
@@ -117,8 +112,7 @@ ALTER VIEW TABLEAU$assessment_data_blast AS
             
            ,enr.teacher_name      
            ,enr.period
-           ,enr.section_number
-           ,ill.illuminate_group
+           ,enr.section_number           
       
            ,ROW_NUMBER() OVER(
               PARTITION BY co.student_number, a.assessment_id
@@ -149,11 +143,7 @@ ALTER VIEW TABLEAU$assessment_data_blast AS
       /* ES and BOLD, JOIN to HR, otherwise JOIN to course */
       AND (((co.grade_level <= 4 OR co.schoolid = 73258) AND enr.COURSE_NUMBER = 'HR') 
                OR (co.schoolid != 73258 AND co.grade_level >= 5 AND a.subject_area = enr.illuminate_subject))
-      AND enr.drop_flags = 0
-     LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static ill WITH(NOLOCK)
-       ON co.student_number = ill.student_number
-      AND co.year = ill.academic_year
-      AND ill.illuminate_group IS NOT NULL
+      AND enr.drop_flags = 0     
      WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()    
        AND a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')
        AND a.subject_area IN ('Text Study','Mathematics')
@@ -189,7 +179,6 @@ ALTER VIEW TABLEAU$assessment_data_blast AS
            ,enr.teacher_name      
            ,enr.period
            ,enr.section_number
-           ,ill.illuminate_group
       
            ,ROW_NUMBER() OVER(
               PARTITION BY co.student_number, a.assessment_id
@@ -219,11 +208,7 @@ ALTER VIEW TABLEAU$assessment_data_blast AS
       /* ES and BOLD, JOIN to HR, otherwise JOIN to course */
       AND (((co.grade_level <= 4 OR co.schoolid = 73258) AND enr.COURSE_NUMBER = 'HR') 
                OR (co.schoolid != 73258 AND co.grade_level >= 5 AND a.subject_area = enr.illuminate_subject))
-      AND enr.drop_flags = 0
-     LEFT OUTER JOIN KIPP_NJ..PS$enrollments_rollup#static ill WITH(NOLOCK)
-       ON co.student_number = ill.student_number
-      AND co.year = ill.academic_year
-      AND ill.illuminate_group IS NOT NULL
+      AND enr.drop_flags = 0     
 
      WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()           
        AND a.scope NOT IN ('CMA - End-of-Module','CMA - Mid-Module')       

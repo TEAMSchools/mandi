@@ -101,3 +101,4 @@ LEFT OUTER JOIN student_goals g
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.grade_level <= 8
   AND co.rn = 1
+  AND co.enroll_status = 0

@@ -283,10 +283,10 @@ FROM
                 ,COALESCE(tests.GLEQ,achv_prev.GLEQ) AS GLEQ
                 ,COALESCE(tests.fp_wpmrate,achv_prev.fp_wpmrate) AS fp_wpmrate
                 ,COALESCE(tests.fp_keylever,achv_prev.fp_keylever) AS fp_keylever
-                ,COALESCE(tests.dna_lvl,achv_prev.dna_lvl) AS dna_lvl
-                ,COALESCE(tests.dna_lvl_num,achv_prev.dna_lvl_num) AS dna_lvl_num
-                ,COALESCE(tests.achv_unique_id,achv_prev.achv_unique_id) AS achv_unique_id
-                ,COALESCE(tests.dna_unique_id,achv_prev.dna_unique_id) AS dna_unique_id
+                ,COALESCE(tests.dna_lvl, dna_prev.dna_lvl) AS dna_lvl
+                ,COALESCE(tests.dna_lvl_num, dna_prev.dna_lvl_num) AS dna_lvl_num
+                ,COALESCE(tests.achv_unique_id, achv_prev.achv_unique_id) AS achv_unique_id
+                ,COALESCE(tests.dna_unique_id, dna_prev.dna_unique_id) AS dna_unique_id
                 --,tests.meta_achv_round
                 --,achv_prev.meta_achv_round AS prev_rn
                 ,ROW_NUMBER() OVER(
@@ -297,6 +297,11 @@ FROM
             ON tests.STUDENTID = achv_prev.STUDENTID
            AND tests.meta_achv_round < achv_prev.meta_achv_round
            AND achv_prev.read_lvl IS NOT NULL                    
+           AND tests.start_date <= CONVERT(DATE,GETDATE()) /* preserves the scaffold but will not carry scores to a future term */
+          LEFT OUTER JOIN tests dna_prev WITH(NOLOCK)
+            ON tests.STUDENTID = dna_prev.STUDENTID
+           AND achv_prev.meta_achv_round = dna_prev.meta_achv_round
+           AND dna_prev.dna_lvl IS NOT NULL                    
            AND tests.start_date <= CONVERT(DATE,GETDATE()) /* preserves the scaffold but will not carry scores to a future term */
          ) sub
      LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_normed_goals goals WITH(NOLOCK)

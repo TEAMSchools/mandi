@@ -29,7 +29,7 @@ WITH curterm AS (
        WHERE identifier = 'RT'    
          AND school_level = 'ES'           
          --AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND end_date <= CONVERT(DATE,GETDATE())
+         --AND end_date <= CONVERT(DATE,GETDATE())
          AND alt_name NOT IN ('Summer School','EOY','Capstone')
       ) sub  
  )

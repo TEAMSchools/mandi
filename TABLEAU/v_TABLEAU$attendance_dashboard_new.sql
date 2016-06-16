@@ -68,6 +68,7 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
  AND dt.identifier = 'RT'
 LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.student_number = enr.student_number
- AND mem.CALENDARDATE BETWEEN enr.dateenrolled AND enr.dateleft
+ AND co.year = enr.academic_year
+ AND enr.drop_flags = 0
  AND enr.COURSE_NUMBER = 'HR'
 WHERE co.rn = 1

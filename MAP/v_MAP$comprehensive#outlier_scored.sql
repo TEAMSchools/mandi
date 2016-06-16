@@ -17,12 +17,14 @@ WITH map_long AS (
        SELECT m.student_number
              ,m.lastfirst                
              ,m.schoolid
+             ,m.SchoolName
              ,m.grade_level
              ,m.academic_year                
              ,m.term                
              ,m.MeasurementScale
              ,m.TestRITScore
              ,CONVERT(FLOAT,m.percentile_2011_norms) AS npr
+             ,m.TestStartDate
              ,m.TestDurationMinutes
              ,CASE WHEN COUNT(m.student_number) OVER(PARTITION BY m.student_number, m.measurementscale) < 4 THEN NULL ELSE m.TestDurationMinutes END AS student_TestDurationMinutes
                 
