@@ -21,14 +21,11 @@ WITH long_data AS (
    AND d.identifier = 'ACT'
   JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
     ON a.assessment_id = ovr.assessment_id
-  JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard std WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard std WITH(NOLOCK)
     ON a.assessment_id = std.assessment_id
    AND ovr.local_student_id = std.local_student_id
-  JOIN KIPP_NJ..ILLUMINATE$standards#static s WITH(NOLOCK)
-    ON std.standard_id = s.standard_id
-  JOIN KIPP_NJ..PS$STUDENTS#static stu WITH(NOLOCK)
-    ON ovr.local_student_id = stu.STUDENT_NUMBER
-   AND stu.SCHOOLID = 73253
+  LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static s WITH(NOLOCK)
+    ON std.standard_id = s.standard_id  
   WHERE a.scope = 'ACT Prep'
  )
 

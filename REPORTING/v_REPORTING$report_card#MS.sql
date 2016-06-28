@@ -13,7 +13,7 @@ WITH curterm AS (
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'   
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-    AND CONVERT(DATE,GETDATE()) >= end_date   
+    --AND CONVERT(DATE,GETDATE()) >= end_date   
     AND alt_name != 'Summer School'
  )     
 
@@ -328,12 +328,10 @@ FROM KIPP_NJ..COHORT$identifiers_long#static co WITH (NOLOCK)
 JOIN curterm WITH(NOLOCK)
   ON co.schoolid = curterm.schoolid
  --AND curterm.rn = 1 
-
 /* CMAs */
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$CMA_scores_wide#static cma WITH(NOLOCK)
   ON co.student_number = cma.student_number
  AND co.year = cma.academic_year
-
 /*GRADES & GPA*/
 LEFT OUTER JOIN GRADES$final_grades_wide_course#static gr_wide WITH(NOLOCK)
   ON co.student_number = gr_wide.student_number
@@ -351,7 +349,6 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long#static gpa WITH (NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_cumulative#static cumgpa WITH (NOLOCK)
   ON co.studentid = cumgpa.studentid
  AND co.schoolid = cumgpa.schoolid
-
 /*ATTENDANCE*/
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH(NOLOCK)
   ON co.studentid = att_counts.studentid
@@ -361,12 +358,10 @@ LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_percentages_long att_pct WITH(NOLOCK
   ON co.studentid = att_pct.studentid
  AND co.year = att_pct.academic_year
  AND curterm.alt_name = att_pct.term
-
 /*PROMO STATUS*/
 LEFT OUTER JOIN KIPP_NJ..REPORTING$promo_status#MS promo WITH(NOLOCK)
   ON co.studentid = promo.studentid
  AND curterm.alt_name = promo.term
-
 /* ACCELERATED READER */
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
   ON co.student_number = ar.student_number
@@ -376,17 +371,14 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar2 WITH(NOLOCK)
   ON co.student_number = ar2.student_number
  AND co.year = ar2.academic_year
  AND REPLACE(curterm.alt_name, 'Q', 'RT') = ar2.time_period_name
-
 /* XC */
 LEFT OUTER JOIN KIPP_NJ..XC$activities_wide xc WITH(NOLOCK)
   ON co.student_number = xc.student_number
  AND co.year = xc.academic_year
-
 /* GRADEBOOK COMMMENTS */
 LEFT OUTER JOIN KIPP_NJ..PS$comments_wide#static comm WITH(NOLOCK)
   ON co.studentid = comm.studentid
  AND curterm.alt_name = comm.term
-
 /* MAP */
 LEFT OUTER JOIN KIPP_NJ..MAP$wide_all#static map_all WITH(NOLOCK)
   ON co.studentid = map_all.studentid
@@ -396,13 +388,11 @@ LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static lexile_base
   ON co.studentid = lexile_base.studentid
  AND co.year = lexile_base.year
  AND lexile_base.measurementscale = 'Reading'
-
 /* LIT */
 LEFT OUTER JOIN KIPP_NJ..LIT$achieved_wide lit WITH(NOLOCK)
   ON co.studentid = lit.studentid
 LEFT OUTER JOIN STMATH..summary_by_enrollment stm WITH(NOLOCK)
   ON co.student_number = stm.student_number
-
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1        
   AND co.schoolid IN (73252, 133570965, 179902)

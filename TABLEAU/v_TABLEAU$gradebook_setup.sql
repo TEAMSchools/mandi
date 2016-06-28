@@ -6,6 +6,8 @@ ALTER VIEW TABLEAU$gradebook_setup AS
 SELECT sec.ID AS sectionid
       ,sec.academic_year            
       ,sec.schoolid
+      ,sec.section_number
+      ,p.abbreviation AS period
       
       ,t.TEACHERNUMBER
       ,t.LASTFIRST AS teacher_name
@@ -36,6 +38,10 @@ SELECT sec.ID AS sectionid
          PARTITION BY sec.id, gb.finalgradename, gb.assignmentcategoryid
            ORDER BY a.ASSIGN_DATE ASC) AS rn_category
 FROM KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$PERIOD#static p WITH(NOLOCK)
+  ON sec.academic_year = p.academic_year
+ AND sec.schoolid = p.SCHOOLID
+ AND KIPP_NJ.dbo.fn_StripCharacters(sec.expression,'^0-9') = p.PERIOD_NUMBER
 JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
   ON sec.TEACHER = t.ID
 JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
@@ -54,6 +60,8 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$assignments#STAGING a WITH(NOLOCK)
  SELECT sec.ID AS sectionid
        ,sec.academic_year            
        ,sec.schoolid
+       ,sec.SECTION_NUMBER
+       ,p.abbreviation AS period
       
        ,t.TEACHERNUMBER
        ,t.LASTFIRST AS teacher_name
@@ -84,6 +92,10 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$assignments#STAGING a WITH(NOLOCK)
           PARTITION BY sec.id, gb.finalgradename, gb.assignmentcategoryid
             ORDER BY a.ASSIGN_DATE ASC) AS rn_category
 FROM KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$PERIOD#static p WITH(NOLOCK)
+  ON sec.academic_year = p.academic_year
+ AND sec.schoolid = p.SCHOOLID
+ AND KIPP_NJ.dbo.fn_StripCharacters(sec.expression,'^0-9') = p.PERIOD_NUMBER
 JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
   ON sec.TEACHER = t.ID
 JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)

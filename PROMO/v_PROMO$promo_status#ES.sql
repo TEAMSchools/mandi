@@ -114,7 +114,7 @@ SELECT co.STUDENT_NUMBER
         WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.goal_status IN ('On Track','Off Track') THEN 'On Track' /* if On Track, then On Track*/
         WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_yr >= lit.n_growth_rounds THEN 'On Track' /* if grew 1 lvl per round overall, then On Track */
         --WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.goal_status = 'Off Track' THEN 'Off Track' /**/
-        WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_term < lit.n_growth_rounds THEN 'ARFR'
+        WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_term < lit.n_growth_rounds THEN 'Off Track'
         ELSE lit.goal_status
        END AS lit_ARFR_status
            
@@ -130,7 +130,7 @@ SELECT co.STUDENT_NUMBER
       ,att.days_to_90_abs_only
       ,CASE 
         WHEN co.SPEDLEP = 'SPED' OR co.retained_yr_flag = 1 THEN 'See Teacher'
-        WHEN att.att_pts_pct < 90 THEN 'ARFR'
+        WHEN att.att_pts_pct < 90 THEN 'Off Track'
         ELSE 'On Track'
        END AS att_ARFR_status           
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)

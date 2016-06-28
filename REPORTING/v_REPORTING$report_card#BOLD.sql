@@ -13,7 +13,7 @@ WITH curterm AS (
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE identifier = 'RT'   
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-    AND CONVERT(DATE,GETDATE()) >= end_date   
+    --AND CONVERT(DATE,GETDATE()) >= end_date   
     AND schoolid = 73258
  )     
 

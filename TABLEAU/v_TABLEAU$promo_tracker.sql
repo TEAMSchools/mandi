@@ -862,29 +862,23 @@ WITH roster AS (
   FROM
       (
        SELECT student_number
-             ,schoolid
+             ,schoolid             
+
+             /* overall */
+             ,CONVERT(VARCHAR,promo_overall_rise) AS promo_status_overall             
+             
+             /* attendance */
+             ,CONVERT(VARCHAR,promo_att_rise) AS promo_status_att
+             ,CONVERT(VARCHAR,y1_att_pts_pct) AS att_pts_pct
              ,CONVERT(VARCHAR,days_to_90) AS days_to_90
              ,CONVERT(VARCHAR,days_to_90_abs_only) AS days_to_90_abs_only
+             
+             /* grades */
              ,CASE
                WHEN schoolid = 73253 THEN CONVERT(VARCHAR,N_below_70)
                ELSE CONVERT(VARCHAR,N_below_65)
-              END AS n_failing
-             ,CASE
-               WHEN schoolid IN (73252,179902,73253) THEN CONVERT(VARCHAR,promo_overall_rise)
-               WHEN schoolid = 133570965 THEN CONVERT(VARCHAR,promo_overall_team)
-              END AS promo_status_overall
-             ,CASE
-               WHEN schoolid IN (73252, 179902,73253) THEN CONVERT(VARCHAR,promo_grades_gpa_rise)
-               WHEN schoolid = 133570965 THEN CONVERT(VARCHAR,promo_grades_team)
-              END AS promo_status_grades
-             ,CASE
-               WHEN schoolid IN (73252, 179902,73253) THEN CONVERT(VARCHAR,promo_att_rise)
-               WHEN schoolid = 133570965 THEN CONVERT(VARCHAR,promo_att_team)
-              END AS promo_status_att
-             ,CASE
-               WHEN schoolid IN (73252, 179902,73253) THEN CONVERT(VARCHAR,promo_hw_rise)
-               WHEN schoolid = 133570965 THEN CONVERT(VARCHAR,promo_hw_team)
-              END AS promo_status_hw      
+              END AS n_failing             
+             ,CONVERT(VARCHAR,promo_grades_gpa_rise) AS promo_status_grades /* # failing */                          
        FROM KIPP_NJ..REPORTING$promo_status#MS WITH(NOLOCK)
        WHERE rn_curterm = 1
       ) sub
@@ -892,11 +886,12 @@ WITH roster AS (
     value
     FOR field IN (days_to_90
                  ,days_to_90_abs_only
+                 ,att_pts_pct
                  ,n_failing
                  ,promo_status_overall
                  ,promo_status_grades
-                 ,promo_status_att
-                 ,promo_status_hw)
+                 ,promo_status_att)
+                 --,promo_status_hw)
    ) u
 
   UNION ALL
@@ -909,16 +904,26 @@ WITH roster AS (
   FROM
       (
        SELECT STUDENT_NUMBER                        
+             
+             /* attendance */
+             ,CONVERT(VARCHAR,att_ARFR_status) AS promo_status_att
+             ,CONVERT(VARCHAR,att_pts_pct) AS att_pts_pct
              ,CONVERT(VARCHAR,days_to_90) AS days_to_90
              ,CONVERT(VARCHAR,days_to_90_abs_only) AS days_to_90_abs_only
-             ,CONVERT(VARCHAR,lit_ARFR_status) AS lit_ARFR_status      
-             ,CONVERT(VARCHAR,att_ARFR_status) AS att_ARFR_status
-             ,CONVERT(VARCHAR,CASE 
-               WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%See Teacher%' THEN 'See Teacher'
-               WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%ARFR%' THEN 'At Risk for Retention' 
-               WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%Off Track%' THEN 'Off Track' 
-               ELSE 'On Track' 
-              END) AS overall_arfr_status
+             
+             /* lit */
+             ,CONVERT(VARCHAR,lit_ARFR_status) AS lit_ARFR_status                   
+             ,CONVERT(VARCHAR,read_lvl) AS read_lvl_status
+             ,CONVERT(VARCHAR,goal_lvl) AS goal_lvl_status      
+             
+             /* overall */
+             ,CONVERT(VARCHAR,
+                CASE 
+                 WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%See Teacher%' THEN 'See Teacher'
+                 WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%ARFR%' THEN 'At Risk for Retention' 
+                 WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%Off Track%' THEN 'Off Track' 
+                 ELSE 'On Track' 
+                END) AS promo_status_overall
        FROM KIPP_NJ..PROMO$promo_status#ES WITH(NOLOCK)
        WHERE is_curterm = 1
       ) sub
@@ -926,9 +931,12 @@ WITH roster AS (
     value
     FOR field IN (days_to_90
                  ,days_to_90_abs_only
-                 ,lit_ARFR_status      
-                 ,att_ARFR_status
-                 ,overall_arfr_status)
+                 ,att_pts_pct
+                 ,promo_status_att
+                 ,read_lvl_status
+                 ,goal_lvl_status          
+                 ,lit_ARFR_status                       
+                 ,promo_status_overall)
    ) u
  )
 
@@ -1354,7 +1362,7 @@ SELECT NULL AS studentid
       ,NULL AS cohort
       ,NULL AS team
       ,advisor      
-      ,NULL AS spedlep
+      ,'No IEP' AS spedlep
       ,NULL AS term
       ,NULL AS reporting_term      
       ,NULL AS domain

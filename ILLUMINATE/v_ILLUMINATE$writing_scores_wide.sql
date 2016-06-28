@@ -20,20 +20,26 @@ FROM
                 ,CONCAT(composition_type, '_', rubric_type) AS composition_type_rubric           
                 ,CONCAT(REPLICATE(' ', MAX(len_standard_description) OVER(PARTITION BY student_number))
                        ,REPLICATE(CHAR(9), 2)
-                       ,'Q1', CHAR(9)
-                       ,'Q2', CHAR(9)
-                       ,'Q3', CHAR(9)
-                       ,'Q4') AS writing_header
+                       ,'M1', CHAR(9)
+                       ,'M2', CHAR(9)
+                       ,'M3', CHAR(9)
+                       ,'M4', CHAR(9)
+                       ,'M5') AS writing_header
                 ,CONCAT(standard_description
                        ,REPLICATE(' ', MAX(len_standard_description) OVER(PARTITION BY student_number) - LEN(CONVERT(VARCHAR(MAX),standard_description)))
                        ,REPLICATE(CHAR(9), 2)
                        ,[M1], CHAR(9)
                        ,[M2], CHAR(9)
                        ,[M3], CHAR(9)
-                       ,[M4]) AS std_score
+                       ,[M4], CHAR(9)
+                       ,[M5]) AS std_score
           FROM
               (
-               SELECT CASE WHEN PATINDEX('%M[0-9]%', a.title) = 0 THEN NULL ELSE SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title), 2) END AS module_num
+               SELECT CASE
+                       WHEN a.title LIKE '%PARCC Simulation%' THEN 'M4'
+                       WHEN PATINDEX('%M[0-9]%', a.title) = 0 THEN NULL 
+                       ELSE SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title), 2) 
+                      END AS module_num
                      ,CASE
                        WHEN a.title LIKE '%Informative/Expository%' THEN 'Expository'
                        WHEN a.title LIKE '%Narrative%' THEN 'Narrative'
@@ -62,7 +68,7 @@ FROM
               ) sub
           PIVOT(
             MAX(points)
-            FOR module_num IN ([M1],[M2],[M3],[M4])
+            FOR module_num IN ([M1],[M2],[M3],[M4],[M5])
            ) p
          ) sub
      GROUP BY student_number

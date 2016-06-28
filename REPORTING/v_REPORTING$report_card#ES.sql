@@ -138,7 +138,8 @@ SELECT r.student_number
       ,promo.lit_ARFR_status
       ,CASE 
         WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%See Teacher%' THEN 'See Teacher'
-        WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%ARFR%' THEN 'At Risk for Retention' 
+        --WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%ARFR%' THEN 'At Risk for Retention' 
+        WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%ARFR%' THEN 'Off Track' 
         WHEN CONCAT(promo.att_ARFR_status,promo.lit_ARFR_status) LIKE '%Off Track%' THEN 'Off Track' 
         ELSE 'On Track' 
        END AS overall_arfr_status

@@ -19,34 +19,32 @@ BEGIN
         ,lastupdated
         ,sectionenrollmentstatus
   INTO #assign_update
-  FROM OPENQUERY(PS_TEAM,'
-    SELECT DISTINCT
-           s.assignmentid        
-          ,stu.studentidentifier
-          ,a.score
-          ,a.turnedinlate
-          ,a.exempt
-          ,a.ismissing
-          ,MAX(f.lastupdated) AS lastupdated
-          ,e.sectionenrollmentstatus
-    FROM PSM_FINALSCORE f
-    JOIN PSM_SECTIONENROLLMENT e
-      ON f.sectionenrollmentid = e.id
-    JOIN PSM_ASSIGNMENTSCORE a  
-      ON e.id = a.sectionenrollmentid      
-    JOIN PSM_SECTIONASSIGNMENT s
-      ON a.sectionassignmentid = s.id      
-    JOIN PSM_STUDENT stu
-      ON e.studentid = stu.id
-    GROUP BY s.assignmentid        
+  FROM OPENQUERY(PS_TEAM,'    
+      SELECT sub.lastupdated
+            ,e.sectionenrollmentstatus              
             ,stu.studentidentifier
             ,a.score
             ,a.turnedinlate
             ,a.exempt
-            ,a.ismissing		          
-            ,e.sectionenrollmentstatus
-    HAVING MAX(f.lastupdated) >= TRUNC(SYSDATE - INTERVAL ''72'' HOUR)        
-  ');
+            ,a.ismissing
+            ,s.assignmentid
+      FROM
+          (
+           SELECT f.sectionenrollmentid          
+                 ,MAX(f.lastupdated) AS lastupdated
+           FROM PSM_FINALSCORE f
+           WHERE f.lastupdated >= TRUNC(SYSDATE - INTERVAL ''72'' HOUR)        
+           GROUP BY f.sectionenrollmentid
+          ) sub
+      JOIN PSM_SECTIONENROLLMENT e
+        ON sub.sectionenrollmentid = e.id
+      JOIN PSM_STUDENT stu
+        ON e.studentid = stu.id
+      JOIN PSM_ASSIGNMENTSCORE a  
+        ON e.id = a.sectionenrollmentid          
+      JOIN PSM_SECTIONASSIGNMENT s
+        ON a.sectionassignmentid = s.id      
+    ');
 
   MERGE KIPP_NJ..GRADES$assignment_scores#STAGING AS TARGET
   USING #assign_update AS SOURCE

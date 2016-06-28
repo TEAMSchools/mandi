@@ -48,6 +48,7 @@ SELECT stm.school_student_id AS student_number
       ,stm.K_5_Progress
       ,stm.K_5_Mastery
       ,LAG(stm.K_5_progress, 1) OVER(PARTITION BY stm.school_student_id, stm.start_year, stm.GCD ORDER BY stm.week_ending_date) AS prev_week_progress
+      --,MAX(stm.K_5_Progress) OVER(PARTITION BY stm.school_student_id, stm.start_year, stm.GCD) AS gcd_progress_overall
       
       ,stm.objective_name      
       ,stm.cur_hurdle_num_tries      

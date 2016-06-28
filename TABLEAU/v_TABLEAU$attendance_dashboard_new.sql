@@ -58,6 +58,7 @@ JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
  AND co.schoolid = mem.schoolid
  AND co.year = mem.academic_year
+ AND mem.calendardate < CONVERT(DATE,GETDATE())
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
   ON co.studentid = att.studentid
  AND mem.CALENDARDATE = att.ATT_DATE

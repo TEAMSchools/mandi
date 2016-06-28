@@ -68,6 +68,17 @@ WITH grade_level_goals AS (
   GROUP BY STUDENT_NUMBER
  )
 
+,prev_week_time AS (
+  SELECT username
+        ,datestamp
+        ,week_time
+        ,ROW_NUMBER() OVER(
+          PARTITION BY username
+            ORDER BY datestamp DESC) AS rn
+  FROM KIPP_NJ..LEXIA$units_to_target WITH(NOLOCK)
+  WHERE DATEPART(WEEKDAY,datestamp) = 1
+ )
+
 SELECT co.student_number
       ,co.lastfirst
       ,co.year
@@ -88,6 +99,8 @@ SELECT co.student_number
       ,lex.*
       ,ISNULL(g.target_units,0) - ISNULL(lex.units_to_target,0) AS units_completed
       ,(ISNULL(g.target_units,0) - ISNULL(lex.units_to_target,0)) / g.target_units AS pct_to_target
+
+      ,pw.week_time AS prev_week_time
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.student_number = enr.student_number
@@ -98,6 +111,9 @@ JOIN KIPP_NJ..AUTOLOAD$LEXIA_detail lex WITH(NOLOCK)
   ON co.student_web_id = lex.username
 LEFT OUTER JOIN student_goals g
   ON co.student_number = g.STUDENT_NUMBER
+LEFT OUTER JOIN prev_week_time pw
+  ON co.student_web_id = pw.username
+ AND pw.rn = 1
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.grade_level <= 8
   AND co.rn = 1

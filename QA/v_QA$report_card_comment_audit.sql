@@ -34,13 +34,16 @@ SELECT co.student_number
       ,co.team
       ,co.enroll_status
       ,dt.alt_name AS term            
+      
       --,l.label AS comment_field
       ,LEFT(l.label, (CHARINDEX(' ', l.label) - 1)) AS subject_area
+      ,LEFT(l.label, (CHARINDEX(' ', l.label) - 1)) AS course_name
+      ,NULL AS teacher_name
       ,RIGHT(l.label, 1) AS comment_number
       ,CASE 
         WHEN CONVERT(INT,CONVERT(FLOAT,res.value)) NOT BETWEEN 1 AND 225 THEN NULL
         WHEN LEFT(l.label, (CHARINDEX(' ', l.label) - 1)) != comm.subject THEN NULL
-        ELSE res.value 
+        ELSE CONVERT(VARCHAR,res.value)
        END AS comment_text
       ,l.repository_id
       --,l.field_name      
@@ -67,3 +70,35 @@ LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_RC_comment_bank comm WITH(NOLOCK)
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1
   AND (co.grade_level <= 4 AND co.schoolid != 73252)
+
+UNION ALL
+
+SELECT co.student_number
+      ,co.studentid
+      ,co.lastfirst
+      ,co.schoolid
+      ,co.grade_level
+      ,co.team
+      ,co.enroll_status
+      ,scaff.term            
+      
+      ,cou.credittype AS subject_area
+      ,cou.course_name
+      ,scaff.teacher_name
+      ,1 AS comment_number
+      ,comm.teacher_comment AS comment_text
+      ,NULL AS repository_id
+      
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..PS$course_section_scaffold#static scaff WITH(NOLOCK)
+  ON co.studentid = scaff.studentid
+ AND co.year = scaff.year
+LEFT OUTER JOIN KIPP_NJ..PS$comments#static comm WITH(NOLOCK)
+  ON co.studentid = comm.studentid
+ AND scaff.term = comm.term
+ AND scaff.course_number = comm.course_number
+LEFT OUTER JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
+  ON scaff.course_number = cou.course_number 
+WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  AND co.rn = 1
+  AND ((co.grade_level = 4 AND co.schoolid = 73252) OR (co.grade_level >= 5))

@@ -47,7 +47,7 @@ WITH assessment_data AS (
          ON a.assessment_id = ovr.assessment_id
         AND ovr.answered > 0
        LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_DBQ_dbq_difficulty_index dbq WITH(NOLOCK)
-         ON a.title = dbq.assessment_title
+         ON LTRIM(RTRIM(a.title)) = dbq.assessment_title
        WHERE ((a.academic_year >= 2015 AND a.subject_area = 'History' AND a.scope = 'DBQ')
                  OR (a.academic_year <= 2014 AND a.title LIKE '%DBQ%' AND a.scope = 'Interim Assessment'AND a.subject_area IN ('Comparative Government'
                                                                                                                               ,'Global Studies/ AWH'

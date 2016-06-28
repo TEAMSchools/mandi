@@ -19,7 +19,7 @@ WITH dupe_enrollments AS (
             FROM KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
             WHERE cc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
               AND cc.sectionid > 0
-              AND CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(),'-06-01')) BETWEEN DATEENROLLED AND DATELEFT       
+              AND CONVERT(DATE,GETDATE()) BETWEEN DATEENROLLED AND DATELEFT       
            ) sub
        WHERE N_enrollments > 1
        GROUP BY STUDENTID, COURSE_NUMBER
@@ -35,44 +35,70 @@ WITH dupe_enrollments AS (
   GROUP BY SCHOOLID
  )
 
-SELECT co.year
-      ,co.student_number
+SELECT co.student_number
       ,co.LASTFIRST
       ,co.GRADE_LEVEL
       ,co.SCHOOLID
-      ,co.enroll_status
-      ,co.exitcode
-      ,co.highest_achieved
-      ,co.lunchstatus -- F, R, P
-      ,co.ethnicity -- 'T','W','H','A','B','I','P'
-      ,co.gender -- 'M', 'F'
-      ,co.spedlep -- 'No IEP', 'SPED', 'SPED SPEECH'
-      ,s.state_studentnumber -- NOT NULL
-      ,co.TEAM -- NOT NULL
-      ,hr.sectionid AS hr_sectionid -- NOT NULL      
-      ,dupe.dupe_enrollments -- IS NULL
-      /* IS NOT NULL & LIKE school fteid if enrolled */
-      ,s.fteid
-      ,fte.fte_id AS school_fteid      
+      ,co.enroll_status      
       
-      ,s.allowwebaccess -- = 1 
-      ,s.student_allowwebaccess -- = 1
-      ,s.web_id -- IS NOT NULL
-      ,s.student_web_id -- IS NOT NULL
-      ,s.enrollment_schoolid -- = schoolid (unless graduated)
-      /* ENTRYDATE > EXITDATE */
-      ,co.ENTRYDATE
-      ,co.EXITDATE            
-FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
-  ON co.studentid = s.id
-LEFT OUTER JOIN KIPP_NJ..PS$CC#static hr WITH(NOLOCK)
-  ON s.id = hr.STUDENTID
- AND co.year = hr.academic_year
-	AND CONVERT(DATE,GETDATE()) BETWEEN hr.dateenrolled AND hr.dateleft
-	AND hr.COURSE_NUMBER = 'HR'
-LEFT OUTER JOIN dupe_enrollments dupe
-  ON s.id = dupe.STUDENTID
-LEFT OUTER JOIN fte WITH(NOLOCK)
-  ON s.SCHOOLID = fte.SCHOOLID
-WHERE co.rn = 1
+      ,'Valid Ethnicity' AS audit      
+      ,co.ETHNICITY AS audit_data      
+FROM KIPP_NJ..PS$STUDENTS#static co WITH(NOLOCK)
+WHERE (co.ETHNICITY IS NULL OR co.ETHNICITY NOT IN ('T','W','H','A','B','I','P'))
+
+UNION ALL
+
+SELECT co.student_number
+      ,co.LASTFIRST
+      ,co.GRADE_LEVEL
+      ,co.SCHOOLID
+      ,co.enroll_status      
+      
+      ,'Valid Gender' AS audit      
+      ,co.gender AS audit_data      
+FROM KIPP_NJ..PS$STUDENTS#static co WITH(NOLOCK)
+WHERE (co.gender IS NULL OR co.GENDER NOT IN ('M','F'))
+
+UNION ALL
+
+SELECT co.student_number
+      ,co.LASTFIRST
+      ,co.GRADE_LEVEL
+      ,co.SCHOOLID
+      ,co.enroll_status      
+      
+      ,'Valid SID' AS audit      
+      ,CONVERT(VARCHAR,co.STATE_STUDENTNUMBER) AS audit_data      
+FROM KIPP_NJ..PS$STUDENTS#static co WITH(NOLOCK)
+WHERE (co.STATE_STUDENTNUMBER IS NULL OR LEN(co.STATE_STUDENTNUMBER) < 10)
+
+UNION ALL
+
+SELECT s.student_number
+      ,s.LASTFIRST
+      ,s.GRADE_LEVEL
+      ,s.SCHOOLID
+      ,s.enroll_status      
+      
+      ,'Valid Enrollment Schoolid' AS audit      
+      ,CONVERT(VARCHAR,s.enrollment_schoolid) AS audit_data
+FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+WHERE s.enroll_status != 3
+  AND s.enrollment_schoolid != s.schoolid
+
+UNION ALL
+
+SELECT s.student_number
+      ,s.LASTFIRST
+      ,s.GRADE_LEVEL
+      ,s.SCHOOLID
+      ,s.enroll_status      
+      
+      ,'Valid Entry/Exit Dates' AS audit      
+      ,CONCAT(CONVERT(VARCHAR,s.entrydate,101), ' - ', CONVERT(VARCHAR,s.exitdate,101)) AS audit_data
+      
+      --,hr.sectionid AS hr_sectionid -- NOT NULL      
+      --,dupe.dupe_enrollments -- IS NULL      
+      --,s.fteid, fte.fte_id AS school_fteid /* IS NOT NULL & LIKE school fteid if enrolled */      
+FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+WHERE s.entrydate > s.exitdate

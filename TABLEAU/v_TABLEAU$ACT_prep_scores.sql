@@ -71,6 +71,7 @@ SELECT co.year
       ,enr.teacher_name
       ,enr.period
 
+      ,'PREP' AS ACT_type
       ,act.administration_round
       ,act.subject_area
       ,act.overall_number_correct
@@ -120,6 +121,7 @@ SELECT co.year
       ,NULL AS teacher_name
       ,NULL AS period
 
+      ,'REAL' AS ACT_type
       ,NULL administration_round
       ,r.act_subject AS subject_area
       ,NULL AS overall_number_correct

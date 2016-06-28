@@ -3,6 +3,31 @@ GO
 
 ALTER VIEW TABLEAU$PARCC_dashboard AS
 
+WITH external_prof AS (
+  SELECT academic_year        
+        ,testcode
+        ,grade_level
+        ,[NJ]
+        ,[NPS]
+        ,[PARCC]
+  FROM
+      (
+       SELECT academic_year
+             ,testcode
+             ,grade_level
+             ,entity
+             ,pct_proficient
+       FROM KIPP_NJ..AUTOLOAD$GDOCS_PARCC_external_proficiency_rates WITH(NOLOCK)
+       WHERE NOT (grade_level IS NOT NULL AND testcode IN ('ALG01','ALG02','GEO01'))
+      ) sub
+  PIVOT(
+    MAX(pct_proficient)
+    FOR entity IN ([NJ]
+                  ,[NPS]
+                  ,[PARCC])
+   ) p
+ ) 
+
 SELECT co.student_number
       ,co.lastfirst
       ,co.year AS academic_year
@@ -12,6 +37,7 @@ SELECT co.student_number
       ,CASE WHEN co.schoolid LIKE '1799%' THEN 'Camden' ELSE 'Newark' END AS region      
       ,co.enroll_status
       
+      ,'PARCC' AS test_type
       ,parcc.testcode
       ,parcc.subject      
       ,parcc.summativescalescore      
@@ -30,6 +56,10 @@ SELECT co.student_number
         WHEN parcc.summativeperformancelevel < 4 THEN 0
         ELSE NULL
        END AS is_prof
+
+      ,ext.NJ AS pct_prof_NJ
+      ,ext.NPS AS pct_prof_NPS
+      ,ext.PARCC AS pct_prof_PARCC
 
       /* potentially useful */
       --,parcc.pbaunit1totalnumberofitems
@@ -59,8 +89,10 @@ JOIN KIPP_NJ..AUTOLOAD$GDOCS_PARCC_district_summative_record_file parcc WITH(NOL
  AND parcc.reportedsummativescoreflag = 'Y'
  AND parcc.multiplerecordflag IS NULL
  AND parcc.reportsuppressioncode IS NULL
-WHERE co.year >= 2014
-  --AND co.grade_level BETWEEN 3 AND 11
+LEFT OUTER JOIN external_prof ext WITH(NOLOCK)
+  ON co.year = ext.academic_year
+ AND parcc.testcode = ext.testcode 
+WHERE co.year >= 2014  
   AND co.rn = 1
 
 UNION ALL
@@ -74,6 +106,10 @@ SELECT co.student_number
       ,CASE WHEN co.schoolid LIKE '1799%' THEN 'Camden' ELSE 'Newark' END AS region      
       ,co.enroll_status
       
+      ,CASE
+        WHEN co.schoolid = 73253 THEN 'HSPA'
+        ELSE 'NJASK' 
+       END AS test_type
       ,CONCAT(nj.subject, ' ', co.grade_level)  AS testcode
       ,nj.subject      
       ,nj.scale_score AS summativescalescore      
@@ -92,9 +128,17 @@ SELECT co.student_number
 
       ,NULL AS is_optout
       ,nj.is_prof
+
+      ,ext.NJ AS pct_prof_NJ
+      ,ext.NPS AS pct_prof_NPS
+      ,ext.PARCC AS pct_prof_PARCC
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..AUTOLOAD$GDOCS_STATE_njask_hspa_scores nj WITH(NOLOCK)
   ON co.student_number = nj.student_number
  AND co.year = nj.academic_year 
  AND nj.void_reason IS NULL
+LEFT OUTER JOIN external_prof ext
+  ON co.year = ext.academic_year
+ AND co.grade_level = ext.grade_level
+ AND nj.subject = ext.testcode
 WHERE co.rn = 1
