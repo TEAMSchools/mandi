@@ -64,7 +64,7 @@ FROM
            ,'LUNCH' AS category
            ,LUNCHSTATUS AS measure
            ,COUNT(ID) OVER(PARTITION BY SCHOOLID, GRADE_LEVEL) AS enr      
-     FROM students s WITH(NOLOCK)
+     FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
      WHERE ENROLL_STATUS = 0
     ) sub
 GROUP BY SCHOOLID
@@ -90,8 +90,8 @@ FROM
            ,'SPED' AS category           
            ,cs.SPEDLEP AS measure
            ,COUNT(ID) OVER(PARTITION BY SCHOOLID, GRADE_LEVEL) AS enr
-     FROM students s WITH(NOLOCK)
-     JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+     FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+     JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
        ON s.id = cs.STUDENTID
       AND cs.SPEDLEP IS NOT NULL
      WHERE ENROLL_STATUS = 0

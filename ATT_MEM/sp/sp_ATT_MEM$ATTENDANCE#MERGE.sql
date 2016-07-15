@@ -32,7 +32,7 @@ BEGIN
     FROM OPENQUERY(PS_TEAM,'
       SELECT att.*
       FROM PS_ATTENDANCE_DAILY att    
-      WHERE att.att_date >= TO_DATE(''2015-08-01'',''YYYY-MM-DD'')    
+      WHERE att.att_date >= TO_DATE(''2016-07-01'',''YYYY-MM-DD'') /* UPDATE ANNUALLY */
     ')
    )
 
@@ -110,7 +110,7 @@ BEGIN
     ,SOURCE.TOTAL_MINUTES
     ,SOURCE.COUNT_FOR_ADM
     ,SOURCE.academic_year)
-  WHEN NOT MATCHED BY SOURCE AND TARGET.ATT_DATE >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(), '-08-01')) THEN
+  WHEN NOT MATCHED BY SOURCE AND TARGET.ATT_DATE >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(), '-07-01')) THEN
    DELETE
   --OUTPUT $ACTION, deleted.*
   ;

@@ -144,7 +144,7 @@ ALTER VIEW TABLEAU$assessment_data_blast AS
       AND (((co.grade_level <= 4 OR co.schoolid = 73258) AND enr.COURSE_NUMBER = 'HR') 
                OR (co.schoolid != 73258 AND co.grade_level >= 5 AND a.subject_area = enr.illuminate_subject))
       AND enr.drop_flags = 0     
-     WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()    
+     WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
        AND a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')
        AND a.subject_area IN ('Text Study','Mathematics')
 
@@ -210,6 +210,6 @@ ALTER VIEW TABLEAU$assessment_data_blast AS
                OR (co.schoolid != 73258 AND co.grade_level >= 5 AND a.subject_area = enr.illuminate_subject))
       AND enr.drop_flags = 0     
 
-     WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()           
+     WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
        AND a.scope NOT IN ('CMA - End-of-Module','CMA - Mid-Module')       
 --    ) sub

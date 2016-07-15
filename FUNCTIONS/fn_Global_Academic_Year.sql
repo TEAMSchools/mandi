@@ -10,8 +10,9 @@ GO
 ALTER FUNCTION [fn_Global_Academic_Year]()
 RETURNS INT
 AS
+
 BEGIN
-	RETURN 2013;
+ 	RETURN 2016;
 END
 
 GO

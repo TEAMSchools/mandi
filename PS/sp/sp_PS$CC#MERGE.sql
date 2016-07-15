@@ -38,7 +38,7 @@ BEGIN
             ,TEACHERID
             ,TERMID
       FROM CC
-      WHERE ABS(TERMID) >= 2500
+      WHERE ABS(TERMID) >= 2600 /* UPDATE ANNUALLY */
     ')
    )
 
@@ -135,8 +135,9 @@ BEGIN
     ,SOURCE.academic_year
     ,SOURCE.period)
   WHEN NOT MATCHED BY SOURCE AND TARGET.TERMID >= KIPP_NJ.dbo.fn_Global_Term_ID() THEN
-   DELETE
-  OUTPUT $ACTION, DELETED.*;
+   DELETE;
+  --OUTPUT $ACTION, DELETED.*
+;
 
 END
 

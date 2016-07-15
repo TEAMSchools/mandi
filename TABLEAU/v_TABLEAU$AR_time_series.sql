@@ -15,7 +15,7 @@ WITH ar_long AS (
         ,AVG(dPercentCorrect) AS avg_pct_correct
         ,ROUND(AVG(iAlternateBookLevel_2),0) AS avg_lexile
   FROM KIPP_NJ..AR$test_event_detail#static WITH(NOLOCK)
-  --WHERE tiPassed = 1
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
   GROUP BY student_number
           ,academic_year      
           ,CONVERT(DATE,dtTaken)

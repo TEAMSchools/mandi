@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$promo_status#MS AS
+ALTER VIEW PROMO$promo_status#MS AS
 
 WITH final_grades AS (
   SELECT *

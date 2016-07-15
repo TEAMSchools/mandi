@@ -7,12 +7,12 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE FUNCTION [dbo].[fn_Global_Term_Id]()
+ALTER FUNCTION [dbo].[fn_Global_Term_Id]()
 RETURNS INT
 AS
+
 BEGIN
- RETURN 2200;
+  RETURN 2600;
 END
 
 GO
-

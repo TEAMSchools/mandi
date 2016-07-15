@@ -1,7 +1,7 @@
 USE [KIPP_NJ]
 GO
 
-ALTER VIEW [dbo].[TABLEAU$KTC_alumni] AS 
+ALTER VIEW [dbo].[TABLEAU$KTC_alumni_contact] AS 
 
 WITH roster_scaffold AS (
   SELECT r.counselor_id
