@@ -20,7 +20,7 @@ SELECT co.year
       ,co.enroll_status
       ,co.entrydate
       ,co.exitdate
-      ,rd.date
+      ,CONVERT(DATE,rd.date) AS date
       ,rd.reporting_hash
       ,dt.alt_name AS term
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)

@@ -80,14 +80,6 @@ SELECT CASE WHEN co.TEAM LIKE '%pathways%' THEN 'Pathways' ELSE co.school_name E
       ,ar.N_passed
       ,ar.N_total
       ,ar.stu_status_words AS status_words
-      --,ar.mastery_fiction
-      --,ar.mastery_nonfiction
-      --,ar.n_fiction
-      --,ar.n_nonfic
-      --,ar.last_book      
-      --,ar.stu_status_points AS status_points
-      --,ar.points
-      --,CASE WHEN ar.points_goal < 0 THEN NULL ELSE ar.points_goal END AS points_goal
 
       ,ROW_NUMBER() OVER(
          PARTITION BY co.student_number, co.year, term.lit, term.hex, achv.achv_unique_id

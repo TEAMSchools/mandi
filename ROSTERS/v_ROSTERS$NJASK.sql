@@ -10,10 +10,10 @@ WITH entrydate AS (
         ,co.year
         ,prev.grade_level AS prev_grade
         ,prev.schoolid AS prev_school
-  FROM COHORT$comprehensive_long#static co WITH(NOLOCK)
-  LEFT OUTER JOIN COHORT$comprehensive_long#static prev WITH(NOLOCK)
+  FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..COHORT$comprehensive_long#static prev WITH(NOLOCK)
     ON co.studentid = prev.studentid
-   AND prev.year = (dbo.fn_Global_Academic_Year() - 1)   
+   AND prev.year = (KIPP_NJ.dbo.fn_Global_Academic_Year() - 1)   
    AND prev.rn = 1
   WHERE co.YEAR_IN_NETWORK = 1
     AND co.RN = 1    
@@ -53,8 +53,8 @@ SELECT cs.SID
         WHEN s.SCHOOLID = 73257 THEN 82800517 --Life        
        END AS SMID
       ,NULL AS sending_CDS_code
-FROM STUDENTS s WITH(NOLOCK)
-LEFT OUTER JOIN CUSTOM_STUDENTS cs WITH(NOLOCK)
+FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
   ON s.ID = cs.STUDENTID
 LEFT OUTER JOIN entrydate WITH(NOLOCK)
   ON s.ID = entrydate.STUDENTID  

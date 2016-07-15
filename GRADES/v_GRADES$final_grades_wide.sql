@@ -38,10 +38,10 @@ WITH grades_unpivot AS (
              ,CONVERT(VARCHAR(64),fg.y1_grade_letter) AS y1_grade_letter
 
              /* empty strings preserve term structure when there aren't any grades */
-             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter),'') AS term_grade_letter
-             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent),'') AS term_grade_percent
-             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted),'') AS term_grade_letter_adjusted
-             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted),'') AS term_grade_percent_adjusted                          
+             ,CONVERT(VARCHAR(64),fg.term_grade_letter) AS term_grade_letter
+             ,CONVERT(VARCHAR(64),fg.term_grade_percent) AS term_grade_percent
+             ,CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted) AS term_grade_letter_adjusted
+             ,CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted) AS term_grade_percent_adjusted                          
 
              ,CONVERT(VARCHAR(64),fg.need_90) AS need_90
              ,CONVERT(VARCHAR(64),fg.need_80) AS need_80
@@ -66,10 +66,10 @@ WITH grades_unpivot AS (
              ,CONVERT(VARCHAR(64),fg.y1_grade_letter) AS y1_grade_letter
 
              /* empty strings preserve term structure when there aren't any grades */
-             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter),'') AS term_grade_letter
-             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent),'') AS term_grade_percent
-             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted),'') AS term_grade_letter_adjusted
-             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted),'') AS term_grade_percent_adjusted                          
+             ,CONVERT(VARCHAR(64),fg.term_grade_letter) AS term_grade_letter
+             ,CONVERT(VARCHAR(64),fg.term_grade_percent) AS term_grade_percent
+             ,CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted) AS term_grade_letter_adjusted
+             ,CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted) AS term_grade_percent_adjusted                          
 
              ,CONVERT(VARCHAR(64),fg.need_90) AS need_90
              ,CONVERT(VARCHAR(64),fg.need_80) AS need_80

@@ -91,7 +91,7 @@ BEGIN
          JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
            ON a.assessment_id = ovr.assessment_id   
           AND ovr.answered > 0
-         JOIN KIPP_NJ..PS$STUDENTS#static s
+         JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
            ON ovr.local_student_id = s.STUDENT_NUMBER
          GROUP BY a.subject_area
                  ,a.module_num
