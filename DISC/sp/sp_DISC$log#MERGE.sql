@@ -34,8 +34,8 @@ BEGIN
             ,Discipline_ActionTakendetail
             ,consequence
       FROM log    
-      WHERE (log.entry_date >= TO_DATE(''2015-08-01'',''YYYY-MM-DD'') OR log.discipline_incidentdate >= TO_DATE(''2015-08-01'',''YYYY-MM-DD''))
-    ') disc /*-- UPDATE QUERY FOR CURRENT SCHOOL YEAR --*/
+      WHERE (log.entry_date >= TO_DATE(''2016-07-01'',''YYYY-MM-DD'') OR log.discipline_incidentdate >= TO_DATE(''2016-07-01'',''YYYY-MM-DD'')) /* UPDATE ANNUALLY */
+    ') disc 
    )
 
   MERGE KIPP_NJ..DISC$log#STAGING AS TARGET
@@ -85,7 +85,7 @@ BEGIN
     ,SOURCE.DISCIPLINE_ACTIONTAKENDETAIL
     ,SOURCE.CONSEQUENCE)
   WHEN NOT MATCHED BY SOURCE 
-   AND (TARGET.entry_date >= CONVERT(DATE,'2015-08-01') OR TARGET.discipline_incidentdate >= CONVERT(DATE,'2015-08-01'))
+   AND (TARGET.entry_date >= CONVERT(DATE,'2016-07-01') OR TARGET.discipline_incidentdate >= CONVERT(DATE,'2016-07-01')) /* UPDATE ANUALLY */
    THEN DELETE;
 
 END 

@@ -30,6 +30,6 @@ FROM OPENQUERY(PS_TEAM,'
     ON fgsetup.gradingformulaid = gfw.parentgradingformulaid  
   LEFT OUTER JOIN PSM_AssignmentCategory cat
     ON gfw.ASSIGNMENTCATEGORYID = cat.id
-  WHERE rt.startdate >= TO_DATE(''2015-07-01'',''YYYY-MM-DD'') /* UPDATE ANNUALLY */
+  WHERE rt.startdate >= TO_DATE(''2016-07-01'',''YYYY-MM-DD'') /* UPDATE ANNUALLY */
     AND rt.name != ''Y1''    
 ')

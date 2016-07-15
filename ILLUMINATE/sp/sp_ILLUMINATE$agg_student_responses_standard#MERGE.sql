@@ -32,7 +32,7 @@ BEGIN
         ON sa.student_assessment_id = r.student_assessment_id
       JOIN public.students s 
         ON sa.student_id = s.student_id    
-      WHERE sa.created_at >= ''2015-07-01''
+      WHERE sa.created_at >= ''2016-07-01'' /* UPDATE ANNUALLY */
     ');
   END
 
@@ -83,7 +83,7 @@ BEGIN
         ,SOURCE.points_possible	
         ,SOURCE.answered	        
         ,SOURCE.number_of_questions)
-      WHEN NOT MATCHED BY SOURCE AND CONVERT(DATE,TARGET.updated_at) >= '2015-07-01' THEN
+      WHEN NOT MATCHED BY SOURCE AND CONVERT(DATE,TARGET.updated_at) >= '2016-07-01' THEN /* UDPATE ANNUALLY */
        DELETE
       --OUTPUT $ACTION, deleted.*
       ;

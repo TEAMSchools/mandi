@@ -31,7 +31,7 @@ BEGIN
         ON att.att_date BETWEEN terms.firstday AND terms.lastday
        AND terms.schoolid = att.schoolid
        AND terms.portion = 1
-      WHERE TRUNC(att.att_date) >= TO_DATE(''2015-08-01'',''YYYY-MM-DD'')      
+      WHERE TRUNC(att.att_date) >= TO_DATE(''2016-07-01'',''YYYY-MM-DD'') /* UPDATE ANNUALLY */
         AND TRUNC(att.att_date) <= TRUNC(SYSDATE)
         AND att.period_abbreviation NOT IN (''HRA'',''HR'',''P0'')
     ');
@@ -67,7 +67,7 @@ BEGIN
       ,SOURCE.att_date
       ,SOURCE.att_code
       ,SOURCE.period_abbreviation)
-    WHEN NOT MATCHED BY SOURCE AND TARGET.att_date >= '2015-08-01' THEN
+    WHEN NOT MATCHED BY SOURCE AND TARGET.att_date >= '2016-07-01' THEN /* UPDATE ANNUALLY */
      DELETE;     
   END  
 

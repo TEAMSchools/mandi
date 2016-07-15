@@ -16,7 +16,7 @@ BEGIN
             ,ctod.membershipvalue             
             ,ctod.potential_attendancevalue
       FROM ps_adaadm_daily_ctod ctod   
-      WHERE calendardate >= TO_DATE(''2015-08-01'',''YYYY-MM-DD'') 
+      WHERE calendardate >= TO_DATE(''2016-07-01'',''YYYY-MM-DD'') /* UPDATE ANNUALLY */
         AND calendardate <= TRUNC(SYSDATE)
     ')
    )
@@ -47,7 +47,7 @@ BEGIN
     ,SOURCE.MEMBERSHIPVALUE
     ,SOURCE.POTENTIAL_ATTENDANCEVALUE
     ,SOURCE.academic_year)
-  WHEN NOT MATCHED BY SOURCE AND TARGET.CALENDARDATE >= '2015-08-01' THEN
+  WHEN NOT MATCHED BY SOURCE AND TARGET.CALENDARDATE >= '2016-07-01' THEN /* UPDATE ANUALLY */
    DELETE;
   --OUTPUT $ACTION, deleted.*;
 

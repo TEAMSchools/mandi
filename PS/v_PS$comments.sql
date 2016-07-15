@@ -16,7 +16,7 @@ FROM OPENQUERY(PS_TEAM,'
         ,CAST(SUBSTR(pgf.comment_value,1,4000) AS varchar2(4000)) AS teacher_comment
   FROM pgfinalgrades pgf       
   WHERE pgf.finalgradename LIKE ''Q%''
-    AND pgf.startdate >= ''2015-07-01''
+    AND pgf.startdate >= ''2016-07-01''
     AND pgf.startdate <= TRUNC(SYSDATE)
     AND pgf.comment_value IS NOT NULL         
 ') tco /* UPDATE DATE ANNUALLY */

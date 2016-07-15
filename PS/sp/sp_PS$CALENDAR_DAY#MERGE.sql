@@ -22,7 +22,7 @@ BEGIN
             ,type
             ,note
       FROM CALENDAR_DAY
-      WHERE date_value >= TO_DATE(''2015-07-01'',''YYYY-MM-DD'')
+      WHERE date_value >= TO_DATE(''2016-07-01'',''YYYY-MM-DD'') /* UPDATE ANNUALLY */
         AND schoolid NOT IN (999999)
     ');
   END
@@ -58,7 +58,7 @@ BEGIN
        ,SOURCE.type
        ,SOURCE.note
        ,SOURCE.academic_year)
-    WHEN NOT MATCHED BY SOURCE AND TARGET.date_value >= '2015-07-01' THEN
+    WHEN NOT MATCHED BY SOURCE AND TARGET.date_value >= '2016-07-01' THEN /* UPDATE ANNUALLY */
       DELETE
     --OUTPUT $ACTION, DELETED.*
     ;
