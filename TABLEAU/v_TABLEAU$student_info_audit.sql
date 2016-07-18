@@ -2,7 +2,7 @@ USE KIPP_NJ
 
 GO
 
-ALTER VIEW TABLEAU$audit#student_info AS 
+ALTER VIEW TABLEAU$student_info_audit AS 
 
 SELECT *
 FROM
