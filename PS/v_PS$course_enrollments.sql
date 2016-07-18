@@ -32,10 +32,10 @@ SELECT co.STUDENTID
       ,cou.EXCLUDEFROMGPA
       ,cou.EXCLUDEFROMSTOREDGRADES  
       
-      ,rti.tier
-      ,rti.tier_numeric
-      ,rti.behavior_tier
-      ,rti.behavior_tier_numeric                  
+      ,NULL AS tier
+      ,NULL AS tier_numeric
+      ,NULL AS behavior_tier
+      ,NULL AS behavior_tier_numeric                  
       ,CASE WHEN cc.termid < 0 THEN 1 ELSE 0 END AS drop_flags
       ,SUM(CASE WHEN cc.termid < 0 THEN 1 ELSE 0 END) OVER(PARTITION BY co.studentid, co.year, cou.course_number) 
         / COUNT(cc.termid) OVER(PARTITION BY co.studentid, co.year, cou.course_number) AS course_enr_status
@@ -94,7 +94,7 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   ON cc.STUDENTID = co.studentid
  AND cc.academic_year = co.year
  AND co.rn = 1
-LEFT OUTER JOIN KIPP_NJ..PS$rti_tiers#static rti WITH(NOLOCK)
-  ON cc.studentid = rti.studentid
- AND cou.CREDITTYPE = rti.credittype
+--LEFT OUTER JOIN KIPP_NJ..PS$rti_tiers#static rti WITH(NOLOCK)
+--  ON cc.studentid = rti.studentid
+-- AND cou.CREDITTYPE = rti.credittype
 WHERE cc.DATEENROLLED < cc.DATELEFT

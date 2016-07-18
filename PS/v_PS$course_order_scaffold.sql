@@ -4,6 +4,7 @@ GO
 ALTER VIEW PS$course_order_scaffold AS
 
 SELECT sub.student_number
+      ,sub.studentid
       ,sub.schoolid
       ,sub.academic_year
       ,CONVERT(VARCHAR,sub.term) AS term
@@ -39,7 +40,7 @@ FROM
     (
      SELECT DISTINCT 
             co.student_number
-           ,co.studentid
+           ,co.studentid           
            ,co.schoolid
            ,co.year AS academic_year
            ,dt.time_per_name AS reporting_term
@@ -65,7 +66,7 @@ FROM
      JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
        ON co.student_number = enr.student_number
       AND co.year = enr.academic_year
-      AND enr.CREDITTYPE NOT IN ('LOG')
+      --AND enr.CREDITTYPE NOT IN ('LOG')
       AND enr.COURSE_NUMBER NOT IN ('')
       AND enr.course_enr_status = 0
       AND enr.drop_flags = 0
@@ -81,6 +82,7 @@ UNION ALL
 
 SELECT DISTINCT 
        co.student_number
+      ,co.studentid
       ,co.schoolid
       ,co.year AS academic_year      
       ,CONVERT(VARCHAR,dt.alt_name) AS term

@@ -17,7 +17,7 @@ WITH grades_long AS (
         ,cat.grade_category
         ,cat.grade_category_pct        
   FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)  
-  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  --WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
   UNION ALL
 
@@ -34,7 +34,7 @@ WITH grades_long AS (
         ,cat.grade_category
         ,ROUND(AVG(cat.grade_category_pct),0)        
   FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)       
-  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  --WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY cat.student_number
           ,cat.SCHOOLID
           ,cat.academic_year
@@ -58,7 +58,7 @@ WITH grades_long AS (
         ,cat.grade_category
         ,cat.grade_category_pct        
   FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)    
-  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  --WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
   UNION ALL
 
@@ -75,7 +75,7 @@ WITH grades_long AS (
         ,cat.grade_category
         ,ROUND(AVG(cat.grade_category_pct),0) AS grade_category_pct
   FROM KIPP_NJ..GRADES$category_grades_long#static cat WITH(NOLOCK)       
-  WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  --WHERE cat.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY cat.student_number
           ,cat.SCHOOLID
           ,cat.academic_year
@@ -169,7 +169,7 @@ FROM
       AND o.course_number = gr.COURSE_NUMBER
       AND o.reporting_term = gr.reporting_term      
       AND cat.grade_category = gr.grade_category
-     WHERE o.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()          
+     --WHERE o.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()          
     ) sub
 PIVOT(
   MAX(grade_category_pct)

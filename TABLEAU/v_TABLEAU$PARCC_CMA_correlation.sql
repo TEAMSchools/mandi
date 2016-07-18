@@ -29,6 +29,7 @@ SELECT co.schoolid
       ,a.subject_area AS subject           
       
       ,ovr.percent_correct AS overall_pct_correct       
+      ,ovr.performance_band_level AS cma_proficiency_band
 
       ,parcc.test_name AS parcc_test_name
       ,parcc.scale_score

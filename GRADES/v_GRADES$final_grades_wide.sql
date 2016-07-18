@@ -167,7 +167,7 @@ FROM
       AND o.academic_year = gr.academic_year
       AND o.term = gr.term
       AND o.COURSE_NUMBER = gr.COURSE_NUMBER
-     WHERE o.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+     --WHERE o.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     ) sub
 PIVOT(
   MAX(value)
