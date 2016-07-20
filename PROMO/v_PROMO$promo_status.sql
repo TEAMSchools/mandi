@@ -1,0 +1,211 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW PROMO$promo_status AS
+
+WITH attendance AS (
+  SELECT studentid
+        ,academic_year
+        ,term
+        ,MEM_counts_yr
+        ,ABS_all_counts_yr
+        ,TDY_all_counts_yr
+        ,att_pts
+        ,att_pts_pct
+        ,ROUND((((sub.MEM_counts_yr * 0.105) - att_pts) / -0.105) + 0.5,0) AS days_to_90
+        ,ROUND((((sub.MEM_counts_yr * 0.105) - ABS_all_counts_yr) / -0.105) + 0.5,0) AS days_to_90_abs_only
+        ,CASE 
+          WHEN sub.att_pts_pct >= 98 THEN 'Honors'
+          WHEN sub.att_pts_pct >= 92 THEN 'Satisfactory'
+          WHEN sub.att_pts_pct >= 90 THEN 'Warning'
+          WHEN sub.att_pts_pct < 90 THEN 'Off Track'          
+         END AS promo_status_attendance        
+  FROM
+      (
+       SELECT att.studentid
+             ,att.academic_year
+             ,att.term
+             ,att.MEM_counts_yr
+             ,att.ABS_all_counts_yr
+             ,att.TDY_all_counts_yr        
+             ,ROUND(att.ABS_all_counts_yr + (att.TDY_all_counts_yr / 3), 1, 1) AS att_pts
+             ,ROUND(((att.MEM_counts_yr - (att.ABS_all_counts_yr + FLOOR(att.TDY_all_counts_yr / 3))) / att.MEM_counts_yr) * 100, 0) AS att_pts_pct
+       FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
+       WHERE att.academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND att.MEM_counts_yr > 0
+      ) sub
+ )
+
+,lit AS (
+  SELECT lit.student_number
+        ,lit.academic_year
+        ,lit.test_round AS term
+        ,lit.read_lvl
+        ,lit.goal_lvl      
+        ,lit.goal_status        
+        ,COUNT(lit.read_lvl) OVER(PARTITION BY lit.studentid, lit.academic_year) - 1 AS n_growth_rounds
+        ,lit.met_goal
+        ,CASE 
+          WHEN lit.lvl_num >= lit.natl_goal_num THEN 1
+          WHEN lit.lvl_num < lit.natl_goal_num THEN 0
+         END AS met_natl_goal
+        
+        ,MAX(CASE WHEN lit.rn_round_asc = 1 THEN lit.read_lvl END) OVER(PARTITION BY lit.student_number, lit.academic_year) AS base_read_lvl
+        ,lit.lvl_num - MAX(CASE WHEN lit.rn_round_asc = 1 THEN lit.lvl_num END) OVER(PARTITION BY lit.student_number, lit.academic_year) AS lvls_grown_yr        
+        ,lit.lvl_num - LAG(lit.lvl_num, 1) OVER(PARTITION BY lit.student_number, lit.academic_year ORDER BY lit.rn_round_asc) AS lvls_grown_term        
+  FROM KIPP_NJ..LIT$achieved_by_round#static lit WITH(NOLOCK)  
+ )
+
+,final_grades AS (
+  SELECT student_number
+        ,academic_year
+        ,term
+        ,N_below_65
+        ,N_below_70
+        ,CASE
+          WHEN N_below_65 > 0 THEN 'Off Track'
+          WHEN N_below_70 > 0 THEN 'Warning'
+          ELSE 'Satisfactory'
+         END AS promo_status_grades        
+  FROM
+      (
+       SELECT gr.student_number
+             ,gr.academic_year
+             ,gr.term
+             ,SUM(CASE WHEN gr.y1_grade_percent_adjusted < 70 THEN 1 ELSE 0 END) AS N_below_70
+             ,SUM(CASE WHEN gr.y1_grade_percent_adjusted < 65 THEN 1 ELSE 0 END) AS N_below_65
+       FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
+       WHERE gr.academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND gr.credittype != 'COCUR'  
+         AND gr.y1_grade_percent_adjusted IS NOT NULL
+       GROUP BY gr.student_number
+               ,gr.term
+               ,gr.academic_year
+      ) sub
+ )
+
+SELECT *
+      ,CASE 
+        WHEN school_level = 'ES' AND (SPEDLEP = 'SPED' OR retention_flag >= 1) THEN 'See Teacher'
+        WHEN CONCAT(promo_status_attendance
+                   ,promo_status_credits
+                   ,promo_status_grades
+                   ,promo_status_lit) LIKE '%Off Track%' THEN 'Off Track'
+        ELSE 'On Track'
+       END AS promo_status_overall
+FROM
+    (
+     SELECT co.studentid
+           ,co.student_number
+           ,co.year AS academic_year
+           ,co.schoolid      
+           ,co.school_level
+           ,co.spedlep
+           ,co.retained_ever_flag + co.retained_yr_flag AS retention_flag
+           ,dt.alt_name AS term
+           ,dt.time_per_name AS reporting_term
+           ,CASE 
+             WHEN CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date THEN 1 
+             WHEN dt.alt_name = 'Q4' THEN 1 /* keeps things alive during summer */
+             ELSE 0 
+            END AS is_curterm
+
+           /* attendance */
+           ,att.promo_status_attendance
+           ,att.att_pts_pct
+           ,att.att_pts
+           ,att.MEM_counts_yr
+           ,att.ABS_all_counts_yr
+           ,att.TDY_all_counts_yr
+           ,att.days_to_90
+           ,att.days_to_90_abs_only
+
+           /* lit */
+           ,CASE        
+             --WHEN co.school_level = 'ES' AND co.SPEDLEP = 'SPED' OR co.retained_yr_flag = 1 THEN 'See Teacher'                        
+             WHEN lit.lvls_grown_term IS NULL OR lit.n_growth_rounds < 0 THEN NULL        
+        
+             /* Life Upper students have different promo criteria */
+             WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.goal_status IN ('On Track','Off Track') THEN 'On Track' /* if On Track, then On Track*/
+             WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_yr >= lit.n_growth_rounds THEN 'On Track' /* if grew 1 lvl per round overall, then On Track */        
+             WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_term < lit.n_growth_rounds THEN 'Off Track'
+             ELSE lit.goal_status
+            END AS promo_status_lit
+           ,lit.base_read_lvl
+           ,lit.read_lvl AS cur_read_lvl
+           ,lit.goal_lvl
+           ,lit.met_goal
+           ,lit.met_natl_goal
+           ,lit.goal_status AS lit_goal_status
+           ,lit.lvls_grown_yr
+           ,lit.lvls_grown_term
+
+           /* final grades */
+           ,fg.promo_status_grades
+           ,fg.N_below_65
+           ,fg.N_below_70
+
+           /* HW grades */
+           ,cat.H_Y1 AS HWC_Y1
+           ,cat.E_Y1 AS HWQ_Y1
+
+           /* GPA */
+           ,gpa.GPA_Y1
+           ,CASE 
+             WHEN gpa.GPA_Y1 IS NULL THEN NULL
+             WHEN gpa.GPA_Y1 >= 3.85 THEN 'Summa Cum Laude'
+             WHEN gpa.GPA_Y1 >= 3.5 THEN 'Magna Cum Laude'
+             WHEN gpa.GPA_Y1 >= 3.0  THEN 'Cum Laude'
+            END AS GPA_Y1_status      
+           ,gpa.GPA_term      
+           ,CASE 
+             WHEN gpa.GPA_term IS NULL THEN NULL
+             WHEN gpa.GPA_term >= 3.85 THEN 'Summa Cum Laude'
+             WHEN gpa.GPA_term >= 3.5 THEN 'Magna Cum Laude'
+             WHEN gpa.GPA_term >= 3.0  THEN 'Cum Laude'
+            END AS GPA_term_status      
+           ,cum.cumulative_Y1_gpa AS GPA_cum
+           ,CASE 
+             WHEN cum.cumulative_Y1_gpa IS NULL THEN NULL
+             WHEN cum.cumulative_Y1_gpa >= 3.85 THEN 'Summa Cum Laude'
+             WHEN cum.cumulative_Y1_gpa >= 3.5 THEN 'Magna Cum Laude'
+             WHEN cum.cumulative_Y1_gpa >= 3.0  THEN 'Cum Laude'
+            END AS GPA_cum_status      
+      
+           /* credits */
+           ,NULL AS promo_status_credits
+           ,NULL AS credits_enrolled
+           ,NULL AS projected_credits_earned
+     FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+     JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
+       ON co.schoolid = dt.schoolid
+      AND co.year = dt.academic_year
+      AND dt.identifier = 'RT'
+      AND dt.alt_name != 'Summer School'
+     LEFT OUTER JOIN attendance att
+       ON co.studentid = att.studentid
+      AND co.year = att.academic_year
+      AND dt.alt_name = att.term
+     LEFT OUTER JOIN lit
+       ON co.student_number = lit.student_number
+      AND co.year = lit.academic_year
+      AND dt.alt_name = lit.term
+     LEFT OUTER JOIN final_grades fg
+       ON co.student_number = fg.student_number
+      AND co.year = fg.academic_year
+      AND dt.alt_name = fg.term
+     LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_wide#static cat WITH(NOLOCK)
+       ON co.student_number = cat.student_number
+      AND co.year = cat.academic_year 
+      AND dt.time_per_name = cat.reporting_term
+      AND cat.CREDITTYPE = 'ALL'
+     LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long#static gpa WITH(NOLOCK)
+       ON co.student_number = gpa.student_number
+      AND co.year = gpa.academic_year
+      AND dt.alt_name = gpa.term
+     LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_cumulative#static cum WITH(NOLOCK)
+       ON co.studentid = cum.studentid
+      AND co.schoolid = cum.schoolid
+     WHERE co.year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()  
+       AND co.rn = 1
+    ) sub

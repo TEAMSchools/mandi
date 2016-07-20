@@ -123,14 +123,14 @@ WITH roster_scaffold AS (
 
        UNION ALL
 
-       SELECT fp.STUDENTID
-             ,fp.student_number
-             ,fp.SCHOOLID
-             ,fp.GRADE_LEVEL
-             ,fp.academic_year
-             ,'T3' AS test_round
-             ,4 AS round_num
-             ,'2015-06-05' AS start_date
+       SELECT r.STUDENTID
+             ,r.student_number
+             ,r.SCHOOLID
+             ,r.GRADE_LEVEL
+             ,r.academic_year
+             ,r.test_round
+             ,r.round_num
+             ,r.start_date
              ,0 AS is_curterm
 
              ,CASE WHEN fp.status = 'Achieved' THEN COALESCE(fp.read_lvl, fp.indep_lvl) ELSE fp.indep_lvl END AS read_lvl
@@ -171,7 +171,8 @@ WITH roster_scaffold AS (
          ON CASE WHEN fp.status = 'Achieved' AND fp.indep_lvl IS NULL THEN fp.read_lvl ELSE fp.indep_lvl END = gleq.read_lvl
         AND gleq.testid = 3273
        WHERE r.academic_year = 2014
-         AND r.schoolid = 133570965 
+         AND r.schoolid = 133570965
+         AND r.test_round = 'T3' 
       ) sub
  )
 
@@ -237,6 +238,9 @@ SELECT academic_year
       ,test_round
       ,start_date
       ,is_curterm
+      ,ROW_NUMBER() OVER(
+         PARTITION BY studentid, academic_year
+           ORDER BY start_date ASC) AS rn_round_asc
 
       ,read_lvl
       ,instruct_lvl

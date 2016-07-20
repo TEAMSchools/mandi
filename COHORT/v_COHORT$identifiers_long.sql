@@ -4,6 +4,7 @@ GO
 ALTER VIEW COHORT$identifiers_long AS
 
 SELECT co.schoolid
+      ,000000 AS reporting_schoolid
       ,CASE
         WHEN co.schoolid = 73252 THEN 'MS'
         WHEN co.grade_level <= 4 THEN 'ES'

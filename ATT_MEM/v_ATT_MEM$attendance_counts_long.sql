@@ -61,8 +61,8 @@ WITH att_counts AS (
    AND co.year = d.academic_year
    AND d.identifier = 'RT'
   JOIN KIPP_NJ..ATT_MEM$att_codes#static att WITH(NOLOCK)
-    ON co.schoolid  = att.SCHOOLID
-   AND att.YEARID = LEFT(KIPP_NJ.dbo.fn_Global_Term_Id(),2)
+    ON co.schoolid  = att.SCHOOLID   
+   AND d.yearid = att.yearid
    AND att.att_code IS NOT NULL /* present */
    AND att.ATT_CODE NOT IN ('NM','OSSP','PLE','U','CS','CR','EV','SE') /* effectively present */
   WHERE co.rn = 1

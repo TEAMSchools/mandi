@@ -13,8 +13,7 @@ WITH membership_long AS (
     ON mem.calendardate >= dates.start_date
    AND mem.calendardate <= dates.end_date       
    AND mem.schoolid = dates.schoolid
-   AND dates.identifier = 'RT'
-  WHERE mem.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+   AND dates.identifier = 'RT'  
       
   UNION ALL
 
@@ -28,9 +27,7 @@ WITH membership_long AS (
    AND mem.CALENDARDATE >= curterm.start_date
    AND mem.CALENDARDATE <= curterm.end_date
    AND curterm.identifier = 'RT'
-  WHERE mem.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-    AND curterm.start_date <= CONVERT(DATE,GETDATE())
-    AND curterm.end_date >= CONVERT(DATE,GETDATE())
+  WHERE CONVERT(DATE,GETDATE()) BETWEEN curterm.start_date AND curterm.end_date
  )
 
 SELECT STUDENTID

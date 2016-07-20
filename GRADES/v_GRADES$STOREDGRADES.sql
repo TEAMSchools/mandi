@@ -66,27 +66,27 @@ FROM
                 ,oq.EXCLUDEFROMTRANSCRIPTS
                 ,oq.EXCLUDEFROMGRADUATION
           FROM OPENQUERY(PS_TEAM,'
-            SELECT studentid
-                  ,schoolid
-                  ,sectionid
-                  ,course_number
-                  ,course_name
-                  ,termid
-                  ,storecode
-                  ,grade
-                  ,percent
-                  ,gpa_points
-                  ,potentialcrhrs
-                  ,earnedcrhrs  
-                  ,gradescale_name
-                  ,excludefromgpa
-                  ,excludefromtranscripts
-                  ,excludefromgraduation        
-            FROM storedgrades
-            WHERE (course_number IS NULL OR (course_number IS NOT NULL AND grade IS NOT NULL AND percent > 0)) -- exclude dirty data but keep transfer credits
-          ') oq
-          JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK) -- only records with matching student IDs returned, there's some really dirty data from 2008
-            ON oq.studentid = s.id
+            SELECT sg.studentid
+                  ,sg.schoolid
+                  ,sg.sectionid
+                  ,sg.course_number
+                  ,sg.course_name
+                  ,sg.termid
+                  ,sg.storecode
+                  ,sg.grade
+                  ,sg.percent
+                  ,sg.gpa_points
+                  ,sg.potentialcrhrs
+                  ,sg.earnedcrhrs  
+                  ,sg.gradescale_name
+                  ,sg.excludefromgpa
+                  ,sg.excludefromtranscripts
+                  ,sg.excludefromgraduation        
+            FROM STOREDGRADES sg
+            JOIN STUDENTS s /* only records with matching student IDs returned, theres some really dirty data from 2008 */
+              ON sg.studentid = s.id
+            WHERE (course_number IS NULL OR (course_number IS NOT NULL AND grade IS NOT NULL AND percent > 0)) /* exclude dirty data but keep transfer credits */
+          ') oq          
          ) sub
     ) sub
 WHERE dupe_audit = 1 -- older data has a lot of dupes, none of these records have any bearance on current students, so bank error is in their favor

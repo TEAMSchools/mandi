@@ -27,6 +27,7 @@ WITH tests_long AS (
 )
 
 SELECT co.student_number      
+      ,co.year AS academic_year
       ,t.term            
       ,comm.subject
       ,RIGHT(l.label,1) AS comment_number

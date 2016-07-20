@@ -20,7 +20,10 @@ WITH act_data AS (
         ,REPLACE(act.standard_code,'ACCRS.','') AS standard_code
         ,act.standard_description
         ,act.standard_percent_correct
-        ,LAG(act.scale_score) OVER(PARTITION BY act.student_number, act.academic_year, act.subject_area, act.rn_dupe ORDER BY act.administered_at) AS prev_scale_score
+        ,act.pretest_scale_score
+        ,act.prev_scale_score
+        ,act.growth_from_pretest
+        ,act.rn_dupe
   FROM KIPP_NJ..ACT$test_prep_scores act WITH(NOLOCK)
 
   UNION ALL
@@ -35,8 +38,11 @@ WITH act_data AS (
         ,act.overall_performance_band
         ,REPLACE(act.standard_code,'ACCRS.','') AS standard_code
         ,act.standard_description
-        ,act.standard_percent_correct
-        ,LAG(act.scale_score) OVER(PARTITION BY act.student_number, act.academic_year, act.subject_area, act.rn_dupe ORDER BY act.administered_at) AS prev_scale_score
+        ,act.standard_percent_correct        
+        ,act.pretest_scale_score
+        ,act.prev_scale_score
+        ,act.growth_from_pretest
+        ,act.rn_dupe
   FROM KIPP_NJ..ACT$test_prep_scores act WITH(NOLOCK)
   WHERE act.subject_area IN ('English','Reading')
  )
@@ -75,16 +81,16 @@ SELECT co.year
       ,act.administration_round
       ,act.subject_area
       ,act.overall_number_correct
-      ,act.scale_score
+      ,act.scale_score      
       ,act.prev_scale_score
+      ,act.pretest_scale_score
+      ,act.growth_from_pretest
       ,act.overall_performance_band
       ,act.standard_code
       ,act.standard_description
       ,act.standard_percent_correct      
       
-      ,ROW_NUMBER() OVER(
-         PARTITION BY co.student_number, co.year, act.administration_round, act.subject_area
-           ORDER BY act.student_number) AS rn_assessment /* 1 row per student, per test (overall) */      
+      ,act.rn_dupe AS rn_assessment /* 1 row per student, per test (overall) */      
       ,ROW_NUMBER() OVER(
          PARTITION BY co.student_number, co.year, act.administration_round, act.subject_area, act.standard_code
            ORDER BY act.student_number) AS rn_assessment_standard /* 1 row per student, per test (by standard) */      
@@ -127,6 +133,8 @@ SELECT co.year
       ,NULL AS overall_number_correct
       ,r.scale_score
       ,NULL AS prev_scale_score
+      ,NULL AS pretest_scale_score
+      ,NULL AS growth_from_pretest
       ,NULL AS overall_performance_band
       ,NULL AS standard_code
       ,NULL AS standard_description
