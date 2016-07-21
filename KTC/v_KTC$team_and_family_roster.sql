@@ -22,12 +22,13 @@ WITH hs_grads AS (
         ,co.highest_achieved
         ,co.SPEDLEP
         ,co.SPED_code
+        ,CONVERT(VARCHAR(MAX),co.guardianemail) AS guardianemail
         ,ROW_NUMBER() OVER(
            PARTITION BY co.student_number
              ORDER BY co.exitdate DESC) AS rn
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   WHERE co.grade_level = 8
-    AND co.exitcode = 'G1'           
+    AND co.exitcode IN ('G1','T2')
     AND co.student_number NOT IN (2026,3049,3012)
     AND co.rn = 1
     AND co.enroll_status != 0
@@ -45,6 +46,7 @@ WITH hs_grads AS (
         ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN sch2.ABBREVIATION ELSE sch.ABBREVIATION END AS school_name         
         ,ISNULL(cs.SPEDLEP,'No IEP') AS SPEDLEP
         ,cs.SPEDLEP_CODE AS SPED_code
+        ,sub.guardianemail
   FROM
       (
        SELECT co.studentid             
@@ -52,6 +54,7 @@ WITH hs_grads AS (
              ,co.lastfirst                          
              ,MAX(co.cohort) AS cohort
              ,co.highest_achieved
+             ,MAX(CONVERT(VARCHAR(MAX),co.guardianemail)) AS guardianemail
              ,(KIPP_NJ.dbo.fn_Global_Academic_Year() - MAX(co.year)) + MAX(co.grade_level) AS curr_grade_level
              ,DATEDIFF(YEAR, MIN(co.entrydate), MAX(co.exitdate)) AS years_enrolled             
              ,MIN(co.entrydate) AS orig_entrydate
@@ -63,13 +66,13 @@ WITH hs_grads AS (
          AND co.studentid NOT IN (SELECT studentid FROM ms_grads) 
        GROUP BY co.studentid, co.student_number, co.lastfirst, co.highest_achieved
       ) sub
-  LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s
+  LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
     ON sub.student_number = s.STUDENT_NUMBER
-  LEFT OUTER JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs
+  LEFT OUTER JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
     ON sub.studentid = cs.STUDENTID
-  LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch
+  LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH(NOLOCK)
     ON s.GRADUATED_SCHOOLID = sch.SCHOOL_NUMBER
-  LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch2
+  LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch2 WITH(NOLOCK)
     ON s.SCHOOLID = sch2.SCHOOL_NUMBER
   WHERE (sub.cohort >= 2018 AND years_enrolled = 1 AND final_exitdate >= CONVERT(DATE,CONVERT(VARCHAR,year_final_exitdate) + '-10-01'))
  )
@@ -85,6 +88,7 @@ WITH hs_grads AS (
         ,highest_achieved
         ,SPEDLEP
         ,SPED_code
+        ,guardianemail
   FROM ms_grads
   
   UNION
@@ -99,11 +103,16 @@ WITH hs_grads AS (
         ,highest_achieved
         ,SPEDLEP
         ,SPED_code
+        ,guardianemail
   FROM transfers    
  )
 
 ,enrollments AS (
   SELECT s.School_Specific_ID__c AS student_number        
+        ,s.mobilephone AS SF_MOBILE_PHONE
+        ,s.homephone AS SF_HOME_PHONE
+        ,s.otherphone AS SF_OTHER_PHONE
+        ,s.email AS SF_EMAIL
         ,u.Name AS ktc_counselor
         ,enr.Type__c AS enrollment_type
         ,enr.Status__c AS enrollment_status
@@ -133,47 +142,52 @@ SELECT r.student_number
       ,enr.enrollment_type
       ,enr.enrollment_name
       ,enr.enrollment_status
-      ,con.HOME_PHONE
-      ,con.MOTHER
-      ,con.MOTHER_HOME
-      ,con.MOTHER_CELL
-      ,con.MOTHER_DAY
-      ,con.FATHER
-      ,con.FATHER_HOME
-      ,con.FATHER_CELL
-      ,con.FATHER_DAY
-      ,con.DOCTOR_NAME
-      ,con.DOCTOR_PHONE
-      ,con.EMERG_CONTACT_1
-      ,con.EMERG_1_REL
-      ,con.EMERG_PHONE_1
-      ,con.EMERG_CONTACT_2
-      ,con.EMERG_2_REL
-      ,con.EMERG_PHONE_2
-      ,con.EMERG_CONTACT_3
-      ,con.EMERG_3_REL
-      ,con.EMERG_3_PHONE
-      ,con.EMERG_4_NAME
-      ,con.EMERG_4_REL
-      ,con.EMERG_4_PHONE
-      ,con.EMERG_5_NAME
-      ,con.EMERG_5_REL
-      ,con.EMERG_5_PHONE
-      ,con.RELEASE_1_NAME
-      ,con.RELEASE_1_PHONE
-      ,con.RELEASE_1_RELATION
-      ,con.RELEASE_2_NAME
-      ,con.RELEASE_2_PHONE
-      ,con.RELEASE_2_RELATION
-      ,con.RELEASE_3_NAME
-      ,con.RELEASE_3_PHONE
-      ,con.RELEASE_3_RELATION
-      ,con.RELEASE_4_NAME
-      ,con.RELEASE_4_PHONE
-      ,con.RELEASE_4_RELATION
-      ,con.RELEASE_5_NAME
-      ,con.RELEASE_5_PHONE
-      ,con.RELEASE_5_RELATION
+      ,enr.SF_HOME_PHONE
+      ,enr.SF_MOBILE_PHONE
+      ,enr.SF_OTHER_PHONE
+      ,enr.SF_EMAIL      
+      ,con.HOME_PHONE AS PS_HOME_PHONE
+      ,con.MOTHER AS PS_MOTHER
+      ,con.MOTHER_HOME AS PS_MOTHER_HOME
+      ,con.MOTHER_CELL AS PS_MOTHER_CELL
+      ,con.MOTHER_DAY AS PS_MOTHER_DAY
+      ,con.FATHER AS PS_FATHER
+      ,con.FATHER_HOME AS PS_FATHER_HOME
+      ,con.FATHER_CELL AS PS_FATHER_CELL
+      ,con.FATHER_DAY AS PS_FATHER_DAY
+      ,r.guardianemail AS PS_EMAIL
+      ,con.DOCTOR_NAME AS PS_DOCTOR_NAME
+      ,con.DOCTOR_PHONE AS PS_DOCTOR_PHONE
+      ,con.EMERG_CONTACT_1 AS PS_EMERG_CONTACT_1
+      ,con.EMERG_1_REL AS PS_EMERG_1_REL
+      ,con.EMERG_PHONE_1 AS PS_EMERG_PHONE_1
+      ,con.EMERG_CONTACT_2 AS PS_EMERG_CONTACT_2
+      ,con.EMERG_2_REL AS PS_EMERG_2_REL
+      ,con.EMERG_PHONE_2 AS PS_EMERG_PHONE_2
+      ,con.EMERG_CONTACT_3 AS PS_EMERG_CONTACT_3
+      ,con.EMERG_3_REL AS PS_EMERG_3_REL
+      ,con.EMERG_3_PHONE AS PS_EMERG_3_PHONE
+      ,con.EMERG_4_NAME AS PS_EMERG_4_NAME
+      ,con.EMERG_4_REL AS PS_EMERG_4_REL
+      ,con.EMERG_4_PHONE AS PS_EMERG_4_PHONE
+      ,con.EMERG_5_NAME AS PS_EMERG_5_NAME
+      ,con.EMERG_5_REL AS PS_EMERG_5_REL
+      ,con.EMERG_5_PHONE AS PS_EMERG_5_PHONE
+      ,con.RELEASE_1_NAME AS PS_RELEASE_1_NAME
+      ,con.RELEASE_1_PHONE AS PS_RELEASE_1_PHONE
+      ,con.RELEASE_1_RELATION AS PS_RELEASE_1_RELATION
+      ,con.RELEASE_2_NAME AS PS_RELEASE_2_NAME
+      ,con.RELEASE_2_PHONE AS PS_RELEASE_2_PHONE
+      ,con.RELEASE_2_RELATION AS PS_RELEASE_2_RELATION
+      ,con.RELEASE_3_NAME AS PS_RELEASE_3_NAME
+      ,con.RELEASE_3_PHONE AS PS_RELEASE_3_PHONE
+      ,con.RELEASE_3_RELATION AS PS_RELEASE_3_RELATION
+      ,con.RELEASE_4_NAME AS PS_RELEASE_4_NAME
+      ,con.RELEASE_4_PHONE AS PS_RELEASE_4_PHONE
+      ,con.RELEASE_4_RELATION AS PS_RELEASE_4_RELATION
+      ,con.RELEASE_5_NAME AS PS_RELEASE_5_NAME
+      ,con.RELEASE_5_PHONE AS PS_RELEASE_5_PHONE
+      ,con.RELEASE_5_RELATION AS PS_RELEASE_5_RELATION
 FROM roster r
 LEFT OUTER JOIN KIPP_NJ..PS$student_contact#static con WITH(NOLOCK)
   ON r.studentid = con.STUDENTID
