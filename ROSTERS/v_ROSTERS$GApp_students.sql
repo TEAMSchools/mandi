@@ -6,7 +6,7 @@ ALTER VIEW ROSTERS$GApp_students AS
 WITH temp_gapps_exclude AS (
   SELECT c.studentid, c.student_number
   FROM KIPP_NJ..COHORT$comprehensive_long#static c WITH(NOLOCK)
-  WHERE c.year = 2015
+  WHERE c.year = 2016
     AND c.schoolid = 73252
     AND c.exitdate <= CONVERT(DATE,GETDATE())
  )
