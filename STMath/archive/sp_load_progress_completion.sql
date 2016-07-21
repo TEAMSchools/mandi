@@ -1,7 +1,15 @@
-USE KIPP_NJ
+USE [STMath]
 GO
 
-ALTER PROCEDURE sp_STMATH$progress_completion#MERGE AS 
+/****** Object:  StoredProcedure [dbo].[sp_load_progress_completion]    Script Date: 7/21/2016 3:37:58 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+ALTER PROCEDURE [dbo].[sp_load_progress_completion] AS 
 BEGIN
 
   --very very poor man's print
@@ -17,36 +25,40 @@ BEGIN
 						DROP TABLE #st_math_completion
 		END
 	
-	--1. bulk load csv and SELECT INTO temp table				
-   SELECT IID
-						   ,Institution_name
-						   ,TCD
-						   ,Teacher_name
-						   ,SCD
-						   ,Student_name
-						   ,YCD
-						   ,start_year
-						   ,GCD
-						   ,num_lab_logins
-						   ,num_homework_logins
-						   ,K_5_Progress
-						   ,K_5_Mastery
-						   ,objective_name
-						   ,curr_obj_path
-						   ,cur_hurdle_num_tries
-						   ,CASE WHEN ISDATE(last_login_date) = 1 THEN CONVERT(DATE,last_login_date) ELSE NULL END AS last_login_date
-						   ,UUID
-						   ,CASE WHEN ISNUMERIC(fluency_progress) = 1 THEN fluency_progress ELSE NULL END AS fluency_progress
-						   ,CASE WHEN ISNUMERIC(fluency_mastery) = 1 THEN fluency_mastery ELSE NULL END AS fluency_mastery
-						   ,CASE WHEN fluency_path = '\N' THEN NULL ELSE fluency_path END AS fluency_path
-						   ,CASE WHEN ISNUMERIC(fluency_time_spent) = 1 THEN fluency_time_spent ELSE NULL END AS fluency_time_spent
-						   ,CASE WHEN school_student_id != '\N' THEN CONVERT(INT,REPLACE(school_student_id,'.0','')) ELSE NULL END AS school_student_id
-						   ,minutes_logged_last_week
-						   ,state_id	
-						   ,CASE WHEN ISDATE(first_login_date) = 1 THEN CONVERT(DATE,first_login_date) ELSE NULL END AS first_login_date
-						   ,week_ending_date
-   INTO #st_math_completion
-   FROM KIPP_NJ..AUTOLOAD$STMATH_progress_completion WITH(NOLOCK);
+	--1. bulk load csv and SELECT INTO temp table
+		SELECT sub.*
+		INTO #st_math_completion
+		FROM
+				  (
+       SELECT IID
+						       ,Institution_name
+						       ,TCD
+						       ,Teacher_name
+						       ,SCD
+						       ,Student_name
+						       ,YCD
+						       ,start_year
+						       ,GCD
+						       ,num_lab_logins
+						       ,num_homework_logins
+						       ,K_5_Progress
+						       ,K_5_Mastery
+						       ,objective_name
+						       ,curr_obj_path
+						       ,cur_hurdle_num_tries
+						       ,CASE WHEN ISDATE(last_login_date) = 1 THEN CONVERT(DATE,last_login_date) ELSE NULL END AS last_login_date
+						       ,UUID
+						       ,CASE WHEN ISNUMERIC(fluency_progress) = 1 THEN fluency_progress ELSE NULL END AS fluency_progress
+						       ,CASE WHEN ISNUMERIC(fluency_mastery) = 1 THEN fluency_mastery ELSE NULL END AS fluency_mastery
+						       ,CASE WHEN fluency_path = '\N' THEN NULL ELSE fluency_path END AS fluency_path
+						       ,CASE WHEN ISNUMERIC(fluency_time_spent) = 1 THEN fluency_time_spent ELSE NULL END AS fluency_time_spent
+						       ,CASE WHEN school_student_id != '\N' THEN CONVERT(INT,REPLACE(school_student_id,'.0','')) ELSE NULL END AS school_student_id
+						       ,minutes_logged_last_week
+						       ,state_id	
+						       ,CASE WHEN ISDATE(first_login_date) = 1 THEN CONVERT(DATE,first_login_date) ELSE NULL END AS first_login_date
+						       ,week_ending_date
+       FROM KIPP_NJ..AUTOLOAD$STMATH_progress_completion
+					 ) sub;
 
   --a lot of work for a print statement...
   SET @helper1 = N'SET @X = (SELECT COUNT(*) AS N FROM #st_math_completion)'
@@ -55,7 +67,7 @@ BEGIN
   RAISERROR (@msg, 0, 1, @msg_value) WITH NOWAIT
 
   --2. merge into destination
-		MERGE KIPP_NJ..STMATH$progress_completion_long target
+		MERGE progress_completion target
 		USING #st_math_completion staging
 					ON target.UUID = staging.UUID
     AND target.week_ending_date = staging.week_ending_date
@@ -147,5 +159,7 @@ BEGIN
   );
 END
 
+
 GO
+
 
