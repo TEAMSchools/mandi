@@ -1,7 +1,7 @@
 USE master
 GO
 
-ALTER PROCEDURE sp_LongTransactionNotify AS
+ALTER PROCEDURE sp_UTIL$LongTransactionNotify AS
 
 /* NOTE: You have to configure/set the following 3 variables */
 DECLARE @AlertingThresholdMinutes int = 15;
