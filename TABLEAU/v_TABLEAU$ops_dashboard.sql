@@ -9,7 +9,7 @@ SELECT co.student_number
       ,co.entrydate
       ,co.exitdate
       ,co.school_level
-      ,CASE WHEN co.team LIKE '%Pathways%' THEN 732579 ELSE co.schoolid END AS SCHOOLID
+      ,co.reporting_schoolid AS SCHOOLID
       ,co.GRADE_LEVEL
       ,co.ENROLL_STATUS
       ,co.spedlep AS iep_status

@@ -4,7 +4,7 @@ GO
 ALTER VIEW COHORT$identifiers_long AS
 
 SELECT co.schoolid
-      ,000000 AS reporting_schoolid
+      ,CONVERT(INT,CONCAT(co.schoolid, sp.programid)) AS reporting_schoolid
       ,CASE
         WHEN co.schoolid = 73252 THEN 'MS'
         WHEN co.grade_level <= 4 THEN 'ES'
@@ -27,7 +27,7 @@ SELECT co.schoolid
          PARTITION BY co.studentid, co.schoolid
            ORDER BY co.year ASC) AS year_in_school
 
-      ,sch.abbreviation AS school_name
+      ,COALESCE(sp.program_name, sch.abbreviation) AS school_name
 
       ,s.first_name
       ,s.MIDDLE_NAME
@@ -164,3 +164,6 @@ LEFT OUTER JOIN COHORT$student_promo_order#static past WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..COHORT$retention_flags#static ret WITH(NOLOCK)
   ON co.studentid = ret.studentid
  AND co.year = ret.year
+LEFT OUTER JOIN KIPP_NJ..PS$SPENROLLMENTS sp WITH(NOLOCK)
+  ON co.studentid = sp.studentid
+ AND co.year = sp.academic_year
