@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER PROCEDURE sp_GRADES$StoreGrades    
+ALTER PROCEDURE sp_GRADES$StoredGradesImport    
   @schoolid INT,
   @storecode VARCHAR(2)
 AS

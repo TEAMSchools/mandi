@@ -1,6 +1,7 @@
 SELECT student_number
       ,academic_year
       ,term
+      
       ,promo_status_overall
       ,promo_status_attendance
       ,promo_status_lit

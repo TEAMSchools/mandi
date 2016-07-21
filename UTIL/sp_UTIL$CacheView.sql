@@ -7,7 +7,7 @@
 USE KIPP_NJ
 GO
 
-CREATE PROCEDURE sp_CacheView
+ALTER PROCEDURE sp_UTIL$CacheView
   @db NVARCHAR(256), -- name of the destination DB
   @view NVARCHAR(256), -- name of the view you want to cache
   @rebuild BIT = 0 -- 1 = drop and rebuild table if it already exists, 0 = don't (defualt)

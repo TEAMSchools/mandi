@@ -84,6 +84,18 @@ WITH attendance AS (
       ) sub
  )
 
+,credits AS (
+  SELECT student_number
+        ,academic_year
+        ,term      
+        ,SUM(credit_hours) AS total_credit_hours_enrolled
+        ,SUM(CASE WHEN y1_grade_letter LIKE 'F%' THEN 0 ELSE credit_hours END) AS total_projected_credit_hours
+  FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
+  GROUP BY student_number
+          ,academic_year
+          ,term      
+ )
+
 SELECT *
       ,CASE 
         WHEN school_level = 'ES' AND (SPEDLEP = 'SPED' OR retention_flag >= 1) THEN 'See Teacher'
@@ -173,9 +185,13 @@ FROM
             END AS GPA_cum_status      
       
            /* credits */
-           ,NULL AS promo_status_credits
-           ,NULL AS credits_enrolled
-           ,NULL AS projected_credits_earned
+           ,CASE
+             WHEN cr.total_projected_credit_hours >= cr.total_credit_hours_enrolled THEN 'On Track'
+             WHEN cr.total_projected_credit_hours < cr.total_credit_hours_enrolled THEN 'Off Track'
+            END AS promo_status_credits
+           ,cr.total_credit_hours_enrolled AS credits_enrolled
+           ,cr.total_projected_credit_hours AS projected_credits_earned
+           ,cum.earned_credits_cum           
      FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
      JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
        ON co.schoolid = dt.schoolid
@@ -206,6 +222,10 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_cumulative#static cum WITH(NOLOCK)
        ON co.studentid = cum.studentid
       AND co.schoolid = cum.schoolid
+     LEFT OUTER JOIN credits cr
+       ON co.student_number = cr.student_number
+      AND co.year = cr.academic_year
+      AND dt.alt_name = cr.term
      WHERE co.year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()  
        AND co.rn = 1
     ) sub

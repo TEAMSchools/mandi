@@ -56,8 +56,8 @@ WITH standard_descriptions AS (
                 (
                  SELECT ovr.academic_year
                        ,ovr.local_student_id
-                       ,a.standard_id                  
-                       ,COALESCE(ltp.studentfriendly_description, a.standard_description) AS standard_description
+                       ,r.standard_id                  
+                       ,COALESCE(ltp.studentfriendly_description, CONVERT(VARCHAR(MAX),std.description)) AS standard_description
                        ,a.subject_area
                        ,CASE
                          WHEN a.subject_area = 'Text Study' THEN 'ELA'                    
@@ -70,7 +70,7 @@ WITH standard_descriptions AS (
                        ,d.alt_name AS term
                        ,CONVERT(FLOAT,r.percent_correct) AS percent_correct                  
                        ,ROW_NUMBER() OVER(
-                          PARTITION BY ovr.local_student_id, d.time_per_name, a.subject_area, a.standard_id
+                          PARTITION BY ovr.local_student_id, d.time_per_name, a.subject_area, r.standard_id
                             ORDER BY r.percent_correct ASC) AS rn
                  FROM KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
                  JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
@@ -81,19 +81,19 @@ WITH standard_descriptions AS (
                    ON co.schoolid = d.schoolid
                   AND ovr.date_taken BETWEEN d.start_date AND d.end_date
                   AND d.identifier = 'RT'
-                 JOIN KIPP_NJ..ILLUMINATE$assessments_long#static a WITH(NOLOCK)
-                   ON co.schoolid = a.schoolid             
-                  AND ovr.assessment_id = a.assessment_id
+                 JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
+                   ON ovr.assessment_id = a.assessment_id
                   AND ((a.subject_area IN ('Performing Arts','History','Science') AND a.scope IN ('Exit Ticket','Unit Assessment'))
-                       OR (a.subject_area NOT IN ('Performing Arts','History','Science') AND a.scope IN ('Exit Ticket','CMA - Mid-Module')))                  
-                 LEFT OUTER JOIN standard_descriptions ltp WITH(NOLOCK)
-                   ON a.standard_code = ltp.standard_code
-                  AND ltp.rn = 1
+                       OR (a.subject_area NOT IN ('Performing Arts','History','Science') AND a.scope IN ('Exit Ticket','CMA - Mid-Module')))                                   
                  JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard r WITH(NOLOCK)
                    ON ovr.local_student_id = r.local_student_id
-                  AND ovr.assessment_id = r.assessment_id
-                  AND a.standard_id = r.standard_id                        
+                  AND ovr.assessment_id = r.assessment_id                  
                   AND r.answered > 0
+                 JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
+                   ON r.standard_id = std.standard_id
+                 LEFT OUTER JOIN standard_descriptions ltp WITH(NOLOCK)
+                   ON std.custom_code = ltp.standard_code
+                  AND ltp.rn = 1
                  WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
                    AND ovr.answered > 0
                    AND co.schoolid = 73258     
