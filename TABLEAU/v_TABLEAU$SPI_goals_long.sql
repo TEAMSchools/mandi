@@ -25,11 +25,7 @@ WITH map_data AS (
              ,PERCENTILE_DISC(0.5)
                 WITHIN GROUP (ORDER BY growth.growth_percentile)
                   OVER(PARTITION BY base.year, growth.end_term_string, base.schoolid, base.measurementscale) AS median_SGP_school
-       FROM KIPP_NJ..MAP$best_baseline base WITH(NOLOCK)
-       LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals goals WITH(NOLOCK)
-         ON base.studentid = goals.studentid
-        AND base.year = goals.year
-        AND base.measurementscale = goals.measurementscale
+       FROM KIPP_NJ..MAP$best_baseline base WITH(NOLOCK)       
        LEFT OUTER JOIN KIPP_NJ..MAP$growth_measures_long#static growth WITH(NOLOCK)
          ON base.studentid = growth.studentid
         AND base.year = growth.year

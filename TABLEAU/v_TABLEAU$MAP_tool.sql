@@ -19,7 +19,7 @@ WITH map_long AS (
         ,base.testritscore AS rit      
         ,REPLACE(base.lexile_score, 'BR', 0) AS lex      
         ,NULL AS testdurationminutes
-  FROM MAP$best_baseline#static base WITH(NOLOCK)
+  FROM KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
   
   UNION ALL
   
@@ -34,12 +34,12 @@ WITH map_long AS (
         ,base.testritscore AS base_rit
         ,base.testpercentile AS base_pct
         ,CONVERT(INT,REPLACE(base.lexile_score,'BR',0)) AS base_lex                
-        ,map.percentile_2011_norms AS pct
+        ,map.percentile_2015_norms AS pct
         ,map.testritscore AS rit      
         ,REPLACE(map.rittoreadingscore, 'BR', 0) AS lex      
         ,map.TestDurationMinutes
-  FROM MAP$best_baseline#static base WITH(NOLOCK)  
-  LEFT OUTER JOIN MAP$CDF#identifiers#static map WITH(NOLOCK)
+  FROM KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)  
+  LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map WITH(NOLOCK)
     ON base.studentid = map.studentid
    AND base.year = map.academic_year
    AND base.measurementscale = map.measurementscale   
@@ -97,7 +97,7 @@ FROM
              WHEN map_long.pct BETWEEN 50 AND 74 THEN 3
              WHEN map_long.pct >= 75 THEN 4                
             END AS term_quartile
-     FROM COHORT$identifiers_long#static r WITH(NOLOCK)
+     FROM KIPP_NJ..COHORT$identifiers_long#static r WITH(NOLOCK)
      LEFT OUTER JOIN map_long
        ON r.studentid = map_long.studentid
       AND r.year = map_long.year 

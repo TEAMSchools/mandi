@@ -542,7 +542,7 @@ WITH roster AS (
         ,term
         ,measurementscale
         ,testritscore
-        ,testpercentile
+        ,percentile_2015_norms AS testpercentile
   FROM KIPP_NJ..MAP$CDF#identifiers#static WITH(NOLOCK)
   WHERE rn = 1
  )
@@ -865,22 +865,27 @@ WITH roster AS (
              ,schoolid             
 
              /* overall */
-             ,CONVERT(VARCHAR,promo_overall_rise) AS promo_status_overall             
+             ,CONVERT(VARCHAR,promo_status_overall) AS promo_status_overall             
              
              /* attendance */
-             ,CONVERT(VARCHAR,promo_att_rise) AS promo_status_att
-             ,CONVERT(VARCHAR,y1_att_pts_pct) AS att_pts_pct
+             ,CONVERT(VARCHAR,promo_status_attendance) AS promo_status_att
+             ,CONVERT(VARCHAR,att_pts_pct) AS att_pts_pct
              ,CONVERT(VARCHAR,days_to_90) AS days_to_90
              ,CONVERT(VARCHAR,days_to_90_abs_only) AS days_to_90_abs_only
+             
+             /* lit */
+             ,CONVERT(VARCHAR,promo_status_lit) AS lit_ARFR_status                   
+             ,CONVERT(VARCHAR,cur_read_lvl) AS read_lvl_status
+             ,CONVERT(VARCHAR,goal_lvl) AS goal_lvl_status      
              
              /* grades */
              ,CASE
                WHEN schoolid = 73253 THEN CONVERT(VARCHAR,N_below_70)
                ELSE CONVERT(VARCHAR,N_below_65)
               END AS n_failing             
-             ,CONVERT(VARCHAR,promo_grades_gpa_rise) AS promo_status_grades /* # failing */                          
-       FROM KIPP_NJ..REPORTING$promo_status#MS WITH(NOLOCK)
-       WHERE rn_curterm = 1
+             ,CONVERT(VARCHAR,promo_status_grades) AS promo_status_grades /* # failing */                          
+       FROM KIPP_NJ..PROMO$promo_status WITH(NOLOCK)
+       WHERE is_curterm = 1       
       ) sub
   UNPIVOT(
     value
@@ -890,53 +895,10 @@ WITH roster AS (
                  ,n_failing
                  ,promo_status_overall
                  ,promo_status_grades
-                 ,promo_status_att)
-                 --,promo_status_hw)
-   ) u
-
-  UNION ALL
-
-  SELECT STUDENT_NUMBER
-        ,'PROMO STATUS' AS domain
-        ,field AS subdomain
-        ,CASE WHEN field LIKE '%status%' THEN value ELSE NULL END AS text_value
-        ,CASE WHEN field LIKE '%status%' THEN NULL ELSE CONVERT(FLOAT,value) END AS numeric_value
-  FROM
-      (
-       SELECT STUDENT_NUMBER                        
-             
-             /* attendance */
-             ,CONVERT(VARCHAR,att_ARFR_status) AS promo_status_att
-             ,CONVERT(VARCHAR,att_pts_pct) AS att_pts_pct
-             ,CONVERT(VARCHAR,days_to_90) AS days_to_90
-             ,CONVERT(VARCHAR,days_to_90_abs_only) AS days_to_90_abs_only
-             
-             /* lit */
-             ,CONVERT(VARCHAR,lit_ARFR_status) AS lit_ARFR_status                   
-             ,CONVERT(VARCHAR,read_lvl) AS read_lvl_status
-             ,CONVERT(VARCHAR,goal_lvl) AS goal_lvl_status      
-             
-             /* overall */
-             ,CONVERT(VARCHAR,
-                CASE 
-                 WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%See Teacher%' THEN 'See Teacher'
-                 WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%ARFR%' THEN 'At Risk for Retention' 
-                 WHEN CONCAT(att_ARFR_status,lit_ARFR_status) LIKE '%Off Track%' THEN 'Off Track' 
-                 ELSE 'On Track' 
-                END) AS promo_status_overall
-       FROM KIPP_NJ..PROMO$promo_status#ES WITH(NOLOCK)
-       WHERE is_curterm = 1
-      ) sub
-  UNPIVOT(
-    value
-    FOR field IN (days_to_90
-                 ,days_to_90_abs_only
-                 ,att_pts_pct
                  ,promo_status_att
                  ,read_lvl_status
                  ,goal_lvl_status          
-                 ,lit_ARFR_status                       
-                 ,promo_status_overall)
+                 ,lit_ARFR_status)                 
    ) u
  )
 

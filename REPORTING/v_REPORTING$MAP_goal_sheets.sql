@@ -68,10 +68,10 @@ FROM
                  END AS measurementscale
                 ,CONVERT(INT,map.TestRITScore) AS TestRITScore
                 ,CONVERT(INT,map.TestPercentile) AS TestPercentile
-                ,CONVERT(INT,goals.keep_up_rit) AS keep_up_rit
-                ,CONVERT(INT,goals.keep_up_goal) AS keep_up_goal
-                ,CONVERT(INT,goals.rutgers_ready_rit) AS rutgers_ready_rit
-                ,CONVERT(INT,goals.rutgers_ready_goal) AS rutgers_ready_goal
+                --,NULL AS keep_up_rit
+                --,NULL AS keep_up_goal
+                --,NULL AS rutgers_ready_rit
+                --,NULL AS rutgers_ready_goal
                 ,ROW_NUMBER() OVER(
                    PARTITION BY co.student_number, map.academic_year, map.term, map.measurementscale
                      ORDER BY map.testritscore DESC) AS rn_high
@@ -79,10 +79,10 @@ FROM
           LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map WITH(NOLOCK)
             ON co.student_number = map.student_number                                                       
            AND co.year = map.academic_year
-          LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals goals WITH(NOLOCK)
-            ON co.studentid = goals.studentid
-           AND co.year = goals.year
-           AND map.measurementscale = goals.measurementscale
+          --LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals goals WITH(NOLOCK)
+          --  ON co.studentid = goals.studentid
+          -- AND co.year = goals.year
+          -- AND map.measurementscale = goals.measurementscale
           WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
             AND co.grade_level <= 11
             AND co.rn = 1
@@ -107,19 +107,19 @@ FROM
                  END AS measurementscale
                 ,CONVERT(INT,base.TestRITScore) AS TestRITScore
                 ,CONVERT(INT,base.TestPercentile) AS TestPercentile
-                ,CONVERT(INT,goals.keep_up_rit) AS keep_up_rit
-                ,CONVERT(INT,goals.keep_up_goal) AS keep_up_goal
-                ,CONVERT(INT,goals.rutgers_ready_rit) AS rutgers_ready_rit
-                ,CONVERT(INT,goals.rutgers_ready_goal) AS rutgers_ready_goal
+                --,NULL AS keep_up_rit
+                --,NULL AS keep_up_goal
+                --,NULL AS rutgers_ready_rit
+                --,NULL AS rutgers_ready_goal
                 ,1 AS rn_high
           FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
           LEFT OUTER JOIN KIPP_NJ..MAP$best_baseline#static base WITH(NOLOCK)
             ON co.studentid = base.studentid
            AND co.year = base.year
-          LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals goals WITH(NOLOCK)
-            ON co.studentid = goals.studentid
-           AND co.year = goals.year
-           AND base.measurementscale = goals.measurementscale
+          --LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals goals WITH(NOLOCK)
+          --  ON co.studentid = goals.studentid
+          -- AND co.year = goals.year
+          -- AND base.measurementscale = goals.measurementscale
           WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
             AND co.grade_level <= 11
             AND co.rn = 1
@@ -128,11 +128,11 @@ FROM
      UNPIVOT(
        value
        FOR field IN (testritscore
-                    ,testpercentile
-                    ,keep_up_rit      
-                    ,keep_up_goal
-                    ,rutgers_ready_rit                  
-                    ,rutgers_ready_goal)
+                    ,testpercentile)
+                    --,keep_up_rit      
+                    --,keep_up_goal
+                    --,rutgers_ready_rit                  
+                    --,rutgers_ready_goal)
       ) u
      WHERE rn_high = 1
     ) sub

@@ -3,20 +3,7 @@ GO
 
 ALTER VIEW MAP$growth_measures_long AS
 
-WITH scales AS (
-  SELECT 'Mathematics' AS measurementscale
-  UNION ALL
-  SELECT 'Reading'
-  UNION ALL
-  SELECT 'Language Usage'
-  UNION ALL
-  SELECT 'Concepts and Processes'
-  UNION ALL
-  SELECT 'Science - General Science'
- )
-
--- assembles scaffold
-,base AS (
+WITH base AS (
   SELECT cohort.studentid
         ,cohort.grade_level
         ,cohort.schoolid
@@ -31,11 +18,10 @@ WITH scales AS (
         ,periods.end_term_string
         ,periods.period_string
         ,periods.goal_prorater
-        ,scales.measurementscale  
+        ,periods.measurementscale  
         ,cohort.year + periods.lookback_modifier AS period_start_year
   FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)    
-  CROSS JOIN KIPP_NJ..MAP$growth_terms#lookup periods WITH(NOLOCK)    
-  CROSS JOIN scales    
+  CROSS JOIN KIPP_NJ..AUTOLOAD$GDOCS_MAP_growth_terms periods WITH(NOLOCK)       
   WHERE cohort.grade_level <= 12
     AND cohort.rn = 1
  )
@@ -124,9 +110,7 @@ FROM
              WHEN rit_change < reported_growth_projection THEN 'No'
             END AS met_typical_growth_target_str
            ,rit_change - reported_growth_projection AS growth_index
-           ,ROUND(
-             (CASE WHEN period_string = 'Spring to half-of-Spring' THEN rit_change * 2 ELSE rit_change END - true_growth_projection) / std_dev_of_growth_projection
-             ,2) AS cgi
+           ,ROUND((CASE WHEN period_string = 'Spring to half-of-Spring' THEN rit_change * 2 ELSE rit_change END - true_growth_projection) / std_dev_of_growth_projection,2) AS cgi
      FROM
          (
           SELECT base.studentid
@@ -146,8 +130,8 @@ FROM
                 ,base.measurementscale
                 ,map_start.testritscore AS start_rit
                 ,map_end.testritscore AS end_rit
-                ,map_start.percentile_2011_norms AS start_npr
-                ,map_end.percentile_2011_norms AS end_npr
+                ,map_start.percentile_2015_norms AS start_npr
+                ,map_end.percentile_2015_norms AS end_npr
                 ,map_start.rittoreadingscore AS start_lex
                 ,map_end.rittoreadingscore AS end_lex
                 ,map_end.testritscore - map_start.testritscore AS rit_change
@@ -164,30 +148,9 @@ FROM
                 ,map_start.termname AS start_term_verif
                 ,map_end.termname AS end_term_verif
                 --norm study data
-                ,CASE
-                  WHEN base.start_term_numeric = 2 AND base.end_term_numeric = 1 THEN norms.R22 * base.goal_prorater /* Spring to Half-Spring */
-                  WHEN base.period_numeric = 42 THEN norms.r42
-                  WHEN base.period_numeric = 22 THEN norms.r22
-                  WHEN base.period_numeric = 44 THEN norms.r44
-                  WHEN base.period_numeric = 41 THEN norms.r41
-                  WHEN base.period_numeric = 12 THEN norms.r12
-                 END AS reported_growth_projection
-                ,CASE
-                  WHEN base.start_term_numeric = 2 AND base.end_term_numeric = 1 THEN norms.T22 * base.goal_prorater /* Spring to Half-Spring */
-                  WHEN base.period_numeric = 42 THEN norms.t42
-                  WHEN base.period_numeric = 22 THEN norms.t22
-                  WHEN base.period_numeric = 44 THEN norms.t44
-                  WHEN base.period_numeric = 41 THEN norms.t41
-                  WHEN base.period_numeric = 12 THEN norms.t12
-                 END AS true_growth_projection
-                ,CASE
-                  WHEN base.start_term_numeric = 2 AND base.end_term_numeric = 1 THEN norms.S22 * base.goal_prorater /* Spring to Half-Spring */
-                  WHEN base.period_numeric = 42 THEN norms.s42
-                  WHEN base.period_numeric = 22 THEN norms.s22
-                  WHEN base.period_numeric = 44 THEN norms.s44
-                  WHEN base.period_numeric = 41 THEN norms.s41
-                  WHEN base.period_numeric = 12 THEN norms.s12
-                 END AS std_dev_of_growth_projection
+                ,norms.reported_cohort_growth AS reported_growth_projection
+                ,norms.typical_cohort_growth AS true_growth_projection
+                ,norms.sd_of_expectation AS std_dev_of_growth_projection
           FROM base
           --data for START of target period
           LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_start WITH(NOLOCK)
@@ -204,11 +167,13 @@ FROM
            AND base.end_term_string = map_end.term
            AND map_end.rn = 1
           --norms data
-          LEFT OUTER JOIN KIPP_NJ..MAP$growth_norms_data_extended#2011 norms WITH(NOLOCK)
-            ON base.measurementscale = CASE WHEN norms.subject IN ('General Science', 'Concepts and Processes') THEN 'Science - ' + norms.subject ELSE norms.SUBJECT END 
-           AND map_start.testritscore = norms.startrit
-           AND map_start.grade_level = norms.startgrade              
+          LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_MAP_growth_norms norms WITH(NOLOCK)
+            ON base.measurementscale = norms.measurementscale           
+           AND base.start_term_string = norms.start_term
+           AND base.end_term_string = norms.end_term
+           AND map_end.testritscore = norms.rit
+           AND map_end.grade_level = norms.end_grade              
          ) with_map
     ) growth_index
 LEFT OUTER JOIN KIPP_NJ..UTIL$zscores zscores WITH(NOLOCK)
-  ON CAST(ROUND(growth_index.cgi, 2) AS decimal(4,2)) = CAST(ROUND(zscores.zscore, 2) AS decimal(4,2))
+  ON ROUND(CONVERT(DECIMAL(4,2),growth_index.cgi), 2) = ROUND(CONVERT(DECIMAL(4,2),zscores.zscore), 2)

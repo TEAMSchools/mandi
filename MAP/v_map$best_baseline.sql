@@ -50,9 +50,9 @@ SELECT sub.*
         ELSE CAST(map_spr.testritscore AS INT)
        END AS testritscore
       ,CASE 
-        WHEN map_fall.testritscore > map_spr.testritscore THEN CAST(map_fall.percentile_2011_norms AS INT)
-        WHEN map_spr.testritscore IS NULL THEN CAST(map_fall.percentile_2011_norms AS INT)
-        ELSE CAST(map_spr.percentile_2011_norms AS INT)
+        WHEN map_fall.testritscore > map_spr.testritscore THEN CAST(map_fall.percentile_2015_norms AS INT)
+        WHEN map_spr.testritscore IS NULL THEN CAST(map_fall.percentile_2015_norms AS INT)
+        ELSE CAST(map_spr.percentile_2015_norms AS INT)
        END AS testpercentile
       ,CASE 
         WHEN map_fall.testritscore > map_spr.testritscore THEN map_fall.FallToSpringProjectedGrowth

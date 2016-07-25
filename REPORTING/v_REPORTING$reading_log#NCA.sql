@@ -66,8 +66,8 @@ SELECT s.LASTFIRST
       ,base.testritscore AS RIT_base
       ,lex_winter.testritscore AS RIT_winter
       ,lex_spring.testritscore AS RIT_spr
-      ,rr.keep_up_rit
-      ,rr.rutgers_ready_rit      
+      --,rr.keep_up_rit
+      --,rr.rutgers_ready_rit      
       
       ,eng1.COURSE_NAME AS eng1_course
       ,eng1.SECTION_NUMBER AS eng1_section
@@ -111,10 +111,10 @@ LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_cur WITH (NOLOCK)
  AND s.year = lex_cur.academic_year
  AND lex_cur.measurementscale  = 'Reading' 
  AND lex_cur.rn_curr = 1
-LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
-  ON s.studentid = rr.studentid 
- AND s.year = rr.year
- AND rr.measurementscale = 'Reading' 
+--LEFT OUTER JOIN MAP$rutgers_ready_student_goals rr WITH(NOLOCK)
+--  ON s.studentid = rr.studentid 
+-- AND s.year = rr.year
+-- AND rr.measurementscale = 'Reading' 
 LEFT OUTER JOIN MAP$best_baseline#static base WITH(NOLOCK)
   ON s.studentid = base.studentid
  AND s.year = base.year

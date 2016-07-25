@@ -141,7 +141,7 @@ SELECT roster.studentid
       /* MAP */
       ,base.testritscore AS map_baseline
       ,COALESCE(cur_rit.TestRITScore, base.testritscore) AS cur_RIT
-      ,COALESCE(cur_rit.TestPercentile, base.testpercentile) AS cur_RIT_percentile       
+      ,COALESCE(cur_rit.percentile_2015_norms, base.testpercentile) AS cur_RIT_percentile       
       /* Lexile */
       ,base.lexile_score AS lexile_baseline_MAP
       ,map_fall.rittoreadingscore AS lexile_fall
@@ -220,10 +220,10 @@ SELECT roster.studentid
       ,[HEX6_WORDS]        
 
       /* MAP */
-      ,map_goals.keep_up_goal
-      ,map_goals.keep_up_rit
-      ,map_goals.rutgers_ready_goal
-      ,map_goals.rutgers_ready_rit      
+      ,NULL AS keep_up_goal
+      ,NULL AS keep_up_rit
+      ,NULL AS rutgers_ready_goal
+      ,NULL AS rutgers_ready_rit      
 FROM KIPP_NJ..COHORT$identifiers_long#static roster WITH(NOLOCK)   
 LEFT OUTER JOIN curhex
   ON roster.schoolid = curhex.schoolid  
@@ -284,10 +284,10 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_year WITH(NOLOCK)
  AND ar_year.time_period_name = 'Year' 
 LEFT OUTER JOIN ar_wide WITH (NOLOCK)
   ON roster.studentid = ar_wide.studentid 
-LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals map_goals WITH(NOLOCK)      
-  ON roster.studentid = map_goals.studentid
- AND roster.year = map_goals.year
- AND map_goals.measurementscale = 'Reading'
+--LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals map_goals WITH(NOLOCK)      
+--  ON roster.studentid = map_goals.studentid
+-- AND roster.year = map_goals.year
+-- AND map_goals.measurementscale = 'Reading'
 WHERE roster.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
   AND roster.schoolid IN (73252,133570965,73258,179902)
   AND roster.enroll_status = 0    

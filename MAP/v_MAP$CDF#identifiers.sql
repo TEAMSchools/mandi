@@ -11,8 +11,9 @@ SELECT co.schoolid
       ,co.year_in_network
       ,co.abbreviation AS year_abbreviation
       ,sub.*
-      ,norms_2008.testpercentile AS percentile_2008_norms
-      ,norms_2011.testpercentile AS percentile_2011_norms
+      ,norms_2008.student_percentile AS percentile_2008_norms
+      ,norms_2011.student_percentile AS percentile_2011_norms
+      ,norms_2015.student_percentile AS percentile_2015_norms
       ,CASE
         /* MATH ACT model */
         WHEN sub.measurementscale = 'Mathematics'
@@ -189,22 +190,27 @@ FROM
                         ,CONVERT(DATE,TestStartDate) DESC
                         ,CONVERT(FLOAT,TestStandardError) ASC) AS rn
      FROM KIPP_NJ..MAP$CDF WITH (NOLOCK)                
-     WHERE StudentID != '11XXX'
-       --AND (TestID IS NULL OR (TestID NOT IN (SELECT TestID FROM KIPP_NJ..MAP$exclusion_audit#static WITH(NOLOCK) WHERE is_excluded = 1)))
+     WHERE (TestID IS NULL OR (TestID NOT IN (SELECT TestID FROM KIPP_NJ..MAP$exclusion_audit#static WITH(NOLOCK) WHERE is_excluded = 1)))
     ) sub
 LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
   ON sub.student_number = co.student_number
  AND sub.academic_year = co.year
  AND co.rn = 1
-LEFT OUTER JOIN KIPP_NJ..MAP$norms_table norms_2008 WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_MAP_norms_table norms_2008 WITH(NOLOCK)
   ON co.grade_level = norms_2008.grade_level
  AND sub.measurementscale = norms_2008.measurementscale
  AND sub.testritscore = norms_2008.testritscore
  AND sub.term = norms_2008.term
  AND norms_2008.norms_year = 2008
-LEFT OUTER JOIN KIPP_NJ..MAP$norms_table norms_2011 WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_MAP_norms_table norms_2011 WITH(NOLOCK)
   ON co.grade_level = norms_2011.grade_level
  AND sub.measurementscale = norms_2011.measurementscale
  AND sub.testritscore = norms_2011.testritscore
  AND sub.term = norms_2011.term
  AND norms_2011.norms_year = 2011
+LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_MAP_norms_table norms_2015 WITH(NOLOCK)
+  ON co.grade_level = norms_2015.grade_level
+ AND sub.measurementscale = norms_2015.measurementscale
+ AND sub.testritscore = norms_2015.testritscore
+ AND sub.term = norms_2015.term
+ AND norms_2015.norms_year = 2015

@@ -86,7 +86,7 @@ FROM
            ,map.studentid AS map_studentid
            ,CONVERT(VARCHAR,map.teststartdate,101) AS test_date
            ,map.testritscore AS RIT
-           ,map.percentile_2011_norms AS percentile
+           ,map.percentile_2015_norms AS percentile
            ,REPLACE(map.rittoreadingscore, 'BR', 0) AS lexile      
            ,base.termname AS base_term
            ,base.testritscore AS base_RIT

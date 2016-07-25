@@ -23,7 +23,7 @@ WITH map_long AS (
              ,m.term                
              ,m.MeasurementScale
              ,m.TestRITScore
-             ,CONVERT(FLOAT,m.percentile_2011_norms) AS npr
+             ,CONVERT(FLOAT,m.percentile_2015_norms) AS npr
              ,m.TestStartDate
              ,m.TestDurationMinutes
              ,CASE WHEN COUNT(m.student_number) OVER(PARTITION BY m.student_number, m.measurementscale) < 4 THEN NULL ELSE m.TestDurationMinutes END AS student_TestDurationMinutes
@@ -31,12 +31,12 @@ WITH map_long AS (
              ,LAG(m.academic_year, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS prev_academic_year
              ,LAG(m.term, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS prev_term
              ,LAG(m.TestRITScore, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS prev_rit
-             ,LAG(m.percentile_2011_norms, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS prev_npr
+             ,LAG(m.percentile_2015_norms, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS prev_npr
 
              ,LEAD(m.academic_year, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS next_academic_year
              ,LEAD(m.term, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS next_term
              ,LEAD(m.TestRITScore, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS next_rit
-             ,LEAD(m.percentile_2011_norms, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS next_npr                
+             ,LEAD(m.percentile_2015_norms, 1) OVER(PARTITION BY m.student_number, m.measurementscale ORDER BY m.teststartdate ASC) AS next_npr                
                 
              ,COUNT(m.student_number) OVER(PARTITION BY m.student_number, m.measurementscale) AS student_N                                
        FROM KIPP_NJ..MAP$CDF#identifiers#static m WITH(NOLOCK)          
