@@ -33,7 +33,7 @@ BEGIN
 						   ,K_5_Mastery
 						   ,objective_name
 						   ,curr_obj_path
-						   ,cur_hurdle_num_tries
+						   ,CASE WHEN ISNUMERIC(curr_hurdle_num_tries) = 1 THEN curr_hurdle_num_tries ELSE NULL END AS cur_hurdle_num_tries
 						   ,CASE WHEN ISDATE(last_login_date) = 1 THEN CONVERT(DATE,last_login_date) ELSE NULL END AS last_login_date
 						   ,UUID
 						   ,CASE WHEN ISNUMERIC(fluency_progress) = 1 THEN fluency_progress ELSE NULL END AS fluency_progress
@@ -41,7 +41,7 @@ BEGIN
 						   ,CASE WHEN fluency_path = '\N' THEN NULL ELSE fluency_path END AS fluency_path
 						   ,CASE WHEN ISNUMERIC(fluency_time_spent) = 1 THEN fluency_time_spent ELSE NULL END AS fluency_time_spent
 						   ,CASE WHEN school_student_id != '\N' THEN CONVERT(INT,REPLACE(school_student_id,'.0','')) ELSE NULL END AS school_student_id
-						   ,minutes_logged_last_week
+						   ,CASE WHEN ISNUMERIC(minutes_logged_last_week) = 1 THEN minutes_logged_last_week ELSE NULL END AS minutes_logged_last_week
 						   ,state_id	
 						   ,CASE WHEN ISDATE(first_login_date) = 1 THEN CONVERT(DATE,first_login_date) ELSE NULL END AS first_login_date
 						   ,week_ending_date

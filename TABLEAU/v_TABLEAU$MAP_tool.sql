@@ -59,7 +59,7 @@ FROM
            ,r.studentid
            ,r.student_number
            ,r.lastfirst
-           ,CASE WHEN r.team LIKE '%Pathways%' THEN 732579 ELSE r.schoolid END AS schoolid
+           ,r.reporting_schoolid AS schoolid
            ,r.school_level
            ,r.grade_level
            ,r.cohort
@@ -78,13 +78,13 @@ FROM
            ,map_long.lex           
            ,map_long.testdurationminutes                 
            ,PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY map_long.rit)
-              OVER(PARTITION BY CASE WHEN r.team LIKE '%Pathways%' THEN 732579 ELSE r.schoolid END
+              OVER(PARTITION BY r.reporting_schoolid
                                ,r.grade_level
                                ,r.year
                                ,map_long.term
                                ,map_long.measurementscale) AS median_rit
            ,PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY map_long.pct)
-              OVER(PARTITION BY CASE WHEN r.team LIKE '%Pathways%' THEN 732579 ELSE r.schoolid END
+              OVER(PARTITION BY r.reporting_schoolid
                                ,r.grade_level
                                ,r.year
                                ,map_long.term
@@ -100,7 +100,7 @@ FROM
      FROM KIPP_NJ..COHORT$identifiers_long#static r WITH(NOLOCK)
      LEFT OUTER JOIN map_long
        ON r.studentid = map_long.studentid
-      AND r.year = map_long.year 
+      AND r.year = map_long.year      
      WHERE r.year >= 2008 /* first year of MAP data */
        AND r.schoolid != 999999
        AND r.rn = 1
