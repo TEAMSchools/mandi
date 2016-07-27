@@ -97,10 +97,23 @@ FROM
              WHEN map_long.pct BETWEEN 50 AND 74 THEN 3
              WHEN map_long.pct >= 75 THEN 4                
             END AS term_quartile
+
+           ,pct50.testritscore AS testritscore_50th_percentile
+           ,pct75.testritscore AS testritscore_75th_percentile
      FROM KIPP_NJ..COHORT$identifiers_long#static r WITH(NOLOCK)
      LEFT OUTER JOIN map_long
        ON r.studentid = map_long.studentid
       AND r.year = map_long.year      
+     LEFT OUTER JOIN KIPP_NJ..MAP$norms_table#dense pct50 WITH(NOLOCK)
+       ON r.grade_level = pct50.grade_level
+      AND CASE WHEN map_long.term = 'Baseline' THEN 'Fall' ELSE map_long.term END = pct50.term
+      AND map_long.measurementscale = pct50.measurementscale
+      AND pct50.testpercentile = 50
+     LEFT OUTER JOIN KIPP_NJ..MAP$norms_table#dense pct75 WITH(NOLOCK)
+       ON r.grade_level = pct75.grade_level
+      AND CASE WHEN map_long.term = 'Baseline' THEN 'Fall' ELSE map_long.term END = pct75.term
+      AND map_long.measurementscale = pct75.measurementscale
+      AND pct75.testpercentile = 75
      WHERE r.year >= 2008 /* first year of MAP data */
        AND r.schoolid != 999999
        AND r.rn = 1

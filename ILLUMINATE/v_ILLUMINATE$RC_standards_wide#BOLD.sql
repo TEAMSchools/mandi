@@ -57,7 +57,7 @@ WITH standard_descriptions AS (
                  SELECT ovr.academic_year
                        ,ovr.local_student_id
                        ,r.standard_id                  
-                       ,COALESCE(ltp.studentfriendly_description, CONVERT(VARCHAR(MAX),std.description)) AS standard_description
+                       ,COALESCE(ltp.studentfriendly_description, std.description) AS standard_description
                        ,a.subject_area
                        ,CASE
                          WHEN a.subject_area = 'Text Study' THEN 'ELA'                    

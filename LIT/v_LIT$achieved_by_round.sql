@@ -13,7 +13,11 @@ WITH roster_scaffold AS (
           WHEN terms.school_level = 'MS' AND terms.time_per_name = 'DR' THEN 'BOY' 
           ELSE REPLACE(terms.time_per_name, 'Diagnostic', 'DR')
          END AS test_round
-        ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN terms.start_date AND terms.end_date THEN 1 ELSE 0 END AS is_curterm
+        ,CASE 
+          WHEN CONVERT(DATE,GETDATE()) BETWEEN terms.start_date AND terms.end_date THEN 1 
+          WHEN terms.time_per_name IN ('Q4','EOY') THEN 1
+          ELSE 
+         0 END AS is_curterm
         ,ROW_NUMBER() OVER (
            PARTITION BY r.studentid, r.year
              ORDER BY terms.start_date ASC) AS round_num

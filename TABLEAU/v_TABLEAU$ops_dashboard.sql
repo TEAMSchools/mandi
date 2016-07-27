@@ -6,6 +6,7 @@ ALTER VIEW TABLEAU$ops_dashboard AS
 SELECT co.student_number
       ,co.lastfirst
       ,co.YEAR AS academic_year      
+      ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS current_academic_year
       ,co.entrydate
       ,co.exitdate
       ,co.school_level
@@ -18,7 +19,7 @@ SELECT co.student_number
       ,co.lunchstatus
       ,co.lunch_app_status
       ,co.ethnicity
-      ,co.gender      
+      ,co.gender            
       ,LEAD(co.entrydate, 1) OVER(PARTITION BY co.student_number, co.rn ORDER BY co.year ASC) AS next_entrydate
       ,LEAD(co.exitdate, 1) OVER(PARTITION BY co.student_number, co.rn ORDER BY co.year ASC) AS next_exitdate
       ,LEAD(co.schoolid, 1) OVER(PARTITION BY co.student_number, co.rn ORDER BY co.year ASC) AS next_schoolid
