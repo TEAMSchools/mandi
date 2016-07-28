@@ -19,49 +19,53 @@ BEGIN
               ,scale.grade_points AS gpa_points
               ,scale.scale_name AS gradescale_name
         FROM OPENQUERY(PS_TEAM,''
-          SELECT s.lastfirst AS lastfirst_NOIMPORT
-                ,s.student_number || ''''_''''  || c.course_number AS dupeaudit_NOIMPORT            
-                ,cc.section_number AS sectionnumber_NOIMPORT
-                ,s.student_number
-                ,s.schoolid
-                ,s.grade_level
+          SELECT cc.studentid                
+                ,cc.section_number AS sectionnumber_NOIMPORT                
+                ,cc.schoolid                
                 ,cc.termid
                 ,cc.sectionid            
+                
+                ,s.student_number
+                ,s.grade_level
+                ,s.lastfirst AS lastfirst_NOIMPORT
+                ,s.student_number || ''''_''''  || c.course_number AS dupeaudit_NOIMPORT            
+
                 ,c.course_name
                 ,c.course_number            
                 ,c.credittype AS credit_type
                 ,c.excludefromgpa
                 ,c.excludefromclassrank
                 ,c.excludefromhonorroll
+                ,c.gradescaleid AS gradescaleid_NOIMPORT
+                
                 ,t.lastfirst AS teacher_name
+                
                 ,pgf.finalgradename AS storecode
                 ,CASE
-                  WHEN s.schoolid = 73253 AND pgf.percent < 50 THEN ''''F*''''
-                  WHEN s.schoolid = 133570965 AND pgf.percent < 55 THEN ''''F*''''
+                  WHEN cc.schoolid = 73253 AND pgf.percent < 50 THEN ''''F*''''
+                  WHEN cc.schoolid = 133570965 AND pgf.percent < 55 THEN ''''F*''''
                   ELSE pgf.grade
                  END AS grade
                 ,CASE
-                  WHEN s.schoolid = 73253 AND pgf.percent < 50 THEN 50
-                  WHEN s.schoolid = 133570965 AND pgf.percent < 55 THEN 55
+                  WHEN cc.schoolid = 73253 AND pgf.percent < 50 THEN 50
+                  WHEN cc.schoolid = 133570965 AND pgf.percent < 55 THEN 55
                   ELSE pgf.percent
-                 END AS percent
-                ,c.gradescaleid AS gradescaleid_NOIMPORT
-          FROM ps.students s
-          JOIN ps.cc cc
-            ON cc.studentid = s.id
-           AND cc.termid >= ' + CONVERT(VARCHAR,@termid) + '    
+                 END AS percent                
+          FROM ps.cc cc
+          JOIN ps.students s
+            ON cc.studentid = s.id           
           JOIN ps.courses c
             ON cc.course_number = c.course_number
            AND c.course_number NOT IN (''''HR'''',''''STUDY10'''',''''STUDY11'''',''''CHK'''')
           JOIN ps.teachers t
             ON cc.teacherid = t.id
           JOIN ps.pgfinalgrades pgf
-            ON pgf.studentid = s.id
-           AND pgf.sectionid = cc.sectionid
+            ON cc.studentid = pgf.studentid
+           AND cc.sectionid = pgf.sectionid
            AND pgf.grade != ''''--''''    
-           AND pgf.finalgradename = ''''' + @storecode + '''''    
-          WHERE s.enroll_status = 0    
-            AND s.schoolid = ' + CONVERT(VARCHAR,@schoolid)  + '
+           AND pgf.finalgradename = ''''' + @storecode + '''''            
+          WHERE cc.termid >= ' + CONVERT(VARCHAR,@termid) + '    
+            AND cc.schoolid = ' + CONVERT(VARCHAR,@schoolid)  + '
         '') gbooks
         LEFT OUTER JOIN GRADES$grade_scales#static scale WITH(NOLOCK)
           ON gbooks.gradescaleid_NOIMPORT = scale.scale_id
@@ -75,6 +79,7 @@ BEGIN
     BEGIN
       SELECT CONVERT(VARCHAR,gr.STUDENT_NUMBER) + '_' + gr.COURSE_NUMBER AS dupeaudit_NOIMPORT
             ,gr.STUDENT_NUMBER
+            ,gr.studentid
             ,gr.SCHOOLID
             ,gr.GRADE_LEVEL
             ,@termid AS termid

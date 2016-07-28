@@ -12,7 +12,11 @@ WITH roster AS (
         
         ,CONCAT('RT',RIGHT(d.alt_name, 1)) AS rt
         ,d.alt_name AS term            
-        ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN d.start_date AND d.end_date THEN 1 ELSE 0 END AS is_curterm
+        ,CASE 
+          WHEN CONVERT(DATE,GETDATE()) BETWEEN d.start_date AND d.end_date THEN 1 
+          WHEN d.alt_name IN ('Q4','T3') THEN 1
+          ELSE 0 
+         END AS is_curterm
 
         ,c.course_number        
         ,c.COURSE_NAME
