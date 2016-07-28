@@ -3,7 +3,9 @@ GO
 
 ALTER PROCEDURE sp_GRADES$StoredGradesImport    
   @schoolid INT,
-  @storecode VARCHAR(2)
+  @storecode VARCHAR(2),
+  @termid INT,
+  @academic_year INT
 AS
 
 DECLARE @sql NVARCHAR(MAX)
@@ -47,7 +49,7 @@ BEGIN
           FROM ps.students s
           JOIN ps.cc cc
             ON cc.studentid = s.id
-           AND cc.termid >= ' + CONVERT(VARCHAR,dbo.fn_Global_Term_Id()) + '    
+           AND cc.termid >= ' + CONVERT(VARCHAR,@termid) + '    
           JOIN ps.courses c
             ON cc.course_number = c.course_number
            AND c.course_number NOT IN (''''HR'''',''''STUDY10'''',''''STUDY11'''',''''CHK'''')
@@ -75,7 +77,7 @@ BEGIN
             ,gr.STUDENT_NUMBER
             ,gr.SCHOOLID
             ,gr.GRADE_LEVEL
-            ,dbo.fn_Global_Term_Id() AS termid
+            ,@termid AS termid
             ,gr.COURSE_NAME
             ,gr.COURSE_NUMBER
             ,gr.CREDITTYPE AS credit_type
@@ -101,10 +103,11 @@ BEGIN
        AND gr.Y1_grade_percent_adjusted >= scale.low_cut
        AND gr.Y1_grade_percent_adjusted < scale.high_cut
       WHERE gr.SCHOOLID = @schoolid
-        AND gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+        AND gr.academic_year = @academic_year
         AND gr.is_curterm = 1
         AND gr.Y1_grade_percent_adjusted IS NOT NULL
     END
 
 END
 GO
+

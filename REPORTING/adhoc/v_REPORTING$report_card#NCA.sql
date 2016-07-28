@@ -1,18 +1,238 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW REPORTING$report_card#NCA AS
-
 WITH curterm AS (
   SELECT alt_name
         ,time_per_name
         ,ROW_NUMBER() OVER(
           ORDER BY end_date DESC) AS term_rn
   FROM KIPP_NJ..REPORTING$dates curterm WITH(NOLOCK)
-  WHERE curterm.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE curterm.academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
    AND curterm.schoolid = 73253
    --AND CONVERT(DATE,GETDATE()) > curterm.end_date
    AND curterm.identifier = 'RT' 
+ )
+
+,att_unpivot AS (
+  SELECT student_number
+        ,term
+        ,CONCAT('rc', RIGHT(CONCAT('0', class_rn),2), '_', field) AS pivot_field
+        ,value
+  FROM
+      (
+       SELECT gr.student_number
+             ,gr.term
+             ,gr.class_rn      
+             ,ISNULL(cc.CURRENTABSENCES,0) AS CURRENT_ABSENCES
+             ,ISNULL(cc.CURRENTTARDIES,0) AS CURRENT_TARDIES
+       FROM KIPP_NJ..GRADES$final_grades_wide#static gr WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+         ON gr.student_number = s.STUDENT_NUMBER
+       LEFT OUTER JOIN KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
+         ON s.id = cc.STUDENTID
+        AND gr.sectionid = cc.SECTIONID
+       WHERE gr.academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+      ) sub
+  UNPIVOT(
+    value
+    FOR field IN (current_absences, current_tardies)
+   ) u
+ )
+
+,cc_attendance AS (
+  SELECT *
+  FROM att_unpivot
+  PIVOT(
+    MAX(value)
+    FOR pivot_field IN ([rc01_current_absences]
+                       ,[rc01_current_tardies]
+                       ,[rc02_current_absences]
+                       ,[rc02_current_tardies]
+                       ,[rc03_current_absences]
+                       ,[rc03_current_tardies]
+                       ,[rc04_current_absences]
+                       ,[rc04_current_tardies]
+                       ,[rc05_current_absences]
+                       ,[rc05_current_tardies]
+                       ,[rc06_current_absences]
+                       ,[rc06_current_tardies]
+                       ,[rc07_current_absences]
+                       ,[rc07_current_tardies]
+                       ,[rc08_current_absences]
+                       ,[rc08_current_tardies]
+                       ,[rc09_current_absences]
+                       ,[rc09_current_tardies]
+                       ,[rc10_current_absences]
+                       ,[rc10_current_tardies]
+                       ,[rc11_current_absences]
+                       ,[rc11_current_tardies]
+                       ,[rc12_current_absences]
+                       ,[rc12_current_tardies])
+   ) p
+ )
+
+,log_counts_long AS (
+  SELECT student_number
+        ,academic_year
+        ,time_per_name
+        ,term
+        ,logtype
+        ,logtypeid
+        ,n_logs_term
+        ,SUM(n_logs_term) OVER(PARTITION BY student_number, academic_year, logtypeid ORDER BY time_per_name) AS n_logs_yr
+  FROM
+      (
+       SELECT co.student_number
+             ,co.year AS academic_year
+             ,d.time_per_name
+             ,d.alt_name AS term
+             ,logtype.logtype
+             ,logtype.logtypeid      
+             ,ISNULL(COUNT(disc.studentid),0) AS n_logs_term
+       FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+       JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
+         ON co.year = d.academic_year
+        AND co.schoolid = d.schoolid
+        AND d.identifier = 'RT'
+       JOIN KIPP_NJ..DISC$logtypes#static logtype WITH(NOLOCK)
+         ON logtype.logtypeid IN (3023, 3223, -100000)
+       LEFT OUTER JOIN KIPP_NJ..DISC$log#static disc WITH(NOLOCK)
+         ON co.studentid = disc.studentid
+        AND co.year = disc.academic_year
+        AND d.time_per_name = disc.rt
+        AND logtype.logtypeid = disc.logtypeid
+       WHERE co.rn = 1
+       GROUP BY co.student_number
+               ,co.year
+               ,d.time_per_name
+               ,d.alt_name      
+               ,logtype.logtype
+               ,logtype.logtypeid      
+      ) sub
+)
+
+,perfect_weeks_long AS (
+  SELECT *
+        ,SUM(perfect_week_merits_term) OVER(PARTITION BY student_number, academic_year ORDER BY rt) AS perfect_week_merits_yr
+  FROM
+      (
+       SELECT student_number
+             ,studentid
+             ,academic_year
+             ,term
+             ,rt
+             ,SUM(is_perfect) AS n_perfect_weeks
+             ,SUM(is_perfect) * 3 AS perfect_week_merits_term
+       FROM KIPP_NJ..DISC$perfect_weeks#static WITH(NOLOCK)
+       GROUP BY student_number
+               ,studentid
+               ,academic_year
+               ,rt
+               ,term
+      ) sub
+ )
+
+,course_order AS (
+  SELECT studentid
+        ,academic_year
+        ,course_number
+        ,credittype
+        ,ROW_NUMBER() OVER(
+           PARTITION BY studentid, academic_year
+             ORDER BY CASE
+                       WHEN credittype = 'ENG' THEN 01
+                       WHEN credittype = 'RHET' THEN 02
+                       WHEN credittype = 'MATH' THEN 03
+                       WHEN credittype = 'SCI' THEN 04
+                       WHEN credittype = 'SOC' THEN 05
+                       WHEN credittype = 'WLANG' THEN 11
+                       WHEN credittype = 'PHYSED' THEN 12
+                       WHEN credittype = 'ART' THEN 13
+                       WHEN credittype = 'STUDY' THEN 21
+                       WHEN credittype = 'COCUR' THEN 22
+                       WHEN credittype = 'ELEC' THEN 22
+                       WHEN credittype = 'LOG' THEN 22
+                      END
+                     ,course_number) AS class_rn      
+  FROM
+      (
+       SELECT DISTINCT
+              studentid      
+             ,academic_year            
+             ,course_number      
+             ,credittype      
+       FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
+       WHERE academic_year = 2015
+         AND credittype NOT IN ('LOG')
+         AND course_number NOT IN ('')
+      ) sub
+ )
+
+,comments AS (
+  SELECT tco.studentid
+        ,cc.SCHOOLID
+        ,cc.course_number
+        ,tco.sectionid
+        ,tco.finalgradename AS term
+        ,tco.teacher_comment      
+  FROM OPENQUERY(PS_TEAM,'
+    SELECT pgf.studentid            
+          ,pgf.sectionid           
+          ,pgf.finalgradename             
+          ,CAST(SUBSTR(pgf.comment_value,1,4000) AS varchar2(4000)) AS teacher_comment
+    FROM pgfinalgrades pgf       
+    WHERE pgf.finalgradename LIKE ''Q%''
+      AND pgf.startdate >= ''2015-07-01''
+      AND pgf.startdate <= ''2016-06-30''
+      AND pgf.comment_value IS NOT NULL         
+  ') tco /* UPDATE DATE ANNUALLY */
+  LEFT OUTER JOIN KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
+    ON tco.studentid = cc.studentid
+   AND tco.sectionid = cc.sectionid
+ )
+
+,comments_wide AS (
+  SELECT studentid      
+        ,term
+        ,[rc1_comment]
+        ,[rc2_comment]
+        ,[rc3_comment]
+        ,[rc4_comment]
+        ,[rc5_comment]
+        ,[rc6_comment]
+        ,[rc7_comment]
+        ,[rc8_comment]
+        ,[rc9_comment]
+        ,[rc10_comment]
+        ,[advisor_comment]
+  FROM
+      (
+       SELECT comm.studentid           
+             ,comm.term                 
+             ,comm.teacher_comment
+             ,CASE
+               WHEN comm.course_number = 'HR' THEN 'advisor_comment'
+               ELSE CONCAT('rc', rc.class_rn, '_comment') 
+              END AS pivot_hash
+       FROM comments comm WITH(NOLOCK)
+       LEFT OUTER JOIN course_order rc WITH(NOLOCK)
+         ON comm.studentid = rc.studentid
+        AND comm.course_number = rc.course_number
+       ) sub
+  PIVOT(
+    MAX(teacher_comment)
+    FOR pivot_hash IN ([rc1_comment]
+                      ,[rc2_comment]
+                      ,[rc3_comment]
+                      ,[rc4_comment]
+                      ,[rc5_comment]
+                      ,[rc6_comment]
+                      ,[rc7_comment]
+                      ,[rc8_comment]
+                      ,[rc9_comment]
+                      ,[rc10_comment]
+                      ,[advisor_comment])
+   ) p
  )
 
 SELECT roster.schoolid
@@ -315,7 +535,7 @@ LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH (
   ON roster.studentid = att_counts.studentid
  AND roster.year = att_counts.academic_year
  AND curterm.alt_name = att_counts.term
-LEFT OUTER JOIN KIPP_NJ..ATT_MEM$cc_attendance_totals_wide_course ccatt WITH(NOLOCK)
+LEFT OUTER JOIN cc_attendance ccatt WITH(NOLOCK)
   ON roster.student_number = ccatt.student_number
  AND curterm.alt_name = ccatt.term
    
@@ -337,17 +557,17 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_cumulative#static gpa_cumulative WITH (NOLOC
  AND roster.schoolid = gpa_cumulative.schoolid
 
 /* MERITS & DEMERITS */
-LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long merits WITH(NOLOCK)
+LEFT OUTER JOIN log_counts_long merits WITH(NOLOCK)
   ON roster.student_number = merits.student_number
  AND roster.year = merits.academic_year
  AND curterm.alt_name = merits.term
  AND merits.logtypeid = 3023
-LEFT OUTER JOIN KIPP_NJ..DISC$log_counts_long demerits WITH(NOLOCK)
+LEFT OUTER JOIN log_counts_long demerits WITH(NOLOCK)
   ON roster.student_number = demerits.student_number
  AND roster.year = demerits.academic_year
  AND curterm.alt_name = demerits.term
  AND demerits.logtypeid = 3223
-LEFT OUTER JOIN KIPP_NJ..DISC$perfect_weeks_long pw WITH(NOLOCK)
+LEFT OUTER JOIN perfect_weeks_long pw WITH(NOLOCK)
   ON roster.student_number = pw.student_number
  AND roster.year = pw.academic_year
  AND curterm.time_per_name = pw.rt
@@ -379,10 +599,10 @@ LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static lex_curr WITH (NOLOCK)
  AND lex_curr.rn_curr = 1
 
 /* GRADEBOOK COMMMENTS */
-LEFT OUTER JOIN KIPP_NJ..PS$comments_wide#static comm WITH(NOLOCK)
+LEFT OUTER JOIN comments_wide comm WITH(NOLOCK)
   ON roster.studentid = comm.studentid
  AND curterm.alt_name = comm.term
-WHERE roster.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+WHERE roster.year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND roster.rn = 1
   AND roster.schoolid = 73253
   AND roster.enroll_status = 0    
