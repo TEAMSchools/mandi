@@ -75,11 +75,11 @@ WITH parcc_prof AS (
                ELSE 'Math'
               END AS subject            
              ,CASE                
-              WHEN pre.performance_level IN ('Met Expectations','Exceeded Expectations') THEN 1.0 
-              WHEN pre.performance_level NOT IN ('Met Expectations','Exceeded Expectations') THEN 0.0 
-              ELSE NULL
-             END AS is_prof_terminal_grades
-            ,NULL AS median_SGP      
+               WHEN pre.performance_level IN ('Met Expectations','Exceeded Expectations') THEN 1.0 
+               WHEN pre.performance_level NOT IN ('Met Expectations','Exceeded Expectations') THEN 0.0 
+               ELSE NULL
+              END AS is_prof_terminal_grades
+             ,NULL AS median_SGP      
        FROM KIPP_NJ..AUTOLOAD$GDOCS_PARCC_preliminary_data pre WITH(NOLOCK)       
        JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
          ON pre.local_student_identifier = co.STUDENT_NUMBER
