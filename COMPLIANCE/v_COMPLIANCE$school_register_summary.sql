@@ -1,6 +1,8 @@
 USE KIPP_NJ
 GO
 
+--need manual changes for year
+
 ALTER VIEW COMPLIANCE$school_register_summary AS
 
 WITH schooldays AS (
@@ -19,6 +21,22 @@ WITH schooldays AS (
       ) sub
   GROUP BY academic_year, region
  )
+
+,lunch AS (
+	SELECT *
+	FROM OPENQUERY(PS_TEAM,'
+		SELECT studentid
+				,schoolid
+				,entrydate
+				,exitdate
+				,grade_level
+				,lunchstatus
+           
+		FROM reenrollments
+		WHERE entrydate >= ''2015-07-20'' 
+			AND exitdate <= ''2016-07-01''
+		')
+)
 
 ,att_mem AS (
   SELECT STUDENTID
@@ -42,10 +60,10 @@ SELECT sub.academic_year
       ,co.grade_level
       ,co.entrydate
       ,co.exitdate
-      ,co.ETHNICITY
-      ,co.lunchstatus
+      ,CASE WHEN co.ETHNICITY IS NULL THEN 'No Determination' ELSE co.ethnicity END AS ethnicity
+	  ,CASE WHEN lunch.lunchstatus IS NULL THEN 'No Determination' ELSE lunch.lunchstatus END as lunchstatus
       ,co.SPEDLEP
-      ,co.LEP_STATUS
+      ,CASE WHEN co.LEP_STATUS IS NULL THEN 'No' ELSE 'Yes' END AS LEP_STATUS
       ,CASE WHEN sub.N_mem > d.N_days THEN d.N_days ELSE sub.N_mem END AS N_mem
       ,CASE WHEN sub.N_att > d.N_days THEN d.N_days ELSE sub.N_att END AS N_att      
       ,d.N_days
@@ -57,3 +75,8 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   ON sub.studentid = co.studentid
  AND sub.academic_year = co.year
  AND co.rn = 1
+ AND co.year = 2015
+ 
+LEFT OUTER JOIN lunch
+  ON co.studentid = lunch.studentid
+
