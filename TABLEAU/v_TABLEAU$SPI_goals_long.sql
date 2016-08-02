@@ -77,82 +77,55 @@ WITH map_data AS (
 
 ,offtrack_grades AS (
   SELECT academic_year
-        ,student_number      
+        ,student_number
         ,CASE
           WHEN SUM(CASE 
-                    WHEN schoolid = 73253 AND moving_average < 70 THEN 1
-                    WHEN schoolid != 73253 AND moving_average < 65 THEN 1
+                    WHEN schoolid = 73253 AND y1_grade_letter LIKE 'F%' THEN 1
+                    WHEN schoolid != 73253 AND y1_grade_letter LIKE 'F%' THEN 1
                     ELSE 0
                    END) > 0 THEN 1
           ELSE 0
          END AS is_offtrack_grades
-  FROM KIPP_NJ..GRADES$time_series WITH(NOLOCK)
-  WHERE finalgradename = 'Y1'
-    AND date = CONVERT(DATE,GETDATE())
-  GROUP BY student_number
-          ,academic_year
-
-  UNION ALL
-
-  SELECT academic_year
-        ,student_number
-        ,CASE WHEN SUM(is_failing) > 0 THEN 1 ELSE 0 END AS is_offtrack_grades
-  FROM
-      (
-       SELECT academic_year
-             ,student_number                            
-             ,ROW_NUMBER() OVER(
-               PARTITION BY student_number, academic_year, course_number
-                 ORDER BY date DESC) AS rn
-             ,CASE 
-               WHEN schoolid = 73253 AND moving_average < 70 THEN 1
-               WHEN schoolid != 73253 AND moving_average < 65 THEN 1
-               ELSE 0
-              END AS is_failing
-       FROM KIPP_NJ..GRADES$time_series WITH(NOLOCK)
-       WHERE finalgradename = 'Y1'
-         AND academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year()  
-      ) sub
-  WHERE rn = 1
-  GROUP BY student_number
-          ,academic_year
+  FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
+  WHERE is_curterm = 1
+    AND course_number NOT IN ('HR')
+    AND credittype NOT IN ('LOG')
+    AND y1_grade_percent_adjusted IS NOT NULL
+  GROUP BY academic_year
+          ,student_number
  )
 
 ,GPA AS (
   SELECT STUDENT_NUMBER
-        ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year /* this needs to be long by year */
+        ,academic_year
         ,CONVERT(FLOAT,GPA_is_above_30) AS GPA_is_above_30
         ,CONVERT(FLOAT,GPA_is_above_35) AS GPA_is_above_35
   FROM
       (
        SELECT student_number                      
+             ,academic_year
              ,CASE WHEN ROUND(GPA_y1,1) >= 3.0 THEN 100.0 ELSE 0.0 END AS GPA_is_above_30
              ,CASE WHEN ROUND(GPA_y1,1) >= 3.5 THEN 100.0 ELSE 0.0 END AS GPA_is_above_35
        FROM KIPP_NJ..GRADES$GPA_detail_long#static WITH(NOLOCK)
-       WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND is_curterm = 1       
+       WHERE is_curterm = 1       
       ) sub
  )
 
 ,es_lit_growth AS (
   SELECT STUDENTID
         ,academic_year              
-        ,CONVERT(FLOAT,met_goal * 100) AS met_goal
-        ,ROW_NUMBER() OVER(
-           PARTITION BY studentid, academic_year
-             ORDER BY start_date DESC) AS rn
+        ,CONVERT(FLOAT,met_goal * 100) AS met_goal        
   FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
   WHERE read_lvl IS NOT NULL
+    AND is_curterm = 1
     AND start_date <= CONVERT(DATE,GETDATE())
-    AND GRADE_LEVEL <= 4
-    AND SCHOOLID != 73252
+    AND (GRADE_LEVEL <= 4 AND SCHOOLID != 73252)
  )
 
 ,module_avg AS (
   SELECT academic_year
         ,student_number
-        ,subject_area
-        --,AVG(percent_correct) AS avg_pct_correct
+        ,subject_area        
         ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(percent_correct),0) >= 65 THEN 100.0 ELSE 0.0 END) AS module_avg_above_65
         ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(percent_correct),0) >= 80 THEN 100.0 ELSE 0.0 END) AS module_avg_above_80
   FROM
@@ -165,9 +138,8 @@ WITH map_data AS (
        JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
          ON a.assessment_id = ovr.assessment_id
         AND ovr.answered > 0
-       WHERE a.scope IN ('CMA - End-of-Module') --,'CMA - Mid-Module')           
-         AND a.subject_area IN ('Text Study', 'Mathematics')
-         AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       WHERE a.scope IN ('CMA - End-of-Module')
+         AND a.subject_area IN ('Text Study', 'Mathematics')         
       ) sub
   GROUP BY academic_year
           ,student_number
@@ -201,6 +173,7 @@ WITH map_data AS (
       (
        SELECT co.year            
              ,co.schoolid
+             ,co.reporting_schoolid
              ,co.grade_level
              ,co.team      
              ,co.student_number
@@ -482,6 +455,7 @@ WITH map_data AS (
 
 SELECT sub.year
       ,sub.schoolid
+      ,sub.reporting_schoolid
       ,ISNULL(CONVERT(VARCHAR,sub.grade_level),'All') AS grade_level
       ,sub.field
       ,CASE
@@ -490,7 +464,7 @@ SELECT sub.year
         ELSE sub.value
        END AS value
       ,scoring
-      ,points
+      ,ISNULL(points,0) AS points
       ,network_above
       ,network_target
       ,network_low_bar      
@@ -539,12 +513,14 @@ FROM
     (
      SELECT long_data.year
            ,long_data.schoolid
+           ,long_data.reporting_schoolid
            ,long_data.grade_level           
            ,long_data.field
            ,AVG(long_data.value) AS value           
      FROM long_data     
      GROUP BY long_data.year
              ,long_data.schoolid
+             ,long_data.reporting_schoolid
              ,CUBE(long_data.grade_level)
              ,long_data.field             
     ) sub

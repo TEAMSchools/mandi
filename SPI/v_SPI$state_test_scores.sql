@@ -44,6 +44,52 @@ WITH parcc_prof AS (
        
        UNION ALL
 
+       /* TEMP FIX FOR 2015 PARCC */
+       SELECT co.schoolid
+             ,co.grade_level
+             ,pre.local_student_identifier AS student_number
+             ,pre.academic_year
+             ,'PARCC' AS test_name
+             ,CASE
+               WHEN test_name = 'Algebra I' THEN 'ALG01'
+               WHEN test_name = 'Algebra II' THEN 'ALG02'
+               WHEN test_name = 'Geometry' THEN 'GEO01'
+               WHEN test_name = 'Grade 10 ELA/Literacy' THEN 'ELA10'
+               WHEN test_name = 'Grade 11 ELA/Literacy' THEN 'ELA11'
+               WHEN test_name = 'Grade 3 ELA/Literacy' THEN 'ELA03'
+               WHEN test_name = 'Grade 3 Mathematics' THEN 'MAT03'
+               WHEN test_name = 'Grade 4 ELA/Literacy' THEN 'ELA04'
+               WHEN test_name = 'Grade 4 Mathematics' THEN 'MAT04'
+               WHEN test_name = 'Grade 5 ELA/Literacy' THEN 'ELA05'
+               WHEN test_name = 'Grade 5 Mathematics' THEN 'MAT05'
+               WHEN test_name = 'Grade 6 ELA/Literacy' THEN 'ELA06'
+               WHEN test_name = 'Grade 6 Mathematics' THEN 'MAT06'
+               WHEN test_name = 'Grade 7 ELA/Literacy' THEN 'ELA07'
+               WHEN test_name = 'Grade 7 Mathematics' THEN 'MAT07'
+               WHEN test_name = 'Grade 8 ELA/Literacy' THEN 'ELA08'
+               WHEN test_name = 'Grade 8 Mathematics' THEN 'MAT08'
+               WHEN test_name = 'Grade 9 ELA/Literacy' THEN 'ELA09'
+              END AS testcode
+             ,CASE 
+               WHEN pre.test_name LIKE '%ELA%' THEN 'ELA'
+               ELSE 'Math'
+              END AS subject            
+             ,CASE                
+              WHEN pre.performance_level IN ('Met Expectations','Exceeded Expectations') THEN 1.0 
+              WHEN pre.performance_level NOT IN ('Met Expectations','Exceeded Expectations') THEN 0.0 
+              ELSE NULL
+             END AS is_prof_terminal_grades
+            ,NULL AS median_SGP      
+       FROM KIPP_NJ..AUTOLOAD$GDOCS_PARCC_preliminary_data pre WITH(NOLOCK)       
+       JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+         ON pre.local_student_identifier = co.STUDENT_NUMBER
+        AND pre.academic_year = co.year
+        AND co.rn = 1
+        AND co.grade_level IN (4,8,11)
+       /* TEMP FIX FOR 2015 PARCC */
+       
+       UNION ALL
+
        SELECT co.schoolid
              ,co.grade_level
              ,co.STUDENT_NUMBER
@@ -92,11 +138,11 @@ WITH parcc_prof AS (
              ,nj.pct_proficient AS state_pct_proficient           
              ,sub.pct_proficient - nj.pct_proficient AS diff_pct_proficient           
        FROM parcc_prof sub
-       JOIN KIPP_NJ..AUTOLOAD$GDOCS_PARCC_external_proficiency_rates nj WITH(NOLOCK)
+       LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PARCC_external_proficiency_rates nj WITH(NOLOCK)
          ON sub.academic_year = nj.academic_year
         AND sub.testcode = nj.testcode
         AND sub.grade_level = nj.grade_level
-        AND nj.entity = 'NJ'     
+        AND nj.entity = 'NJ'            
       ) sub
   GROUP BY schoolid
           ,grade_level

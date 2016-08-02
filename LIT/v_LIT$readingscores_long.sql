@@ -16,7 +16,7 @@ WITH ps_scores_long AS (
        SELECT unique_id      
              ,testid
              ,studentid       
-             ,read_lvl             
+             ,CASE WHEN academic_year = 2015 AND testid = 3273 THEN instruct_lvl ELSE read_lvl END AS read_lvl
              ,ISNULL(status,'Did Not Achieve') AS status
              ,CONVERT(VARCHAR,name_ass) AS name_ass
              ,CONVERT(VARCHAR,ltr_nameid) AS ltr_nameid
@@ -59,10 +59,10 @@ WITH ps_scores_long AS (
              ,CONVERT(VARCHAR,retelling) AS retelling             
              ,CONVERT(VARCHAR,
                 CASE
-                 WHEN reading_rate = 'Above' THEN 2
-                 WHEN reading_rate = 'Target' THEN 1
-                 WHEN reading_rate = 'Below' THEN 0
-                 ELSE NULL
+                 WHEN testid = 3397 AND reading_rate IN ('Above','Target') THEN 30
+                 WHEN testid IN (3411,3425) AND reading_rate IN ('Above','Target') THEN 40
+                 WHEN testid IN (3442,3458,3474) AND reading_rate IN ('Above','Target') THEN 50
+                 WHEN testid IN (3493,3511,3527) AND reading_rate IN ('Above','Target') THEN 75        
                 END) AS reading_rate             
              ,CONVERT(VARCHAR,fluency) AS fluency
              ,CONVERT(VARCHAR,ROUND(fp_wpmrate,0)) AS fp_wpmrate
@@ -247,8 +247,8 @@ WITH ps_scores_long AS (
              ,rs.studentid           
              ,3273 AS testid
              ,rs.status      
-             ,rs.achieved_independent_level AS read_lvl
-             ,rs.indep_lvl_num AS lvl_num
+             ,CASE WHEN rs.status = 'Did Not Achieve' THEN rs.instructional_level_tested ELSE rs.achieved_independent_level END AS read_lvl
+             ,CASE WHEN rs.status = 'Did Not Achieve' THEN rs.instr_lvl_num ELSE rs.indep_lvl_num END AS lvl_num
              ,rs.about_the_text AS fp_comp_about   
              ,rs.beyond_the_text AS fp_comp_beyond
              ,rs.within_the_text AS fp_comp_within
@@ -281,7 +281,7 @@ WITH ps_scores_long AS (
         ,rs.score
            
         ,gleq.read_lvl
-        ,gleq.lvl_num           
+        ,gleq.fp_lvl_num AS lvl_num           
   FROM ps_scores_long rs
   LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq gleq WITH(NOLOCK)
     ON rs.read_lvl = gleq.read_lvl
@@ -403,5 +403,5 @@ FROM
      LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_proficiency_long prof WITH(NOLOCK)
        ON rs.testid = prof.testid
       AND rs.field = prof.field_name
-      AND rs.lvl_num = prof.lvl_num          
+      AND CASE WHEN rs.testid = 3273 THEN rs.lvl_num ELSE prof.lvl_num END = prof.lvl_num
     ) sub

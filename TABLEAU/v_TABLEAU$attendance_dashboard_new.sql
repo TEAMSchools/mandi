@@ -4,14 +4,14 @@ GO
 ALTER VIEW TABLEAU$attendance_dashboard_new AS
 
 SELECT co.year
-      ,co.schoolid
+      ,co.reporting_schoolid AS schoolid
       ,co.studentid
       ,co.lastfirst
       ,co.grade_level
       ,co.school_level
       ,co.team
       ,co.enroll_status
-      --,co.SPEDLEP
+      ,co.SPEDLEP
       
       ,dt.alt_name AS term
 

@@ -15,7 +15,7 @@ WITH roster_scaffold AS (
          END AS test_round
         ,CASE 
           WHEN CONVERT(DATE,GETDATE()) BETWEEN terms.start_date AND terms.end_date THEN 1 
-          WHEN terms.time_per_name IN ('Q4','EOY') THEN 1
+          WHEN terms.start_date <= CONVERT(DATE,GETDATE()) AND MAX(terms.start_date) OVER(PARTITION BY r.schoolid, r.year) = terms.start_date THEN 1
           ELSE 
          0 END AS is_curterm
         ,ROW_NUMBER() OVER (
@@ -94,7 +94,7 @@ WITH roster_scaffold AS (
              ,r.test_round
              ,r.round_num
              ,r.start_date
-             ,0 AS is_curterm
+             ,r.is_curterm
 
              ,achv.read_lvl
              ,achv.lvl_num
@@ -135,7 +135,7 @@ WITH roster_scaffold AS (
              ,r.test_round
              ,r.round_num
              ,r.start_date
-             ,0 AS is_curterm
+             ,r.is_curterm
 
              ,CASE WHEN fp.status = 'Achieved' THEN COALESCE(fp.read_lvl, fp.indep_lvl) ELSE fp.indep_lvl END AS read_lvl
              ,CASE WHEN fp.status = 'Achieved' THEN COALESCE(fp.lvl_num, fp.indep_lvl_num) ELSE fp.indep_lvl_num END AS lvl_num
@@ -266,22 +266,26 @@ SELECT academic_year
       ,goal_lvl      
       ,goal_num   
       ,CASE         
+        WHEN lvl_num >= 26 THEN 1
         WHEN lvl_num >= goal_num THEN 1 
         WHEN lvl_num < goal_num THEN 0        
        END AS met_goal
       ,default_goal_lvl      
       ,default_goal_num   
       ,CASE
+        WHEN lvl_num >= 26 THEN 1
         WHEN lvl_num >= default_goal_num THEN 1 
         WHEN lvl_num < default_goal_num THEN 0
        END AS met_default_goal
       ,natl_goal_lvl
       ,natl_goal_num      
       ,CASE 
+        WHEN lvl_num >= 26 THEN 1
         WHEN lvl_num >= natl_goal_num THEN 1 
         WHEN lvl_num < natl_goal_num THEN 0
        END AS met_natl_goal
       ,CASE
+        WHEN lvl_num >= 26 THEN 'On Track'
         WHEN lvl_num >= goal_num THEN 'On Track'
         WHEN lvl_num >= natl_goal_num THEN 'Off Track'
         WHEN lvl_num < natl_goal_num THEN 'Off Track'

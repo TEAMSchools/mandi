@@ -25,14 +25,16 @@ WITH section_teacher AS (
     AND scaff.term IS NOT NULL
  )
 
+/* final grades */
 SELECT co.student_number
       ,co.lastfirst
-      ,co.schoolid
+      ,co.reporting_schoolid AS schoolid
       ,co.grade_level
       ,co.team
       ,co.advisor
       ,co.enroll_status
       ,co.year
+      ,co.spedlep
       ,dt.alt_name AS term
       
       ,gr.is_curterm
@@ -50,6 +52,10 @@ SELECT co.student_number
       ,gr.y1_grade_percent_adjusted
       ,gr.y1_grade_letter           
       ,gr.y1_gpa_points
+      ,MAX(CASE WHEN gr.is_curterm = 1 THEN gr.need_65 ELSE NULL END) OVER(PARTITION BY co.student_number, co.year, gr.course_number) AS need_65
+      ,MAX(CASE WHEN gr.is_curterm = 1 THEN gr.need_70 ELSE NULL END) OVER(PARTITION BY co.student_number, co.year, gr.course_number) AS need_70
+      ,MAX(CASE WHEN gr.is_curterm = 1 THEN gr.need_80 ELSE NULL END) OVER(PARTITION BY co.student_number, co.year, gr.course_number) AS need_80
+      ,MAX(CASE WHEN gr.is_curterm = 1 THEN gr.need_90 ELSE NULL END) OVER(PARTITION BY co.student_number, co.year, gr.course_number) AS need_90
       
       ,st.SECTION_NUMBER       
       ,st.period
@@ -72,14 +78,16 @@ WHERE co.rn = 1
 
 UNION ALL
 
+/* category grades */
 SELECT co.student_number
       ,co.lastfirst
-      ,co.schoolid
+      ,co.reporting_schoolid AS schoolid
       ,co.grade_level
       ,co.team
       ,co.advisor
       ,co.enroll_status
       ,co.year
+      ,co.spedlep
       ,dt.alt_name AS term
       
       ,gr.is_curterm
@@ -101,6 +109,10 @@ SELECT co.student_number
       ,gr.grade_category_pct_y1 AS y1_grade_percent_adjusted
       ,NULL AS y1_grade_letter            
       ,NULL AS y1_gpa_points
+      ,NULL AS need_65
+      ,NULL AS need_70
+      ,NULL AS need_80
+      ,NULL AS need_90
 
       ,st.SECTION_NUMBER       
       ,st.period
@@ -128,12 +140,13 @@ UNION ALL
 
 SELECT co.student_number
       ,co.lastfirst
-      ,co.schoolid
+      ,co.reporting_schoolid AS schoolid
       ,co.grade_level
       ,co.team
       ,co.advisor
       ,co.enroll_status
       ,co.year
+      ,co.spedlep
       ,'Y1' AS term
       
       ,gr.is_curterm
@@ -151,6 +164,10 @@ SELECT co.student_number
       ,gr.y1_grade_percent_adjusted
       ,gr.y1_grade_letter           
       ,gr.y1_gpa_points
+      ,MAX(CASE WHEN gr.is_curterm = 1 THEN gr.need_65 ELSE NULL END) OVER(PARTITION BY co.student_number, co.year, gr.course_number) AS need_65
+      ,MAX(CASE WHEN gr.is_curterm = 1 THEN gr.need_70 ELSE NULL END) OVER(PARTITION BY co.student_number, co.year, gr.course_number) AS need_70
+      ,MAX(CASE WHEN gr.is_curterm = 1 THEN gr.need_80 ELSE NULL END) OVER(PARTITION BY co.student_number, co.year, gr.course_number) AS need_80
+      ,MAX(CASE WHEN gr.is_curterm = 1 THEN gr.need_90 ELSE NULL END) OVER(PARTITION BY co.student_number, co.year, gr.course_number) AS need_90
       
       ,st.SECTION_NUMBER       
       ,st.period
@@ -176,12 +193,13 @@ UNION ALL
 
 SELECT co.student_number
       ,co.lastfirst
-      ,co.schoolid
+      ,co.reporting_schoolid AS schoolid
       ,co.grade_level
       ,co.team
       ,co.advisor
       ,co.enroll_status
       ,co.year
+      ,co.spedlep
       ,'Y1' AS term
       
       ,gr.is_curterm
@@ -204,6 +222,10 @@ SELECT co.student_number
       ,gr.grade_category_pct_y1 AS y1_grade_percent_adjusted
       ,NULL AS y1_grade_letter            
       ,NULL AS y1_gpa_points
+      ,NULL AS need_65
+      ,NULL AS need_70
+      ,NULL AS need_80
+      ,NULL AS need_90
 
       ,st.SECTION_NUMBER       
       ,st.period
@@ -232,12 +254,13 @@ UNION ALL
 /* NCA exam grades */
 SELECT co.student_number
       ,co.lastfirst
-      ,co.schoolid
+      ,co.reporting_schoolid AS schoolid
       ,co.grade_level
       ,co.team
       ,co.advisor
       ,co.enroll_status
       ,co.year
+      ,co.spedlep
       ,CASE 
         WHEN gr.e1 IS NOT NULL THEN 'Q2' 
         WHEN gr.e2 IS NOT NULL THEN 'Q4'
@@ -258,6 +281,10 @@ SELECT co.student_number
       ,NULL AS y1_grade_percent_adjusted
       ,NULL AS y1_grade_letter           
       ,NULL AS y1_gpa_points
+      ,NULL AS need_65
+      ,NULL AS need_70
+      ,NULL AS need_80
+      ,NULL AS need_90
       
       ,st.SECTION_NUMBER       
       ,st.period

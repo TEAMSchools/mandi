@@ -16,7 +16,7 @@ WITH enrollments AS (
   FROM KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   WHERE enr.course_enr_status = 0
     AND enr.drop_flags = 0
-    AND ((enr.grade_level >= 5) OR (enr.SCHOOLID = 73252 AND enr.grade_level = 4))
+    AND ((enr.grade_level >= 5 AND enr.schoolid != 73258) OR (enr.SCHOOLID = 73252 AND enr.grade_level = 4))
     AND enr.CREDITTYPE = 'MATH'
 
   UNION ALL
@@ -31,14 +31,13 @@ WITH enrollments AS (
   FROM KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   WHERE enr.course_enr_status = 0
     AND enr.drop_flags = 0
-    AND enr.grade_level <= 4
-    AND enr.SCHOOLID != 73252
+    AND ((enr.grade_level <= 4 AND enr.SCHOOLID != 73252) OR enr.SCHOOLID = 73258)    
     AND enr.COURSE_NUMBER = 'HR'
  )
 
 SELECT stm.school_student_id AS student_number                        
       ,co.lastfirst
-      ,co.schoolid
+      ,co.reporting_schoolid AS schoolid
       ,co.grade_level
       ,co.spedlep
       

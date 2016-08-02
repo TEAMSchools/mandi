@@ -6,12 +6,12 @@ ALTER VIEW TABLEAU$gradebook_assignment_detail AS
 SELECT sec.ID AS sectionid
       ,sec.academic_year            
       
-      ,gb.FINALGRADENAME
-      ,LEFT(gb.FINALGRADENAME,1) AS finalgrade_category
+      ,gb.REPORTINGTERM_NAME AS FINALGRADENAME
+      ,LEFT(gb.REPORTINGTERM_NAME,1) AS finalgrade_category
       ,gb.FINALGRADESETUPTYPE
       ,gb.GRADINGFORMULAWEIGHTINGTYPE
-      ,gb.NAME AS grade_category
-      ,gb.ABBREVIATION AS grade_category_abbreviation
+      ,gb.CATEGORY_NAME AS grade_category
+      ,gb.CATEGORY_ABBREVIATION AS grade_category_abbreviation
       ,gb.WEIGHTING
       ,gb.INCLUDEINFINALGRADES      
       
@@ -31,27 +31,26 @@ SELECT sec.ID AS sectionid
 FROM KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
 JOIN KIPP_NJ..PS$gradebook_setup#static gb WITH(NOLOCK)
   ON sec.DCID = gb.sectionsdcid
- AND gb.FINALGRADESETUPTYPE = 'WeightedFGSetup'
- --AND gb.FINALGRADENAME NOT LIKE 'Q%'
+ AND gb.FINALGRADESETUPTYPE = 'WeightedFGSetup' 
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignments#STAGING a WITH(NOLOCK)
   ON sec.ID = a.SECTIONID
  AND gb.ASSIGNMENTCATEGORYID = a.assignmentcategoryid
  AND a.ASSIGN_DATE BETWEEN gb.STARTDATE AND gb.ENDDATE
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignment_scores#STAGING scores WITH(NOLOCK)
   ON a.ASSIGNMENTID = scores.ASSIGNMENTID
-WHERE sec.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+WHERE sec.academic_year >= 2015
 
 UNION ALL
 
 SELECT sec.ID AS sectionid
       ,sec.academic_year            
       
-      ,gb.FINALGRADENAME
-      ,LEFT(gb.FINALGRADENAME,1) AS finalgrade_category
+      ,gb.REPORTINGTERM_NAME AS FINALGRADENAME
+      ,LEFT(gb.REPORTINGTERM_NAME,1) AS finalgrade_category
       ,gb.FINALGRADESETUPTYPE
       ,gb.GRADINGFORMULAWEIGHTINGTYPE
-      ,gb.NAME AS grade_category
-      ,gb.ABBREVIATION AS grade_category_abbreviation
+      ,gb.CATEGORY_NAME AS grade_category
+      ,gb.CATEGORY_ABBREVIATION AS grade_category_abbreviation
       ,gb.WEIGHTING
       ,gb.INCLUDEINFINALGRADES      
       
@@ -71,12 +70,10 @@ SELECT sec.ID AS sectionid
 FROM KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
 JOIN KIPP_NJ..PS$gradebook_setup#static gb WITH(NOLOCK)
   ON sec.DCID = gb.sectionsdcid
- AND gb.FINALGRADESETUPTYPE = 'TotalPoints'
- --AND gb.FINALGRADENAME NOT LIKE 'Q%'
+ AND gb.FINALGRADESETUPTYPE = 'TotalPoints' 
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignments#STAGING a WITH(NOLOCK)
-  ON sec.ID = a.SECTIONID
- --AND gb.ASSIGNMENTCATEGORYID = a.assignmentcategoryid
+  ON sec.ID = a.SECTIONID 
  AND a.ASSIGN_DATE BETWEEN gb.STARTDATE AND gb.ENDDATE
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignment_scores#STAGING scores WITH(NOLOCK)
   ON a.ASSIGNMENTID = scores.ASSIGNMENTID
-WHERE sec.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+WHERE sec.academic_year >= 2015

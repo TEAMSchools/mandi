@@ -148,31 +148,31 @@ FROM
                 ,map_start.termname AS start_term_verif
                 ,map_end.termname AS end_term_verif
                 --norm study data
-                ,norms.reported_cohort_growth AS reported_growth_projection
-                ,norms.typical_cohort_growth AS true_growth_projection
+                ,norms.reported_student_growth AS reported_growth_projection
+                ,norms.typical_student_growth AS true_growth_projection
                 ,norms.sd_of_expectation AS std_dev_of_growth_projection
           FROM base
-          --data for START of target period
+          /* data for START of target period */
           LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_start WITH(NOLOCK)
             ON base.studentid = map_start.studentid
            AND base.measurementscale = map_start.measurementscale
            AND base.period_start_year = map_start.academic_year
            AND base.start_term_string = map_start.term
            AND map_start.rn = 1
-          --data for END of target period
+          /* data for END of target period */
           LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_end WITH(NOLOCK)
             ON base.studentid = map_end.studentid
            AND base.measurementscale = map_end.measurementscale
            AND base.year = map_end.academic_year
            AND base.end_term_string = map_end.term
            AND map_end.rn = 1
-          --norms data
-          LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_MAP_growth_norms norms WITH(NOLOCK)
+          /* norms data */
+          LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_MAP_student_growth_norms norms WITH(NOLOCK)
             ON base.measurementscale = norms.measurementscale           
            AND base.start_term_string = norms.start_term
            AND base.end_term_string = norms.end_term
-           AND map_end.testritscore = norms.rit
-           AND map_end.grade_level = norms.end_grade              
+           AND map_start.testritscore = norms.start_rit
+           AND map_start.grade_level = norms.start_grade
          ) with_map
     ) growth_index
 LEFT OUTER JOIN KIPP_NJ..UTIL$zscores zscores WITH(NOLOCK)

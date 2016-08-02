@@ -47,11 +47,11 @@ SELECT subject_area
       ,student_number
       ,percent_correct
       ,CASE
-        WHEN percent_correct >= 80 THEN 'Exceeded Expectations'
-        WHEN percent_correct >= 60 THEN 'Met Expectations'
+        WHEN percent_correct >= 85 THEN 'Exceeded Expectations'
+        WHEN percent_correct >= 70 THEN 'Met Expectations'
         WHEN percent_correct >= 50 THEN 'Approached Expectations'
-        WHEN percent_correct >= 40 THEN 'Partially Met Expectations'
-        WHEN percent_correct < 40 THEN 'Did Not Yet Meet Expectations'
+        WHEN percent_correct >= 35 THEN 'Partially Met Expectations'
+        WHEN percent_correct < 35 THEN 'Did Not Yet Meet Expectations'
        END AS proficiency_label
 FROM
     (

@@ -190,7 +190,7 @@ FROM
                         ,CONVERT(DATE,TestStartDate) DESC
                         ,CONVERT(FLOAT,TestStandardError) ASC) AS rn
      FROM KIPP_NJ..MAP$CDF WITH (NOLOCK)                
-     WHERE (TestID IS NULL OR (TestID NOT IN (SELECT TestID FROM KIPP_NJ..MAP$exclusion_audit#static WITH(NOLOCK) WHERE is_excluded = 1)))
+     --WHERE (TestID IS NULL OR (TestID NOT IN (SELECT TestID FROM KIPP_NJ..MAP$exclusion_audit#static WITH(NOLOCK) WHERE is_excluded = 1)))
     ) sub
 LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
   ON sub.student_number = co.student_number

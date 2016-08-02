@@ -9,6 +9,7 @@ WITH roster AS (
         ,co.lastfirst      
         ,co.year
         ,co.schoolid
+        ,co.reporting_schoolid
         ,co.grade_level
         ,co.cohort
         ,co.team
@@ -25,7 +26,7 @@ WITH roster AS (
    AND co.schoolid = dt.schoolid
    AND dt.identifier = 'RT'
    AND dt.alt_name != 'Summer School'
-  WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE co.year = 2015
     AND co.rn = 1
     AND co.enroll_status = 0
     AND co.grade_level != 99    
@@ -37,6 +38,7 @@ WITH roster AS (
         ,co.lastfirst      
         ,co.year
         ,co.schoolid
+        ,co.reporting_schoolid
         ,co.grade_level
         ,co.cohort
         ,co.team
@@ -51,7 +53,7 @@ WITH roster AS (
   JOIN KIPP_NJ..AUTOLOAD$GDOCS_REP_reporting_dates dt WITH(NOLOCK)
     ON co.year = dt.academic_year   
    AND dt.identifier = 'SY'   
-  WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE co.year = 2015
     AND co.rn = 1
     AND co.enroll_status = 0
     AND co.grade_level != 99    
@@ -178,7 +180,7 @@ WITH roster AS (
         ,gr.course_name
         ,gr.term_grade_percent_adjusted
   FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
-  WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE gr.academic_year = 2015
   UNION ALL
   SELECT gr.student_number
         ,'GRADES' AS domain
@@ -190,11 +192,12 @@ WITH roster AS (
         ,gr.course_name
         ,gr.y1_grade_percent_adjusted AS term_grade_percent_adjusted
   FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
-  WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE gr.academic_year = 2015
     AND gr.rn_curterm = 1
 
   UNION ALL
   
+  /* category grades */
   SELECT gr.student_number
         ,'GRADES' AS domain
         ,'CATEGORY' AS subdomain
@@ -205,7 +208,7 @@ WITH roster AS (
         ,gr.course_name
         ,ROUND(AVG(gr.grade_category_pct),0) AS term_grade_percent_adjusted
   FROM KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
-  WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE gr.academic_year = 2015
   GROUP BY gr.student_number
           ,gr.academic_year
           ,gr.grade_category
@@ -225,7 +228,7 @@ WITH roster AS (
         ,gr.course_name
         ,COALESCE(gr.e1, gr.e2) AS term_grade_percent_adjusted
   FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)   
-  WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE gr.academic_year = 2015
     AND gr.schoolid = 73253
     AND (gr.e1 IS NOT NULL OR gr.e2 IS NOT NULL)
  )
@@ -267,7 +270,7 @@ WITH roster AS (
              ,att.ABS_all_counts_term + ROUND((att.TDY_all_counts_term / 3),1,1) AS attpts_term
              ,ROUND(((att.MEM_counts_term - (att.ABS_all_counts_term + ROUND((att.TDY_all_counts_term / 3),1,1))) / att.MEM_counts_term) * 100,0) AS attptspct_term
        FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
-       WHERE att.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       WHERE att.academic_year = 2015
          AND att.MEM_counts_term > 0
          AND att.MEM_counts_term != att.ABS_all_counts_term
 
@@ -293,7 +296,7 @@ WITH roster AS (
              ,att.ABS_all_counts_yr + ROUND((att.TDY_all_counts_yr / 3),1,1) AS attpts_yr
              ,ROUND(((att.MEM_counts_yr - (att.ABS_all_counts_yr + ROUND((att.TDY_all_counts_yr / 3),1,1))) / att.MEM_counts_yr) * 100,0) AS attptspct_yr
        FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
-       WHERE att.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       WHERE att.academic_year = 2015
          AND att.MEM_counts_term > 0
          AND att.MEM_counts_yr != att.ABS_all_counts_yr
          AND att.rn_curterm = 1
@@ -317,19 +320,8 @@ WITH roster AS (
    ) u
  )
 
---,module_standards AS (
---  SELECT a.assessment_id
---        ,KIPP_NJ.dbo.GROUP_CONCAT_D(std.custom_code,CHAR(10)) AS standards
---  FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
---  JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static ast WITH(NOLOCK)
---    ON a.assessment_id = ast.assessment_id
---  JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
---    ON ast.standard_id = std.standard_id
---  WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
---  GROUP BY a.assessment_id
--- )
-
 ,modules AS (
+  /* overall */
   SELECT a.subject_area        
         ,a.title        
         ,a.academic_year        
@@ -344,13 +336,12 @@ WITH roster AS (
   FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static res WITH(NOLOCK)
     ON a.assessment_id = res.assessment_id
-  --LEFT OUTER JOIN module_standards m
-  --  ON a.assessment_id = m.assessment_id
   WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')        
-    AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND a.academic_year = 2015
 
   UNION ALL
 
+  /* standards */
   SELECT a.subject_area        
         ,a.title        
         ,a.academic_year        
@@ -369,10 +360,11 @@ WITH roster AS (
     ON res.standard_id = std.standard_id
   WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
     AND a.subject_area != 'Writing'
-    AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND a.academic_year = 2015
 
   UNION ALL
 
+  /* writing */
   SELECT a.subject_area        
         ,a.title        
         ,a.academic_year        
@@ -393,7 +385,7 @@ WITH roster AS (
    AND std.custom_code LIKE 'T_S.W.%'
   WHERE a.scope = 'CMA - End-of-Module'
     AND a.subject_area = 'Writing'  
-    AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND a.academic_year = 2015
  )
 
 ,gpa AS (
@@ -405,7 +397,7 @@ WITH roster AS (
         ,schoolid
         ,GPA_Y1 AS GPA
   FROM KIPP_NJ..GRADES$GPA_detail_long#static WITH(NOLOCK)    
-  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_year()
+  WHERE academic_year = 2015
 
   UNION ALL
 
@@ -434,7 +426,7 @@ WITH roster AS (
   SELECT s.STUDENT_NUMBER
         ,'GPA' AS domain
         ,'GPA CUMULATIVE' AS subdomain
-        ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
+        ,2015 AS academic_year
         ,'Y1' AS reporting_Term
         ,gpa.schoolid           
         ,gpa.cumulative_Y1_gpa AS GPA
@@ -447,7 +439,7 @@ WITH roster AS (
   SELECT s.STUDENT_NUMBER
         ,'GPA' AS domain
         ,'CREDITS EARNED' AS subdomain
-        ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
+        ,2015 AS academic_year
         ,'Y1' AS reporting_Term
         ,gpa.schoolid           
         ,gpa.earned_credits_cum AS GPA
@@ -458,6 +450,7 @@ WITH roster AS (
  )
 
 ,lit AS (
+  /* STEP/F&P */
   SELECT student_number
         ,'LIT' AS domain
         ,'ACHIEVED' AS subdomain
@@ -484,6 +477,7 @@ WITH roster AS (
   
   UNION ALL
 
+  /* Lexile */
   SELECT student_number
         ,'LIT' AS domain
         ,'ACHIEVED' AS subdomain
@@ -778,7 +772,7 @@ WITH roster AS (
         ,subtype
         ,CASE WHEN subtype = 'Perfect Week' THEN COUNT(studentid) * 3 ELSE COUNT(studentid) END AS n_counts
   FROM KIPP_NJ..DISC$log#static WITH(NOLOCK)
-  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE academic_year = 2015
     AND logtype IS NOT NULL
     AND subtype IS NOT NULL
   GROUP BY studentid
@@ -823,7 +817,7 @@ WITH roster AS (
                  ,pm_orange
                  ,pm_red)
   ) u
-  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE academic_year = 2015
   GROUP BY studentid
           ,term
           ,field
@@ -847,7 +841,7 @@ WITH roster AS (
     FOR field IN (has_hw
                  ,has_uniform)
   ) u
-  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE academic_year = 2015
   GROUP BY studentid
           ,term
           ,field
@@ -911,7 +905,7 @@ WITH roster AS (
         ,CASE WHEN schoolid = 73253 THEN points_goal ELSE words_goal END AS goal
         ,CASE WHEN schoolid = 73253 THEN stu_status_points ELSE stu_status_words END AS goal_status
   FROM KIPP_NJ..AR$progress_to_goals_long#static WITH(NOLOCK)
-  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHERE academic_year = 2015
  )
 
 SELECT r.studentid
@@ -1337,6 +1331,6 @@ SELECT NULL AS studentid
       ,NULL AS performance_level
       ,NULL AS performance_level_label
 FROM KIPP_NJ..COHORT$identifiers_long#static WITH(NOLOCK)
-WHERE year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+WHERE year = 2015
   AND enroll_status = 0
   AND rn = 1  

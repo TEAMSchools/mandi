@@ -99,6 +99,7 @@ LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static testid WITH(NOLO
 LEFT OUTER JOIN KIPP_NJ..LIT$readingscores_long#static long WITH(NOLOCK)
   ON co.studentid = long.studentid
  AND achv.dna_unique_id = long.unique_id
+ AND long.status != 'Achieved'
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
   ON co.STUDENT_NUMBER = ar.student_number
  AND co.year = ar.academic_year

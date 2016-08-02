@@ -5,11 +5,11 @@ SELECT student_number
       ,standard_description
       ,ROUND(AVG(percent_correct),0) AS percent_correct
       ,CASE
-        WHEN ROUND(AVG(percent_correct),0) >= 80 THEN 'Exceeded Expectations'
-        WHEN ROUND(AVG(percent_correct),0) >= 60 THEN 'Met Expectations'
+        WHEN ROUND(AVG(percent_correct),0) >= 85 THEN 'Exceeded Expectations'
+        WHEN ROUND(AVG(percent_correct),0) >= 70 THEN 'Met Expectations'
         WHEN ROUND(AVG(percent_correct),0) >= 50 THEN 'Approached Expectations'
-        WHEN ROUND(AVG(percent_correct),0) >= 40 THEN 'Partially Met Expectations'
-        WHEN ROUND(AVG(percent_correct),0) < 40 THEN 'Did Not Yet Meet Expectations'
+        WHEN ROUND(AVG(percent_correct),0) >= 35 THEN 'Partially Met Expectations'
+        WHEN ROUND(AVG(percent_correct),0) < 35 THEN 'Did Not Yet Meet Expectations'
        END AS standard_proficiency
 FROM
     (

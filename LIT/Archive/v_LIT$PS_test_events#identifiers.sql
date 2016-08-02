@@ -21,7 +21,7 @@ WITH clean_data AS (
         ,COALESCE(rs.test_round, d.time_per_name) AS test_round
             
         ,co.student_number
-        ,co.grade_level      
+        ,NULL AS grade_level      
         ,co.LASTFIRST
       
         ,COALESCE(rs.read_lvl, gleq.read_lvl) AS read_lvl       
@@ -45,10 +45,8 @@ WITH clean_data AS (
     ON rs.instruct_lvl = instr.read_lvl
   LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq ind WITH(NOLOCK)
     ON COALESCE(rs.indep_lvl, rs.read_lvl) = ind.read_lvl
-  LEFT OUTER JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-    ON rs.studentid = co.studentid
-   AND COALESCE(rs.academic_year, KIPP_NJ.dbo.fn_DateToSY(rs.test_date)) = co.year
-   AND co.rn = 1
+  LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static co WITH(NOLOCK)
+    ON rs.studentid = co.id   
   LEFT OUTER JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
     ON rs.schoolid = d.schoolid 
    AND rs.test_date BETWEEN d.start_date AND d.end_date
@@ -75,7 +73,7 @@ WITH clean_data AS (
         ,COALESCE(rs.test_round, d.time_per_name) AS test_round
       
         ,co.student_number
-        ,co.grade_level      
+        ,NULL AS grade_level      
         ,co.LASTFIRST
 
         ,COALESCE(rs.read_lvl, gleq.read_lvl) AS read_lvl       
@@ -98,10 +96,8 @@ WITH clean_data AS (
     ON rs.instruct_lvl = instr.read_lvl
   LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq ind WITH(NOLOCK)
     ON COALESCE(rs.indep_lvl, rs.read_lvl) = ind.read_lvl
-  LEFT OUTER JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-    ON rs.studentid = co.studentid
-   AND COALESCE(rs.academic_year, KIPP_NJ.dbo.fn_DateToSY(rs.test_date)) = co.year
-   AND co.rn = 1
+  LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static co WITH(NOLOCK)
+    ON rs.studentid = co.id   
   LEFT OUTER JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
     ON rs.schoolid = d.schoolid 
    AND rs.test_date BETWEEN d.start_date AND d.end_date
@@ -127,7 +123,7 @@ WITH clean_data AS (
         ,COALESCE(rs.test_round, d.time_per_name) AS test_round
       
         ,co.student_number
-        ,co.grade_level      
+        ,NULL AS grade_level      
         ,co.LASTFIRST              
       
         ,'Pre DNA' AS read_lvl
@@ -140,10 +136,8 @@ WITH clean_data AS (
         ,'AA' AS indep_lvl
         ,-1 AS indep_lvl_num
   FROM KIPP_NJ..LIT$readingscores#static rs WITH(NOLOCK)
-  LEFT OUTER JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-    ON rs.studentid = co.studentid
-   AND COALESCE(rs.academic_year, KIPP_NJ.dbo.fn_DateToSY(rs.test_date)) = co.year
-   AND co.rn = 1
+  LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static co WITH(NOLOCK)
+    ON rs.studentid = co.id
   LEFT OUTER JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
     ON rs.schoolid = d.schoolid 
    AND rs.test_date BETWEEN d.start_date AND d.end_date
@@ -171,7 +165,7 @@ WITH clean_data AS (
         ,COALESCE(rs.test_round, d.time_per_name) AS test_round
       
         ,co.student_number
-        ,co.grade_level      
+        ,NULL AS grade_level      
         ,co.LASTFIRST
 
         ,rs.read_lvl
@@ -197,10 +191,8 @@ WITH clean_data AS (
     ON rs.instruct_lvl = instr.read_lvl
   LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq ind WITH(NOLOCK)
     ON COALESCE(rs.indep_lvl, rs.read_lvl) = ind.read_lvl
-  LEFT OUTER JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-    ON rs.studentid = co.studentid
-   AND COALESCE(rs.academic_year, KIPP_NJ.dbo.fn_DateToSY(rs.test_date)) = co.year
-   AND co.rn = 1
+  LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static co WITH(NOLOCK)
+    ON rs.studentid = co.id   
   LEFT OUTER JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
     ON rs.schoolid = d.schoolid 
    AND rs.test_date BETWEEN d.start_date AND d.end_date
@@ -227,7 +219,7 @@ WITH clean_data AS (
         ,COALESCE(rs.test_round, d.time_per_name) AS test_round
       
         ,co.student_number
-        ,co.grade_level      
+        ,NULL AS grade_level      
         ,co.LASTFIRST            
       
         ,rs.read_lvl
@@ -250,10 +242,8 @@ WITH clean_data AS (
     ON rs.instruct_lvl = instr.read_lvl
   LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq ind WITH(NOLOCK)
     ON COALESCE(rs.indep_lvl, rs.read_lvl) = ind.read_lvl
-  LEFT OUTER JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-    ON rs.studentid = co.studentid
-   AND COALESCE(rs.academic_year, KIPP_NJ.dbo.fn_DateToSY(rs.test_date)) = co.year
-   AND co.rn = 1
+  LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static co WITH(NOLOCK)
+    ON rs.studentid = co.id   
   LEFT OUTER JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
     ON rs.schoolid = d.schoolid 
    AND rs.test_date BETWEEN d.start_date AND d.end_date

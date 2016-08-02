@@ -15,7 +15,7 @@ BEGIN
   WITH cdf_file AS (
     SELECT [TermName]
           ,[TestID]
-    FROM KIPP_NJ..[AUTOLOAD$NWEA_AssessmentResult] WITH(NOLOCK)
+    FROM KIPP_NJ..[AUTOLOAD$NWEA_AssessmentResults] WITH(NOLOCK)
    )
 
   ,cdf_table AS (

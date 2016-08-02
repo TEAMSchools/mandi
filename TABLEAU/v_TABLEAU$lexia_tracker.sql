@@ -92,9 +92,10 @@ WITH grade_level_goals AS (
 SELECT co.student_number
       ,co.lastfirst
       ,co.year
-      ,co.schoolid
+      ,co.reporting_schoolid AS schoolid
       ,co.grade_level
       ,co.student_web_id
+      ,co.spedlep
       ,ROW_NUMBER() OVER(
          PARTITION BY co.student_number, co.year
            ORDER BY CONVERT(DATE,lex.activity_timestamp) DESC) AS rn_curr
@@ -116,7 +117,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.student_number = enr.student_number
  AND co.year = enr.academic_year
  AND enr.COURSE_NUMBER = 'HR'
- AND CONVERT(DATE,GETDATE()) BETWEEN enr.dateenrolled AND enr.dateleft
+ AND enr.drop_flags = 0
 JOIN KIPP_NJ..AUTOLOAD$LEXIA_detail lex WITH(NOLOCK)
   ON co.student_web_id = lex.username
  AND co.year = KIPP_NJ.dbo.fn_DateToSY(lex.activity_timestamp)
