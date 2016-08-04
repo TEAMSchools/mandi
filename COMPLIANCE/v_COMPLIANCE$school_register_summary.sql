@@ -3,7 +3,7 @@ GO
 
 --need manual changes for year
 
-ALTER VIEW COMPLIANCE$school_register_summary AS
+git ALTER VIEW COMPLIANCE$school_register_summary AS
 
 WITH schooldays AS (
   SELECT academic_year
@@ -22,7 +22,7 @@ WITH schooldays AS (
   GROUP BY academic_year, region
  )
 
-,lunch AS (
+,reenrollments AS (
 	SELECT *
 	FROM OPENQUERY(PS_TEAM,'
 		SELECT studentid
@@ -36,6 +36,17 @@ WITH schooldays AS (
 		WHERE entrydate >= ''2015-07-20'' 
 			AND exitdate <= ''2016-07-01''
 		')
+)
+
+--this is a dirty way to get most recent enrollment record for students who have 2+ enrollments
+
+,lunch AS ( 
+  SELECT r.*
+        ,ROW_NUMBER() OVER(
+	         PARTITION BY r.studentid
+	           ORDER BY r.exitdate DESC) AS rownum
+  FROM reenrollments r
+
 )
 
 ,att_mem AS (
@@ -55,7 +66,7 @@ SELECT sub.academic_year
       ,sub.studentid
       ,co.SID
       ,co.lastfirst
-      ,sub.region
+   	  ,sub.region
       ,sub.SCHOOLID
       ,co.grade_level
       ,co.entrydate
@@ -76,7 +87,7 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
  AND sub.academic_year = co.year
  AND co.rn = 1
  AND co.year = 2015
- 
 LEFT OUTER JOIN lunch
   ON co.studentid = lunch.studentid
+  AND lunch.rownum = 1
 
