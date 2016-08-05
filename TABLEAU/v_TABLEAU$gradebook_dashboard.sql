@@ -23,6 +23,7 @@ WITH section_teacher AS (
    AND KIPP_NJ.dbo.fn_StripCharacters(sec.expression,'^0-9') = p.PERIOD_NUMBER
   WHERE scaff.teacher_name IS NOT NULL
     AND scaff.term IS NOT NULL
+    AND scaff.year >= 2015 /* UPDATE ANNUALLY */
  )
 
 /* final grades */
@@ -75,6 +76,7 @@ LEFT OUTER JOIN section_teacher st
  AND st.rn = 1
 WHERE co.rn = 1
   AND co.school_level IN ('MS','HS')
+  AND co.year >= 2015 /* UPDATE ANNUALLY */
 
 UNION ALL
 
@@ -134,6 +136,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
   ON gr.COURSE_NUMBER = cou.COURSE_NUMBER
 WHERE co.rn = 1
   AND co.school_level IN ('MS','HS')
+  AND co.year >= 2015 /* UPDATE ANNUALLY */
 
 /* Y1 grades as additional term */
 UNION ALL
@@ -188,6 +191,7 @@ LEFT OUTER JOIN section_teacher st
  AND st.rn = 1
 WHERE co.rn = 1
   AND co.school_level IN ('MS','HS')
+  AND co.year >= 2015 /* UPDATE ANNUALLY */
 
 UNION ALL
 
@@ -248,6 +252,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
   ON gr.COURSE_NUMBER = cou.COURSE_NUMBER
 WHERE co.rn = 1
   AND co.school_level IN ('MS','HS')
+  AND co.year >= 2015 /* UPDATE ANNUALLY */
 
 UNION ALL
 
@@ -305,3 +310,9 @@ LEFT OUTER JOIN section_teacher st
  AND st.rn = 1
 WHERE co.rn = 1
   AND co.schoolid = 73253
+  AND co.year >= 2015 /* UPDATE ANNUALLY */
+
+UNION ALL
+
+SELECT *
+FROM KIPP_NJ..TABLEAU$gradebook_dashboard#archive WITH(NOLOCK)

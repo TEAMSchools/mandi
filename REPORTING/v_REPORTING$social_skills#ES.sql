@@ -6,6 +6,7 @@ ALTER VIEW REPORTING$social_skills#ES AS
 WITH tests_long AS (
   SELECT a.repository_id      
         ,a.title
+        ,a.academic_year
         ,CASE
           WHEN a.title LIKE '%SPARK%' THEN 73254
           WHEN a.title LIKE '%THRIVE%' THEN 73255
@@ -20,8 +21,7 @@ WITH tests_long AS (
   JOIN KIPP_NJ..ILLUMINATE$repository_fields#static f WITH(NOLOCK)
     ON a.repository_id = f.repository_id     
   WHERE a.scope = 'Reporting' 
-    AND a.subject_area = 'Social Skills'
-    AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND a.subject_area = 'Social Skills'    
  )
  
 ,terms AS (
@@ -39,6 +39,7 @@ WITH tests_long AS (
 
 ,skills_long AS (
   SELECT res.student_id AS student_number            
+        ,l.academic_year
         ,t.term
         ,l.label AS social_skill      
         ,res.value AS score      
@@ -55,6 +56,7 @@ WITH tests_long AS (
   UNION ALL
 
   SELECT res.student_id AS student_number                  
+        ,l.academic_year
         ,t.term                  
         ,l.label AS social_skill      
         ,res.value AS score      
@@ -71,6 +73,7 @@ WITH tests_long AS (
  )
 
 SELECT co.student_number
+      ,co.year AS academic_year
       ,dt.alt_name AS term      
       ,soc.social_skill
       ,soc.score
@@ -82,8 +85,9 @@ JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
  AND dt.alt_name != 'Summer School'
 JOIN skills_long soc
   ON co.student_number = soc.student_number
+ AND co.year = soc.academic_year
  AND dt.alt_name = soc.term
-WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
-  AND (co.grade_level <= 4 AND co.schoolid != 73252)
+ AND ISNUMERIC(soc.score) = 1
+WHERE (co.grade_level <= 4 AND co.schoolid != 73252)
   AND co.team NOT LIKE '%Pathways%'
   AND co.rn = 1

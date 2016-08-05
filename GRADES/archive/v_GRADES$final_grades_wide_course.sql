@@ -9,7 +9,7 @@ WITH course_unpivot AS (
         ,term      
         ,CONCAT('rc', RIGHT(CONCAT('0',class_rn),2), '_', field) AS pivot_field
         ,CONVERT(VARCHAR(64),CASE WHEN value = '' THEN NULL ELSE value END) AS value
-  FROM KIPP_NJ..GRADES$final_grades_wide#static WITH(NOLOCK)  
+  FROM KIPP_NJ..GRADES$final_grades_wide#static WITH(NOLOCK)    
   UNPIVOT(
     value
     FOR field IN (course_name
@@ -40,7 +40,7 @@ WITH course_unpivot AS (
                  ,y1_grade_letter
                  ,y1_grade_percent)
    ) u
-  WHERE course_number != 'ALL'
+  WHERE course_number NOT IN ('ALL','HR')
  )
 
 SELECT *

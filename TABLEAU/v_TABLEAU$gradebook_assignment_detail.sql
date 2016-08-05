@@ -38,7 +38,7 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$assignments#STAGING a WITH(NOLOCK)
  AND a.ASSIGN_DATE BETWEEN gb.STARTDATE AND gb.ENDDATE
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignment_scores#STAGING scores WITH(NOLOCK)
   ON a.ASSIGNMENTID = scores.ASSIGNMENTID
-WHERE sec.academic_year >= 2015
+WHERE sec.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
 UNION ALL
 
@@ -76,4 +76,9 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$assignments#STAGING a WITH(NOLOCK)
  AND a.ASSIGN_DATE BETWEEN gb.STARTDATE AND gb.ENDDATE
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignment_scores#STAGING scores WITH(NOLOCK)
   ON a.ASSIGNMENTID = scores.ASSIGNMENTID
-WHERE sec.academic_year >= 2015
+WHERE sec.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+
+UNION ALL
+
+SELECT *
+FROM KIPP_NJ..TABLEAU$gradebook_assignment_detail#archive WITH(NOLOCK)

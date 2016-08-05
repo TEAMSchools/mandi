@@ -3,41 +3,6 @@ GO
 
 ALTER VIEW TABLEAU$gradebook_setup AS 
 
-SELECT NULL AS sectionid
-      ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year            
-      ,NULL AS schoolid
-      ,NULL AS section_number
-      ,NULL AS period
-      
-      ,NULL AS TEACHERNUMBER
-      ,NULL AS teacher_name
-      
-      ,NULL AS CREDITTYPE
-      ,NULL AS COURSE_NUMBER
-      ,NULL AS COURSE_NAME
-
-      ,NULL AS FINALGRADENAME
-      ,NULL AS finalgrade_category
-      ,NULL AS FINALGRADESETUPTYPE
-      ,NULL AS GRADINGFORMULAWEIGHTINGTYPE
-      ,NULL AS grade_category
-      ,NULL AS grade_category_abbreviation
-      ,NULL AS WEIGHTING
-      ,NULL AS INCLUDEINFINALGRADES                   
-      ,NULL AS DEFAULTSCORETYPE            
-      
-      ,NULL AS ASSIGNMENTID
-      ,NULL AS ASSIGN_DATE
-      ,NULL AS ASSIGN_NAME
-      ,NULL AS POINTSPOSSIBLE
-      ,NULL AS WEIGHT
-      ,NULL AS EXTRACREDITPOINTS
-      ,NULL AS ISFINALSCORECALCULATED
-
-      ,NULL AS rn_category
-
-UNION ALL
-
 SELECT sec.ID AS sectionid
       ,sec.academic_year            
       ,sec.schoolid
@@ -88,4 +53,44 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$assignments#STAGING a WITH(NOLOCK)
   ON sec.ID = a.SECTIONID
  AND gb.ASSIGNMENTCATEGORYID = a.assignmentcategoryid
  AND a.ASSIGN_DATE BETWEEN gb.STARTDATE AND gb.ENDDATE
-WHERE sec.academic_year >= 2015
+WHERE sec.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+
+UNION ALL
+
+SELECT *
+FROM KIPP_NJ..TABLEAU$gradebook_setup#archive WITH(NOLOCK)
+
+UNION ALL
+
+SELECT NULL AS sectionid
+      ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year            
+      ,NULL AS schoolid
+      ,NULL AS section_number
+      ,NULL AS period
+      
+      ,NULL AS TEACHERNUMBER
+      ,NULL AS teacher_name
+      
+      ,NULL AS CREDITTYPE
+      ,NULL AS COURSE_NUMBER
+      ,NULL AS COURSE_NAME
+
+      ,NULL AS FINALGRADENAME
+      ,NULL AS finalgrade_category
+      ,NULL AS FINALGRADESETUPTYPE
+      ,NULL AS GRADINGFORMULAWEIGHTINGTYPE
+      ,NULL AS grade_category
+      ,NULL AS grade_category_abbreviation
+      ,NULL AS WEIGHTING
+      ,NULL AS INCLUDEINFINALGRADES                   
+      ,NULL AS DEFAULTSCORETYPE            
+      
+      ,NULL AS ASSIGNMENTID
+      ,NULL AS ASSIGN_DATE
+      ,NULL AS ASSIGN_NAME
+      ,NULL AS POINTSPOSSIBLE
+      ,NULL AS WEIGHT
+      ,NULL AS EXTRACREDITPOINTS
+      ,NULL AS ISFINALSCORECALCULATED
+
+      ,NULL AS rn_category

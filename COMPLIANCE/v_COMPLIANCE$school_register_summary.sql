@@ -1,8 +1,6 @@
 USE KIPP_NJ
 GO
 
---need manual changes for year
-
 ALTER VIEW COMPLIANCE$school_register_summary AS
 
 WITH schooldays AS (
@@ -22,61 +20,136 @@ WITH schooldays AS (
   GROUP BY academic_year, region
  )
 
-,lunch AS (
-	SELECT *
-	FROM OPENQUERY(PS_TEAM,'
-		SELECT studentid
-				,schoolid
-				,entrydate
-				,exitdate
-				,grade_level
-				,lunchstatus
-           
-		FROM reenrollments
-		WHERE entrydate >= ''2015-07-20'' 
-			AND exitdate <= ''2016-07-01''
-		')
-)
-
 ,att_mem AS (
   SELECT STUDENTID
-        ,academic_year
-        ,SCHOOLID
-        ,CASE WHEN SCHOOLID LIKE '1799%' THEN 'KCNA' ELSE 'TEAM' END AS region
+        ,academic_year        
         ,SUM(CONVERT(INT,ATTENDANCEVALUE)) AS N_att
         ,SUM(CONVERT(INT,MEMBERSHIPVALUE)) AS N_mem
   FROM KIPP_NJ..ATT_MEM$MEMBERSHIP WITH(NOLOCK)
+  WHERE MEMBERSHIPVALUE = 1
   GROUP BY STUDENTID
-          ,academic_year
-          ,SCHOOLID     
+          ,academic_year          
  )
 
-SELECT sub.academic_year
-      ,sub.studentid
-      ,co.SID
-      ,co.lastfirst
-      ,sub.region
-      ,sub.SCHOOLID
-      ,co.grade_level
-      ,co.entrydate
-      ,co.exitdate
-      ,CASE WHEN co.ETHNICITY IS NULL THEN 'No Determination' ELSE co.ethnicity END AS ethnicity
-	  ,CASE WHEN lunch.lunchstatus IS NULL THEN 'No Determination' ELSE lunch.lunchstatus END as lunchstatus
-      ,co.SPEDLEP
-      ,CASE WHEN co.LEP_STATUS IS NULL THEN 'No' ELSE 'Yes' END AS LEP_STATUS
-      ,CASE WHEN sub.N_mem > d.N_days THEN d.N_days ELSE sub.N_mem END AS N_mem
-      ,CASE WHEN sub.N_att > d.N_days THEN d.N_days ELSE sub.N_att END AS N_att      
-      ,d.N_days
-FROM att_mem sub
-JOIN schooldays d
-  ON sub.academic_year = d.academic_year
- AND sub.region = d.region
-JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-  ON sub.studentid = co.studentid
- AND sub.academic_year = co.year
- AND co.rn = 1
- AND co.year = 2015
- 
-LEFT OUTER JOIN lunch
-  ON co.studentid = lunch.studentid
+--,long_data AS (
+  SELECT sub.academic_year      
+        ,co.student_number
+        ,co.SID
+        ,co.lastfirst
+        ,co.schoolid
+        ,CASE WHEN co.schoolid LIKE '1799%' THEN 'KCNA' ELSE 'TEAM' END AS region      
+        ,co.grade_level
+        ,co.sped_code
+        ,CASE
+          /* EasyIEP data entry is extremely fucked up */
+          WHEN co.year >= 2015 AND co.SID IN ('7492522716','5465997966','3713085357','1194087026','1334559506','4478909595') THEN 'Autism'
+          WHEN co.year >= 2015 AND co.SID IN ('1169223856','1240010558','2930172527','3583607990','6367109429','7287679809','4829668227','7229318281') THEN 'Cognitive-Mild'
+          WHEN co.year >= 2015 AND co.SID IN ('2926827662','4549382509','4355868898','7583098257','6918087445','2209413438','7565129726','4767836482','4313714647','3726579821','1420437737','1617765966','4821629468','1648342943') THEN 'LLD Mild to Moderate'
+          WHEN co.grade_level = 0 THEN 'K'
+          ELSE CONVERT(VARCHAR,co.grade_level)
+         END AS report_grade_level      
+        ,co.ethnicity
+        ,ISNULL(co.ETHNICITY,'B') AS race_status
+	       ,co.lunchstatus
+        ,CASE
+          WHEN co.lunchstatus IN ('F','R') THEN 'Low Income'
+          WHEN co.lunchstatus = 'P' THEN 'Not Low Income'
+          WHEN co.lunchstatus IS NULL THEN 'Not Low Income'
+         END AS low_income_status
+        ,co.spedlep AS sped
+        ,CASE
+          WHEN co.SPEDLEP LIKE '%SPED%' THEN 'IEP'
+          ELSE 'Not IEP'
+         END AS IEP_status
+        ,co.lep_status AS lep
+        ,CASE 
+          WHEN co.LEP_STATUS = 1 THEN 'LEP' 
+          WHEN co.LEP_STATUS IS NULL THEN 'Not LEP'        
+         END AS LEP_status
+        ,d.N_days AS N_days_open
+        ,CASE WHEN sub.N_mem > d.N_days THEN d.N_days ELSE sub.N_mem END AS N_days_possible
+        ,CASE WHEN sub.N_att > d.N_days THEN d.N_days ELSE sub.N_att END AS N_days_present 
+  FROM att_mem sub
+  JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+    ON sub.studentid = co.studentid
+   AND sub.academic_year = co.year
+   AND co.rn = 1
+  JOIN schooldays d
+    ON sub.academic_year = d.academic_year
+   AND CASE WHEN co.schoolid LIKE '1799%' THEN 'KCNA' ELSE 'TEAM' END = d.region
+-- )
 
+/*
+/* initital entry -- grade level counts, disaggregating self-contained students */
+SELECT academic_year
+      ,region
+      ,'Initial Entry' AS report_section
+      ,report_grade_level AS category
+      ,MAX(n_days_open) AS days_open
+      ,SUM(n_days_possible) AS days_possible
+      ,SUM(N_days_present) AS days_present
+FROM long_data
+GROUP BY academic_year
+        ,region     
+        ,report_grade_level 
+
+UNION ALL
+
+/* low income -- counts by lunch status */
+SELECT academic_year
+      ,region
+      ,'Low Income' AS report_section
+      ,low_income_status AS category
+      ,MAX(n_days_open) AS days_open
+      ,SUM(n_days_possible) AS days_possible
+      ,SUM(N_days_present) AS days_present
+FROM long_data
+GROUP BY academic_year
+        ,region     
+        ,low_income_status 
+
+UNION ALL
+
+/* LEP -- counts by LEP status */
+SELECT academic_year
+      ,region
+      ,'LEP' AS report_section
+      ,LEP_status AS category
+      ,MAX(n_days_open) AS days_open
+      ,SUM(n_days_possible) AS days_possible
+      ,SUM(N_days_present) AS days_present
+FROM long_data
+GROUP BY academic_year
+        ,region     
+        ,LEP_status 
+
+UNION ALL
+
+/* IEP -- counts by IEP status */
+SELECT academic_year
+      ,region
+      ,'IEP' AS report_section
+      ,IEP_status AS category
+      ,MAX(n_days_open) AS days_open
+      ,SUM(n_days_possible) AS days_possible
+      ,SUM(N_days_present) AS days_present
+FROM long_data
+GROUP BY academic_year
+        ,region     
+        ,IEP_status 
+
+UNION ALL
+
+/* race -- counts by ethnicity code */
+SELECT academic_year
+      ,region
+      ,'Race' AS report_section
+      ,race_status AS category
+      ,MAX(n_days_open) AS days_open
+      ,SUM(n_days_possible) AS days_possible
+      ,SUM(N_days_present) AS days_present
+FROM long_data
+GROUP BY academic_year
+        ,region     
+        ,race_status 
+*/

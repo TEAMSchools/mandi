@@ -17,8 +17,16 @@ SELECT sub.student_number
       ,sub.CREDIT_HOURS
       ,sub.GRADESCALEID
       ,sub.EXCLUDEFROMGPA
-      ,sec.sectionid
-      ,sec.teacher_name
+      
+      ,COALESCE(sec.sectionid
+               ,LAG(sec.sectionid,1) OVER(PARTITION BY sub.student_number, sub.academic_year, sub.course_number ORDER BY sub.reporting_term)
+               ,LAG(sec.sectionid,2) OVER(PARTITION BY sub.student_number, sub.academic_year, sub.course_number ORDER BY sub.reporting_term)
+               ,LAG(sec.sectionid,3) OVER(PARTITION BY sub.student_number, sub.academic_year, sub.course_number ORDER BY sub.reporting_term)) AS sectionid
+      ,COALESCE(sec.teacher_name
+               ,LAG(sec.teacher_name,1) OVER(PARTITION BY sub.student_number, sub.academic_year, sub.course_number ORDER BY sub.reporting_term)
+               ,LAG(sec.teacher_name,2) OVER(PARTITION BY sub.student_number, sub.academic_year, sub.course_number ORDER BY sub.reporting_term)
+               ,LAG(sec.teacher_name,3) OVER(PARTITION BY sub.student_number, sub.academic_year, sub.course_number ORDER BY sub.reporting_term)) AS teacher_name
+      
       ,ROW_NUMBER() OVER(
          PARTITION BY sub.student_number, sub.academic_year, sub.term
            ORDER BY CASE
@@ -65,8 +73,7 @@ FROM
       AND dt.alt_name != 'Summer School'
      JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
        ON co.student_number = enr.student_number
-      AND co.year = enr.academic_year
-      --AND enr.CREDITTYPE NOT IN ('LOG')
+      AND co.year = enr.academic_year      
       AND enr.COURSE_NUMBER NOT IN ('')
       AND enr.course_enr_status = 0
       AND enr.drop_flags = 0
@@ -98,8 +105,8 @@ SELECT DISTINCT
       ,NULL AS CREDIT_HOURS
       ,NULL AS gradescaleid
       ,NULL AS excludefromgpa
-      ,NULL AS sectionid
-      ,NULL AS teacher_name
+      ,NULL AS sectionid      
+      ,NULL AS teacher_name      
       ,NULL AS class_rn      
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)

@@ -21,14 +21,14 @@ WITH roster AS (
         ,CONVERT(DATE,dt.start_date) AS term_start_date
         ,CONVERT(DATE,dt.end_date) AS term_end_date
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-  JOIN KIPP_NJ..AUTOLOAD$GDOCS_REP_reporting_dates dt WITH(NOLOCK)
+  JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
     ON co.year = dt.academic_year
    AND co.schoolid = dt.schoolid
    AND dt.identifier = 'RT'
    AND dt.alt_name != 'Summer School'
   WHERE co.year = 2015
     AND co.rn = 1
-    AND co.enroll_status = 0
+    AND co.enroll_status != 2
     AND co.grade_level != 99    
   
   UNION ALL
@@ -55,7 +55,7 @@ WITH roster AS (
    AND dt.identifier = 'SY'   
   WHERE co.year = 2015
     AND co.rn = 1
-    AND co.enroll_status = 0
+    AND co.enroll_status != 2
     AND co.grade_level != 99    
  )
 
@@ -181,6 +181,7 @@ WITH roster AS (
         ,gr.term_grade_percent_adjusted
   FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
   WHERE gr.academic_year = 2015
+    AND gr.excludefromgpa = 0
   UNION ALL
   SELECT gr.student_number
         ,'GRADES' AS domain
@@ -194,6 +195,7 @@ WITH roster AS (
   FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
   WHERE gr.academic_year = 2015
     AND gr.rn_curterm = 1
+    AND gr.excludefromgpa = 0
 
   UNION ALL
   
@@ -208,7 +210,7 @@ WITH roster AS (
         ,gr.course_name
         ,ROUND(AVG(gr.grade_category_pct),0) AS term_grade_percent_adjusted
   FROM KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
-  WHERE gr.academic_year = 2015
+  WHERE gr.academic_year = 2015    
   GROUP BY gr.student_number
           ,gr.academic_year
           ,gr.grade_category
@@ -231,6 +233,7 @@ WITH roster AS (
   WHERE gr.academic_year = 2015
     AND gr.schoolid = 73253
     AND (gr.e1 IS NOT NULL OR gr.e2 IS NOT NULL)
+    AND gr.excludefromgpa = 0
  )
 
 ,attendance AS (
@@ -333,6 +336,13 @@ WITH roster AS (
         ,a.scope
         ,NULL standards
         ,res.date_taken AS measure_date
+        ,CASE
+          WHEN res.percent_correct >= 85 THEN 'Exceeded'
+          WHEN res.percent_correct >= 70 THEN 'Met'
+          WHEN res.percent_correct >= 50 THEN 'Approached'
+          WHEN res.percent_correct >= 35 THEN 'Partially Met'
+          WHEN res.percent_correct < 35 THEN 'Did Not Yet Meet'
+         END AS proficiency_label
   FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static res WITH(NOLOCK)
     ON a.assessment_id = res.assessment_id
@@ -353,6 +363,7 @@ WITH roster AS (
         ,a.scope
         ,std.custom_code AS standards
         ,res.updated_at AS measure_date
+        ,NULL AS proficiency_label
   FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)
     ON a.assessment_id = res.assessment_id  
@@ -376,6 +387,7 @@ WITH roster AS (
         ,a.scope
         ,std.description AS standards
         ,res.updated_at AS measure_date
+        ,NULL AS proficiency_label
   FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)
     ON a.assessment_id = res.assessment_id  
@@ -408,18 +420,9 @@ WITH roster AS (
         ,'Y1' AS reporting_term
         ,schoolid
         ,GPA_Y1 AS GPA
-  FROM
-      (
-       SELECT student_number
-             ,academic_year
-             ,schoolid           
-             ,GPA_Y1
-             ,ROW_NUMBER() OVER(
-                PARTITION BY student_number, academic_year
-                  ORDER BY rt DESC) AS rn
-       FROM KIPP_NJ..GRADES$GPA_detail_long#static WITH(NOLOCK)
-      ) sub
-  WHERE rn = 1
+  FROM KIPP_NJ..GRADES$GPA_detail_long#static WITH(NOLOCK)      
+  WHERE academic_year = 2015
+    AND is_curterm = 1
 
   UNION ALL
 
@@ -665,30 +668,7 @@ WITH roster AS (
         ,NULL AS performance_level_label
   FROM KIPP_NJ..AUTOLOAD$NAVIANCE_6_sat2_scores WITH(NOLOCK)
 
-  UNION ALL
-
-  /* PSAT -- this data is garbage, we need to do some major cleanup of the student numbers */
-  /*
-  SELECT hs_student_id AS student_number
-        ,BINI_ID
-        ,KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,CASE WHEN test_date = '0000-00-00' THEN NULL ELSE REPLACE(test_date,'-00','-01') END)) AS academic_year
-        ,CONVERT(DATE,CASE WHEN test_date = '0000-00-00' THEN NULL ELSE REPLACE(test_date,'-00','-01') END) AS test_date      
-        ,'PSAT' AS test_name
-        ,subject
-        ,scale_score
-        ,NULL AS performance_level
-        ,NULL AS performance_level_label
-  FROM KIPP_NJ..AUTOLOAD$NAVIANCE_15_psat_scores WITH(NOLOCK)
-  UNPIVOT(
-    scale_score
-    FOR subject IN (evidence_based_reading_writing
-                   ,math
-                   ,total)
-   ) u
-  WHERE ISNUMERIC(hs_student_id) = 1  
-
-  UNION ALL
-  --*/
+  UNION ALL  
 
   /* AP */
   SELECT hs_student_id AS student_number
@@ -723,6 +703,27 @@ WITH roster AS (
                    ,science
                    ,composite)
    ) u
+
+  /* PSAT -- this data is garbage, we need to do some major cleanup of the student numbers */
+  /*
+  SELECT hs_student_id AS student_number
+        ,BINI_ID
+        ,KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,CASE WHEN test_date = '0000-00-00' THEN NULL ELSE REPLACE(test_date,'-00','-01') END)) AS academic_year
+        ,CONVERT(DATE,CASE WHEN test_date = '0000-00-00' THEN NULL ELSE REPLACE(test_date,'-00','-01') END) AS test_date      
+        ,'PSAT' AS test_name
+        ,subject
+        ,scale_score
+        ,NULL AS performance_level
+        ,NULL AS performance_level_label
+  FROM KIPP_NJ..AUTOLOAD$NAVIANCE_15_psat_scores WITH(NOLOCK)
+  UNPIVOT(
+    scale_score
+    FOR subject IN (evidence_based_reading_writing
+                   ,math
+                   ,total)
+   ) u
+  WHERE ISNUMERIC(hs_student_id) = 1  
+  --*/
  )
 
 ,collegeapps AS (
@@ -873,13 +874,17 @@ WITH roster AS (
              ,CONVERT(VARCHAR,goal_lvl) AS goal_lvl_status      
              
              /* grades */
-             ,CASE
-               WHEN schoolid = 73253 THEN CONVERT(VARCHAR,N_below_70)
-               ELSE CONVERT(VARCHAR,N_below_65)
-              END AS n_failing             
              ,CONVERT(VARCHAR,promo_status_grades) AS promo_status_grades /* # failing */                          
+             ,CONVERT(VARCHAR,N_below_60) AS n_failing                          
+
+             /* credits */
+             ,CONVERT(VARCHAR,promo_status_credits) AS promo_status_credits
+             ,CONVERT(VARCHAR,credits_enrolled) AS credits_enrolled
+             ,CONVERT(VARCHAR,projected_credits_earned) AS projected_credits_earned
+             ,CONVERT(VARCHAR,earned_credits_cum) AS earned_credits_cum
        FROM KIPP_NJ..PROMO$promo_status WITH(NOLOCK)
-       WHERE is_curterm = 1       
+       WHERE academic_year = 2015
+         AND is_curterm = 1       
       ) sub
   UNPIVOT(
     value
@@ -892,7 +897,11 @@ WITH roster AS (
                  ,promo_status_att
                  ,read_lvl_status
                  ,goal_lvl_status          
-                 ,lit_ARFR_status)                 
+                 ,lit_ARFR_status
+                 ,promo_status_credits
+                 ,credits_enrolled
+                 ,projected_credits_earned
+                 ,earned_credits_cum)
    ) u
  )
 
@@ -908,11 +917,22 @@ WITH roster AS (
   WHERE academic_year = 2015
  )
 
+,wordwork AS (
+  SELECT student_number
+        ,academic_year
+        ,'Word Work' AS domain
+        ,subject_area AS subdomain
+        ,listweek_num
+        ,word
+        ,score
+  FROM KIPP_NJ..LIT$word_work_long#static WITH(NOLOCK)
+ )
+
 SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,r.year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -941,7 +961,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,r.year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -970,7 +990,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,r.year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -985,8 +1005,8 @@ SELECT r.studentid
       ,cma.standards AS measure_name
       ,cma.percent_correct AS measure_value
       ,cma.measure_date
-      ,NULL AS performance_level
-      ,CONVERT(VARCHAR,cma.assessment_id) AS performance_level_label
+      ,cma.assessment_id AS performance_level
+      ,cma.proficiency_label AS performance_level_label
 FROM roster r
 LEFT OUTER JOIN modules cma
   ON r.student_number = cma.student_number
@@ -999,7 +1019,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,gpa.academic_year AS year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -1028,7 +1048,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,lit.academic_year AS year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -1056,7 +1076,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,map.test_year AS year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -1084,7 +1104,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,std.academic_year AS year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -1112,7 +1132,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,r.year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -1140,7 +1160,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,r.year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -1169,7 +1189,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,r.year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -1198,7 +1218,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,r.year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -1226,7 +1246,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,r.year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -1246,9 +1266,11 @@ SELECT r.studentid
 FROM roster r
 JOIN KIPP_NJ..REPORTING$social_skills#ES ss WITH(NOLOCK)
   ON r.student_number = ss.student_number 
+ AND r.year = ss.academic_year
  AND r.term = ss.term
  AND ISNUMERIC(ss.score) = 1
 WHERE r.term != 'Y1'
+  AND r.year = 2015
 
 UNION ALL
 
@@ -1256,7 +1278,7 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,r.year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -1284,7 +1306,36 @@ SELECT r.studentid
       ,r.student_number
       ,r.lastfirst
       ,r.year
-      ,r.schoolid
+      ,r.reporting_schoolid AS schoolid
+      ,r.grade_level
+      ,r.cohort
+      ,r.team
+      ,r.advisor      
+      ,r.spedlep
+      ,CONVERT(VARCHAR,ww.listweek_num) AS term
+      ,r.reporting_term      
+      ,ww.domain
+      ,ww.subdomain
+      ,NULL AS subject
+      ,NULL AS course_name
+      ,ww.word AS measure_name
+      ,ww.score AS measure_value
+      ,NULL AS measure_date
+      ,NULL AS performance_level
+      ,NULL AS performance_level_label
+FROM roster r
+JOIN wordwork ww
+  ON r.student_number = ww.student_number
+ AND r.year = ww.academic_year
+WHERE r.term = 'Y1'
+
+UNION ALL
+
+SELECT r.studentid
+      ,r.student_number
+      ,r.lastfirst
+      ,r.year
+      ,r.reporting_schoolid AS schoolid
       ,r.grade_level
       ,r.cohort
       ,r.team
@@ -1313,7 +1364,7 @@ SELECT NULL AS studentid
       ,NULL AS student_number
       ,' Choose a student...' AS lastfirst
       ,NULL AS year
-      ,schoolid
+      ,reporting_schoolid AS schoolid
       ,grade_level
       ,NULL AS cohort
       ,NULL AS team

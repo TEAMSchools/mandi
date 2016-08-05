@@ -15,8 +15,8 @@ WITH attendance AS (
         ,ROUND((((sub.MEM_counts_yr * 0.105) - att_pts) / -0.105) + 0.5,0) AS days_to_90
         ,ROUND((((sub.MEM_counts_yr * 0.105) - ABS_all_counts_yr) / -0.105) + 0.5,0) AS days_to_90_abs_only
         ,CASE 
-          WHEN sub.att_pts_pct >= 98 THEN 'Honors'
-          WHEN sub.att_pts_pct >= 92 THEN 'Satisfactory'
+          --WHEN sub.att_pts_pct >= 98 THEN 'Honors'
+          WHEN sub.att_pts_pct >= 92 THEN 'On Track'
           WHEN sub.att_pts_pct >= 90 THEN 'Warning'
           WHEN sub.att_pts_pct < 90 THEN 'Off Track'          
          END AS promo_status_attendance        
@@ -31,8 +31,7 @@ WITH attendance AS (
              ,ROUND(att.ABS_all_counts_yr + (att.TDY_all_counts_yr / 3), 1, 1) AS att_pts
              ,ROUND(((att.MEM_counts_yr - (att.ABS_all_counts_yr + FLOOR(att.TDY_all_counts_yr / 3))) / att.MEM_counts_yr) * 100, 0) AS att_pts_pct
        FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
-       WHERE att.academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND att.MEM_counts_yr > 0
+       WHERE att.MEM_counts_yr > 0
       ) sub
  )
 
@@ -60,12 +59,13 @@ WITH attendance AS (
   SELECT student_number
         ,academic_year
         ,term
+        ,N_below_60
         ,N_below_65
         ,N_below_70
         ,CASE
-          WHEN N_below_65 > 0 THEN 'Off Track'
+          WHEN N_below_60 > 0 THEN 'Off Track'
           WHEN N_below_70 > 0 THEN 'Warning'
-          ELSE 'Satisfactory'
+          ELSE 'On Track'
          END AS promo_status_grades        
   FROM
       (
@@ -74,9 +74,9 @@ WITH attendance AS (
              ,gr.term
              ,SUM(CASE WHEN gr.y1_grade_percent_adjusted < 70 THEN 1 ELSE 0 END) AS N_below_70
              ,SUM(CASE WHEN gr.y1_grade_percent_adjusted < 65 THEN 1 ELSE 0 END) AS N_below_65
+             ,SUM(CASE WHEN gr.y1_grade_percent_adjusted < 60 THEN 1 ELSE 0 END) AS N_below_60
        FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
-       WHERE gr.academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
-         AND gr.credittype != 'COCUR'  
+       WHERE gr.excludefromgpa = 0
          AND gr.y1_grade_percent_adjusted IS NOT NULL
        GROUP BY gr.student_number
                ,gr.term
@@ -99,10 +99,8 @@ WITH attendance AS (
 SELECT *
       ,CASE 
         WHEN school_level = 'ES' AND (SPEDLEP = 'SPED' OR retention_flag >= 1) THEN 'See Teacher'
-        WHEN CONCAT(promo_status_attendance
-                   ,promo_status_credits
-                   ,promo_status_grades
-                   ,promo_status_lit) LIKE '%Off Track%' THEN 'Off Track'
+        WHEN CONCAT(promo_status_attendance, promo_status_credits, promo_status_grades, promo_status_lit) LIKE '%Off Track%' THEN 'Off Track'
+        --WHEN CONCAT(promo_status_attendance, promo_status_credits, promo_status_grades, promo_status_lit) LIKE '%Honors%' THEN 'Honors'
         ELSE 'On Track'
        END AS promo_status_overall
 FROM
@@ -133,10 +131,8 @@ FROM
            ,att.days_to_90_abs_only
 
            /* lit */
-           ,CASE        
-             --WHEN co.school_level = 'ES' AND co.SPEDLEP = 'SPED' OR co.retained_yr_flag = 1 THEN 'See Teacher'                        
-             WHEN lit.lvls_grown_term IS NULL OR lit.n_growth_rounds < 0 THEN NULL        
-        
+           ,CASE                     
+             WHEN lit.lvls_grown_term IS NULL OR lit.n_growth_rounds < 0 THEN NULL                
              /* Life Upper students have different promo criteria */
              WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.goal_status IN ('On Track','Off Track') THEN 'On Track' /* if On Track, then On Track*/
              WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_yr >= lit.n_growth_rounds THEN 'On Track' /* if grew 1 lvl per round overall, then On Track */        
@@ -154,9 +150,19 @@ FROM
 
            /* final grades */
            ,fg.promo_status_grades
+           ,fg.N_below_60
            ,fg.N_below_65
            ,fg.N_below_70
 
+           /* credits */
+           ,CASE
+             WHEN cr.total_projected_credit_hours >= cr.total_credit_hours_enrolled THEN 'On Track'
+             WHEN cr.total_projected_credit_hours < cr.total_credit_hours_enrolled THEN 'Off Track'
+            END AS promo_status_credits
+           ,cr.total_credit_hours_enrolled AS credits_enrolled
+           ,cr.total_projected_credit_hours AS projected_credits_earned
+           ,cum.earned_credits_cum       
+           
            /* HW grades */
            ,cat.H_Y1 AS HWC_Y1
            ,cat.E_Y1 AS HWQ_Y1
@@ -182,16 +188,7 @@ FROM
              WHEN cum.cumulative_Y1_gpa >= 3.85 THEN 'Summa Cum Laude'
              WHEN cum.cumulative_Y1_gpa >= 3.5 THEN 'Magna Cum Laude'
              WHEN cum.cumulative_Y1_gpa >= 3.0  THEN 'Cum Laude'
-            END AS GPA_cum_status      
-      
-           /* credits */
-           ,CASE
-             WHEN cr.total_projected_credit_hours >= cr.total_credit_hours_enrolled THEN 'On Track'
-             WHEN cr.total_projected_credit_hours < cr.total_credit_hours_enrolled THEN 'Off Track'
-            END AS promo_status_credits
-           ,cr.total_credit_hours_enrolled AS credits_enrolled
-           ,cr.total_projected_credit_hours AS projected_credits_earned
-           ,cum.earned_credits_cum           
+            END AS GPA_cum_status          
      FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
      JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
        ON co.schoolid = dt.schoolid
@@ -226,6 +223,5 @@ FROM
        ON co.student_number = cr.student_number
       AND co.year = cr.academic_year
       AND dt.alt_name = cr.term
-     WHERE co.year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()  
-       AND co.rn = 1
+     WHERE co.rn = 1
     ) sub

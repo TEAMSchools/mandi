@@ -63,7 +63,7 @@ SELECT co.schoolid
        END AS SPEDLEP
       ,CASE 
         WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE 
-        ELSE COALESCE(sped.SPEDCODE, cs.spedlep) 
+        ELSE sped.SPEDCODE
        END AS SPED_code
       
       ,ms.school_name AS entry_school_name

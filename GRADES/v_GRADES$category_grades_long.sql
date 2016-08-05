@@ -17,7 +17,11 @@ SELECT sub.student_number
       ,sub.grade_category_pct
       
       ,ROUND(AVG(sub.grade_category_pct) OVER(PARTITION BY sub.student_number, sub.academic_year, sub.course_number, sub.grade_category ORDER BY sub.reporting_term),0) AS grade_category_pct_y1
-      ,CASE WHEN sub.academic_year = dt.academic_year AND sub.reporting_term = dt.time_per_name THEN 1 ELSE 0 END AS is_curterm
+      ,CASE 
+        WHEN sub.academic_year = dt.academic_year AND sub.reporting_term = dt.time_per_name THEN 1 
+        WHEN sub.academic_year <= KIPP_NJ.dbo.fn_Global_Academic_Year() AND sub.rt = 'RT4' THEN 1
+        ELSE 0 
+       END AS is_curterm
       ,ROW_NUMBER() OVER(
          PARTITION BY sub.student_number, sub.academic_year, sub.course_number, sub.grade_category
            ORDER BY sub.reporting_term DESC) AS rn_curterm
@@ -68,7 +72,7 @@ FROM
              WHEN LEFT(pgf.FINALGRADENAME,1) = 'Q' THEN 'E'
              ELSE LEFT(pgf.FINALGRADENAME,1)
             END AS grade_category
-           ,CONCAT('RT', RIGHT(pgf.FINALGRADENAME,1) + 1) AS reporting_term            
+           ,CONCAT('RT', RIGHT(pgf.FINALGRADENAME,1)) AS reporting_term            
            ,CONCAT('RT', RIGHT(pgf.FINALGRADENAME,1)) AS rt
            ,ROUND(pgf.[PERCENT],0) AS grade_category_pct               
       
