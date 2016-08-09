@@ -37,7 +37,7 @@ SELECT co.schoolid
       ,co.FAMILY_WEB_PASSWORD AS [Family PW]
       ,CONVERT(MONEY,co.LUNCH_BALANCE) AS [Lunch Balance]
       ,co.NEWARK_ENROLLMENT_NUMBER
-FROM COHORT$identifiers_long#static co WITH(NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 WHERE co.enroll_status = 0
   AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1

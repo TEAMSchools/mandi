@@ -33,7 +33,7 @@ SELECT co.schoolid
       ,s.MIDDLE_NAME
       ,s.last_name
       ,s.first_name + ' ' + s.last_name AS full_name
-      ,CASE WHEN co.year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN advisory.section_number ELSE s.TEAM END AS team
+      ,advisory.section_number AS team
       ,s.GENDER
       ,s.ETHNICITY
       ,s.enroll_status
