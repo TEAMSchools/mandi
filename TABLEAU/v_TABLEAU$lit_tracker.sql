@@ -14,25 +14,25 @@ SELECT co.school_name
       ,co.year AS academic_year            
       ,co.SPEDLEP AS IEP_status      
       ,co.enroll_status      
-      ,CASE
+      ,CONVERT(VARCHAR(8),CASE
         WHEN co.year >= 2015 THEN REPLACE(term.hex,'RT','Q') 
         ELSE REPLACE(term.hex,'RT','Hex ') 
-       END AS AR_term      
-      ,term.lit AS lit_term
+       END) AS AR_term      
+      ,CONVERT(VARCHAR(8),term.lit) AS lit_term
       
       /* test identifiers */      
-      ,achv.read_lvl
+      ,CONVERT(VARCHAR(8),achv.read_lvl) AS read_lvl
       ,achv.lvl_num
-      ,achv.dna_lvl
+      ,CONVERT(VARCHAR(8),achv.dna_lvl) AS dna_lvl
       ,achv.dna_lvl_num
-      ,achv.instruct_lvl
+      ,CONVERT(VARCHAR(8),achv.instruct_lvl) AS instruct_lvl
       ,achv.instruct_lvl_num
-      ,achv.indep_lvl
+      ,CONVERT(VARCHAR(8),achv.indep_lvl) AS indep_lvl
       ,achv.indep_lvl_num
-      ,achv.prev_read_lvl
+      ,CONVERT(VARCHAR(8),achv.prev_read_lvl) AS prev_read_lvl
       ,achv.prev_lvl_num
       ,achv.GLEQ      
-      ,achv.fp_keylever
+      ,CONVERT(VARCHAR(16),achv.fp_keylever) AS fp_keylever
       ,achv.is_new_test
       ,achv.moved_levels      
       ,SUM(CASE 
@@ -41,18 +41,18 @@ SELECT co.school_name
            END) OVER(PARTITION BY co.student_number, co.year ORDER BY achv.start_date ASC) AS n_levels_moved_y1
 
       ,testid.test_date
-      ,testid.status
-      ,testid.color
-      ,testid.genre
+      ,CONVERT(VARCHAR(16),testid.status) AS status
+      ,CONVERT(VARCHAR(16),testid.color) AS color
+      ,CONVERT(VARCHAR(16),testid.genre) AS genre
       ,testid.is_fp
 
       /* progress to goals */
       ,achv.is_curterm
-      ,achv.goal_lvl
+      ,CONVERT(VARCHAR(16),achv.goal_lvl) AS goal_lvl
       ,achv.goal_num
-      ,achv.natl_goal_lvl
+      ,CONVERT(VARCHAR(16),achv.natl_goal_lvl) AS natl_goal_lvl
       ,achv.natl_goal_num
-      ,achv.default_goal_lvl
+      ,CONVERT(VARCHAR(16),achv.default_goal_lvl) AS default_goal_lvl
       ,achv.default_goal_num      
       ,achv.lvl_num - achv.goal_num AS distance_from_goal            
       ,CONVERT(FLOAT,achv.met_goal) AS met_goal
@@ -62,9 +62,9 @@ SELECT co.school_name
       ,achv.dna_unique_id
       
       /* component data */      
-      ,long.domain AS component_domain
-      ,long.label AS component_strand
-      ,long.specific_label AS component_strand_specific
+      ,CONVERT(VARCHAR(32),long.domain) AS component_domain
+      ,CONVERT(VARCHAR(32),long.label) AS component_strand
+      ,CONVERT(VARCHAR(32),long.specific_label) AS component_strand_specific
       ,long.score AS component_score
       ,long.benchmark AS component_benchmark
       ,long.is_prof AS component_prof
@@ -107,4 +107,9 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
  AND ar.start_date <= CONVERT(DATE,GETDATE())
 WHERE co.rn = 1
   AND co.grade_level != 99
-  AND co.year >= 2010
+  AND co.year >= 2010--KIPP_NJ.dbo.fn_Global_Academic_Year()
+
+--UNION ALL
+
+--SELECT *
+--FROM KIPP_NJ..TABLEAU$lit_tracker#archive WITH(NOLOCK)

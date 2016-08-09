@@ -78,7 +78,7 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$assignment_scores#STAGING scores WITH(NOLOCK)
   ON a.ASSIGNMENTID = scores.ASSIGNMENTID
 WHERE sec.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
-UNION ALL
+--UNION ALL
 
-SELECT *
-FROM KIPP_NJ..TABLEAU$gradebook_assignment_detail#archive WITH(NOLOCK)
+--SELECT *
+--FROM KIPP_NJ..TABLEAU$gradebook_assignment_detail#archive WITH(NOLOCK)

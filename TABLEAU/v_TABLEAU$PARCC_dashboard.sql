@@ -37,6 +37,7 @@ SELECT co.student_number
       ,co.grade_level            
       ,co.school_level     
       ,CASE WHEN co.schoolid LIKE '1799%' THEN 'Camden' ELSE 'Newark' END AS region      
+      ,co.SPEDLEP
       ,co.enroll_status
       
       ,'PARCC' AS test_type
@@ -104,10 +105,11 @@ UNION ALL
 SELECT co.student_number
       ,co.lastfirst
       ,co.year AS academic_year
-      ,co.schoolid           
+      ,co.reporting_schoolid AS schoolid           
       ,co.grade_level            
       ,co.school_level     
       ,CASE WHEN co.schoolid LIKE '1799%' THEN 'Camden' ELSE 'Newark' END AS region      
+      ,co.SPEDLEP
       ,co.enroll_status
       
       ,'PARCC' AS test_type
@@ -196,10 +198,11 @@ UNION ALL
 SELECT co.student_number
       ,co.lastfirst
       ,co.year AS academic_year
-      ,co.schoolid           
+      ,co.reporting_schoolid AS schoolid           
       ,co.grade_level            
       ,co.school_level     
       ,CASE WHEN co.schoolid LIKE '1799%' THEN 'Camden' ELSE 'Newark' END AS region      
+      ,co.SPEDLEP
       ,co.enroll_status
       
       ,CASE

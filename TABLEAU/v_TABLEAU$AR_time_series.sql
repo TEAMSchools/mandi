@@ -63,8 +63,16 @@ FROM
            ,co.SPEDLEP
            ,co.term
            ,co.date           
-           ,CASE WHEN DATEPART(WEEK,co.date) = DATEPART(WEEK,CONVERT(DATE,GETDATE())) THEN 1 ELSE 0 END AS is_current_week
-           ,CASE WHEN CONVERT(DATE,GETDATE()) BETWEEN term_goal.time_period_start AND term_goal.time_period_end THEN 1 ELSE 0 END AS is_curterm
+           ,CASE 
+             WHEN DATEPART(WEEK,co.date) = DATEPART(WEEK,CONVERT(DATE,GETDATE())) THEN 1 
+             WHEN DATEPART(WEEK,co.date) = DATEPART(WEEK,MAX(co.date) OVER(PARTITION BY co.schoolid, co.year, co.student_number)) THEN 1 
+             ELSE 0 
+            END AS is_current_week
+           ,CASE 
+             WHEN CONVERT(DATE,GETDATE()) BETWEEN term_goal.time_period_start AND term_goal.time_period_end THEN 1 
+             WHEN MAX(co.date) OVER(PARTITION BY co.schoolid, co.year, co.student_number) BETWEEN term_goal.time_period_start AND term_goal.time_period_end THEN 1 
+             ELSE 0 
+            END AS is_curterm
       
            ,enr.COURSE_NAME
            ,enr.COURSE_NUMBER
