@@ -12,10 +12,12 @@ WITH temp_gapps_exclude AS (
  )
 
 SELECT co.student_number
+      ,co.schoolid
       ,co.first_name AS firstname
       ,co.last_name AS lastname      
       ,acct.student_web_id + '@teamstudents.org' AS email
       ,acct.STUDENT_WEB_PASSWORD AS [password]
+      ,CASE WHEN co.schoolid = 73253 THEN 'on' ELSE 'off' END AS changepassword
       ,CASE WHEN co.enroll_status = 0 THEN 'off' ELSE 'on' END AS suspended
       ,'/Students/' + CASE WHEN co.enroll_status = 0 THEN co.school_name ELSE 'Disabled' END AS org
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
