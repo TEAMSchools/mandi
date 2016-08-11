@@ -18,7 +18,7 @@ WITH roster AS (
 			     ,s.city
 			     ,s.zip
         ,0 AS is_new
-  FROM PS$students#static s 
+  FROM PS$students#static s WITH(NOLOCK)
   WHERE s.enroll_status = 0
     AND s.grade_level <= 3
     AND s.schoolid NOT IN (73252, 179901, 179902)

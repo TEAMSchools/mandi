@@ -107,9 +107,9 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
  AND ar.start_date <= CONVERT(DATE,GETDATE())
 WHERE co.rn = 1
   AND co.grade_level != 99
-  AND co.year >= 2010--KIPP_NJ.dbo.fn_Global_Academic_Year()
+  AND co.year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
 
---UNION ALL
+UNION ALL
 
---SELECT *
---FROM KIPP_NJ..TABLEAU$lit_tracker#archive WITH(NOLOCK)
+SELECT *
+FROM KIPP_NJ..TABLEAU$lit_tracker#archive WITH(NOLOCK)

@@ -27,7 +27,7 @@ SELECT co.student_number
 
       ,t.target_enrollment
       ,t.sped_enrollment AS target_enrollment_sped
-      ,t.fr_enrollment AS target_enrollment_fr
+      ,t.fr_enrollment AS target_enrollment_fr      
 
       ,iep.NJ_SE_REFERRALDATE
       ,iep.NJ_SE_PARENTALCONSENTDATE
@@ -53,5 +53,5 @@ LEFT OUTER JOIN KIPP_NJ..PS$IEP_details#static iep WITH(NOLOCK)
  AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_FINANCE_enrollment_targets t WITH(NOLOCK)
   ON co.year = t.academic_year
- AND co.schoolid = t.schoolid
- AND t.grade_level IS NULL /* temporary -- turn into JOIN when we have grade level targets */
+ AND co.reporting_schoolid = t.schoolid
+ AND co.grade_level = t.grade_level

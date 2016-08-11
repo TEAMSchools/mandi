@@ -9,6 +9,7 @@ SELECT co.STUDENTID
       ,co.grade_level 
       ,co.year AS academic_year
 
+      ,cc.id AS ccid
       ,ABS(cc.TERMID) AS termid      
       
       ,cou.CREDITTYPE            
@@ -94,7 +95,5 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   ON cc.STUDENTID = co.studentid
  AND cc.academic_year = co.year
  AND co.rn = 1
---LEFT OUTER JOIN KIPP_NJ..PS$rti_tiers#static rti WITH(NOLOCK)
---  ON cc.studentid = rti.studentid
--- AND cou.CREDITTYPE = rti.credittype
 WHERE cc.DATEENROLLED < cc.DATELEFT
+  AND cc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
