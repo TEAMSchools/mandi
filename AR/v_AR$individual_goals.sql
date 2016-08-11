@@ -45,4 +45,18 @@ FROM
      FROM KIPP_NJ..AUTOLOAD$GDOCS_AR_lsm WITH(NOLOCK)
      WHERE sn IS NOT NULL    
        AND adjusted_goal IS NOT NULL
+     UNION ALL
+     SELECT CONVERT(INT,sn) AS sn
+           ,CONVERT(VARCHAR,cycle) AS cycle
+           ,CONVERT(FLOAT,REPLACE(adjusted_goal,',','')) AS adjusted_goal
+     FROM KIPP_NJ..AUTOLOAD$GDOCS_AR_whittier_es WITH(NOLOCK)
+     WHERE sn IS NOT NULL    
+       AND adjusted_goal IS NOT NULL
+     UNION ALL
+     SELECT CONVERT(INT,sn) AS sn
+           ,CONVERT(VARCHAR,cycle) AS cycle
+           ,CONVERT(FLOAT,REPLACE(adjusted_goal,',','')) AS adjusted_goal
+     FROM KIPP_NJ..AUTOLOAD$GDOCS_AR_whittier_ms WITH(NOLOCK)
+     WHERE sn IS NOT NULL    
+       AND adjusted_goal IS NOT NULL
     ) sub

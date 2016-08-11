@@ -69,7 +69,8 @@ FROM
            ,enr.teacher_name            
       
            ,CASE
-             WHEN LEFT(pgf.FINALGRADENAME,1) = 'Q' THEN 'E'
+             WHEN pgf.academic_year <= 2014 AND LEFT(pgf.FINALGRADENAME,1) = 'E' THEN 'X'
+             WHEN pgf.academic_year <= 2014 AND LEFT(pgf.FINALGRADENAME,1) = 'Q' THEN 'E'
              ELSE LEFT(pgf.FINALGRADENAME,1)
             END AS grade_category
            ,CONCAT('RT', RIGHT(pgf.FINALGRADENAME,1)) AS reporting_term            
@@ -84,7 +85,7 @@ FROM
        ON enr.studentid = pgf.studentid       
       AND enr.sectionid = pgf.sectionid 
       AND pgf.finalgradename != 'Y1'       
-      AND ((pgf.academic_year <= 2014 AND  pgf.FINALGRADENAME NOT LIKE 'T%') OR (pgf.academic_year >= 2015 AND pgf.FINALGRADENAME NOT LIKE 'Q%'))
+      AND ((pgf.academic_year <= 2014 AND pgf.FINALGRADENAME NOT LIKE 'T%') OR (pgf.academic_year >= 2015 AND pgf.FINALGRADENAME NOT LIKE 'Q%'))
      WHERE enr.course_enr_status = 0
        AND enr.drop_flags = 0
        AND enr.SCHOOLID != 73253

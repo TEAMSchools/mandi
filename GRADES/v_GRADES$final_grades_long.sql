@@ -111,10 +111,10 @@ WITH roster AS (
 
        UNION ALL
 
-       SELECT enr.studentid                   
-             ,enr.SCHOOLID
-             ,enr.academic_year             
-             ,enr.course_number             
+       SELECT sg.studentid                   
+             ,sg.SCHOOLID
+             ,sg.academic_year             
+             ,sg.course_number             
       
              ,sg.STORECODE AS term
              ,NULL AS pgf_pct
@@ -125,12 +125,9 @@ WITH roster AS (
              ,sg.gpa_points AS term_gpa_points
       
              ,1 AS rn
-       FROM KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
-       JOIN KIPP_NJ..GRADES$STOREDGRADES#static sg WITH(NOLOCK)
-         ON enr.studentid = sg.STUDENTID 
-        AND enr.SECTIONID = sg.SECTIONID 
-        AND (sg.STORECODE LIKE 'T%' OR sg.STORECODE LIKE 'Q%')
-       WHERE enr.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year()
+       FROM KIPP_NJ..GRADES$STOREDGRADES#static sg WITH(NOLOCK)                 
+       WHERE sg.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND (sg.STORECODE LIKE 'T%' OR sg.STORECODE LIKE 'Q%')
       ) sub
   WHERE rn = 1
  )
