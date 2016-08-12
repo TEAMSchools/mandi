@@ -3,9 +3,10 @@ GO
 
 ALTER VIEW COMPLIANCE$Hayden_suspensions AS
 
-SELECT co.schoolid
+SELECT co.reporting_schoolid AS schoolid
       ,co.grade_level
       ,co.gender
+      ,co.ETHNICITY
       ,co.spedlep
       ,ISNULL(co.lep_status,'No LEP') AS lep_status
       ,co.year_in_network

@@ -195,6 +195,7 @@ WHERE co.year = 2015
 
 UNION ALL
 
+/* NJASK & HSPA */
 SELECT co.student_number
       ,co.lastfirst
       ,co.year AS academic_year
@@ -241,4 +242,58 @@ LEFT OUTER JOIN external_prof ext
   ON co.year = ext.academic_year
  AND co.grade_level = ext.grade_level
  AND nj.subject = ext.testcode
+WHERE co.rn = 1
+
+UNION ALL
+
+/* NJASK SCIENCE */
+SELECT co.student_number
+      ,co.lastfirst
+      ,co.year AS academic_year
+      ,co.reporting_schoolid AS schoolid           
+      ,co.grade_level            
+      ,co.school_level     
+      ,CASE WHEN co.schoolid LIKE '1799%' THEN 'Camden' ELSE 'Newark' END AS region      
+      ,co.SPEDLEP
+      ,co.enroll_status
+      
+      ,CASE
+        WHEN co.schoolid = 73253 THEN 'HSPA'
+        ELSE 'NJASK' 
+       END AS test_type
+      ,CONCAT('Science ', co.grade_level)  AS testcode
+      ,'Science' AS subject      
+      ,sci.science_scale_score AS summativescalescore      
+      ,CASE
+        WHEN sci.science_proficiency_level IN ('1','PARTIALLY PROFICIENT') THEN 1
+        WHEN sci.science_proficiency_level IN ('2','PROFICIENT') THEN 4
+        WHEN sci.science_proficiency_level IN ('3','ADVANCED PROFICIENT') THEN 5
+       END AS summativeperformancelevel      
+      ,NULL AS summativereadingscalescore            
+      ,NULL AS summativewritingscalescore                        
+
+      ,NULL AS pbatotaltestitems      
+      ,NULL AS pbatotaltestitemsattempted
+      ,NULL AS eoytotaltestitems                  
+      ,NULL AS eoytotaltestitemsattempted
+
+      ,NULL AS is_optout
+      ,CASE
+        WHEN sci.science_proficiency_level IN ('2','3','PROFICIENT','ADVANCED PROFICIENT') THEN 1
+        WHEN sci.science_proficiency_level IN ('1','PARTIALLY PROFICIENT') THEN 0
+       END AS is_prof
+
+      ,ext.NJ AS pct_prof_NJ
+      ,ext.NPS AS pct_prof_NPS
+      ,ext.CPS AS pct_prof_CPS
+      ,ext.PARCC AS pct_prof_PARCC
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..AUTOLOAD$GDOCS_STATE_njask_science sci WITH(NOLOCK)
+  ON co.SID = sci.SID
+ AND co.year = (sci.testing_year - 1) 
+ AND sci.science_proficiency_level IS NOT NULL
+LEFT OUTER JOIN external_prof ext
+  ON co.year = ext.academic_year
+ AND co.grade_level = ext.grade_level
+ AND ext.testcode = 'SCI'
 WHERE co.rn = 1

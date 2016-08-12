@@ -12,6 +12,8 @@ SELECT co.year
       ,co.team
       ,co.enroll_status
       ,co.SPEDLEP
+      ,co.GENDER
+      ,co.ETHNICITY
       
       ,dt.alt_name AS term
 
@@ -53,7 +55,7 @@ SELECT co.year
       ,CASE WHEN att.att_code = 'TLE' THEN 1 ELSE 0 END AS n_TLE
       ,CASE WHEN att.att_code = 'U' THEN 1 ELSE 0 END AS n_U
       ,CASE WHEN att.att_code = 'X' THEN 1 ELSE 0 END AS n_X      
-FROM COHORT$identifiers_long#static co WITH(NOLOCK)
+FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
  AND co.schoolid = mem.schoolid
