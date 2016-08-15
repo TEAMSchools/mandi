@@ -14,7 +14,7 @@ WITH roster AS (
         ,d.alt_name AS term            
         ,CASE 
           WHEN CONVERT(DATE,GETDATE()) BETWEEN d.start_date AND d.end_date THEN 1 
-          WHEN d.alt_name IN ('Q4','T3') THEN 1
+          WHEN co.year < KIPP_NJ.dbo.fn_Global_Academic_Year() AND d.alt_name IN ('Q4','T3') THEN 1
           ELSE 0 
          END AS is_curterm
 
