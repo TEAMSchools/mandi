@@ -37,16 +37,16 @@ WITH roster AS
 	SELECT sg.studentid
 	      ,sg.schoolid
 		  ,sg.academic_year
-		  ,c.credittype
+		  ,CASE WHEN sg.course_number = 'TRANSFER' THEN 'TRANSFER' ELSE c.CREDITTYPE END AS credittype
   		  ,sg.earnedcrhrs AS credits
 		  ,'Stored Credit' AS status
 		  ,sg.course_number
-		  ,c.course_name
+		  ,CASE WHEN sg.course_number = 'TRANSFER' THEN sg.course_name ELSE c.course_name END AS course_name
 	      ,sg.pct
 		  ,sg.grade AS letter_grade
 		  ,sg.GPA_POINTS
 	FROM GRADES$STOREDGRADES#static sg WITH(NOLOCK)
-	JOIN PS$COURSES#static c WITH(NOLOCK)
+	LEFT OUTER JOIN PS$COURSES#static c WITH(NOLOCK)
 	  ON c.course_number = sg.course_number
 	WHERE sg.schoolid = 73253
 	  AND sg.storecode = 'Y1'
@@ -68,7 +68,8 @@ WITH roster AS
 		  ,g.y1_gpa_points AS gpa_points
 	FROM GRADES$final_grades_long#static g WITH(NOLOCK)
 	WHERE g.schoolid = 73253
-	  AND g.is_curterm = 1
+	  AND g.academic_year = dbo.fn_Global_Academic_Year()
+	  AND g.term = 'Q1'
 )
 
 SELECT r.student_number
@@ -95,9 +96,10 @@ SELECT r.student_number
 	  ,g.gpa_points
 	  ,g.credits
 	  ,g.status
-	  ,g.COURSE_NAME + ' (' + CONVERT(VARCHAR(20), g.pct) + ')' AS course_pct_hash
+	  ,g.COURSE_NAME + ' (' + CONVERT(VARCHAR(20), g.pct) + ')  ' + CONVERT(VARCHAR(20), g.academic_year) AS course_pct_hash
 
 FROM roster r
 JOIN grades g
  ON r.studentid = g.STUDENTID
 AND r.schoolid = g.SCHOOLID
+

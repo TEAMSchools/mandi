@@ -30,7 +30,7 @@ SELECT adp.associate_id
 	  ,gdoc.manager_name AS gdoc_manager
 	  ,adp.gender
 	  ,adp.ethnicity
-	  ,gdoc.kipp_nj_email
+	  ,ad.mail AS kipp_nj_email
 	  ,gdoc.gapps_email
 	  ,adp.phone_mobile
 	  ,adp.date_of_birth
@@ -43,6 +43,9 @@ SELECT adp.associate_id
 	  ,adp.termination_reason
 
 FROM PEOPLE$ADP_detail adp WITH(NOLOCK)
+
+LEFT OUTER JOIN PEOPLE$AD_users#static AD WITH(NOLOCK)
+  ON adp.associate_id = ad.associate_id
 
 LEFT OUTER JOIN AUTOLOAD$GDOCS_PM_survey_roster gdoc WITH(NOLOCK)
   ON adp.associate_id = gdoc.associate_id

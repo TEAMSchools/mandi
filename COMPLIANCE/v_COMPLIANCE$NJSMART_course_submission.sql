@@ -9,7 +9,7 @@ MISSING DATA TO BE INDEX MATCHED
 
 MAINTENANCE NEEDED: CHANGE ALL TERMS
 
-LAST UPDATE 2015-07-29
+LAST UPDATE 2016-08-02
 */
 
 USE KIPP_NJ
@@ -28,20 +28,20 @@ WITH section_long AS ( --PS$SECTIONS#static & teachers all terms
        FROM PS$SECTIONS#static sec WITH(NOLOCK)
        JOIN PS$TEACHERS#static t WITH(NOLOCK)
          ON sec.teacher = t.id
-       WHERE sec.termid >= 2400
+       WHERE sec.termid >= 2500
 )
 
 ,teacher_distinct AS ( --roster of teachers and sectionid for teacher match to student roster
        SELECT DISTINCT
               sec.course_number
-          ,c.course_name
-          ,sec.schoolid
-          ,c.credit_hours
-          ,c.credittype
+			  ,c.course_name
+			  ,sec.schoolid
+			  ,c.credit_hours
+			  ,c.credittype
        FROM PS$SECTIONS#static sec WITH(NOLOCK)
        JOIN PS$COURSES#static c WITH(NOLOCK)
          ON sec.COURSE_NUMBER = c.COURSE_NUMBER
-       WHERE sec.termid >= 2400
+       WHERE sec.termid >= 2500
          AND c.COURSE_NUMBER NOT IN ('HR','Adv')
 )
 
@@ -95,10 +95,10 @@ JOIN PS$STUDENTS#static s WITH(NOLOCK)
   ON cohort.studentid = s.id
 JOIN COHORT$identifiers_long#static cohortid WITH(NOLOCK)
   ON cohort.STUDENT_NUMBER = cohortid.student_number
-AND cohortid.year = 2014
-WHERE cohort.year = 2014 
+AND cohortid.year = 2015
+WHERE cohort.year = 2015 
  AND grades.credit_hours_y1 > 0
-  AND cohort.exitdate >= '2015-06-30'
+  AND cohort.exitdate >= '2016-06-30'
   AND s.schoolid != 999999
   AND cohort.GRADE_LEVEL >= 5
 )
@@ -157,10 +157,10 @@ WHERE cohort.year = 2014
               ON cohort.studentid = s.id
        JOIN COHORT$identifiers_long#static cohortid WITH(NOLOCK)
               ON cohort.STUDENT_NUMBER = cohortid.student_number
-              AND cohortid.year = 2014
-       WHERE cohort.year = 2014 
+              AND cohortid.year = 2015
+       WHERE cohort.year = 2015 
               AND grades.credit_hours_y1 > 0
-              AND cohort.exitdate >= '2015-06-30'
+              AND cohort.exitdate >= '2016-06-30'
               AND s.schoolid != 999999
               AND cohort.GRADE_LEVEL >= 5
 )
@@ -222,16 +222,16 @@ WHERE cohort.year = 2014
        JOIN PS$CC#static cc WITH(NOLOCK)
          ON cohort.studentid = cc.studentid 
         AND cc.COURSE_NUMBER = 'HR' 
-        AND cc.TERMID = 2400
+        AND cc.TERMID = 2500
        JOIN PS$SECTIONS#static sec WITH(NOLOCK)
          ON cc.SECTIONID = sec.id
        JOIN teachers t WITH(NOLOCK)
          ON sec.TEACHER = t.id
        JOIN COHORT$identifiers_long#static cohortid WITH(NOLOCK)
          ON cohort.STUDENT_NUMBER = cohortid.student_number
-       AND cohortid.year = 2014
-       WHERE cohort.year = 2014
-         AND cohort.exitdate >= '2015-06-30'
+       AND cohortid.year = 2015
+       WHERE cohort.year = 2015
+         AND cohort.exitdate >= '2016-06-30'
          AND s.schoolid != 999999
          AND row_gen.n <= 1
          AND cohort.GRADE_LEVEL <= 4
