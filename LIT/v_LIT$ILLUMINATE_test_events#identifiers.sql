@@ -58,7 +58,7 @@ SELECT cd.unique_id
       ,cd.academic_year
       ,cd.test_round
       ,cd.date_administered
-      ,cd.status
+      ,CASE WHEN cd.academic_year <= 2015 THEN 'Mixed' ELSE cd.status END AS status
       ,cd.instructional_level_tested
       ,cd.achieved_independent_level
       ,cd.about_the_text

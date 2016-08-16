@@ -38,7 +38,47 @@ WITH ar_long AS (
   WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
-SELECT *
+SELECT student_number
+      ,lastfirst
+      ,year
+      ,schoolid
+      ,grade_level
+      ,team
+      ,advisor
+      ,SPEDLEP
+      ,term
+      ,date
+      ,is_current_week
+      ,is_curterm
+      ,COURSE_NAME
+      ,COURSE_NUMBER
+      ,SECTION_NUMBER
+      ,teacher_name
+      ,homeroom_section
+      ,homeroom_teacher
+      ,words_goal_yr
+      ,points_goal_yr
+      ,goal_term
+      ,words_goal_term
+      ,points_goal_term
+      ,n_words_read
+      ,n_points_earned
+      ,n_books_read
+      ,n_fiction
+      ,avg_lexile
+      ,avg_pct_correct
+      ,last_book_title
+      ,last_book_days_ago
+      ,last_book_lexile
+      ,last_book_pct_correct
+      ,ontrack_words_yr
+      ,ontrack_points_yr
+      ,ontrack_words_term
+      ,ontrack_points_term
+      ,n_words_read_running_term
+      ,n_words_read_running_yr
+      ,n_points_earned_running_term
+      ,n_points_earned_running_yr
       ,CASE 
         WHEN COALESCE(ontrack_points_term, ontrack_words_term) IS NULL THEN NULL
         WHEN schoolid = 73253 AND n_points_earned_running_term >= ontrack_points_term THEN 1
@@ -155,12 +195,54 @@ FROM
       AND bk.rn = 1
      WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
        AND co.schoolid != 999999
-       AND ((co.grade_level >= 5) OR (co.schoolid = 73252 AND co.grade_level = 4))
+       AND ((co.grade_level >= 5) OR (co.schoolid IN (73252, 179901) AND co.grade_level >= 3))
        AND co.date <= CONVERT(DATE,GETDATE())
        AND co.enroll_status = 0       
     ) sub
 
 UNION ALL
 
-SELECT *
+SELECT student_number
+      ,lastfirst
+      ,year
+      ,schoolid
+      ,grade_level
+      ,team
+      ,advisor
+      ,SPEDLEP
+      ,term
+      ,date
+      ,is_current_week
+      ,is_curterm
+      ,COURSE_NAME
+      ,COURSE_NUMBER
+      ,SECTION_NUMBER
+      ,teacher_name
+      ,homeroom_section
+      ,homeroom_teacher
+      ,words_goal_yr
+      ,points_goal_yr
+      ,goal_term
+      ,words_goal_term
+      ,points_goal_term
+      ,n_words_read
+      ,n_points_earned
+      ,n_books_read
+      ,n_fiction
+      ,avg_lexile
+      ,avg_pct_correct
+      ,last_book_title
+      ,last_book_days_ago
+      ,last_book_lexile
+      ,last_book_pct_correct
+      ,ontrack_words_yr
+      ,ontrack_points_yr
+      ,ontrack_words_term
+      ,ontrack_points_term
+      ,n_words_read_running_term
+      ,n_words_read_running_yr
+      ,n_points_earned_running_term
+      ,n_points_earned_running_yr
+      ,is_ontrack_term
+      ,is_ontrack_yr
 FROM KIPP_NJ..TABLEAU$AR_time_series#ARCHIVE WITH(NOLOCK)

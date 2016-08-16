@@ -27,14 +27,20 @@ WITH clean_names AS (
         ,CONVERT(VARCHAR,DATEPART(MONTH,s.DOB)) AS dob_month
         ,CONVERT(VARCHAR,RIGHT(DATEPART(DAY,s.DOB),2)) AS dob_day
         ,CONVERT(VARCHAR,RIGHT(DATEPART(YEAR,s.DOB),2)) AS dob_year                
+        ,cc.section_number AS team
   FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH(NOLOCK)
     ON s.SCHOOLID = sch.SCHOOL_NUMBER
+  LEFT OUTER JOIN KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
+    ON s.id = cc.STUDENTID
+   AND cc.COURSE_NUMBER = 'HR'
+   AND CONVERT(DATE,GETDATE()) BETWEEN cc.dateenrolled AND cc.dateleft
   WHERE s.ENROLL_STATUS != -1          
  )
 
 SELECT STUDENT_NUMBER
       ,schoolid
+      ,team
       ,ENROLL_STATUS
       ,base_username
       ,alt_username
@@ -60,6 +66,7 @@ FROM
            ,GRADE_LEVEL
            ,ENROLL_STATUS
            ,school_name
+           ,team
            ,first_name_clean
            ,first_init
            ,last_name_clean
@@ -83,6 +90,7 @@ FROM
                 ,SCHOOLID
                 ,ENROLL_STATUS
                 ,GRADE_LEVEL
+                ,team
                 ,school_name
                 ,first_name_clean
                 ,first_init
