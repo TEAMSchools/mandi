@@ -41,9 +41,9 @@ SELECT co.reporting_schoolid AS schoolid
       ,ROW_NUMBER() OVER(
          PARTITION BY co.student_number, a.assessment_id
            ORDER BY co.student_number) AS overall_rn      
-      ,ROW_NUMBER() OVER(
-         PARTITION BY co.student_number, astd.standard_id
-           ORDER BY ovr.date_taken ASC) AS std_assessment_order
+      --,ROW_NUMBER() OVER(
+      --   PARTITION BY co.student_number, astd.standard_id
+      --     ORDER BY ovr.date_taken ASC) AS std_assessment_order
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   ON co.year = a.academic_year
@@ -59,6 +59,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
  AND (((co.grade_level <= 4 OR co.schoolid = 73258) AND enr.COURSE_NUMBER = 'HR') 
           OR (co.schoolid != 73258 AND co.grade_level >= 5 AND a.subject_area = enr.illuminate_subject))
  AND enr.drop_flags = 0 
+ AND enr.rn_subject = 1
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static astd WITH(NOLOCK)
   ON a.assessment_id = astd.assessment_id
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
@@ -128,9 +129,9 @@ SELECT co.reporting_schoolid AS schoolid
       ,ROW_NUMBER() OVER(
          PARTITION BY co.student_number, a.assessment_id
            ORDER BY co.student_number) AS overall_rn      
-      ,ROW_NUMBER() OVER(
-         PARTITION BY co.student_number, astd.standard_id
-           ORDER BY ovr.date_taken ASC) AS std_assessment_order
+      --,ROW_NUMBER() OVER(
+      --   PARTITION BY co.student_number, astd.standard_id
+      --     ORDER BY ovr.date_taken ASC) AS std_assessment_order
 FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
 JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
   ON a.assessment_id = ovr.assessment_id       
@@ -159,6 +160,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
  AND (((co.grade_level <= 4 OR co.schoolid = 73258) AND enr.COURSE_NUMBER = 'HR') 
           OR (co.schoolid != 73258 AND co.grade_level >= 5 AND a.subject_area = enr.illuminate_subject))
  AND enr.drop_flags = 0     
+ AND enr.rn_subject = 1
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_group#static mc WITH(NOLOCK)
   ON co.student_number = mc.local_student_id
  AND a.assessment_id = mc.assessment_id
@@ -211,9 +213,9 @@ SELECT co.reporting_schoolid AS schoolid
       ,ROW_NUMBER() OVER(
          PARTITION BY co.student_number, a.assessment_id
            ORDER BY co.student_number) AS overall_rn      
-      ,ROW_NUMBER() OVER(
-         PARTITION BY co.student_number, astd.standard_id
-           ORDER BY ovr.date_taken ASC) AS std_assessment_order
+      --,ROW_NUMBER() OVER(
+      --   PARTITION BY co.student_number, astd.standard_id
+      --     ORDER BY ovr.date_taken ASC) AS std_assessment_order
 FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
 JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
   ON a.assessment_id = ovr.assessment_id  
@@ -249,6 +251,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
  AND (((co.grade_level <= 4 OR co.schoolid = 73258) AND enr.COURSE_NUMBER = 'HR') 
           OR (co.schoolid != 73258 AND co.grade_level >= 5 AND a.subject_area = enr.illuminate_subject))
  AND enr.drop_flags = 0     
+ AND enr.rn_subject = 1
 WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND a.scope NOT IN ('CMA - End-of-Module','CMA - Mid-Module')       
 
@@ -256,13 +259,13 @@ UNION ALL
 
 SELECT a.schoolid
       ,a.academic_year
-      ,grade_level
-      ,team
+      ,a.grade_level
+      ,a.team
       ,a.student_number
       ,a.lastfirst
       ,a.spedlep
       ,a.enroll_status
-      ,dt.alt_name AS term
+      ,a.term
       ,a.assessment_id
       ,a.title
       ,a.scope
@@ -276,30 +279,16 @@ SELECT a.schoolid
       ,a.std_percent_correct
       ,a.std_is_mastered
       ,a.proficiency_band
-      ,mc.percent_correct AS mc_percent_correct
-      ,oer.percent_correct AS oer_percent_correct
+      ,a.mc_percent_correct
+      ,a.oer_percent_correct
       ,a.teacher_name
       ,a.period
       ,a.section_number
       ,a.overall_rn
-      ,a.std_assessment_order
+      --,a.std_assessment_order
 FROM KIPP_NJ..TABLEAU$assessment_dashboard#archive a WITH(NOLOCK)
-LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_group#static mc WITH(NOLOCK)
-  ON a.student_number = mc.local_student_id
- AND a.assessment_id = mc.assessment_id
- AND mc.reporting_group = 'Multiple Choice'
-LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_group#static oer WITH(NOLOCK)
-  ON a.student_number = oer.local_student_id
- AND a.assessment_id = oer.assessment_id
- AND oer.reporting_group = 'Open-Ended Response'
-JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
-  ON CASE WHEN a.schoolid IN (732574573, 732585074) THEN LEFT(a.schoolid,5) ELSE a.schoolid END = dt.schoolid
- AND a.academic_year = dt.academic_year
- AND a.date_taken BETWEEN dt.start_date AND dt.end_date
- AND dt.identifier = 'RT'
 
-
-/* power law */
+/*/* power law */
 --SELECT sub.*
 --      ,LOG(std_assessment_order) AS powerlaw_x -- ln of ordinal number
 --      ,LOG(proficiency_band) AS powerlaw_y -- ln of score
@@ -313,3 +302,4 @@ JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
 --FROM
 --    (
 --    ) sub
+*/

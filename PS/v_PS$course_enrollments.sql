@@ -83,7 +83,7 @@ SELECT co.STUDENTID
       
       ,ROW_NUMBER() OVER(
         PARTITION BY cc.studentid, cou.credittype, cc.academic_year, CASE WHEN cc.termid < 0 THEN 1 ELSE 0 END
-            ORDER BY cc.termid DESC, cc.course_number DESC) AS rn_subject    
+            ORDER BY cc.termid DESC, cc.course_number DESC, cc.dateenrolled DESC, cc.dateleft DESC) AS rn_subject    
 FROM KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
 JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
   ON ABS(cc.SECTIONID) = ABS(sec.ID)

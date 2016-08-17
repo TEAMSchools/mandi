@@ -27,11 +27,14 @@ WITH clean_data AS (
              ,rd.repository_row_id      
              ,KIPP_NJ.dbo.fn_StripCharacters(REPLACE(LOWER(LTRIM(RTRIM(rf.label))),' ','_'),'^A-Z0-9_') AS field
              ,rd.value
-       FROM KIPP_NJ..ILLUMINATE$repository_data rd WITH(NOLOCK)
+       FROM KIPP_NJ..ILLUMINATE$repositories#static r WITH(NOLOCK)
+       JOIN KIPP_NJ..ILLUMINATE$repository_data rd WITH(NOLOCK)
+         ON r.repository_id = rd.repository_id
        JOIN KIPP_NJ..ILLUMINATE$repository_fields#static rf WITH(NOLOCK)
          ON rd.repository_id = rf.repository_id
         AND rd.field = rf.name
-       WHERE rd.repository_id = 126
+       WHERE r.subject_area	= 'F&P' 
+         AND r.scope =	'Reporting'
       ) sub
   PIVOT(
     MAX(value)
