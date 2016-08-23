@@ -134,7 +134,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$advisory_roster#static advisory WITH(NOLOCK)
   ON co.studentid = advisory.STUDENTID
  AND co.year = advisory.academic_year
  AND advisory.rn = 1
-LEFT OUTER JOIN KIPP_NJ..PEOPLE$ADP_PS_linking link WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PEOPLE_teachernumber_associateid_link link WITH(NOLOCK)
   ON advisory.teachernumber = link.teachernumber
  AND link.is_master = 1
 LEFT OUTER JOIN KIPP_NJ..PEOPLE$ADP_detail adp WITH(NOLOCK)
@@ -164,6 +164,6 @@ LEFT OUTER JOIN COHORT$student_promo_order#static past WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..COHORT$retention_flags#static ret WITH(NOLOCK)
   ON co.studentid = ret.studentid
  AND co.year = ret.year
-LEFT OUTER JOIN KIPP_NJ..PS$SPENROLLMENTS sp WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$SPENROLLMENTS#static sp WITH(NOLOCK)
   ON co.studentid = sp.studentid
  AND co.year = sp.academic_year

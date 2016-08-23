@@ -13,6 +13,12 @@ BEGIN
   WITH cc_update AS (
     SELECT *
           ,KIPP_NJ.dbo.fn_DateToSY(DATEENROLLED) AS academic_year          
+          ,CASE
+            WHEN sectionid < 0 THEN NULL
+            ELSE ROW_NUMBER() OVER(
+                   PARTITION BY studentid, course_number, KIPP_NJ.dbo.fn_DateToSY(DATEENROLLED)
+                     ORDER BY dateenrolled DESC, dateleft DESC) 
+           END AS rn
     FROM OPENQUERY(PS_TEAM,'
       SELECT ATTENDANCE_TYPE_CODE
             ,COURSE_NUMBER
@@ -81,6 +87,7 @@ BEGIN
        ,TARGET.TERMID = SOURCE.TERMID
        ,TARGET.academic_year = SOURCE.academic_year
        ,TARGET.period = SOURCE.period
+       ,TARGET.rn = SOURCE.rn
   WHEN NOT MATCHED BY TARGET THEN
    INSERT
     (ATTENDANCE_TYPE_CODE
@@ -107,7 +114,8 @@ BEGIN
     ,TEACHERID
     ,TERMID
     ,academic_year
-    ,period)
+    ,period
+    ,rn)
    VALUES
     (SOURCE.ATTENDANCE_TYPE_CODE
     ,SOURCE.COURSE_NUMBER
@@ -133,7 +141,8 @@ BEGIN
     ,SOURCE.TEACHERID
     ,SOURCE.TERMID
     ,SOURCE.academic_year
-    ,SOURCE.period)
+    ,SOURCE.period
+    ,SOURCE.rn)
   WHEN NOT MATCHED BY SOURCE AND TARGET.TERMID >= KIPP_NJ.dbo.fn_Global_Term_ID() THEN
    DELETE;
   --OUTPUT $ACTION, DELETED.*

@@ -60,7 +60,7 @@ JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
  AND co.schoolid = mem.schoolid
  AND co.year = mem.academic_year
- AND mem.calendardate < CONVERT(DATE,GETDATE()) 
+ AND mem.calendardate <= CONVERT(DATE,GETDATE()) 
  AND mem.MEMBERSHIPVALUE > 0
  AND mem.ATTENDANCEVALUE IS NOT NULL
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$ATTENDANCE att WITH(NOLOCK)
@@ -76,4 +76,5 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
  AND co.year = enr.academic_year
  AND enr.drop_flags = 0
  AND enr.COURSE_NUMBER = 'HR'
+ AND enr.rn_subject = 1
 WHERE co.rn = 1

@@ -12,38 +12,74 @@ FROM OPENQUERY(PS_TEAM,'
         ,LASTFIRST
         ,FIRST_NAME
         ,MIDDLE_NAME
-        ,LAST_NAME        
+        ,LAST_NAME
         ,ENROLL_STATUS
         ,SCHOOLID
-        ,GRADE_LEVEL                
-        ,TEAM        
-        ,DOB        
+        ,GRADE_LEVEL
+        ,TEAM
+        ,DOB
         ,ENTRYDATE
         ,EXITDATE
         ,ENTRYCODE
-        ,EXITCODE        
+        ,EXITCODE
         ,STREET
         ,CITY
         ,STATE
-        ,ZIP                
-        ,GEOCODE 
+        ,ZIP
+        ,GEOCODE
         ,GENDER
         ,LUNCHSTATUS
-        ,ETHNICITY                                                
-        ,WEB_ID                
-        ,ALLOWWEBACCESS                        
-        ,STUDENT_WEB_ID        
-        ,STUDENT_ALLOWWEBACCESS                                                
+        ,ETHNICITY
+        ,WEB_ID
+        ,ALLOWWEBACCESS
+        ,STUDENT_WEB_ID
+        ,STUDENT_ALLOWWEBACCESS
         ,LDAPENABLED
-        ,NEXT_SCHOOL                                  
-        ,SCHED_NEXTYEARGRADE                
-        ,ENROLLMENT_SCHOOLID                
-        ,FTEID                
-        ,PERSON_ID        
+        ,NEXT_SCHOOL
+        ,SCHED_NEXTYEARGRADE
+        ,ENROLLMENT_SCHOOLID
+        ,FTEID
+        ,PERSON_ID
         ,DISTRICTENTRYDATE
         ,DISTRICTENTRYGRADELEVEL
         ,SCHOOLENTRYDATE
-        ,SCHOOLENTRYGRADELEVEL        
-        ,GRADUATED_SCHOOLID                
+        ,SCHOOLENTRYGRADELEVEL
+        ,GRADUATED_SCHOOLID
+        ,BALANCE1
+        ,BALANCE2
+        ,BALANCE3
+        ,BALANCE4        
+        ,CLASSOF
+        ,CUMULATIVE_PCT
+        ,CUSTOMRANK_GPA
+        ,DISTRICTOFRESIDENCE
+        ,ENROLLMENT_TRANSFER_DATE_PEND
+        ,ENROLLMENTCODE
+        ,ENROLLMENTID        
+        ,EXCLUDE_FR_RANK
+        ,FAMILY_IDENT        
+        ,FEDETHNICITY
+        ,FEDRACEDECLINE
+        ,FEE_EXEMPTION_STATUS
+        ,GPENTRYYEAR
+        ,GRADREQSETID
+        ,GRADUATED_RANK
+        ,GRADUATED_SCHOOLNAME        
+        ,LUNCH_ID        
+        ,MEMBERSHIPSHARE        
+        ,PHONE_ID
+        ,PHOTOFLAG        
+        ,SCHED_LOADLOCK
+        ,SCHED_LOCKSTUDENTSCHEDULE        
+        ,SCHED_PRIORITY
+        ,SCHED_SCHEDULED
+        ,SCHED_YEAROFGRADUATION
+        ,SIMPLE_GPA
+        ,SIMPLE_PCT        
+        ,STATE_ENROLLFLAG
+        ,STATE_EXCLUDEFROMREPORTING        
+        ,SUMMERSCHOOLID        
+        ,TRACK
+        ,TUITIONPAYER        
   FROM STUDENTS  
 ')

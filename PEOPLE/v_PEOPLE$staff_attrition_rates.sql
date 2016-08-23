@@ -56,8 +56,8 @@ WITH people AS (
        FROM KIPP_NJ..PS$SECTIONS#static sec
        JOIN KIPP_NJ..PS$TEACHERS#static t
          ON sec.TEACHER = t.ID
-       LEFT OUTER JOIN KIPP_NJ..PEOPLE$ADP_PS_linking link
-         ON t.TEACHERNUMBER = link.TEACHERNUMBER  
+       LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PEOPLE_teachernumber_associateid_link link
+         ON t.TEACHERNUMBER = link.TEACHERNUMBER
       ) sub
  )
 

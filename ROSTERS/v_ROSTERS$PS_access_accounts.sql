@@ -35,6 +35,7 @@ WITH clean_names AS (
     ON s.id = cc.STUDENTID
    AND cc.COURSE_NUMBER = 'HR'
    AND CONVERT(DATE,GETDATE()) BETWEEN cc.dateenrolled AND cc.dateleft
+   AND cc.rn = 1
   WHERE s.ENROLL_STATUS != -1          
  )
 
