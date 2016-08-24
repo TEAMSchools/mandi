@@ -167,15 +167,13 @@ FROM
 	,co.lastfirst
 	,co.grade_level
 	,'Missing SID' AS element
-	,custom.SID AS detail
+	,co.SID AS detail
 	,CASE 
-		WHEN custom.SID IS NULL THEN 1
+		WHEN co.SID IS NULL THEN 1
 		ELSE 0
 	END AS flag
 
-	FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-	JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static custom WITH(NOLOCK)
-	  ON co.studentid = custom.STUDENTID
+	FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)	
 	WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 	AND co.schoolid != 999999
 

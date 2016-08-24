@@ -45,7 +45,7 @@ WITH hs_grads AS (
         ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN s.SCHOOLID ELSE s.GRADUATED_SCHOOLID END AS schoolid       
         ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN sch2.ABBREVIATION ELSE sch.ABBREVIATION END AS school_name         
         ,ISNULL(cs.SPEDLEP,'No IEP') AS SPEDLEP
-        ,cs.SPEDLEP_CODE AS SPED_code
+        ,cs.SPECIAL_EDUCATION AS SPED_code
         ,sub.guardianemail
   FROM
       (
@@ -68,7 +68,7 @@ WITH hs_grads AS (
       ) sub
   LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
     ON sub.student_number = s.STUDENT_NUMBER
-  LEFT OUTER JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_custom#static cs WITH(NOLOCK)
     ON sub.studentid = cs.STUDENTID
   LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH(NOLOCK)
     ON s.GRADUATED_SCHOOLID = sch.SCHOOL_NUMBER

@@ -62,7 +62,7 @@ SELECT co.schoolid
         ELSE ISNULL(COALESCE(sped.SPEDLEP, cs.spedlep),'No IEP') 
        END AS SPEDLEP
       ,CASE 
-        WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPEDLEP_CODE 
+        WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPECIAL_EDUCATION
         ELSE sped.SPEDCODE
        END AS SPED_code
       
@@ -126,7 +126,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$LunchStatus#ARCHIVE lunch WITH(NOLOCK)
  AND co.year = lunch.academic_year
 LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info#static mcs WITH(NOLOCK)
   ON co.STUDENT_NUMBER = mcs.StudentNumber
-JOIN KIPP_NJ..PS$CUSTOM_STUDENTS#static cs WITH(NOLOCK)
+JOIN KIPP_NJ..PS$STUDENTS_custom#static cs WITH(NOLOCK)
   ON co.studentid = cs.STUDENTID
 LEFT OUTER JOIN KIPP_NJ..ROSTERS$PS_access_accounts#static logins WITH(NOLOCK)
   ON co.STUDENT_NUMBER = logins.STUDENT_NUMBER
