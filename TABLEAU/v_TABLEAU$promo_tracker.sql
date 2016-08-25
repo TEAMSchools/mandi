@@ -114,8 +114,8 @@ WITH roster AS (
              ,CONVERT(VARCHAR,con.RELEASE_5_NAME) AS RELEASE5_NAME
              ,CONVERT(VARCHAR,con.RELEASE_5_RELATION) AS RELEASE5_RELATION
              ,CONVERT(VARCHAR,con.RELEASE_5_PHONE) AS RELEASE5_PHONE                      
-       FROM KIPP_NJ..PS$student_contact#static con WITH(NOLOCK)
-       JOIN KIPP_NJ..PS$student_BLObs#static blob WITH(NOLOCK)
+       FROM KIPP_NJ..PS$STUDENTS_contact#static con WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$STUDENTS_BLObs#static blob WITH(NOLOCK)
          ON con.STUDENTID = blob.STUDENTID
       ) sub
   UNPIVOT(

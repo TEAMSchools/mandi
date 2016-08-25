@@ -151,9 +151,9 @@ LEFT OUTER JOIN KIPP_NJ..COHORT$middle_school_attended ms WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..COHORT$comprehensive_long#static gr WITH(NOLOCK)
   ON co.studentid = gr.studentid
  AND gr.year_in_network = 1
-LEFT OUTER JOIN KIPP_NJ..PS$student_BLOBs#static blobs WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_BLObs#static blobs WITH(NOLOCK)
   ON co.studentid = blobs.STUDENTID
-LEFT OUTER JOIN KIPP_NJ..PS$student_contact#static emerg WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_contact#static emerg WITH(NOLOCK)
   ON co.studentid = emerg.STUDENTID
 LEFT OUTER JOIN KIPP_NJ..COHORT$student_promo_order#static future WITH(NOLOCK)
   ON co.STUDENT_NUMBER = future.student_number

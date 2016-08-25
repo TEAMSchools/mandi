@@ -189,7 +189,7 @@ SELECT r.student_number
       ,con.RELEASE_5_PHONE AS PS_RELEASE_5_PHONE
       ,con.RELEASE_5_RELATION AS PS_RELEASE_5_RELATION
 FROM roster r
-LEFT OUTER JOIN KIPP_NJ..PS$student_contact#static con WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_contact#static con WITH(NOLOCK)
   ON r.studentid = con.STUDENTID
 LEFT OUTER JOIN enrollments enr
   ON r.student_number = enr.student_number

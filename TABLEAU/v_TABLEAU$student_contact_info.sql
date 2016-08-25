@@ -57,8 +57,8 @@ WITH contacts_unpivot AS (
              ,CONVERT(VARCHAR(MAX),con.RELEASE_5_NAME) AS RELEASE5_NAME
              ,CONVERT(VARCHAR(MAX),con.RELEASE_5_RELATION) AS RELEASE5_RELATION
              ,CONVERT(VARCHAR(MAX),con.RELEASE_5_PHONE) AS RELEASE5_CELL
-       FROM KIPP_NJ..PS$student_contact#static con WITH(NOLOCK)
-       JOIN KIPP_NJ..PS$student_BLObs#static blob WITH(NOLOCK)
+       FROM KIPP_NJ..PS$STUDENTS_contact#static con WITH(NOLOCK)
+       JOIN KIPP_NJ..PS$STUDENTS_BLObs#static blob WITH(NOLOCK)
          ON con.STUDENTID = blob.STUDENTID
        JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
          ON con.STUDENTID = s.ID
