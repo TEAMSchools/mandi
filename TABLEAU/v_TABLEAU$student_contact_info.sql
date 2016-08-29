@@ -134,17 +134,22 @@ SELECT co.STUDENT_NUMBER
       ,co.GRADE_LEVEL
       ,co.team
       ,co.ENROLL_STATUS
+      
       ,s.FAMILY_IDENT
+      ,cs.INFOSNAP_OPT_IN
+
       ,c.person AS contact_type
       ,c.NAME AS contact_name
       ,ISNULL(c.RELATION, c.person) AS contact_relation
       ,c.CELL AS contact_cell_phone
       ,c.HOME AS contact_home_phone
       ,c.DAY AS contact_day_phone
-      ,c.EMAIL AS contact_email
+      ,c.EMAIL AS contact_email      
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   ON co.studentid = s.ID
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_custom#static cs WITH(NOLOCK)
+  ON co.studentid = cs.STUDENTID
 LEFT OUTER JOIN contacts_repivot c
   ON co.studentid = c.STUDENTID
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()

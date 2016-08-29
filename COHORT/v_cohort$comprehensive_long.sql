@@ -47,7 +47,7 @@ WITH reenrollments AS (
          FROM reenrollments re
          WHERE (re.exitdate - re.entrydate) > 0
        ') re_base
-       LEFT OUTER JOIN KIPP_NJ..PS$terms#static terms WITH(NOLOCK)
+       LEFT OUTER JOIN KIPP_NJ..PS$TERMS#static terms WITH(NOLOCK)
          ON re_base.schoolid = terms.schoolid       
         AND re_base.entrydate >= terms.firstday
         AND re_base.exitdate <= DATEADD(DAY, 1, terms.lastday)

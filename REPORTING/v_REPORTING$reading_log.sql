@@ -284,11 +284,7 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_year WITH(NOLOCK)
  AND ar_year.time_period_name = 'Year' 
 LEFT OUTER JOIN ar_wide WITH (NOLOCK)
   ON roster.studentid = ar_wide.studentid 
---LEFT OUTER JOIN KIPP_NJ..MAP$rutgers_ready_student_goals map_goals WITH(NOLOCK)      
---  ON roster.studentid = map_goals.studentid
--- AND roster.year = map_goals.year
--- AND map_goals.measurementscale = 'Reading'
 WHERE roster.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
-  AND roster.schoolid IN (73252,133570965,73258,179902)
+  AND roster.reporting_schoolid IN (73252, 133570965, 73258, 179902, 179003, 1799015075)
   AND roster.enroll_status = 0    
   AND roster.rn = 1    
