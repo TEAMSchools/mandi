@@ -47,7 +47,7 @@ FROM
       AND dt.identifier = 'RT'
      WHERE a.scope IN ('CMA - End-of-Module','Unit Assessment')
        AND a.subject_area != 'Writing'
-       AND a.academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+       AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     ) sub
 GROUP BY student_number
         ,academic_year

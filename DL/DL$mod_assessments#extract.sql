@@ -36,7 +36,7 @@ WITH assessments AS (
        FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)       
        WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
          AND a.subject_area IN ('Text Study','Mathematics')
-         AND a.academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+         AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       ) sub
  )
 

@@ -10,7 +10,7 @@ SELECT student_number
       ,words_goal AS goal
       ,stu_status_words AS goal_status
 FROM KIPP_NJ..AR$progress_to_goals_long#static WITH(NOLOCK)
-WHERE academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
 UNION ALL
 
@@ -45,7 +45,7 @@ FROM
        ON stm.start_year = dt.academic_year
       AND dt.identifier = 'SY'
      WHERE stm.school_student_id IS NOT NULL
-       AND stm.start_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+       AND stm.start_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     ) sub
 WHERE rn_gcd = 1
 GROUP BY student_number
@@ -82,5 +82,6 @@ FROM
      JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
        ON lex.year = dt.academic_year
       AND dt.identifier = 'SY'
-     WHERE rn_curr = 1
+     WHERE lex.rn_curr = 1
+       AND lex.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     ) sub

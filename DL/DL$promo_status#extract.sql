@@ -1,7 +1,6 @@
 SELECT student_number
       ,academic_year
       ,term
-      
       ,promo_status_overall
       ,promo_status_attendance
       ,promo_status_lit
@@ -21,4 +20,4 @@ SELECT student_number
       ,HWQ_Y1
       ,lvls_grown_yr AS reading_lvl_growth_y1
 FROM KIPP_NJ..PROMO$promo_status WITH(NOLOCK)
-WHERE academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()

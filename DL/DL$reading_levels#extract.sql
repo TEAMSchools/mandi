@@ -7,4 +7,4 @@ SELECT student_number
       ,goal_num AS goal_lvl_num
       ,met_goal      
 FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
-WHERE academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()

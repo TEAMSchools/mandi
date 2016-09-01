@@ -4,7 +4,8 @@ SELECT CONVERT(INT,o.student_number) AS student_number
       ,o.course_number
       ,o.COURSE_NAME
       ,o.teacher_name
-      ,o.credit_hours     
+      ,o.credit_hours
+      ,ABS(o.EXCLUDEFROMGPA - 1) AS include_grades_display
       
       /* final grades */
       ,fg.RT1_term_grade_percent_adjusted AS Q1_pct
@@ -43,7 +44,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$PGFINALGRADES_comments comm WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
   ON o.studentid = cc.STUDENTID
  AND o.sectionid = cc.SECTIONID
-WHERE o.academic_year = 2015 --KIPP_NJ.dbo.fn_Global_Academic_Year()
+WHERE o.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND o.course_number != 'ALL'
 
 UNION ALL
@@ -55,6 +56,7 @@ SELECT comm.student_number
       ,comm.subject AS COURSE_NAME
       ,NULL AS teacher_name
       ,NULL AS credit_hours
+      ,0 AS include_grades_display
       ,NULL AS Q1_pct
       ,NULL AS Q2_pct
       ,NULL AS Q3_pct
@@ -71,5 +73,5 @@ SELECT comm.student_number
       ,NULL AS currenttardies
 FROM KIPP_NJ..REPORTING$report_card_comments#ES#static comm WITH(NOLOCK)  
 WHERE CONVERT(VARCHAR,comm.comment) IS NOT NULL
-
+  AND comm.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 ORDER BY course_number

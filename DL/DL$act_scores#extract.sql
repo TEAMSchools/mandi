@@ -19,6 +19,7 @@ WITH long_data AS (
    AND ovr.local_student_id = co.student_number      
    AND co.rn = 1
   WHERE a.scope = 'ACT Prep'
+    AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
  )
 
 ,overall_scores AS (
