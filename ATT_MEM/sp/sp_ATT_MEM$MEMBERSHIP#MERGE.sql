@@ -8,6 +8,7 @@ BEGIN
   WITH mem_update AS (
     SELECT *
           ,KIPP_NJ.dbo.fn_DateToSY(calendardate) AS academic_year  
+          ,GETDATE() AS last_updated
     FROM OPENQUERY(PS_TEAM,'
       SELECT ctod.studentid         
             ,ctod.schoolid
@@ -27,9 +28,12 @@ BEGIN
     AND TARGET.calendardate = SOURCE.calendardate
   WHEN MATCHED THEN
    UPDATE
-    SET TARGET.attendancevalue = SOURCE.attendancevalue
+    SET TARGET.schoolid = SOURCE.schoolid
+       ,TARGET.attendancevalue = SOURCE.attendancevalue
        ,TARGET.membershipvalue = SOURCE.membershipvalue
        ,TARGET.potential_attendancevalue = SOURCE.potential_attendancevalue       
+       ,TARGET.academic_year = SOURCE.academic_year
+       ,TARGET.last_updated = SOURCE.last_updated
   WHEN NOT MATCHED BY TARGET THEN
    INSERT
     (STUDENTID
@@ -38,7 +42,8 @@ BEGIN
     ,ATTENDANCEVALUE
     ,MEMBERSHIPVALUE
     ,POTENTIAL_ATTENDANCEVALUE
-    ,academic_year)
+    ,academic_year
+    ,last_updated)
    VALUES
     (SOURCE.STUDENTID
     ,SOURCE.SCHOOLID
@@ -46,7 +51,8 @@ BEGIN
     ,SOURCE.ATTENDANCEVALUE
     ,SOURCE.MEMBERSHIPVALUE
     ,SOURCE.POTENTIAL_ATTENDANCEVALUE
-    ,SOURCE.academic_year)
+    ,SOURCE.academic_year
+    ,SOURCE.last_updated)
   WHEN NOT MATCHED BY SOURCE AND TARGET.CALENDARDATE >= '2016-07-01' THEN /* UPDATE ANUALLY */
    DELETE;
   --OUTPUT $ACTION, deleted.*;

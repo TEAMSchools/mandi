@@ -21,6 +21,7 @@ SELECT co.year
       ,mem.membershipvalue
       ,mem.ATTENDANCEVALUE AS is_present
       ,ABS(mem.ATTENDANCEVALUE - 1) AS is_absent
+      ,mem.last_updated
       
       ,att.att_code
       ,CASE WHEN att.att_code IN ('T','T10','ET','TE') THEN 1 ELSE 0 END AS is_tardy
@@ -78,3 +79,56 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
  AND enr.COURSE_NUMBER = 'HR'
  AND enr.rn_subject = 1
 WHERE co.rn = 1
+  AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+
+UNION ALL
+
+SELECT year
+      ,schoolid
+      ,studentid
+      ,lastfirst
+      ,grade_level
+      ,school_level
+      ,team
+      ,enroll_status
+      ,SPEDLEP
+      ,GENDER
+      ,ETHNICITY
+      ,term
+      ,calendardate
+      ,membershipvalue
+      ,is_present
+      ,is_absent
+      ,last_updated
+      ,att_code
+      ,is_tardy
+      ,suspension_all
+      ,SECTION_NUMBER
+      ,teacher_name
+      ,n_A
+      ,n_AD
+      ,n_AE
+      ,n_A_E
+      ,n_CR
+      ,n_CS
+      ,n_D
+      ,n_E
+      ,n_EA
+      ,n_ET
+      ,n_EV
+      ,n_ISS
+      ,n_NM
+      ,n_OS
+      ,n_OSS
+      ,n_OSSP
+      ,n_PLE
+      ,n_Q
+      ,n_S
+      ,n_SE
+      ,n_T
+      ,n_T10
+      ,n_TE
+      ,n_TLE
+      ,n_U
+      ,n_X
+FROM KIPP_NJ..TABLEAU$attendance_dashboard#archive WITH(NOLOCK)

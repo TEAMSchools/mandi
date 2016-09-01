@@ -32,13 +32,16 @@ WITH external_prof AS (
  ) 
 
 SELECT co.student_number
+      ,co.SID
       ,co.lastfirst
       ,co.year AS academic_year
       ,co.reporting_schoolid AS schoolid           
       ,co.grade_level            
       ,co.school_level     
       ,CASE WHEN co.schoolid LIKE '1799%' THEN 'Camden' ELSE 'Newark' END AS region      
-      ,co.SPEDLEP
+      ,co.SPEDLEP      
+      ,co.LEP_STATUS
+      ,co.lunchstatus
       ,co.enroll_status
       
       ,'PARCC' AS test_type
@@ -79,6 +82,7 @@ UNION ALL
 
 /* NJASK & HSPA */
 SELECT co.student_number
+      ,co.SID
       ,co.lastfirst
       ,co.year AS academic_year
       ,co.reporting_schoolid AS schoolid           
@@ -86,6 +90,8 @@ SELECT co.student_number
       ,co.school_level     
       ,CASE WHEN co.schoolid LIKE '1799%' THEN 'Camden' ELSE 'Newark' END AS region      
       ,co.SPEDLEP
+      ,co.LEP_STATUS
+      ,co.lunchstatus
       ,co.enroll_status
       
       ,CASE
@@ -130,6 +136,7 @@ UNION ALL
 
 /* NJASK SCIENCE */
 SELECT co.student_number
+      ,co.SID
       ,co.lastfirst
       ,co.year AS academic_year
       ,co.reporting_schoolid AS schoolid           
@@ -137,6 +144,8 @@ SELECT co.student_number
       ,co.school_level     
       ,CASE WHEN co.schoolid LIKE '1799%' THEN 'Camden' ELSE 'Newark' END AS region      
       ,co.SPEDLEP
+      ,co.LEP_STATUS
+      ,co.lunchstatus
       ,co.enroll_status
       
       ,CASE

@@ -28,7 +28,7 @@ WITH long_goals AS (
    AND goals.time_period_hierarchy = 1
   WHERE cohort.rn = 1    
     AND cohort.schoolid != 999999
-    AND ((cohort.grade_level >= 5) OR (cohort.grade_level = 4 AND cohort.schoolid = 73252))
+    AND ((cohort.grade_level >= 5) OR (cohort.grade_level >= 3 AND cohort.schoolid IN (73252, 179901)))
     AND cohort.year >= 2009 /* earliest AR data from '09 */
     
   UNION ALL
@@ -58,7 +58,7 @@ WITH long_goals AS (
     AND hex.time_per_name = goals.time_period_name
   WHERE cohort.rn = 1    
     AND cohort.schoolid != 999999        
-    AND ((cohort.grade_level >= 5) OR (cohort.grade_level = 4 AND cohort.schoolid = 73252))
+    AND ((cohort.grade_level >= 5) OR (cohort.grade_level >= 3 AND cohort.schoolid IN (73252, 179901)))
     AND cohort.year >= 2009 /* earliest AR data from '09 */
  )
  

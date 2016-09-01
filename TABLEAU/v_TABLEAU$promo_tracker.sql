@@ -15,6 +15,7 @@ WITH roster AS (
         ,co.team
         ,co.advisor         
         ,co.spedlep
+        ,co.enroll_status
 
         ,dt.alt_name AS term
         ,dt.time_per_name AS reporting_term
@@ -26,9 +27,9 @@ WITH roster AS (
    AND co.schoolid = dt.schoolid
    AND dt.identifier = 'RT'
    AND dt.alt_name != 'Summer School'
-  WHERE co.year = 2015
+  WHERE co.year >= 2015
     AND co.rn = 1
-    AND co.enroll_status != 2
+    --AND co.enroll_status != 2
     AND co.grade_level != 99    
   
   UNION ALL
@@ -44,6 +45,7 @@ WITH roster AS (
         ,co.team
         ,co.advisor                 
         ,co.spedlep
+        ,co.enroll_status
 
         ,'Y1' AS term
         ,dt.time_per_name AS reporting_term
@@ -53,9 +55,9 @@ WITH roster AS (
   JOIN KIPP_NJ..AUTOLOAD$GDOCS_REP_reporting_dates dt WITH(NOLOCK)
     ON co.year = dt.academic_year   
    AND dt.identifier = 'SY'   
-  WHERE co.year = 2015
+  WHERE co.year >= 2015
     AND co.rn = 1
-    AND co.enroll_status != 2
+    --AND co.enroll_status != 2
     AND co.grade_level != 99    
  )
 
@@ -180,7 +182,7 @@ WITH roster AS (
         ,gr.course_name
         ,gr.term_grade_percent_adjusted
   FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
-  WHERE gr.academic_year = 2015
+  WHERE gr.academic_year >= 2015
     AND gr.excludefromgpa = 0
   UNION ALL
   SELECT gr.student_number
@@ -193,7 +195,7 @@ WITH roster AS (
         ,gr.course_name
         ,gr.y1_grade_percent_adjusted AS term_grade_percent_adjusted
   FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
-  WHERE gr.academic_year = 2015
+  WHERE gr.academic_year >= 2015
     AND gr.rn_curterm = 1
     AND gr.excludefromgpa = 0
 
@@ -210,7 +212,7 @@ WITH roster AS (
         ,gr.course_name
         ,ROUND(AVG(gr.grade_category_pct),0) AS term_grade_percent_adjusted
   FROM KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
-  WHERE gr.academic_year = 2015    
+  WHERE gr.academic_year >= 2015    
   GROUP BY gr.student_number
           ,gr.academic_year
           ,gr.grade_category
@@ -230,7 +232,7 @@ WITH roster AS (
         ,gr.course_name
         ,COALESCE(gr.e1, gr.e2) AS term_grade_percent_adjusted
   FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)   
-  WHERE gr.academic_year = 2015
+  WHERE gr.academic_year >= 2015
     AND gr.schoolid = 73253
     AND (gr.e1 IS NOT NULL OR gr.e2 IS NOT NULL)
     AND gr.excludefromgpa = 0
@@ -273,7 +275,7 @@ WITH roster AS (
              ,att.ABS_all_counts_term + ROUND((att.TDY_all_counts_term / 3),1,1) AS attpts_term
              ,ROUND(((att.MEM_counts_term - (att.ABS_all_counts_term + ROUND((att.TDY_all_counts_term / 3),1,1))) / att.MEM_counts_term) * 100,0) AS attptspct_term
        FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
-       WHERE att.academic_year = 2015
+       WHERE att.academic_year >= 2015
          AND att.MEM_counts_term > 0
          AND att.MEM_counts_term != att.ABS_all_counts_term
 
@@ -299,7 +301,7 @@ WITH roster AS (
              ,att.ABS_all_counts_yr + ROUND((att.TDY_all_counts_yr / 3),1,1) AS attpts_yr
              ,ROUND(((att.MEM_counts_yr - (att.ABS_all_counts_yr + ROUND((att.TDY_all_counts_yr / 3),1,1))) / att.MEM_counts_yr) * 100,0) AS attptspct_yr
        FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
-       WHERE att.academic_year = 2015
+       WHERE att.academic_year >= 2015
          AND att.MEM_counts_term > 0
          AND att.MEM_counts_yr != att.ABS_all_counts_yr
          AND att.rn_curterm = 1
@@ -347,7 +349,7 @@ WITH roster AS (
   JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static res WITH(NOLOCK)
     ON a.assessment_id = res.assessment_id
   WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')        
-    AND a.academic_year = 2015
+    AND a.academic_year >= 2015
 
   UNION ALL
 
@@ -371,7 +373,7 @@ WITH roster AS (
     ON res.standard_id = std.standard_id
   WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
     AND a.subject_area != 'Writing'
-    AND a.academic_year = 2015
+    AND a.academic_year >= 2015
 
   UNION ALL
 
@@ -397,7 +399,7 @@ WITH roster AS (
    AND std.custom_code LIKE 'T_S.W.%'
   WHERE a.scope = 'CMA - End-of-Module'
     AND a.subject_area = 'Writing'  
-    AND a.academic_year = 2015
+    AND a.academic_year >= 2015
  )
 
 ,gpa AS (
@@ -409,7 +411,7 @@ WITH roster AS (
         ,schoolid
         ,GPA_Y1 AS GPA
   FROM KIPP_NJ..GRADES$GPA_detail_long#static WITH(NOLOCK)    
-  WHERE academic_year = 2015
+  WHERE academic_year >= 2015
 
   UNION ALL
 
@@ -421,7 +423,7 @@ WITH roster AS (
         ,schoolid
         ,GPA_Y1 AS GPA
   FROM KIPP_NJ..GRADES$GPA_detail_long#static WITH(NOLOCK)      
-  WHERE academic_year = 2015
+  WHERE academic_year >= 2015
     AND is_curterm = 1
 
   UNION ALL
@@ -429,7 +431,7 @@ WITH roster AS (
   SELECT s.STUDENT_NUMBER
         ,'GPA' AS domain
         ,'GPA CUMULATIVE' AS subdomain
-        ,2015 AS academic_year
+        ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
         ,'Y1' AS reporting_Term
         ,gpa.schoolid           
         ,gpa.cumulative_Y1_gpa AS GPA
@@ -442,7 +444,7 @@ WITH roster AS (
   SELECT s.STUDENT_NUMBER
         ,'GPA' AS domain
         ,'CREDITS EARNED' AS subdomain
-        ,2015 AS academic_year
+        ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
         ,'Y1' AS reporting_Term
         ,gpa.schoolid           
         ,gpa.earned_credits_cum AS GPA
@@ -535,6 +537,7 @@ WITH roster AS (
   SELECT student_number
         ,'MAP' AS domain
         ,NULL AS subdomain                        
+        ,academic_year
         ,test_year
         ,term
         ,measurementscale
@@ -767,16 +770,18 @@ WITH roster AS (
 
 ,disc_logs AS (
   SELECT studentid
+        ,academic_year
         ,RT AS reporting_term
         ,'BEHAVIOR - DISC LOG' AS domain
         ,logtype
         ,subtype
         ,CASE WHEN subtype = 'Perfect Week' THEN COUNT(studentid) * 3 ELSE COUNT(studentid) END AS n_counts
   FROM KIPP_NJ..DISC$log#static WITH(NOLOCK)
-  WHERE academic_year = 2015
+  WHERE academic_year >= 2015
     AND logtype IS NOT NULL
     AND subtype IS NOT NULL
   GROUP BY studentid
+          ,academic_year
           ,rt
           ,logtype
           ,subtype
@@ -784,6 +789,7 @@ WITH roster AS (
 
 ,daily_tracking AS (
   SELECT studentid
+        ,academic_year
         ,term
         ,'BEHVAIOR - DAILY TRACKING' AS domain
         ,CASE
@@ -818,14 +824,16 @@ WITH roster AS (
                  ,pm_orange
                  ,pm_red)
   ) u
-  WHERE academic_year = 2015
+  WHERE academic_year >= 2015
   GROUP BY studentid
+          ,academic_year
           ,term
           ,field
 
   UNION ALL
 
   SELECT studentid
+        ,academic_year
         ,term
         ,'BEHVAIOR - DAILY TRACKING' AS domain
         ,CASE
@@ -842,14 +850,16 @@ WITH roster AS (
     FOR field IN (has_hw
                  ,has_uniform)
   ) u
-  WHERE academic_year = 2015
+  WHERE academic_year >= 2015
   GROUP BY studentid
+          ,academic_year
           ,term
           ,field
  )
 
 ,promo_status AS (
   SELECT student_number
+        ,academic_year
         ,'PROMO STATUS' AS domain
         ,field AS subdomain
         ,CASE WHEN field LIKE '%status%' THEN value ELSE NULL END AS text_value
@@ -857,6 +867,7 @@ WITH roster AS (
   FROM
       (
        SELECT student_number
+             ,academic_year
              ,schoolid             
 
              /* overall */
@@ -875,7 +886,8 @@ WITH roster AS (
              
              /* grades */
              ,CONVERT(VARCHAR,promo_status_grades) AS promo_status_grades /* # failing */                          
-             ,CONVERT(VARCHAR,N_below_60) AS n_failing                          
+             ,CONVERT(VARCHAR,N_below_60) AS n_failing       
+             ,CONVERT(VARCHAR,GPA_Y1) AS GPA_Y1_promo                   
 
              /* credits */
              ,CONVERT(VARCHAR,promo_status_credits) AS promo_status_credits
@@ -883,7 +895,7 @@ WITH roster AS (
              ,CONVERT(VARCHAR,projected_credits_earned) AS projected_credits_earned
              ,CONVERT(VARCHAR,earned_credits_cum) AS earned_credits_cum
        FROM KIPP_NJ..PROMO$promo_status WITH(NOLOCK)
-       WHERE academic_year = 2015
+       WHERE academic_year >= 2015
          AND is_curterm = 1       
       ) sub
   UNPIVOT(
@@ -901,12 +913,14 @@ WITH roster AS (
                  ,promo_status_credits
                  ,credits_enrolled
                  ,projected_credits_earned
-                 ,earned_credits_cum)
+                 ,earned_credits_cum
+                 ,GPA_Y1_promo)
    ) u
  )
 
 ,blended AS (
   SELECT student_number
+        ,academic_year
         ,CASE WHEN time_period_name = 'Year' THEN 'Y1' ELSE time_period_name END AS reporting_term
         ,'BLENDED LEARNING' AS domain
         ,'AR' AS subdomain      
@@ -914,7 +928,7 @@ WITH roster AS (
         ,CASE WHEN schoolid = 73253 THEN points_goal ELSE words_goal END AS goal
         ,CASE WHEN schoolid = 73253 THEN stu_status_points ELSE stu_status_words END AS goal_status
   FROM KIPP_NJ..AR$progress_to_goals_long#static WITH(NOLOCK)
-  WHERE academic_year = 2015
+  WHERE academic_year >= 2015
  )
 
 ,wordwork AS (
@@ -938,6 +952,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,CASE WHEN gr.finalgradename = 'Exam' THEN REPLACE(r.term,'Q','X') ELSE r.term END AS term
       ,r.reporting_term      
       ,gr.domain
@@ -967,6 +982,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,r.term
       ,r.reporting_term      
       ,att.domain
@@ -996,6 +1012,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,cma.scope AS term
       ,r.reporting_term      
       ,cma.domain
@@ -1025,6 +1042,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,r.term
       ,r.reporting_term      
       ,gpa.domain
@@ -1040,6 +1058,7 @@ FROM roster r
 LEFT OUTER JOIN gpa
   ON r.student_number = gpa.student_number 
  AND r.schoolid = gpa.schoolid
+ AND r.year >= gpa.academic_year
  AND r.reporting_term = gpa.reporting_term
 
 UNION ALL
@@ -1054,6 +1073,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,lit.test_round AS term
       ,r.reporting_term      
       ,lit.domain
@@ -1068,6 +1088,7 @@ SELECT r.studentid
 FROM roster r
 LEFT OUTER JOIN lit
   ON r.student_number = lit.student_number
+ AND r.year >= lit.academic_year
 WHERE r.reporting_term = 'Y1' 
 
 UNION ALL
@@ -1082,6 +1103,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,map.term
       ,r.reporting_term      
       ,map.domain
@@ -1096,6 +1118,7 @@ SELECT r.studentid
 FROM roster r
 LEFT OUTER JOIN map
   ON r.student_number = map.student_number
+ AND r.year >= map.academic_year
 WHERE r.reporting_term = 'Y1' 
 
 UNION ALL
@@ -1110,6 +1133,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,r.term
       ,r.reporting_term      
       ,'STANDARDIZED TESTS' AS domain
@@ -1138,6 +1162,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,r.term
       ,r.reporting_term      
       ,'COLLEGE APPS' AS domain
@@ -1166,6 +1191,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,r.term
       ,r.reporting_term      
       ,logs.domain
@@ -1180,6 +1206,7 @@ SELECT r.studentid
 FROM roster r
 LEFT OUTER JOIN disc_logs logs
   ON r.studentid = logs.studentid
+ AND r.year = logs.academic_year
  AND r.reporting_term = logs.reporting_term
 WHERE r.term != 'Y1'
 
@@ -1195,6 +1222,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,r.term
       ,r.reporting_term      
       ,daily.domain
@@ -1209,6 +1237,7 @@ SELECT r.studentid
 FROM roster r
 LEFT OUTER JOIN daily_tracking daily
   ON r.studentid = daily.studentid
+ AND r.year = daily.academic_year
  AND r.term = daily.term
 WHERE r.term != 'Y1'
 
@@ -1224,6 +1253,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,r.term
       ,r.reporting_term      
       ,promo.domain
@@ -1238,6 +1268,7 @@ SELECT r.studentid
 FROM roster r
 LEFT OUTER JOIN promo_status promo
   ON r.student_number = promo.student_number 
+ AND r.year = promo.academic_year
 WHERE r.term = 'Y1'
 
 UNION ALL
@@ -1252,6 +1283,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,ss.term
       ,r.reporting_term      
       ,'SOCIAL SKILLS' AS domain
@@ -1270,7 +1302,7 @@ JOIN KIPP_NJ..REPORTING$social_skills#ES ss WITH(NOLOCK)
  AND r.term = ss.term
  AND ISNUMERIC(ss.score) = 1
 WHERE r.term != 'Y1'
-  AND r.year = 2015
+  AND r.year >= 2015
 
 UNION ALL
 
@@ -1284,6 +1316,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,r.term
       ,r.reporting_term      
       ,c.domain
@@ -1312,6 +1345,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,CONVERT(VARCHAR,ww.listweek_num) AS term
       ,r.reporting_term      
       ,ww.domain
@@ -1341,6 +1375,7 @@ SELECT r.studentid
       ,r.team
       ,r.advisor      
       ,r.spedlep
+      ,r.enroll_status
       ,r.term
       ,r.reporting_term      
       ,b.domain
@@ -1355,21 +1390,24 @@ SELECT r.studentid
 FROM roster r
 JOIN blended b
   ON r.student_number = b.student_number
+ AND r.year = b.academic_year
  AND r.reporting_term = b.reporting_term
 
 /* blank row for default */
 UNION ALL
 
-SELECT NULL AS studentid
+SELECT DISTINCT 
+       NULL AS studentid
       ,NULL AS student_number
       ,' Choose a student...' AS lastfirst
-      ,NULL AS year
+      ,year
       ,reporting_schoolid AS schoolid
       ,grade_level
       ,NULL AS cohort
       ,NULL AS team
       ,advisor      
       ,'No IEP' AS spedlep
+      ,NULL AS enroll_status
       ,NULL AS term
       ,NULL AS reporting_term      
       ,NULL AS domain
@@ -1382,6 +1420,5 @@ SELECT NULL AS studentid
       ,NULL AS performance_level
       ,NULL AS performance_level_label
 FROM KIPP_NJ..COHORT$identifiers_long#static WITH(NOLOCK)
-WHERE year = 2015
-  AND enroll_status = 0
-  AND rn = 1  
+WHERE year >= 2015
+  AND schoolid != 999999

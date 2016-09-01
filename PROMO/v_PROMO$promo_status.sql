@@ -116,7 +116,7 @@ FROM
            ,dt.time_per_name AS reporting_term
            ,CASE 
              WHEN CONVERT(DATE,GETDATE()) BETWEEN dt.start_date AND dt.end_date THEN 1 
-             WHEN dt.alt_name = 'Q4' THEN 1 /* keeps things alive during summer */
+             WHEN co.year < KIPP_NJ.dbo.fn_Global_Academic_Year() AND dt.alt_name = 'Q4' THEN 1 /* keeps things alive during summer */
              ELSE 0 
             END AS is_curterm
 
