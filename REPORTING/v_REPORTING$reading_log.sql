@@ -28,6 +28,7 @@ WITH curhex AS (
   FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)
   WHERE read_lvl IS NOT NULL
     AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    AND start_date <= CONVERT(DATE,GETDATE())
 )
 
 ,ar_wide AS (

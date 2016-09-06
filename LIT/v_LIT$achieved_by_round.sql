@@ -210,7 +210,7 @@ WITH roster_scaffold AS (
     ON tests.STUDENTID = achv_prev.STUDENTID
    AND tests.meta_achv_round < achv_prev.meta_achv_round
    AND achv_prev.read_lvl IS NOT NULL                    
-   AND tests.start_date <= CONVERT(DATE,GETDATE()) /* preserves the scaffold but will not carry scores to a future term */  
+   --AND tests.start_date <= CONVERT(DATE,GETDATE()) /* preserves the scaffold but will not carry scores to a future term */  
  )
 
 ,dna AS (
@@ -287,8 +287,9 @@ SELECT academic_year
       ,CASE
         WHEN lvl_num >= 26 THEN 'On Track'
         WHEN lvl_num >= goal_num THEN 'On Track'
-        WHEN lvl_num >= natl_goal_num THEN 'Off Track'
-        WHEN lvl_num < natl_goal_num THEN 'Off Track'
+        WHEN lvl_num < goal_num THEN 'Off Track'
+        --WHEN lvl_num >= natl_goal_num THEN 'Off Track'
+        --WHEN lvl_num < natl_goal_num THEN 'Off Track'
        END AS goal_status
       ,levels_behind
       ,achv_unique_id
