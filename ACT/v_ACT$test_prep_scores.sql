@@ -9,7 +9,8 @@ WITH long_data AS (
         ,a.academic_year
         ,a.administered_at
         
-        ,d.time_per_name AS administration_round
+        ,d.time_per_name
+        ,d.alt_name AS administration_round
         ,ovr.local_student_id AS student_number
         ,CONVERT(INT,ROUND(((ovr.percent_correct / 100) * ovr.number_of_questions),0)) AS overall_number_correct
         ,ovr.performance_band_level AS overall_performance_band                
@@ -19,13 +20,13 @@ WITH long_data AS (
            PARTITION BY ovr.local_student_id, a.academic_year, a.subject_area, d.time_per_name
              ORDER BY CONVERT(INT,ROUND(((ovr.percent_correct / 100) * ovr.number_of_questions),0)) DESC) AS rn_highscore
   FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
-  JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
     ON a.academic_year = d.academic_year
    AND a.administered_at BETWEEN d.start_date AND d.end_date
    AND d.identifier = 'ACT'
-  JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
     ON a.assessment_id = ovr.assessment_id
-  JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  LEFT OUTER JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
     ON a.academic_year = co.year
    AND ovr.local_student_id = co.student_number      
    AND co.rn = 1
@@ -45,7 +46,7 @@ WITH long_data AS (
   FROM long_data d
   LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_ACT_scale_score_key act WITH(NOLOCK)
     ON d.academic_year = act.academic_year
-   AND d.administration_round = act.administration_round
+   AND d.time_per_name = act.administration_round
    AND d.subject_area = act.subject
    AND d.overall_number_correct = act.raw_score
   WHERE d.rn_highscore = 1
@@ -73,7 +74,7 @@ WITH long_data AS (
        FROM long_data d
        LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_ACT_scale_score_key act WITH(NOLOCK)
          ON d.academic_year = act.academic_year
-        AND d.administration_round = act.administration_round
+        AND d.time_per_name = act.administration_round
         AND d.subject_area = act.subject
         AND d.overall_number_correct = act.raw_score     
        WHERE d.rn_highscore = 1

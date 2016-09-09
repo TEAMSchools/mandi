@@ -1,3 +1,8 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW DL$mod_standards#extract AS
+
 SELECT student_number
       ,academic_year
       ,term

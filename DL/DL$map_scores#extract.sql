@@ -1,3 +1,8 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW DL$map_scores#extract AS
+
 SELECT map.student_number
       ,map.test_year
       ,map.term AS map_term

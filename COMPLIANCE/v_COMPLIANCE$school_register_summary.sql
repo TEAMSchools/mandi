@@ -31,7 +31,6 @@ WITH schooldays AS (
           ,academic_year          
  )
 
---,long_data AS (
 SELECT sub.academic_year      
       ,co.student_number
       ,co.SID
@@ -80,79 +79,3 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN schooldays d
   ON sub.academic_year = d.academic_year
  AND CASE WHEN co.schoolid LIKE '1799%' THEN 'KCNA' ELSE 'TEAM' END = d.region
--- )
-
-/*
-/* initital entry -- grade level counts, disaggregating self-contained students */
-SELECT academic_year
-      ,region
-      ,'Initial Entry' AS report_section
-      ,report_grade_level AS category
-      ,MAX(n_days_open) AS days_open
-      ,SUM(n_days_possible) AS days_possible
-      ,SUM(N_days_present) AS days_present
-FROM long_data
-GROUP BY academic_year
-        ,region     
-        ,report_grade_level 
-
-UNION ALL
-
-/* low income -- counts by lunch status */
-SELECT academic_year
-      ,region
-      ,'Low Income' AS report_section
-      ,low_income_status AS category
-      ,MAX(n_days_open) AS days_open
-      ,SUM(n_days_possible) AS days_possible
-      ,SUM(N_days_present) AS days_present
-FROM long_data
-GROUP BY academic_year
-        ,region     
-        ,low_income_status 
-
-UNION ALL
-
-/* LEP -- counts by LEP status */
-SELECT academic_year
-      ,region
-      ,'LEP' AS report_section
-      ,LEP_status AS category
-      ,MAX(n_days_open) AS days_open
-      ,SUM(n_days_possible) AS days_possible
-      ,SUM(N_days_present) AS days_present
-FROM long_data
-GROUP BY academic_year
-        ,region     
-        ,LEP_status 
-
-UNION ALL
-
-/* IEP -- counts by IEP status */
-SELECT academic_year
-      ,region
-      ,'IEP' AS report_section
-      ,IEP_status AS category
-      ,MAX(n_days_open) AS days_open
-      ,SUM(n_days_possible) AS days_possible
-      ,SUM(N_days_present) AS days_present
-FROM long_data
-GROUP BY academic_year
-        ,region     
-        ,IEP_status 
-
-UNION ALL
-
-/* race -- counts by ethnicity code */
-SELECT academic_year
-      ,region
-      ,'Race' AS report_section
-      ,race_status AS category
-      ,MAX(n_days_open) AS days_open
-      ,SUM(n_days_possible) AS days_possible
-      ,SUM(N_days_present) AS days_present
-FROM long_data
-GROUP BY academic_year
-        ,region     
-        ,race_status 
-*/

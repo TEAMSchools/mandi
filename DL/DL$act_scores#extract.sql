@@ -1,3 +1,8 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW DL$act_scores#extract AS
+
 WITH long_data AS (
   SELECT a.subject_area
         ,a.academic_year                

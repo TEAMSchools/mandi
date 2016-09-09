@@ -1,3 +1,8 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW DL$student_misc#extract AS
+
 SELECT co.student_number
       ,co.year AS academic_year
       ,co.team

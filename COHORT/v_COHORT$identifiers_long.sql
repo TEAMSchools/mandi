@@ -117,16 +117,16 @@ SELECT co.schoolid
          PARTITION BY co.studentid
            ORDER BY co.year DESC, co.rn ASC) AS all_years_rn
 FROM KIPP_NJ..COHORT$comprehensive_long#static co WITH (NOLOCK)
-JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH (NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH (NOLOCK)
   ON co.schoolid = sch.school_number
-JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   ON co.studentid = s.ID
 LEFT OUTER JOIN KIPP_NJ..PS$LunchStatus#ARCHIVE lunch WITH(NOLOCK)
   ON co.studentid = lunch.studentid
  AND co.year = lunch.academic_year
 LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info#static mcs WITH(NOLOCK)
   ON co.STUDENT_NUMBER = mcs.StudentNumber
-JOIN KIPP_NJ..PS$STUDENTS_custom#static cs WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_custom#static cs WITH(NOLOCK)
   ON co.studentid = cs.STUDENTID
 LEFT OUTER JOIN KIPP_NJ..ROSTERS$PS_access_accounts#static logins WITH(NOLOCK)
   ON co.STUDENT_NUMBER = logins.STUDENT_NUMBER

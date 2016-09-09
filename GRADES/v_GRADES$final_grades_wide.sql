@@ -20,7 +20,7 @@ WITH grades_unpivot AS (
         ,need_70
         ,need_65
         ,CONCAT(rt,'_',field) AS pivot_field
-        ,CONVERT(VARCHAR(64),value) AS value
+        ,CASE WHEN value = '' THEN NULL ELSE value END AS value
   FROM
       (
        SELECT fg.student_number      
@@ -31,22 +31,22 @@ WITH grades_unpivot AS (
              ,fg.rn_curterm                          
              ,fg.sectionid                              
              ,fg.teacher_name
-
-             ,CONVERT(VARCHAR(64),fg.e1_adjusted) AS e1_grade_percent /* using only F* adjusted, when applicable */
-             ,CONVERT(VARCHAR(64),fg.e2_adjusted) AS e2_grade_percent /* using only F* adjusted, when applicable */             
-             ,CONVERT(VARCHAR(64),fg.y1_grade_percent_adjusted) AS y1_grade_percent /* using only F* adjusted, when applicable */             
-             ,CONVERT(VARCHAR(64),fg.y1_grade_letter) AS y1_grade_letter
-
+             
+             ,fg.e1_adjusted AS e1_grade_percent /* using only F* adjusted, when applicable */
+             ,fg.e2_adjusted AS e2_grade_percent /* using only F* adjusted, when applicable */             
+             ,fg.y1_grade_percent_adjusted AS y1_grade_percent /* using only F* adjusted, when applicable */             
+             ,fg.y1_grade_letter AS y1_grade_letter
+             
              /* empty strings preserve term structure when there aren't any grades */
-             ,CONVERT(VARCHAR(64),ISNULL(fg.term_grade_letter,'')) AS term_grade_letter
-             ,CONVERT(VARCHAR(64),ISNULL(fg.term_grade_percent,'')) AS term_grade_percent
-             ,CONVERT(VARCHAR(64),ISNULL(fg.term_grade_letter_adjusted,'')) AS term_grade_letter_adjusted
-             ,CONVERT(VARCHAR(64),ISNULL(fg.term_grade_percent_adjusted,'')) AS term_grade_percent_adjusted                          
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter),'') AS term_grade_letter
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent),'') AS term_grade_percent
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted),'') AS term_grade_letter_adjusted
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted),'') AS term_grade_percent_adjusted                          
 
-             ,CONVERT(VARCHAR(64),fg.need_90) AS need_90
-             ,CONVERT(VARCHAR(64),fg.need_80) AS need_80
-             ,CONVERT(VARCHAR(64),fg.need_70) AS need_70
-             ,CONVERT(VARCHAR(64),fg.need_65) AS need_65
+             ,ISNULL(CONVERT(VARCHAR(64),fg.need_90),'') AS need_90
+             ,ISNULL(CONVERT(VARCHAR(64),fg.need_80),'') AS need_80
+             ,ISNULL(CONVERT(VARCHAR(64),fg.need_70),'') AS need_70
+             ,ISNULL(CONVERT(VARCHAR(64),fg.need_65),'') AS need_65
        FROM KIPP_NJ..GRADES$final_grades_long#static fg WITH(NOLOCK)                
 
        UNION ALL
@@ -60,21 +60,22 @@ WITH grades_unpivot AS (
              ,fg.sectionid                              
              ,fg.teacher_name
 
-             ,CONVERT(VARCHAR(64),fg.e1_adjusted) AS e1_grade_percent /* using only F* adjusted, when applicable */
-             ,CONVERT(VARCHAR(64),fg.e2_adjusted) AS e2_grade_percent /* using only F* adjusted, when applicable */             
-             ,CONVERT(VARCHAR(64),fg.y1_grade_percent_adjusted) AS y1_grade_percent /* using only F* adjusted, when applicable */             
-             ,CONVERT(VARCHAR(64),fg.y1_grade_letter) AS y1_grade_letter
-
+             
+             ,fg.e1_adjusted AS e1_grade_percent /* using only F* adjusted, when applicable */
+             ,fg.e2_adjusted AS e2_grade_percent /* using only F* adjusted, when applicable */             
+             ,fg.y1_grade_percent_adjusted AS y1_grade_percent /* using only F* adjusted, when applicable */             
+             ,fg.y1_grade_letter AS y1_grade_letter
+             
              /* empty strings preserve term structure when there aren't any grades */
-             ,CONVERT(VARCHAR(64),ISNULL(fg.term_grade_letter,'')) AS term_grade_letter
-             ,CONVERT(VARCHAR(64),ISNULL(fg.term_grade_percent,'')) AS term_grade_percent
-             ,CONVERT(VARCHAR(64),ISNULL(fg.term_grade_letter_adjusted,'')) AS term_grade_letter_adjusted
-             ,CONVERT(VARCHAR(64),ISNULL(fg.term_grade_percent_adjusted,'')) AS term_grade_percent_adjusted                          
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter),'') AS term_grade_letter
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent),'') AS term_grade_percent
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_letter_adjusted),'') AS term_grade_letter_adjusted
+             ,ISNULL(CONVERT(VARCHAR(64),fg.term_grade_percent_adjusted),'') AS term_grade_percent_adjusted                          
 
-             ,CONVERT(VARCHAR(64),fg.need_90) AS need_90
-             ,CONVERT(VARCHAR(64),fg.need_80) AS need_80
-             ,CONVERT(VARCHAR(64),fg.need_70) AS need_70
-             ,CONVERT(VARCHAR(64),fg.need_65) AS need_65
+             ,ISNULL(CONVERT(VARCHAR(64),fg.need_90),'') AS need_90
+             ,ISNULL(CONVERT(VARCHAR(64),fg.need_80),'') AS need_80
+             ,ISNULL(CONVERT(VARCHAR(64),fg.need_70),'') AS need_70
+             ,ISNULL(CONVERT(VARCHAR(64),fg.need_65),'') AS need_65
        FROM KIPP_NJ..GRADES$final_grades_long#static fg WITH(NOLOCK)                
       ) sub
   UNPIVOT(
@@ -166,8 +167,7 @@ FROM
        ON o.student_number = gr.student_number
       AND o.academic_year = gr.academic_year
       AND o.term = gr.term
-      AND o.COURSE_NUMBER = gr.COURSE_NUMBER
-     --WHERE o.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+      AND o.COURSE_NUMBER = gr.COURSE_NUMBER     
     ) sub
 PIVOT(
   MAX(value)

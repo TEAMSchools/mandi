@@ -1,3 +1,8 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW DL$writing_rubric#extract AS
+
 SELECT student_number
       ,academic_year
       ,composition_type

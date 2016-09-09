@@ -891,9 +891,10 @@ WITH roster AS (
 
              /* credits */
              ,CONVERT(VARCHAR,promo_status_credits) AS promo_status_credits
-             ,CONVERT(VARCHAR,credits_enrolled) AS credits_enrolled
-             ,CONVERT(VARCHAR,projected_credits_earned) AS projected_credits_earned
+             ,CONVERT(VARCHAR,credits_enrolled_y1) AS credits_enrolled
+             ,CONVERT(VARCHAR,projected_credits_earned_cum) AS projected_credits_earned
              ,CONVERT(VARCHAR,earned_credits_cum) AS earned_credits_cum
+             ,CONVERT(VARCHAR,credits_needed) AS credits_needed
        FROM KIPP_NJ..PROMO$promo_status WITH(NOLOCK)
        WHERE academic_year >= 2015
          AND is_curterm = 1       
@@ -911,6 +912,7 @@ WITH roster AS (
                  ,goal_lvl_status          
                  ,lit_ARFR_status
                  ,promo_status_credits
+                 ,credits_needed
                  ,credits_enrolled
                  ,projected_credits_earned
                  ,earned_credits_cum

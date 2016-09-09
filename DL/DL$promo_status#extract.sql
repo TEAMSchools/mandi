@@ -1,3 +1,8 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW DL$promo_status#extract AS 
+
 SELECT student_number
       ,academic_year
       ,term
@@ -7,6 +12,8 @@ SELECT student_number
       ,promo_status_grades      
       ,promo_status_credits     
 
+      ,att_pts_pct
+
       ,GPA_term
       ,GPA_Y1
       ,GPA_cum
@@ -14,8 +21,8 @@ SELECT student_number
       ,GPA_Y1_status
       ,GPA_cum_status
       
-      ,projected_credits_earned
-      ,credits_enrolled
+      ,projected_credits_earned_cum AS projected_credits_earned
+      ,credits_enrolled_cum AS credits_enrolled
 
       ,HWQ_Y1
       ,lvls_grown_yr AS reading_lvl_growth_y1

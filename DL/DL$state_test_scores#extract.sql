@@ -1,3 +1,8 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW DL$state_test_scores#extract AS 
+
 SELECT co.student_number
       ,'PARCC' AS test_type      
       ,CASE WHEN parcc.subject = 'English Language Arts/Literacy' THEN 'ELA' ELSE 'Math' END AS subject

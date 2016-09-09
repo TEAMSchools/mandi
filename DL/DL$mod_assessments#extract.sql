@@ -1,3 +1,8 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW DL$mod_assessments#extract AS 
+
 WITH assessments AS (
   SELECT assessment_id
         ,academic_year
@@ -46,6 +51,7 @@ SELECT subject_area
       ,scope
       ,student_number
       ,percent_correct
+      ,rn_unit
       ,CASE
         WHEN percent_correct >= 85 THEN 'Exceeded Expectations'
         WHEN percent_correct >= 70 THEN 'Met Expectations'
@@ -72,4 +78,3 @@ FROM
              ,a.scope        
              ,ovr.local_student_id             
     ) sub
-ORDER BY student_number, subject_area, module_num, rn_unit

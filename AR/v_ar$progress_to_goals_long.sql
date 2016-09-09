@@ -27,8 +27,7 @@ WITH long_goals AS (
    AND cohort.year = goals.academic_year
    AND goals.time_period_hierarchy = 1
   WHERE cohort.rn = 1    
-    AND cohort.schoolid != 999999
-    AND ((cohort.grade_level >= 5) OR (cohort.grade_level >= 3 AND cohort.schoolid IN (73252, 179901)))
+    AND cohort.schoolid != 999999    
     AND cohort.year >= 2009 /* earliest AR data from '09 */
     
   UNION ALL
@@ -57,8 +56,7 @@ WITH long_goals AS (
     AND cohort.year = goals.academic_year
     AND hex.time_per_name = goals.time_period_name
   WHERE cohort.rn = 1    
-    AND cohort.schoolid != 999999        
-    AND ((cohort.grade_level >= 5) OR (cohort.grade_level >= 3 AND cohort.schoolid IN (73252, 179901)))
+    AND cohort.schoolid != 999999            
     AND cohort.year >= 2009 /* earliest AR data from '09 */
  )
  
@@ -302,6 +300,7 @@ FROM
         ON long_goals.student_number = ar_all.student_number
        AND long_goals.academic_year = ar_all.academic_year      
        AND CONVERT(DATE,ar_all.dttaken) BETWEEN long_goals.start_date_summer_bonus AND long_goals.end_date            
+      WHERE NOT (long_goals.schoolid = 73255 AND long_goals.grade_level = 3)
       GROUP BY long_goals.studentid
               ,long_goals.student_number
               ,long_goals.grade_level

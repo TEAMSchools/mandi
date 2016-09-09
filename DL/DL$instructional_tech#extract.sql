@@ -1,3 +1,8 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW DL$instructional_tech#extract AS 
+
 /* AR */
 SELECT student_number
       ,academic_year

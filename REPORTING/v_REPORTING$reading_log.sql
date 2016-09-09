@@ -286,6 +286,6 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_year WITH(NOLOCK)
 LEFT OUTER JOIN ar_wide WITH (NOLOCK)
   ON roster.studentid = ar_wide.studentid 
 WHERE roster.year = KIPP_NJ.dbo.fn_Global_Academic_Year()  
-  AND roster.reporting_schoolid IN (73252, 133570965, 73258, 179902, 179003, 1799015075)
+  AND roster.reporting_schoolid IN (73252, 133570965, 73258, 73255, 179902, 179903, 1799015075)
   AND roster.enroll_status = 0    
   AND roster.rn = 1    

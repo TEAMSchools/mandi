@@ -1,8 +1,16 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW DL$finalgrades#extract AS
+
 SELECT CONVERT(INT,o.student_number) AS student_number
       ,o.academic_year
       ,o.term
       ,o.course_number
       ,o.COURSE_NAME
+      ,o.sectionid      
+      ,sec.DCID AS sections_dcid
+      ,sec.SECTION_NUMBER
       ,o.teacher_name
       ,o.credit_hours
       ,ABS(o.EXCLUDEFROMGPA - 1) AS include_grades_display
@@ -27,6 +35,8 @@ SELECT CONVERT(INT,o.student_number) AS student_number
       ,ISNULL(cc.CURRENTABSENCES,0) AS CURRENTABSENCES
       ,ISNULL(cc.CURRENTTARDIES,0) AS CURRENTTARDIES
 FROM KIPP_NJ..PS$course_order_scaffold#static o WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
+  ON o.sectionid = sec.ID
 LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_wide#static fg WITH(NOLOCK)
   ON o.student_number = fg.student_number
  AND o.academic_year = fg.academic_year
@@ -54,6 +64,9 @@ SELECT comm.student_number
       ,comm.term
       ,comm.subject AS course_number
       ,comm.subject AS COURSE_NAME
+      ,NULL AS sectionid
+      ,NULL AS sections_dcid
+      ,NULL AS section_number
       ,NULL AS teacher_name
       ,NULL AS credit_hours
       ,0 AS include_grades_display
@@ -74,4 +87,3 @@ SELECT comm.student_number
 FROM KIPP_NJ..REPORTING$report_card_comments#ES#static comm WITH(NOLOCK)  
 WHERE CONVERT(VARCHAR,comm.comment) IS NOT NULL
   AND comm.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-ORDER BY course_number
