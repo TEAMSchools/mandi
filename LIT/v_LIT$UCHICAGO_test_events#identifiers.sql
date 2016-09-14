@@ -31,6 +31,7 @@ SELECT DISTINCT
        END AS ps_testid      
       ,step.book AS color                  
       ,CONVERT(VARCHAR,step.notes) AS notes
+      ,step.Recorder AS recorder
 
       ,gleq.gleq      
       
@@ -90,6 +91,7 @@ SELECT DISTINCT
        END AS ps_testid      
       ,step.book AS color                  
       ,CONVERT(VARCHAR,step.notes) AS notes
+      ,step.Recorder AS recorder
 
       ,gleq.gleq      
       

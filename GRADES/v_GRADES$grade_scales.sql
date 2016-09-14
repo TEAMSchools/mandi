@@ -7,25 +7,27 @@ WITH ps_style AS (
   SELECT *
   FROM OPENQUERY(PS_TEAM,'
     WITH base AS (
-      SELECT id
-            ,name
-            ,description
-      FROM gradescaleitem
-      WHERE gradescaleid = -1        
+      SELECT DCID
+            ,ID
+            ,NAME
+            ,DESCRIPTION
+      FROM GRADESCALEITEM
+      WHERE GRADESCALEID = -1        
      ) 
 
-    SELECT base.*
-          ,entries.name AS letter_grade
-          ,entries.cutoffpercentage
-          ,entries.grade_points
-    FROM base
-    JOIN gradescaleitem entries
-      ON base.ID = entries.gradescaleid
-    ORDER BY entries.cutoffpercentage ASC
+    SELECT BASE.*
+          ,ENTRIES.NAME AS LETTER_GRADE
+          ,ENTRIES.CUTOFFPERCENTAGE
+          ,ENTRIES.GRADE_POINTS
+    FROM BASE
+    JOIN GRADESCALEITEM ENTRIES
+      ON BASE.ID = ENTRIES.GRADESCALEID
+    ORDER BY ENTRIES.CUTOFFPERCENTAGE ASC
   ')
  )
 
-SELECT sub.id AS scale_id
+SELECT sub.dcid
+      ,sub.id AS scale_id
       ,sub.name AS scale_name
       ,CONVERT(VARCHAR,sub.description) AS description
       ,sub.letter_grade
@@ -34,7 +36,8 @@ SELECT sub.id AS scale_id
       ,CASE WHEN sub.low_cut > 90 AND sub.high_cut IS NULL THEN 1000 ELSE sub.high_cut END AS high_cut
 FROM
     (
-     SELECT base.id
+     SELECT base.dcid
+           ,base.id
            ,base.name
            ,base.description
            ,base.letter_grade

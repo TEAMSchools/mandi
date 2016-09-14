@@ -45,6 +45,7 @@ SELECT co.school_name
       ,CONVERT(VARCHAR(16),testid.color) AS color
       ,CONVERT(VARCHAR(16),testid.genre) AS genre
       ,testid.is_fp
+      ,testid.test_administered_by
 
       /* progress to goals */
       ,achv.is_curterm
@@ -111,5 +112,67 @@ WHERE co.rn = 1
 
 UNION ALL
 
-SELECT *
+SELECT school_name
+      ,school_level
+      ,student_number
+      ,student_name
+      ,grade_level
+      ,team
+      ,advisor
+      ,academic_year
+      ,IEP_status
+      ,enroll_status
+      ,AR_term
+      ,lit_term
+      ,read_lvl
+      ,lvl_num
+      ,dna_lvl
+      ,dna_lvl_num
+      ,instruct_lvl
+      ,instruct_lvl_num
+      ,indep_lvl
+      ,indep_lvl_num
+      ,prev_read_lvl
+      ,prev_lvl_num
+      ,GLEQ
+      ,fp_keylever
+      ,is_new_test
+      ,moved_levels
+      ,n_levels_moved_y1
+      ,test_date
+      ,status
+      ,color
+      ,genre
+      ,is_fp
+      ,NULL AS test_administered_by
+      ,is_curterm
+      ,goal_lvl
+      ,goal_num
+      ,natl_goal_lvl
+      ,natl_goal_num
+      ,default_goal_lvl
+      ,default_goal_num
+      ,distance_from_goal
+      ,met_goal
+      ,met_natl_goal
+      ,met_default_goal
+      ,unique_id
+      ,dna_unique_id
+      ,component_domain
+      ,component_strand
+      ,component_strand_specific
+      ,component_score
+      ,component_benchmark
+      ,component_prof
+      ,component_margin
+      ,dna_filter
+      ,words_goal
+      ,words
+      ,mastery
+      ,pct_fiction
+      ,avg_lexile
+      ,N_passed
+      ,N_total
+      ,status_words
+      ,rn_test
 FROM KIPP_NJ..TABLEAU$lit_tracker#archive WITH(NOLOCK)

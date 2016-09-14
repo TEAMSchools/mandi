@@ -77,6 +77,7 @@ FROM
       AND enr.COURSE_NUMBER NOT IN ('')
       AND enr.course_enr_status = 0
       AND enr.drop_flags = 0
+      AND enr.dateenrolled <= CONVERT(DATE,GETDATE())
      WHERE co.rn = 1       
     ) sub  
 LEFT OUTER JOIN KIPP_NJ..PS$course_section_scaffold#static sec WITH(NOLOCK)

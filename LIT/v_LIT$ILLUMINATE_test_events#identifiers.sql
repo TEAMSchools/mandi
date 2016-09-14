@@ -10,7 +10,7 @@ WITH clean_data AS (
         ,[test_round]
         ,CONVERT(DATE,[date_administered]) AS [date_administered]
         ,LTRIM(RTRIM([status])) AS [status]
-        ,LTRIM(RTRIM([instructional_level_tested])) AS [instructional_level_tested]
+        ,LTRIM(RTRIM(COALESCE([level_tested], [instructional_level_tested]))) AS [instructional_level_tested]
         ,LTRIM(RTRIM([achieved_independent_level])) AS [achieved_independent_level]
         ,CONVERT(FLOAT,[about_the_text]) AS [about_the_text]
         ,CONVERT(FLOAT,[beyond_the_text]) AS [beyond_the_text]
@@ -21,6 +21,7 @@ WITH clean_data AS (
         ,LTRIM(RTRIM([rate_proficiency])) AS [rate_proficiency]
         ,LTRIM(RTRIM([key_lever])) AS [key_lever]
         ,LTRIM(RTRIM([fiction_nonfiction])) AS [fiction_nonfiction]      
+        ,LTRIM(RTRIM([test_administered_by])) AS [test_administered_by]
   FROM
       (
        SELECT rd.student_id
@@ -41,18 +42,20 @@ WITH clean_data AS (
     FOR field IN ([about_the_text]
                  ,[academic_year]
                  ,[accuracy]
-                 ,[achieved_independent_level]
                  ,[beyond_the_text]
                  ,[date_administered]
                  ,[fiction_nonfiction]
                  ,[fluency]
-                 ,[instructional_level_tested]
                  ,[key_lever]
+                 ,[achieved_independent_level]
+                 ,[status]
                  ,[rate_proficiency]
                  ,[reading_rate_wpm]
-                 ,[status]
                  ,[test_round]
-                 ,[within_the_text])
+                 ,[instructional_level_tested]
+                 ,[within_the_text]
+                 ,[test_administered_by]
+                 ,[level_tested])
    ) p
  )
 
@@ -61,7 +64,12 @@ SELECT cd.unique_id
       ,cd.academic_year
       ,cd.test_round
       ,cd.date_administered
-      ,CASE WHEN cd.academic_year <= 2015 THEN 'Mixed' ELSE cd.status END AS status
+      ,CASE 
+        WHEN cd.academic_year <= 2015 THEN 'Mixed' 
+        WHEN cd.status LIKE '%Did Not Achieve%' THEN 'Did Not Achieve'
+        WHEN cd.status LIKE '%Achieved%' THEN 'Achieved'
+        ELSE cd.status
+       END AS status
       ,cd.instructional_level_tested
       ,cd.achieved_independent_level
       ,cd.about_the_text
@@ -77,6 +85,7 @@ SELECT cd.unique_id
       ,cd.rate_proficiency
       ,cd.key_lever
       ,cd.fiction_nonfiction
+      ,cd.test_administered_by
       ,CASE
         WHEN test_round = 'BOY' THEN 1
         WHEN test_round = 'MOY' THEN 2

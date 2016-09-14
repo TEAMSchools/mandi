@@ -31,6 +31,7 @@ WITH all_systems AS (
         ,fp_wpmrate
         ,fp_keylever
         ,coaching_code
+        ,NULL AS test_administered_by
   FROM KIPP_NJ..LIT$PS_test_events#identifiers#static ps WITH(NOLOCK)
 
   UNION ALL
@@ -62,6 +63,7 @@ WITH all_systems AS (
         ,NULL AS fp_wpmrate
         ,NULL AS fp_keylever
         ,NULL AS coaching_code
+        ,recorder AS test_administered_by
   FROM KIPP_NJ..LIT$UCHICAGO_test_events#identifiers#static uc WITH(NOLOCK)
 
   UNION ALL
@@ -93,6 +95,7 @@ WITH all_systems AS (
         ,reading_rate_wpm AS fp_wpmrate
         ,key_lever AS fp_keylever
         ,NULL AS coaching_code
+        ,test_administered_by
   FROM KIPP_NJ..LIT$ILLUMINATE_test_events#identifiers#static ill WITH(NOLOCK)
  )
 
@@ -123,6 +126,7 @@ SELECT rs.unique_id
       ,rs.fp_wpmrate
       ,rs.fp_keylever
       ,rs.coaching_code
+      ,rs.test_administered_by
 
       ,goals.read_lvl AS default_goal_lvl
       ,goals.lvl_num AS default_goal_num
