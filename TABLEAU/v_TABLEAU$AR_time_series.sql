@@ -5,8 +5,9 @@ ALTER VIEW TABLEAU$AR_time_series AS
 
 WITH ar_long AS (
   SELECT student_number
-        ,academic_year      
+        ,academic_year              
         ,CONVERT(DATE,dtTaken) AS date_taken        
+        ,MIN(CONVERT(DATE,dtTaken)) OVER(PARTITION BY student_number, academic_year) AS min_date_taken        
         ,SUM(tipassed) AS n_books_passed
         ,COUNT(iStudentPracticeID) AS n_books_read
         ,SUM(CASE WHEN tiPassed = 1 THEN dPointsEarned END) AS n_points_earned
@@ -198,6 +199,7 @@ FROM
        AND ((co.grade_level >= 5) OR (co.schoolid IN (73252, 73255, 179901) AND co.grade_level >= 3))
        AND co.date <= CONVERT(DATE,GETDATE())
        AND co.enroll_status = 0       
+       AND co.date >= CASE WHEN ar.min_date_taken <= co.entrydate THEN ar.min_date_taken ELSE co.entrydate END
     ) sub
 
 UNION ALL

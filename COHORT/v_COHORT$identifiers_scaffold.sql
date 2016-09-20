@@ -34,3 +34,4 @@ LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
  AND dt.identifier = 'RT'
  AND rd.date BETWEEN dt.start_date AND dt.end_date
 WHERE co.schoolid != 999999
+  AND co.rn = 1
