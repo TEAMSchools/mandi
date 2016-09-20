@@ -33,6 +33,7 @@ SELECT co.student_number
       ,g.grade_level_target
       ,g.other_level_target
       
+      ,lex.username
       ,lex.Lexia_ID
       ,lex.Predictor
       ,lex.activity_name
@@ -57,7 +58,7 @@ SELECT co.student_number
       --,lex.school_name
       --,lex.classes
       --,lex.class_names
-      --,lex.username
+      
       --,lex.fname
       --,lex.lname
       --,lex.grade_label
@@ -82,7 +83,7 @@ SELECT co.student_number
       */     
       
       ,ISNULL(g.target_units,0) - ISNULL(lex.units_to_target,0) AS units_completed
-      ,(ISNULL(g.target_units,0) - ISNULL(lex.units_to_target,0)) / g.target_units AS pct_to_target
+      ,CONVERT(FLOAT,(ISNULL(g.target_units,0.0) - ISNULL(lex.units_to_target,0.0))) / CONVERT(FLOAT,g.target_units) AS pct_to_target
 
       ,pw.week_time AS prev_week_time
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)

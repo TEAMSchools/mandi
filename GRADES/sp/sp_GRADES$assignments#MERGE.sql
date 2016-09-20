@@ -33,8 +33,38 @@ BEGIN
       JOIN sections sec
         ON map.sectionsDCID = sec.dcid
       JOIN psm_assignmentcategory cat
-        ON asmt.assignmentcategoryid = cat.id              
+        ON asmt.assignmentcategoryid = cat.id                    
       WHERE (asmt.whencreated >= TRUNC(SYSDATE - INTERVAL ''7'' DAY) OR asmt.whenmodified >= TRUNC(SYSDATE - INTERVAL ''7'' DAY))
+
+      UNION ALL
+
+      SELECT SEC.SCHOOLID
+            ,SEC.ID AS SECTIONID
+            ,SEC.SECTION_NUMBER
+            ,ASEC.SECTIONSDCID AS PSM_SECTIONID
+            ,ASEC.ASSIGNMENTID
+            ,ASEC.DUEDATE AS ASSIGN_DATE
+            ,ASEC.NAME AS ASSIGN_NAME        
+            ,ASEC.TOTALPOINTVALUE AS POINTSPOSSIBLE
+            ,ASEC.WEIGHT
+            ,ASEC.EXTRACREDITPOINTS
+            ,COALESCE(tc.DISTRICTTEACHERCATEGORYID, tc.TEACHERCATEGORYID) AS ASSIGNMENTCATEGORYID
+            ,COALESCE(dtc.name, tc.name) AS category
+            ,ASEC.ISCOUNTEDINFINALGRADE AS ISFINALSCORECALCULATED        
+            ,ASEC.WHENCREATED
+            ,ASEC.WHENMODIFIED
+      FROM ASSIGNMENTSECTION ASEC
+      JOIN SECTIONS SEC
+        ON ASEC.SECTIONSDCID = SEC.DCID
+      LEFT OUTER JOIN ASSIGNMENTCATEGORYASSOC aca
+        ON asec.AssignmentSectionID = aca.AssignmentSectionID      
+      LEFT OUTER JOIN TEACHERCATEGORY tc
+        ON aca.teachercategoryid = tc.teachercategoryid
+      LEFT OUTER JOIN DISTRICTTEACHERCATEGORY dtc
+        ON tc.districtteachercategoryid = dtc.districtteachercategoryid
+      --LEFT OUTER JOIN GradeCalcFormulaWeight gcfw
+      --  ON tc.TEACHERCATEGORYID = gcfw.TEACHERCATEGORYID
+      WHERE (ASEC.WHENCREATED >= TRUNC(SYSDATE - INTERVAL ''7'' DAY) OR ASEC.WHENMODIFIED >= TRUNC(SYSDATE - INTERVAL ''7'' DAY))
     ') 
    ) 
 

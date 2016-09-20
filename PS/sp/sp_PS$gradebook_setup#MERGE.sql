@@ -15,64 +15,191 @@ BEGIN
   SELECT *        
   INTO #gbsetup
   FROM OPENQUERY(PS_TEAM,'
-    SELECT FG.ID AS FINALGRADESETUPID
-          ,FG.FINALGRADESETUPTYPE        
-          --,FG.LOWSCORESTODISCARD
+    WITH default_gfs AS (
+      SELECT DISTINCT 
+             gfs.GRADEFORMULASETID	        
+            ,gfs.YEARID  
+            ,gct.abbreviation
+            ,gct.storecode
+            ,gct.GRADECALCULATIONTYPEID
+            ,gct.TYPE
+            ,sch.school_number AS schoolid
+      FROM GradeFormulaSet gfs
+      JOIN GradeCalculationType gct
+        ON gfs.GRADEFORMULASETID = gct.GRADEFORMULASETID
+      JOIN GradeCalcSchoolAssoc gcsa
+        ON gct.GRADECALCULATIONTYPEID = gcsa.GRADECALCULATIONTYPEID
+      JOIN SCHOOLS sch
+        ON gcsa.SCHOOLSDCID = sch.DCID
+      WHERE gfs.SECTIONSDCID IS NULL
+        AND gfs.GRADEFORMULASETID != 3 /* NCA Alternative */
+     )
+    
+    SELECT sec.DCID AS SECTIONSDCID        
+          ,ssm.sectionid AS PSM_SECTIONID
         
-          ,FG.SECTIONID AS PSM_SECTIONID
-          ,SSM.SECTIONSDCID
+          ,fg.ID AS FINALGRADESETUPID
+          ,fg.FINALGRADESETUPTYPE
         
-          ,FG.REPORTINGTERMID AS FG_REPORTINGTERMID
-          ,RT.NAME AS REPORTINGTERM_NAME
-          ,RT.STARTDATE
-          ,RT.ENDDATE          
+          ,rt.ID AS FG_REPORTINGTERMID        
+          ,rt.NAME AS REPORTINGTERM_NAME
+          ,rt.STARTDATE
+          ,rt.ENDDATE
         
-          ,FG.GRADINGFORMULAID        
-          ,GFW.GRADINGFORMULAWEIGHTINGTYPE
-          ,GFW.WEIGHTING                  
-          --,GFW.LOWSCORESTODISCARD          
-
-          ,COALESCE(GFW.ASSIGNMENTCATEGORYID, GFW.REPORTINGTERMID, 0) AS ASSIGNMENTCATEGORYID
-          ,CAT.NAME AS CATEGORY_NAME
-          ,CAT.ABBREVIATION AS CATEGORY_ABBREVIATION
-          ,CAT.DEFAULTSCORETYPE
-          ,CAT.INCLUDEINFINALGRADES
-    FROM PSM_FinalGradeSetup fg
+          ,CASE WHEN gfw.GRADINGFORMULAWEIGHTINGTYPE = ''TermBasedWeighting'' THEN gfw.REPORTINGTERMID ELSE NVL(gfw.parentgradingformulaid, rt.ID) END AS GRADINGFORMULAID
+          ,CASE WHEN gfw.GRADINGFORMULAWEIGHTINGTYPE = ''TermBasedWeighting'' THEN ''TermBasedWeighting'' ELSE NVL(gfw.GRADINGFORMULAWEIGHTINGTYPE, fg.FINALGRADESETUPTYPE) END AS GRADINGFORMULAWEIGHTINGTYPE
+          ,NVL(gfw.WEIGHTING, 100) AS WEIGHTING
+        
+          ,CASE WHEN gfw.GRADINGFORMULAWEIGHTINGTYPE = ''TermBasedWeighting'' THEN gfw.REPORTINGTERMID ELSE NVL(cat.ID, rt.ID) END AS ASSIGNMENTCATEGORYID
+          ,CASE WHEN gfw.GRADINGFORMULAWEIGHTINGTYPE = ''TermBasedWeighting'' THEN ''TermBasedWeighting'' ELSE NVL(cat.NAME, fg.FINALGRADESETUPTYPE) END AS CATEGORY_NAME
+          ,CASE WHEN gfw.GRADINGFORMULAWEIGHTINGTYPE = ''TermBasedWeighting'' THEN ''TermBasedWeighting'' ELSE NVL(cat.ABBREVIATION, fg.FINALGRADESETUPTYPE) END AS CATEGORY_ABBREVIATION
+          ,CAST(cat.DEFAULTSCORETYPE AS VARCHAR2(30)) AS DEFAULTSCORETYPE 
+          ,NVL(cat.INCLUDEINFINALGRADES, 1) AS INCLUDEINFINALGRADES
+    FROM SECTIONS sec
     JOIN SYNC_SectionMap ssm
-      ON fg.sectionid = ssm.sectionid
-    JOIN SECTIONS sec
-      ON ssm.sectionsdcid = sec.dcid
-    JOIN TEACHERS tch
-      ON sec.teacher = tch.id
-    JOIN PSM_CONTENTGROUP cg
-      ON fg.contentgroupid = cg.id    
-    JOIN PSM_TEACHER t
-      ON cg.ownerid = t.id   
-     AND tch.teachernumber = t.TEACHERIDENTIFIER
+      ON sec.dcid = ssm.sectionsdcid
+    JOIN PSM_FinalGradeSetup fg
+      ON ssm.sectionid = fg.sectionid
     JOIN PSM_ReportingTerm rt
       ON fg.reportingtermid = rt.id  
     LEFT OUTER JOIN PSM_GradingFormulaWeighting gfw
-      ON fg.gradingformulaid = gfw.parentgradingformulaid
+      ON fg.gradingformulaid = gfw.parentgradingformulaid   
     LEFT OUTER JOIN PSM_AssignmentCategory cat
       ON gfw.ASSIGNMENTCATEGORYID = cat.id    
-    WHERE rt.startdate >= TO_DATE(''2016-07-01'',''YYYY-MM-DD'') /* UPDATE ANNUALLY */
-  ');
+    WHERE sec.termid >= 2500
+      AND sec.gradebooktype != 2
+
+    UNION ALL
+
+    SELECT SECTIONSDCID
+          ,SECTIONSDCID AS PSM_SECTIONID
+                
+          ,NVL(GRADEFORMULASETID, 0) AS FINALGRADESETUPID
+          ,GCT_TYPE AS FINALGRADESETUPTYPE        
+        
+          ,GRADECALCULATIONTYPEID AS FG_REPORTINGTERMID
+          ,STORECODE AS REPORTINGTERM_NAME
+          ,DATE1 AS STARTDATE
+          ,DATE2 AS ENDDATE
+
+          ,NVL(GRADECALCFORMULAWEIGHTID, GRADECALCULATIONTYPEID)AS GRADINGFORMULAID
+          ,NVL(GCFW_TYPE, GCT_TYPE) AS GRADINGFORMULAWEIGHTINGTYPE
+          ,WEIGHT AS WEIGHTING         
+          
+          ,COALESCE(DISTRICTTEACHERCATEGORYID, TEACHERCATEGORYID, GRADECALCULATIONTYPEID) AS ASSIGNMENTCATEGORYID
+          ,COALESCE(dtc_NAME, tc_NAME, GCT_TYPE) AS CATEGORY_NAME
+          ,COALESCE(dtc_name, tc_NAME, GCT_TYPE) AS CATEGORY_ABBREVIATION
+          ,COALESCE(dtc_DEFAULTSCORETYPE, tc_DEFAULTSCORETYPE) AS DEFAULTSCORETYPE
+          ,COALESCE(dtc_ISINFINALGRADES, tc_ISINFINALGRADES, 1) AS INCLUDEINFINALGRADES
+    FROM
+        (
+         SELECT sec.DCID AS SECTIONSDCID
+        
+               ,tb.STORECODE
+               ,tb.DATE1
+               ,tb.DATE2
+
+               ,gfs.GRADEFORMULASETID
+                
+               ,gct.GRADECALCULATIONTYPEID
+               ,gct.TYPE AS gct_type       
+
+               ,gcfw.GRADECALCFORMULAWEIGHTID
+               ,gcfw.TEACHERCATEGORYID
+               ,gcfw.DISTRICTTEACHERCATEGORYID
+               ,gcfw.WEIGHT
+               ,gcfw.TYPE AS gcfw_type        
+        
+               ,tc.TEACHERMODIFIED
+               ,tc.NAME AS tc_name
+               ,tc.DEFAULTSCORETYPE AS tc_defaultscoretype
+               ,tc.ISINFINALGRADES AS tc_ISINFINALGRADES
+
+               ,dtc.NAME AS dtc_name
+               ,dtc.DEFAULTSCORETYPE AS dtc_DEFAULTSCORETYPE
+               ,dtc.ISINFINALGRADES AS dtc_ISINFINALGRADES                
+         FROM SECTIONS sec       
+         JOIN TermBins tb
+           ON sec.schoolid = tb.schoolid
+          AND sec.termid = tb.termid   
+         JOIN GradeFormulaSet gfs         
+           ON sec.DCID = gfs.SECTIONSDCID         
+         JOIN GradeCalculationType gct
+           ON gfs.GRADEFORMULASETID = gct.gradeformulasetid    
+          AND tb.storecode = gct.storecode 
+         LEFT OUTER JOIN GradeCalcFormulaWeight gcfw
+           ON gct.gradecalculationtypeid = gcfw.gradecalculationtypeid
+         LEFT OUTER JOIN TeacherCategory tc
+           ON gcfw.teachercategoryid = tc.teachercategoryid 
+         LEFT OUTER JOIN DistrictTeacherCategory dtc
+           ON gcfw.districtteachercategoryid = dtc.districtteachercategoryid
+         WHERE sec.termid >= 2500           
+           AND sec.gradebooktype = 2                
+           
+         UNION ALL
+         
+         SELECT sec.DCID AS SECTIONSDCID       
+               
+               ,tb.STORECODE
+               ,tb.DATE1
+               ,tb.DATE2
+
+               ,d.GRADEFORMULASETID                
+               ,d.GRADECALCULATIONTYPEID
+               ,d.TYPE AS gct_type       
+
+               ,gcfw.GRADECALCFORMULAWEIGHTID
+               ,gcfw.TEACHERCATEGORYID
+               ,gcfw.DISTRICTTEACHERCATEGORYID
+               ,gcfw.WEIGHT
+               ,gcfw.TYPE AS gcfw_type        
+        
+               ,tc.TEACHERMODIFIED
+               ,tc.NAME AS tc_name
+               ,tc.DEFAULTSCORETYPE AS tc_defaultscoretype
+               ,tc.ISINFINALGRADES AS tc_ISINFINALGRADES
+
+               ,dtc.NAME AS dtc_name
+               ,dtc.DEFAULTSCORETYPE AS dtc_DEFAULTSCORETYPE
+               ,dtc.ISINFINALGRADES AS dtc_ISINFINALGRADES                
+         FROM SECTIONS sec       
+         JOIN TermBins tb
+           ON sec.schoolid = tb.schoolid
+          AND sec.termid = tb.termid            
+         JOIN TERMS rt
+           ON tb.termid = rt.id
+          AND sec.schoolid = rt.schoolid
+         JOIN default_gfs d
+           ON sec.schoolid = d.schoolid
+          AND SUBSTR(sec.termid, 0, 2) = d.yearid
+          AND tb.storecode = d.storecode
+          AND rt.abbreviation = d.abbreviation
+         LEFT OUTER JOIN GradeCalcFormulaWeight gcfw
+           ON d.gradecalculationtypeid = gcfw.gradecalculationtypeid
+         LEFT OUTER JOIN TeacherCategory tc
+           ON gcfw.teachercategoryid = tc.teachercategoryid 
+         LEFT OUTER JOIN DistrictTeacherCategory dtc
+           ON gcfw.districtteachercategoryid = dtc.districtteachercategoryid
+         WHERE sec.termid >= 2500           
+           AND sec.gradebooktype = 2   
+        ) sub
+  ')
 
   /* merge into destination table */
   MERGE KIPP_NJ..PS$gradebook_setup#static AS TARGET
   USING #gbsetup AS SOURCE
-     ON TARGET.FINALGRADESETUPID = SOURCE.FINALGRADESETUPID
+     ON TARGET.SECTIONSDCID = SOURCE.SECTIONSDCID
+    AND TARGET.FINALGRADESETUPID = SOURCE.FINALGRADESETUPID    
+    AND TARGET.GRADINGFORMULAID = SOURCE.GRADINGFORMULAID
     AND TARGET.ASSIGNMENTCATEGORYID = SOURCE.ASSIGNMENTCATEGORYID
   WHEN MATCHED THEN
    UPDATE
-    SET TARGET.FINALGRADESETUPTYPE = SOURCE.FINALGRADESETUPTYPE
-       ,TARGET.PSM_SECTIONID = SOURCE.PSM_SECTIONID
-       ,TARGET.SECTIONSDCID = SOURCE.SECTIONSDCID
+    SET TARGET.FINALGRADESETUPTYPE = SOURCE.FINALGRADESETUPTYPE       
+       ,TARGET.PSM_SECTIONID = SOURCE.PSM_SECTIONID       
        ,TARGET.FG_REPORTINGTERMID = SOURCE.FG_REPORTINGTERMID
        ,TARGET.REPORTINGTERM_NAME = SOURCE.REPORTINGTERM_NAME
        ,TARGET.STARTDATE = SOURCE.STARTDATE
-       ,TARGET.ENDDATE = SOURCE.ENDDATE
-       ,TARGET.GRADINGFORMULAID = SOURCE.GRADINGFORMULAID
+       ,TARGET.ENDDATE = SOURCE.ENDDATE       
        ,TARGET.GRADINGFORMULAWEIGHTINGTYPE = SOURCE.GRADINGFORMULAWEIGHTINGTYPE
        ,TARGET.WEIGHTING = SOURCE.WEIGHTING       
        ,TARGET.CATEGORY_NAME = SOURCE.CATEGORY_NAME

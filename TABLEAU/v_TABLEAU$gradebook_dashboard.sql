@@ -183,7 +183,7 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
   ON co.student_number = gr.student_number
  AND co.year = gr.academic_year
  AND dt.alt_name = gr.term
- AND gr.rn_curterm = 1
+ AND gr.is_curterm = 1
 LEFT OUTER JOIN section_teacher st
   ON co.studentid = st.studentid
  AND co.year = st.year
@@ -242,7 +242,7 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
   ON co.student_number = gr.student_number
  AND co.year = gr.academic_year
  AND dt.time_per_name = gr.reporting_term
- AND gr.rn_curterm = 1 
+ AND gr.is_curterm = 1 
 LEFT OUTER JOIN section_teacher st
   ON co.studentid = st.studentid
  AND co.year = st.year

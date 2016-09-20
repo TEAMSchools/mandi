@@ -31,7 +31,7 @@ SELECT sec.ID AS sectionid
 FROM KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
 JOIN KIPP_NJ..PS$gradebook_setup#static gb WITH(NOLOCK)
   ON sec.DCID = gb.sectionsdcid
- AND gb.FINALGRADESETUPTYPE = 'WeightedFGSetup' 
+ AND gb.FINALGRADESETUPTYPE NOT LIKE 'Total%Points' 
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignments#STAGING a WITH(NOLOCK)
   ON sec.ID = a.SECTIONID
  AND gb.ASSIGNMENTCATEGORYID = a.assignmentcategoryid
@@ -70,7 +70,7 @@ SELECT sec.ID AS sectionid
 FROM KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
 JOIN KIPP_NJ..PS$gradebook_setup#static gb WITH(NOLOCK)
   ON sec.DCID = gb.sectionsdcid
- AND gb.FINALGRADESETUPTYPE = 'TotalPoints' 
+ AND gb.FINALGRADESETUPTYPE LIKE 'Total%Points' 
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignments#STAGING a WITH(NOLOCK)
   ON sec.ID = a.SECTIONID 
  AND a.ASSIGN_DATE BETWEEN gb.STARTDATE AND gb.ENDDATE

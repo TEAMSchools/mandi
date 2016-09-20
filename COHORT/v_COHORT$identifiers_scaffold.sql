@@ -23,10 +23,11 @@ SELECT co.year
       ,CONVERT(DATE,rd.date) AS date
       ,rd.reporting_hash
       ,dt.alt_name AS term
+      ,CASE WHEN CONVERT(DATE,rd.date) BETWEEN co.entrydate AND co.exitdate THEN 1 ELSE 0 END AS is_enrolled
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..UTIL$reporting_days#static rd WITH(NOLOCK)
   ON co.year = rd.academic_year
- AND rd.date BETWEEN co.entrydate AND co.exitdate 
+ AND rd.date <= co.exitdate 
 LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON co.schoolid = dt.schoolid
  AND co.year = dt.academic_year

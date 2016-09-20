@@ -4,7 +4,7 @@ GO
 ALTER VIEW LIT$ILLUMINATE_test_events#identifiers AS
 
 WITH clean_data AS (
-  SELECT CONCAT('IL',repository_row_id) AS unique_id
+  SELECT CONCAT('IL', repository_id, repository_row_id) AS unique_id
         ,student_id AS student_number
         ,LEFT([academic_year],4) AS academic_year
         ,[test_round]
@@ -25,6 +25,7 @@ WITH clean_data AS (
   FROM
       (
        SELECT rd.student_id
+             ,rd.repository_id
              ,rd.repository_row_id      
              ,KIPP_NJ.dbo.fn_StripCharacters(REPLACE(LOWER(LTRIM(RTRIM(rf.label))),' ','_'),'^A-Z0-9_') AS field
              ,rd.value
@@ -71,7 +72,10 @@ SELECT cd.unique_id
         ELSE cd.status
        END AS status
       ,cd.instructional_level_tested
-      ,cd.achieved_independent_level
+      ,CASE 
+        WHEN cd.academic_year >= 2016 AND cd.status LIKE '%Achieved%' THEN cd.instructional_level_tested
+        ELSE cd.achieved_independent_level
+       END AS achieved_independent_level
       ,cd.about_the_text
       ,cd.beyond_the_text
       ,cd.within_the_text
@@ -102,7 +106,10 @@ SELECT cd.unique_id
       ,instr.fp_lvl_num AS instr_lvl_num
 FROM clean_data cd
 LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq achv WITH(NOLOCK)
-  ON cd.achieved_independent_level = achv.read_lvl
+  ON CASE 
+      WHEN cd.academic_year >= 2016 AND cd.status LIKE '%Achieved%' THEN cd.instructional_level_tested
+      ELSE cd.achieved_independent_level
+     END = achv.read_lvl
 LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LIT_gleq instr WITH(NOLOCK)
   ON cd.instructional_level_tested = instr.read_lvl
 LEFT OUTER JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)

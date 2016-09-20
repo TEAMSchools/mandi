@@ -81,8 +81,14 @@ WITH all_systems AS (
         ,student_number
         ,LASTFIRST
         ,status
-        ,achieved_independent_level AS read_lvl
-        ,indep_lvl_num AS lvl_num
+        ,CASE 
+          WHEN status IN ('Mixed','Achieved') THEN achieved_independent_level 
+          WHEN status = 'Did Not Achieve' THEN instructional_level_tested
+         END AS read_lvl
+        ,CASE
+          WHEN status IN ('Mixed','Achieved') THEN indep_lvl_num
+          WHEN status = 'Did Not Achieve' THEN instr_lvl_num
+         END AS lvl_num
         ,instructional_level_tested AS dna_lvl
         ,instr_lvl_num AS dna_lvl_num
         ,instructional_level_tested AS instruct_lvl
