@@ -54,6 +54,8 @@ WITH att_counts AS (
         ,co.year AS academic_year
         ,d.time_per_name AS rt
         ,d.alt_name AS term
+        ,d.start_date
+        ,d.end_date
         ,att.ATT_CODE
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
@@ -73,6 +75,8 @@ WITH att_counts AS (
         ,academic_year
         ,rt
         ,term
+        ,start_date
+        ,end_date
         ,CONCAT(att_code,'_',field) AS pivot_field
         ,counts
   FROM
@@ -81,6 +85,8 @@ WITH att_counts AS (
              ,s.academic_year
              ,s.rt
              ,s.term
+             ,s.start_date
+             ,s.end_date
              ,s.att_code
              ,ISNULL(a.counts_term,0) AS counts_term
              ,SUM(ISNULL(a.counts_term,0)) OVER(PARTITION BY s.studentid, s.academic_year, s.att_code ORDER BY s.rt) AS counts_yr
@@ -97,6 +103,8 @@ WITH att_counts AS (
              ,academic_year
              ,rt
              ,term
+             ,start_date
+             ,end_date
              ,att_code
              ,counts_term
              ,SUM(counts_term) OVER(PARTITION BY studentid, academic_year ORDER BY rt) AS counts_year
@@ -106,6 +114,8 @@ WITH att_counts AS (
                   ,co.year AS academic_year      
                   ,d.time_per_name AS rt
                   ,d.alt_name AS term
+                  ,d.start_date
+                  ,d.end_date
                   ,'MEM' AS att_code
                   ,SUM(CONVERT(FLOAT,ISNULL(mem.membershipvalue,0))) AS counts_term      
             FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
@@ -122,6 +132,8 @@ WITH att_counts AS (
                     ,co.year
                     ,d.time_per_name
                     ,d.alt_name
+                    ,d.start_date
+                    ,d.end_date
            ) sub
       ) sub
   UNPIVOT(
@@ -130,15 +142,38 @@ WITH att_counts AS (
    ) u
  )
 
-SELECT *
+SELECT studentid
+      ,academic_year
+      ,rt
+      ,term      
+      ,A_counts_term
+      ,A_counts_yr
+      ,AD_counts_term
+      ,AD_counts_yr
+      ,AE_counts_term
+      ,AE_counts_yr
+      ,ISS_counts_term
+      ,ISS_counts_yr
+      ,OSS_counts_term
+      ,OSS_counts_yr
+      ,T_counts_term
+      ,T_counts_yr
+      ,T10_counts_term
+      ,T10_counts_yr
+      ,TE_counts_term
+      ,TE_counts_yr
+      ,MEM_counts_term
+      ,MEM_counts_yr
       ,ISNULL(A_counts_yr,0) + ISNULL(AD_counts_yr,0) AS ABS_all_counts_yr
       ,ISNULL(A_counts_term,0) + ISNULL(AD_counts_term,0) AS ABS_all_counts_term
       ,ISNULL(T_counts_yr,0) + ISNULL(T10_counts_yr,0) AS TDY_all_counts_yr
       ,ISNULL(T_counts_term,0) + ISNULL(T10_counts_term,0) AS TDY_all_counts_term      
 
-      ,ROW_NUMBER() OVER(
-         PARTITION BY studentid, academic_year
-           ORDER BY rt DESC) AS rn_curterm
+      ,CASE 
+        WHEN academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date THEN 1 
+        WHEN academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() AND rt = MAX(rt) OVER(PARTITION BY studentid, academic_year) THEN 1 
+        ELSE 0 
+       END AS rn_curterm
 FROM counts_long
 PIVOT(
   MAX(counts)

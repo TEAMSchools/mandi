@@ -148,10 +148,10 @@ FROM
            ,SUM(y1_goal.points_goal / DATEDIFF(DAY, y1_goal.time_period_start, y1_goal.time_period_end)) OVER(
               PARTITION BY co.student_number, co.year
                 ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS ontrack_points_yr  
-           ,SUM(term_goal.words_goal / DATEDIFF(DAY, term_goal.time_period_start, term_goal.time_period_end)) OVER(
+           ,SUM(term_goal.words_goal / DATEDIFF(DAY, y1_goal.time_period_start, term_goal.time_period_end)) OVER(
               PARTITION BY co.student_number, co.year, term_goal.time_period_name
                 ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS ontrack_words_term
-           ,SUM(term_goal.points_goal / DATEDIFF(DAY, term_goal.time_period_start, term_goal.time_period_end)) OVER(
+           ,SUM(term_goal.points_goal / DATEDIFF(DAY, y1_goal.time_period_start, term_goal.time_period_end)) OVER(
               PARTITION BY co.student_number, co.year, term_goal.time_period_name
                 ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS ontrack_points_term
            ,SUM(ar.n_words_read) OVER(

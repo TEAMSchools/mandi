@@ -70,9 +70,11 @@ WITH long_data AS (
 
 SELECT student_number	
       ,academic_year
-      ,scale_score_pretest	
-      ,scale_score_midyear	
-      ,scale_score_posttest
+      ,[scale_score_act1]
+      ,[scale_score_act2]
+      ,[scale_score_act3]
+      ,[scale_score_act4]
+      ,[scale_score_act5]
 FROM
     (
      SELECT student_number
@@ -84,7 +86,9 @@ FROM
     ) sub
 PIVOT(
   MAX(scale_score)
-  FOR field IN (scale_score_pretest
-               ,scale_score_midyear
-               ,scale_score_posttest)               
+  FOR field IN ([scale_score_act1]
+               ,[scale_score_act2]
+               ,[scale_score_act3]
+               ,[scale_score_act4]
+               ,[scale_score_act5])
  ) p

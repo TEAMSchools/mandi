@@ -126,8 +126,8 @@ WITH map_data AS (
   SELECT academic_year
         ,student_number
         ,subject_area        
-        ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(percent_correct),0) >= 65 THEN 100.0 ELSE 0.0 END) AS module_avg_above_65
-        ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(percent_correct),0) >= 80 THEN 100.0 ELSE 0.0 END) AS module_avg_above_80
+        ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(percent_correct),0) >= 50 THEN 100.0 ELSE 0.0 END) AS module_avg_above_65
+        ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(percent_correct),0) >= 70 THEN 100.0 ELSE 0.0 END) AS module_avg_above_80
   FROM
       (
        SELECT a.academic_year
@@ -286,11 +286,28 @@ WITH map_data AS (
              ,COALESCE(wlk.classroom_instruction_overall, wlk.classroom_instructionaldelivery_overall) AS classroom_instruction_overall
              ,COALESCE(wlk.classroom_routinesrules_overall, wlk.classroom_management_overall) AS classroom_management_overall
 
-             /* state test date -- 2013 and below = NJASK/HSPA, 2014 and beyond = PARCC */
+             /* state test date -- 2013 and below = NJASK/HSPA, 2014 and beyond = PARCC */             
+             ,nj.ELA03_diff_pct_proficient_weighted
+             ,nj.ELA04_diff_pct_proficient_weighted
+             ,nj.ELA05_diff_pct_proficient_weighted
+             ,nj.ELA06_diff_pct_proficient_weighted
+             ,nj.ELA07_diff_pct_proficient_weighted
+             ,nj.ELA08_diff_pct_proficient_weighted
+             ,nj.ELA09_diff_pct_proficient_weighted
+             ,nj.ELA10_diff_pct_proficient_weighted
+             ,nj.ELA11_diff_pct_proficient_weighted
+             ,nj.MAT03_diff_pct_proficient_weighted
+             ,nj.MAT04_diff_pct_proficient_weighted
+             ,nj.MAT05_diff_pct_proficient_weighted
+             ,nj.MAT06_diff_pct_proficient_weighted
+             ,nj.MAT07_diff_pct_proficient_weighted
+             ,nj.MAT08_diff_pct_proficient_weighted
+             ,nj.ALG01_diff_pct_proficient_weighted
+             ,nj.GEO01_diff_pct_proficient_weighted
+             ,nj.ALG02_diff_pct_proficient_weighted
+             
              ,nj.ELA_median_SGP
-             ,nj.ELA_diff_pct_proficient_weighted
-             ,nj.Math_median_SGP
-             ,nj.Math_diff_pct_proficient_weighted
+             ,nj.Math_median_SGP             
 
              /* GPA */
              ,gpa.GPA_is_above_30
@@ -428,10 +445,26 @@ WITH map_data AS (
                  ,classroom_engagement_overall                 
                  ,classroom_instruction_overall
                  ,classroom_management_overall
-                 ,ELA_median_SGP
-                 ,ELA_diff_pct_proficient_weighted
+                 ,ELA_median_SGP                 
                  ,Math_median_SGP
-                 ,Math_diff_pct_proficient_weighted
+                 ,ELA03_diff_pct_proficient_weighted
+                 ,ELA04_diff_pct_proficient_weighted
+                 ,ELA05_diff_pct_proficient_weighted
+                 ,ELA06_diff_pct_proficient_weighted
+                 ,ELA07_diff_pct_proficient_weighted
+                 ,ELA08_diff_pct_proficient_weighted
+                 ,ELA09_diff_pct_proficient_weighted
+                 ,ELA10_diff_pct_proficient_weighted
+                 ,ELA11_diff_pct_proficient_weighted
+                 ,MAT03_diff_pct_proficient_weighted
+                 ,MAT04_diff_pct_proficient_weighted
+                 ,MAT05_diff_pct_proficient_weighted
+                 ,MAT06_diff_pct_proficient_weighted
+                 ,MAT07_diff_pct_proficient_weighted
+                 ,MAT08_diff_pct_proficient_weighted
+                 ,ALG01_diff_pct_proficient_weighted
+                 ,GEO01_diff_pct_proficient_weighted
+                 ,ALG02_diff_pct_proficient_weighted
                  ,GPA_is_above_30
                  ,GPA_is_above_35
                  ,met_lit_goal
