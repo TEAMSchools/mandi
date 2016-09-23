@@ -33,14 +33,9 @@ WITH parcc_prof AS (
              ,NULL AS median_SGP      
        FROM KIPP_NJ..PARCC$district_summative_record_file parcc WITH(NOLOCK)
        JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-         ON parcc.statestudentidentifier = co.SID
-        AND LEFT(parcc.assessmentYear, 4) = co.year
-        --AND co.grade_level IN (4,8,11)
-        AND co.rn = 1
-       --WHERE parcc.recordtype = 1
-       --  AND parcc.multiplerecordflag IS NULL
-       --  AND parcc.reportedsummativescoreflag = 'Y'
-       --  AND parcc.reportsuppressioncode IS NULL
+         ON parcc.localstudentidentifier = co.student_number
+        AND LEFT(parcc.assessmentYear, 4) = co.year        
+        AND co.rn = 1       
        
        UNION ALL
 

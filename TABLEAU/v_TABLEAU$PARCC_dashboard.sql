@@ -70,8 +70,8 @@ SELECT co.student_number
       ,ext.PARCC AS pct_prof_PARCC       
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..PARCC$district_summative_record_file parcc WITH(NOLOCK)
-  ON parcc.statestudentidentifier = co.SID  
- AND LEFT(parcc.assessmentYear, 4) = co.year  
+  ON co.student_number = parcc.localstudentidentifier
+ AND co.year = LEFT(parcc.assessmentYear, 4)
 LEFT OUTER JOIN external_prof ext WITH(NOLOCK)
   ON co.year = ext.academic_year
  AND parcc.testcode = ext.testcode 
