@@ -147,5 +147,4 @@ JOIN real_tests r
   ON co.student_number = r.student_number
 WHERE co.rn = 1
   AND co.schoolid = 73253
-  AND co.grade_level = 12
-  AND co.year >= 2015 /* 1st year with ACT prep */
+  AND co.all_years_rn = 1

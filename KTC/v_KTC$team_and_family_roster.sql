@@ -10,6 +10,16 @@ WITH hs_grads AS (
     AND co.exitcode = 'G1'               
  ) 
 
+,sped AS (
+  SELECT studentid
+        ,SPEDLEP
+        ,SPEDCODE
+        ,ROW_NUMBER() OVER(
+           PARTITION BY studentid
+             ORDER BY academic_year DESC) AS rn
+  FROM KIPP_NJ..PS$SPED#ARCHIVE WITH(NOLOCK)
+ )
+
 ,ms_grads AS (
   SELECT co.studentid
         ,co.student_number
@@ -19,9 +29,7 @@ WITH hs_grads AS (
         ,co.grade_level                        
         ,(KIPP_NJ.dbo.fn_Global_Academic_Year() - co.year) + co.grade_level AS curr_grade_level
         ,co.cohort
-        ,co.highest_achieved
-        ,co.SPEDLEP
-        ,co.SPED_code
+        ,co.highest_achieved        
         ,CONVERT(VARCHAR(MAX),co.guardianemail) AS guardianemail
         ,ROW_NUMBER() OVER(
            PARTITION BY co.student_number
@@ -43,9 +51,7 @@ WITH hs_grads AS (
         ,sub.cohort
         ,sub.highest_achieved        
         ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN s.SCHOOLID ELSE s.GRADUATED_SCHOOLID END AS schoolid       
-        ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN sch2.ABBREVIATION ELSE sch.ABBREVIATION END AS school_name         
-        ,ISNULL(cs.SPEDLEP,'No IEP') AS SPEDLEP
-        ,cs.SPECIAL_EDUCATION AS SPED_code
+        ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN sch2.ABBREVIATION ELSE sch.ABBREVIATION END AS school_name                 
         ,sub.guardianemail
   FROM
       (
@@ -67,9 +73,7 @@ WITH hs_grads AS (
        GROUP BY co.studentid, co.student_number, co.lastfirst, co.highest_achieved
       ) sub
   LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
-    ON sub.student_number = s.STUDENT_NUMBER
-  LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_custom#static cs WITH(NOLOCK)
-    ON sub.studentid = cs.STUDENTID
+    ON sub.student_number = s.STUDENT_NUMBER  
   LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH(NOLOCK)
     ON s.GRADUATED_SCHOOLID = sch.SCHOOL_NUMBER
   LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch2 WITH(NOLOCK)
@@ -85,9 +89,7 @@ WITH hs_grads AS (
         ,school_name
         ,curr_grade_level
         ,cohort
-        ,highest_achieved
-        ,SPEDLEP
-        ,SPED_code
+        ,highest_achieved        
         ,guardianemail
   FROM ms_grads
   
@@ -100,9 +102,7 @@ WITH hs_grads AS (
         ,school_name
         ,curr_grade_level
         ,cohort
-        ,highest_achieved
-        ,SPEDLEP
-        ,SPED_code
+        ,highest_achieved        
         ,guardianemail
   FROM transfers    
  )
@@ -136,8 +136,8 @@ SELECT r.student_number
       ,r.curr_grade_level AS approx_grade_level      
       ,r.cohort
       ,CASE WHEN r.highest_achieved = 99 THEN 1 ELSE 0 END AS is_grad
-      ,r.SPEDLEP
-      ,r.SPED_code
+      ,sped.SPEDLEP
+      ,sped.SPEDCODE AS SPED_code
       ,enr.ktc_counselor
       ,enr.enrollment_type
       ,enr.enrollment_name
@@ -189,6 +189,9 @@ SELECT r.student_number
       ,con.RELEASE_5_PHONE AS PS_RELEASE_5_PHONE
       ,con.RELEASE_5_RELATION AS PS_RELEASE_5_RELATION
 FROM roster r
+LEFT OUTER JOIN sped
+  ON r.studentid = sped.studentid
+ AND sped.rn = 1
 LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_contact#static con WITH(NOLOCK)
   ON r.studentid = con.STUDENTID
 LEFT OUTER JOIN enrollments enr

@@ -39,7 +39,7 @@ WITH assessments AS (
                             WHEN PATINDEX('%U[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]%', a.title) + 1, 1)                  
                            END) AS rn
        FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)       
-       WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
+       WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2')
          AND a.subject_area IN ('Text Study','Mathematics')
          AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       ) sub
@@ -53,11 +53,11 @@ SELECT subject_area
       ,percent_correct
       ,rn_unit
       ,CASE
-        WHEN percent_correct >= 85 THEN 'Exceeded Expectations'
-        WHEN percent_correct >= 70 THEN 'Met Expectations'
-        WHEN percent_correct >= 50 THEN 'Approached Expectations'
-        WHEN percent_correct >= 35 THEN 'Partially Met Expectations'
-        WHEN percent_correct < 35 THEN 'Did Not Yet Meet Expectations'
+        WHEN percent_correct >= 85 THEN 'Above Target'
+        WHEN percent_correct >= 70 THEN 'Target'
+        WHEN percent_correct >= 50 THEN 'Near Target'
+        WHEN percent_correct >= 35 THEN 'Below Target'
+        WHEN percent_correct < 35 THEN 'Far Below Target'
        END AS proficiency_label
 FROM
     (

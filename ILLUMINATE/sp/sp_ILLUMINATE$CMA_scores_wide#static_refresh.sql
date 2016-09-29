@@ -59,7 +59,7 @@ BEGIN
                               WHEN PATINDEX('%U[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]%', a.title) + 1, 1)                  
                              END) AS rn
          FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)       
-         WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
+         WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2')
            AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
         ) sub
    )
@@ -84,7 +84,14 @@ BEGIN
                ,a.scope
                ,a.rn_unit
                ,ovr.local_student_id AS student_number
-               ,CONCAT(ROUND(AVG(CONVERT(FLOAT,ovr.percent_correct)),0),'%') AS percent_correct                                
+               ,CONCAT(CASE
+                        WHEN ROUND(AVG(CONVERT(FLOAT,ovr.percent_correct)),0) >= 85 THEN 'Above Target'
+                        WHEN ROUND(AVG(CONVERT(FLOAT,ovr.percent_correct)),0) >= 70 THEN 'Target'
+                        WHEN ROUND(AVG(CONVERT(FLOAT,ovr.percent_correct)),0) >= 50 THEN 'Near Target'
+                        WHEN ROUND(AVG(CONVERT(FLOAT,ovr.percent_correct)),0) >= 35 THEN 'Below Target'
+                        WHEN ROUND(AVG(CONVERT(FLOAT,ovr.percent_correct)),0) < 35 THEN 'Far Below Target'
+                       END
+                      ,' (', ROUND(AVG(CONVERT(FLOAT,ovr.percent_correct)),0),'%)') AS percent_correct                                
                ,s.SCHOOLID
                ,s.GRADE_LEVEL
          FROM assessments a    

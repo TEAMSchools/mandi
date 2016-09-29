@@ -18,6 +18,7 @@ WITH response_agg AS (
         ,COUNT(response_value) AS N_responses                
   FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
   WHERE is_open_ended = 0 /* open ended treated separately*/  
+    AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY survey_type
           ,academic_year
           ,term
@@ -111,6 +112,7 @@ WITH response_agg AS (
         ,KIPP_NJ.dbo.GROUP_CONCAT_D(REPLACE(LTRIM(RTRIM(response)),'"',''''''), CHAR(10)) AS pivot_value
   FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
   WHERE is_open_ended = 1
+    AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY survey_type
           ,academic_year
           ,term
@@ -129,6 +131,7 @@ WITH response_agg AS (
         ,COUNT(DISTINCT responder_name) AS N_responses
         ,KIPP_NJ.dbo.GROUP_CONCAT_D(DISTINCT responder_name, ' // ') AS responder_names
   FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
+  WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   GROUP BY survey_type
           ,academic_year
           ,term

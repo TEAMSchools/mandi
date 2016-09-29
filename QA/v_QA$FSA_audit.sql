@@ -3,78 +3,127 @@ GO
 
 ALTER VIEW QA$FSA_audit AS
 
-SELECT a.assessment_id
-      ,s.schoolid
+SELECT DISTINCT 
+       a.assessment_id      
       ,a.title      
       ,a.scope
       ,a.subject_area
-      ,a.state_id AS teachernumber
-      ,u.lastfirst AS created_by
-      ,std.custom_code AS standard_code
-      ,std.description AS standard_description
-      ,rt.alt_name AS term
-      ,d.time_per_name
-      ,FORMAT(d.start_date,'M/dd') AS start_date
-      ,FORMAT(d.end_date,'M/dd') AS end_date
-      ,ovr.local_student_id
-FROM KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
-JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
-  ON ovr.local_student_id = s.STUDENT_NUMBER
-JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
-  ON ovr.assessment_id = a.assessment_id
+      ,a.administered_at
+      ,a.state_id AS teachernumber            
+      ,u.lastfirst AS created_by      
+      ,rt.alt_name AS term      
+      ,co.reporting_schoolid AS schoolid
+      ,'SCOPE' AS audit_type
+      ,CASE 
+        WHEN a.scope IN ('Exit Ticket') AND co.reporting_schoolid = 73258 THEN 1
+        WHEN a.scope IN ('CMA - End-of-Module'
+                        ,'CMA - Mid-Module'
+                        ,'CMA - Checkpoint 1'
+                        ,'CMA - Checkpoint 2'
+                        ,'Topic Assessments'                        
+                        ,'Unit Assessment') THEN 1
+        ELSE 0 
+       END AS audit_result      
+FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$USERS#static u WITH(NOLOCK)
+  ON a.state_id = u.teachernumber
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static astd WITH(NOLOCK)
   ON a.assessment_id = astd.assessment_id
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
   ON astd.standard_id = std.standard_id
-LEFT OUTER JOIN KIPP_NJ..PS$USERS#static u WITH(NOLOCK)
-  ON a.state_id = u.teachernumber
+JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
+  ON a.assessment_id = ovr.assessment_id
+JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  ON ovr.local_student_id = co.student_number
+ AND a.academic_year = co.year
+ AND co.rn = 1
 JOIN KIPP_NJ..REPORTING$dates rt WITH(NOLOCK)
-  ON s.schoolid = rt.schoolid
- AND ((a.scope NOT LIKE 'CMA%' AND ovr.date_taken BETWEEN rt.start_date AND rt.end_date) OR (a.scope LIKE 'CMA%' AND a.administered_at BETWEEN rt.start_date AND rt.end_date))
+  ON co.schoolid = rt.schoolid
+ AND a.administered_at BETWEEN rt.start_date AND rt.end_date
  AND rt.identifier = 'RT'
-JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
-  ON s.schoolid = d.schoolid
- AND ((a.scope LIKE 'CMA%' AND a.administered_at BETWEEN d.start_date AND d.end_date) 
-         OR (a.scope NOT LIKE 'CMA%' AND ovr.date_taken BETWEEN DATEADD(DAY, (3 - DATEPART(DW,d.start_date)), d.start_date)
-                                                            AND DATEADD(DAY, 7, (DATEADD(DAY,(2 - DATEPART(DW,d.start_date)), d.start_date)))))
- AND d.identifier = 'REP'
-WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  AND s.SCHOOLID != 73258
+WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
 UNION ALL
 
-SELECT a.assessment_id
-      ,s.schoolid
+SELECT DISTINCT 
+       a.assessment_id      
       ,a.title      
       ,a.scope
       ,a.subject_area
-      ,a.state_id AS teachernumber
-      ,u.lastfirst AS created_by
-      ,std.custom_code AS standard_code
-      ,std.description AS standard_description
-      ,rt.alt_name AS term
-      ,d.time_per_name
-      ,FORMAT(d.start_date,'M/dd') AS start_date
-      ,FORMAT(d.end_date,'M/dd') AS end_date
-      ,ovr.local_student_id
-FROM KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
-JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
-  ON ovr.local_student_id = s.STUDENT_NUMBER
-JOIN KIPP_NJ..REPORTING$dates rt WITH(NOLOCK)
-  ON s.schoolid = rt.schoolid
- AND ovr.date_taken BETWEEN rt.start_date AND rt.end_date
- AND rt.identifier = 'RT'
-JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
-  ON s.schoolid = d.schoolid
- AND ovr.date_taken BETWEEN d.start_date AND d.end_date
- AND d.identifier = 'REP'
-JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
-  ON ovr.assessment_id = a.assessment_id
+      ,a.administered_at
+      ,a.state_id AS teachernumber      
+      ,u.lastfirst AS created_by      
+      ,rt.alt_name AS term      
+      ,co.reporting_schoolid AS schoolid
+      ,'SUBJECT' AS audit_type
+      ,CASE 
+        WHEN a.subject_area IN ('Text Study'
+                               ,'Mathematics'
+                               ,'Science'
+                               ,'Social Studies') THEN 1 
+        WHEN a.scope IN ('Unit Assessment','Exit Ticket') AND a.subject_area IN ('Performing Arts','Visual Arts') THEN 1
+        ELSE 0 
+       END AS audit_result      
+FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..PS$USERS#static u WITH(NOLOCK)
+  ON a.state_id = u.teachernumber
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static astd WITH(NOLOCK)
   ON a.assessment_id = astd.assessment_id
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
   ON astd.standard_id = std.standard_id
+JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
+  ON a.assessment_id = ovr.assessment_id
+JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  ON ovr.local_student_id = co.student_number
+ AND a.academic_year = co.year
+ AND co.rn = 1
+JOIN KIPP_NJ..REPORTING$dates rt WITH(NOLOCK)
+  ON co.schoolid = rt.schoolid
+ AND a.administered_at BETWEEN rt.start_date AND rt.end_date
+ AND rt.identifier = 'RT'
+WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+
+UNION ALL
+
+SELECT a.assessment_id      
+      ,a.title      
+      ,a.scope
+      ,a.subject_area
+      ,a.administered_at
+      ,a.state_id AS teachernumber      
+      ,u.lastfirst AS created_by      
+      ,rt.alt_name AS term      
+      ,co.reporting_schoolid AS schoolid
+      ,'STANDARDS' AS audit_type
+      ,CASE 
+        WHEN COUNT(DISTINCT std.custom_code) > 0 THEN 1 
+        ELSE 0 
+       END AS audit_result
+      --,COUNT(DISTINCT ovr.local_student_id) AS N_students_tested      
+FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$USERS#static u WITH(NOLOCK)
   ON a.state_id = u.teachernumber
-WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  AND s.SCHOOLID = 73258
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static astd WITH(NOLOCK)
+  ON a.assessment_id = astd.assessment_id
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
+  ON astd.standard_id = std.standard_id
+JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
+  ON a.assessment_id = ovr.assessment_id
+JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  ON ovr.local_student_id = co.student_number
+ AND a.academic_year = co.year
+ AND co.rn = 1
+JOIN KIPP_NJ..REPORTING$dates rt WITH(NOLOCK)
+  ON co.schoolid = rt.schoolid
+ AND a.administered_at BETWEEN rt.start_date AND rt.end_date
+ AND rt.identifier = 'RT'
+WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+GROUP BY a.assessment_id
+        ,a.title
+        ,a.scope
+        ,a.subject_area
+        ,a.administered_at
+        ,a.state_id
+        ,u.lastfirst                
+        ,rt.alt_name
+        ,co.reporting_schoolid

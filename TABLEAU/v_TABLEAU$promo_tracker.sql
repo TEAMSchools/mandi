@@ -339,16 +339,16 @@ WITH roster AS (
         ,NULL standards
         ,res.date_taken AS measure_date
         ,CASE
-          WHEN res.percent_correct >= 85 THEN 'Exceeded'
-          WHEN res.percent_correct >= 70 THEN 'Met'
-          WHEN res.percent_correct >= 50 THEN 'Approached'
-          WHEN res.percent_correct >= 35 THEN 'Partially Met'
-          WHEN res.percent_correct < 35 THEN 'Did Not Yet Meet'
+          WHEN res.percent_correct >= 85 THEN 'Above'
+          WHEN res.percent_correct >= 70 THEN 'Target'
+          WHEN res.percent_correct >= 50 THEN 'Near'
+          WHEN res.percent_correct >= 35 THEN 'Below'
+          WHEN res.percent_correct < 35 THEN 'Far Below'
          END AS proficiency_label
   FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static res WITH(NOLOCK)
     ON a.assessment_id = res.assessment_id
-  WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')        
+  WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2')
     AND a.academic_year >= 2015
 
   UNION ALL
@@ -371,7 +371,7 @@ WITH roster AS (
     ON a.assessment_id = res.assessment_id  
   JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
     ON res.standard_id = std.standard_id
-  WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module')    
+  WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2')
     AND a.subject_area != 'Writing'
     AND a.academic_year >= 2015
 
@@ -1331,7 +1331,7 @@ SELECT r.studentid
       ,NULL AS performance_level
       ,NULL AS performance_level_label
 FROM roster r
-JOIN contact c
+LEFT OUTER JOIN contact c
   ON r.STUDENTID = c.STUDENTID  
 WHERE r.term = 'Y1'
 

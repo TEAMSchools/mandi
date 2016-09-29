@@ -12,7 +12,7 @@ WITH curhex AS (
   FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
   WHERE CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date
     AND identifier = 'AR'
-    AND school_level = 'MS'
+    --AND school_level = 'MS'
  )
 
 ,fp AS (
@@ -155,7 +155,10 @@ SELECT roster.studentid
        /* AR curterm */
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, AR_CUR.WORDS),1),'.00','') AS HEX_WORDS
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, AR_CUR.WORDS_GOAL),1),'.00','') AS HEX_GOAL
-      ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, CAST(ROUND(AR_CUR.ONTRACK_WORDS,0) AS INT)),1),'.00','') AS HEX_NEEDED
+      ,CASE
+        WHEN AR_CUR.WORDS_GOAL - AR_CUR.WORDS < 0 THEN REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, 0),1),'.00','')
+        ELSE REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, AR_CUR.WORDS_GOAL - AR_CUR.WORDS),1),'.00','') 
+       END AS HEX_NEEDED
       ,ar_cur.stu_status_words AS hex_on_track
       ,ar_cur.rank_words_grade_in_school AS hex_rank_words
       ,ar_cur.N_passed

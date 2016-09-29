@@ -23,7 +23,7 @@ FROM
           SELECT ovr.academic_year
                 ,ovr.local_student_id                  
                 ,CASE
-                  WHEN a.subject_area IN ('Comprehension','Text Study','Word Work','Phonics','Grammar') THEN 'ELA'                    
+                  WHEN a.subject_area = 'Text Study' THEN 'ELA'                    
                   WHEN a.subject_area = 'Mathematics' THEN 'MATH'
                   WHEN a.subject_area = 'History' THEN 'HIST'
                   WHEN a.subject_area = 'Science' THEN 'SCI'
@@ -47,8 +47,7 @@ FROM
            AND d.identifier = 'RT'
           JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
             ON ovr.assessment_id = a.assessment_id
-           AND ((a.subject_area IN ('Performing Arts','History','Science') AND a.scope IN ('Exit Ticket','Unit Assessment'))
-                 OR (a.subject_area NOT IN ('Performing Arts','History','Science') AND a.scope = 'Exit Ticket'))
+           AND a.scope IN ('Exit Ticket','Common FSA','Topic Assessments')
            AND a.subject_area IS NOT NULL                  
           WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
             AND ovr.answered > 0            

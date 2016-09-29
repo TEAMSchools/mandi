@@ -314,5 +314,37 @@ WHERE co.rn = 1
 
 UNION ALL
 
-SELECT *
-FROM KIPP_NJ..TABLEAU$gradebook_dashboard#archive WITH(NOLOCK)
+SELECT a.student_number
+      ,s.lastfirst
+      ,a.schoolid
+      ,a.grade_level
+      ,a.team
+      ,a.advisor
+      ,a.enroll_status
+      ,a.year
+      ,a.spedlep
+      ,a.term
+      ,a.is_curterm
+      ,a.finalgradename
+      ,a.credittype
+      ,a.course_number
+      ,a.course_name
+      ,a.sectionid
+      ,a.teacher_name
+      ,a.excludefromgpa
+      ,a.credit_hours
+      ,a.term_gpa_points
+      ,a.term_grade_percent_adjusted
+      ,a.term_grade_letter_adjusted
+      ,a.y1_grade_percent_adjusted
+      ,a.y1_grade_letter
+      ,a.y1_gpa_points
+      ,a.need_65
+      ,a.need_70
+      ,a.need_80
+      ,a.need_90
+      ,a.SECTION_NUMBER
+      ,a.period
+FROM KIPP_NJ..TABLEAU$gradebook_dashboard#archive a WITH(NOLOCK)
+JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+  ON a.student_number = s.STUDENT_NUMBER

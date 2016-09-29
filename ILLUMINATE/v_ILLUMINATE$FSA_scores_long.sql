@@ -6,15 +6,10 @@ ALTER VIEW ILLUMINATE$FSA_scores_long AS
 SELECT ovr.academic_year
       ,ovr.local_student_id
       ,r.standard_id
-      ,CASE 
-        WHEN co.schoolid = 73258 THEN COALESCE(ltp.studentfriendly_description, std.description)
-        WHEN a.subject_area NOT IN ('Comprehension','Writing','Text Study','Word Work','Phonics','Grammar','Mathematics') 
-             THEN CONCAT(a.subject_area, ' - ', std.description)
-        ELSE std.description
-       END AS standard_description
+      ,COALESCE(ltp.studentfriendly_description, std.description) AS standard_description
       ,a.subject_area
       ,CASE
-        WHEN a.subject_area IN ('Comprehension','Writing','Text Study','Word Work','Phonics','Grammar') THEN 'ELA'                    
+        WHEN a.subject_area = 'Text Study' THEN 'ELA'                    
         WHEN a.subject_area = 'Mathematics' THEN 'MATH'
         ELSE 'SPEC'
        END AS subj_abbrev
@@ -31,17 +26,16 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
  AND co.rn = 1 
 JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
   ON co.schoolid = d.schoolid
- AND ovr.date_taken BETWEEN d.start_date AND d.end_date /* Tues - Mon for BOLD */
- AND d.identifier = 'REP'
+ AND ovr.date_taken BETWEEN d.start_date AND d.end_date
+ AND d.identifier = 'RT'
 JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   ON ovr.assessment_id = a.assessment_id
- AND a.scope IN ('Common FSA','Exit Ticket')
- AND a.subject_area IS NOT NULL
-JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard r WITH(NOLOCK)
+ AND a.scope IN ('Exit Ticket','Topic Assessments')
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard r WITH(NOLOCK)
   ON ovr.local_student_id = r.local_student_id
  AND ovr.assessment_id = r.assessment_id 
  AND r.answered > 0
-JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
   ON r.standard_id = std.standard_id
 LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_LTP_standard_descriptions ltp WITH(NOLOCK)
   ON std.custom_code = ltp.standard_code
