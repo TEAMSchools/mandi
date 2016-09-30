@@ -5,7 +5,7 @@ ALTER VIEW ILLUMINATE$FSA_scores_long AS
 
 SELECT ovr.academic_year
       ,ovr.local_student_id
-      ,r.standard_id
+      ,r.standard_id      
       ,COALESCE(ltp.studentfriendly_description, std.description) AS standard_description
       ,a.subject_area
       ,CASE
@@ -19,18 +19,18 @@ SELECT ovr.academic_year
          PARTITION BY ovr.local_student_id, d.time_per_name, a.subject_area, r.standard_id
            ORDER BY ovr.date_taken DESC) AS rn
 FROM KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
-JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   ON ovr.local_student_id = co.student_number
  AND ovr.academic_year = co.year
  AND co.schoolid = 73258
  AND co.rn = 1 
-JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
-  ON co.schoolid = d.schoolid
- AND ovr.date_taken BETWEEN d.start_date AND d.end_date
- AND d.identifier = 'RT'
-JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   ON ovr.assessment_id = a.assessment_id
  AND a.scope IN ('Exit Ticket','Topic Assessments')
+LEFT OUTER JOIN KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
+  ON co.schoolid = d.schoolid
+ AND a.administered_at BETWEEN d.start_date AND d.end_date
+ AND d.identifier = 'RT'
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard r WITH(NOLOCK)
   ON ovr.local_student_id = r.local_student_id
  AND ovr.assessment_id = r.assessment_id 
