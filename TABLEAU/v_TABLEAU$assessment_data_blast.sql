@@ -46,8 +46,8 @@ JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   ON co.year = a.academic_year 
  AND a.scope IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2')
  AND a.subject_area IN ('Text Study','Mathematics','Science','Social Studies') 
- AND a.administered_at <= CONVERT(DATE,GETDATE())
  AND CHARINDEX(REPLACE(co.grade_level, 0, 'K'), a.tags) > 0 
+ --AND a.administered_at <= CONVERT(DATE,GETDATE()) 
  --AND (a.title NOT LIKE '%replacement%' AND a.title NOT LIKE '%modified%')
 LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
