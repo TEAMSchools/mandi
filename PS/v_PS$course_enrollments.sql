@@ -42,8 +42,10 @@ SELECT co.STUDENTID
         / COUNT(cc.termid) OVER(PARTITION BY co.studentid, co.year, cou.course_number) AS course_enr_status
       
       ,CASE
-        WHEN co.grade_level BETWEEN 5 AND 8 AND cou.CREDITTYPE = 'ENG' THEN 'Text Study'
-        WHEN co.grade_level BETWEEN 5 AND 8 AND cou.CREDITTYPE = 'MATH' THEN 'Mathematics'
+        WHEN co.grade_level <= 8 AND cou.CREDITTYPE = 'ENG' THEN 'Text Study'
+        WHEN co.grade_level <= 8 AND cou.CREDITTYPE = 'MATH' THEN 'Mathematics'
+        WHEN co.grade_level <= 8 AND cou.CREDITTYPE = 'SCI' THEN 'Science'
+        WHEN co.grade_level <= 8 AND cou.CREDITTYPE = 'SOC' THEN 'Social Studies'
         WHEN cc.course_number IN ('ENG10') THEN 'English 100'
         WHEN cc.course_number IN ('ENG20', 'ENG25') THEN 'English 200'
         WHEN cc.course_number IN ('ENG30', 'ENG35') THEN 'English 300'

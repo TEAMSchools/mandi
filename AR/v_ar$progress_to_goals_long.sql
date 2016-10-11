@@ -10,6 +10,7 @@ WITH long_goals AS (
         ,cohort.grade_level
         ,cohort.schoolid
         ,cohort.year AS academic_year        
+        ,cohort.entrydate
         ,COALESCE(goals.yearid, CONVERT(VARCHAR,sy.yearid) + '00') AS yearid
         ,1 AS time_hierarchy
         ,ISNULL(goals.time_period_name,'Year') AS time_period_name
@@ -38,6 +39,7 @@ WITH long_goals AS (
         ,cohort.grade_level
         ,cohort.schoolid
         ,cohort.year AS academic_year
+        ,cohort.entrydate
         ,CONVERT(VARCHAR,hex.yearid) + '00' AS yearid
         ,2 AS time_hierarchy
         ,hex.time_per_name AS time_period_name
@@ -130,35 +132,22 @@ SELECT totals.studentid
       ,totals.N_total
       ,last_book.last_book_date
       ,last_book.title_string AS last_book
-      ,CASE
-        --time period over
-        WHEN CONVERT(DATE,GETDATE()) > end_date THEN words_goal
-        --during time period
-        WHEN CONVERT(DATE,GETDATE()) < end_date AND CONVERT(DATE,GETDATE()) >= [start_date] THEN 
-               CASE
-                WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-                ELSE ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0)
-               END
+      ,CASE                
+        WHEN CONVERT(DATE,GETDATE()) > end_date THEN words_goal /* time period over */
+        WHEN (words IS NULL OR words_goal IS NULL) THEN NULL        
+        ELSE ROUND((CONVERT(FLOAT,DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE()))) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) /* during time period */
        END AS ontrack_words
-      ,CASE
-        --time period over
-        WHEN CONVERT(DATE,GETDATE()) > end_date THEN points_goal
-        --during time period
-        WHEN CONVERT(DATE,GETDATE()) < end_date AND CONVERT(DATE,GETDATE()) >= start_date THEN
-               CASE
-                WHEN (points IS NULL OR points_goal IS NULL) THEN NULL
-                ELSE ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0)
-               END
+      ,CASE        
+        WHEN CONVERT(DATE,GETDATE()) > end_date THEN points_goal /* time period over */
+        WHEN (points IS NULL OR points_goal IS NULL) THEN NULL        
+        ELSE ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) /* during time period */
        END AS ontrack_points
-      ,CASE
-        /* any time */
+      ,CASE        
         WHEN (words IS NULL OR words_goal IS NULL) THEN NULL
-        WHEN words >= words_goal THEN 'Met Goal'        
-        /* during term */
-        WHEN CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date AND words >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 'On Track'
-        WHEN CONVERT(DATE,GETDATE()) BETWEEN start_date AND end_date AND words < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 'Off Track'
-        /* after term */
-        WHEN CONVERT(DATE,GETDATE()) > end_date AND words < words_goal  THEN 'Missed Goal'
+        WHEN words >= words_goal THEN 'Met Goal'                
+        WHEN CONVERT(DATE,GETDATE()) > end_date AND words < words_goal  THEN 'Missed Goal'        
+        WHEN words >= ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 'On Track'
+        WHEN words < ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * words_goal,0) THEN 'Off Track'        
        END AS stu_status_words
       ,CASE
         /* any time */
@@ -214,47 +203,15 @@ SELECT totals.studentid
                      THEN ROUND(((DATEDIFF(DAY, [start_date], CONVERT(DATE,GETDATE())) + 0.0) / DATEDIFF(DAY, [start_date], end_date)) * points_goal,0) - points
                END
        END AS points_needed
-       --RANKS
-      ,RANK () OVER (PARTITION BY totals.schoolid
-                                 ,totals.grade_level
-                                 ,totals.yearid
-                                 ,totals.time_hierarchy
-                                 ,totals.time_period_name
-                         ORDER BY words DESC) AS rank_words_grade_in_school
-      ,RANK () OVER (PARTITION BY totals.grade_level
-                                 ,totals.yearid
-                                 ,totals.time_hierarchy
-                                 ,totals.time_period_name
-                         ORDER BY words DESC) AS rank_words_grade_in_network
-      ,RANK () OVER (PARTITION BY totals.schoolid
-                                 ,totals.yearid
-                                 ,totals.time_hierarchy
-                                 ,totals.time_period_name
-                         ORDER BY words DESC) AS rank_words_overall_in_school
-      ,RANK () OVER (PARTITION BY totals.yearid
-                                 ,totals.time_hierarchy
-                                 ,totals.time_period_name
-                         ORDER BY words DESC) AS rank_words_overall_in_network       
-      ,RANK () OVER (PARTITION BY totals.schoolid
-                                 ,totals.grade_level
-                                 ,totals.yearid
-                                 ,totals.time_hierarchy
-                                 ,totals.time_period_name
-                         ORDER BY points DESC) AS rank_points_grade_in_school
-      ,RANK () OVER (PARTITION BY totals.grade_level
-                                 ,totals.yearid
-                                 ,totals.time_hierarchy
-                                 ,totals.time_period_name
-                         ORDER BY points DESC) AS rank_points_grade_in_network
-      ,RANK () OVER (PARTITION BY totals.schoolid
-                                 ,totals.yearid
-                                 ,totals.time_hierarchy
-                                 ,totals.time_period_name
-                         ORDER BY points DESC) AS rank_points_overall_in_school
-      ,RANK () OVER (PARTITION BY totals.yearid
-                                 ,totals.time_hierarchy
-                                 ,totals.time_period_name
-                         ORDER BY points DESC) AS rank_points_overall_in_network      
+       /* RANKS */
+      ,RANK() OVER(PARTITION BY totals.schoolid,totals.grade_level,totals.yearid,totals.time_hierarchy,totals.time_period_name ORDER BY words DESC) AS rank_words_grade_in_school
+      ,RANK() OVER(PARTITION BY totals.grade_level,totals.yearid,totals.time_hierarchy,totals.time_period_name ORDER BY words DESC) AS rank_words_grade_in_network
+      ,RANK() OVER(PARTITION BY totals.schoolid,totals.yearid,totals.time_hierarchy,totals.time_period_name ORDER BY words DESC) AS rank_words_overall_in_school
+      ,RANK() OVER(PARTITION BY totals.yearid,totals.time_hierarchy,totals.time_period_name ORDER BY words DESC) AS rank_words_overall_in_network       
+      ,RANK() OVER(PARTITION BY totals.schoolid,totals.grade_level,totals.yearid,totals.time_hierarchy,totals.time_period_name ORDER BY points DESC) AS rank_points_grade_in_school
+      ,RANK() OVER(PARTITION BY totals.grade_level,totals.yearid,totals.time_hierarchy,totals.time_period_name ORDER BY points DESC) AS rank_points_grade_in_network
+      ,RANK() OVER(PARTITION BY totals.schoolid,totals.yearid,totals.time_hierarchy,totals.time_period_name ORDER BY points DESC) AS rank_points_overall_in_school
+      ,RANK() OVER(PARTITION BY totals.yearid,totals.time_hierarchy,totals.time_period_name ORDER BY points DESC) AS rank_points_overall_in_network      
 FROM    
      (
       SELECT long_goals.studentid
@@ -272,27 +229,19 @@ FROM
             ,SUM(CASE WHEN ar_all.tipassed = 1 THEN ar_all.iwordcount ELSE 0 END) AS words
             ,SUM(CASE WHEN ar_all.tipassed = 1 THEN ar_all.dpointsearned ELSE 0 END) AS points
             ,ROUND((SUM(ar_all.iquestionscorrect) / SUM(ar_all.iquestionspresented)) * 100,0) AS mastery
-            --per new RLog
+            /* per new RLog */
             ,ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iquestionscorrect ELSE NULL END)
-                     / 
-                    SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iquestionspresented ELSE NULL END))
-                     * 100,0) AS mastery_fiction
+                      / SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iquestionspresented ELSE NULL END)) * 100,0) AS mastery_fiction
             ,ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction != 'F' THEN ar_all.iquestionscorrect ELSE NULL END) 
-                     / 
-                    SUM(CASE WHEN ar_all.chfictionnonfiction != 'F' THEN ar_all.iquestionspresented ELSE NULL END))
-                     * 100,0) AS mastery_nonfiction
+                      / SUM(CASE WHEN ar_all.chfictionnonfiction != 'F' THEN ar_all.iquestionspresented ELSE NULL END)) * 100,0) AS mastery_nonfiction
             ,ROUND((SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN ar_all.iwordcount ELSE 0 END) 
-                     /
-                    SUM(ar_all.iwordcount)) 
-                     * 100, 0) AS pct_fiction
+                      / SUM(ar_all.iwordcount)) * 100, 0) AS pct_fiction
             ,SUM(CASE WHEN ar_all.chfictionnonfiction = 'F' THEN 1 ELSE NULL END) AS n_fiction
             ,SUM(CASE WHEN ar_all.chfictionnonfiction = 'NF' THEN 1 ELSE NULL END) AS n_nonfic
             ,ROUND(SUM(ar_all.ialternatebooklevel_2 * ar_all.iwordcount)
-                    /
-                   SUM(ar_all.iwordcount),0) AS avg_lexile
+                     / SUM(ar_all.iwordcount),0) AS avg_lexile
             ,ROUND(AVG(ar_all.tibookrating),2) AS avg_rating
             ,MAX(ar_all.dttaken) AS last_quiz            
-            --SQL doesn't support KEEP; refactored LAST BOOK
             ,SUM(ar_all.tipassed) AS N_passed
             ,COUNT(ar_all.iuserid) AS N_total                     
       FROM long_goals WITH(NOLOCK)

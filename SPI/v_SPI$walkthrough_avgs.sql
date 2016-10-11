@@ -4,58 +4,23 @@ GO
 ALTER VIEW SPI$walkthrough_avgs AS
 
 WITH long_data AS (
-  SELECT schoolid
-        ,CONCAT(rubric, '_', scale, '_', ISNULL(element,'overall')) AS pivot_field
+  SELECT reporting_schoolid AS schoolid
+        ,CONCAT(domain, '_', ISNULL(strand,'overall')) AS pivot_field
         ,academic_year
-        ,round
-        ,ROUND(AVG(score_clean),1) AS avg_score        
-  FROM
-      (
-       SELECT CASE
-               WHEN spi.school = 'BOLD' THEN 73258
-               WHEN spi.school = 'Life' THEN 73257
-               WHEN spi.school = 'LSM' THEN 179902
-               WHEN spi.school = 'LSP' THEN 179901
-               WHEN spi.school = 'NCA' THEN 73253
-               WHEN spi.school = 'Rise' THEN 73252
-               WHEN spi.school = 'Seek' THEN 73256
-               WHEN spi.school = 'SPARK' THEN 73254
-               WHEN spi.school = 'TEAM' THEN 133570965
-               WHEN spi.school = 'THRIVE' THEN 73255
-              END AS schoolid             
-             ,KIPP_NJ.dbo.fn_StripCharacters(spi.rubric,'^A-Z0-9') AS rubric             
-             ,KIPP_NJ.dbo.fn_StripCharacters(scl.scale,'^A-Z0-9') AS scale             
-             ,KIPP_NJ.dbo.fn_StripCharacters(spi.element,'^A-Z0-9') AS element             
-             ,spi.academic_year
-             ,spi.round           
-             ,spi.score
-             ,spi.num_yes AS N_yes
-             ,spi.num_no AS N_no
-             ,(ISNULL(spi.num_yes,0) + ISNULL(spi.num_no,0)) AS total             
-             ,CASE
-               WHEN scl.rubric = 'culture' THEN score
-               WHEN (spi.num_yes IS NULL AND spi.num_no IS NULL) THEN score
-               WHEN (ISNULL(spi.num_yes,0) + ISNULL(spi.num_no,0)) = 0 THEN NULL
-               WHEN (spi.num_yes IS NOT NULL OR spi.num_no IS NOT NULL) THEN (ISNULL(spi.num_yes,0) / (ISNULL(spi.num_yes,0) + ISNULL(spi.num_no,0))) * 10
-              END AS score_clean
-       FROM KIPP_NJ..AUTOLOAD$GDOCS_SPI_walkthrough_scores spi WITH(NOLOCK)          
-       JOIN KIPP_NJ..AUTOLOAD$GDOCS_SPI_walkthrough_scales scl WITH(NOLOCK)
-         ON spi.academic_year = scl.academic_year
-        AND spi.rubric = scl.rubric
-        AND spi.element = scl.element
-      ) sub
-  GROUP BY schoolid
-          ,rubric
-          ,scale
-          ,CUBE(element)
+        ,spi_round
+        ,ROUND(AVG(score * 100),1) AS avg_score        
+  FROM KIPP_NJ..SPI$walkthrough_scores_long WITH(NOLOCK)
+  GROUP BY reporting_schoolid
+          ,domain          
+          ,CUBE(strand)
           ,academic_year
-          ,round
+          ,spi_round
  )
 
 SELECT *
       ,ROW_NUMBER() OVER(
          PARTITION BY schoolid, academic_year
-           ORDER BY round DESC) AS rn
+           ORDER BY spi_round DESC) AS rn
 FROM long_data
 PIVOT(
   MAX(avg_score)
@@ -64,7 +29,6 @@ PIVOT(
                      ,[classroom_engagement_goalspresent]
                      ,[classroom_engagement_jfactor]
                      ,[classroom_engagement_keymessages]
-                     ,[classroom_engagement_overall]
                      ,[classroom_engagement_peerinteractions]
                      ,[classroom_engagement_studentsengaged]
                      ,[classroom_instruction_checksforunderstanding]
@@ -73,7 +37,6 @@ PIVOT(
                      ,[classroom_instruction_flowpacing]
                      ,[classroom_instruction_goalsconnected]
                      ,[classroom_instruction_objectiveaim]
-                     ,[classroom_instruction_overall]
                      ,[classroom_instruction_questioning]
                      ,[classroom_instruction_ratio]
                      ,[classroom_instruction_rigor]
@@ -89,7 +52,6 @@ PIVOT(
                      ,[classroom_instructionaldelivery_gradelevelexpectations]
                      ,[classroom_instructionaldelivery_individual]
                      ,[classroom_instructionaldelivery_masteryawareness]
-                     ,[classroom_instructionaldelivery_overall]
                      ,[classroom_instructionaldelivery_questionquality]
                      ,[classroom_instructionaldelivery_ratio]
                      ,[classroom_instructionaldelivery_wholeclassfeedback]
@@ -98,10 +60,10 @@ PIVOT(
                      ,[classroom_management_effectiveredirectionsteacher]
                      ,[classroom_management_onehundredpercent]
                      ,[classroom_management_ontask]
-                     ,[classroom_management_overall]
                      ,[classroom_management_quietforadults]
                      ,[classroom_management_speedurgency]
                      ,[classroom_management_warmdemanding]
+                     ,[classroom_overall]
                      ,[classroom_routinesrules_awareness]
                      ,[classroom_routinesrules_cellphones]
                      ,[classroom_routinesrules_clean]
@@ -110,7 +72,6 @@ PIVOT(
                      ,[classroom_routinesrules_homework]
                      ,[classroom_routinesrules_onehundredpercent]
                      ,[classroom_routinesrules_ontask]
-                     ,[classroom_routinesrules_overall]
                      ,[classroom_routinesrules_studentsquietforadults]
                      ,[classroom_routinesrules_transitions]
                      ,[classroom_routinesrules_warmdemanding]
@@ -118,10 +79,25 @@ PIVOT(
                      ,[classroom_routinestransitions_classroomsystems]
                      ,[classroom_routinestransitions_directionsexpectations]
                      ,[classroom_routinestransitions_objectiveaimagenda]
-                     ,[classroom_routinestransitions_overall]
                      ,[classroom_routinestransitions_schoolgradesystems]
                      ,[classroom_routinestransitions_smallgroupblended]
                      ,[classroom_routinestransitions_transitions]
+                     ,[culture_arrivaldismissal]
+                     ,[culture_bathrooms]
+                     ,[culture_celebrations]
+                     ,[culture_cell_phones]
+                     ,[culture_character]
+                     ,[culture_common_spaces]
+                     ,[culture_dress_code]
+                     ,[culture_engaged]
+                     ,[culture_foodgumcandy]
+                     ,[culture_hallways]
+                     ,[culture_jfactor]
+                     ,[culture_main_office]
+                     ,[culture_missionvision]
+                     ,[culture_overall]
+                     ,[culture_quiet_for_adults]
+                     ,[culture_respect]
                      ,[culture_schoolculture_arrivaldismissal]
                      ,[culture_schoolculture_bathrooms]
                      ,[culture_schoolculture_celebrations]
@@ -138,9 +114,47 @@ PIVOT(
                      ,[culture_schoolculture_meals]
                      ,[culture_schoolculture_missionvalues]
                      ,[culture_schoolculture_missionVision]
-                     ,[culture_schoolculture_overall]
                      ,[culture_schoolculture_quietforadults]
                      ,[culture_schoolculture_respect]
                      ,[culture_schoolculture_studentwork]
-                     ,[culture_schoolculture_transitiontime])
+                     ,[culture_schoolculture_transitiontime]
+                     ,[culture_student_work]
+                     ,[culture_transition_time]
+                     ,[student_effective_redirections]
+                     ,[student_on_task]
+                     ,[student_one_hundred_percent]
+                     ,[student_overall]
+                     ,[student_peer_interactions]
+                     ,[student_quiet_for_adults]
+                     ,[student_smallgroupblended]
+                     ,[student_speedurgency]
+                     ,[student_students_engaged]
+                     ,[teacher_awareness]
+                     ,[teacher_classroom_systems]
+                     ,[teacher_cold_calls]
+                     ,[teacher_criteria_for_success]
+                     ,[teacher_daily_mastery]
+                     ,[teacher_directionsexpectations]
+                     ,[teacher_discourse]
+                     ,[teacher_effective_redirections]
+                     ,[teacher_environment]
+                     ,[teacher_evidence]
+                     ,[teacher_flowpacing]
+                     ,[teacher_followup_and_response]
+                     ,[teacher_formative_cfu]
+                     ,[teacher_goalobjective]
+                     ,[teacher_goals_connected]
+                     ,[teacher_grade_level_expectations]
+                     ,[teacher_individual]
+                     ,[teacher_jfactor]
+                     ,[teacher_key_message]
+                     ,[teacher_mastery_awareness]
+                     ,[teacher_objectiveaimagenda]
+                     ,[teacher_overall]
+                     ,[teacher_question_quality]
+                     ,[teacher_ratio]
+                     ,[teacher_schoolgrade_systems]
+                     ,[teacher_transitions]
+                     ,[teacher_warm_demanding]
+                     ,[teacher_wholeclass_feedback])
  ) p

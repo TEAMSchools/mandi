@@ -4,7 +4,6 @@ GO
 ALTER VIEW DEVFIN$mobility_long#KIPP AS
 
 WITH denom AS (
---previous year's set
   SELECT STUDENTID
         ,GRADE_LEVEL
         ,SCHOOLID
@@ -25,8 +24,6 @@ WITH denom AS (
  )
 
 ,raw_numer AS (
---current year's set
---includes graduated students
   SELECT STUDENTID
         ,GRADE_LEVEL
         ,SCHOOLID
@@ -35,8 +32,7 @@ WITH denom AS (
         ,MAX(EXITDATE) AS exitdate
         ,YEAR
         ,COHORT
-  FROM COHORT$comprehensive_long#static WITH(NOLOCK)
-  --graduated students do not have an exitdate  
+  FROM COHORT$comprehensive_long#static WITH(NOLOCK)  
   WHERE (ENTRYDATE <= CONVERT(DATE,CONVERT(VARCHAR,YEAR) + '-10-01') OR ENTRYDATE IS NULL)       
     AND (EXITDATE > CONVERT(DATE,CONVERT(VARCHAR,YEAR) + '-10-01') OR EXITDATE IS NULL)       
   GROUP BY STUDENTID
@@ -47,18 +43,6 @@ WITH denom AS (
           ,COHORT
  )
 
-/*
---for the rollup
-SELECT denom.YEAR
-      ,COUNT(denom.studentid) AS denom
-      ,SUM(CASE WHEN raw_numer.studentid IS NULL THEN 1 ELSE 0 END) AS n_transf --match on JOIN = currently enrolled or graduated; no match = transferred
-      ,ROUND(CONVERT(FLOAT,SUM(CASE WHEN raw_numer.studentid IS NULL THEN 1 ELSE 0 END)) / CONVERT(FLOAT,COUNT(denom.studentid)) * 100,1) AS attrition
-FROM denom
-LEFT OUTER JOIN raw_numer
-  ON denom.STUDENTID = raw_numer.STUDENTID
- AND denom.YEAR = (raw_numer.YEAR - 1)
-GROUP BY denom.YEAR 
---*/
 
 SELECT denom.YEAR
       ,denom.COHORT
@@ -82,6 +66,7 @@ SELECT denom.YEAR
         WHEN co.spedlep = 'No IEP' THEN 'N'
         ELSE 'U'
        END AS special_needs
+      ,MIN(CONVERT(DATE,co.entrydate)) OVER(PARTITION BY co.studentid, co.schoolid) AS school_entrydate
       ,CONVERT(DATE,denom.entrydate) AS entrydate
       ,CONVERT(DATE,denom.exitdate) AS exitdate
       ,CASE WHEN raw_numer.schoolid = 999999 THEN 1 ELSE 0 END AS grad_flag

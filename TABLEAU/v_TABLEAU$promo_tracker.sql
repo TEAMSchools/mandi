@@ -29,8 +29,6 @@ WITH roster AS (
    AND dt.alt_name != 'Summer School'
   WHERE co.year >= 2015
     AND co.rn = 1
-    --AND co.enroll_status != 2
-    AND co.grade_level != 99    
   
   UNION ALL
 
@@ -56,9 +54,7 @@ WITH roster AS (
     ON co.year = dt.academic_year   
    AND dt.identifier = 'SY'   
   WHERE co.year >= 2015
-    AND co.rn = 1
-    --AND co.enroll_status != 2
-    AND co.grade_level != 99    
+    AND co.rn = 1    
  )
 
 ,contact AS (
@@ -1409,10 +1405,10 @@ SELECT DISTINCT
       ,NULL AS team
       ,advisor      
       ,'No IEP' AS spedlep
-      ,NULL AS enroll_status
+      ,0 AS enroll_status
       ,NULL AS term
       ,NULL AS reporting_term      
-      ,NULL AS domain
+      ,'CONTACT' AS domain
       ,NULL AS subdomain
       ,NULL AS subject
       ,NULL AS course_name

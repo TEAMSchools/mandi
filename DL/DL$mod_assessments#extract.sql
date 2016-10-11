@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW DL$mod_assessments#extract AS 
+ALTER VIEW DL$mod_assessments#extract AS
 
 WITH assessments AS (
   SELECT assessment_id
@@ -23,8 +23,10 @@ WITH assessments AS (
              ,a.title                           
              ,a.administered_at
              ,CASE 
-               WHEN PATINDEX('%M[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title) + 1, 1) 
-               WHEN PATINDEX('%U[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]%', a.title) + 1, 1)                  
+               WHEN PATINDEX('%M[0-9]/[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]/[0-9]%', a.title) + 1, 3) 
+               WHEN PATINDEX('%M[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title) + 1, 1)               
+               WHEN PATINDEX('%U[0-9]/[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]/[0-9]%', a.title) + 1, 3)
+               WHEN PATINDEX('%U[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]%', a.title) + 1, 1)
               END AS module_num
              ,CASE 
                WHEN a.scope = 'CMA - End-of-Module' THEN 'End-of-Module'
@@ -35,8 +37,10 @@ WITH assessments AS (
              ,ROW_NUMBER() OVER(
                 PARTITION BY a.subject_area, KIPP_NJ.dbo.fn_StripCharacters(tags,'^0-9,K')
                   ORDER BY CASE 
-                            WHEN PATINDEX('%M[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title) + 1, 1) 
-                            WHEN PATINDEX('%U[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]%', a.title) + 1, 1)                  
+                            WHEN PATINDEX('%M[0-9]/[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]/[0-9]%', a.title) + 1, 3) 
+                            WHEN PATINDEX('%M[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title) + 1, 1)               
+                            WHEN PATINDEX('%U[0-9]/[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]/[0-9]%', a.title) + 1, 3)
+                            WHEN PATINDEX('%U[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]%', a.title) + 1, 1)
                            END) AS rn
        FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)       
        WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2')
@@ -63,7 +67,7 @@ FROM
     (
      SELECT a.subject_area
            ,a.academic_year
-           ,CONVERT(INT,a.module_num) AS module_num
+           ,a.module_num
            ,a.scope      
            ,CONVERT(INT,ovr.local_student_id) AS student_number
            ,ROUND(AVG(CONVERT(FLOAT,ovr.percent_correct)),0) AS percent_correct      

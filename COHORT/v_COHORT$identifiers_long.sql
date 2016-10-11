@@ -33,7 +33,11 @@ SELECT co.schoolid
       ,s.MIDDLE_NAME
       ,s.last_name
       ,s.first_name + ' ' + s.last_name AS full_name
-      ,advisory.section_number AS team
+      ,CASE 
+        WHEN co.SCHOOLID = 73253 THEN advisory.advisor
+        WHEN co.SCHOOLID IN (179902, 133570965) THEN KIPP_NJ.dbo.fn_StripCharacters(s.TEAM,'0-9')
+        ELSE advisory.section_number 
+       END AS team
       ,s.GENDER
       ,s.ETHNICITY
       ,s.enroll_status
@@ -46,18 +50,9 @@ SELECT co.schoolid
       ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN mcs.description ELSE lunch.lunchstatus END AS lunch_app_status     
       ,s.state_studentnumber AS SID
 
-      ,CASE 
-        WHEN s.SCHOOLID IN (179902) THEN cs.ADVISOR 
-        ELSE advisory.advisor 
-       END AS advisor
-      ,CASE 
-        WHEN s.SCHOOLID IN (179902) THEN cs.ADVISOR_CELL 
-        ELSE adp.phone_mobile 
-       END AS ADVISOR_CELL
-      ,CASE 
-        WHEN s.SCHOOLID IN (179902) THEN cs.ADVISOR_EMAIL 
-        ELSE dir.mail 
-       END AS ADVISOR_EMAIL
+      ,CASE WHEN co.SCHOOLID IN (179902) THEN cs.ADVISOR ELSE advisory.advisor END AS advisor
+      ,CASE WHEN co.SCHOOLID IN (179902) THEN cs.ADVISOR_CELL ELSE adp.phone_mobile END AS ADVISOR_CELL
+      ,CASE WHEN co.SCHOOLID IN (179902) THEN cs.ADVISOR_EMAIL ELSE dir.mail END AS ADVISOR_EMAIL
       ,logins.student_web_id
       ,logins.STUDENT_WEB_PASSWORD
       ,logins.student_web_id + '.fam' AS FAMILY_WEB_ID

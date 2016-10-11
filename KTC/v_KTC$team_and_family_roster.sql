@@ -10,16 +10,6 @@ WITH hs_grads AS (
     AND co.exitcode = 'G1'               
  ) 
 
-,sped AS (
-  SELECT studentid
-        ,SPEDLEP
-        ,SPEDCODE
-        ,ROW_NUMBER() OVER(
-           PARTITION BY studentid
-             ORDER BY academic_year DESC) AS rn
-  FROM KIPP_NJ..PS$SPED#ARCHIVE WITH(NOLOCK)
- )
-
 ,ms_grads AS (
   SELECT co.studentid
         ,co.student_number
@@ -78,33 +68,7 @@ WITH hs_grads AS (
     ON s.GRADUATED_SCHOOLID = sch.SCHOOL_NUMBER
   LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch2 WITH(NOLOCK)
     ON s.SCHOOLID = sch2.SCHOOL_NUMBER
-  WHERE (sub.cohort >= 2018 AND years_enrolled = 1 AND final_exitdate >= CONVERT(DATE,CONVERT(VARCHAR,year_final_exitdate) + '-10-01'))
- )
-
-,roster AS (
-  SELECT studentid
-        ,student_number
-        ,lastfirst
-        ,schoolid
-        ,school_name
-        ,curr_grade_level
-        ,cohort
-        ,highest_achieved        
-        ,guardianemail
-  FROM ms_grads
-  
-  UNION
-  
-  SELECT studentid
-        ,student_number
-        ,lastfirst
-        ,schoolid
-        ,school_name
-        ,curr_grade_level
-        ,cohort
-        ,highest_achieved        
-        ,guardianemail
-  FROM transfers    
+  WHERE (sub.cohort >= 2018 AND ((years_enrolled = 1 AND final_exitdate >= CONVERT(DATE,CONVERT(VARCHAR,year_final_exitdate) + '-10-01')) OR (years_enrolled > 1)))
  )
 
 ,enrollments AS (
@@ -127,6 +91,16 @@ WITH hs_grads AS (
     ON s.id = enr.Student__c
   WHERE s.isdeleted = 0
     AND s.School_Specific_ID__c IS NOT NULL
+ )
+
+,sped AS (
+  SELECT studentid
+        ,SPEDLEP
+        ,SPEDCODE
+        ,ROW_NUMBER() OVER(
+           PARTITION BY studentid
+             ORDER BY academic_year DESC) AS rn
+  FROM KIPP_NJ..PS$SPED#ARCHIVE WITH(NOLOCK)
  )
 
 SELECT r.student_number
@@ -188,7 +162,30 @@ SELECT r.student_number
       ,con.RELEASE_5_NAME AS PS_RELEASE_5_NAME
       ,con.RELEASE_5_PHONE AS PS_RELEASE_5_PHONE
       ,con.RELEASE_5_RELATION AS PS_RELEASE_5_RELATION
-FROM roster r
+FROM
+    (
+     SELECT studentid
+           ,student_number
+           ,lastfirst
+           ,schoolid
+           ,school_name
+           ,curr_grade_level
+           ,cohort
+           ,highest_achieved        
+           ,guardianemail
+     FROM ms_grads  
+     UNION  
+     SELECT studentid
+           ,student_number
+           ,lastfirst
+           ,schoolid
+           ,school_name
+           ,curr_grade_level
+           ,cohort
+           ,highest_achieved        
+           ,guardianemail
+     FROM transfers    
+    ) r
 LEFT OUTER JOIN sped
   ON r.studentid = sped.studentid
  AND sped.rn = 1

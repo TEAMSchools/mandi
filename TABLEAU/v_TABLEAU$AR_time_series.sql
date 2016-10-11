@@ -32,6 +32,7 @@ WITH ar_long AS (
         ,vchContentTitle AS book_title
         ,iAlternateBookLevel_2 AS book_lexile
         ,dPercentCorrect AS book_pct_correct
+        ,iWordCount AS word_count
         ,ROW_NUMBER() OVER(
            PARTITION BY student_number, academic_year
              ORDER BY dttaken DESC) AS rn
@@ -73,22 +74,22 @@ SELECT student_number
       ,last_book_lexile
       ,last_book_pct_correct
       ,ontrack_words_yr
-      ,ontrack_points_yr
+      ,NULL AS ontrack_points_yr
       ,ontrack_words_term
-      ,ontrack_points_term
+      ,NULL AS ontrack_points_term
       ,n_words_read_running_term
       ,n_words_read_running_yr
-      ,n_points_earned_running_term
-      ,n_points_earned_running_yr
+      ,NULL AS n_points_earned_running_term
+      ,NULL AS n_points_earned_running_yr
       ,CASE 
-        WHEN COALESCE(ontrack_points_term, ontrack_words_term) IS NULL THEN NULL
-        WHEN schoolid = 73253 AND n_points_earned_running_term >= ontrack_points_term THEN 1
+        WHEN ontrack_words_term IS NULL THEN NULL
+        --WHEN schoolid = 73253 AND n_points_earned_running_term >= ontrack_points_term THEN 1
         WHEN schoolid != 73253 AND n_words_read_running_term >= ontrack_words_term THEN 1
         ELSE 0
        END AS is_ontrack_term
       ,CASE 
-        WHEN COALESCE(ontrack_points_yr, ontrack_words_yr) IS NULL THEN NULL
-        WHEN schoolid = 73253 AND n_points_earned_running_yr >= ontrack_points_yr THEN 1
+        WHEN ontrack_words_yr IS NULL THEN NULL
+        --WHEN schoolid = 73253 AND n_points_earned_running_yr >= ontrack_points_yr THEN 1
         WHEN schoolid != 73253 AND n_words_read_running_yr >= ontrack_words_yr THEN 1
         ELSE 0
        END AS is_ontrack_yr
@@ -141,31 +142,30 @@ FROM
            ,bk.n_days_ago AS last_book_days_ago 
            ,bk.book_lexile AS last_book_lexile
            ,bk.book_pct_correct AS last_book_pct_correct
+           ,bk.word_count AS last_book_word_count
 
-           ,SUM(y1_goal.words_goal / DATEDIFF(DAY, y1_goal.time_period_start, y1_goal.time_period_end)) OVER(
+           ,y1_goal.words_goal * (CONVERT(FLOAT,DATEDIFF(DAY, y1_goal.time_period_start, co.date)) / DATEDIFF(DAY, y1_goal.time_period_start, y1_goal.time_period_end)) AS ontrack_words_yr           
+           ,term_goal.words_goal * (CONVERT(FLOAT,DATEDIFF(DAY, term_goal.time_period_start, co.date)) / DATEDIFF(DAY, term_goal.time_period_start, term_goal.time_period_end)) AS ontrack_words_term           
+           ,SUM(ar.n_words_read) OVER(
+              PARTITION BY co.student_number, co.year, term_goal.time_period_name
+                ORDER BY co.date) AS n_words_read_running_term
+           ,SUM(ar.n_words_read) OVER(
               PARTITION BY co.student_number, co.year
-                ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS ontrack_words_yr
+                ORDER BY co.date) AS n_words_read_running_yr
+           /*
            ,SUM(y1_goal.points_goal / DATEDIFF(DAY, y1_goal.time_period_start, y1_goal.time_period_end)) OVER(
               PARTITION BY co.student_number, co.year
-                ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS ontrack_points_yr  
-           ,SUM(term_goal.words_goal / DATEDIFF(DAY, y1_goal.time_period_start, term_goal.time_period_end)) OVER(
-              PARTITION BY co.student_number, co.year, term_goal.time_period_name
-                ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS ontrack_words_term
+                ORDER BY co.date) AS ontrack_points_yr  
            ,SUM(term_goal.points_goal / DATEDIFF(DAY, y1_goal.time_period_start, term_goal.time_period_end)) OVER(
               PARTITION BY co.student_number, co.year, term_goal.time_period_name
-                ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS ontrack_points_term
-           ,SUM(ar.n_words_read) OVER(
-              PARTITION BY co.student_number, co.year, term_goal.time_period_name
-                ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS n_words_read_running_term
-           ,SUM(ar.n_words_read) OVER(
-              PARTITION BY co.student_number, co.year
-                ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS n_words_read_running_yr
+                ORDER BY co.date) AS ontrack_points_term
            ,SUM(ar.n_points_earned) OVER(
               PARTITION BY co.student_number, co.year, term_goal.time_period_name
-                ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS n_points_earned_running_term
+                ORDER BY co.date) AS n_points_earned_running_term
            ,SUM(ar.n_points_earned) OVER(
               PARTITION BY co.student_number, co.year
-                ORDER BY co.date ROWS UNBOUNDED PRECEDING) AS n_points_earned_running_yr
+                ORDER BY co.date) AS n_points_earned_running_yr
+           */
      FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)
      LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
        ON co.student_number = enr.student_number
@@ -199,7 +199,7 @@ FROM
        AND ((co.grade_level >= 5) OR (co.schoolid IN (73252, 73255, 179901) AND co.grade_level >= 3))
        AND co.date <= CONVERT(DATE,GETDATE())
        AND co.enroll_status = 0       
-       AND co.date >= CASE WHEN ar.min_date_taken <= co.entrydate THEN ar.min_date_taken ELSE co.entrydate END
+       --AND co.date >= CASE WHEN ar.min_date_taken <= co.entrydate THEN ar.min_date_taken ELSE co.entrydate END
     ) sub
 
 UNION ALL

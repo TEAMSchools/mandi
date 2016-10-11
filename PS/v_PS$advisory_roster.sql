@@ -14,6 +14,7 @@ SELECT STUDENTID
 FROM
     (
      SELECT enr.STUDENTID           
+           ,enr.SCHOOLID
            ,enr.DATELEFT
            ,enr.academic_year           
            ,enr.TEACHERNUMBER
@@ -22,16 +23,19 @@ FROM
      FROM KIPP_NJ..PS$course_enrollments#static enr wITH(NOLOCK)
      WHERE enr.COURSE_NUMBER = 'HR'
        AND enr.SCHOOLID NOT IN (133570965, 73253)
+       AND enr.drop_flags = 0
 
      UNION ALL
 
      SELECT enr.STUDENTID           
+           ,enr.SCHOOLID
            ,enr.DATELEFT
            ,enr.academic_year           
            ,enr.TEACHERNUMBER
            ,enr.teacher_name AS advisor      
            ,KIPP_NJ.dbo.fn_StripCharacters(enr.section_number,'0-9') AS section_number
      FROM KIPP_NJ..PS$course_enrollments#static enr wITH(NOLOCK)
-     WHERE enr.COURSE_NUMBER = 'ADVISORY'
+     WHERE enr.COURSE_NUMBER = 'ADV'
        AND enr.SCHOOLID IN (133570965, 73253)
+       AND enr.drop_flags = 0
     ) sub
