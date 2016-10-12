@@ -5,11 +5,7 @@ ALTER VIEW PEOPLE$staff_attrition_rates AS
 
 WITH people AS (
   SELECT associate_id      
-        --,CONCAT(preferred_first, ' ', preferred_last) AS preferred_firstlast        
-        --,job_title
-        --,location
         ,CASE          
-          --WHEN location IN ('KIPP NJ','Room 9') THEN 0
           WHEN location = 'Rise Academy' THEN 73252
           WHEN location = 'Newark Collegiate Academy' THEN 73253
           WHEN location = 'SPARK Academy' THEN 73254
@@ -18,8 +14,11 @@ WITH people AS (
           WHEN location IN ('Life Academy','Life Upper') THEN 73257
           WHEN location = 'Bold Academy' THEN 73258
           WHEN location = 'Lanning Square Primary' THEN 179901
-          WHEN location = 'Lanning Square Middle' THEN 179902
-          WHEN location = 'TEAM Academy' THEN 133570965
+          WHEN location IN ('Lanning Square Middle','Lanning Square MS') THEN 179902
+          WHEN location = 'TEAM Academy' THEN 133570965          
+          WHEN location = 'Whittier Elementary' THEN 1799015075
+          WHEN location = 'Whittier Middle' THEN 179903
+          WHEN location = 'Pathways' THEN 732574573
          END AS adp_schoolid        
         ,termination_reason        
         ,KIPP_NJ.dbo.fn_DateToSY(hire_date) AS start_academic_year        
@@ -63,31 +62,21 @@ WITH people AS (
 
 ,clean_scaffold AS (
   SELECT associate_id
-        --,preferred_firstlast
-        --,location
         ,academic_year
         ,termination_reason           
         ,CASE        
           WHEN ps_schoolid IS NULL AND first_schoolid != last_schoolid THEN NULL
           ELSE COALESCE(ps_schoolid, adp_schoolid)
-         END AS schoolid
+         END AS reporting_schoolid
   FROM
       (
-       SELECT p.associate_id
-             --,p.preferred_firstlast                  
-             --,p.job_title
-             --,p.location
+       SELECT p.associate_id             
              ,CASE WHEN y.academic_year = p.end_academic_year THEN p.termination_reason ELSE NULL END AS termination_reason
-             ,y.academic_year                
-             --,s.school_rn_base
-             --,s.school_rn_curr
+             ,y.academic_year                             
              ,s.ps_schoolid
              ,p.adp_schoolid                                
              ,MAX(CASE WHEN s.school_rn_base = 1 THEN s.ps_schoolid END) OVER(PARTITION BY p.associate_id) AS first_schoolid
-             ,MAX(CASE WHEN s.school_rn_curr = 1 THEN s.ps_schoolid END) OVER(PARTITION BY p.associate_id) AS last_schoolid                
-             --,ROW_NUMBER() OVER(
-             --   PARTITION BY p.associate_id
-             --     ORDER BY y.academic_year ASC) AS rn_base
+             ,MAX(CASE WHEN s.school_rn_curr = 1 THEN s.ps_schoolid END) OVER(PARTITION BY p.associate_id) AS last_schoolid                             
        FROM people p
        JOIN years y
          ON p.start_academic_year <= y.academic_year
@@ -98,7 +87,7 @@ WITH people AS (
       ) sub
  )
 
-SELECT schoolid
+SELECT reporting_schoolid
       ,academic_year
       ,CONVERT(FLOAT,AVG(is_attrition) * 100) AS pct_attrition
       ,CONVERT(FLOAT,AVG(is_wanted_attrition) * 100) AS pct_wanted_attrition
@@ -107,12 +96,11 @@ FROM
     (
      SELECT associate_id
            ,academic_year
-           ,schoolid
-           --,termination_reason
+           ,reporting_schoolid           
            ,CASE WHEN termination_reason IS NOT NULL THEN 1.0 ELSE 0.0 END AS is_attrition
            ,CASE WHEN termination_reason IN ('Attendance','Involuntary','Performance','Reorganization','End of Contract') THEN 1.0 ELSE 0.0 END AS is_wanted_attrition
            ,CASE WHEN termination_reason IN ('Personal','Resignation','Voluntary') THEN 1.0 ELSE 0.0 END AS is_unwanted_attrition
      FROM clean_scaffold
     ) sub
-GROUP BY schoolid
+GROUP BY reporting_schoolid
         ,academic_year

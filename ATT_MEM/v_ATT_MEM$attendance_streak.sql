@@ -14,9 +14,11 @@ WITH valid_dates AS (
       (
        SELECT DISTINCT 
               schoolid
-             ,CONVERT(DATE,calendardate) AS calendardate
+             ,CONVERT(DATE,date_value) AS calendardate
              ,academic_year
-       FROM KIPP_NJ..ATT_MEM$MEMBERSHIP WITH(NOLOCK)       
+       FROM KIPP_NJ..PS$CALENDAR_DAY WITH(NOLOCK)
+       WHERE membershipvalue = 1
+         AND insession = 1
       ) sub
  )
 

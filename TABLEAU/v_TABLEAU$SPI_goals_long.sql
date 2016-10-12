@@ -397,7 +397,7 @@ WITH map_data AS (
          ON co.year = enr.academic_year
         AND co.schoolid = enr.schoolid
        LEFT OUTER JOIN KIPP_NJ..PEOPLE$staff_attrition_rates staff WITH(NOLOCK)
-         ON co.schoolid = staff.schoolid
+         ON co.reporting_schoolid = staff.reporting_schoolid
         AND co.year = staff.academic_year
        LEFT OUTER JOIN KIPP_NJ..ACT$test_prep_scores_wide act WITH(NOLOCK)
          ON co.student_number = act.student_number

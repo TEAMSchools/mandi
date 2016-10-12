@@ -29,7 +29,11 @@ WITH enr_targets AS (
 SELECT a.year AS academic_year
       ,a.schoolid      
       ,a.actual_enrollment
+      ,a.fr_enrollment AS actual_fr
+      ,a.sped_enrollment AS actual_sped
       ,t.target_enrollment
+      ,t.fr_enrollment
+      ,t.sped_enrollment
       ,a.actual_enrollment - t.target_enrollment AS diff_from_target
       ,a.fr_enrollment - t.fr_enrollment AS diff_from_target_fr
       ,a.sped_enrollment - t.sped_enrollment AS diff_from_target_sped
