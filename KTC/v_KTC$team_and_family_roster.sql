@@ -13,11 +13,15 @@ WITH hs_grads AS (
 ,ms_grads AS (
   SELECT co.studentid
         ,co.student_number
+        ,co.first_name
+        ,co.last_name
         ,co.lastfirst        
+        ,co.DOB
         ,co.schoolid        
         ,co.school_name
         ,co.grade_level                        
         ,(KIPP_NJ.dbo.fn_Global_Academic_Year() - co.year) + co.grade_level AS curr_grade_level
+        ,co.exitdate
         ,co.cohort
         ,co.highest_achieved        
         ,CONVERT(VARCHAR(MAX),co.guardianemail) AS guardianemail
@@ -36,10 +40,14 @@ WITH hs_grads AS (
 ,transfers AS (
   SELECT sub.studentid
         ,sub.student_number
+        ,sub.first_name
+        ,sub.last_name
         ,sub.lastfirst                
+        ,sub.DOB
         ,sub.curr_grade_level
         ,sub.cohort
         ,sub.highest_achieved        
+        ,sub.final_exitdate
         ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN s.SCHOOLID ELSE s.GRADUATED_SCHOOLID END AS schoolid       
         ,CASE WHEN s.GRADUATED_SCHOOLID = 0 THEN sch2.ABBREVIATION ELSE sch.ABBREVIATION END AS school_name                 
         ,sub.guardianemail
@@ -47,7 +55,10 @@ WITH hs_grads AS (
       (
        SELECT co.studentid             
              ,co.student_number
-             ,co.lastfirst                          
+             ,co.first_name
+             ,co.last_name
+             ,co.lastfirst
+             ,co.DOB                          
              ,MAX(co.cohort) AS cohort
              ,co.highest_achieved
              ,MAX(CONVERT(VARCHAR(MAX),co.guardianemail)) AS guardianemail
@@ -60,7 +71,7 @@ WITH hs_grads AS (
        WHERE co.grade_level >= 9
          AND co.enroll_status NOT IN (0,3)
          AND co.studentid NOT IN (SELECT studentid FROM ms_grads) 
-       GROUP BY co.studentid, co.student_number, co.lastfirst, co.highest_achieved
+       GROUP BY co.studentid, co.student_number, co.lastfirst, co.first_name, co.last_name, co.highest_achieved, co.DOB
       ) sub
   LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
     ON sub.student_number = s.STUDENT_NUMBER  
@@ -162,11 +173,19 @@ SELECT r.student_number
       ,con.RELEASE_5_NAME AS PS_RELEASE_5_NAME
       ,con.RELEASE_5_PHONE AS PS_RELEASE_5_PHONE
       ,con.RELEASE_5_RELATION AS PS_RELEASE_5_RELATION
+      ,r.first_name
+      ,r.last_name
+      ,r.DOB
+      ,r.exitdate
 FROM
     (
      SELECT studentid
            ,student_number
+           ,first_name
+           ,last_name
            ,lastfirst
+           ,DOB
+           ,exitdate
            ,schoolid
            ,school_name
            ,curr_grade_level
@@ -177,7 +196,11 @@ FROM
      UNION  
      SELECT studentid
            ,student_number
+           ,first_name
+           ,last_name           
            ,lastfirst
+           ,DOB
+           ,final_exitdate
            ,schoolid
            ,school_name
            ,curr_grade_level

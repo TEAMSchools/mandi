@@ -20,6 +20,7 @@ SELECT co.student_number
       ,co.lunch_app_status
       ,co.ethnicity
       ,co.gender            
+      ,co.rn
       ,LEAD(co.entrydate, 1) OVER(PARTITION BY co.student_number, co.rn ORDER BY co.year ASC) AS next_entrydate
       ,LEAD(co.exitdate, 1) OVER(PARTITION BY co.student_number, co.rn ORDER BY co.year ASC) AS next_exitdate
       ,LEAD(co.schoolid, 1) OVER(PARTITION BY co.student_number, co.rn ORDER BY co.year ASC) AS next_schoolid

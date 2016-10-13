@@ -67,9 +67,21 @@ SELECT co.student_number AS LocalIdentificationNumber
       ,'F' AS EnrollmentType
       
       /* home district */      
-      ,CASE WHEN nj.stateidentificationnumber IS NULL THEN NULL ELSE RIGHT(CONCAT('0',nj.CountyCodeResident),2) END AS CountyCodeResident
-      ,CASE WHEN nj.stateidentificationnumber IS NULL THEN NULL ELSE RIGHT(CONCAT('0',nj.DistrictCodeResident),4) END AS DistrictCodeResident
-      ,CASE WHEN nj.stateidentificationnumber IS NULL THEN NULL ELSE RIGHT(CONCAT('0',nj.SchoolCodeResident),3) END AS SchoolCodeResident
+      ,CASE 
+        WHEN nj.stateidentificationnumber IS NULL AND co.schoolid LIKE '1799%' THEN '07'
+        WHEN nj.stateidentificationnumber IS NULL AND co.schoolid NOT LIKE '1799%' THEN '13'
+        ELSE RIGHT(CONCAT('0',nj.CountyCodeResident),2) 
+       END AS CountyCodeResident
+      ,CASE 
+        WHEN nj.stateidentificationnumber IS NULL AND co.schoolid LIKE '1799%' THEN '0680'
+        WHEN nj.stateidentificationnumber IS NULL AND co.schoolid NOT LIKE '1799%' THEN '3570'
+        ELSE RIGHT(CONCAT('0',nj.DistrictCodeResident),4) 
+       END AS DistrictCodeResident
+      ,CASE 
+        WHEN nj.stateidentificationnumber IS NULL AND co.schoolid LIKE '1799%' THEN '165'
+        WHEN nj.stateidentificationnumber IS NULL AND co.schoolid NOT LIKE '1799%' THEN '965'
+        ELSE RIGHT(CONCAT('0',nj.SchoolCodeResident),3) 
+       END AS SchoolCodeResident
             
       /* 1st attendance date for new students */
       ,CASE WHEN nj.stateidentificationnumber IS NULL THEN REPLACE(att.min_attendance_date,'-','') ELSE nj.DistrictEntryDate END AS DistrictEntryDate
@@ -104,7 +116,7 @@ SELECT co.student_number AS LocalIdentificationNumber
        END AS DistrictCodeAttending
       ,CASE 
         WHEN nj.stateidentificationnumber IS NOT NULL THEN RIGHT(CONCAT('0',nj.SchoolCodeAttending),3) 
-        WHEN co.schoolid LIKE '1799%' THEN '111'
+        WHEN co.schoolid LIKE '1799%' THEN '165'
         ELSE '965'
        END AS SchoolCodeAttending
       
@@ -163,9 +175,8 @@ SELECT co.student_number AS LocalIdentificationNumber
        END AS LEPProgramCompletionDate  /* hand entry -- SPED follow up */
       ,nj.NonPublic /* out-of-district placementa -- SPED follow up */
       ,CASE       
-        WHEN nj.stateidentificationnumber IS NULL AND co.CITY = 'Newark' THEN '0714'
-        WHEN nj.stateidentificationnumber IS NULL AND co.CITY = 'Camden' THEN '0408'
-        WHEN nj.stateidentificationnumber IS NULL THEN NULL
+        WHEN nj.stateidentificationnumber IS NULL AND co.schoolid LIKE '1799%' THEN '0408'
+        WHEN nj.stateidentificationnumber IS NULL AND co.schoolid NOT LIKE '1799%' THEN '0714'        
         ELSE RIGHT(CONCAT('0',nj.ResidentMunicipalCode),4) 
        END AS ResidentMunicipalCode
       ,COALESCE(nj.MilitaryConnectedStudentIndicator, 4) AS MilitaryConnectedStudentIndicator

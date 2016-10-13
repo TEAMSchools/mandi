@@ -26,4 +26,3 @@ JOIN KIPP_NJ..ATT_MEM$attendance_streak att WITH(NOLOCK)
  AND att.att_code IN ('ISS','OSS')
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1
-  AND co.grade_level != 99

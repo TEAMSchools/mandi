@@ -8,7 +8,7 @@ SELECT co.reporting_schoolid AS schoolid
       ,co.gender
       ,co.ETHNICITY
       ,co.spedlep
-      ,ISNULL(co.lep_status,'No LEP') AS lep_status
+      ,co.lep_status
       ,co.year_in_network
       ,co.year      
       ,strk.att_code

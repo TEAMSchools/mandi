@@ -46,8 +46,16 @@ SELECT co.schoolid
       ,s.CITY
       ,s.STATE
       ,s.ZIP        
-      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN mcs.MealBenefitStatus ELSE lunch.lunchstatus END AS lunchstatus      
-      ,CASE WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN mcs.description ELSE lunch.lunchstatus END AS lunch_app_status     
+      ,CASE 
+        WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.rn = 1 THEN mcs.MealBenefitStatus 
+        WHEN s.ENROLL_STATUS = 2 AND co.year = MAX(co.year) OVER(PARTITION BY co.studentid) THEN s.LUNCHSTATUS
+        ELSE lunch.lunchstatus 
+       END AS lunchstatus      
+      ,CASE 
+        WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.rn = 1 THEN mcs.description 
+        WHEN s.ENROLL_STATUS = 2 AND co.year = MAX(co.year) OVER(PARTITION BY co.studentid) THEN s.LUNCHSTATUS
+        ELSE lunch.lunchstatus 
+       END AS lunch_app_status     
       ,s.state_studentnumber AS SID
 
       ,CASE WHEN co.SCHOOLID IN (179902) THEN cs.ADVISOR ELSE advisory.advisor END AS advisor
@@ -128,6 +136,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$LunchStatus#ARCHIVE lunch WITH(NOLOCK)
   ON co.studentid = lunch.studentid
  AND co.year = lunch.academic_year
+ AND co.entrydate = lunch.entrydate
 LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info#static mcs WITH(NOLOCK)
   ON co.STUDENT_NUMBER = mcs.StudentNumber
 LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_custom#static cs WITH(NOLOCK)

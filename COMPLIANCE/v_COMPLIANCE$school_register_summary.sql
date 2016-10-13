@@ -38,6 +38,8 @@ SELECT sub.academic_year
       ,co.schoolid
       ,CASE WHEN co.schoolid LIKE '1799%' THEN 'KCNA' ELSE 'TEAM' END AS region      
       ,co.grade_level
+      ,co.entrydate
+      ,co.exitdate
       ,co.sped_code
       ,CASE
         /* EasyIEP data entry is extremely fucked up */
