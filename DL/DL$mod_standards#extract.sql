@@ -22,7 +22,7 @@ FROM
            ,a.academic_year
            ,CASE WHEN dt.alt_name = 'Summer School' THEN 'Q1' ELSE dt.alt_name END AS term
            ,CASE
-             WHEN a.subject_area IN ('Text Study','Mathematics') THEN 'Specials'
+             WHEN a.subject_area NOT IN ('Text Study','Mathematics') THEN 'Specials'
              ELSE a.subject_area
             END AS subject_area
            ,CASE
@@ -42,8 +42,7 @@ FROM
       AND res.answered > 0
      JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        ON res.local_student_id = co.student_number
-      AND a.academic_year = co.year
-      AND (co.grade_level <= 4 AND co.schoolid != 73252) /* ES only */
+      AND a.academic_year = co.year      
       AND co.rn = 1
      JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
        ON co.schoolid = dt.schoolid
@@ -51,8 +50,8 @@ FROM
       AND a.administered_at BETWEEN dt.start_date AND dt.end_date
       AND dt.identifier = 'RT'
      WHERE a.scope IN ('CMA - End-of-Module','Unit Assessment')
-       AND a.subject_area != 'Writing'
        AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       AND a.subject_area != 'Writing'       
     ) sub
 GROUP BY student_number
         ,academic_year

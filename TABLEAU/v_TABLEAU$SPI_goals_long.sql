@@ -188,9 +188,10 @@ WITH map_data AS (
 
              /* attrition */
              ,CASE
-               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.entrydate <= CONVERT(DATE,CONCAT(co.year,'-10-15')) AND co.exitdate <= CONVERT(DATE,GETDATE()) THEN 100.0 
-               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.entrydate <= CONVERT(DATE,CONCAT(co.year,'-10-15')) AND co.exitdate > CONVERT(DATE,GETDATE()) THEN 0.0
-               ELSE CONVERT(FLOAT,attr_kipp.attr_flag) * 100
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND CONVERT(DATE,CONCAT(co.year,'-10-15')) BETWEEN co.entrydate AND co.exitdate AND co.exitdate <= CONVERT(DATE,GETDATE()) THEN 100.0 
+               WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND CONVERT(DATE,CONCAT(co.year,'-10-15')) BETWEEN co.entrydate AND co.exitdate AND co.exitdate > CONVERT(DATE,GETDATE()) THEN 0.0
+               WHEN co.year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN CONVERT(FLOAT,attr_kipp.attr_flag) * 100.0
+               ELSE 0.0
               END AS attrition_flag_10_15           
              ,CASE
                WHEN co.GENDER != 'M' THEN NULL

@@ -31,6 +31,7 @@ SELECT 'D1' AS ColA
       ,'00' AS ColK
       ,CONVERT(VARCHAR,co.student_number) AS ColL --requestor_return_field
 FROM KIPP_NJ..KTC$team_and_family_roster co WITH(NOLOCK)
+WHERE co.cohort <= KIPP_NJ.dbo.fn_Global_Academic_Year()
 
 UNION ALL
 
@@ -47,3 +48,4 @@ SELECT 'T1'
       ,NULL
       ,NULL
 FROM KIPP_NJ..KTC$team_and_family_roster co WITH(NOLOCK)
+WHERE co.cohort <= KIPP_NJ.dbo.fn_Global_Academic_Year()

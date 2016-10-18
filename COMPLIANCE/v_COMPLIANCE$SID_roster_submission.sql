@@ -164,7 +164,7 @@ SELECT co.student_number AS LocalIdentificationNumber
         WHEN co.sped_code = 'VI' THEN '16'
         WHEN co.sped_code = 'ESLS' THEN '17'
         ELSE RIGHT(CONCAT('0',co.sped_code),2)
-       END AS SpecialEducationClassification /* audit 00, 99, 12 (PSD) students */
+       END AS SpecialEducationClassification
       ,CASE
         WHEN co.LEP_STATUS IS NOT NULL AND nj.LEPProgramStartDate IS NULL THEN '!'
         ELSE CONVERT(VARCHAR,nj.LEPProgramStartDate)
