@@ -3,30 +3,16 @@ GO
 
 ALTER VIEW ROSTERS$NJBCT AS
 
-WITH bio_courses AS (
-  SELECT COURSE_NUMBER
-  FROM KIPP_NJ..PS$COURSES#static WITH(NOLOCK)
-  WHERE (course_name LIKE '%Bio%' OR course_name LIKE '%Life%Sci%')
-    AND course_name NOT LIKE '%ICS%'
-    AND COURSE_NUMBER NOT LIKE 'SCHED%'
- )
-
-,bio_enrollments AS (
+WITH bio_enrollments AS (
   SELECT cc.STUDENTID
         ,cc.COURSE_NUMBER
         ,cc.termid
-        ,cc.schoolid
-        ,cou.course_name      
         ,ROW_NUMBER() OVER(
-           PARTITION BY cc.studentid
+           PARTITION BY cc.studentid, cc.termid
              ORDER BY cc.dateenrolled DESC) AS rn
   FROM PS$CC#static cc WITH(NOLOCK)
-  JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
-    ON cc.COURSE_NUMBER = cou.COURSE_NUMBER   
-  WHERE cc.SCHOOLID IN (73252,73253,133570965)
-    AND cc.COURSE_NUMBER IN (SELECT COURSE_NUMBER FROM bio_courses WITH(NOLOCK))    
-    AND cc.sectionid > 0
-    AND cc.termid >= dbo.fn_Global_Term_ID()
+  WHERE cc.COURSE_NUMBER IN ('SCI73','SCI12','SCI47')  
+    AND cc.sectionid > 0 
  )
 
 SELECT co.SID
@@ -46,12 +32,20 @@ SELECT co.SID
       ,CASE WHEN co.ETHNICITY = 'P' THEN co.ETHNICITY END AS ethnic_code_p
       ,CASE WHEN co.ETHNICITY = 'H' THEN co.ETHNICITY END AS ethnic_code_h
       ,CASE WHEN co.ETHNICITY = 'I' THEN co.ETHNICITY END AS ethnic_code_i
-      ,co.STUDENT_NUMBER AS DistrictSchool_StudentID      
-      ,'B' AS TitleIBio
-      ,CASE WHEN co.LUNCHSTATUS IN ('F','R') THEN 'Y' END AS EconDis_Flag
-      ,NULL AS homeless
-      ,NULL AS migrant
-      ,co.LEP_STATUS
+      ,co.STUDENT_NUMBER AS DistrictSchool_StudentID
+      ,'B' AS TitleIBio /* ? */
+      ,CASE WHEN co.LUNCHSTATUS IN ('F','R') THEN 'Y' END AS EconomicallyDisadvantaged /* ? */
+      ,cs.HOMELESS_CODE
+      ,cs.NJ_MIGRANT
+      ,CASE
+        WHEN CONVERT(DATE,cs.NJ_LEPENDDATE) >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year() - 1,'-07-01')) THEN 'F1'
+        WHEN CONVERT(DATE,cs.NJ_LEPENDDATE) >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year() - 2,'-07-01')) THEN 'F2'
+        WHEN CONVERT(DATE,cs.NJ_LEPENDDATE) >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year() - 3,'-07-01')) THEN NULL
+        WHEN CONVERT(DATE,cs.NJ_LEPBEGINDATE) >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year(),'-07-01')) THEN '<'
+        WHEN CONVERT(DATE,cs.NJ_LEPBEGINDATE) >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year() - 1,'-07-01')) THEN '1'
+        WHEN CONVERT(DATE,cs.NJ_LEPBEGINDATE) >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year() - 2,'-07-01')) THEN '2'
+        WHEN CONVERT(DATE,cs.NJ_LEPBEGINDATE) >= CONVERT(DATE,CONCAT(KIPP_NJ.dbo.fn_Global_Academic_Year() - 3,'-07-01')) THEN '3'
+       END AS LEP
       ,CASE WHEN co.STATUS_504 = 1 THEN 'Y' END AS Sec504
       ,CASE
         WHEN co.SPED_code IS NULL THEN NULL
@@ -71,8 +65,7 @@ SELECT co.SID
         WHEN co.sped_code = 'SLD' THEN '14'
         WHEN co.sped_code = 'TBI' THEN '15'
         WHEN co.sped_code = 'VI' THEN '16'
-        WHEN co.sped_code = 'ESLS' THEN '17'
-        ELSE RIGHT(CONCAT('0',co.sped_code),2)
+        WHEN co.sped_code = 'ESLS' THEN '17'        
        END AS SE
       ,NULL AS SE_A_Setting
       ,NULL AS SE_B_Sched
@@ -80,26 +73,27 @@ SELECT co.SID
       ,NULL AS SE_D_Procedures
       ,NULL AS IEP_exempt_taking
       ,NULL AS IEP_exempt_passing
-      ,CASE 
-        WHEN bio.course_name IS NULL THEN NULL
-        WHEN bio.course_name = 'AP Biology' THEN 41
-        WHEN bio.course_name IN ('Honors Biology', 'Sci II Biology Honors') THEN 32        
-        WHEN bio.course_name IN ('Sci II Biology','Biology') THEN 31
-        WHEN bio.course_name LIKE '%Life %Science%' THEN 23
-       END AS course      
+      ,CASE       
+        WHEN bio.COURSE_NUMBER = 'SCI12' THEN '22'
+        WHEN bio.COURSE_NUMBER = 'SCI73' THEN '11'
+        WHEN bio.COURSE_NUMBER = 'SCI47' THEN '!'
+       END AS course
       ,CASE 
         WHEN bio.termid = KIPP_NJ.dbo.fn_Global_Term_ID() THEN 'F'
         WHEN bio.termid = KIPP_NJ.dbo.fn_Global_Term_ID() + 1 THEN 'P'
         WHEN bio.termid = KIPP_NJ.dbo.fn_Global_Term_ID() + 2 THEN 'C'
        END AS schedule      
-      ,CASE WHEN co.ENTRYDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-07-01') THEN 'Y' ELSE 'N' END AS TimeInDistrict_Flag
-      ,CASE WHEN co.entry_schoolid != 73253 OR co.entry_schoolid IS NULL THEN 'Y' ELSE 'N' END AS TimeInSchool_Flag
+      ,CASE WHEN s.DISTRICTENTRYDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-07-01') THEN 'Y' ELSE 'N' END AS TimeInDistrict_Flag
+      ,CASE WHEN s.DISTRICTENTRYDATE >= CONVERT(DATE,CONVERT(VARCHAR,dbo.fn_Global_Academic_Year()) + '-07-01') THEN 'Y' ELSE 'N' END AS TimeInSchool_Flag
       ,NULL AS SES
       ,NULL AS sending_CDS_code
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+  ON co.studentid = s.ID
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_custom#static cs WITH(NOLOCK)
+  ON co.studentid = cs.STUDENTID
 JOIN bio_enrollments bio WITH(NOLOCK)
   ON co.studentid = bio.studentid
- AND bio.rn = 1
 WHERE co.ENROLL_STATUS = 0  
   AND co.SCHOOLID = 73253
   AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()

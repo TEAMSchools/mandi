@@ -66,7 +66,7 @@ SELECT a.repository_id
       ,a.field_label             
       ,SUBSTRING(a.field_label, CHARINDEX('-', a.field_label) - 2, 1) AS prompt_number
       ,SUBSTRING(a.field_label, CHARINDEX('-', a.field_label) + 2, LEN(a.field_label)) AS strand
-      ,CONVERT(FLOAT,a.field_value) AS field_value
+      ,a.field_value
       ,t.term
       ,t.unit_number
       ,RIGHT(t.unit_number,1) AS series

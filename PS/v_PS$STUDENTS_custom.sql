@@ -11,10 +11,13 @@ FROM OPENQUERY(PS_TEAM,'
         ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''Middle_Name_Custom'') AS MIDDLE_NAME_CUSTOM        
         ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_CityOfBirth'') AS NJ_CityOfBirth
         ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_StateOfBirth'') AS NJ_StateOfBirth
-        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_CountryOfBirth'') AS NJ_CountryOfBirth
+        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_LEPBeginDate'') AS NJ_LEPBeginDate
+        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_LEPEndDate'') AS NJ_LEPEndDate
+        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_Migrant'') AS NJ_Migrant
         
         ,c.SPEDLEP
         ,c.LEP_STATUS        
+        ,c.HOMELESS_CODE
         
         ,u.NEWARK_ENROLLMENT_NUMBER
         ,u.INFOSNAP_ID

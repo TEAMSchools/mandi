@@ -49,7 +49,7 @@ SELECT co.SCHOOLID
       ,w.course_number            
       ,w.strand
       ,w.prompt_number
-      ,w.field_value AS score     
+      ,CONVERT(FLOAT,w.field_value) AS score     
       
       ,enr.course_name
       ,enr.course_period

@@ -29,7 +29,7 @@ WITH tests_long AS (
 SELECT co.student_number
       ,co.studentid
       ,co.lastfirst
-      ,co.schoolid
+      ,co.reporting_schoolid AS schoolid
       ,co.grade_level
       ,co.team
       ,co.enroll_status
@@ -70,13 +70,14 @@ LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_RC_comment_bank comm WITH(NOLOCK)
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1
   AND (co.grade_level <= 4 AND co.schoolid != 73252)
+  AND co.enroll_status = 0
 
 UNION ALL
 
 SELECT co.student_number
       ,co.studentid
       ,co.lastfirst
-      ,co.schoolid
+      ,co.reporting_schoolid AS schoolid
       ,co.grade_level
       ,co.team
       ,co.enroll_status
@@ -102,3 +103,4 @@ LEFT OUTER JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.rn = 1
   AND ((co.grade_level = 4 AND co.schoolid = 73252) OR (co.grade_level >= 5))
+  AND co.enroll_status = 0
