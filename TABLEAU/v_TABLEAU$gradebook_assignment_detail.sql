@@ -23,7 +23,7 @@ SELECT sec.ID AS sectionid
       ,a.EXTRACREDITPOINTS
       ,a.ISFINALSCORECALCULATED
       
-      ,scores.studentidentifier AS student_number
+      ,s.STUDENT_NUMBER
       ,scores.SCORE
       ,scores.TURNEDINLATE
       ,scores.EXEMPT
@@ -36,8 +36,13 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$assignments#STAGING a WITH(NOLOCK)
   ON sec.ID = a.SECTIONID
  AND gb.ASSIGNMENTCATEGORYID = a.assignmentcategoryid
  AND a.ASSIGN_DATE BETWEEN gb.STARTDATE AND gb.ENDDATE
+LEFT OUTER JOIN KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
+  ON sec.ID = cc.SECTIONID
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+  ON cc.studentid = s.ID
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignment_scores#STAGING scores WITH(NOLOCK)
   ON a.ASSIGNMENTID = scores.ASSIGNMENTID
+ AND s.STUDENT_NUMBER = scores.STUDENTIDENTIFIER
 WHERE sec.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
 UNION ALL
@@ -62,7 +67,7 @@ SELECT sec.ID AS sectionid
       ,a.EXTRACREDITPOINTS
       ,a.ISFINALSCORECALCULATED
       
-      ,scores.studentidentifier AS student_number
+      ,s.STUDENT_NUMBER
       ,scores.SCORE
       ,scores.TURNEDINLATE
       ,scores.EXEMPT
@@ -74,8 +79,13 @@ JOIN KIPP_NJ..PS$gradebook_setup#static gb WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignments#STAGING a WITH(NOLOCK)
   ON sec.ID = a.SECTIONID 
  AND a.ASSIGN_DATE BETWEEN gb.STARTDATE AND gb.ENDDATE
+LEFT OUTER JOIN KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
+  ON sec.ID = cc.SECTIONID
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+  ON cc.studentid = s.ID
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignment_scores#STAGING scores WITH(NOLOCK)
   ON a.ASSIGNMENTID = scores.ASSIGNMENTID
+ AND s.STUDENT_NUMBER = scores.STUDENTIDENTIFIER
 WHERE sec.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
 --UNION ALL

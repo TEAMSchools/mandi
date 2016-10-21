@@ -62,49 +62,6 @@ WITH long_goals AS (
     AND cohort.year >= 2009 /* earliest AR data from '09 */
  )
  
-,last_book AS (
-  SELECT sub.student_number
-        ,sub.yearid
-        ,sub.time_period_hierarchy
-        ,sub.time_period_start
-        ,sub.time_period_end
-        ,sub.last_book_date
-        ,sub.title_string
-        ,sub.rn_desc
-  FROM
-      (
-       SELECT detail.student_number
-             ,goals.yearid
-             ,goals.time_period_hierarchy
-             ,goals.time_period_start
-             ,goals.time_period_end
-             ,detail.dttaken AS last_book_date
-             ,CONCAT(
-                 FORMAT(detail.dtTaken, 'M/dd ')
-                ,detail.vchcontenttitle, ' (' 
-                ,detail.vchauthor, ' | '
-                ,RTRIM(LTRIM(detail.chfictionnonfiction)), ', Lexile: ' 
-                ,ialternatebooklevel_2, ') ['
-                ,detail.iquestionscorrect, '/'
-                ,detail.iquestionspresented, ', '
-                ,CONVERT(INT,detail.dpercentcorrect * 100), '% '
-                ,REPLICATE('+', detail.tibookrating), ']'
-               ) AS title_string
-             ,ROW_NUMBER() OVER (
-                 PARTITION BY goals.student_number
-                             ,goals.yearid
-                             ,goals.time_period_hierarchy
-                             ,goals.time_period_start
-                             ,goals.time_period_end
-                     ORDER BY detail.dttaken DESC) AS rn_desc
-       FROM KIPP_NJ..AR$test_event_detail#static detail WITH(NOLOCK)
-       LEFT OUTER JOIN KIPP_NJ..AR$goals goals WITH(NOLOCK)
-         ON detail.student_number = goals.student_number
-        AND detail.dtTaken BETWEEN goals.time_period_start AND goals.time_period_end
-      ) sub
-  WHERE rn_desc = 1  
- )
-
 SELECT totals.studentid
       ,totals.student_number
       ,totals.grade_level
@@ -130,8 +87,8 @@ SELECT totals.studentid
       ,totals.last_quiz
       ,totals.N_passed
       ,totals.N_total
-      ,last_book.last_book_date
-      ,last_book.title_string AS last_book
+      ,NULL AS last_book_date
+      ,NULL AS last_book
       ,CASE                
         WHEN CONVERT(DATE,GETDATE()) > end_date THEN words_goal /* time period over */
         WHEN (words IS NULL OR words_goal IS NULL) THEN NULL        
@@ -248,8 +205,7 @@ FROM
       LEFT OUTER JOIN AR$test_event_detail#static ar_all WITH(NOLOCK)
         ON long_goals.student_number = ar_all.student_number
        AND long_goals.academic_year = ar_all.academic_year      
-       AND CONVERT(DATE,ar_all.dttaken) BETWEEN long_goals.start_date_summer_bonus AND long_goals.end_date            
-      WHERE NOT (long_goals.schoolid = 73255 AND long_goals.grade_level = 3)
+       AND CONVERT(DATE,ar_all.dttaken) BETWEEN long_goals.start_date_summer_bonus AND long_goals.end_date                  
       GROUP BY long_goals.studentid
               ,long_goals.student_number
               ,long_goals.grade_level
@@ -263,12 +219,5 @@ FROM
               ,long_goals.start_date
               ,long_goals.end_date
      ) totals
-LEFT OUTER JOIN last_book
-  ON totals.student_number = last_book.student_number
- --this join is sort of conviluted because we normalized time period names above...
- AND totals.yearid = last_book.yearid
- AND totals.time_hierarchy = last_book.time_period_hierarchy
- AND totals.start_date = last_book.time_period_start
- AND totals.end_date = last_book.time_period_end
 WHERE totals.time_period_name IS NOT NULL
   AND (totals.words_goal IS NOT NULL OR totals.points_goal IS NOT NULL)
