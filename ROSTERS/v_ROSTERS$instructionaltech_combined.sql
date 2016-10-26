@@ -4,7 +4,6 @@ GO
 --work file holding core roster CTE and mulitple program roster file formats
 
 WITH roster AS (
-	
 	 SELECT DISTINCT 
 	        s.id as studentid
 		   ,s.student_number
@@ -21,15 +20,20 @@ WITH roster AS (
 		   ,cohort.year_in_network
 		   ,s.entrydate
 
-		   ,hr.section_number
+		   ,cc.section_number
+		   ,cc.course_number
 
-		   ,teachers.teacherloginid
-		   ,hr.teacher_name
-		   ,teachers.last_name AS teacher_last
-		   ,teachers.first_name AS teacher_first
-		   ,CAST(teachers.teachernumber AS VARCHAR(20)) as teachernumber
-		   ,teachers.EMAIL_ADDR AS teacher_email
-		   ,hr.dateenrolled
+		   ,cc.teacher_name
+		   ,t.last_name AS teacher_last
+		   ,t.first_name AS teacher_first
+		   ,CAST(t.teachernumber AS VARCHAR(20)) as teachernumber
+		   ,t.EMAIL_ADDR AS teacher_email
+		   ,cc.dateenrolled
+		   ,cc.dateleft
+
+	   	  ,ROW_NUMBER() OVER(
+		   PARTITION BY s.student_number, course_number
+		   ORDER BY CONVERT(DATE,dateleft) DESC) AS dupe
 
 		   ,accounts.student_web_id AS core_login
 		   ,accounts.student_web_password AS password
@@ -47,19 +51,20 @@ WITH roster AS (
 	 JOIN ROSTERS$PS_access_accounts accounts WITH(NOLOCK)
 	   ON cohort.student_number = accounts.student_number
 
-	 LEFT OUTER JOIN COHORT$student_homerooms hr WITH(NOLOCK)
-	   ON cohort.studentid = hr.studentid
-	  AND hr.rn_stu_year = 1
-	  AND hr.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+	 LEFT OUTER JOIN PS$course_enrollments#static cc WITH(NOLOCK)
+	   ON cohort.studentid = cc.studentid
+	  AND cc.course_number = 'HR'
+	  AND cc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
-	 LEFT OUTER JOIN PS$TEACHERS#static teachers WITH(NOLOCK)
-	   ON CAST(hr.teachernumber AS VARCHAR(20)) = CAST(teachers.teachernumber AS VARCHAR(20))
+	 
+	 LEFT OUTER JOIN PS$TEACHERS#static t WITH(NOLOCK)
+	   ON cc.teachernumber = t.teachernumber
 
 	 WHERE cohort.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
-	 --ORDER BY student_number
 
-	)
+	 --ORDER BY student_number
+)
 
 --Student Logins Google Doc Display for Staff
 
@@ -80,6 +85,8 @@ SELECT student_number AS "SN"
 FROM roster
 
 ORDER BY abbreviation, grade_level, lastfirst
+
+WHERE dupe = 1
 
 */
 
@@ -104,13 +111,15 @@ SELECT roster.last_name AS slast
 			WHEN roster.schoolid = 179901 THEN 'LP1'
 			WHEN roster.schoolid = 73258 THEN 'BOLD'
 			WHEN roster.schoolid = 179902 THEN 'LM1'
+			WHEN roster.schoolid = 179903 THEN 'WM'
 	   ELSE NULL
 	   END AS siteshortname
-	  ,roster.team AS homeroom
+	  ,roster.section_number AS homeroom
 
 FROM roster
 
-WHERE roster.ENTRYDATE >= '2015-09-23'
+WHERE roster.ENTRYDATE >= '2016-08-09'
+AND dupe = 1
 
 ORDER BY roster.schoolid
 		,roster.grade_level
@@ -119,7 +128,7 @@ ORDER BY roster.schoolid
 */
 
 --FASTT MATH
-/*
+--/*
 
 SELECT student_number AS SIS_ID
       ,grade_level AS GRADE
@@ -128,23 +137,24 @@ SELECT student_number AS SIS_ID
 	  ,core_login AS USER_NAME
 	  ,password AS PASSWORD
 	  ,abbreviation AS SCHOOL_NAME
-	  ,CAST(2015 AS VARCHAR(20)) + '_' + CAST(grade_level AS VARCHAR(20)) + 'th' AS CLASS_NAME
+	  ,CAST(2016 AS VARCHAR(20)) + '_' + CAST(grade_level AS VARCHAR(20)) + 'th' AS CLASS_NAME
+	  ,dateenrolled
 
 FROM roster
 
 --WHERE schoolid = 179902
  -- AND entrydate > '2015-08-05'
 
-WHERE schoolid = 133570965
-  AND entrydate > '2015-10-05'
-
+WHERE schoolid IN (133570965,73252,73258,179901,179903)
+  AND entrydate >= '2016-08-26'
+  AND dupe = 1
 
 ORDER BY schoolid
         ,grade
 		,lastfirst
 
 
-*/
+--*/
 
 --READ LIVE SERIOUSLY DIE
 --this gets a roster of all new students for Rise and TEAM... because you cannot update students via import to readlive, only add new students (!)
@@ -160,9 +170,10 @@ SELECT roster.first_name AS "Student First Name"
 
 FROM roster
 
-WHERE roster.boy_status IN ('New')
-  AND roster.schoolid IN (133570965,73252)
+--WHERE roster.boy_status IN ('New')
+WHERE roster.schoolid IN (133570965,73252)
 
+/*
 UNION ALL
 
 SELECT roster.first_name AS "Student First Name"
@@ -175,10 +186,10 @@ SELECT roster.first_name AS "Student First Name"
 
 FROM roster
 
-WHERE roster.boy_status IN ('Promoted')
-  AND roster.year_in_network > 1
-  AND roster.grade_level = 5
-
+--WHERE roster.boy_status IN ('Promoted')
+--  AND roster.year_in_network > 1
+--  AND roster.grade_level = 5
+*/
 
 
 */
@@ -242,7 +253,7 @@ ORDER BY roster.ABBREVIATION, roster.section_number
 
 -- ST MATH STUDENTS
 
---/*
+/*
 
 SELECT
 	 CASE 
@@ -254,6 +265,7 @@ SELECT
 		WHEN schoolid =  73258 THEN 'KIP0JQ'
 		WHEN schoolid =  179901 THEN 'KIP0MI'
 		WHEN schoolid =  179902 THEN 'LAN0MI'
+		WHEN schoolid =  179903 THEN 'KIP0MJ'
 		WHEN schoolid =  999999 THEN 'DIS0JQ'
 		WHEN schoolid =  133570965 THEN 'TEA0JR'
 	 ELSE NULL
@@ -268,6 +280,7 @@ SELECT
 		WHEN schoolid =  73258 THEN 'KIPP Bold Academy'
 		WHEN schoolid =  179901 THEN 'Lanning Square Primary'
 		WHEN schoolid =  179902 THEN 'Lanning Square Middle School'
+		WHEN schoolid =  179903 THEN 'KIPP Whittier Middle'
 		WHEN schoolid =  999999 THEN 'District Office of Team Charter'
 		WHEN schoolid =  133570965 THEN 'Team Academy Charter School'
 	ELSE NULL 
@@ -291,15 +304,21 @@ SELECT
    ,'' AS "action"
    ,roster.dateenrolled
    ,roster.entrydate
+   ,roster.dateleft
 FROM roster
 
-WHERE entrydate > '2015-12-25'
-	  --AND grade_level < 9
-	  --AND schoolid IN (133570965,73252,73258,179902)
-	  --AND schoolid = 73254
+WHERE dupe = 1
+      AND dateenrolled >= '2016-08-22'
+	  AND grade_level <= 8
+	  OR ENTRYDATE >= '2016-08-22'
+	  	  AND grade_level <= 8
+--	  AND LAST_NAME = 'McQuiller'
+-- AND SCHOOLID != 73252
+--	  AND schoolid NOT IN (179901)
+--    AND schoolid = 73254
 
 ORDER BY schoolid
         ,grade_level
 		,teacher_last_name
 
---*/
+*/
