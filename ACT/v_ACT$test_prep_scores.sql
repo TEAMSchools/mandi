@@ -42,7 +42,7 @@ WITH long_data AS (
         ,d.subject_area
         ,d.overall_number_correct
         ,d.overall_performance_band
-        ,act.scale_score        
+        ,act.scale_score
   FROM long_data d
   LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_ACT_scale_score_key act WITH(NOLOCK)
     ON d.academic_year = act.academic_year

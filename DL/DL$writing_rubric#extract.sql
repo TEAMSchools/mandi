@@ -44,7 +44,7 @@ FROM
       AND astd.standard_id  = res.standard_id
      WHERE a.scope = 'CMA - End-of-Module'
        AND a.subject_area = 'Writing'
-       AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+       --AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     ) sub
 PIVOT(
   MAX(rubric_score)

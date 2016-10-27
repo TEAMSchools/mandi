@@ -11,7 +11,7 @@ WITH scaffold AS (
 )
 
 SELECT 2016 AS academic_year /* UPDATE */
-      ,'Pre-Test' AS administration_round /* UPDATE */
+      ,'ACT2' AS administration_round /* UPDATE */
       ,s.subject
       ,s.max_raw_score AS raw_score
       ,MAX(a.scale_score) OVER(PARTITION BY s.subject ORDER BY s.max_raw_score) AS scale_score

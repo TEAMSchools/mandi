@@ -1,0 +1,34 @@
+USE KIPP_NJ
+GO
+
+ALTER VIEW PS$REENROLLMENTS AS
+
+SELECT *
+FROM OPENQUERY(PS_TEAM,'
+  SELECT DCID
+        ,ID
+        ,STUDENTID
+        ,ENTRYDATE
+        ,ENTRYCODE        
+        ,EXITDATE
+        ,EXITCODE        
+        ,SCHOOLID
+        ,GRADE_LEVEL
+        ,TYPE
+        ,TRACK
+        ,DISTRICTOFRESIDENCE
+        ,ENROLLMENTTYPE
+        ,ENROLLMENTCODE        
+        ,MEMBERSHIPSHARE
+        ,TUITIONPAYER
+        ,LUNCHSTATUS        
+        ,FTEID
+        ,WITHDRAWAL_REASON_CODE
+        ,STUDENTSCHLENRL_GUID
+        ,PSGUID
+        --,ENTRYCOMMENT
+        --,EXITCOMMENT
+        --,FULLTIMEEQUIV_OBSOLETE
+        --,CUSTOM
+  FROM REENROLLMENTS  
+') re_base
