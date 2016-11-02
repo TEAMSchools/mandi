@@ -19,7 +19,8 @@ WITH base AS (
         ,periods.period_string
         ,periods.goal_prorater
         ,periods.measurementscale  
-        ,cohort.year + periods.lookback_modifier AS period_start_year
+        ,cohort.year AS period_start_year
+        ,cohort.year + periods.lookback_modifier AS period_end_year
   FROM KIPP_NJ..COHORT$comprehensive_long#static cohort WITH(NOLOCK)    
   CROSS JOIN KIPP_NJ..AUTOLOAD$GDOCS_MAP_growth_terms periods WITH(NOLOCK)       
   WHERE cohort.grade_level <= 12
@@ -147,7 +148,7 @@ FROM
                 ,map_end.grade_level AS end_grade_verif
                 ,map_start.termname AS start_term_verif
                 ,map_end.termname AS end_term_verif
-                --norm study data
+                /* norm study data */
                 ,norms.reported_student_growth AS reported_growth_projection
                 ,norms.typical_student_growth AS true_growth_projection
                 ,norms.sd_of_expectation AS std_dev_of_growth_projection
@@ -163,7 +164,7 @@ FROM
           LEFT OUTER JOIN KIPP_NJ..MAP$CDF#identifiers#static map_end WITH(NOLOCK)
             ON base.studentid = map_end.studentid
            AND base.measurementscale = map_end.measurementscale
-           AND base.year = map_end.academic_year
+           AND base.period_end_year = map_end.academic_year
            AND base.end_term_string = map_end.term
            AND map_end.rn = 1
           /* norms data */

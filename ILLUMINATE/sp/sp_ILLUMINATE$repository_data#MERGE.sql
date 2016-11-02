@@ -27,15 +27,16 @@ BEGIN
   DECLARE @cols NVARCHAR(MAX)
   DECLARE @converted_cols NVARCHAR(MAX)
   DECLARE @sql NVARCHAR(MAX)
+  DECLARE @message NVARCHAR(MAX)
 
 
 -- 3.) Declare the cursor FOR the set of records it will loop over --
   -- cursor name MUST be unique within schema
   -- TODO: MERGE only repos created or updated in the past day  
   DECLARE illuminate_cursor CURSOR FOR
-    SELECT repository_id            
+    SELECT DISTINCT repository_id            
     FROM KIPP_NJ..ILLUMINATE$repositories#static WITH(NOLOCK)
-    WHERE repository_id <= 170
+    WHERE repository_id <= 183
     ORDER BY repository_id DESC;
   		    
 -- 4.) Do work, son --
@@ -104,7 +105,8 @@ BEGIN
       '        
       
       -- print the query that has just been prepared (for debugging)
-      RAISERROR(@query, 0, 1)
+      SET @message = CONCAT('Loading dna_repositories.repository_', @repository_id)
+      RAISERROR(@message, 0, 1)
       
       -- execute the query string above
       -- wash, rinse, repeat

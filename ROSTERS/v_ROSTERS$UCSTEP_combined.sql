@@ -3,8 +3,8 @@ GO
 
 ALTER VIEW ROSTERS$UCSTEP_combined AS
 
-SELECT co.schoolid
-      ,co.school_name AS schoolname
+SELECT CASE WHEN co.school_name = 'Pathways ES' THEN co.schoolid ELSE co.reporting_schoolid END AS schoolid
+      ,CASE WHEN co.school_name = 'Pathways ES' THEN 'Life' ELSE co.school_name END AS schoolname
       ,enr.sectionid AS classid
       ,KIPP_NJ.dbo.fn_StripCharacters(enr.SECTION_NUMBER,'0-9') AS classname
       ,COALESCE(link.associate_id, enr.TEACHERNUMBER) AS teacherid      
@@ -17,7 +17,7 @@ SELECT co.schoolid
       ,co.SID AS stateid
       ,co.gender
       ,'eng' AS language
-      ,'eng' AS steplanguage
+      --,'eng' AS steplanguage
       ,CASE
         WHEN co.lunchstatus = 'F' THEN 1
         WHEN co.lunchstatus = 'R' THEN 2        
@@ -36,13 +36,15 @@ SELECT co.schoolid
       ,CASE WHEN co.status_504 = 1 THEN 'T' ELSE 'F' END AS [504iep]
       ,CASE WHEN co.SPED_code = 'OHI' THEN 'T' ELSE 'F' END AS healthiep
       ,CASE 
-        WHEN co.SPED_code IN ('OHI','SLD') OR co.SPEDLEP = 'SPED SPEECH' OR co.STATUS_504 = 1 
-               OR co.SPEDLEP = 'No IEP' OR co.SPEDLEP IS NULL THEN 'F' 
-        ELSE 'T' 
+        WHEN co.SPED_code IN ('OHI','SLD') 
+               OR ISNULL(co.SPEDLEP,'No IEP') IN ('SPED SPEECH','No IEP')
+               OR co.STATUS_504 = 1
+               THEN 'F'
+        ELSE 'T'
        END AS otheriep
       ,CASE WHEN co.LEP_STATUS = 1 THEN 'T' ELSE 'F' END AS ELL
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
+JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.student_number = enr.student_number
  AND co.year = enr.academic_year
  AND enr.COURSE_NUMBER = 'HR'
@@ -53,7 +55,6 @@ LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PEOPLE_teachernumber_associateid_link li
 LEFT OUTER JOIN KIPP_NJ..PS$USERS#static u WITH(NOLOCK)
   ON enr.TEACHERNUMBER = u.TEACHERNUMBER
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  AND co.rn = 1
-  AND co.grade_level <= 4
-  AND co.schoolid != 73252
   AND co.enroll_status = 0  
+  AND co.school_level = 'ES'
+  AND co.rn = 1

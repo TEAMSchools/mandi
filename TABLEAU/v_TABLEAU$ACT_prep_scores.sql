@@ -25,26 +25,6 @@ WITH act_data AS (
         ,act.growth_from_pretest
         ,act.rn_dupe
   FROM KIPP_NJ..ACT$test_prep_scores act WITH(NOLOCK)
-
-  UNION ALL
-
-  SELECT act.student_number
-        ,act.academic_year
-        ,act.administration_round
-        ,act.subject_area
-        ,'RHET' AS credittype
-        ,act.overall_number_correct
-        ,act.scale_score
-        ,act.overall_performance_band
-        ,REPLACE(act.standard_code,'ACCRS.','') AS standard_code
-        ,act.standard_description
-        ,act.standard_percent_correct        
-        ,act.pretest_scale_score
-        ,act.prev_scale_score
-        ,act.growth_from_pretest
-        ,act.rn_dupe
-  FROM KIPP_NJ..ACT$test_prep_scores act WITH(NOLOCK)
-  WHERE act.subject_area IN ('English','Reading')
  )
 
 ,real_tests AS (
@@ -71,11 +51,12 @@ SELECT co.year
       ,co.SPEDLEP
       ,co.enroll_status
 	     ,co.advisor
-      ,enr.CREDITTYPE AS course_subject
-      ,enr.COURSE_NUMBER
-      ,enr.COURSE_NAME
-      ,enr.teacher_name
-      ,enr.period
+      
+      ,NULL AS course_subject
+      ,NULL AS COURSE_NUMBER
+      ,NULL AS COURSE_NAME
+      ,NULL AS teacher_name
+      ,NULL AS period
 
       ,'PREP' AS ACT_type
       ,act.administration_round
@@ -95,16 +76,16 @@ SELECT co.year
          PARTITION BY co.student_number, co.year, act.administration_round, act.subject_area, act.standard_code
            ORDER BY act.student_number) AS rn_assessment_standard /* 1 row per student, per test (by standard) */      
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)  
-LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
-  ON co.student_number = enr.student_number
- AND co.year = enr.academic_year
- AND enr.CREDITTYPE IN ('ENG','MATH','SCI','RHET')
- AND enr.drop_flags = 0
- AND enr.course_number NOT IN ('ENG05')
+--LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
+--  ON co.student_number = enr.student_number
+-- AND co.year = enr.academic_year
+-- AND enr.CREDITTYPE IN ('ENG','MATH','SCI','RHET')
+-- AND enr.drop_flags = 0
+-- AND enr.course_number NOT IN ('ENG05')
 LEFT OUTER JOIN act_data act WITH(NOLOCK)
   ON co.student_number = act.student_number
  AND co.year = act.academic_year
- AND ((enr.CREDITTYPE = act.credittype) OR (act.credittype = 'Composite'))
+ --AND ((enr.CREDITTYPE = act.credittype) OR (act.credittype = 'Composite'))
 WHERE co.rn = 1
   AND co.schoolid = 73253
   AND co.grade_level != 99

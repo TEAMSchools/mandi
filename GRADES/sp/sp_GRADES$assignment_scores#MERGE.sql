@@ -19,6 +19,7 @@ BEGIN
         ,lastupdated
         ,sectionenrollmentstatus
         ,sectionassignmentid
+        ,sectionsdcid
   INTO #assign_update
   FROM OPENQUERY(PS_TEAM,'    
       SELECT sub.lastupdated            
@@ -30,6 +31,7 @@ BEGIN
             ,a.ismissing
             ,s.assignmentid            
             ,a.sectionassignmentid
+            ,NULL AS sectionsdcid
       FROM
           (
            SELECT f.sectionenrollmentid          
@@ -58,6 +60,7 @@ BEGIN
             ,a.ISMISSING
             ,asec.ASSIGNMENTID            
             ,a.assignmentsectionid AS sectionassignmentid
+            ,asec.sectionsdcid
       FROM ASSIGNMENTSCORE a
       JOIN STUDENTS s
         ON a.STUDENTSDCID = s.DCID
@@ -89,7 +92,8 @@ BEGIN
     ,ismissing
     ,lastupdated
     ,sectionenrollmentstatus
-    ,sectionassignmentid)
+    ,sectionassignmentid
+    ,sectionsdcid)
    VALUES
     (SOURCE.assignmentid
     ,SOURCE.studentidentifier
@@ -99,7 +103,8 @@ BEGIN
     ,SOURCE.ismissing
     ,SOURCE.lastupdated
     ,SOURCE.sectionenrollmentstatus
-    ,SOURCE.sectionassignmentid)
+    ,SOURCE.sectionassignmentid
+    ,SOURCE.sectionsdcid)
   WHEN NOT MATCHED BY SOURCE AND TARGET.lastupdated >= DATEADD(DAY,-3,CONVERT(DATE,GETDATE()))
    THEN DELETE
   OUTPUT $ACTION, DELETED.*;

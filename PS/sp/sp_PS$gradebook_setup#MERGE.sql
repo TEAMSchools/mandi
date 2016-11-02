@@ -93,16 +93,14 @@ BEGIN
           ,COALESCE(dtc_ISINFINALGRADES, tc_ISINFINALGRADES, 1) AS INCLUDEINFINALGRADES
     FROM
         (
-         SELECT sec.DCID AS SECTIONSDCID
-        
+         SELECT sec.DCID AS SECTIONSDCID        
                ,tb.STORECODE
                ,tb.DATE1
                ,tb.DATE2
 
-               ,gfs.GRADEFORMULASETID
-                
-               ,gct.GRADECALCULATIONTYPEID
-               ,gct.TYPE AS gct_type       
+               ,COALESCE(gfs.GRADEFORMULASETID, d.GRADEFORMULASETID) AS GRADEFORMULASETID
+               ,COALESCE(gct.GRADECALCULATIONTYPEID, d.GRADECALCULATIONTYPEID) AS GRADECALCULATIONTYPEID
+               ,COALESCE(gct.TYPE, d.TYPE) AS gct_type       
 
                ,gcfw.GRADECALCFORMULAWEIGHTID
                ,gcfw.TEACHERCATEGORYID
@@ -122,50 +120,6 @@ BEGIN
          JOIN TermBins tb
            ON sec.schoolid = tb.schoolid
           AND sec.termid = tb.termid   
-         JOIN GradeFormulaSet gfs         
-           ON sec.DCID = gfs.SECTIONSDCID         
-         JOIN GradeCalculationType gct
-           ON gfs.GRADEFORMULASETID = gct.gradeformulasetid    
-          AND tb.storecode = gct.storecode 
-         LEFT OUTER JOIN GradeCalcFormulaWeight gcfw
-           ON gct.gradecalculationtypeid = gcfw.gradecalculationtypeid
-         LEFT OUTER JOIN TeacherCategory tc
-           ON gcfw.teachercategoryid = tc.teachercategoryid 
-         LEFT OUTER JOIN DistrictTeacherCategory dtc
-           ON gcfw.districtteachercategoryid = dtc.districtteachercategoryid
-         WHERE sec.termid >= 2500           
-           AND sec.gradebooktype = 2                
-           
-         UNION ALL
-         
-         SELECT sec.DCID AS SECTIONSDCID       
-               
-               ,tb.STORECODE
-               ,tb.DATE1
-               ,tb.DATE2
-
-               ,d.GRADEFORMULASETID                
-               ,d.GRADECALCULATIONTYPEID
-               ,d.TYPE AS gct_type       
-
-               ,gcfw.GRADECALCFORMULAWEIGHTID
-               ,gcfw.TEACHERCATEGORYID
-               ,gcfw.DISTRICTTEACHERCATEGORYID
-               ,gcfw.WEIGHT
-               ,gcfw.TYPE AS gcfw_type        
-        
-               ,tc.TEACHERMODIFIED
-               ,tc.NAME AS tc_name
-               ,tc.DEFAULTSCORETYPE AS tc_defaultscoretype
-               ,tc.ISINFINALGRADES AS tc_ISINFINALGRADES
-
-               ,dtc.NAME AS dtc_name
-               ,dtc.DEFAULTSCORETYPE AS dtc_DEFAULTSCORETYPE
-               ,dtc.ISINFINALGRADES AS dtc_ISINFINALGRADES                
-         FROM SECTIONS sec       
-         JOIN TermBins tb
-           ON sec.schoolid = tb.schoolid
-          AND sec.termid = tb.termid            
          JOIN TERMS rt
            ON tb.termid = rt.id
           AND sec.schoolid = rt.schoolid
@@ -174,14 +128,19 @@ BEGIN
           AND SUBSTR(sec.termid, 0, 2) = d.yearid
           AND tb.storecode = d.storecode
           AND rt.abbreviation = d.abbreviation
+         LEFT OUTER JOIN GradeFormulaSet gfs         
+           ON sec.DCID = gfs.SECTIONSDCID         
+         JOIN GradeCalculationType gct
+           ON gfs.GRADEFORMULASETID = gct.gradeformulasetid    
+          AND tb.storecode = gct.storecode 
          LEFT OUTER JOIN GradeCalcFormulaWeight gcfw
-           ON d.gradecalculationtypeid = gcfw.gradecalculationtypeid
+           ON COALESCE(gct.GRADECALCULATIONTYPEID, d.GRADECALCULATIONTYPEID) = gcfw.gradecalculationtypeid
          LEFT OUTER JOIN TeacherCategory tc
            ON gcfw.teachercategoryid = tc.teachercategoryid 
          LEFT OUTER JOIN DistrictTeacherCategory dtc
            ON gcfw.districtteachercategoryid = dtc.districtteachercategoryid
          WHERE sec.termid >= 2500           
-           AND sec.gradebooktype = 2   
+           AND sec.gradebooktype = 2    
         ) sub
   ')
 

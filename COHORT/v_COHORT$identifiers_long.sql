@@ -4,7 +4,10 @@ GO
 ALTER VIEW COHORT$identifiers_long AS
 
 SELECT co.schoolid
-      ,CONVERT(INT,CONCAT(co.schoolid, sp.programid)) AS reporting_schoolid
+      ,CASE
+        WHEN sp.program_name = 'Out of District' THEN sp.programid
+        ELSE CONVERT(INT,CONCAT(co.schoolid, sp.programid)) 
+       END AS reporting_schoolid
       ,CASE
         WHEN co.schoolid = 73252 THEN 'MS'
         WHEN co.grade_level <= 4 THEN 'ES'

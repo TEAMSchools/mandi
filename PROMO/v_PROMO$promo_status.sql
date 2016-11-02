@@ -38,7 +38,7 @@ WITH attendance AS (
 ,lit AS (
   SELECT lit.student_number
         ,lit.academic_year
-        ,lit.test_round AS term
+        ,CASE WHEN lit.test_round = 'DR' AND is_curterm = 1 THEN 'Q1' ELSE lit.test_round END AS term
         ,lit.read_lvl
         ,lit.goal_lvl      
         ,lit.goal_status        
@@ -53,7 +53,7 @@ WITH attendance AS (
         ,lit.lvl_num - MAX(CASE WHEN lit.rn_round_asc = 1 THEN lit.lvl_num END) OVER(PARTITION BY lit.student_number, lit.academic_year) AS lvls_grown_yr        
         ,lit.lvl_num - LAG(lit.lvl_num, 1) OVER(PARTITION BY lit.student_number, lit.academic_year ORDER BY lit.rn_round_asc) AS lvls_grown_term        
   FROM KIPP_NJ..LIT$achieved_by_round#static lit WITH(NOLOCK)  
-  WHERE lit.start_date <= CONVERT(DATE,GETDATE()) OR lit.test_round = 'Q1' /* only pull current rounds or Q1 (sub for DR at beginning of year)*/
+  WHERE lit.start_date <= CONVERT(DATE,GETDATE())
  )
 
 ,final_grades AS (
@@ -133,7 +133,7 @@ FROM
 
            /* lit */
            ,CASE                     
-             WHEN lit.lvls_grown_term IS NULL OR lit.n_growth_rounds < 0 THEN NULL                
+             --WHEN lit.lvls_grown_term IS NULL OR lit.n_growth_rounds < 0 THEN NULL                
              /* Life Upper students have different promo criteria */
              WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.goal_status IN ('On Track','Off Track') THEN 'On Track' /* if On Track, then On Track*/
              WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_yr >= lit.n_growth_rounds THEN 'On Track' /* if grew 1 lvl per round overall, then On Track */        

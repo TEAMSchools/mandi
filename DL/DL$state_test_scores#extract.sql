@@ -23,13 +23,13 @@ WITH unioned AS (
           ELSE NULL
          END AS is_proficient    
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-  JOIN KIPP_NJ..AUTOLOAD$GDOCS_PARCC_district_summative_record_file parcc WITH(NOLOCK)
-    ON parcc.statestudentidentifier = co.SID  
-   AND LEFT(parcc.assessmentYear, 4) = co.year 
-   AND parcc.recordtype = 1 
-   AND parcc.reportedsummativescoreflag = 'Y'
-   AND parcc.multiplerecordflag IS NULL
-   AND parcc.reportsuppressioncode IS NULL
+  JOIN KIPP_NJ..PARCC$district_summative_record_file parcc WITH(NOLOCK)
+    ON co.SID = parcc.statestudentidentifier
+   AND co.year = LEFT(parcc.assessmentYear,4)
+   --AND parcc.recordtype = 1 
+   --AND parcc.reportedsummativescoreflag = 'Y'
+   --AND parcc.multiplerecordflag IS NULL
+   --AND parcc.reportsuppressioncode IS NULL
   WHERE co.year >= 2014  
     AND co.rn = 1
 
@@ -54,7 +54,14 @@ WITH unioned AS (
   WHERE co.rn = 1
  )
 
-SELECT *
+SELECT student_number
+      ,CONCAT(academic_year, '-', (academic_year + 1)) AS academic_year
+      ,test_type
+      ,subject
+      ,test_name
+      ,scale_score
+      ,proficiency_level
+      ,is_proficient
       ,ROW_NUMBER() OVER(
          PARTITION BY student_number, subject
            ORDER BY academic_year) AS test_index

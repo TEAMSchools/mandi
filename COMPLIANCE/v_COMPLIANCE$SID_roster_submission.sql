@@ -173,7 +173,7 @@ SELECT co.student_number AS LocalIdentificationNumber
         WHEN co.LEP_STATUS IS NOT NULL AND nj.LEPProgramCompletionDate IS NULL THEN '!'
         ELSE CONVERT(VARCHAR,nj.LEPProgramCompletionDate)
        END AS LEPProgramCompletionDate  /* hand entry -- SPED follow up */
-      ,nj.NonPublic /* out-of-district placementa -- SPED follow up */
+      ,nj.NonPublic /* out-of-district placements -- SPED follow up */
       ,CASE       
         WHEN nj.stateidentificationnumber IS NULL AND co.schoolid LIKE '1799%' THEN '0408'
         WHEN nj.stateidentificationnumber IS NULL AND co.schoolid NOT LIKE '1799%' THEN '0714'        

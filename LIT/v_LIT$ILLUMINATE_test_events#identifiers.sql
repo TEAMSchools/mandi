@@ -7,7 +7,7 @@ WITH clean_data AS (
   SELECT CONCAT('IL', repository_id, repository_row_id) AS unique_id
         ,student_id AS student_number
         ,LEFT([academic_year],4) AS academic_year
-        ,[test_round]
+        ,CASE WHEN [test_round] = 'Diagnostic' THEN 'DR' ELSE test_round END AS test_round
         ,CONVERT(DATE,[date_administered]) AS [date_administered]
         ,LTRIM(RTRIM([status])) AS [status]
         ,LTRIM(RTRIM(COALESCE([level_tested], [instructional_level_tested]))) AS [instructional_level_tested]

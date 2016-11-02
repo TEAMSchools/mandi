@@ -51,7 +51,7 @@ WITH assessments AS (
              ,a.term             
              ,a.unit_number
        FROM assessments a WITH(NOLOCK)                
-       WHERE a.field_name IN ('field_interim','field_year')
+       WHERE a.field_name IN ('field_interim','field_year','field_course')
       ) sub
   PIVOT(
     MAX(field_value)
@@ -77,4 +77,4 @@ JOIN test_metadata t WITH(NOLOCK)
   ON a.repository_id = t.repository_id
  AND a.repository_row_id = t.repository_row_id
  AND t.term LIKE 'Q%'
-WHERE a.field_name NOT IN ('field_interim','field_year')
+WHERE a.field_name NOT IN ('field_interim','field_year','field_course')
