@@ -55,7 +55,7 @@ WITH roster AS (
 		     ,g.academic_year
 		     ,g.credittype
   		   ,CASE 
-         WHEN g.y1_grade_percent >= 68 THEN g.credit_hours
+         WHEN g.y1_grade_percent >= 60 THEN g.credit_hours
 		       ELSE 0
 		      END AS credits
 		     ,'Potential Credit' as status
@@ -67,7 +67,7 @@ WITH roster AS (
 	FROM KIPP_NJ..GRADES$final_grades_long#static g WITH(NOLOCK)
 	WHERE g.schoolid = 73253
 	  AND g.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-	  AND g.term = 'Q1'
+	  AND g.term = 'Q4'
 )
 
 SELECT r.student_number
