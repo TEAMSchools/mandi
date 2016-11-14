@@ -92,7 +92,7 @@ WHERE dupe = 1
 
 --FOLLETT DESTINY
 
-/*
+--/*
 
 SELECT roster.last_name AS slast
       ,roster.first_name AS sfirst
@@ -118,17 +118,17 @@ SELECT roster.last_name AS slast
 
 FROM roster
 
-WHERE roster.ENTRYDATE >= '2016-08-09'
+WHERE roster.ENTRYDATE >= '2016-08-01'
 AND dupe = 1
 
 ORDER BY roster.schoolid
 		,roster.grade_level
 		,roster.lastfirst
 
-*/
+--*/
 
 --FASTT MATH
---/*
+/*
 
 SELECT student_number AS SIS_ID
       ,grade_level AS GRADE
@@ -154,7 +154,7 @@ ORDER BY schoolid
 		,lastfirst
 
 
---*/
+*/
 
 --READ LIVE SERIOUSLY DIE
 --this gets a roster of all new students for Rise and TEAM... because you cannot update students via import to readlive, only add new students (!)
@@ -308,10 +308,10 @@ SELECT
 FROM roster
 
 WHERE dupe = 1
-      AND dateenrolled >= '2016-08-22'
+      AND entrydate >= '2016-10-11'
 	  AND grade_level <= 8
-	  OR ENTRYDATE >= '2016-08-22'
-	  	  AND grade_level <= 8
+--	  AND ENTRYDATE >= '2016-10-04'
+	  	 -- AND grade_level <= 8
 --	  AND LAST_NAME = 'McQuiller'
 -- AND SCHOOLID != 73252
 --	  AND schoolid NOT IN (179901)
