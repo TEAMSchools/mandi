@@ -25,7 +25,7 @@ BEGIN
       FROM pgfinalgrades pgf       
       WHERE pgf.comment_value IS NOT NULL         
         AND pgf.finalgradename LIKE ''Q%''
-        AND pgf.startdate >= TO_DATE(''2015-07-01'',''YYYY-MM-DD'') /* UPDATE DATE ANNUALLY */
+        AND pgf.startdate >= TO_DATE(''2016-07-01'',''YYYY-MM-DD'') /* UPDATE DATE ANNUALLY */
     ')
    )
 
@@ -55,7 +55,7 @@ BEGIN
     ,SOURCE.startdate
     ,SOURCE.finalgradename
     ,SOURCE.comment_value)
-  WHEN NOT MATCHED BY SOURCE AND TARGET.startdate >= '2015-07-01' THEN /* UPDATE ANNUALLY */
+  WHEN NOT MATCHED BY SOURCE AND TARGET.startdate >= '2016-07-01' THEN /* UPDATE ANNUALLY */
    DELETE;
   --OUTPUT $ACTION, DELETED.*
 

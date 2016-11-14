@@ -5,6 +5,7 @@ ALTER VIEW COHORT$identifiers_scaffold AS
 
 SELECT co.year
       ,co.schoolid
+      ,co.reporting_schoolid
       ,co.school_name
       ,co.grade_level
       ,co.studentid

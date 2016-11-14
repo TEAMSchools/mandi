@@ -91,6 +91,7 @@ WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     
 UNION ALL
 
+/* modified and replacements */
 SELECT co.reporting_schoolid AS schoolid
       ,co.year AS academic_year
       ,co.grade_level
@@ -107,7 +108,7 @@ SELECT co.reporting_schoolid AS schoolid
       ,a.scope            
       ,a.subject_area AS subject      
       ,a.administered_at
-      ,0 AS is_replacement
+      ,CASE WHEN CHARINDEX(REPLACE(co.grade_level, 0, 'K'), a.tags) = 0 THEN 1 ELSE 0 END AS is_replacement
       
       ,ovr.date_taken
       ,CASE 
@@ -140,7 +141,7 @@ JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
   ON ovr.assessment_id = a.assessment_id 
  AND a.scope IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2')
  AND a.subject_area IN ('Text Study','Mathematics','Science','Social Studies')  
- AND a.title LIKE '%SPED%' /* only modified */
+ AND (a.title LIKE '%SPED%' OR CHARINDEX(REPLACE(co.grade_level, 0, 'K'), a.tags) = 0)
 LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON co.studentid = enr.studentid
  AND co.year = enr.academic_year
@@ -252,7 +253,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
  AND enr.drop_flags = 0     
  AND enr.rn_subject = 1
 WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  AND a.scope NOT IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2')
+  AND (a.scope NOT IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2') OR a.scope IS NULL)
   AND co.reporting_schoolid != 5173 /* exclude OoD Placements */
 
 UNION ALL

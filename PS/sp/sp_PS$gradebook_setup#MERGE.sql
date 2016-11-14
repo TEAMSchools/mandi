@@ -130,7 +130,7 @@ BEGIN
           AND rt.abbreviation = d.abbreviation
          LEFT OUTER JOIN GradeFormulaSet gfs         
            ON sec.DCID = gfs.SECTIONSDCID         
-         JOIN GradeCalculationType gct
+         LEFT OUTER JOIN GradeCalculationType gct
            ON gfs.GRADEFORMULASETID = gct.gradeformulasetid    
           AND tb.storecode = gct.storecode 
          LEFT OUTER JOIN GradeCalcFormulaWeight gcfw

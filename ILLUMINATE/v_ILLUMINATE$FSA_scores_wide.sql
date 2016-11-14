@@ -40,25 +40,48 @@ WITH standards_rollup AS (
 SELECT academic_year
       ,reporting_week
       ,student_number      
-      ,[MATH_ADV]
-      ,[MATH_PROF]
-      ,[MATH_NY]
       ,[ELA_ADV]
       ,[ELA_PROF]
       ,[ELA_NY]
-      ,[SPEC_ADV]
-      ,[SPEC_PROF]
-      ,[SPEC_NY]
+            
+      ,[MATH_ADV]
+      ,[MATH_PROF]      
+      ,[MATH_NY]      
+      
+      ,[SCI_ADV]
+      ,[SCI_PROF]
+      ,[SCI_NY]
+
+      ,[SOC_ADV]
+      ,[SOC_PROF]
+      ,[SOC_NY]
+      
+      ,[PERFARTS_ADV]
+      ,[PERFARTS_PROF]
+      ,[PERFARTS_NY]      
+
+      ,[VIZARTS_ADV]
+      ,[VIZARTS_PROF]
+      ,[VIZARTS_NY]      
 FROM standards_rollup          
 PIVOT(
   MAX(std)
-  FOR subj_prof IN ([MATH_ADV]
-                     ,[MATH_PROF]
-                     ,[MATH_NY]
-                     ,[ELA_ADV]
-                     ,[ELA_PROF]
-                     ,[ELA_NY]
-                     ,[SPEC_ADV]
-                     ,[SPEC_PROF]
-                     ,[SPEC_NY])
+  FOR subj_prof IN ([ELA_ADV]
+                   ,[ELA_PROF]
+                   ,[ELA_NY]            
+                   ,[MATH_ADV]
+                   ,[MATH_PROF]      
+                   ,[MATH_NY]            
+                   ,[SCI_ADV]
+                   ,[SCI_PROF]
+                   ,[SCI_NY]
+                   ,[SOC_ADV]
+                   ,[SOC_PROF]
+                   ,[SOC_NY]      
+                   ,[PERFARTS_ADV]
+                   ,[PERFARTS_PROF]
+                   ,[PERFARTS_NY]
+                   ,[VIZARTS_ADV]
+                   ,[VIZARTS_PROF]
+                   ,[VIZARTS_NY])
  ) p

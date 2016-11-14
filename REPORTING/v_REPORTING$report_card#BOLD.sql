@@ -3,19 +3,43 @@ GO
 
 ALTER VIEW REPORTING$report_card#BOLD AS 
 
-WITH curterm AS (
-  SELECT alt_name
-        ,time_per_name
+WITH stmath AS (
+  SELECT student_number
+        ,start_year
+        ,SUM(K_5_Progress) AS total_pct_progress
+  FROM
+      (
+       SELECT stm.school_student_id AS student_number                                          
+             ,stm.start_year
+             ,stm.K_5_Progress      
+             ,ROW_NUMBER() OVER(
+                PARTITION BY stm.school_student_id, stm.start_year, stm.GCD
+                  ORDER BY stm.week_ending_date DESC) AS rn_gcd
+       FROM KIPP_NJ..STMATH$progress_completion_long stm WITH(NOLOCK)
+       JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+         ON stm.school_student_id = co.student_number
+        AND stm.start_year = co.year
+        AND co.rn = 1
+       WHERE stm.start_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+      ) sub
+  WHERE rn_gcd = 1
+  GROUP BY student_number
+          ,start_year
+ )
+
+,curterm AS (
+  SELECT academic_year
         ,start_date
+        ,time_per_name
+        ,alt_name
         ,ROW_NUMBER() OVER(
-           PARTITION BY schoolid
-             ORDER BY end_date DESC) AS rn
-  FROM KIPP_NJ..REPORTING$dates WITH(NOLOCK)
-  WHERE identifier = 'RT'   
-    AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-    --AND CONVERT(DATE,GETDATE()) >= end_date   
-    AND schoolid = 73258
- )     
+           PARTITION BY academic_year
+             ORDER BY start_date DESC) AS rn
+  FROM KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
+  WHERE d.schoolid = 73258  
+    AND d.identifier = 'RT'
+    AND d.end_date <= CONVERT(DATE,GETDATE())
+ )
 
 SELECT co.student_number
       ,co.year AS academic_year            
@@ -34,25 +58,17 @@ SELECT co.student_number
 
       /* date stuff */
       ,FORMAT(GETDATE(),'MMMM dd, yyy') AS today_text
-      ,d.alt_name AS curterm                  
+      ,d.alt_name AS curterm      
+      ,d.time_per_name
+      ,1 AS rn_week
 
       /* Attendance & Tardies */    
       /* Year */
       ,CONCAT(att_counts.abs_all_counts_yr, ' - ', ROUND(att_pct.abs_all_pct_yr,0), '%') AS Y1_absences_total
       ,CONCAT(att_counts.tdy_all_counts_yr, ' - ', ROUND(att_pct.tdy_all_pct_yr,0), '%') AS Y1_tardies_total
       /* Current */            
-      ,CONCAT(att_counts.abs_all_counts_term, ' - ', ROUND(att_pct.abs_all_pct_term,0), '%') AS curterm_absences_total
-      ,CONCAT(att_counts.tdy_all_counts_term, ' - ', ROUND(att_pct.tdy_all_pct_term,0), '%') AS curterm_tardies_total
-      
-      /* daily tracking */
-      ,dt.rc_bold_points AS CUR_BOLD_points
-      ,dt.rc_hw_comp_pct AS CUR_hw_comp_pct      
-      ,dt.rc_hw_inc_pct AS CUR_hw_inc_pct
-      ,dt.rc_uniform_pct AS CUR_uniform_pct
-      ,dt.Y1_BOLD_points
-      ,dt.Y1_hw_comp_pct      
-      ,dt.Y1_hw_inc_pct      
-      ,dt.Y1_uniform_pct
+      ,CONCAT(att_counts.abs_all_counts_term, ' - ', ROUND(att_pct.abs_all_pct_term,0), '%') AS curterm_absences_total      
+      ,CONCAT(att_counts.tdy_all_counts_term, ' - ', ROUND(att_pct.tdy_all_pct_term,0), '%') AS curterm_tardies_total      
       
       /* AR */
       ,ar.mastery AS AR_Y1_avg_pct_correct       
@@ -62,37 +78,30 @@ SELECT co.student_number
       ,ar_CUR.mastery AS AR_CUR_avg_pct_correct
       ,ar_cur.stu_status_words AS AR_CUR_status
 
-      /* standards */      
-      ,stds.MATH_PROF_stds
-      ,stds.MATH_APPRO_stds
-      ,stds.MATH_NY_stds      
-      ,stds.MATH_PROF_N
-      ,stds.MATH_APPRO_N
-      ,stds.MATH_NY_N      
-      ,stds.ELA_PROF_stds
-      ,stds.ELA_APPRO_stds
-      ,stds.ELA_NY_stds                  
-      ,stds.ELA_PROF_N
-      ,stds.ELA_APPRO_N
-      ,stds.ELA_NY_N      
-      ,stds.HIST_PROF_stds
-      ,stds.HIST_APPRO_stds
-      ,stds.HIST_NY_stds                   
-      ,stds.HIST_PROF_N
-      ,stds.HIST_APPRO_N
-      ,stds.HIST_NY_N
-      ,stds.SCI_PROF_stds
-      ,stds.SCI_APPRO_stds
-      ,stds.SCI_NY_stds                   
-      ,stds.SCI_PROF_N
-      ,stds.SCI_APPRO_N
-      ,stds.SCI_NY_N
-      ,stds.PERFARTS_PROF_stds
-      ,stds.PERFARTS_APPRO_stds
-      ,stds.PERFARTS_NY_stds                   
-      ,stds.PERFARTS_PROF_N
-      ,stds.PERFARTS_APPRO_N
-      ,stds.PERFARTS_NY_N      
+      /* Standards */
+      ,fsa.ELA_ADV
+      ,fsa.ELA_PROF
+      ,fsa.ELA_NY
+
+      ,fsa.MATH_ADV
+      ,fsa.MATH_PROF
+      ,fsa.MATH_NY
+
+      ,fsa.SCI_ADV
+      ,fsa.SCI_PROF
+      ,fsa.SCI_NY
+
+      ,fsa.SOC_ADV
+      ,fsa.SOC_PROF
+      ,fsa.SOC_NY
+
+      ,fsa.PERFARTS_ADV
+      ,fsa.PERFARTS_PROF
+      ,fsa.PERFARTS_NY
+
+      ,fsa.VIZARTS_ADV
+      ,fsa.VIZARTS_PROF
+      ,fsa.VIZARTS_NY
 
       /* CMA data*/
       ,cma.MATH_short_title
@@ -102,26 +111,26 @@ SELECT co.student_number
 
       /* exit ticket avgs */
       ,etix.ELA AS ELA_exit_tix
-      ,etix.MATH AS MATH_exit_tix
+      ,etix.MATH AS MATH_exit_tix      
       ,etix.SCI AS SCI_exit_tix
-      ,etix.HIST AS HIST_exit_tix
+      ,etix.SOC AS SOC_exit_tix
       ,etix.PERFARTS AS PERFARTS_exit_tix
+      ,etix.VIZARTS AS VIZARTS_exit_tix
 
-      /* ST Math */
-      ,ROUND(stm.total_completion,0) AS stmath_completion
+      /* ST Math */      
+      ,ROUND(stmath.total_pct_progress,0) AS stmath_completion
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-LEFT OUTER JOIN curterm d WITH(NOLOCK)
-  ON d.rn = 1
+LEFT OUTER JOIN curterm d
+  ON co.year = d.academic_year
+ AND d.rn = 1
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH(NOLOCK)
   ON co.studentid = att_counts.studentid
  AND co.year = att_counts.academic_year
  AND d.alt_name = att_counts.term
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_percentages_long att_pct WITH(NOLOCK)
   ON co.studentid = att_pct.studentid
- AND co.year = att_pct.academic_year
+ AND co.year = att_pct.academic_Year
  AND d.alt_name = att_pct.term
-LEFT OUTER JOIN KIPP_NJ..DAILY$tracking_totals#BOLD#static dt WITH(NOLOCK)
-  ON co.studentid = dt.STUDENTID
 LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
   ON co.student_number = ar.student_number
  AND co.year = ar.academic_year
@@ -130,17 +139,20 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar_cur WITH(NOLOCK)
   ON co.student_number = ar_cur.student_number
  AND co.year = ar_cur.academic_year
  AND REPLACE(d.alt_name, 'Q', 'RT') = ar_cur.time_period_name
-LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$RC_standards_wide#BOLD stds WITH(NOLOCK)
-  ON co.student_number = stds.student_number
- AND d.alt_name = stds.term
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$FSA_scores_wide#static fsa WITH(NOLOCK)
+  ON co.student_number = fsa.student_number
+ AND co.year = fsa.academic_year
+ AND d.time_per_name = fsa.reporting_week
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$CMA_scores_wide#static cma WITH(NOLOCK)
   ON co.student_number = cma.student_number
  AND co.year = cma.academic_year
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$exit_ticket_avg etix WITH(NOLOCK)
   ON co.student_number = etix.local_student_id
+ AND co.year = etix.academic_year
  AND d.alt_name = etix.term
-LEFT OUTER JOIN STMATH..summary_by_enrollment stm WITH(NOLOCK)
-  ON co.student_number = stm.student_number
+LEFT OUTER JOIN stmath WITH(NOLOCK)
+  ON co.student_number = stmath.student_number
+ AND co.year = stmath.start_year
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  AND co.schoolid = 73258
+  AND co.reporting_schoolid = 73258
   AND co.rn = 1

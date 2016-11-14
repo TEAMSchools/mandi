@@ -98,7 +98,7 @@ FROM
      SELECT co.student_number
            ,co.lastfirst
            ,co.year
-           ,co.schoolid
+           ,co.reporting_schoolid AS schoolid
            ,co.grade_level
            ,co.team
            ,co.advisor

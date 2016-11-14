@@ -6,7 +6,7 @@ ALTER VIEW TABLEAU$lit_tracker AS
 /* student identifiers */
 SELECT co.school_name
       ,co.school_level
-      ,CASE WHEN achv.start_date >= CONVERT(DATE,GETDATE()) THEN NULL ELSE co.student_number END AS student_number
+      ,CASE WHEN CONVERT(DATE,GETDATE()) >= achv.start_date THEN co.student_number END AS student_number
       ,co.lastfirst AS student_name
       ,co.grade_level      
       ,co.team
@@ -106,9 +106,11 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
  AND co.year = ar.academic_year
  AND term.hex = ar.time_period_name 
  AND ar.start_date <= CONVERT(DATE,GETDATE())
+ AND ar.N_total > 0
 WHERE co.rn = 1
   AND co.grade_level != 99
   AND co.year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
+  AND co.reporting_schoolid != 5173
 
 UNION ALL
 

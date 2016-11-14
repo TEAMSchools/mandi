@@ -70,12 +70,24 @@ FROM
            ,a.module_num
            ,a.scope      
            ,CONVERT(INT,ovr.local_student_id) AS student_number
-           ,ROUND(AVG(CONVERT(FLOAT,ovr.percent_correct)),0) AS percent_correct      
+           ,ROUND(AVG(CONVERT(FLOAT,CASE 
+                                     WHEN a.scope = 'CMA - End of Module' AND a.subject_area IN ('Text Study','Social Studies') AND mc.percent_correct IS NOT NULL THEN (ovr.percent_correct * 0.6 * 2) /* weighted SR EOM */
+                                     WHEN a.scope = 'CMA - End of Module' AND a.subject_area IN ('Text Study','Social Studies') AND oer.percent_correct IS NOT NULL THEN (ovr.percent_correct * 0.4 * 2) /* weighted OER EOM */
+                                     ELSE ovr.percent_correct 
+                                    END)),0) AS percent_correct      
            ,MIN(rn_unit) AS rn_unit
      FROM assessments a    
      JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
        ON a.assessment_id = ovr.assessment_id   
       AND ovr.answered > 0
+     LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_group#static mc WITH(NOLOCK)
+       ON ovr.local_student_id = mc.local_student_id
+      AND a.assessment_id = mc.assessment_id
+      AND mc.reporting_group = 'Multiple Choice'
+     LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_group#static oer WITH(NOLOCK)
+       ON ovr.local_student_id = oer.local_student_id
+      AND a.assessment_id = oer.assessment_id
+      AND oer.reporting_group = 'Open-Ended Response'
      GROUP BY a.subject_area
              ,a.academic_year
              ,a.module_num

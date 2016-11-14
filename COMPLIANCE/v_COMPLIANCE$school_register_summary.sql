@@ -14,6 +14,7 @@ WITH schooldays AS (
              ,CASE WHEN schoolid LIKE '1799%' THEN 'KCNA' ELSE 'TEAM' END AS region
              ,SUM(membershipvalue) AS N_days
        FROM KIPP_NJ..PS$calendar_day WITH(NOLOCK)
+       WHERE CONVERT(DATE,date_value) <= CONVERT(DATE,GETDATE())
        GROUP BY academic_year
                ,schoolid
       ) sub
@@ -36,6 +37,7 @@ SELECT sub.academic_year
       ,co.SID
       ,co.lastfirst
       ,co.schoolid
+      ,co.reporting_schoolid
       ,CASE WHEN co.schoolid LIKE '1799%' THEN 'KCNA' ELSE 'TEAM' END AS region      
       ,co.grade_level
       ,co.entrydate

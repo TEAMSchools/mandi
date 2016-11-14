@@ -6,11 +6,12 @@ ALTER VIEW ILLUMINATE$exit_ticket_avg AS
 SELECT academic_year
       ,local_student_id
       ,term
-      ,[ELA]
-      ,[HIST]
+      ,[ELA]      
       ,[MATH]
       ,[SCI]
+      ,[SOC]
       ,[PERFARTS]
+      ,[VIZARTS]
 FROM
     (
      SELECT academic_year
@@ -25,10 +26,11 @@ FROM
                 ,CASE
                   WHEN a.subject_area = 'Text Study' THEN 'ELA'                    
                   WHEN a.subject_area = 'Mathematics' THEN 'MATH'
-                  WHEN a.subject_area = 'History' THEN 'HIST'
                   WHEN a.subject_area = 'Science' THEN 'SCI'
+                  WHEN a.subject_area IN ('Social Studies','History') THEN 'SOC' 
                   WHEN a.subject_area = 'Performing Arts' THEN 'PERFARTS'
-                  ELSE a.subject_area
+                  WHEN a.subject_area = 'Visual Arts' THEN 'VIZARTS'
+                  ELSE ISNULL(a.subject_area,'Missing')
                  END AS subj_abbrev
                 ,d.alt_name AS term
                 ,CONVERT(FLOAT,ovr.percent_correct) AS percent_correct                  
@@ -47,7 +49,7 @@ FROM
            AND d.identifier = 'RT'
           JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
             ON ovr.assessment_id = a.assessment_id
-           AND a.scope IN ('Exit Ticket','Common FSA','Topic Assessments')
+           AND (a.scope NOT IN ('CMA - Mid-Module', 'CMA - End-of-Module','Process Piece','KIPP Network-Wide') OR a.scope IS NULL)
            AND a.subject_area IS NOT NULL                  
           WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
             AND ovr.answered > 0            
@@ -60,8 +62,9 @@ FROM
 PIVOT(
   MAX(avg_pct_correct)
   FOR subj_abbrev IN ([ELA]
-                     ,[HIST]
                      ,[MATH]
                      ,[SCI]
-                     ,[PERFARTS])
+                     ,[SOC]
+                     ,[PERFARTS]
+                     ,[VIZARTS])
  ) p

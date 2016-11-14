@@ -8,7 +8,7 @@ WITH students AS (
         ,co.SID
         ,co.last_name
 	       ,co.first_name	       
-	       ,co.school_level
+	       ,CASE WHEN co.schoolid = 73258 THEN 'ES' ELSE co.school_level END AS school_level 
         ,co.reporting_schoolid AS schoolid
 	       ,co.school_name	       
         ,co.grade_level        
@@ -41,7 +41,7 @@ WITH students AS (
         ,enr.SECTION_NUMBER
         ,enr.dateenrolled
         ,enr.dateleft      
-        ,u.SIF_STATEPRID SMID
+        ,u.SIF_STATEPRID AS SMID
         ,ROW_NUMBER() OVER(
           PARTITION BY enr.student_number, enr.credittype
             ORDER BY enr.dateenrolled DESC) AS rn
@@ -61,7 +61,7 @@ WITH students AS (
         ,enr.SECTION_NUMBER
         ,enr.dateenrolled
         ,enr.dateleft      
-        ,u.SIF_STATEPRID SMID
+        ,u.SIF_STATEPRID AS SMID
         ,ROW_NUMBER() OVER(
           PARTITION BY enr.student_number, enr.credittype
             ORDER BY enr.dateenrolled DESC) AS rn
@@ -70,6 +70,38 @@ WITH students AS (
     ON enr.TEACHERNUMBER = u.TEACHERNUMBER
   WHERE enr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     AND enr.COURSE_NUMBER = 'HR'
+    AND enr.course_enr_status = 0
+    AND enr.drop_flags = 0
+
+  UNION ALL
+
+  SELECT enr.student_number
+        ,'MSHS' AS school_level
+        ,enr.CREDITTYPE
+        ,CASE                              
+          WHEN enr.COURSE_NUMBER IN ('MATH72','MATH13','M410') THEN 'MAT08'
+          WHEN enr.COURSE_NUMBER IN ('M415','MATH10','MATH71') THEN 'ALG01'
+          WHEN enr.COURSE_NUMBER IN ('MATH32','MATH35') THEN 'ALG02'
+          WHEN enr.COURSE_NUMBER IN ('MATH20','MATH25','MATH73') THEN 'GEO01'          
+          WHEN enr.CREDITTYPE = 'ENG' THEN CONCAT('ELA', RIGHT(CONCAT('0', enr.grade_level),2))
+          WHEN enr.CREDITTYPE = 'MATH' THEN CONCAT('MAT', RIGHT(CONCAT('0', enr.grade_level),2))
+         END AS testcode        
+        ,enr.COURSE_NAME
+        ,enr.SECTION_NUMBER
+        ,enr.dateenrolled
+        ,enr.dateleft      
+        ,u.SIF_STATEPRID AS SMID
+        ,ROW_NUMBER() OVER(
+          PARTITION BY enr.student_number, enr.credittype
+            ORDER BY enr.dateenrolled DESC) AS rn
+  FROM KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
+  JOIN KIPP_NJ..PS$USERS#static u WITH(NOLOCK)
+    ON enr.TEACHERNUMBER = u.TEACHERNUMBER
+  WHERE enr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()    
+    AND enr.CREDITTYPE IN ('MATH','ENG')
+    --AND enr.COURSE_NUMBER IN ('MATH72','MATH13','M410','M415','MATH10','MATH71','MATH32','MATH35','MATH20','MATH25','MATH73')
+    --AND enr.course_number NOT IN ('ENG17','ENG27','MATH11','MATH21','MATH31','MATH46R') /* intervention courses */
+    --AND enr.course_number NOT IN ('MATH40','MATH43','MATH47','MATH46') /* electives */
     AND enr.course_enr_status = 0
     AND enr.drop_flags = 0
  )
@@ -124,7 +156,13 @@ SELECT 'NJ' AS StateNameAbbreviation
       ,'N' AS GiftedAndTalented
       ,NULL AS MigrantStatus /*?*/
 
-      ,CASE WHEN s.lunchstatus IN ('F','R') THEN 'Y' ELSE 'N' END AS EconomicDisadvantageStatus      ,CASE        WHEN s.SPEDLEP LIKE '%SPEd%' THEN 'IEP'        WHEN s.STATUS_504 = 1 THEN '504'        ELSE 'N'       END AS StudentsWithDisabilities504Eligibility      ,CASE
+      ,CASE WHEN s.lunchstatus IN ('F','R') THEN 'Y' ELSE 'N' END AS EconomicDisadvantageStatus
+      ,CASE
+        WHEN s.SPEDLEP LIKE '%SPEd%' THEN 'IEP'
+        WHEN s.STATUS_504 = 1 THEN '504'
+        ELSE 'N'
+       END AS StudentsWithDisabilities504Eligibility
+      ,CASE
         WHEN s.SPED_code IS NULL THEN NULL
         WHEN s.SPED_code IN ('00','99') THEN NULL
         WHEN s.sped_code = 'AI' THEN 'HI'        
@@ -134,7 +172,11 @@ SELECT 'NJ' AS StateNameAbbreviation
         WHEN s.sped_code = 'CI' THEN 'SLI'
         WHEN s.sped_code = 'ED' THEN 'EMN'
         WHEN s.sped_code = 'PSD' THEN 'DD'
-        WHEN s.sped_code = 'ESLS' THEN 'SLI'        ELSE s.SPED_code       END AS PrimaryDisabilityType      ,CASE WHEN s.year_in_network = 1 THEN 'Y' ELSE 'N' END AS TimeInSchoolLessThanOneYear      
+        WHEN s.sped_code = 'ESLS' THEN 'SLI'
+        ELSE s.SPED_code
+       END AS PrimaryDisabilityType
+      ,CASE WHEN s.year_in_network = 1 THEN 'Y' ELSE 'N' END AS TimeInSchoolLessThanOneYear
+      
       ,NULL AS HomelessStatus /*?*/
       ,NULL AS ExemptFromPassing /*?*/
       ,NULL AS NJELLStatus /*?*/
@@ -163,21 +205,28 @@ SELECT 'NJ' AS StateNameAbbreviation
       
       ,NULL AS SpecialEducationPlacement /*?*/      
       ,1 AS StateAssessmentName
-      ,NULL AS DateFirstEnrolledInUSSchool /*?*/      ,NULL AS ELLAccommodation /*?*/
+      ,NULL AS DateFirstEnrolledInUSSchool /*?*/
+      ,NULL AS ELLAccommodation /*?*/
       ,NULL AS PaperTier /*?*/
       ,NULL AS AlternateACCESSTester /*?*/
       
       /* test assignments */
-      ,NULL AS SessionName /* {SCHOOL} - {TESTCODE} */
-      ,NULL AS ClassName /* {SCHOOL} - {TESTCODE} */
-      ,NULL AS TestAdministrator /* course teacher SMID */      ,NULL AS StaffMemberAssigned /* course teacher SMID */      ,NULL AS TestCode /* based on course */      ,'O' AS TestFormat
-      ,NULL AS PARCCRetest /*?*/      ,NULL AS FillerField2
+      ,c.rn
+      ,s.school_name + ' - ' + c.testcode AS SessionName /* {SCHOOL} - {TESTCODE} */
+      ,s.school_name + ' - ' + c.testcode AS ClassName /* {SCHOOL} - {TESTCODE} */
+      ,c.SMID AS TestAdministrator /* course teacher SMID */
+      ,c.SMID AS StaffMemberAssigned /* course teacher SMID */      
+      ,c.TestCode
+      ,'O' AS TestFormat
+      ,NULL AS PARCCRetest /*?*/
+      ,NULL AS FillerField2
 
       /* accommodations */
       ,NULL AS FrequentBreaks
       ,NULL AS AlternateLocation
       ,NULL AS SmallTestingGroup
-      ,NULL AS SpecializedEquipment      ,NULL AS SpecifiedAreaOrSetting
+      ,NULL AS SpecializedEquipment
+      ,NULL AS SpecifiedAreaOrSetting
       ,NULL AS TimeOfDay
       ,NULL AS AnswerMasking
       ,NULL AS ReadAssessmentAloud
@@ -188,7 +237,14 @@ SELECT 'NJ' AS StateNameAbbreviation
       ,NULL AS ClosedCaptioningELA
       ,NULL AS RefreshableBrailleDisplayELA
       ,NULL AS AlternateRepresentationPaper
-      ,NULL AS LargePrintPaper      ,NULL AS BrailleWithTactileGraphicsPaper      ,NULL AS FillerField3      ,NULL AS HumanSigner      ,NULL AS AnswersRecordedPaper      ,NULL AS BrailleResponse      ,NULL AS CalculationDeviceAndMathematicsTools      ,NULL AS ConstructedResponseELA
+      ,NULL AS LargePrintPaper
+      ,NULL AS BrailleWithTactileGraphicsPaper
+      ,NULL AS FillerField3
+      ,NULL AS HumanSigner
+      ,NULL AS AnswersRecordedPaper
+      ,NULL AS BrailleResponse
+      ,NULL AS CalculationDeviceAndMathematicsTools
+      ,NULL AS ConstructedResponseELA
       ,NULL AS SelectedResponseELA
       ,NULL AS ResponseMath
       ,NULL AS MonitorTestResponse
@@ -203,31 +259,10 @@ SELECT 'NJ' AS StateNameAbbreviation
       ,NULL AS UniqueAccommodation
       ,NULL AS EmergencyAccommodation
       ,NULL AS ExtendedTime
-      ,NULL AS EndOfRecord
       
-	     --,courses.credittype AS subject
-	     --,courses.course_name AS ps_course_name
-	     --,CASE 
-      --  WHEN courses.course_number IN ('MATH10','MATH71','MATH15','M415','M400') THEN 'ALG01'
-			   --  WHEN courses.course_number IN ('MATH25','MATH20') THEN 'GEO01'
-			   --  WHEN courses.course_number IN ('MATH32','MATH35') THEN 'ALG02'
-			   --  WHEN courses.credittype = 'MAT' AND s.grade_level <9 THEN courses.credittype + CONVERT(VARCHAR(20),0) + CONVERT(VARCHAR(20),s.grade_level)
-			   --  WHEN courses.course_number IN ('MATH13',',MATH72','MATH43','MATH40','MATH44')THEN 'No Test'
-			   --  WHEN courses.credittype = 'ELA' AND s.grade_level < 10 THEN courses.credittype + CONVERT(VARCHAR(20),0) + CONVERT(VARCHAR(20),s.grade_level)
-			   --  WHEN courses.credittype = 'ELA' AND s.grade_level >= 10 THEN courses.credittype + CONVERT(VARCHAR(20),s.grade_level)
-			   --  ELSE 'No Test' 
-			   -- END AS PARCC_testcode
-	     --,CASE 
-      --  WHEN ROW_NUMBER() OVER(
-				  --         PARTITION BY s.student_number, courses.credittype
-					 --           ORDER BY courses.dateenrolled DESC) > 1 THEN 'Multiple Enrollments' 
-			   --  WHEN courses.credittype IS NULL THEN 'Not Enrolled in Courses'
-			   --  ELSE NULL 
-      -- END AS 'Flag Enrollment'
-	     --,courses.teachernumber
-	     --,courses.teacher_name
+      ,NULL AS EndOfRecord
 FROM students s
---LEFT OUTER JOIN courses
---  ON s.student_number = courses.student_number
---WHERE s.grade_level <= 8 AND courses.rn = 1
---   OR s.grade_level >= 9
+LEFT OUTER JOIN courses c
+  ON s.student_number = c.student_number 
+ AND s.subject = c.credittype
+ AND CHARINDEX(s.school_level,c.school_level) > 0

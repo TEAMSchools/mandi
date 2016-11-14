@@ -15,17 +15,21 @@ SELECT student_number
       ,[M5]
 FROM
     (
-     SELECT res.local_student_id AS student_number                           
+     SELECT res.local_student_id AS student_number                                      
            ,a.academic_year
+           --,a.title
+           --,custom_code
            ,CASE
-             WHEN a.title LIKE '%Informative/Expository%' THEN 'Expository'
-             WHEN a.title LIKE '%Narrative%' THEN 'Narrative'
+             WHEN custom_code LIKE 'TES.W.KIPP.N%' THEN 'Narrative'
+             WHEN custom_code LIKE 'TES.W.KIPP.C%' THEN 'Expository'
+             WHEN custom_code LIKE 'TES.W.KIPP.L%' THEN 'Expository'
             END AS composition_type
            ,CASE
-             WHEN a.title LIKE '%Language' THEN 'Language'
-             WHEN a.title LIKE '%Content' THEN 'Content'
-             ELSE 'Narrative'
-            END AS rubric_type      
+             WHEN custom_code = 'TES.W.KIPP.C.G' THEN 'Language'
+             WHEN custom_code LIKE 'TES.W.KIPP.N%' THEN 'Narrative'
+             WHEN custom_code LIKE 'TES.W.KIPP.C%' THEN 'Content'
+             WHEN custom_code LIKE 'TES.W.KIPP.L%' THEN 'Language'
+            END AS rubric_type
            ,REPLACE(CONVERT(VARCHAR(MAX),std.description),'"','''') AS rubric_strand
            ,CASE
              WHEN a.title LIKE '%PARCC Simulation%' THEN 'M4'
@@ -38,11 +42,11 @@ FROM
        ON a.assessment_id = astd.assessment_id
      JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
        ON astd.standard_id = std.standard_id
-      AND std.custom_code LIKE 'T_S.W.%'
-     JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)
+      AND std.custom_code LIKE 'TES.W.%'
+     LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)
        ON a.assessment_id = res.assessment_id
       AND astd.standard_id  = res.standard_id
-     WHERE a.scope = 'CMA - End-of-Module'
+     WHERE a.scope = 'Process Piece'
        AND a.subject_area = 'Writing'
        AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     ) sub
