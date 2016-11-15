@@ -96,7 +96,7 @@ SELECT a.assessment_id
       ,co.reporting_schoolid AS schoolid
       ,'STANDARDS' AS audit_type
       ,CASE 
-        WHEN COUNT(DISTINCT std.custom_code) > 0 THEN 1 
+        WHEN COUNT(DISTINCT r.standard_id) > 0 THEN 1 
         ELSE 0 
        END AS audit_result
       --,COUNT(DISTINCT ovr.local_student_id) AS N_students_tested      
@@ -109,6 +109,10 @@ LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
   ON astd.standard_id = std.standard_id
 JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
   ON a.assessment_id = ovr.assessment_id
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard r WITH(NOLOCK)
+  ON a.assessment_id = r.assessment_id
+ AND std.standard_id = r.standard_id
+ AND ovr.local_student_id = r.local_student_id 
 JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   ON ovr.local_student_id = co.student_number
  AND a.academic_year = co.year

@@ -4,7 +4,7 @@ GO
 ALTER VIEW QA$lit_test_entry_audit AS
 
 /* student identifiers */
-SELECT CASE WHEN co.TEAM LIKE '%pathways%' THEN 'Pathways' ELSE co.school_name END AS school_name 
+SELECT co.school_name
       ,co.school_level
       ,CASE WHEN achv.start_date >= CONVERT(DATE,GETDATE()) THEN NULL ELSE co.student_number END AS student_number
       ,co.lastfirst AS student_name
