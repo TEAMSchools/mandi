@@ -155,10 +155,14 @@ SELECT roster.studentid
        /* AR curterm */
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, AR_CUR.WORDS),1),'.00','') AS HEX_WORDS
       ,REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, AR_CUR.WORDS_GOAL),1),'.00','') AS HEX_GOAL
+      --,CASE
+      --  WHEN AR_CUR.WORDS_GOAL - AR_CUR.WORDS < 0 THEN REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, 0),1),'.00','')
+      --  ELSE REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, AR_CUR.WORDS_GOAL - AR_CUR.WORDS),1),'.00','') 
+      -- END AS HEX_NEEDED
       ,CASE
-        WHEN AR_CUR.WORDS_GOAL - AR_CUR.WORDS < 0 THEN REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, 0),1),'.00','')
-        ELSE REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, AR_CUR.WORDS_GOAL - AR_CUR.WORDS),1),'.00','') 
-       END AS HEX_NEEDED
+        WHEN ar_cur.ontrack_words - ar_cur.words < 0 THEN '0'
+        ELSE REPLACE(CONVERT(VARCHAR,CONVERT(MONEY, ar_cur.ontrack_words - ar_cur.words),1),'.00','')
+       END AS hex_needed
       ,ar_cur.stu_status_words AS hex_on_track
       ,ar_cur.rank_words_grade_in_school AS hex_rank_words
       ,ar_cur.N_passed

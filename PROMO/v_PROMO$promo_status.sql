@@ -53,7 +53,7 @@ WITH attendance AS (
         ,lit.lvl_num - MAX(CASE WHEN lit.rn_round_asc = 1 THEN lit.lvl_num END) OVER(PARTITION BY lit.student_number, lit.academic_year) AS lvls_grown_yr        
         ,lit.lvl_num - LAG(lit.lvl_num, 1) OVER(PARTITION BY lit.student_number, lit.academic_year ORDER BY lit.rn_round_asc) AS lvls_grown_term        
   FROM KIPP_NJ..LIT$achieved_by_round#static lit WITH(NOLOCK)  
-  WHERE lit.start_date <= CONVERT(DATE,GETDATE())
+  --WHERE lit.start_date <= CONVERT(DATE,GETDATE())
  )
 
 ,final_grades AS (

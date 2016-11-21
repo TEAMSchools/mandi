@@ -42,6 +42,8 @@ SELECT co.reporting_schoolid AS schoolid
       ,enr.period
       ,enr.section_number           
       
+      ,goal.goal AS individualized_mastery_goal
+
       ,ROW_NUMBER() OVER(
          PARTITION BY co.student_number, a.assessment_id
            ORDER BY co.student_number) AS overall_rn      
@@ -84,6 +86,10 @@ LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_group#static oer WITH(
   ON co.student_number = oer.local_student_id
  AND a.assessment_id = oer.assessment_id
  AND oer.reporting_group = 'Open-Ended Response'
+LEFT OUTER JOIN KIPP_NJ..SPED$individual_mastery_goals#static goal WITH(NOLOCK)
+  ON co.student_number = goal.student_number
+ AND co.year = goal.academic_year
+ AND a.subject_area = goal.subject_area
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.enroll_status = 0  
   AND co.rn = 1       
@@ -131,6 +137,8 @@ SELECT co.reporting_schoolid AS schoolid
       ,enr.period
       ,enr.section_number           
       
+      ,goal.goal AS individualized_mastery_goal
+
       ,ROW_NUMBER() OVER(
          PARTITION BY co.student_number, a.assessment_id
            ORDER BY co.student_number) AS overall_rn      
@@ -171,6 +179,10 @@ LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_group#static oer WITH(
   ON co.student_number = oer.local_student_id
  AND a.assessment_id = oer.assessment_id
  AND oer.reporting_group = 'Open-Ended Response'
+LEFT OUTER JOIN KIPP_NJ..SPED$individual_mastery_goals#static goal WITH(NOLOCK)
+  ON co.student_number = goal.student_number
+ AND co.year = goal.academic_year
+ AND a.subject_area = goal.subject_area
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.enroll_status = 0  
   AND co.rn = 1       
@@ -213,6 +225,8 @@ SELECT co.reporting_schoolid AS schoolid
       ,enr.period
       ,enr.section_number
       
+      ,goal.goal AS individualized_mastery_goal
+
       ,ROW_NUMBER() OVER(
          PARTITION BY co.student_number, a.assessment_id
            ORDER BY co.student_number) AS overall_rn      
@@ -252,6 +266,10 @@ LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
           OR (co.schoolid != 73258 AND co.grade_level >= 5 AND a.subject_area = enr.illuminate_subject))
  AND enr.drop_flags = 0     
  AND enr.rn_subject = 1
+LEFT OUTER JOIN KIPP_NJ..SPED$individual_mastery_goals#static goal WITH(NOLOCK)
+  ON co.student_number = goal.student_number
+ AND co.year = goal.academic_year
+ AND a.subject_area = goal.subject_area
 WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND (a.scope NOT IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2') OR a.scope IS NULL)
   AND co.reporting_schoolid != 5173 /* exclude OoD Placements */
@@ -285,6 +303,7 @@ SELECT a.schoolid
       ,a.teacher_name
       ,a.period
       ,a.section_number
+      ,NULL AS individualized_mastery_goal
       ,a.overall_rn
 FROM KIPP_NJ..TABLEAU$assessment_dashboard#archive a WITH(NOLOCK)
 

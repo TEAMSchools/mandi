@@ -369,7 +369,7 @@ WITH roster AS (
     ON res.standard_id = std.standard_id
   WHERE a.scope IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2')
     AND a.subject_area != 'Writing'
-    AND a.academic_year >= 2015
+    AND a.academic_year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
 
   UNION ALL
 
@@ -393,7 +393,7 @@ WITH roster AS (
   JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)
     ON res.standard_id = std.standard_id
    AND std.custom_code LIKE 'T_S.W.%'
-  WHERE a.scope = 'CMA - End-of-Module'
+  WHERE a.scope = 'Process Piece'
     AND a.subject_area = 'Writing'  
     AND a.academic_year >= 2015
  )
@@ -560,7 +560,7 @@ WITH roster AS (
           WHEN parcc.summativeperformancelevel = 2 THEN 'Partially Met'
           WHEN parcc.summativeperformancelevel = 1 THEN 'Did Not Meet'
          END AS performance_level_label       
-  FROM KIPP_NJ..AUTOLOAD$GDOCS_PARCC_district_summative_record_file parcc WITH(NOLOCK)
+  FROM KIPP_NJ..PARCC$district_summative_record_file parcc WITH(NOLOCK)
 
   UNION ALL
 
@@ -635,19 +635,19 @@ WITH roster AS (
   UNION ALL
   
   /* SAT */
-  SELECT hs_student_id AS student_number
+  SELECT student_number
         ,BINI_ID
-        ,KIPP_NJ.dbo.fn_DateToSY(CONVERT(DATE,CASE WHEN test_date = '0000-00-00' THEN NULL ELSE REPLACE(test_date,'-00','-01') END)) AS academic_year
-        ,CONVERT(DATE,CASE WHEN test_date = '0000-00-00' THEN NULL ELSE REPLACE(test_date,'-00','-01') END) AS test_date      
+        ,academic_year
+        ,test_date      
         ,'SAT' AS test_name
         ,subject
         ,scale_score
         ,NULL AS performance_level
         ,NULL AS performance_level_label
-  FROM KIPP_NJ..AUTOLOAD$NAVIANCE_2_sat_scores WITH(NOLOCK)
+  FROM KIPP_NJ..NAVIANCE$SAT_clean  WITH(NOLOCK)
   UNPIVOT(
     scale_score
-    FOR subject IN (total
+    FOR subject IN (all_tests_total
                    ,math
                    ,verbal
                    ,writing)

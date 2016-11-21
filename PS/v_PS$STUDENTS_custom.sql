@@ -17,7 +17,7 @@ FROM OPENQUERY(PS_TEAM,'
         ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_Migrant'') AS NJ_Migrant
         
         ,c.SPEDLEP
-        ,c.LEP_STATUS        
+        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''LEP'') AS LEP_STATUS        
         ,c.HOMELESS_CODE
         
         ,u.NEWARK_ENROLLMENT_NUMBER

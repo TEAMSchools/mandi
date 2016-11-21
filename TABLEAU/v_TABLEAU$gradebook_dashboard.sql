@@ -20,10 +20,11 @@ WITH section_teacher AS (
   LEFT OUTER JOIN KIPP_NJ..PS$PERIOD#static p WITH(NOLOCK)
     ON sec.academic_year = p.academic_year
    AND sec.schoolid = p.SCHOOLID
-   AND KIPP_NJ.dbo.fn_StripCharacters(sec.expression,'^0-9') = p.PERIOD_NUMBER
+   AND sec.expression = CONVERT(VARCHAR,p.PERIOD_NUMBER)
   WHERE scaff.teacher_name IS NOT NULL
     AND scaff.term IS NOT NULL
-    AND scaff.year >= 2015 /* UPDATE ANNUALLY */
+    AND scaff.COURSE_NUMBER IS NOT NULL
+    --AND scaff.year = KIPP_NJ.dbo.fn_Global_Academic_Year() 
  )
 
 /* final grades */
@@ -76,7 +77,7 @@ LEFT OUTER JOIN section_teacher st
  AND st.rn = 1
 WHERE co.rn = 1
   AND co.school_level IN ('MS','HS')
-  AND co.year >= 2015 /* UPDATE ANNUALLY */
+  --AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() 
 
 UNION ALL
 
@@ -136,7 +137,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
   ON gr.COURSE_NUMBER = cou.COURSE_NUMBER
 WHERE co.rn = 1
   AND co.school_level IN ('MS','HS')
-  AND co.year >= 2015 /* UPDATE ANNUALLY */
+  --AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() 
 
 /* Y1 grades as additional term */
 UNION ALL
@@ -179,7 +180,7 @@ JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON co.schoolid = dt.schoolid
  AND co.year = dt.academic_year
  AND dt.identifier = 'RT'
-LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
+JOIN KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
   ON co.student_number = gr.student_number
  AND co.year = gr.academic_year
  AND dt.alt_name = gr.term
@@ -191,7 +192,7 @@ LEFT OUTER JOIN section_teacher st
  AND st.rn = 1
 WHERE co.rn = 1
   AND co.school_level IN ('MS','HS')
-  AND co.year >= 2015 /* UPDATE ANNUALLY */
+  --AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() 
 
 UNION ALL
 
@@ -238,7 +239,7 @@ JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON co.schoolid = dt.schoolid
  AND co.year = dt.academic_year
  AND dt.identifier = 'RT'
-LEFT OUTER JOIN KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
+JOIN KIPP_NJ..GRADES$category_grades_long#static gr WITH(NOLOCK)
   ON co.student_number = gr.student_number
  AND co.year = gr.academic_year
  AND dt.time_per_name = gr.reporting_term
@@ -252,7 +253,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
   ON gr.COURSE_NUMBER = cou.COURSE_NUMBER
 WHERE co.rn = 1
   AND co.school_level IN ('MS','HS')
-  AND co.year >= 2015 /* UPDATE ANNUALLY */
+  --AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() 
 
 UNION ALL
 
@@ -310,41 +311,41 @@ LEFT OUTER JOIN section_teacher st
  AND st.rn = 1
 WHERE co.rn = 1
   AND co.schoolid = 73253
-  AND co.year >= 2015 /* UPDATE ANNUALLY */
+  --AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() 
 
-UNION ALL
+--UNION ALL
 
-SELECT a.student_number
-      ,s.lastfirst
-      ,a.schoolid
-      ,a.grade_level
-      ,a.team
-      ,a.advisor
-      ,a.enroll_status
-      ,a.year
-      ,a.spedlep
-      ,a.term
-      ,a.is_curterm
-      ,a.finalgradename
-      ,a.credittype
-      ,a.course_number
-      ,a.course_name
-      ,a.sectionid
-      ,a.teacher_name
-      ,a.excludefromgpa
-      ,a.credit_hours
-      ,a.term_gpa_points
-      ,a.term_grade_percent_adjusted
-      ,a.term_grade_letter_adjusted
-      ,a.y1_grade_percent_adjusted
-      ,a.y1_grade_letter
-      ,a.y1_gpa_points
-      ,a.need_65
-      ,a.need_70
-      ,a.need_80
-      ,a.need_90
-      ,a.SECTION_NUMBER
-      ,a.period
-FROM KIPP_NJ..TABLEAU$gradebook_dashboard#archive a WITH(NOLOCK)
-JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
-  ON a.student_number = s.STUDENT_NUMBER
+--SELECT a.student_number
+--      ,s.lastfirst
+--      ,a.schoolid
+--      ,a.grade_level
+--      ,a.team
+--      ,a.advisor
+--      ,a.enroll_status
+--      ,a.year
+--      ,a.spedlep
+--      ,a.term
+--      ,a.is_curterm
+--      ,a.finalgradename
+--      ,a.credittype
+--      ,a.course_number
+--      ,a.course_name
+--      ,a.sectionid
+--      ,a.teacher_name
+--      ,a.excludefromgpa
+--      ,a.credit_hours
+--      ,a.term_gpa_points
+--      ,a.term_grade_percent_adjusted
+--      ,a.term_grade_letter_adjusted
+--      ,a.y1_grade_percent_adjusted
+--      ,a.y1_grade_letter
+--      ,a.y1_gpa_points
+--      ,a.need_65
+--      ,a.need_70
+--      ,a.need_80
+--      ,a.need_90
+--      ,a.SECTION_NUMBER
+--      ,a.period
+--FROM KIPP_NJ..TABLEAU$gradebook_dashboard#archive a WITH(NOLOCK)
+--JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+--  ON a.student_number = s.STUDENT_NUMBER

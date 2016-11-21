@@ -53,8 +53,8 @@ WITH roster_scaffold AS (
              ,COALESCE(achv.lvl_num, ps.lvl_num) AS lvl_num
              ,COALESCE(achv.indep_lvl, ps.indep_lvl) AS indep_lvl
              ,COALESCE(achv.indep_lvl_num, ps.indep_lvl_num) AS indep_lvl_num
-             ,COALESCE(achv.instruct_lvl, ps.instruct_lvl) AS instruct_lvl
-             ,COALESCE(achv.instruct_lvl_num, ps.instruct_lvl_num) AS instruct_lvl_num
+             ,COALESCE(dna.instruct_lvl, ps.instruct_lvl) AS instruct_lvl
+             ,COALESCE(dna.instruct_lvl_num, ps.instruct_lvl_num) AS instruct_lvl_num
              ,COALESCE(achv.GLEQ, ps.GLEQ) AS GLEQ
              ,COALESCE(achv.fp_wpmrate, ps.fp_wpmrate) AS fp_wpmrate
              ,COALESCE(achv.fp_keylever, ps.fp_keylever) AS fp_keylever

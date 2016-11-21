@@ -42,13 +42,11 @@ BEGIN
                 
                 ,pgf.finalgradename AS storecode
                 ,CASE
-                  WHEN cc.schoolid = 73253 AND pgf.percent < 50 THEN ''''F*''''
-                  WHEN cc.schoolid = 133570965 AND pgf.percent < 55 THEN ''''F*''''
+                  WHEN pgf.percent < 50 THEN ''''F*''''                  
                   ELSE pgf.grade
                  END AS grade
                 ,CASE
-                  WHEN cc.schoolid = 73253 AND pgf.percent < 50 THEN 50
-                  WHEN cc.schoolid = 133570965 AND pgf.percent < 55 THEN 55
+                  WHEN pgf.percent < 50 THEN 50                  
                   ELSE pgf.percent
                  END AS percent                
           FROM ps.cc cc

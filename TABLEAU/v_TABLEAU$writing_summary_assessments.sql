@@ -79,7 +79,7 @@ SELECT sub.schoolid
       ,sub.title
       ,sub.academic_year
       ,sub.term
-      ,sub.unit_number
+      ,CONCAT('DBQ',RIGHT(sub.unit_number,1)) AS unit_number
       ,sub.course_number
       ,sub.strand
       ,sub.prompt_number
@@ -99,7 +99,10 @@ FROM
            ,a.title
            ,a.academic_year      
            ,dts.alt_name AS term      
-           ,SUBSTRING(a.title, PATINDEX('%QE_%', a.title), 3) AS unit_number
+           ,CASE
+             WHEN co.year <= 2015 THEN SUBSTRING(a.title, PATINDEX('%QE_%', a.title), 3) 
+             ELSE SUBSTRING(a.title, PATINDEX('%DBQ _%', a.title), 5) 
+            END AS unit_number
            ,LEFT(a.title, 6) AS course_number            
            ,std.description AS strand
            ,1 AS prompt_number
@@ -123,6 +126,7 @@ FROM
       AND co.rn = 1
      WHERE a.scope = 'DBQ'
        AND a.subject_area = 'History'
+       AND a.academic_year >= 2016
     ) sub
 LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
   ON sub.student_number = enr.student_number

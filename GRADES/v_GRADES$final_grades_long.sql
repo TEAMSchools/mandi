@@ -52,13 +52,11 @@ WITH roster AS (
         ,COALESCE(stored_pct, pgf_pct) AS term_grade_percent
         /* F* rule for NCA and TEAM */
         ,CASE 
-          WHEN schoolid = 73253 AND COALESCE(stored_pct, pgf_pct) < 50 THEN 'F*' 
-          WHEN schoolid = 133570965 AND COALESCE(stored_pct, pgf_pct) < 55 THEN 'F*' 
+          WHEN COALESCE(stored_pct, pgf_pct) < 50 THEN 'F*'           
           ELSE COALESCE(stored_letter, pgf_letter)
          END AS term_grade_letter_adjusted
         ,CASE 
-          WHEN schoolid = 73253 AND COALESCE(stored_pct, pgf_pct) < 50 THEN 50 
-          WHEN schoolid = 133570965 AND COALESCE(stored_pct, pgf_pct) < 55 THEN 55
+          WHEN COALESCE(stored_pct, pgf_pct) < 50 THEN 50           
           ELSE COALESCE(stored_pct, pgf_pct)
          END AS term_grade_percent_adjusted          
         ,term_gpa_points
@@ -249,8 +247,7 @@ SELECT sub.student_number
       /* these use the adjusted Y1 */
       ,CASE
         WHEN y1.GRADE IS NOT NULL THEN y1.GRADE
-        WHEN sub.schoolid = 73253 AND sub.y1_grade_percent_adjusted = 50 AND sub.y1_grade_percent < 50 THEN 'F*'
-        WHEN sub.schoolid = 133570965 AND sub.y1_grade_percent_adjusted = 55 AND sub.y1_grade_percent < 55 THEN 'F*'
+        WHEN sub.y1_grade_percent_adjusted = 50 AND sub.y1_grade_percent < 50 THEN 'F*'        
         ELSE scale.letter_grade 
        END AS y1_grade_letter
       ,COALESCE(y1.gpa_points, scale.grade_points) AS y1_gpa_points

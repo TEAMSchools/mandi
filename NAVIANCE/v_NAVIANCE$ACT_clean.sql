@@ -49,15 +49,15 @@ FROM
                 ,CONVERT(INT,math) AS math
                 ,CONVERT(INT,reading) AS reading
                 ,CONVERT(INT,science) AS science
-                ,CASE WHEN writing = 'N/A' THEN NULL ELSE writing END AS writing
+                ,CONVERT(INT,writing) AS writing
                 ,CONVERT(INT,writing_sub) AS writing_sub
-                ,CONVERT(INT,comb_eng_write) AS comb_eng_write
-                ,CASE WHEN ela = 'N/A' THEN NULL ELSE ela END AS ela
-                ,CASE WHEN stem = 'N/A' THEN NULL ELSE stem END AS stem
+                ,CONVERT(INT,comb_eng_write) AS comb_eng_write                
+                ,CONVERT(INT,ela) AS ela
+                ,CONVERT(INT,stem) AS stem
                 ,CONVERT(INT,composite) AS composite
-                ,CASE WHEN predicted_act = 'N/A' THEN NULL ELSE predicted_act END AS predicted_act
+                ,CONVERT(INT,predicted_act) AS predicted_act
                 ,CASE WHEN ISDATE(REPLACE(test_date,'-00','-01')) = 1 THEN CONVERT(DATE,REPLACE(test_date,'-00','-01')) ELSE NULL END AS test_date                                
-          FROM AUTOLOAD$NAVIANCE_act_scores act WITH(NOLOCK)
+          FROM AUTOLOAD$NAVIANCE_3_act_scores act WITH(NOLOCK)
           JOIN PS$STUDENTS#static s WITH(NOLOCK)
             ON act.hs_student_id = s.student_number
           WHERE act.test_type LIKE 'ACT%'
