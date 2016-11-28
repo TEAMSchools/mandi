@@ -9,6 +9,7 @@ SELECT co.student_number
       ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS current_academic_year
       ,co.entrydate
       ,co.exitdate
+      ,co.exitcode
       ,co.school_level
       ,co.reporting_schoolid AS SCHOOLID
       ,co.GRADE_LEVEL

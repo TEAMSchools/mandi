@@ -125,21 +125,51 @@ WITH map_data AS (
 ,module_avg AS (
   SELECT academic_year
         ,student_number
-        ,subject_area        
-        ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(percent_correct),0) >= 50 THEN 100.0 ELSE 0.0 END) AS module_avg_above_65
-        ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(percent_correct),0) >= 70 THEN 100.0 ELSE 0.0 END) AS module_avg_above_80
+        ,subject_area
+        ,ROUND(AVG(module_avg_pct_correct),0) AS module_avg_pct_correct
+        ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(module_avg_pct_correct),0) >= 50 THEN 100.0 ELSE 0.0 END) AS module_avg_above_65
+        ,CONVERT(FLOAT,CASE WHEN ROUND(AVG(module_avg_pct_correct),0) >= 70 THEN 100.0 ELSE 0.0 END) AS module_avg_above_80
   FROM
       (
-       SELECT a.academic_year
-             ,a.subject_area              
-             ,ovr.local_student_id AS student_number
-             ,ovr.percent_correct
-       FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)       
-       JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
-         ON a.assessment_id = ovr.assessment_id
-        AND ovr.answered > 0
-       WHERE a.scope IN ('CMA - End-of-Module')
-         AND a.subject_area IN ('Text Study', 'Mathematics')         
+       SELECT academic_year
+             ,student_number
+             ,subject_area        
+             ,CONVERT(FLOAT,ROUND(AVG(percent_correct),0)) AS module_avg_pct_correct        
+       FROM
+           (
+            SELECT a.academic_year
+                  ,a.subject_area              
+                  ,CASE 
+                    WHEN PATINDEX('%M[0-9]/[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]/[0-9]%', a.title) + 1, 3) 
+                    WHEN PATINDEX('%M[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title) + 1, 1)               
+                    WHEN PATINDEX('%U[0-9]/[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]/[0-9]%', a.title) + 1, 3)
+                    WHEN PATINDEX('%U[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]%', a.title) + 1, 1)
+                   END AS module_num
+                  ,ovr.local_student_id AS student_number             
+                  ,CASE 
+                    WHEN a.scope = 'CMA - End of Module' AND a.subject_area IN ('Text Study','Social Studies') AND mc.percent_correct IS NOT NULL THEN (ovr.percent_correct * 0.6 * 2) /* weighted SR EOM */
+                    WHEN a.scope = 'CMA - End of Module' AND a.subject_area IN ('Text Study','Social Studies') AND oer.percent_correct IS NOT NULL THEN (ovr.percent_correct * 0.4 * 2) /* weighted OER EOM */
+                    ELSE ovr.percent_correct 
+                   END AS percent_correct
+            FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)       
+            JOIN KIPP_NJ..ILLUMINATE$agg_student_responses#static ovr WITH(NOLOCK)
+              ON a.assessment_id = ovr.assessment_id
+             AND ovr.answered > 0
+            LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_group#static mc WITH(NOLOCK)
+              ON ovr.local_student_id = mc.local_student_id
+             AND a.assessment_id = mc.assessment_id
+             AND mc.reporting_group = 'Multiple Choice'
+            LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_group#static oer WITH(NOLOCK)
+              ON ovr.local_student_id = oer.local_student_id
+             AND a.assessment_id = oer.assessment_id
+             AND oer.reporting_group = 'Open-Ended Response'
+            WHERE a.scope IN ('CMA - End-of-Module')
+              AND a.subject_area IN ('Text Study', 'Mathematics')         
+           ) sub
+       GROUP BY academic_year
+               ,student_number
+               ,subject_area
+               ,module_num
       ) sub
   GROUP BY academic_year
           ,student_number
@@ -174,6 +204,7 @@ WITH map_data AS (
        SELECT co.year            
              ,co.schoolid
              ,co.reporting_schoolid
+             ,co.school_level
              ,co.grade_level
              ,co.team      
              ,co.student_number
@@ -282,10 +313,10 @@ WITH map_data AS (
              ,q12.avg_response_value AS q12_avg_response
 
              /* SPI walkthrough avgs -- some differences btw 2014 & 2015 naming conventions */
-             ,wlk.classroom_engagement_overall
-             ,wlk.culture_schoolculture_overall            
-             ,COALESCE(wlk.classroom_instruction_overall, wlk.classroom_instructionaldelivery_overall) AS classroom_instruction_overall
-             ,COALESCE(wlk.classroom_routinesrules_overall, wlk.classroom_management_overall) AS classroom_management_overall
+             ,COALESCE(wlk.classroom_engagement_overall, wlk.student_overall) AS classroom_engagement_overall
+             ,COALESCE(wlk.culture_schoolculture_overall, wlk.culture_overall) AS culture_schoolculture_overall            
+             ,COALESCE(wlk.classroom_instruction_overall, wlk.classroom_instructionaldelivery_overall, wlk.teacher_overall) AS classroom_instruction_overall
+             ,COALESCE(wlk.classroom_routinesrules_overall, wlk.classroom_management_overall, wlk.teacher_overall) AS classroom_management_overall
 
              /* state test date -- 2013 and below = NJASK/HSPA, 2014 and beyond = PARCC */             
              ,nj.ELA03_diff_pct_proficient_weighted
@@ -320,8 +351,10 @@ WITH map_data AS (
              /* Module assessments */
              ,ela_mod.module_avg_above_65 AS ela_module_avg_above_65
              ,ela_mod.module_avg_above_80 AS ela_module_avg_above_80
+             ,ela_mod.module_avg_pct_correct AS ela_module_avg_pct_correct
              ,math_mod.module_avg_above_65 AS math_module_avg_above_65
              ,math_mod.module_avg_above_80 AS math_module_avg_above_80
+             ,math_mod.module_avg_pct_correct AS math_module_avg_pct_correct
 
              /* enrollment targets */
              ,enr.diff_from_target AS diff_from_target_enrollment
@@ -471,8 +504,10 @@ WITH map_data AS (
                  ,met_lit_goal
                  ,ela_module_avg_above_65
                  ,ela_module_avg_above_80
+                 ,ela_module_avg_pct_correct
                  ,math_module_avg_above_65
                  ,math_module_avg_above_80
+                 ,math_module_avg_pct_correct
                  ,diff_from_target_enrollment
                  ,diff_from_target_enrollment_fr
                  ,diff_from_target_enrollment_sped
@@ -490,6 +525,7 @@ WITH map_data AS (
 SELECT sub.year
       ,sub.schoolid
       ,sub.reporting_schoolid
+      ,sub.school_level
       ,ISNULL(CONVERT(VARCHAR,sub.grade_level),'All') AS grade_level
       ,sub.field
       ,CASE
@@ -547,17 +583,20 @@ FROM
     (
      SELECT long_data.year
            ,long_data.schoolid
+           ,long_data.school_level
            ,long_data.reporting_schoolid
            ,long_data.grade_level           
            ,long_data.field
            ,AVG(long_data.value) AS value           
      FROM long_data     
+     WHERE long_data.reporting_schoolid != 5173 /* exclude OOD */
      GROUP BY long_data.year
              ,long_data.schoolid
+             ,long_data.school_level
              ,long_data.reporting_schoolid
              ,CUBE(long_data.grade_level)
              ,long_data.field             
     ) sub
 LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_SPI_score_parameters spi WITH(NOLOCK)
-  ON sub.schoolid = spi.schoolid
+  ON sub.school_level = spi.schoolid
  AND sub.field = spi.field

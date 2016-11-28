@@ -9,7 +9,7 @@ WITH long_data AS (
         ,CONCAT(domain, '_', ISNULL(strand,'overall')) AS pivot_field
         ,academic_year
         ,spi_round
-        ,ROUND(AVG(score),1) AS avg_score        
+        ,ROUND(AVG(score * 10),1)AS avg_score        
   FROM KIPP_NJ..SPI$walkthrough_scores_long WITH(NOLOCK)
   WHERE academic_year >= 2016
   GROUP BY reporting_schoolid
