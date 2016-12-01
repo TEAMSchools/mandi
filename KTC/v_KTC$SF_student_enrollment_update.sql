@@ -4,12 +4,12 @@ GO
 ALTER VIEW KTC$SF_student_enrollment_update AS
 
 WITH roster AS (
-  SELECT 'NWK' AS [KIPP Region]
-        ,s.Id AS [Salesforce ID]
-        ,co.last_name AS [Last Name]
-        ,co.first_name AS [First Name]        
-        ,CONVERT(DATE,co.dob) AS [Birthdate]
-        ,co.cohort AS [KIPP HS Class]        
+  SELECT 'KIPP New Jersey' AS KIPP_Region
+        ,s.Id AS Salesforce_ID
+        ,co.last_name AS Last_Name
+        ,co.first_name AS First_Name
+        ,CONVERT(DATE,co.dob) AS Birthdate
+        ,co.cohort AS KIPP_HS_Class
         ,MIN(CONVERT(DATE,co.entrydate)) OVER(PARTITION BY co.student_number, co.schoolid) AS start_date
         ,MAX(CONVERT(DATE,co.exitdate)) OVER(PARTITION BY co.student_number, co.schoolid) AS end_date
         ,MIN(co.grade_level) OVER(PARTITION BY co.student_number, co.schoolid) AS start_grade
@@ -36,6 +36,7 @@ WITH roster AS (
           ELSE 'Transferred Out'
          END AS status     
         ,MAX(co.year_in_school) OVER(PARTITION BY co.student_number, co.schoolid) - co.year_in_school + 1 AS year_in_school_rn           
+        ,co.student_number
   FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   JOIN AlumniMirror..Contact s WITH(NOLOCK)
     ON co.student_number = s.School_Specific_ID__c
@@ -51,56 +52,69 @@ WITH roster AS (
  )
 
 ,roster_enrollments AS (
-  SELECT r.[KIPP Region]
-        ,r.[Salesforce ID]
-        ,r.[Last Name]
-        ,r.[First Name]
+  SELECT r.KIPP_Region
+        ,r.Salesforce_ID
+        ,r.Last_Name
+        ,r.First_Name
         ,r.Birthdate
-        ,r.[KIPP HS Class]
+        ,r.KIPP_HS_Class
+        ,r.student_number
+        ,r.status
         ,r.school_type
-        ,e.enrollment_id
         ,r.school_name
         ,r.pursuing_degree_type
         ,r.start_grade
         ,r.end_grade
         ,r.start_date
-        ,r.end_date
-        ,r.status
-        ,ROW_NUMBER() OVER(
-           PARTITION BY r.[Salesforce ID]
-             ORDER BY r.start_date ASC) AS enrollment_base
-        ,ROW_NUMBER() OVER(
-           PARTITION BY r.[Salesforce ID]
-             ORDER BY r.start_date DESC) AS enrollment_curr
+        ,r.end_date             
+        ,e.enrollment_id        
   FROM roster r
-  JOIN enrollments e
-    ON r.[Salesforce ID] = e.student_salesforce_id
+  LEFT OUTER JOIN enrollments e
+    ON r.Salesforce_ID = e.student_salesforce_id
    AND r.school_name = e.school_name
   WHERE r.year_in_school_rn = 1
-    AND r.school_name IS NOT NULL
+    AND r.school_name IS NOT NULL    
  )
 
-SELECT r1.[KIPP Region]
-      ,r1.[Salesforce ID]
-      ,r1.[Last Name]
-      ,r1.[First Name]
+SELECT r1.KIPP_Region
+      ,r1.Salesforce_ID
+      ,r1.Last_Name
+      ,r1.First_Name
       ,r1.Birthdate
-      ,r1.[KIPP HS Class]
+      ,r1.KIPP_HS_Class
       
-      ,r1.school_name AS existing_school_name
-      ,r1.enrollment_id AS existing_enrollment_id
-      ,r1.end_date AS existing_end_date
-      ,r1.end_grade AS existing_end_grade
-      ,r1.status AS existing_status
+      ,r1.School_Name AS close_School_Name
+      ,r1.Enrollment_ID AS close_Enrollment_ID
+      ,r1.End_Date AS close_End_Date
+      ,r1.End_Grade AS close_End_Grade
+      ,r1.Status AS close_Status
+
+      ,r2.School_Name AS create_School_Name
+      ,r2.Start_Date AS create_Start_Date
+      ,r2.Start_Grade AS create_Start_Grade
+      ,r2.Pursuing_Degree_Type AS create_Pursuing_Degree_Type
+      ,r2.School_Type AS create_School_Type
+      ,r2.Status AS create_Status  
       
-      ,r2.school_name AS new_school_name
-      ,r2.start_date AS new_start_date
-      ,r2.start_grade AS new_start_grade
-      ,r2.pursuing_degree_type AS new_pursuing_degree_type
-      ,r2.school_type AS new_school_type
-      ,r2.status AS new_status
-FROM roster_enrollments r1
+      ,r1.student_number
+FROM
+    (
+     SELECT r1.KIPP_Region
+           ,r1.Salesforce_ID
+           ,r1.Last_Name
+           ,r1.First_Name
+           ,r1.Birthdate
+           ,r1.KIPP_HS_Class
+           ,r1.School_Name
+           ,r1.Enrollment_ID
+           ,r1.End_Date
+           ,r1.End_Grade
+           ,r1.Status
+           ,r1.student_number
+     FROM roster_enrollments r1
+     WHERE r1.status NOT IN ('Attending', 'Deferred', 'Did Not Enroll', 'Matriculated')
+    ) r1
 LEFT OUTER JOIN roster_enrollments r2
-  ON r1.[Salesforce ID] = r2.[Salesforce ID]
- AND r2.status = 'Attending'
-WHERE r1.status IN ('Transferred Out','Graduated')
+  ON r1.student_number = r2.student_number
+ AND r2.enrollment_id IS NULL 
+ AND r2.status IN ('Attending', 'Deferred', 'Did Not Enroll', 'Matriculated')
