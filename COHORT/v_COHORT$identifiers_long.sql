@@ -151,7 +151,7 @@ LEFT OUTER JOIN KIPP_NJ..PS$advisory_roster#static advisory WITH(NOLOCK)
  AND co.year = advisory.academic_year
  AND advisory.rn = 1
 LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PEOPLE_teachernumber_associateid_link link WITH(NOLOCK)
-  ON advisory.teachernumber = link.teachernumber
+  ON advisory.teachernumber = LTRIM(RTRIM(STR(link.teachernumber)))
  AND link.is_master = 1
 LEFT OUTER JOIN KIPP_NJ..PEOPLE$ADP_detail adp WITH(NOLOCK)
   ON COALESCE(link.associate_id, advisory.teachernumber) = adp.associate_id

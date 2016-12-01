@@ -83,11 +83,13 @@ WITH hs_grads AS (
  )
 
 ,enrollments AS (
-  SELECT s.School_Specific_ID__c AS student_number        
+  SELECT s.ID AS salesforce_contact_id
+        ,s.School_Specific_ID__c AS student_number        
         ,s.mobilephone AS SF_MOBILE_PHONE
         ,s.homephone AS SF_HOME_PHONE
         ,s.otherphone AS SF_OTHER_PHONE
         ,s.email AS SF_EMAIL
+        ,u.Id AS contact_owner_id
         ,u.Name AS ktc_counselor
         ,enr.Type__c AS enrollment_type
         ,enr.Status__c AS enrollment_status
@@ -122,8 +124,8 @@ SELECT r.student_number
       ,r.cohort
       ,CASE WHEN r.highest_achieved = 99 THEN 1 ELSE 0 END AS is_grad
       ,sped.SPEDLEP
-      ,sped.SPEDCODE AS SPED_code
-      ,enr.ktc_counselor
+      ,sped.SPEDCODE AS SPED_code      
+      ,enr.ktc_counselor      
       ,enr.enrollment_type
       ,enr.enrollment_name
       ,enr.enrollment_status
@@ -177,6 +179,8 @@ SELECT r.student_number
       ,r.last_name
       ,r.DOB
       ,r.exitdate
+      ,enr.contact_owner_id
+      ,enr.salesforce_contact_id
 FROM
     (
      SELECT studentid
@@ -209,11 +213,11 @@ FROM
            ,guardianemail
      FROM transfers    
     ) r
+LEFT OUTER JOIN enrollments enr
+  ON r.student_number = enr.student_number
+ AND enr.rn = 1
 LEFT OUTER JOIN sped
   ON r.studentid = sped.studentid
  AND sped.rn = 1
 LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_contact#static con WITH(NOLOCK)
   ON r.studentid = con.STUDENTID
-LEFT OUTER JOIN enrollments enr
-  ON r.student_number = enr.student_number
- AND enr.rn = 1

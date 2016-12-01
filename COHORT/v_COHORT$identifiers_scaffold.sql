@@ -28,7 +28,7 @@ SELECT co.year
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..UTIL$reporting_days#static rd WITH(NOLOCK)
   ON co.year = rd.academic_year
- AND rd.date <= co.exitdate 
+ AND co.exitdate >= rd.date
 LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON co.schoolid = dt.schoolid
  AND co.year = dt.academic_year

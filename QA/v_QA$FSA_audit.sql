@@ -14,9 +14,9 @@ SELECT DISTINCT
       ,rt.alt_name AS term      
       ,co.reporting_schoolid AS schoolid
       ,'SCOPE' AS audit_type
-      ,CASE 
-        WHEN a.scope IN ('Exit Ticket') AND co.reporting_schoolid = 73258 THEN 1
-        WHEN a.scope IN ('CMA - End-of-Module'
+      ,CASE         
+        WHEN a.scope IN ('Exit Ticket'
+                        ,'CMA - End-of-Module'
                         ,'CMA - Mid-Module'
                         ,'CMA - Checkpoint 1'
                         ,'CMA - Checkpoint 2'
@@ -60,8 +60,10 @@ SELECT DISTINCT
         WHEN a.subject_area IN ('Text Study'
                                ,'Mathematics'
                                ,'Science'
-                               ,'Social Studies') THEN 1 
-        WHEN a.scope IN ('Unit Assessment','Exit Ticket') AND a.subject_area IN ('Performing Arts','Visual Arts') THEN 1
+                               ,'Social Studies'
+                               ,'History'
+                               ,'Performing Arts'
+                               ,'Visual Arts') THEN 1
         ELSE 0 
        END AS audit_result      
 FROM KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
