@@ -30,9 +30,11 @@ FROM
            ,subject_name
            --,question_code
            ,CASE WHEN response_value IN (3,4) THEN 1.0 ELSE 0.0 END AS is_topbox
+           ,subject_reporting_location
            ,CASE
              WHEN subject_reporting_location = 'Bold Academy' THEN 73258
-             WHEN subject_reporting_location IN ('Lanning Square Middle School','Lanning Square Middle') THEN 179902
+             WHEN subject_reporting_location = 'Whittier Middle' THEN 179903
+             WHEN subject_reporting_location = 'Lanning Square MS' THEN 179902
              WHEN subject_reporting_location = 'Lanning Square Primary' THEN 179901
              WHEN subject_reporting_location = 'Life Academy' THEN 73257
              WHEN subject_reporting_location = 'Newark Collegiate Academy' THEN 73253

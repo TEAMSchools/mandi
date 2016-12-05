@@ -6,7 +6,7 @@ ALTER VIEW TABLEAU$lit_tracker AS
 /* student identifiers */
 SELECT co.school_name
       ,co.school_level
-      ,CASE WHEN CONVERT(DATE,GETDATE()) >= achv.start_date THEN co.student_number END AS student_number
+      ,co.student_number
       ,co.lastfirst AS student_name
       ,co.grade_level      
       ,co.team

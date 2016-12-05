@@ -56,7 +56,7 @@ WITH people AS (
        JOIN KIPP_NJ..PS$TEACHERS#static t
          ON sec.TEACHER = t.ID
        LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PEOPLE_teachernumber_associateid_link link
-         ON t.TEACHERNUMBER = link.TEACHERNUMBER
+         ON t.TEACHERNUMBER = LTRIM(RTRIM(STR(link.TEACHERNUMBER)))
       ) sub
  )
 
