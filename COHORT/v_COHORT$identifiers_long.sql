@@ -19,7 +19,7 @@ SELECT co.schoolid
       ,co.lastfirst
       ,co.grade_level
       ,co.year            
-      ,co.cohort
+      ,MAX(co.cohort) OVER(PARTITION BY co.STUDENT_NUMBER) AS cohort
       ,co.entrycode
       ,co.exitcode
       ,co.entrydate

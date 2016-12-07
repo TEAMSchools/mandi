@@ -196,7 +196,9 @@ FROM
       AND bk.rn = 1
      WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
        AND co.schoolid != 999999
-       AND ((co.grade_level >= 5) OR (co.schoolid IN (73252, 73255, 179901) AND co.grade_level >= 3))
+       AND ((co.grade_level >= 5)
+            OR (co.schoolid IN (73252, 179901) AND co.grade_level >= 3)
+            OR (co.schoolid IN (73255) AND co.grade_level >= 2))
        AND co.date <= CONVERT(DATE,GETDATE())
        AND co.enroll_status = 0       
        --AND co.date >= CASE WHEN ar.min_date_taken <= co.entrydate THEN ar.min_date_taken ELSE co.entrydate END

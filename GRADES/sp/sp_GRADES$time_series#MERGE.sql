@@ -12,17 +12,6 @@ BEGIN
 
   WITH ts_update AS (
     SELECT student_number
-          ,schoolid      
-          ,course_number
-          ,term AS finalgradename
-          ,term_grade_percent AS moving_average
-    FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
-    WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-      AND term_grade_percent IS NOT NULL
-
-    UNION ALL
-
-    SELECT student_number
           ,schoolid
           ,course_number
           ,'Y1' AS finalgradename
@@ -32,30 +21,41 @@ BEGIN
       AND is_curterm = 1
       AND y1_grade_percent_adjusted IS NOT NULL    
 
-    UNION ALL
+    --UNION ALL
 
-    SELECT e.student_number
-          ,e.schoolid
-          ,e.course_number
-          ,e.grade_category + RIGHT(e.rt,1) AS finalgradename
-          ,e.grade_category_pct AS moving_average
-    FROM KIPP_NJ..GRADES$category_grades_long#static e WITH(NOLOCK)    
-    WHERE e.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-      AND e.course_number != 'ALL'
-      AND e.grade_category_pct IS NOT NULL
+    --SELECT student_number
+    --      ,schoolid      
+    --      ,course_number
+    --      ,term AS finalgradename
+    --      ,term_grade_percent AS moving_average
+    --FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
+    --WHERE academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    --  AND term_grade_percent IS NOT NULL
 
-    UNION ALL
+    --UNION ALL
 
-        SELECT e.student_number
-          ,e.schoolid
-          ,e.course_number
-          ,CONCAT(e.grade_category, 'Y') AS finalgradename
-          ,e.grade_category_pct_y1 AS moving_average
-    FROM KIPP_NJ..GRADES$category_grades_long#static e WITH(NOLOCK)    
-    WHERE e.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-      AND e.course_number != 'ALL'
-      AND e.grade_category_pct_y1 IS NOT NULL
-      AND e.is_curterm = 1
+    --SELECT e.student_number
+    --      ,e.schoolid
+    --      ,e.course_number
+    --      ,e.grade_category + RIGHT(e.rt,1) AS finalgradename
+    --      ,e.grade_category_pct AS moving_average
+    --FROM KIPP_NJ..GRADES$category_grades_long#static e WITH(NOLOCK)    
+    --WHERE e.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    --  AND e.course_number != 'ALL'
+    --  AND e.grade_category_pct IS NOT NULL
+
+    --UNION ALL
+
+    --    SELECT e.student_number
+    --      ,e.schoolid
+    --      ,e.course_number
+    --      ,CONCAT(e.grade_category, 'Y') AS finalgradename
+    --      ,e.grade_category_pct_y1 AS moving_average
+    --FROM KIPP_NJ..GRADES$category_grades_long#static e WITH(NOLOCK)    
+    --WHERE e.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+    --  AND e.course_number != 'ALL'
+    --  AND e.grade_category_pct_y1 IS NOT NULL
+    --  AND e.is_curterm = 1
    )
     
   SELECT *
@@ -64,9 +64,10 @@ BEGIN
   INTO #ts_update
   FROM ts_update
   WHERE moving_average IS NOT NULL
-    AND course_number IS NOT NULL;
+    AND course_number IS NOT NULL
+    --AND (finalgradename LIKE 'Q%' OR finalgradename = 'Y1');
 
-  MERGE KIPP_NJ..GRADES$time_series AS TARGET
+  MERGE KIPP_NJ..GRADES$y1_time_series AS TARGET
   USING #ts_update AS SOURCE
      ON TARGET.student_number = SOURCE.student_number
     AND TARGET.date = SOURCE.date

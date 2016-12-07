@@ -111,7 +111,7 @@ SELECT sub.studentid
       ,sub.schoolid
       ,NULL AS abbreviation
       ,(sub.yearid + 1990) AS year
-      ,CASE 
+      ,CASE
         WHEN sub.grade_level > 12 THEN NULL
         ELSE sub.yearid + 2003 + (-1 * sub.grade_level)
        END AS cohort
