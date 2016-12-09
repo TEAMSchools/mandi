@@ -7,7 +7,8 @@ SELECT academic_year
       ,term
       ,school
       ,CASE
-        WHEN school IN ('KIPP Newark Average','KIPP NJ Average','KIPP NJ Charters Average','KIPP NJ Network Average') THEN 0
+        WHEN school IN ('KIPP NJ Average','KIPP NJ Charters Average','KIPP NJ Network Average') THEN 0
+        WHEN school = 'KIPP Newark Average' THEN 7325
         WHEN school = 'TEAM Academy' THEN 133570965
         WHEN school = 'Rise Academy' THEN 73252
         WHEN school = 'Newark Collegiate Academy' THEN 73253

@@ -402,7 +402,7 @@ WITH map_data AS (
          ON co.schoolid = mgr.schoolid
         AND co.year = mgr.academic_year
        LEFT OUTER JOIN KIPP_NJ..SURVEY$Q12_averages q12 WITH(NOLOCK)
-         ON co.schoolid = q12.schoolid
+         ON co.reporting_schoolid = q12.schoolid
         AND co.year = q12.academic_year
        LEFT OUTER JOIN KIPP_NJ..SPI$walkthrough_avgs wlk WITH(NOLOCK)
          ON co.schoolid = wlk.schoolid

@@ -36,6 +36,7 @@ WITH long_data AS (
   SELECT d.student_number
         ,d.academic_year
         ,d.assessment_id
+        ,d.time_per_name
         ,d.administration_round      
         ,d.administered_at
         ,d.subject_area
@@ -56,20 +57,22 @@ WITH long_data AS (
   SELECT student_number
         ,academic_year
         ,NULL AS assessment_id
+        ,time_per_name
         ,administration_round
         ,MIN(administered_at) AS administered_at
         ,'Composite' AS subject_area
         ,NULL AS overall_number_correct
         ,NULL AS overall_performance_band            
-        ,CASE WHEN COUNT(student_number) = 4 THEN ROUND(AVG(scale_score),0) END AS scale_score
+        ,CASE WHEN COUNT(scale_score) = 4 THEN ROUND(AVG(scale_score),0) END AS scale_score
   FROM
       (
        SELECT d.student_number           
              ,d.academic_year
              ,d.assessment_id
-             ,d.administration_round      
-             ,administered_at
-             ,d.subject_area      
+             ,d.time_per_name
+             ,d.administration_round                   
+             ,d.administered_at
+             ,d.subject_area   
              ,CONVERT(FLOAT,act.scale_score) AS scale_score           
        FROM long_data d
        LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_ACT_scale_score_key act WITH(NOLOCK)
@@ -82,13 +85,15 @@ WITH long_data AS (
       ) sub
   GROUP BY student_number
           ,academic_year
-          ,administration_round        
+          ,administration_round       
+          ,time_per_name 
  )
 
 SELECT sub.student_number
       ,sub.academic_year
       ,sub.assessment_id
-      ,sub.administration_round
+      ,sub.time_per_name
+      ,sub.administration_round      
       ,sub.administered_at
       ,sub.subject_area
       ,sub.overall_number_correct
@@ -101,14 +106,19 @@ SELECT sub.student_number
       ,s.custom_code AS standard_code
       ,s.description AS standard_description
       ,CONVERT(FLOAT,std.percent_correct) AS standard_percent_correct
+      
       ,ROW_NUMBER() OVER(
          PARTITION BY sub.student_number, sub.academic_year, sub.administration_round, sub.subject_area
            ORDER BY sub.student_number) AS rn_dupe
+      ,ROW_NUMBER() OVER(
+         PARTITION BY sub.student_number, sub.academic_year, sub.subject_area
+           ORDER BY sub.time_per_name DESC) AS rn_curr
 FROM
     (
      SELECT student_number
            ,academic_year
            ,assessment_id
+           ,time_per_name
            ,administration_round
            ,administered_at
            ,subject_area

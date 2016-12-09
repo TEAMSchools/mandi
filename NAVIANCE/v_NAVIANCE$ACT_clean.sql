@@ -6,6 +6,9 @@ ALTER VIEW NAVIANCE$ACT_clean AS
 SELECT *
       ,ROW_NUMBER() OVER(
           PARTITION BY student_number
+              ORDER BY composite DESC) AS rn_highest
+      ,ROW_NUMBER() OVER(
+          PARTITION BY student_number
               ORDER BY test_date ASC) AS n_attempt
 FROM
     (
@@ -66,4 +69,4 @@ FROM
       ON sub1.studentid = co.studentid
      AND CONVERT(DATE,sub1.test_date) BETWEEN co.ENTRYDATE AND co.exitdate    
    ) sub2
-WHERE dupe_audit = 1
+--WHERE dupe_audit = 1

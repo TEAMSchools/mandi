@@ -11,6 +11,7 @@ WITH scaffold AS (
 )
 
 SELECT MAX(a.academic_year) OVER() AS academic_year
+      ,MAX(a.grade_level) OVER() AS grade_level
       ,MAX(a.administration_round) OVER() AS administration_round
       ,s.subject
       ,s.max_raw_score AS raw_score
