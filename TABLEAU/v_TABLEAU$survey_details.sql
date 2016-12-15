@@ -3,6 +3,40 @@ GO
 
 ALTER VIEW TABLEAU$survey_details AS
 
+WITH survey AS (
+	SELECT *
+	FROM PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
+	WHERE academic_year = 2016
+	  AND survey_type = 'Manager'
+	)
+
+SELECT survey.survey_type
+	  ,survey.term
+	  ,survey.survey_timestamp
+	  ,survey.academic_year
+	  ,survey.question_code
+	  ,survey.question_text
+	  ,survey.response
+	  ,survey.response_value
+	  ,survey.competency
+	  ,survey.is_open_ended
+	  ,survey.exclude_department
+	  ,survey.exclude_from_agg
+	  ,survey.exclude_location
+	  ,survey.exclude_role
+	  ,survey.responder_name
+	  ,people.*
+
+FROM PEOPLE$details people WITH(NOLOCK)
+
+JOIN survey
+  ON people.associate_id = survey.subject_associate_id
+
+
+/*
+
+--removing 2015-16 surve code to replace: need to rebuild all survey detail for 2016-17
+
 WITH long_data AS (
   SELECT survey_type
 	       ,academic_year
@@ -190,3 +224,5 @@ FROM
        ON subject.associate_id = adp_subject.associate_id
       AND adp_subject.rn_curr = 1
 	   ) sub
+
+*/

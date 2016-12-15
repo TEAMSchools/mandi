@@ -92,7 +92,7 @@ WHERE dupe = 1
 
 --FOLLETT DESTINY
 
---/*
+/*
 
 SELECT roster.last_name AS slast
       ,roster.first_name AS sfirst
@@ -125,7 +125,7 @@ ORDER BY roster.schoolid
 		,roster.grade_level
 		,roster.lastfirst
 
---*/
+*/
 
 --FASTT MATH
 /*
@@ -253,7 +253,7 @@ ORDER BY roster.ABBREVIATION, roster.section_number
 
 -- ST MATH STUDENTS
 
-/*
+--/*
 
 SELECT
 	 CASE 
@@ -308,7 +308,7 @@ SELECT
 FROM roster
 
 WHERE dupe = 1
-      AND entrydate >= '2016-10-11'
+      AND entrydate >= '2016-10-31'
 	  AND grade_level <= 8
 --	  AND ENTRYDATE >= '2016-10-04'
 	  	 -- AND grade_level <= 8
@@ -321,4 +321,4 @@ ORDER BY schoolid
         ,grade_level
 		,teacher_last_name
 
-*/
+--*/
