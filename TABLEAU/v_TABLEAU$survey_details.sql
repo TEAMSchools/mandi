@@ -3,36 +3,168 @@ GO
 
 ALTER VIEW TABLEAU$survey_details AS
 
-WITH survey AS (
-	SELECT *
-	FROM PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
-	WHERE academic_year = 2016
-	  AND survey_type = 'Manager'
-	)
+SELECT survey_type
+      ,survey_timestamp
+      ,academic_year
+      ,subject_name
+      ,is_instructional
+      ,question_code
+      ,response
+      ,CONVERT(FLOAT,response_value) AS response_value
+      ,term
+      ,subject_associate_id
+      ,subject_reporting_location
+      ,team
+      ,subject_manager_name
+      ,responder_name
+      ,responder_reporting_location
+      ,competency
+      ,is_open_ended
+      ,question_text
+      ,exclude_from_agg
+      ,exclude_location
+      ,exclude_department
+      ,exclude_role
+      ,1 AS N
+      ,CASE WHEN response_value >= 4 THEN 1 ELSE 0 END AS N_agree
+	     ,people.associate_id
+      ,people.position_id
+      ,people.rn_base
+      ,people.rn_curr
+      ,people.update_status
+      ,people.position_status
+      ,people.employee_type
+      ,people.benefits_elig_class
+      ,people.kipp_alumni_status
+      ,people.last_name
+      ,people.first_name
+      ,people.preferred_name
+      ,people.preferred_first
+      ,people.preferred_last
+      ,people.gdoc_firstlast
+      ,people.name_combined
+      ,people.location
+      ,people.gdoc_reporting_location
+      ,people.location_combined
+      ,people.subject_primary
+      ,people.subject_secondary
+      ,people.subject_taught
+      ,people.grade_taught
+      ,people.grades_taught
+      ,people.department
+      ,people.department_combined
+      ,people.subject_combined
+      ,people.job_title
+      ,people.job_title_combined
+      ,people.gdoc_primary_role
+      ,people.is_management
+      ,people.gdoc_is_management
+      ,people.gdoc_manager
+      ,people.reports_to
+      ,people.gender
+      ,people.gdoc_gender
+      ,people.gender_combined
+      ,people.ethnicity
+      ,people.gdoc_ethnicity
+      ,people.ethnicity_combined
+      ,people.kipp_nj_email
+      ,people.phone_mobile
+      ,people.gdoc_cell_phone
+      ,people.cell_phone_combined
+      ,people.date_of_birth
+      ,people.age
+      ,people.years_employed
+      ,people.hire_date
+      ,people.rehire_date
+      ,people.termination_date
+      ,people.termination_code
+      ,people.termination_reason
+FROM PEOPLE$PM_survey_responses_long#static survey WITH(NOLOCK)
+JOIN PEOPLE$details people WITH(NOLOCK)
+  ON survey.subject_associate_id = people.associate_id
 
-SELECT survey.survey_type
-	  ,survey.term
-	  ,survey.survey_timestamp
-	  ,survey.academic_year
-	  ,survey.question_code
-	  ,survey.question_text
-	  ,survey.response
-	  ,survey.response_value
-	  ,survey.competency
-	  ,survey.is_open_ended
-	  ,survey.exclude_department
-	  ,survey.exclude_from_agg
-	  ,survey.exclude_location
-	  ,survey.exclude_role
-	  ,survey.responder_name
-	  ,people.*
+UNION ALL
 
-FROM PEOPLE$details people WITH(NOLOCK)
-
-JOIN survey
-  ON people.associate_id = survey.subject_associate_id
-
-
+SELECT 'R9' AS survey_type
+      ,NULL AS survey_timestamp
+      ,academic_year
+      ,'Room 9' AS subject_name
+      ,NULL AS is_instructional
+      ,NULL AS question_code
+      ,value response
+      ,CONVERT(FLOAT,value) AS response_value
+      ,term
+      ,NULL AS subject_associate_id
+      ,NULL AS subject_reporting_location
+      ,NULL AS team
+      ,NULL AS subject_manager_name
+      ,school AS responder_name
+      ,school AS responder_reporting_location
+      ,domain AS competency
+      ,NULL AS is_open_ended
+      ,field AS question_text
+      ,NULL AS exclude_from_agg
+      ,NULL AS exclude_location
+      ,NULL AS exclude_department
+      ,NULL AS exclude_role
+      ,MAX(CASE WHEN field = 'Survey Respondents' THEN value END) OVER(PARTITION BY academic_year, term, type, school) AS N
+      ,ROUND(MAX(CASE WHEN field = 'Survey Respondents' THEN value END) OVER(PARTITION BY academic_year, term, type, school) * CONVERT(FLOAT,value),0) AS N_agree
+      ,NULL AS associate_id
+      ,NULL AS position_id
+      ,NULL AS rn_base
+      ,NULL AS rn_curr
+      ,NULL AS update_status
+      ,NULL AS position_status
+      ,NULL AS employee_type
+      ,NULL AS benefits_elig_class
+      ,NULL AS kipp_alumni_status
+      ,NULL AS last_name
+      ,NULL AS first_name
+      ,NULL AS preferred_name
+      ,NULL AS preferred_first
+      ,NULL AS preferred_last
+      ,NULL AS gdoc_firstlast
+      ,NULL AS name_combined
+      ,NULL AS location
+      ,NULL AS gdoc_reporting_location
+      ,NULL AS location_combined
+      ,NULL AS subject_primary
+      ,NULL AS subject_secondary
+      ,NULL AS subject_taught
+      ,NULL AS grade_taught
+      ,NULL AS grades_taught
+      ,NULL AS department
+      ,NULL AS department_combined
+      ,NULL AS subject_combined
+      ,NULL AS job_title
+      ,NULL AS job_title_combined
+      ,NULL AS gdoc_primary_role
+      ,NULL AS is_management
+      ,NULL AS gdoc_is_management
+      ,NULL AS gdoc_manager
+      ,NULL AS reports_to
+      ,NULL AS gender
+      ,NULL AS gdoc_gender
+      ,NULL AS gender_combined
+      ,NULL AS ethnicity
+      ,NULL AS gdoc_ethnicity
+      ,NULL AS ethnicity_combined
+      ,NULL AS kipp_nj_email
+      ,NULL AS phone_mobile
+      ,NULL AS gdoc_cell_phone
+      ,NULL AS cell_phone_combined
+      ,NULL AS date_of_birth
+      ,NULL AS age
+      ,NULL AS years_employed
+      ,NULL AS hire_date
+      ,NULL AS rehire_date
+      ,NULL AS termination_date
+      ,NULL AS termination_code
+      ,NULL AS termination_reason
+FROM KIPP_NJ..AUTOLOAD$GDOCS_TNTP_insight_survey_data WITH(NOLOCK)
+WHERE academic_year >= 2016
+  AND school NOT IN ('KIPP Network Average','KIPP Top Quartile Schools*','KIPP New Jersey Average','KIPP Top Quartile Schools','KIPP New Jersey')
+  AND ISNUMERIC(value) = 1
 /*
 
 --removing 2015-16 surve code to replace: need to rebuild all survey detail for 2016-17
