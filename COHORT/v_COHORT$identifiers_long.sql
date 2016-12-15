@@ -183,3 +183,4 @@ LEFT OUTER JOIN KIPP_NJ..COHORT$retention_flags#static ret WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$SPENROLLMENTS#static sp WITH(NOLOCK)
   ON co.studentid = sp.studentid
  AND co.year = sp.academic_year
+ AND sp.programid IN (4573, 5074, 5075, 5173) /* ProgramIDs for schools within schools */

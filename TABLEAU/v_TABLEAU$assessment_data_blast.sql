@@ -240,7 +240,7 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
   ON co.schoolid = dt.schoolid
  AND co.year = dt.academic_year
- AND ovr.date_taken BETWEEN dt.start_date AND dt.end_date
+ AND a.administered_at BETWEEN dt.start_date AND dt.end_date
  AND dt.identifier = 'RT'
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static astd WITH(NOLOCK)
   ON a.assessment_id = astd.assessment_id
