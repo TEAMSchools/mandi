@@ -24,6 +24,8 @@ SELECT co.student_number
       ,dli.incidentid AS dl_id
       ,dli.createtsdate AS dl_timestamp
       ,dli.createfirst + ' ' + dli.createlast AS referring_teacher_name
+      ,dli.updatefirst + ' ' + dli.updatelast AS reviewed_by
+      ,dli.status
       ,'Referral' AS dl_category
       ,ISNULL(dli.category,'Referral') AS dl_behavior
       ,dli.reporteddetails AS notes
@@ -57,6 +59,8 @@ SELECT co.student_number
       ,dlip.incidentpenaltyid AS dl_id
       ,ISNULL(dlip.startdate, dli.closetsdate) AS dl_timestamp
       ,dli.createfirst + ' ' + dli.createlast AS referring_teacher_name
+      ,dli.updatefirst + ' ' + dli.updatelast AS reviewed_by
+      ,dli.status
       ,'Consequence' AS dl_category
       ,dlip.penaltyname AS dl_behavior
       ,dli.adminsummary AS notes
@@ -92,6 +96,8 @@ SELECT co.student_number
       ,dlb.dlsaid AS dl_id
       ,dlb.dl_lastupdate AS dl_timestamp
       ,dlb.stafffirstname + ' ' + dlb.stafflastname AS referring_teacher_name
+      ,NULL AS reviewed_by
+      ,NULL AS status
       ,dlb.behaviorcategory AS dl_category
       ,dlb.behavior AS dl_behavior
       ,NULL AS notes

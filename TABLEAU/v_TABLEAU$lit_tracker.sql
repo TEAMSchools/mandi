@@ -14,11 +14,13 @@ SELECT co.school_name
       ,co.year AS academic_year            
       ,co.SPEDLEP AS IEP_status      
       ,co.enroll_status      
+      ,CASE WHEN sp.programid IS NOT NULL THEN 1 ELSE 0 END AS is_americorps
+      
       ,CONVERT(VARCHAR(8),CASE
         WHEN co.year >= 2015 THEN REPLACE(term.hex,'RT','Q') 
         ELSE REPLACE(term.hex,'RT','Hex ') 
        END) AS AR_term      
-      ,CONVERT(VARCHAR(8),term.lit) AS lit_term
+      ,CONVERT(VARCHAR(8),term.lit) AS lit_term      
       
       /* test identifiers */      
       ,CONVERT(VARCHAR(8),achv.read_lvl) AS read_lvl
@@ -107,6 +109,10 @@ LEFT OUTER JOIN KIPP_NJ..AR$progress_to_goals_long#static ar WITH(NOLOCK)
  AND term.hex = ar.time_period_name 
  AND ar.start_date <= CONVERT(DATE,GETDATE())
  AND ar.N_total > 0
+LEFT OUTER JOIN KIPP_NJ..PS$SPENROLLMENTS#static sp WITH(NOLOCK)
+  ON co.studentid = sp.studentid
+ AND co.year = sp.academic_year
+ AND sp.programid = 5224
 WHERE co.rn = 1
   AND co.grade_level != 99
   AND co.year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
@@ -124,6 +130,7 @@ SELECT school_name
       ,academic_year
       ,IEP_status
       ,enroll_status
+      ,0 AS is_americorps
       ,AR_term
       ,lit_term
       ,read_lvl
