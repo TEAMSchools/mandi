@@ -179,7 +179,7 @@ FROM
            
            /* HW grades */
            ,cat.H_Y1 AS HWC_Y1
-           ,cat.E_Y1 AS HWQ_Y1
+           ,CASE WHEN co.year <= 2015 THEN cat.E_Y1 ELSE  cat.H_Y1 END AS HWQ_Y1
 
            /* GPA */
            ,gpa.GPA_Y1

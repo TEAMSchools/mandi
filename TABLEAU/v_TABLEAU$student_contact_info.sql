@@ -22,12 +22,14 @@ WITH contacts_unpivot AS (
              ,CONVERT(VARCHAR(MAX),con.MOTHER_CELL) AS PARENT1_CELL
              ,CONVERT(VARCHAR(MAX),con.MOTHER_DAY) AS PARENT1_DAY           
              ,CONVERT(VARCHAR(MAX),cs.MOTHER_REGISTERED_TO_VOTE) AS PARENT1_REGISTEREDTOVOTE
+             ,CONVERT(VARCHAR(MAX),blob.GUARDIANEMAIL) AS PARENT1_EMAIL
              ,CONVERT(VARCHAR(MAX),con.FATHER) AS PARENT2_NAME             
              ,CASE WHEN CONCAT(con.FATHER_HOME, con.FATHER_CELL, con.FATHER_DAY) != '' THEN CONVERT(VARCHAR(MAX),'Father') END AS PARENT2_RELATION
              ,CONVERT(VARCHAR(MAX),con.FATHER_HOME) AS PARENT2_HOME
              ,CONVERT(VARCHAR(MAX),con.FATHER_CELL) AS PARENT2_CELL
              ,CONVERT(VARCHAR(MAX),con.FATHER_DAY) AS PARENT2_DAY
              ,CONVERT(VARCHAR(MAX),cs.FATHER_REGISTERED_TO_VOTE) AS PARENT2_REGISTEREDTOVOTE
+             ,CONVERT(VARCHAR(MAX),blob.GUARDIANEMAIL) AS PARENT2_EMAIL
              ,CONVERT(VARCHAR(MAX),con.DOCTOR_NAME) AS DOCTOR_NAME
              ,CASE WHEN CONCAT(con.DOCTOR_NAME, con.DOCTOR_PHONE) != '' THEN CONVERT(VARCHAR(MAX),'Doctor') END AS DOCTOR_RELATION
              ,CONVERT(VARCHAR(MAX),con.DOCTOR_PHONE) AS DOCTOR_CELL
@@ -80,12 +82,14 @@ WITH contacts_unpivot AS (
                  ,PARENT1_CELL
                  ,PARENT1_DAY
                  ,PARENT1_REGISTEREDTOVOTE
+                 ,PARENT1_EMAIL
                  ,PARENT2_NAME
                  ,PARENT2_RELATION
                  ,PARENT2_HOME
                  ,PARENT2_CELL
                  ,PARENT2_DAY
                  ,PARENT2_REGISTEREDTOVOTE
+                 ,PARENT2_EMAIL
                  ,DOCTOR_NAME
                  ,DOCTOR_RELATION
                  ,DOCTOR_CELL
@@ -165,6 +169,7 @@ WITH contacts_unpivot AS (
 SELECT co.STUDENT_NUMBER
       ,co.LASTFIRST AS student_name
       ,co.reporting_schoolid AS SCHOOLID
+      ,co.school_name
       ,co.GRADE_LEVEL
       ,co.team
       ,co.ENROLL_STATUS
