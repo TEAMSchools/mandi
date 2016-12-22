@@ -80,7 +80,7 @@ SELECT survey_type
       ,people.termination_code
       ,people.termination_reason
 FROM PEOPLE$PM_survey_responses_long#static survey WITH(NOLOCK)
-JOIN PEOPLE$details people WITH(NOLOCK)
+LEFT OUTER JOIN PEOPLE$details people WITH(NOLOCK)
   ON survey.subject_associate_id = people.associate_id
 
 UNION ALL

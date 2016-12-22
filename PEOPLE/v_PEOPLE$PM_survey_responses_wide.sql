@@ -9,7 +9,7 @@ WITH response_agg AS (
         ,term
         ,subject_name AS staff_member
         ,subject_reporting_location AS reporting_location
-        ,subject_team AS team
+        ,team
         ,subject_manager_name AS manager_name        
         ,KIPP_NJ.dbo.fn_StripCharacters(competency,'^A-Z') AS competency
         ,CASE WHEN question_code NOT LIKE 'q___' THEN question_code + '_1' ELSE question_code END AS question_code
@@ -24,7 +24,7 @@ WITH response_agg AS (
           ,term
           ,subject_name
           ,subject_reporting_location
-          ,subject_team
+          ,team
           ,subject_manager_name
           ,competency
           ,question_code          
@@ -106,7 +106,7 @@ WITH response_agg AS (
         ,term
         ,subject_name AS staff_member        
         ,subject_reporting_location AS reporting_location
-        ,subject_team AS team
+        ,team
         ,subject_manager_name AS manager_name
         ,CONCAT(ISNULL(KIPP_NJ.dbo.fn_StripCharacters(competency,'^A-Z'), 'Manager_' + question_code), '_comments') AS pivot_field
         ,KIPP_NJ.dbo.GROUP_CONCAT_D(REPLACE(LTRIM(RTRIM(response)),'"',''''''), CHAR(10)) AS pivot_value
@@ -118,7 +118,7 @@ WITH response_agg AS (
           ,term
           ,subject_name
           ,subject_reporting_location
-          ,subject_team
+          ,team
           ,subject_manager_name
           ,CONCAT(ISNULL(KIPP_NJ.dbo.fn_StripCharacters(competency,'^A-Z'), 'Manager_' + question_code), '_comments')
  )
