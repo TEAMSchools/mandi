@@ -81,7 +81,10 @@ SELECT survey_type
       ,people.termination_reason
 FROM PEOPLE$PM_survey_responses_long#static survey WITH(NOLOCK)
 LEFT OUTER JOIN PEOPLE$details people WITH(NOLOCK)
-  ON survey.subject_associate_id = people.associate_id
+  ON CASE 
+      WHEN survey.survey_type = 'R9' THEN survey.responder_associate_id
+      ELSE survey.subject_associate_id 
+     END = people.associate_id
 
 UNION ALL
 
