@@ -173,6 +173,7 @@ SELECT co.STUDENT_NUMBER
       ,co.GRADE_LEVEL
       ,co.team
       ,co.ENROLL_STATUS
+      ,CONCAT(co.STREET, ' - ', co.city, ', ', co.state, ' ', co.zip) AS street_address
       
       ,s.FAMILY_IDENT
       ,CASE 

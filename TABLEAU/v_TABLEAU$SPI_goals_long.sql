@@ -214,7 +214,8 @@ WITH map_data AS (
              ,CASE WHEN co.entrydate <= CONVERT(DATE,CONCAT(co.year,'-10-15')) AND co.exitdate >= CONVERT(DATE,CONCAT(co.year,'-10-15')) THEN 1 ELSE 0 END AS is_baseline_10_15
 
              /* demographics */      
-             ,CONVERT(FLOAT,CASE WHEN co.LUNCHSTATUS IN ('F','R') THEN 100.0 ELSE 0.0 END) AS is_FR_lunch
+             ,CONVERT(FLOAT,CASE WHEN co.entrydate <= CONVERT(DATE,CONCAT(co.year,'-10-15')) AND co.exitdate >= CONVERT(DATE,CONCAT(co.year,'-10-15')) 
+                                  AND co.LUNCHSTATUS IN ('F','R') THEN 100.0 ELSE 0.0 END) AS is_FR_lunch
              ,CONVERT(FLOAT,CASE WHEN co.SPEDLEP LIKE '%SPED%' THEN 100.0 ELSE 0.0 END) AS is_SPED      
 
              /* attrition */
