@@ -5,12 +5,14 @@ ALTER VIEW ACT$test_prep_scores AS
 
 WITH long_data AS (
   SELECT a.assessment_id
+        ,a.title AS assessment_title
         ,a.subject_area
         ,a.academic_year
         ,a.administered_at
         
         ,ovr.local_student_id AS student_number        
         ,ovr.performance_band_level AS overall_performance_band                      
+        ,ovr.percent_correct AS overall_percent_correct
         ,CONVERT(INT,ROUND(((ovr.percent_correct / 100) * ovr.number_of_questions),0)) AS overall_number_correct
 
         ,co.grade_level
@@ -36,10 +38,12 @@ WITH long_data AS (
   SELECT d.student_number
         ,d.academic_year
         ,d.assessment_id
+        ,d.assessment_title
         ,d.time_per_name
         ,d.administration_round      
         ,d.administered_at
         ,d.subject_area
+        ,d.overall_percent_correct
         ,d.overall_number_correct
         ,d.overall_performance_band
         ,act.scale_score
@@ -57,10 +61,12 @@ WITH long_data AS (
   SELECT student_number
         ,academic_year
         ,NULL AS assessment_id
+        ,NULL AS assessment_title
         ,time_per_name
         ,administration_round
         ,MIN(administered_at) AS administered_at
         ,'Composite' AS subject_area
+        ,NULL AS overall_percent_correct
         ,NULL AS overall_number_correct
         ,NULL AS overall_performance_band            
         ,CASE WHEN COUNT(scale_score) = 4 THEN ROUND(AVG(scale_score),0) END AS scale_score
@@ -92,10 +98,12 @@ WITH long_data AS (
 SELECT sub.student_number
       ,sub.academic_year
       ,sub.assessment_id
+      ,sub.assessment_title
       ,sub.time_per_name
       ,sub.administration_round      
       ,sub.administered_at
       ,sub.subject_area
+      ,sub.overall_percent_correct
       ,sub.overall_number_correct
       ,sub.overall_performance_band
       ,sub.scale_score
@@ -105,7 +113,8 @@ SELECT sub.student_number
       
       ,s.custom_code AS standard_code
       ,s.description AS standard_description
-      ,CONVERT(FLOAT,std.percent_correct) AS standard_percent_correct
+      ,CONVERT(FLOAT,std.percent_correct) AS standard_percent_correct      
+      ,COALESCE(ps2.state_num, ps.state_num) AS standard_strand
       
       ,ROW_NUMBER() OVER(
          PARTITION BY sub.student_number, sub.academic_year, sub.administration_round, sub.subject_area
@@ -118,10 +127,12 @@ FROM
      SELECT student_number
            ,academic_year
            ,assessment_id
+           ,assessment_title
            ,time_per_name
            ,administration_round
            ,administered_at
            ,subject_area
+           ,overall_percent_correct
            ,overall_number_correct
            ,overall_performance_band
            ,scale_score
@@ -136,3 +147,7 @@ LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard std WITH(NOLO
  AND sub.student_number = std.local_student_id
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static s WITH(NOLOCK)
   ON std.standard_id = s.standard_id  
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static ps WITH(NOLOCK)
+  ON s.parent_standard_id = ps.standard_id
+LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static ps2 WITH(NOLOCK)
+  ON ps.parent_standard_id = ps2.standard_id
