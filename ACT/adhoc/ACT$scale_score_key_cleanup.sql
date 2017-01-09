@@ -12,7 +12,7 @@ WITH scaffold AS (
 
 SELECT KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
       ,11 AS grade_level
-      ,'ACT3' AS administration_round
+      ,'ACT4' AS administration_round
       ,s.subject
       ,s.max_raw_score AS raw_score            
       --,a.scale_score AS raw_scale_score
