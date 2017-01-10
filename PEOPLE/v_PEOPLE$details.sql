@@ -74,7 +74,7 @@ SELECT adp.associate_id
 	  ,gdoc.ethnicity AS gdoc_ethnicity
 	  ,CASE WHEN gdoc.ethnicity IS NULL THEN adp.ethnicity ELSE gdoc.ethnicity END AS ethnicity_combined
 
-	  ,ad.userPrincipalName AS kipp_nj_email
+	  ,ad.mail AS kipp_nj_email
 	  
 	  ,adp.phone_mobile
 	  ,gdoc.cell_phone AS gdoc_cell_phone
