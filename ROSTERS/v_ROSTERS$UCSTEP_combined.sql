@@ -51,7 +51,8 @@ JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
  AND enr.rn_subject = 1
  AND enr.drop_flags = 0
 LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PEOPLE_teachernumber_associateid_link link WITH(NOLOCK)
-  ON enr.TEACHERNUMBER = link.TEACHERNUMBER
+  ON enr.TEACHERNUMBER = LTRIM(RTRIM(STR(link.teachernumber)))
+ AND link.is_master = 1
 LEFT OUTER JOIN KIPP_NJ..PS$USERS#static u WITH(NOLOCK)
   ON enr.TEACHERNUMBER = u.TEACHERNUMBER
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()

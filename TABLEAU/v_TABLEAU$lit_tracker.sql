@@ -34,7 +34,7 @@ SELECT co.school_name
       ,CONVERT(VARCHAR(8),achv.prev_read_lvl) AS prev_read_lvl
       ,achv.prev_lvl_num
       ,achv.GLEQ      
-      ,CONVERT(VARCHAR(16),achv.fp_keylever) AS fp_keylever
+      ,CONVERT(VARCHAR(16),COALESCE(achv.fp_keylever, dnatestid.fp_keylever)) AS fp_keylever
       ,achv.is_new_test
       ,achv.moved_levels      
       ,SUM(CASE 
@@ -42,12 +42,12 @@ SELECT co.school_name
             ELSE achv.moved_levels 
            END) OVER(PARTITION BY co.student_number, co.year ORDER BY achv.start_date ASC) AS n_levels_moved_y1
 
-      ,testid.test_date
+      ,CASE WHEN testid.test_date >= dnatestid.test_date THEN testid.test_date ELSE dnatestid.test_date END AS test_date
       ,CONVERT(VARCHAR(16),testid.status) AS status
       ,CONVERT(VARCHAR(16),testid.color) AS color
       ,CONVERT(VARCHAR(16),testid.genre) AS genre
       ,testid.is_fp
-      ,testid.test_administered_by
+      ,CASE WHEN testid.test_date >= dnatestid.test_date THEN testid.test_administered_by ELSE dnatestid.test_administered_by END AS test_administered_by
 
       /* progress to goals */
       ,achv.is_curterm
@@ -99,6 +99,9 @@ LEFT OUTER JOIN KIPP_NJ..LIT$achieved_by_round#static achv WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static testid WITH(NOLOCK)
   ON co.studentid = testid.studentid
  AND achv.achv_unique_id = testid.unique_id 
+LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static dnatestid WITH(NOLOCK)
+  ON co.studentid = dnatestid.studentid
+ AND achv.dna_unique_id = dnatestid.unique_id 
 LEFT OUTER JOIN KIPP_NJ..LIT$readingscores_long#static long WITH(NOLOCK)
   ON co.studentid = long.studentid
  AND achv.dna_unique_id = long.unique_id
