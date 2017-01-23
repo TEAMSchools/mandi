@@ -89,6 +89,7 @@ ELSEIF [job_title_combined] = 'Enrollment Coordinator'
 	OR [job_title_combined] = 'Senior IT Support Specialist'
 	OR [job_title_combined] = 'Student Alumni and Engagement Manager'
 	OR [job_title_combined] = 'Temporary Technology Associate'
+        OR [job_title_combined] = 'Team and family manager'
 
 THEN 'R9 Staff'
 
@@ -137,6 +138,8 @@ ELSEIF [job_title_combined] =  'Child Study Team Director'
 	OR [job_title_combined] = 'Managing Director of Teaching & Learning'
 	OR [job_title_combined] = 'Math Achievement Director'
 	OR [job_title_combined] = 'Middle School Literacy Curriculum Director'
+        OR [job_title_combined] = 'Director of Alumni Support'
+
 	
 THEN 'R9 Director'
 
@@ -195,6 +198,7 @@ ELSEIF [job_title_combined] =  'Office Manager'
 	OR [job_title_combined] = 'Speech-Language Pathologist'
 	OR [job_title_combined] = 'Student Support Advocate | Paraprofessional Manager'
 	OR [job_title_combined] = 'Student Support Specialist'
+        OR [job_title_combined] = 'Para-professional'
 
 
 THEN 'Other School Support'
