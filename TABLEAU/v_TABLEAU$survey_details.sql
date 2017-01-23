@@ -88,10 +88,10 @@ LEFT OUTER JOIN PEOPLE$details people WITH(NOLOCK)
 
 UNION ALL
 
-SELECT 'R9' AS survey_type
+SELECT 'TNTP' AS survey_type
       ,NULL AS survey_timestamp
       ,academic_year
-      ,'Room 9' AS subject_name
+      ,type AS subject_name
       ,NULL AS is_instructional
       ,NULL AS question_code
       ,value response
