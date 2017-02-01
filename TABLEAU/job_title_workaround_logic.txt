@@ -139,7 +139,7 @@ ELSEIF [job_title_combined] =  'Child Study Team Director'
 	OR [job_title_combined] = 'Math Achievement Director'
 	OR [job_title_combined] = 'Middle School Literacy Curriculum Director'
         OR [job_title_combined] = 'Director of Alumni Support'
-
+        OR [job_title_combined] = 'Managing Director of Special Education'
 	
 THEN 'R9 Director'
 
