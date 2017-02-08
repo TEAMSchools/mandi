@@ -15,13 +15,14 @@ WITH roster_scaffold AS (
          END AS test_round
         ,CASE 
           WHEN CONVERT(DATE,GETDATE()) BETWEEN terms.start_date AND terms.end_date THEN 1 
-          WHEN terms.start_date <= CONVERT(DATE,GETDATE()) AND MAX(terms.start_date) OVER(PARTITION BY r.schoolid, r.year) = terms.start_date THEN 1
-          ELSE 
-         0 END AS is_curterm
+          WHEN MAX(CASE WHEN terms.start_date <= CONVERT(DATE,GETDATE()) THEN terms.start_date END) OVER(PARTITION BY r.schoolid, r.year) = terms.start_date THEN 1
+          ELSE 0 
+         END AS is_curterm
         ,ROW_NUMBER() OVER (
            PARTITION BY r.studentid, r.year
              ORDER BY terms.start_date ASC) AS round_num
         ,terms.start_date
+        ,terms.end_date
   FROM KIPP_NJ..COHORT$identifiers_long#static r WITH(NOLOCK)
   JOIN KIPP_NJ..REPORTING$dates terms WITH(NOLOCK)
     ON r.year = terms.academic_year 
@@ -46,7 +47,8 @@ WITH roster_scaffold AS (
              ,r.academic_year
              ,r.test_round
              ,r.round_num
-             ,r.start_date                
+             ,r.start_date    
+             ,r.end_date            
              ,r.is_curterm
         
              ,COALESCE(achv.read_lvl, ps.read_lvl) AS read_lvl
@@ -94,6 +96,7 @@ WITH roster_scaffold AS (
              ,r.test_round
              ,r.round_num
              ,r.start_date
+             ,r.end_date
              ,r.is_curterm
 
              ,achv.read_lvl
@@ -135,6 +138,7 @@ WITH roster_scaffold AS (
              ,r.test_round
              ,r.round_num
              ,r.start_date
+             ,r.end_date
              ,r.is_curterm
 
              ,CASE WHEN fp.status = 'Achieved' THEN COALESCE(fp.read_lvl, fp.indep_lvl) ELSE fp.indep_lvl END AS read_lvl
@@ -189,6 +193,7 @@ WITH roster_scaffold AS (
         ,tests.test_round 
         ,tests.round_num     
         ,tests.start_date
+        ,tests.end_date
         ,tests.is_curterm
                 
         ,COALESCE(tests.read_lvl,achv_prev.read_lvl) AS read_lvl
@@ -241,6 +246,7 @@ SELECT academic_year
       ,student_number
       ,test_round
       ,start_date
+      ,end_date
       ,is_curterm
       ,ROW_NUMBER() OVER(
          PARTITION BY studentid, academic_year
@@ -287,9 +293,7 @@ SELECT academic_year
       ,CASE
         WHEN lvl_num >= 26 THEN 'On Track'
         WHEN lvl_num >= goal_num THEN 'On Track'
-        WHEN lvl_num < goal_num THEN 'Off Track'
-        --WHEN lvl_num >= natl_goal_num THEN 'Off Track'
-        --WHEN lvl_num < natl_goal_num THEN 'Off Track'
+        WHEN lvl_num < goal_num THEN 'Off Track'        
        END AS goal_status
       ,levels_behind
       ,achv_unique_id
@@ -304,6 +308,7 @@ FROM
            ,sub.student_number
            ,sub.test_round
            ,sub.start_date
+           ,sub.end_date
            ,sub.is_curterm
 
            ,sub.read_lvl           
@@ -330,7 +335,10 @@ FROM
            ,sub.lvl_num - COALESCE(indiv.lvl_num, goals.lvl_num) AS levels_behind
            ,sub.achv_unique_id      
            ,sub.dna_unique_id      
-           ,CASE WHEN sub.academic_year = lit.academic_year AND sub.round_num = lit.round_num THEN 1 ELSE 0 END AS is_new_test
+           ,CASE 
+             WHEN sub.academic_year = lit.academic_year AND sub.round_num = lit.round_num THEN 1 
+             ELSE 0
+            END AS is_new_test
      FROM
          (
           SELECT achieved.academic_year
@@ -341,6 +349,7 @@ FROM
                 ,achieved.test_round 
                 ,achieved.round_num     
                 ,achieved.start_date
+                ,achieved.end_date
                 ,achieved.is_curterm
                 
                 ,achieved.read_lvl

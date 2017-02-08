@@ -191,9 +191,53 @@ LEFT OUTER JOIN section_teacher st
  AND gr.course_number = st.COURSE_NUMBER
  AND st.rn = 1
 WHERE co.rn = 1
-  AND co.school_level IN ('MS','HS')
-  --AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() 
+  AND co.school_level IN ('MS','HS')  
 
+UNION ALL
+
+/* Transfer grades */
+SELECT s.student_number
+      ,s.lastfirst
+      ,s.schoolid
+      ,s.grade_level
+      ,s.team
+      ,cs.advisor
+      ,s.enroll_status
+      ,gr.academic_year AS year
+      ,cs.spedlep
+      ,'Y1' AS term
+      
+      ,1 AS is_curterm
+      ,'Y1' AS finalgradename      
+      ,'TRANSFER' AS credittype
+      ,CONCAT(gr.course_number, gr.bini_id) AS course_number
+      ,gr.course_name      
+      ,gr.sectionid
+      ,'TRANSFER' AS teacher_name
+      ,gr.excludefromgpa
+      ,gr.POTENTIALCRHRS AS credit_hours
+      ,gr.GPA_POINTS AS term_gpa_points
+      ,gr.PCT AS term_grade_percent_adjusted
+      ,gr.GRADE AS term_grade_letter_adjusted
+      ,gr.PCT AS y1_grade_percent_adjusted
+      ,gr.GRADE AS y1_grade_letter           
+      ,gr.GPA_POINTS AS y1_gpa_points
+      ,NULL AS need_65
+      ,NULL AS need_70
+      ,NULL AS need_80
+      ,NULL AS need_90
+      
+      ,'TRANSFER' AS SECTION_NUMBER       
+      ,NULL AS period
+FROM KIPP_NJ..GRADES$STOREDGRADES#static gr WITH(NOLOCK)
+JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
+  ON gr.STUDENTID = s.ID 
+ AND gr.SCHOOLID = s.SCHOOLID
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_custom#static cs WITH(NOLOCK)
+  ON s.ID = cs.STUDENTID
+WHERE gr.STORECODE = 'Y1'
+  AND gr.COURSE_NUMBER = 'TRANSFER'
+  
 UNION ALL
 
 SELECT co.student_number

@@ -8,7 +8,7 @@ WITH standards_rollup AS (
         ,reporting_week
         ,local_student_id AS student_number
         ,CONCAT(subj_abbrev, '_', proficiency) AS subj_prof
-        ,KIPP_NJ.dbo.GROUP_CONCAT_D(standard_description, CHAR(10)+CHAR(13)) AS std
+        ,KIPP_NJ.dbo.GROUP_CONCAT_D('- ' + standard_description, CHAR(10)) AS std
   FROM
       (
        SELECT academic_year

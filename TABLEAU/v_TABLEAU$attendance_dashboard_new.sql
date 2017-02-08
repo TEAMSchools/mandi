@@ -6,6 +6,7 @@ ALTER VIEW TABLEAU$attendance_dashboard_new AS
 SELECT co.year
       ,co.reporting_schoolid AS schoolid
       ,co.studentid
+      ,co.student_number
       ,co.lastfirst
       ,co.grade_level
       ,co.school_level
@@ -86,6 +87,7 @@ UNION ALL
 SELECT year
       ,schoolid
       ,studentid
+      ,NULL AS student_number
       ,lastfirst
       ,grade_level
       ,school_level

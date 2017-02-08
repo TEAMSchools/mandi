@@ -14,7 +14,7 @@ WITH curr_Q12 AS (
        SELECT DISTINCT 
               academic_year
              ,term
-       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long WITH(NOLOCK)
+       FROM KIPP_NJ..PEOPLE$PM_survey_responses_long#static WITH(NOLOCK)
        WHERE survey_type = 'R9'
          AND competency = 'Q12'
       ) sub

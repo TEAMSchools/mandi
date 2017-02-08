@@ -18,7 +18,7 @@ FROM
            ,academic_year      
            ,CONCAT('scale_score_', LOWER(REPLACE(time_per_name,'-',''))) AS field
            ,scale_score
-     FROM KIPP_NJ..ACT$test_prep_scores
+     FROM KIPP_NJ..ACT$test_prep_scores WITH(NOLOCK)
      WHERE subject_area = 'Composite'
        AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     ) sub

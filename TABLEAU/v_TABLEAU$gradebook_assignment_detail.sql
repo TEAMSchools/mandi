@@ -5,6 +5,9 @@ ALTER VIEW TABLEAU$gradebook_assignment_detail AS
 
 SELECT sec.ID AS sectionid
       ,sec.academic_year            
+      ,sec.COURSE_NUMBER
+      ,sec.SECTION_NUMBER
+      ,t.LASTFIRST AS teacher_name
       
       ,gb.REPORTINGTERM_NAME AS FINALGRADENAME
       ,LEFT(gb.REPORTINGTERM_NAME,1) AS finalgrade_category
@@ -24,11 +27,14 @@ SELECT sec.ID AS sectionid
       ,a.ISFINALSCORECALCULATED
       
       ,s.STUDENT_NUMBER
+      ,s.SCHOOLID
       ,scores.SCORE
       ,scores.TURNEDINLATE
       ,scores.EXEMPT
       ,scores.ISMISSING
 FROM KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
+JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
+  ON sec.TEACHER = t.ID
 JOIN KIPP_NJ..PS$gradebook_setup#static gb WITH(NOLOCK)
   ON sec.DCID = gb.sectionsdcid
  AND gb.FINALGRADESETUPTYPE NOT LIKE 'Total%Points' 
@@ -50,6 +56,9 @@ UNION ALL
 
 SELECT sec.ID AS sectionid
       ,sec.academic_year            
+      ,sec.COURSE_NUMBER
+      ,sec.SECTION_NUMBER
+      ,t.LASTFIRST AS teacher_name
       
       ,gb.REPORTINGTERM_NAME AS FINALGRADENAME
       ,LEFT(gb.REPORTINGTERM_NAME,1) AS finalgrade_category
@@ -69,11 +78,14 @@ SELECT sec.ID AS sectionid
       ,a.ISFINALSCORECALCULATED
       
       ,s.STUDENT_NUMBER
+      ,s.SCHOOLID
       ,scores.SCORE
       ,scores.TURNEDINLATE
       ,scores.EXEMPT
       ,scores.ISMISSING
 FROM KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
+JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
+  ON sec.TEACHER = t.ID
 JOIN KIPP_NJ..PS$gradebook_setup#static gb WITH(NOLOCK)
   ON sec.DCID = gb.sectionsdcid
  AND gb.FINALGRADESETUPTYPE LIKE 'Total%Points' 

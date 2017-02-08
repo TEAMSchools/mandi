@@ -224,9 +224,16 @@ SELECT sub.student_number
       ,sub.course_name
       ,sub.sectionid
       ,sub.teacher_name
-      ,sub.excludefromgpa
+      ,CASE
+        WHEN sub.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN y1.EXCLUDEFROMGPA
+        ELSE sub.excludefromgpa
+       END AS excludefromgpa
       ,sub.gradescaleid
-      ,sub.credit_hours
+      ,CASE
+        WHEN y1.potentialcrhrs IS NOT NULL THEN y1.POTENTIALCRHRS
+        WHEN sub.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN NULL
+        ELSE sub.credit_hours
+       END AS credit_hours
       
       ,sub.term_gpa_points
       ,sub.term_grade_letter
@@ -243,14 +250,23 @@ SELECT sub.student_number
       ,sub.weighted_points_total      
       
       ,sub.y1_grade_percent AS y1_grade_percent
-      ,COALESCE(y1.pct, sub.y1_grade_percent_adjusted) AS y1_grade_percent_adjusted
+      ,CASE
+        WHEN y1.pct IS NOT NULL THEN y1.PCT
+        WHEN sub.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN NULL
+        ELSE sub.y1_grade_percent_adjusted
+       END AS y1_grade_percent_adjusted
       /* these use the adjusted Y1 */
       ,CASE
         WHEN y1.GRADE IS NOT NULL THEN y1.GRADE
+        WHEN sub.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN NULL
         WHEN sub.y1_grade_percent_adjusted = 50 AND sub.y1_grade_percent < 50 THEN 'F*'        
         ELSE scale.letter_grade 
        END AS y1_grade_letter
-      ,COALESCE(y1.gpa_points, scale.grade_points) AS y1_gpa_points
+      ,CASE
+        WHEN y1.gpa_points IS NOT NULL THEN y1.gpa_points
+        WHEN sub.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN NULL
+        ELSE scale.grade_points
+       END AS y1_gpa_points
 
       /* Need To Get calcs */
       ,ROUND((((weighted_points_possible_total * 0.9) /* 90% of total points possible */

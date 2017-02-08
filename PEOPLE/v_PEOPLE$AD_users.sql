@@ -71,5 +71,5 @@ FROM OPENQUERY(ADSI,'
         ,textEncodedORAddress        
         ,title        
         ,userPrincipalName        
-  FROM ''LDAP://RM9DC-TS-1.teamschools.kipp.org/OU=Users,OU=TEAM,DC=teamschools,DC=kipp,DC=org''    
+  FROM ''LDAP://KNJDC01.teamschools.kipp.org/OU=Users,OU=TEAM,DC=teamschools,DC=kipp,DC=org''    
 ')

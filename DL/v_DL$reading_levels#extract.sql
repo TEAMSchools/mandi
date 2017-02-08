@@ -6,9 +6,9 @@ ALTER VIEW DL$reading_levels#extract AS
 SELECT student_number
       ,academic_year
       ,test_round
-      ,CASE WHEN start_date <= CONVERT(DATE,GETDATE()) THEN read_lvl END AS read_lvl
+      ,CASE WHEN end_date <= CONVERT(DATE,GETDATE()) THEN read_lvl END AS read_lvl
       ,goal_lvl
-      ,CASE WHEN start_date <= CONVERT(DATE,GETDATE()) THEN lvl_num END AS read_lvl_num
+      ,CASE WHEN end_date <= CONVERT(DATE,GETDATE()) THEN lvl_num END AS read_lvl_num
       ,goal_num AS goal_lvl_num
       ,met_goal      
 FROM KIPP_NJ..LIT$achieved_by_round#static WITH(NOLOCK)

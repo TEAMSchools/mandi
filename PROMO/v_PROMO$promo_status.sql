@@ -36,24 +36,57 @@ WITH attendance AS (
  )
 
 ,lit AS (
-  SELECT lit.student_number
-        ,lit.academic_year
-        ,CASE WHEN lit.test_round = 'DR' AND is_curterm = 1 THEN 'Q1' ELSE lit.test_round END AS term
-        ,lit.read_lvl
-        ,lit.goal_lvl      
-        ,lit.goal_status        
-        ,COUNT(lit.read_lvl) OVER(PARTITION BY lit.studentid, lit.academic_year) - 1 AS n_growth_rounds
-        ,lit.met_goal
-        ,CASE 
-          WHEN lit.lvl_num >= lit.natl_goal_num THEN 1
-          WHEN lit.lvl_num < lit.natl_goal_num THEN 0
-         END AS met_natl_goal
+  SELECT student_number
+        ,academic_year
+        ,term
+        ,end_date
+        ,base_read_lvl
+        ,read_lvl      
+        ,goal_lvl
+        ,lvl_num
+        ,goal_num
+        ,is_new_test
+        ,n_growth_rounds
+        ,lvls_grown_yr
+        ,lvls_grown_term
+        ,CASE
+          WHEN lvl_num >= 26 THEN 'On Track'
+          WHEN end_date <= CONVERT(DATE,GETDATE()) AND lvl_num >= goal_num THEN 'On Track'
+          WHEN end_date <= CONVERT(DATE,GETDATE()) AND lvl_num < goal_num THEN 'Off Track'
+          WHEN is_new_test = 1 AND lvl_num >= goal_num THEN 'On Track'
+          WHEN is_new_test = 1 AND lvl_num < goal_num THEN 'Off Track'
+          WHEN is_new_test = 0 AND lvl_num >= prev_goal_num THEN 'On Track'
+          WHEN is_new_test = 0 AND lvl_num < prev_goal_num THEN 'Off Track'
+         END AS goal_status
+        ,CASE
+          WHEN lvl_num >= 26 THEN 1
+          WHEN end_date <= CONVERT(DATE,GETDATE()) AND lvl_num >= goal_num THEN 1
+          WHEN end_date <= CONVERT(DATE,GETDATE()) AND lvl_num < goal_num THEN 0
+          WHEN is_new_test = 1 AND lvl_num >= goal_num THEN 1
+          WHEN is_new_test = 1 AND lvl_num < goal_num THEN 0
+          WHEN is_new_test = 0 AND lvl_num >= prev_goal_num THEN 1
+          WHEN is_new_test = 0 AND lvl_num < prev_goal_num THEN 0
+         END AS met_goal
+  FROM
+      (
+       SELECT lit.student_number
+             ,lit.academic_year
+             ,CASE WHEN lit.test_round = 'DR' AND is_curterm = 1 THEN 'Q1' ELSE lit.test_round END AS term
+             ,lit.end_date
+             ,MAX(CASE WHEN lit.rn_round_asc = 1 THEN lit.read_lvl END) OVER(PARTITION BY lit.student_number, lit.academic_year) AS base_read_lvl
+             ,lit.read_lvl
+             ,lit.lvl_num
+             ,lit.goal_lvl                             
+             ,lit.goal_num
+             ,LAG(lit.goal_num, 1) OVER(PARTITION BY lit.student_number, lit.academic_year ORDER BY lit.start_date ASC) AS prev_goal_num
+             ,lit.is_new_test
         
-        ,MAX(CASE WHEN lit.rn_round_asc = 1 THEN lit.read_lvl END) OVER(PARTITION BY lit.student_number, lit.academic_year) AS base_read_lvl
-        ,lit.lvl_num - MAX(CASE WHEN lit.rn_round_asc = 1 THEN lit.lvl_num END) OVER(PARTITION BY lit.student_number, lit.academic_year) AS lvls_grown_yr        
-        ,lit.lvl_num - LAG(lit.lvl_num, 1) OVER(PARTITION BY lit.student_number, lit.academic_year ORDER BY lit.rn_round_asc) AS lvls_grown_term        
-  FROM KIPP_NJ..LIT$achieved_by_round#static lit WITH(NOLOCK)  
-  --WHERE lit.start_date <= CONVERT(DATE,GETDATE())
+             ,COUNT(CASE WHEN lit.end_date <= CONVERT(DATE,GETDATE()) THEN lit.read_lvl END) OVER(PARTITION BY lit.studentid, lit.academic_year ORDER BY lit.end_date ASC) - 1 AS n_growth_rounds
+             ,lit.lvl_num - MAX(CASE WHEN lit.rn_round_asc = 1 THEN lit.lvl_num END) OVER(PARTITION BY lit.student_number, lit.academic_year) AS lvls_grown_yr        
+             ,lit.lvl_num - LAG(lit.lvl_num, 1) OVER(PARTITION BY lit.student_number, lit.academic_year ORDER BY lit.rn_round_asc) AS lvls_grown_term       
+       FROM KIPP_NJ..LIT$achieved_by_round#static lit WITH(NOLOCK)  
+       --WHERE lit.start_date <= CONVERT(DATE,GETDATE())
+      ) sub
  )
 
 ,final_grades AS (
@@ -135,16 +168,15 @@ FROM
            ,CASE                     
              --WHEN lit.lvls_grown_term IS NULL OR lit.n_growth_rounds < 0 THEN NULL                
              /* Life Upper students have different promo criteria */
-             WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.goal_status IN ('On Track','Off Track') THEN 'On Track' /* if On Track, then On Track*/
+             WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.goal_status = 'On Track' THEN 'On Track' /* if On Track, then On Track*/
              WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_yr >= lit.n_growth_rounds THEN 'On Track' /* if grew 1 lvl per round overall, then On Track */        
-             WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_term < lit.n_growth_rounds THEN 'Off Track'
+             WHEN (co.schoolid = 73257 AND (co.grade_level - (year - 2014)) > 0) AND lit.lvls_grown_yr < lit.n_growth_rounds THEN 'Off Track'
              ELSE lit.goal_status
             END AS promo_status_lit
            ,lit.base_read_lvl
            ,lit.read_lvl AS cur_read_lvl
            ,lit.goal_lvl
-           ,lit.met_goal
-           ,lit.met_natl_goal
+           ,lit.met_goal           
            ,lit.goal_status AS lit_goal_status
            ,lit.lvls_grown_yr
            ,lit.lvls_grown_term
