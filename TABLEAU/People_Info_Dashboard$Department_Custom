@@ -1,0 +1,82 @@
+IF [department_combined] = 'Academic Leadership'
+    OR [department_combined] = 'Teaching and Learning'
+    THEN 'Academic'
+
+ELSEIF [department_combined] = 'ELA'
+    OR [department_combined] = 'Writing'
+    THEN 'ELA'
+
+
+ELSEIF [department_combined] = 'Arts'
+    OR [department_combined] = 'Physical Ed'
+    OR [department_combined] = 'World Languages'
+    THEN 'Electives'
+
+ELSEIF [department_combined] = 'ES'
+    OR [department_combined] = 'ES Self Contained'
+    OR [department_combined] = 'ES Self-Contained'
+    OR [department_combined] = 'Specialist Team - ES'
+    OR [department_combined] = 'Self Contained - ES Teacher'
+    THEN 'Elementary'
+
+ELSEIF [department_combined] = 'Advocacy'
+    OR [department_combined] = 'Development'
+    OR [department_combined] = 'Marketing'
+    THEN 'External'
+
+ELSEIF [department_combined] = 'Accounting and Finance'
+    OR [department_combined] = 'Special Projects'
+    THEN 'Finance'
+
+ELSEIF [department_combined] = 'KTC'
+    THEN 'KTC'
+
+ELSEIF [department_combined] = 'Executive'
+    OR [department_combined] = 'Executive Director'
+    THEN 'Executive'
+
+ELSEIF [department_combined] = 'Math'
+    OR [department_combined] = 'Mathematics'
+    THEN 'Math'
+
+ELSEIF [department_combined] = 'MS Self-Contained'
+    OR [department_combined] = 'Self Contained - MS Teacher'
+    THEN 'Middle'
+
+ELSEIF [department_combined] = 'NULL'
+    THEN 'NULL'
+
+ELSEIF [department_combined] = 'NCA Social Worker'
+    OR [department_combined] = 'Nursing'
+    OR [department_combined] = 'Paraprofessional'
+    OR [department_combined] = 'Student Support Team'
+    OR [Job Title Custom] = 'Other School Support'
+    THEN 'School-Based Support/Ops (Not DSOs)'
+
+ELSEIF [department_combined] = 'Data'
+    OR [department_combined] = 'Nutrition'
+    OR [department_combined] = 'Operations'
+    OR [department_combined] = 'Real Estate'
+    OR [department_combined] = 'Technology'
+    THEN 'Operations'
+
+ELSEIF [department_combined] = 'Human Assets'
+    OR [department_combined] = 'People Team'
+    OR [department_combined] = 'Recruitment'
+    THEN 'People'
+
+ELSEIF [department_combined] = 'Discipline'
+    OR [department_combined] = 'School Leadership'
+    THEN 'School Leadership'
+
+ELSEIF [department_combined] = 'Learning Specialist'
+    OR [department_combined] = 'Special Education'
+    THEN 'School-Based SPED'
+
+ELSEIF [department_combined] = 'Science'
+    THEN 'Science'
+
+ELSEIF [department_combined] = 'History'
+    THEN 'Social Studies'
+
+END
