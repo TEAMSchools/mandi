@@ -45,20 +45,20 @@ SELECT co.reporting_schoolid AS schoolid
       ,goal.goal AS individualized_mastery_goal
 
       ,COUNT(ovr.percent_correct) OVER(PARTITION BY a.academic_year
-                                                    ,a.scope
-                                                    ,a.subject_area
-                                                    ,co.grade_level
-                                                    ,CASE 
-                                                      WHEN a.scope = 'CMA - End-of-Module' THEN 'End-of-Module'
-                                                      WHEN a.scope = 'CMA - Mid-Module' AND a.title LIKE '%Checkpoint%' THEN CONCAT('Checkpoint ',SUBSTRING(a.title, CHARINDEX('Checkpoint', a.title) + 11, 1))
-                                                      WHEN a.scope = 'CMA - Mid-Module' AND a.title NOT LIKE '%Checkpoint%' THEN 'Mid-Module'
-                                                     END
-                                                    ,CASE 
-                                                      WHEN PATINDEX('%M[0-9]/[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]/[0-9]%', a.title) + 1, 3) 
-                                                      WHEN PATINDEX('%M[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title) + 1, 1)               
-                                                      WHEN PATINDEX('%U[0-9]/[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]/[0-9]%', a.title) + 1, 3)
-                                                      WHEN PATINDEX('%U[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]%', a.title) + 1, 1)
-                                                     END) AS n_valid_results
+                                                   ,a.scope
+                                                   ,a.subject_area
+                                                   ,co.grade_level
+                                                   ,CASE 
+                                                     WHEN a.scope = 'CMA - End-of-Module' THEN 'End-of-Module'
+                                                     WHEN a.scope = 'CMA - Mid-Module' AND a.title LIKE '%Checkpoint%' THEN CONCAT('Checkpoint ',SUBSTRING(a.title, CHARINDEX('Checkpoint', a.title) + 11, 1))
+                                                     WHEN a.scope = 'CMA - Mid-Module' AND a.title NOT LIKE '%Checkpoint%' THEN 'Mid-Module'
+                                                    END
+                                                   ,CASE 
+                                                     WHEN PATINDEX('%M[0-9]/[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]/[0-9]%', a.title) + 1, 3) 
+                                                     WHEN PATINDEX('%M[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%M[0-9]%', a.title) + 1, 1)               
+                                                     WHEN PATINDEX('%U[0-9]/[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]/[0-9]%', a.title) + 1, 3)
+                                                     WHEN PATINDEX('%U[0-9]%', a.title) > 0 THEN SUBSTRING(a.title, PATINDEX('%U[0-9]%', a.title) + 1, 1)
+                                                    END) AS n_valid_results
       ,COUNT(co.student_number) OVER(PARTITION BY a.academic_year
                                                  ,a.scope
                                                  ,a.subject_area

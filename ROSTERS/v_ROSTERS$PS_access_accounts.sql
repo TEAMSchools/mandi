@@ -29,7 +29,7 @@ WITH clean_names AS (
         ,CONVERT(VARCHAR,RIGHT(DATEPART(YEAR,s.DOB),2)) AS dob_year                
         ,LEFT(CASE 
                WHEN s.SCHOOLID = 73253 THEN LEFT(advisory.advisor, CHARINDEX(',', advisory.advisor) - 1)
-               --WHEN s.SCHOOLID = 179902 THEN sci.SECTION_NUMBER
+               WHEN s.SCHOOLID = 179902 THEN sci.SECTION_NUMBER
                ELSE cc.SECTION_NUMBER 
               END, 10) AS team
   FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
@@ -40,11 +40,11 @@ WITH clean_names AS (
    AND cc.COURSE_NUMBER = 'HR'
    AND CONVERT(DATE,GETDATE()) BETWEEN cc.dateenrolled AND cc.dateleft
    AND cc.rn = 1
-  --LEFT OUTER JOIN KIPP_NJ..PS$CC#static sci WITH(NOLOCK)
-  --  ON s.id = sci.STUDENTID
-  -- AND sci.COURSE_NUMBER LIKE 'SCI%'
-  -- AND CONVERT(DATE,GETDATE()) BETWEEN sci.dateenrolled AND sci.dateleft
-  -- AND sci.rn = 1
+  LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static sci WITH(NOLOCK)
+    ON s.STUDENT_NUMBER = sci.student_number  
+   AND sci.CREDITTYPE = 'SCI'
+   AND CONVERT(DATE,GETDATE()) BETWEEN sci.dateenrolled AND sci.dateleft
+   AND sci.rn_subject = 1  
   LEFT OUTER JOIN KIPP_NJ..PS$advisory_roster#static advisory WITH(NOLOCK)
     ON s.id = advisory.STUDENTID
    AND advisory.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
