@@ -265,6 +265,11 @@ SELECT academic_year
         WHEN lvl_num > prev_lvl_num THEN 1 
         WHEN lvl_num <= prev_lvl_num THEN 0        
        END AS moved_levels
+      ,SUM(CASE             
+            WHEN test_round IN ('DR','BOY') THEN 0 
+            WHEN lvl_num > prev_lvl_num THEN 1 
+            WHEN lvl_num <= prev_lvl_num THEN 0        
+           END) OVER(PARTITION BY student_number, academic_year ORDER BY start_date ASC) AS n_levels_moved_y1
       ,GLEQ      
       ,lvl_num      
       ,fp_wpmrate

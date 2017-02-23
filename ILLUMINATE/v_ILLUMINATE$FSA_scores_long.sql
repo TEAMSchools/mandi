@@ -39,12 +39,12 @@ FROM
      JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
        ON ovr.local_student_id = co.student_number
       AND ovr.academic_year = co.year
-      AND co.schoolid = 73258
+      AND co.schoolid = 73258 /* BOLD only */
       AND co.rn = 1 
      JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
        ON ovr.assessment_id = a.assessment_id
-      AND ((a.subject_area IN ('Text Study','Mathematics') AND (a.scope NOT IN ('CMA - Mid-Module', 'CMA - End-of-Module','Process Piece','KIPP Network-Wide') OR a.scope IS NULL))
-            OR (a.subject_area NOT IN ('Text Study','Mathematics')))     
+      AND ((a.subject_area IN ('Text Study','Mathematics') AND (a.scope = 'Exit Ticket'))
+           OR (a.subject_area NOT IN ('Text Study','Mathematics')))
      LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard r WITH(NOLOCK)
        ON ovr.local_student_id = r.local_student_id
       AND ovr.assessment_id = r.assessment_id 

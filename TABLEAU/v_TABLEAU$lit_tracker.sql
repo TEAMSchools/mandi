@@ -37,10 +37,7 @@ SELECT co.school_name
       ,CONVERT(VARCHAR(16),COALESCE(achv.fp_keylever, dnatestid.fp_keylever)) AS fp_keylever
       ,achv.is_new_test
       ,achv.moved_levels      
-      ,SUM(CASE 
-            WHEN achv.test_round IN ('DR','BOY') THEN NULL 
-            ELSE achv.moved_levels 
-           END) OVER(PARTITION BY co.student_number, co.year ORDER BY achv.start_date ASC) AS n_levels_moved_y1
+      ,achv.n_levels_moved_y1
 
       ,CASE WHEN testid.test_date >= dnatestid.test_date THEN testid.test_date ELSE dnatestid.test_date END AS test_date
       ,CONVERT(VARCHAR(16),testid.status) AS status
@@ -91,7 +88,7 @@ FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..AUTOLOAD$GDOCS_REP_term_map term WITH(NOLOCK)
   ON co.school_level = term.school_level
  AND co.year BETWEEN term.min_year AND term.max_year 
-LEFT OUTER JOIN KIPP_NJ..LIT$achieved_by_round#static achv WITH(NOLOCK)
+JOIN KIPP_NJ..LIT$achieved_by_round#static achv WITH(NOLOCK)
   ON co.studentid = achv.STUDENTID
  AND co.year = achv.academic_year
  AND term.lit = achv.test_round
@@ -118,73 +115,74 @@ LEFT OUTER JOIN KIPP_NJ..PS$SPENROLLMENTS#static sp WITH(NOLOCK)
  AND sp.programid = 5224
 WHERE co.rn = 1
   AND co.grade_level != 99
-  AND co.year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
   AND co.reporting_schoolid != 5173
+  --AND co.year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
+  
 
-UNION ALL
+--UNION ALL
 
-SELECT school_name
-      ,school_level
-      ,student_number
-      ,student_name
-      ,grade_level
-      ,team
-      ,advisor
-      ,academic_year
-      ,IEP_status
-      ,enroll_status
-      ,0 AS is_americorps
-      ,AR_term
-      ,lit_term
-      ,read_lvl
-      ,lvl_num
-      ,dna_lvl
-      ,dna_lvl_num
-      ,instruct_lvl
-      ,instruct_lvl_num
-      ,indep_lvl
-      ,indep_lvl_num
-      ,prev_read_lvl
-      ,prev_lvl_num
-      ,GLEQ
-      ,fp_keylever
-      ,is_new_test
-      ,moved_levels
-      ,n_levels_moved_y1
-      ,test_date
-      ,status
-      ,color
-      ,genre
-      ,is_fp
-      ,NULL AS test_administered_by
-      ,is_curterm
-      ,goal_lvl
-      ,goal_num
-      ,natl_goal_lvl
-      ,natl_goal_num
-      ,default_goal_lvl
-      ,default_goal_num
-      ,distance_from_goal
-      ,met_goal
-      ,met_natl_goal
-      ,met_default_goal
-      ,unique_id
-      ,dna_unique_id
-      ,component_domain
-      ,component_strand
-      ,component_strand_specific
-      ,component_score
-      ,component_benchmark
-      ,component_prof
-      ,component_margin
-      ,dna_filter
-      ,words_goal
-      ,words
-      ,mastery
-      ,pct_fiction
-      ,avg_lexile
-      ,N_passed
-      ,N_total
-      ,status_words
-      ,rn_test
-FROM KIPP_NJ..TABLEAU$lit_tracker#archive WITH(NOLOCK)
+--SELECT school_name
+--      ,school_level
+--      ,student_number
+--      ,student_name
+--      ,grade_level
+--      ,team
+--      ,advisor
+--      ,academic_year
+--      ,IEP_status
+--      ,enroll_status
+--      ,0 AS is_americorps
+--      ,AR_term
+--      ,lit_term
+--      ,read_lvl
+--      ,lvl_num
+--      ,dna_lvl
+--      ,dna_lvl_num
+--      ,instruct_lvl
+--      ,instruct_lvl_num
+--      ,indep_lvl
+--      ,indep_lvl_num
+--      ,prev_read_lvl
+--      ,prev_lvl_num
+--      ,GLEQ
+--      ,fp_keylever
+--      ,is_new_test
+--      ,moved_levels
+--      ,n_levels_moved_y1
+--      ,test_date
+--      ,status
+--      ,color
+--      ,genre
+--      ,is_fp
+--      ,NULL AS test_administered_by
+--      ,is_curterm
+--      ,goal_lvl
+--      ,goal_num
+--      ,natl_goal_lvl
+--      ,natl_goal_num
+--      ,default_goal_lvl
+--      ,default_goal_num
+--      ,distance_from_goal
+--      ,met_goal
+--      ,met_natl_goal
+--      ,met_default_goal
+--      ,unique_id
+--      ,dna_unique_id
+--      ,component_domain
+--      ,component_strand
+--      ,component_strand_specific
+--      ,component_score
+--      ,component_benchmark
+--      ,component_prof
+--      ,component_margin
+--      ,dna_filter
+--      ,words_goal
+--      ,words
+--      ,mastery
+--      ,pct_fiction
+--      ,avg_lexile
+--      ,N_passed
+--      ,N_total
+--      ,status_words
+--      ,rn_test
+--FROM KIPP_NJ..TABLEAU$lit_tracker#archive WITH(NOLOCK)

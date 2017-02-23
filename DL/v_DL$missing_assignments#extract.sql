@@ -19,3 +19,4 @@ JOIN KIPP_NJ..PS$COURSES#static c WITH(NOLOCK)
 WHERE a.academic_year = 2016
   AND a.ismissing = 1
   AND ISNULL(a.SCORE,0) = 0
+  AND a.finalgrade_category = 'Q'

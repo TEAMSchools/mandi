@@ -34,7 +34,6 @@ WITH reenrollments AS (
         AND terms.portion = 1
        WHERE DATEDIFF(DAY,re.ENTRYDATE, re.EXITDATE) > 0
       ) sub
-  --WHERE sub.rn = 1 -- only last reenrollment for any year
  )
 
 ,transfers_out AS (  

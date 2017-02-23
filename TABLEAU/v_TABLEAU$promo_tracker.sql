@@ -871,6 +871,7 @@ WITH roster AS (
              
              /* attendance */
              ,CONVERT(VARCHAR,promo_status_attendance) AS promo_status_att
+             ,CONVERT(VARCHAR,att_pts) AS att_pts
              ,CONVERT(VARCHAR,att_pts_pct) AS att_pts_pct
              ,CONVERT(VARCHAR,days_to_90) AS days_to_90
              ,CONVERT(VARCHAR,days_to_90_abs_only) AS days_to_90_abs_only
@@ -899,7 +900,8 @@ WITH roster AS (
     value
     FOR field IN (days_to_90
                  ,days_to_90_abs_only
-                 ,att_pts_pct
+                 ,att_pts
+                 ,att_pts_pct                 
                  ,n_failing
                  ,promo_status_overall
                  ,promo_status_grades

@@ -95,11 +95,11 @@ WITH roster AS (
          ON enr.studentid = sg.STUDENTID 
         AND enr.SECTIONID = sg.SECTIONID
         AND pgf.FINALGRADENAME = sg.STORECODE 
-       LEFT OUTER JOIN KIPP_NJ..GRADES$STOREDGRADES#static y1 WITH(NOLOCK)
-         ON enr.studentid = y1.STUDENTID 
-        AND enr.SECTIONID = y1.SECTIONID
-        AND pgf.FINALGRADENAME = 'Q4'
-        AND y1.STORECODE = 'Y1'
+       --LEFT OUTER JOIN KIPP_NJ..GRADES$STOREDGRADES#static y1 WITH(NOLOCK)
+       --  ON enr.studentid = y1.STUDENTID 
+       -- AND enr.SECTIONID = y1.SECTIONID
+       -- --AND pgf.FINALGRADENAME = 'Q4'
+       -- AND y1.STORECODE = 'Y1'
        LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static sg_scale WITH(NOLOCK)
          ON enr.GRADESCALEID = sg_scale.scale_id
         AND sg.PCT >= sg_scale.low_cut
@@ -389,7 +389,7 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$STOREDGRADES#static y1 WITH(NOLOCK)
   ON sub.studentid = y1.STUDENTID
  AND sub.academic_year = y1.academic_year
  AND sub.course_number = y1.COURSE_NUMBER
- AND sub.term = 'Q4'
+ --AND sub.term = 'Q4'
  AND y1.STORECODE = 'Y1'
 LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static scale WITH(NOLOCK)
   ON sub.gradescaleid = scale.scale_id

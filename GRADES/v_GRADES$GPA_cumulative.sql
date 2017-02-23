@@ -53,7 +53,8 @@ FROM
                 ,CASE WHEN gr.y1_grade_letter NOT LIKE 'F%' THEN gr.credit_hours ELSE 0 END AS earnedcrhrs_projected
                 ,(gr.credit_hours * gr.y1_gpa_points) AS weighted_points_projected
           FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)            
-          WHERE gr.is_curterm = 1
+          WHERE gr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+            AND gr.is_curterm = 1
             AND gr.excludefromgpa = 0
          ) sub
      GROUP BY studentid, schoolid
