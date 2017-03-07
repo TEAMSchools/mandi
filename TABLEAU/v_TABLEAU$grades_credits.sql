@@ -39,7 +39,7 @@ WITH roster AS (
 		      ,'Stored Credit' AS status
 		      ,sg.course_number
 		      ,CASE WHEN sg.course_number = 'TRANSFER' THEN sg.course_name ELSE c.course_name END AS course_name
-	       ,sg.pct
+	       ,sg.[percent] AS pct
 		      ,sg.grade AS letter_grade
 		      ,sg.GPA_POINTS
 	 FROM KIPP_NJ..GRADES$STOREDGRADES#static sg WITH(NOLOCK)

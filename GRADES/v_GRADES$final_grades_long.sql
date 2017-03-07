@@ -68,20 +68,20 @@ WITH roster AS (
              ,enr.course_number             
       
              ,pgf.FINALGRADENAME AS term
-             ,CASE WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL ELSE ROUND(pgf.[PERCENT],0) END AS pgf_pct
-             ,CASE WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL ELSE pgf.GRADE END AS pgf_letter      
+             ,CASE WHEN enr.drop_flags = 1 AND sg.[percent] IS NULL THEN NULL ELSE ROUND(pgf.[PERCENT],0) END AS pgf_pct
+             ,CASE WHEN enr.drop_flags = 1 AND sg.[percent] IS NULL THEN NULL ELSE pgf.GRADE END AS pgf_letter      
       
-             ,ROUND(sg.PCT,0) AS stored_pct
+             ,ROUND(sg.[percent],0) AS stored_pct
              
              ,sg.GRADE AS stored_letter                   
              ,CASE 
-               WHEN enr.drop_flags = 1 AND sg.pct IS NULL THEN NULL                
+               WHEN enr.drop_flags = 1 AND sg.[percent] IS NULL THEN NULL                
                ELSE COALESCE(sg_scale.grade_points, scale.grade_points) 
               END AS term_gpa_points /* temp fix until stored grades are updated for honors courses */
              
              ,ROW_NUMBER() OVER(
                 PARTITION BY enr.student_number, enr.academic_year, enr.course_number, pgf.finalgradename
-                  ORDER BY sg.PCT DESC, enr.drop_flags ASC, enr.dateenrolled DESC, enr.dateleft DESC) AS rn
+                  ORDER BY sg.[percent] DESC, enr.drop_flags ASC, enr.dateenrolled DESC, enr.dateleft DESC) AS rn
        FROM KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
        JOIN KIPP_NJ..PS$PGFINALGRADES pgf WITH(NOLOCK)  
          ON enr.studentid = pgf.studentid       
@@ -102,8 +102,8 @@ WITH roster AS (
        -- AND y1.STORECODE = 'Y1'
        LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static sg_scale WITH(NOLOCK)
          ON enr.GRADESCALEID = sg_scale.scale_id
-        AND sg.PCT >= sg_scale.low_cut
-        AND sg.PCT < sg_scale.high_cut
+        AND sg.[percent] >= sg_scale.low_cut
+        AND sg.[percent] < sg_scale.high_cut
        WHERE enr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
          AND enr.course_enr_status = 0
 
@@ -118,7 +118,7 @@ WITH roster AS (
              ,NULL AS pgf_pct
              ,NULL AS pgf_letter
       
-             ,sg.PCT AS stored_pct
+             ,sg.[percent] AS stored_pct
              ,sg.GRADE AS stored_letter      
              ,sg.gpa_points AS term_gpa_points
       
@@ -144,13 +144,13 @@ WITH roster AS (
              ,academic_year
              ,COURSE_NUMBER           
              ,STORECODE
-             ,PCT
+             ,[percent]
        FROM KIPP_NJ..GRADES$STOREDGRADES#static WITH(NOLOCK)
        WHERE SCHOOLID = 73253
          AND STORECODE LIKE 'E%'
       ) sub
   PIVOT(
-    MAX(pct)
+    MAX([percent])
     FOR storecode IN ([E1],[E2])
    ) p
  )
@@ -251,7 +251,7 @@ SELECT sub.student_number
       
       ,sub.y1_grade_percent AS y1_grade_percent
       ,CASE
-        WHEN y1.pct IS NOT NULL THEN y1.PCT
+        WHEN y1.[percent] IS NOT NULL THEN y1.[percent]
         WHEN sub.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN NULL
         ELSE sub.y1_grade_percent_adjusted
        END AS y1_grade_percent_adjusted

@@ -3,66 +3,29 @@ GO
 
 ALTER VIEW ENROLL$NPS_magnet_app AS
 
-WITH njask AS (
-  SELECT studentid
-        ,[ELA_1] AS LAL_scale_prev1
-        ,[ELA_2] AS LAL_scale_prev2
-        ,[Math_1] AS MATH_scale_prev1
-        ,[Math_2] AS MATH_scale_prev2
+WITH curr_grades AS (
+  SELECT student_number
+        ,[ENG_Q1]
+        ,[ENG_Q2]
+        ,[MATH_Q1]
+        ,[MATH_Q2]
+        ,[SCI_Q1]
+        ,[SCI_Q2]
+        ,[SOC_Q1]
+        ,[SOC_Q2]
   FROM
       (
-       SELECT studentid
-             ,scale_score
-             ,subject + '_' + CONVERT(VARCHAR,rn) AS pivot_hash
-       FROM
-           (
-            SELECT studentid           
-                  ,subject
-                  ,njask_scale_score AS scale_score
-                  ,ROW_NUMBER() OVER(
-                     PARTITION BY studentid, subject
-                       ORDER BY academic_year DESC) AS rn
-            FROM KIPP_NJ..NJASK$detail WITH(NOLOCK)
-            WHERE academic_year >= (KIPP_NJ.dbo.fn_Global_Academic_Year() - 2)
-           ) sub
-      ) sub
-  PIVOT(
-    MAX(scale_score)
-    FOR pivot_hash IN ([ELA_1],[ELA_2],[Math_1],[Math_2])
-   ) p
- )
-
-,curr_grades AS (
-  SELECT studentid
-        ,COALESCE([ENG_T1], [ENG_Q1]) AS READ_MP1
-        ,COALESCE([ENG_T2], [ENG_Q2]) AS READ_MP2
-        ,COALESCE([MATH_T1],[MATH_Q1]) AS MATH_MP1
-        ,COALESCE([MATH_T2], [MATH_Q2]) AS MATH_MP2
-        ,COALESCE([SCI_T1], [SCI_Q1]) AS SCI_MP1
-        ,COALESCE([SCI_T2], [SCI_Q2]) AS SCI_MP2
-        ,COALESCE([SOC_T1], [SOC_Q1]) AS SOC_MP1
-        ,COALESCE([SOC_T2], [SOC_Q2]) AS SOC_MP2
-  FROM
-      (
-       SELECT studentid
+       SELECT student_number
              ,credittype + '_' + term AS pivot_hash
              ,term_grade_percent_adjusted AS term_pct
        FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)
        WHERE CREDITTYPE IN ('MATH','ENG','SCI','SOC')
-         AND term IN ('T1','T2','Q1','Q2')
+         AND term IN ('Q1','Q2')
          AND academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
       ) sub
   PIVOT(
     MAX(term_pct)
-    FOR pivot_hash IN ([ENG_T1]
-                      ,[ENG_T2]
-                      ,[MATH_T1]
-                      ,[MATH_T2]
-                      ,[SCI_T1]
-                      ,[SCI_T2]
-                      ,[SOC_T1]
-                      ,[SOC_T2]
-                      ,[ENG_Q1]
+    FOR pivot_hash IN ([ENG_Q1]
                       ,[ENG_Q2]
                       ,[MATH_Q1]
                       ,[MATH_Q2]
@@ -83,7 +46,7 @@ WITH njask AS (
       (
        SELECT sg.STUDENTID
              ,c.CREDITTYPE + '_Y1_prev' AS pivot_hash
-             ,sg.PCT AS grade_pct
+             ,sg.[percent] AS grade_pct
        FROM KIPP_NJ..GRADES$storedgrades#static sg WITH(NOLOCK)
        JOIN KIPP_NJ..PS$COURSES#static c WITH(NOLOCK)
          ON sg.COURSE_NUMBER = c.COURSE_NUMBER
@@ -97,6 +60,35 @@ WITH njask AS (
                       ,[MATH_Y1_prev]
                       ,[SCI_Y1_prev]
                       ,[SOC_Y1_prev])
+   ) p
+ )
+
+,parcc AS (
+  SELECT student_number
+        ,[ELA_1] AS ELA_scale_prev1        
+        ,[Math_1] AS MATH_scale_prev1
+        ,[ELA_2] AS ELA_scale_prev2
+        ,[Math_2] AS MATH_scale_prev2
+  FROM
+      (
+       SELECT student_number
+             ,scale_score
+             ,subject + '_' + CONVERT(VARCHAR,rn) AS pivot_hash
+       FROM
+           (
+            SELECT localstudentidentifier AS student_number
+                  ,CASE WHEN testcode LIKE 'ELA%' THEN 'ELA' ELSE 'MATH' END AS subject
+                  ,summativescalescore AS scale_score
+                  ,ROW_NUMBER() OVER(
+                     PARTITION BY localstudentidentifier, CASE WHEN testcode LIKE 'ELA%' THEN 'ELA' ELSE 'MATH' END
+                       ORDER BY assessmentyear DESC) AS rn
+            FROM KIPP_NJ..PARCC$district_summative_record_file WITH(NOLOCK)
+            WHERE CONVERT(INT,LEFT(assessmentyear, 4)) >= (KIPP_NJ.dbo.fn_Global_Academic_Year() - 2)
+           ) sub
+      ) sub
+  PIVOT(
+    MAX(scale_score)
+    FOR pivot_hash IN ([ELA_1],[ELA_2],[Math_1],[Math_2])
    ) p
  )
 
@@ -145,41 +137,45 @@ WITH njask AS (
    ) p
  )
 
-SELECT co.NEWARK_ENROLLMENT_NUMBER
-      ,co.first_name
-      ,co.last_name
-      ,co.grade_level
-      ,'TEAM Charter Schools' AS current_school
-      ,njask.LAL_scale_prev1
-      ,njask.MATH_scale_prev1
-      ,njask.LAL_scale_prev2
-      ,njask.MATH_scale_prev2
-      ,curr_grades.MATH_MP1
-      ,curr_grades.MATH_MP2
-      ,curr_grades.READ_MP1
-      ,curr_grades.READ_MP2
-      ,curr_grades.SCI_MP1
-      ,curr_grades.SCI_MP2
-      ,curr_grades.SOC_MP1
-      ,curr_grades.SOC_MP2 
-      ,stored_grades.MATH_Y1_prev
-      ,stored_grades.ENG_Y1_prev AS READ_Y1_prev
-      ,stored_grades.SCI_Y1_prev
-      ,stored_grades.SOC_Y1_prev
-      ,attendance.n_mem_cur
-      ,attendance.n_abs_cur
-      ,attendance.n_mem_prev
-      ,attendance.n_abs_prev
+
+
+SELECT co.NEWARK_ENROLLMENT_NUMBER AS NEN
+      ,co.lastfirst AS StudentName            
+      ,curr_grades.MATH_Q1 AS [2016-17 Q1 Math]
+      ,curr_grades.MATH_Q2 AS [2016-17 Q2 Math]
+      ,curr_grades.ENG_Q1 AS [2016-17 Q1 English]
+      ,curr_grades.ENG_Q2 AS [2016-17 Q2 English]
+      ,curr_grades.SCI_Q1 AS [2016-17 Q1 Science]
+      ,curr_grades.SCI_Q2 AS [2016-17 Q2 Science]
+      ,curr_grades.SOC_Q1 AS [2016-17 Q1 Social Studies]
+      ,curr_grades.SOC_Q2 AS [2016-17 Q2 Social Studies]
+      ,stored_grades.MATH_Y1_prev AS [2015-16 Math]
+      ,stored_grades.ENG_Y1_prev AS [2015-16 English]
+      ,stored_grades.SCI_Y1_prev AS [2015-16 Science]
+      ,stored_grades.SOC_Y1_prev AS [2015-16 Social Studies]
+      ,attendance.n_mem_cur AS [16-17 Days Enrolled]
+      ,attendance.n_abs_cur AS [16-17 Days Absent]
+      ,attendance.n_mem_prev AS [15-16 Days Enrolled]
+      ,attendance.n_abs_prev AS [15-16 Days Absent]
+      ,parcc.ELA_scale_prev2 AS [14-15 PARCC Language Arts Score]
+      ,parcc.MATH_scale_prev2 AS [14-15 PARCC Math Score]
+      ,parcc.ELA_scale_prev1 AS [15-16 PARCC Language Arts Score]
+      ,parcc.MATH_scale_prev1 AS [15-16 PARCC Math Score]
+      ,CASE 
+        WHEN co.SPEDLEP LIKE '%SPED%' THEN 'Y' 
+        ELSE 'N'
+       END AS IEP
+      ,co.SPED_code AS [IEP Program]
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-LEFT OUTER JOIN njask WITH(NOLOCK)
-  ON co.studentid = njask.studentid
 LEFT OUTER JOIN curr_grades WITH(NOLOCK)
-  ON co.studentid = curr_grades.studentid
+  ON co.student_number = curr_grades.student_number
 LEFT OUTER JOIN stored_grades WITH(NOLOCK)
   ON co.studentid = stored_grades.studentid
 LEFT OUTER JOIN attendance WITH(NOLOCK)
   ON co.studentid = attendance.STUDENTID
+LEFT OUTER JOIN parcc WITH(NOLOCK)
+  ON co.student_number = parcc.student_number
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  AND co.rn = 1
   AND co.enroll_status = 0
   AND co.grade_level >= 5
+  AND co.rn = 1

@@ -5,7 +5,7 @@ ALTER VIEW SPI$walkthrough_avgs AS
 
 WITH long_data AS (
   SELECT reporting_schoolid AS schoolid
-        ,strand
+        --,strand
         ,CONCAT(domain, '_', ISNULL(strand,'overall')) AS pivot_field
         ,academic_year
         ,spi_round
@@ -21,12 +21,13 @@ WITH long_data AS (
   UNION ALL
   
   SELECT reporting_schoolid
-        ,strand
+        --,strand
         ,CONCAT(domain, '_', strand, '_', ISNULL(field,'overall')) AS pivot_field
         ,academic_year
         ,spi_round
         ,ROUND(AVG(score),1) AS avg_score        
   FROM KIPP_NJ..SPI$walkthrough_scores_long WITH(NOLOCK)
+  WHERE academic_year <= 2015
   GROUP BY reporting_schoolid
           ,academic_year          
           ,spi_round

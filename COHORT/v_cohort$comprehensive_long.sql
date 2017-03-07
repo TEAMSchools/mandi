@@ -12,6 +12,7 @@ WITH reenrollments AS (
         ,sub.entrydate
         ,sub.exitdate
         ,sub.yearid
+        ,sub.lunchstatus
         ,sub.rn
   FROM
       (
@@ -21,7 +22,8 @@ WITH reenrollments AS (
              ,re.entrycode
              ,re.exitcode
              ,re.entrydate
-             ,re.exitdate             
+             ,re.exitdate 
+             ,re.lunchstatus            
              ,terms.yearid
              ,ROW_NUMBER() OVER(
                 PARTITION BY re.studentid, terms.yearid
@@ -44,6 +46,7 @@ WITH reenrollments AS (
         ,s.exitcode
         ,s.entrydate
         ,s.exitdate
+        ,s.LUNCHSTATUS
         ,terms.yearid
         ,ROW_NUMBER() OVER(
             PARTITION BY s.id, terms.yearid
@@ -65,7 +68,8 @@ WITH reenrollments AS (
         ,s.entrycode
         ,NULL AS exitcode
         ,s.entrydate
-        ,s.exitdate        
+        ,s.exitdate   
+        ,s.LUNCHSTATUS     
         ,terms.yearid
         ,ROW_NUMBER() OVER(
            PARTITION BY s.id, terms.yearid 
@@ -89,6 +93,7 @@ WITH reenrollments AS (
         ,NULL AS exitcode
         ,NULL AS entrydate
         ,NULL AS exitdate        
+        ,NULL AS lunchstatus
         ,terms.yearid
         ,ROW_NUMBER() OVER(
             PARTITION BY s.id, terms.yearid 
@@ -118,6 +123,7 @@ SELECT sub.studentid
       ,sub.exitcode
       ,CONVERT(DATE,sub.entrydate) AS entrydate
       ,CONVERT(DATE,sub.exitdate) AS exitdate
+      ,sub.lunchstatus
       ,ROW_NUMBER() OVER(
          PARTITION BY sub.studentid, sub.yearid
            ORDER BY sub.exitdate DESC) AS rn
@@ -134,6 +140,7 @@ FROM
            ,entrydate
            ,exitdate        
            ,yearid
+           ,lunchstatus
            ,rn
      FROM reenrollments
      UNION ALL
@@ -145,6 +152,7 @@ FROM
            ,entrydate
            ,exitdate        
            ,yearid
+           ,lunchstatus
            ,rn
      FROM transfers_out
      UNION ALL
@@ -156,6 +164,7 @@ FROM
            ,entrydate
            ,exitdate        
            ,yearid
+           ,lunchstatus
            ,rn
      FROM current_enroll
      UNION ALL
@@ -167,6 +176,7 @@ FROM
            ,entrydate
            ,exitdate        
            ,yearid
+           ,lunchstatus
            ,rn
      FROM graduates
     ) sub

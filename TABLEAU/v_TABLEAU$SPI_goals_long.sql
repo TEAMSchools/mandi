@@ -317,7 +317,7 @@ WITH map_data AS (
              ,COALESCE(wlk.classroom_engagement_overall, wlk.student_overall) AS classroom_engagement_overall
              ,COALESCE(wlk.culture_schoolculture_overall, wlk.culture_overall) AS culture_schoolculture_overall            
              ,COALESCE(wlk.classroom_instruction_overall, wlk.classroom_instructionaldelivery_overall, wlk.teacher_overall) AS classroom_instruction_overall
-             ,COALESCE(wlk.classroom_routinesrules_overall, wlk.classroom_management_overall, wlk.teacher_overall) AS classroom_management_overall
+             ,COALESCE(wlk.classroom_routinesrules_overall, wlk.classroom_management_overall) AS classroom_management_overall
 
              /* state test date -- 2013 and below = NJASK/HSPA, 2014 and beyond = PARCC */             
              ,nj.ELA03_diff_pct_proficient_weighted

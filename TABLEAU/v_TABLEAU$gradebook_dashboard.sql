@@ -217,9 +217,9 @@ SELECT s.student_number
       ,gr.excludefromgpa
       ,gr.POTENTIALCRHRS AS credit_hours
       ,gr.GPA_POINTS AS term_gpa_points
-      ,gr.PCT AS term_grade_percent_adjusted
+      ,gr.[percent] AS term_grade_percent_adjusted
       ,gr.GRADE AS term_grade_letter_adjusted
-      ,gr.PCT AS y1_grade_percent_adjusted
+      ,gr.[percent] AS y1_grade_percent_adjusted
       ,gr.GRADE AS y1_grade_letter           
       ,gr.GPA_POINTS AS y1_gpa_points
       ,NULL AS need_65

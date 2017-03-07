@@ -120,10 +120,10 @@ LEFT OUTER JOIN KIPP_NJ..SPED$individual_mastery_goals#static goal WITH(NOLOCK)
   ON co.student_number = goal.student_number
  AND co.year = goal.academic_year
  AND a.subject_area = goal.subject_area
-WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  AND co.enroll_status = 0  
+WHERE co.enroll_status IN (0,3)
   AND co.rn = 1       
   AND co.reporting_schoolid != 5173 /* exclude OoD Placements */
+  --AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
     
 UNION ALL
 
@@ -215,10 +215,10 @@ LEFT OUTER JOIN KIPP_NJ..SPED$individual_mastery_goals#static goal WITH(NOLOCK)
   ON co.student_number = goal.student_number
  AND co.year = goal.academic_year
  AND a.subject_area = goal.subject_area
-WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  AND co.enroll_status = 0  
+WHERE co.enroll_status IN (0,3)
   AND co.rn = 1       
   AND co.reporting_schoolid != 5173 /* exclude OoD Placements */
+  --AND co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
 UNION ALL
 
@@ -304,44 +304,44 @@ LEFT OUTER JOIN KIPP_NJ..SPED$individual_mastery_goals#static goal WITH(NOLOCK)
   ON co.student_number = goal.student_number
  AND co.year = goal.academic_year
  AND a.subject_area = goal.subject_area
-WHERE a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-  AND (a.scope NOT IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2') OR a.scope IS NULL)
+WHERE (a.scope NOT IN ('CMA - End-of-Module','CMA - Mid-Module','CMA - Checkpoint 1','CMA - Checkpoint 2') OR a.scope IS NULL)
   AND co.reporting_schoolid != 5173 /* exclude OoD Placements */
+  --AND a.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
-UNION ALL
+--UNION ALL
 
-SELECT a.schoolid
-      ,a.academic_year
-      ,a.grade_level
-      ,a.team
-      ,a.student_number
-      ,a.lastfirst
-      ,a.spedlep
-      ,a.enroll_status
-      ,a.term
-      ,a.assessment_id
-      ,a.title
-      ,a.scope
-      ,a.subject
-      ,a.administered_at
-      ,a.is_replacement
-      ,a.date_taken
-      ,a.overall_pct_correct
-      ,a.standards_tested
-      ,a.standard_descr
-      ,a.std_percent_correct
-      ,a.std_is_mastered
-      ,a.proficiency_band
-      ,a.mc_percent_correct
-      ,a.oer_percent_correct
-      ,a.teacher_name
-      ,a.period
-      ,a.section_number
-      ,NULL AS individualized_mastery_goal
-      ,100 AS n_valid_results
-      ,100 AS n_poss_results
-      ,a.overall_rn
-FROM KIPP_NJ..TABLEAU$assessment_dashboard#archive a WITH(NOLOCK)
+--SELECT a.schoolid
+--      ,a.academic_year
+--      ,a.grade_level
+--      ,a.team
+--      ,a.student_number
+--      ,a.lastfirst
+--      ,a.spedlep
+--      ,a.enroll_status
+--      ,a.term
+--      ,a.assessment_id
+--      ,a.title
+--      ,a.scope
+--      ,a.subject
+--      ,a.administered_at
+--      ,a.is_replacement
+--      ,a.date_taken
+--      ,a.overall_pct_correct
+--      ,a.standards_tested
+--      ,a.standard_descr
+--      ,a.std_percent_correct
+--      ,a.std_is_mastered
+--      ,a.proficiency_band
+--      ,a.mc_percent_correct
+--      ,a.oer_percent_correct
+--      ,a.teacher_name
+--      ,a.period
+--      ,a.section_number
+--      ,NULL AS individualized_mastery_goal
+--      ,100 AS n_valid_results
+--      ,100 AS n_poss_results
+--      ,a.overall_rn
+--FROM KIPP_NJ..TABLEAU$assessment_dashboard#archive a WITH(NOLOCK)
 
 /*
 /* power law */

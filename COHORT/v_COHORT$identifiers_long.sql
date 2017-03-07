@@ -52,12 +52,12 @@ SELECT co.schoolid
       ,CASE 
         WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.rn = 1 THEN mcs.MealBenefitStatus 
         WHEN s.ENROLL_STATUS = 2 AND co.year = MAX(co.year) OVER(PARTITION BY co.studentid) THEN s.LUNCHSTATUS
-        ELSE lunch.lunchstatus 
+        ELSE co.lunchstatus 
        END AS lunchstatus      
       ,CASE 
         WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() AND co.rn = 1 THEN mcs.description 
         WHEN s.ENROLL_STATUS = 2 AND co.year = MAX(co.year) OVER(PARTITION BY co.studentid) THEN s.LUNCHSTATUS
-        ELSE lunch.lunchstatus 
+        ELSE co.lunchstatus 
        END AS lunch_app_status     
       ,s.state_studentnumber AS SID
 
@@ -74,7 +74,7 @@ SELECT co.schoolid
       ,cs.NEWARK_ENROLLMENT_NUMBER
       ,CASE 
         WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN ISNULL(cs.SPEDLEP,'No IEP') 
-        ELSE ISNULL(COALESCE(sped.SPEDLEP, cs.spedlep),'No IEP') 
+        ELSE ISNULL(sped.SPEDLEP,'No IEP') 
        END AS SPEDLEP
       ,CASE 
         WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN cs.SPECIAL_EDUCATION
@@ -136,10 +136,6 @@ LEFT OUTER JOIN KIPP_NJ..PS$SCHOOLS#static sch WITH (NOLOCK)
   ON co.schoolid = sch.school_number
 LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   ON co.studentid = s.ID
-LEFT OUTER JOIN KIPP_NJ..PS$LunchStatus#ARCHIVE lunch WITH(NOLOCK)
-  ON co.studentid = lunch.studentid
- AND co.year = lunch.academic_year
- AND co.entrydate = lunch.entrydate
 LEFT OUTER JOIN KIPP_NJ..MCS$lunch_info#static mcs WITH(NOLOCK)
   ON co.STUDENT_NUMBER = mcs.StudentNumber
 LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_custom#static cs WITH(NOLOCK)

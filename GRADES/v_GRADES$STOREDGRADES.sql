@@ -3,90 +3,60 @@ GO
 
 ALTER VIEW GRADES$STOREDGRADES AS
 
-SELECT STUDENTID
-      ,SCHOOLID
-      ,SECTIONID
-      ,COURSE_NUMBER
-      ,COURSE_NAME
-      ,TERMID
-      ,academic_year
-      ,STORECODE
-      ,GRADE
-      ,PCT
-      ,GPA_POINTS
-      ,POTENTIALCRHRS
-      ,EARNEDCRHRS
-      ,GRADESCALE_NAME
-      ,EXCLUDEFROMGPA
-      ,EXCLUDEFROMTRANSCRIPTS
-      ,EXCLUDEFROMGRADUATION
+SELECT *
 FROM
     (
-     SELECT STUDENTID
-           ,SCHOOLID
-           ,SECTIONID
-           ,ISNULL(COURSE_NUMBER,'TRANSFER') AS course_number
-           ,COURSE_NAME
-           ,TERMID
-           ,academic_year
-           ,STORECODE
-           ,GRADE
-           ,PCT
-           ,GPA_POINTS
-           ,POTENTIALCRHRS
-           ,EARNEDCRHRS
-           ,GRADESCALE_NAME
-           ,EXCLUDEFROMGPA
-           ,EXCLUDEFROMTRANSCRIPTS
-           ,EXCLUDEFROMGRADUATION
+     SELECT *
            ,CASE 
-             WHEN course_number IS NOT NULL THEN 
-              ROW_NUMBER() OVER(
-                PARTITION BY academic_year, storecode, studentid, course_number
-                  ORDER BY EARNEDCRHRS DESC, POTENTIALCRHRS DESC, pct DESC) 
-             ELSE 1
+             WHEN COURSE_NUMBER = 'TRANSFER' THEN 1
+             ELSE ROW_NUMBER() OVER(
+                   PARTITION BY ACADEMIC_YEAR, STUDENTID, STORECODE, COURSE_NUMBER
+                    ORDER BY EARNEDCRHRS DESC, POTENTIALCRHRS DESC, [PERCENT] DESC) 
             END AS dupe_audit
      FROM
          (
-          SELECT oq.STUDENTID
-                ,oq.schoolid
-                ,oq.SECTIONID
-                ,oq.COURSE_NUMBER
-                ,oq.COURSE_NAME
-                ,oq.TERMID
-                ,KIPP_NJ.dbo.fn_TermToYear(oq.TERMID) AS academic_year
-                ,oq.STORECODE
-                ,oq.GRADE
-                ,oq.[PERCENT] AS PCT
-                ,oq.GPA_POINTS
-                ,oq.POTENTIALCRHRS
-                ,oq.EARNEDCRHRS
-                ,oq.GRADESCALE_NAME
-                ,oq.EXCLUDEFROMGPA
-                ,oq.EXCLUDEFROMTRANSCRIPTS
-                ,oq.EXCLUDEFROMGRADUATION
+          SELECT *
+                ,KIPP_NJ.dbo.fn_TermToYear(TERMID) AS academic_year
           FROM OPENQUERY(PS_TEAM,'
-            SELECT sg.studentid
-                  ,sg.schoolid
-                  ,sg.sectionid
-                  ,sg.course_number
-                  ,sg.course_name
-                  ,sg.termid
-                  ,sg.storecode
-                  ,sg.grade
-                  ,sg.percent
-                  ,sg.gpa_points
-                  ,sg.potentialcrhrs
-                  ,sg.earnedcrhrs  
-                  ,sg.gradescale_name
-                  ,sg.excludefromgpa
-                  ,sg.excludefromtranscripts
-                  ,sg.excludefromgraduation        
-            FROM STOREDGRADES sg
-            JOIN STUDENTS s /* only records with matching student IDs returned, theres some really dirty data from 2008 */
-              ON sg.studentid = s.id
-            WHERE (course_number IS NULL OR (course_number IS NOT NULL AND grade IS NOT NULL AND percent > 0)) /* exclude dirty data but keep transfer credits */
+            SELECT DCID
+                  ,STUDENTID
+                  ,SECTIONID
+                  ,TERMID
+                  ,STORECODE
+                  ,DATESTORED
+                  ,GRADE
+                  ,PERCENT
+                  ,ABSENCES
+                  ,TARDIES
+                  ,BEHAVIOR
+                  ,POTENTIALCRHRS
+                  ,EARNEDCRHRS
+                  ,COURSE_NAME
+                  ,NVL(COURSE_NUMBER,''TRANSFER'') AS COURSE_NUMBER
+                  ,CREDIT_TYPE
+                  ,GRADE_LEVEL
+                  ,SCHOOLID
+                  ,COURSE_EQUIV
+                  ,SCHOOLNAME
+                  ,GRADESCALE_NAME
+                  ,TEACHER_NAME
+                  ,EXCLUDEFROMGPA
+                  ,GPA_POINTS
+                  ,GPA_ADDEDVALUE                  
+                  ,EXCLUDEFROMCLASSRANK
+                  ,EXCLUDEFROMHONORROLL                  
+                  ,ISEARNEDCRHRSFROMGB
+                  ,ISPOTENTIALCRHRSFROMGB
+                  ,TERMBINSNAME                  
+                  ,REPLACED_GRADE
+                  ,EXCLUDEFROMTRANSCRIPTS
+                  ,REPLACED_DCID
+                  ,EXCLUDEFROMGRADUATION
+                  ,EXCLUDEFROMGRADESUPPRESSION
+                  ,REPLACED_EQUIVALENT_COURSE
+                  ,GRADEREPLACEMENTPOLICY_ID
+            FROM STOREDGRADES sg            
           ') oq          
          ) sub
     ) sub
-WHERE dupe_audit = 1 -- older data has a lot of dupes, none of these records have any bearance on current students, so bank error is in their favor
+WHERE dupe_audit = 1
