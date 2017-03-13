@@ -195,7 +195,7 @@ FROM
       AND co.year = bk.academic_year
       AND bk.rn = 1
      WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-       AND co.schoolid != 999999
+       AND co.reporting_schoolid NOT IN (999999, 5173)
        AND ((co.grade_level >= 5)
             OR (co.schoolid IN (73252, 179901) AND co.grade_level >= 3)
             OR (co.schoolid IN (73255) AND co.grade_level >= 2))

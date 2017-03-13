@@ -49,7 +49,7 @@ FROM
            AND d.identifier = 'RT'
           JOIN KIPP_NJ..ILLUMINATE$assessments#static a WITH(NOLOCK)
             ON ovr.assessment_id = a.assessment_id
-           AND ((a.subject_area IN ('Text Study','Mathematics') AND (a.scope = 'Exit Ticket'))
+           AND ((a.subject_area IN ('Text Study','Mathematics') AND (a.scope IN ('Exit Ticket','PARCC Quiz')))
                  OR (a.subject_area NOT IN ('Text Study','Mathematics')))
           WHERE ovr.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
             AND ovr.answered > 0            
