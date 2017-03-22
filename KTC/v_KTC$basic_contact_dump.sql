@@ -4,7 +4,8 @@ GO
 ALTER VIEW KTC$basic_contact_dump AS
 
 WITH enrollment AS (
-  SELECT e.Student__c
+  SELECT e.Id AS enrollment_id
+        ,e.Student__c
         ,e.School__c
         ,e.Status__c
         ,e.Start_Date__c
@@ -22,6 +23,7 @@ WITH enrollment AS (
   FROM AlumniMirror..Enrollment__c e WITH(NOLOCK)
   LEFT OUTER JOIN AlumniMirror..Account a WITH(NOLOCK)
     ON e.School__c = a.Id
+  WHERE e.Status__c IN ('Attending')
  )
 
 ,contact_note AS (
@@ -43,6 +45,42 @@ WITH enrollment AS (
                            ,[REM])
    ) p
  )
+
+,gpa AS (
+  SELECT Enrollment__c
+        ,School_Year__c
+        ,[0] AS GPA_MP0
+        ,[1] AS GPA_MP1
+        ,[2] AS GPA_MP2
+        ,[3] AS GPA_MP3
+        ,[4] AS GPA_MP4
+  FROM
+      (
+       SELECT Enrollment__c
+             ,School_Year__c
+             ,Number__c
+             ,GPA__c
+       FROM AlumniMirror..Marking_Period__c WITH(NOLOCK)     
+      ) sub
+  PIVOT(
+    MAX(GPA__c)
+    FOR Number__c IN ([0],[1],[2],[3],[4])
+   ) p
+  WHERE School_Year__c = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ )
+
+,stipends AS (
+  SELECT Student__c
+        ,Date__c
+        ,Status__c
+        ,Amount__c
+        ,ROW_NUMBER() OVER(
+           PARTITION BY Student__c
+             ORDER BY Date__c DESC) AS rn
+  FROM AlumniMirror..KIPP_Aid__c WITH(NOLOCK)
+  WHERE Type__c = 'College Book Stipend Program'
+ )
+
 
 SELECT c.id AS contact_id
       ,c.School_Specific_ID__c AS student_number
@@ -70,7 +108,6 @@ SELECT c.id AS contact_id
       ,c.Transcript_Release__c
       ,c.Latest_FAFSA_Date__c
       ,c.Latest_Resume__c
-      -- fall 2016 GPA?
       
       ,u.Name AS ktc_manager
 
@@ -87,6 +124,17 @@ SELECT c.id AS contact_id
       ,cn.AAS2
       ,cn.AAS3      
       ,cn.REM
+
+      ,gpa.GPA_MP0
+      ,gpa.GPA_MP1
+      ,gpa.GPA_MP2
+      ,gpa.GPA_MP3
+      ,gpa.GPA_MP4
+      ,COALESCE(gpa.GPA_MP4, gpa.GPA_MP3, gpa.GPA_MP2, gpa.GPA_MP1, gpa.GPA_MP0) AS GPA_recent
+
+      ,s.Date__c AS stipend_date
+      ,s.Status__c AS stipend_status
+      ,s.Amount__c AS stipend_amount
 FROM AlumniMirror..Contact c WITH(NOLOCK)
 JOIN AlumniMirror..User2 u WITH(NOLOCK)
   ON c.OwnerId = u.Id
@@ -96,3 +144,9 @@ LEFT OUTER JOIN enrollment e
  AND e.rn = 1 
 LEFT OUTER JOIN contact_note cn
   ON c.Id = cn.contact_id
+LEFT OUTER JOIN gpa
+  ON e.enrollment_id = gpa.Enrollment__c
+LEFT OUTER JOIN stipends s
+  ON c.Id = s.Student__c
+ AND s.rn = 1
+--ORDER BY c.Currently_Enrolled_School__c
