@@ -3,15 +3,26 @@ GO
 
 ALTER VIEW NAVIANCE$college_apps_clean AS
 
-SELECT [hs_student_id] AS student_number
-      ,ceeb_code
+SELECT DISTINCT 
+       [navianceid]
+      ,[ceeb_code]
       ,[act_code]
-      ,[collegename]      
+      ,[collegename]
+      ,[alpha_sort]
       ,[state]
       ,[admissions_fax]
       ,[inst_control]
-      ,[level]                        
-      ,[stage]      
+      ,[level]
+      ,[studentid]
+      ,[hs_student_id]
+      ,[state_student_id]
+      ,[last_name]
+      ,[first_name]
+      ,[middle_name]
+      ,[gpa]
+      ,[active_student]
+      ,[stage]
+      ,[class]
       ,[type]
       ,[result_code]
       ,[attending]
@@ -21,10 +32,12 @@ SELECT [hs_student_id] AS student_number
       ,[initial_transcript_sent]
       ,[midyear_transcript_sent]
       ,[final_transcript_sent]
-      ,comments
-      ,[SPEC] AS special_prog
-      ,[LEG] AS legacy
-      ,[INTV] AS interviewed
-      ,[VIS] AS visited
-      ,[URG] AS urgent
-FROM AUTOLOAD$NAVIANCE_1_college_applications WITH(NOLOCK)
+      ,[comments]
+      ,[spec]
+      ,[award]
+      ,[decis]
+      ,[leg]
+      ,[intv]
+      ,[vis]
+      ,[urg]
+FROM [KIPP_NJ].[dbo].[AUTOLOAD$NAVIANCE_1_college_applications] WITH(NOLOCK)

@@ -56,7 +56,24 @@ SELECT co.year
       ,CASE WHEN att.att_code = 'TE' THEN 1 ELSE 0 END AS n_TE
       ,CASE WHEN att.att_code = 'TLE' THEN 1 ELSE 0 END AS n_TLE
       ,CASE WHEN att.att_code = 'U' THEN 1 ELSE 0 END AS n_U
-      ,CASE WHEN att.att_code = 'X' THEN 1 ELSE 0 END AS n_X      
+      ,CASE WHEN att.att_code = 'X' THEN 1 ELSE 0 END AS n_X
+      
+      ,MAX(CASE WHEN att.att_code = 'OS' THEN 1 ELSE 0 END 
+            + CASE WHEN att.att_code = 'OSS' THEN 1 ELSE 0 END 
+            + CASE WHEN att.att_code = 'OSSP' THEN 1 ELSE 0 END) 
+         OVER(PARTITION BY co.student_number, co.year
+              ORDER BY mem.calendardate) AS is_oss_running
+      ,MAX(CASE WHEN att.att_code = 'S' THEN 1 ELSE 0 END 
+            + CASE WHEN att.att_code = 'ISS' THEN 1 ELSE 0 END) 
+         OVER(PARTITION BY co.student_number, co.year
+              ORDER BY mem.calendardate) AS is_iss_running
+      ,MAX(CASE WHEN att.att_code = 'OS' THEN 1 ELSE 0 END 
+            + CASE WHEN att.att_code = 'OSS' THEN 1 ELSE 0 END 
+            + CASE WHEN att.att_code = 'OSSP' THEN 1 ELSE 0 END
+            + CASE WHEN att.att_code = 'S' THEN 1 ELSE 0 END 
+            + CASE WHEN att.att_code = 'ISS' THEN 1 ELSE 0 END) 
+         OVER(PARTITION BY co.student_number, co.year
+              ORDER BY mem.calendardate) AS is_suspended_running
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 JOIN KIPP_NJ..ATT_MEM$MEMBERSHIP mem WITH(NOLOCK)
   ON co.studentid = mem.studentid
@@ -133,4 +150,13 @@ SELECT year
       ,n_TLE
       ,n_U
       ,n_X
+      ,MAX(n_OS + n_OSS + n_OSSP) OVER(
+         PARTITION BY studentid, year
+           ORDER BY calendardate) AS is_oss_running
+      ,MAX(n_S + n_ISS) OVER(
+         PARTITION BY studentid, year
+           ORDER BY calendardate) AS is_iss_running
+      ,MAX(n_OS + n_OSS + n_OSSP + n_S + n_ISS) OVER(
+         PARTITION BY studentid, year
+           ORDER BY calendardate) AS is_suspensions_running
 FROM KIPP_NJ..TABLEAU$attendance_dashboard#archive WITH(NOLOCK)

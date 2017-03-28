@@ -10,6 +10,9 @@ SELECT *
       ,ROW_NUMBER() OVER(
           PARTITION BY student_number
               ORDER BY test_date ASC) AS n_attempt
+      ,ROW_NUMBER() OVER(
+          PARTITION BY student_number, year
+              ORDER BY test_date ASC) AS n_attempt_year
 FROM
     (
      SELECT sub1.nav_studentid
@@ -38,7 +41,7 @@ FROM
             END AS composite
            ,predicted_act
            ,CASE WHEN sub1.test_date <= CONVERT(DATE,GETDATE()) THEN sub1.test_date ELSE NULL END AS test_date
-           ,co.year
+           ,KIPP_NJ.dbo.fn_DateToSY(test_date) AS year
            ,ROW_NUMBER() OVER(
               PARTITION BY sub1.student_number, CONVERT(DATE,test_date)
                   ORDER BY CONVERT(DATE,test_date)) AS dupe_audit
@@ -65,8 +68,5 @@ FROM
             ON act.hs_student_id = s.student_number
           WHERE act.test_type LIKE 'ACT%'
          ) sub1    
-    LEFT OUTER JOIN COHORT$comprehensive_long#static co WITH(NOLOCK)
-      ON sub1.studentid = co.studentid
-     AND CONVERT(DATE,sub1.test_date) BETWEEN co.ENTRYDATE AND co.exitdate    
    ) sub2
 --WHERE dupe_audit = 1
