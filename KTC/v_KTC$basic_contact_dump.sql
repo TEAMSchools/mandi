@@ -26,21 +26,33 @@ WITH enrollment AS (
   WHERE e.Status__c IN ('Attending')
  )
 
-,contact_note AS (
-  SELECT *
+,checkins AS (
+  SELECT contact_id
+        ,term
+        ,AAS1
+        ,AAS2
+        ,AAS3
+        ,AAS4
+        ,PSC
+        ,REM
   FROM
       (
-       SELECT Contact__c AS contact_id
-             ,Subject__c AS contact_subject
-             ,CONVERT(DATE,Date__c) AS contact_date
-       FROM AlumniMirror..Contact_Note__c WITH(NOLOCK)
-       WHERE (Subject__c LIKE 'AAS_' OR Subject__c = 'PSC' OR Subject__c = 'REM')
+       SELECT c.Contact__c AS contact_id
+             ,c.Subject__c AS contact_subject
+             ,CONVERT(DATE,c.Date__c) AS contact_date
+             ,dts.alt_name AS term
+       FROM AlumniMirror..Contact_Note__c c WITH(NOLOCK)
+       JOIN KIPP_NJ..REPORTING$dates dts WITH(NOLOCK)
+         ON c.Date__c BETWEEN dts.start_date AND dts.end_date
+        AND dts.identifier = 'KTC'
+       WHERE (c.Subject__c LIKE 'AAS_' OR c.Subject__c = 'PSC' OR c.Subject__c = 'REM')
       ) sub
   PIVOT(
     MAX(contact_date)
     FOR contact_subject IN ([AAS1]
                            ,[AAS2]
                            ,[AAS3]
+                           ,[AAS4]
                            ,[PSC]
                            ,[REM])
    ) p
@@ -70,17 +82,40 @@ WITH enrollment AS (
  )
 
 ,stipends AS (
-  SELECT Student__c
-        ,Date__c
-        ,Status__c
-        ,Amount__c
+  SELECT a.Student__c
+        ,a.Date__c
+        ,a.Status__c
+        ,a.Amount__c
+        ,dts.alt_name AS term
         ,ROW_NUMBER() OVER(
-           PARTITION BY Student__c
-             ORDER BY Date__c DESC) AS rn
-  FROM AlumniMirror..KIPP_Aid__c WITH(NOLOCK)
+           PARTITION BY a.Student__c, dts.alt_name
+             ORDER BY a.Date__c DESC) AS rn
+  FROM AlumniMirror..KIPP_Aid__c a WITH(NOLOCK)
+  JOIN KIPP_NJ..REPORTING$dates dts WITH(NOLOCK)
+    ON a.Date__c BETWEEN dts.start_date AND dts.end_date
+   AND dts.identifier = 'KTC'
   WHERE Type__c = 'College Book Stipend Program'
  )
 
+,oot_roster AS (
+  SELECT *
+        ,KIPP_NJ.dbo.fn_DateToSY(missing_start_date) AS missing_academic_year
+        ,KIPP_NJ.dbo.fn_DateToSY(found_date) AS found_academic_year
+  FROM
+      (
+       SELECT Contact__c AS contact_id
+             ,Date__c AS last_successful_contact_date
+             ,DATEADD(MONTH, 12, Date__c) AS missing_start_date
+             ,COALESCE(LEAD(Date__c, 1) OVER(PARTITION BY Contact__c ORDER BY Date__c ASC), GETDATE()) AS found_date
+             ,CASE WHEN LEAD(Date__c, 1) OVER(PARTITION BY Contact__c ORDER BY Date__c ASC) IS NULL THEN 1 END AS is_still_missing
+             ,DATEDIFF(MONTH
+                      ,Date__c
+                      ,COALESCE(LEAD(Date__c, 1) OVER(PARTITION BY Contact__c ORDER BY Date__c), GETDATE())) AS n_months_elapsed
+       FROM AlumniMirror..Contact_Note__c c WITH(NOLOCK)
+       WHERE Status__c = 'Successful'
+      ) sub
+  WHERE n_months_elapsed >= 12
+ ) 
 
 SELECT c.id AS contact_id
       ,c.School_Specific_ID__c AS student_number
@@ -109,6 +144,20 @@ SELECT c.id AS contact_id
       ,c.Latest_FAFSA_Date__c
       ,c.Latest_Resume__c
       
+      ,CASE 
+        WHEN c.Post_HS_Simple_Admin__c IN ('College Grad - BA') THEN 0 /* exclude grads */
+        WHEN oot.contact_id IS NOT NULL THEN 1
+        ELSE 0 
+       END AS is_oot_baseline
+      ,CASE 
+        WHEN c.Post_HS_Simple_Admin__c IN ('College Grad - BA') THEN 0 /* exclude grads */
+        WHEN oot.is_still_missing = 1 THEN 1
+        ELSE 0 
+       END AS is_out_of_touch      
+      ,CASE WHEN oot.found_date BETWEEN dts.start_date AND dts.end_date THEN 1 ELSE 0 END AS is_found_this_term
+      
+      ,dts.alt_name AS term
+      
       ,u.Name AS ktc_manager
 
       ,e.Major__c
@@ -123,30 +172,40 @@ SELECT c.id AS contact_id
       ,cn.AAS1
       ,cn.AAS2
       ,cn.AAS3      
+      ,cn.AAS4
       ,cn.REM
 
       ,gpa.GPA_MP0
       ,gpa.GPA_MP1
-      ,gpa.GPA_MP2
-      ,gpa.GPA_MP3
-      ,gpa.GPA_MP4
-      ,COALESCE(gpa.GPA_MP4, gpa.GPA_MP3, gpa.GPA_MP2, gpa.GPA_MP1, gpa.GPA_MP0) AS GPA_recent
+      ,gpa.GPA_MP2      
+      ,CASE
+        WHEN dts.alt_name IN ('Q1','Q2') THEN gpa.GPA_MP2
+        WHEN dts.alt_name IN ('Q3','Q4') THEN gpa.GPA_MP1
+       END AS GPA_recent
 
       ,s.Date__c AS stipend_date
       ,s.Status__c AS stipend_status
       ,s.Amount__c AS stipend_amount
+
+      ,oot.n_months_elapsed
 FROM AlumniMirror..Contact c WITH(NOLOCK)
+JOIN KIPP_NJ..REPORTING$dates dts WITH(NOLOCK)
+  ON dts.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+ AND dts.identifier = 'KTC'
 JOIN AlumniMirror..User2 u WITH(NOLOCK)
   ON c.OwnerId = u.Id
 LEFT OUTER JOIN enrollment e
   ON c.id = e.Student__c 
- --AND c.Currently_Enrolled_School__c = e.account_name
  AND e.rn = 1 
-LEFT OUTER JOIN contact_note cn
+LEFT OUTER JOIN checkins cn
   ON c.Id = cn.contact_id
+ AND dts.alt_name = cn.term
 LEFT OUTER JOIN gpa
   ON e.enrollment_id = gpa.Enrollment__c
 LEFT OUTER JOIN stipends s
   ON c.Id = s.Student__c
+ AND dts.alt_name = s.term
  AND s.rn = 1
---ORDER BY c.Currently_Enrolled_School__c
+LEFT OUTER JOIN oot_roster oot
+  ON c.Id = oot.contact_id
+ AND KIPP_NJ.dbo.fn_Global_Academic_Year() BETWEEN oot.missing_academic_year AND oot.found_academic_year
