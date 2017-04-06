@@ -44,13 +44,13 @@ SELECT sub.academic_year
       ,co.exitdate
       ,co.sped_code
       ,CASE
-        /* EasyIEP data entry is extremely fucked up */
-        WHEN co.year >= 2015 AND co.SID IN ('2935932793','2834021035','7465249910','7441242928','1505686831','2286460623','1844319947','9431566446','9622939214','7070945280',
-                                            '8601749816','3997184815','1134359003','3218068691','2774078349','6823700895','5290877659','8117808635','4802612574','7997579648',
-                                            '3373470235','4257180533','9509085255') THEN 'LLD Mild-to-Moderate'
-        WHEN co.year >= 2015 AND co.SID IN ('7492522716','5465997966','3713085357','1194087026','1334559506','4478909595') THEN 'Autism'
-        WHEN co.year >= 2015 AND co.SID IN ('1169223856','1240010558','2930172527','3583607990','6367109429','7287679809','4829668227','7229318281') THEN 'Cognitive-Mild'
-        WHEN co.year >= 2015 AND co.SID IN ('2926827662','4549382509','4355868898','7583098257','6918087445','2209413438','7565129726','4767836482','4313714647','3726579821','1420437737','1617765966','4821629468','1648342943') THEN 'LLD Mild to Moderate'
+        WHEN co.year >= 2015 AND  co.SPED_code IN ('CMO','CMI','CSE' /* Cognative */
+                                                   /* LLD - Mild/Moderate, LLD - Severe */
+                                                   /* Behavior */
+                                                  ,'MD' /* Multiple */
+                                                  ,'AI' /* Auditory */
+                                                  ,'VI' /* Visual */
+                                                  ,'AUT' /* Autism */) THEN co.SPED_code                          
         WHEN co.grade_level = 0 THEN 'K'
         ELSE CONVERT(VARCHAR,co.grade_level)
        END AS report_grade_level      
