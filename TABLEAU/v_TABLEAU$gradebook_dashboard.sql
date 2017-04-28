@@ -201,7 +201,7 @@ SELECT s.student_number
       ,s.schoolid
       ,s.grade_level
       ,s.team
-      ,cs.advisor
+      ,NULL AS advisor
       ,s.enroll_status
       ,gr.academic_year AS year
       ,cs.spedlep

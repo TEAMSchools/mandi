@@ -15,13 +15,15 @@ SELECT co.school_name
       ,co.SPEDLEP AS IEP_status      
       ,co.enroll_status      
       ,CASE WHEN sp.programid IS NOT NULL THEN 1 ELSE 0 END AS is_americorps
+      ,co.cohort
       
       ,CONVERT(VARCHAR(8),CASE
         WHEN co.year >= 2015 THEN REPLACE(term.hex,'RT','Q') 
         ELSE REPLACE(term.hex,'RT','Hex ') 
        END) AS AR_term      
-      ,CONVERT(VARCHAR(8),term.lit) AS lit_term      
-      
+      ,CONVERT(VARCHAR(8),term.lit) AS lit_term            
+      ,achv.start_date AS lit_term_start_date
+
       /* test identifiers */      
       ,CONVERT(VARCHAR(8),achv.read_lvl) AS read_lvl
       ,achv.lvl_num

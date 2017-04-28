@@ -44,7 +44,7 @@ SELECT adp.associate_id
 FROM KIPP_NJ..PEOPLE$ADP_detail adp WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PEOPLE$AD_users#static dir WITH(NOLOCK)
   ON adp.position_id = dir.employeenumber
-LEFT OUTER JOIN PEOPLE$ADP_PS_linking ps WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PEOPLE_teachernumber_associateid_link  ps WITH(NOLOCK)
   ON adp.associate_id = ps.associate_id
  AND ps.is_master = 1
 LEFT OUTER JOIN enrollments enr WITH(NOLOCK)

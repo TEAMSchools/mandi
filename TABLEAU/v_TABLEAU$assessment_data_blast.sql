@@ -13,6 +13,7 @@ SELECT co.reporting_schoolid AS schoolid
       ,co.enroll_status               
 
       ,dt.alt_name AS term
+      ,dt2.alt_name AS term_taken
 
       ,a.assessment_id
       ,a.title
@@ -104,6 +105,11 @@ JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
  AND co.year = dt.academic_year
  AND a.administered_at BETWEEN dt.start_date AND dt.end_date
  AND dt.identifier = 'RT'
+LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt2 WITH(NOLOCK)
+  ON co.schoolid = dt2.schoolid
+ AND co.year = dt2.academic_year
+ AND ovr.date_taken BETWEEN dt2.start_date AND dt2.end_date
+ AND dt2.identifier = 'RT'
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)
   ON co.student_number = res.local_student_id
  AND a.assessment_id = res.assessment_id
@@ -138,6 +144,7 @@ SELECT co.reporting_schoolid AS schoolid
       ,co.enroll_status               
 
       ,dt.alt_name AS term
+      ,dt2.alt_name AS term_taken
 
       ,a.assessment_id
       ,a.title
@@ -199,6 +206,11 @@ JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
  AND co.year = dt.academic_year
  AND a.administered_at BETWEEN dt.start_date AND dt.end_date
  AND dt.identifier = 'RT'
+LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt2 WITH(NOLOCK)
+  ON co.schoolid = dt2.schoolid
+ AND co.year = dt2.academic_year
+ AND ovr.date_taken BETWEEN dt2.start_date AND dt2.end_date
+ AND dt2.identifier = 'RT'
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$agg_student_responses_standard res WITH(NOLOCK)
   ON co.student_number = res.local_student_id
  AND a.assessment_id = res.assessment_id
@@ -232,6 +244,7 @@ SELECT co.reporting_schoolid AS schoolid
       ,co.enroll_status               
 
       ,dt.alt_name AS term
+      ,dt2.alt_name AS term_taken
 
       ,a.assessment_id
       ,a.title
@@ -276,6 +289,11 @@ JOIN KIPP_NJ..REPORTING$dates dt WITH(NOLOCK)
  AND co.year = dt.academic_year
  AND a.administered_at BETWEEN dt.start_date AND dt.end_date
  AND dt.identifier = 'RT'
+LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dt2 WITH(NOLOCK)
+  ON co.schoolid = dt2.schoolid
+ AND co.year = dt2.academic_year
+ AND ovr.date_taken BETWEEN dt2.start_date AND dt2.end_date
+ AND dt2.identifier = 'RT'
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$assessment_standards#static astd WITH(NOLOCK)
   ON a.assessment_id = astd.assessment_id
 LEFT OUTER JOIN KIPP_NJ..ILLUMINATE$standards#static std WITH(NOLOCK)

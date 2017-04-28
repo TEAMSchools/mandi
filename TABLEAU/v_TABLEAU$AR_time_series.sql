@@ -103,7 +103,7 @@ FROM
            ,co.team
            ,co.advisor
            ,co.SPEDLEP
-           ,co.term
+           ,dts.alt_name AS term
            ,co.date           
            ,CASE 
              WHEN DATEPART(WEEK,co.date) = DATEPART(WEEK,CONVERT(DATE,GETDATE())) THEN 1 
@@ -167,6 +167,11 @@ FROM
                 ORDER BY co.date) AS n_points_earned_running_yr
            */
      FROM KIPP_NJ..COHORT$identifiers_scaffold#static co WITH(NOLOCK)
+     LEFT OUTER JOIN KIPP_NJ..REPORTING$dates dts WITH(NOLOCK)
+       ON co.year = dts.academic_year
+      AND co.schoolid = dts.schoolid
+      AND co.date BETWEEN dts.start_date AND dts.end_date
+      AND dts.identifier = 'AR'
      LEFT OUTER JOIN KIPP_NJ..PS$course_enrollments#static enr WITH(NOLOCK)
        ON co.student_number = enr.student_number
       AND co.year = enr.academic_year

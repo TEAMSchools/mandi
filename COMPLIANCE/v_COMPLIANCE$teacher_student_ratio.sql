@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
---ALTER VIEW COMPLIANCE$teacher_student_ratio AS
+ALTER VIEW COMPLIANCE$teacher_student_ratio AS
 
 WITH teacher_count AS (
   SELECT COUNT(associate_id) AS N_teachers

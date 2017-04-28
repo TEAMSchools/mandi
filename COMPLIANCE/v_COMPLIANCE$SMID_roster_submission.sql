@@ -35,7 +35,7 @@ LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PEOPLE_teachernumber_associateid_link li
   ON adp.associate_id = link.associate_id
  AND link.is_master = 1
 LEFT OUTER JOIN KIPP_NJ..PS$USERS#static u WITH(NOLOCK)
-  ON COALESCE(link.teachernumber, adp.associate_id) = u.TEACHERNUMBER
+  ON COALESCE(CONVERT(VARCHAR,link.teachernumber), adp.associate_id) = u.TEACHERNUMBER
 LEFT OUTER JOIN KIPP_NJ..AUTOLOAD$GDOCS_PM_survey_roster r WITH(NOLOCK)
   ON adp.associate_id = r.associate_id
 WHERE rn_curr = 1

@@ -11,7 +11,7 @@ SELECT associate_id
       ,job_title
       ,position_status
       ,termination_date
-      ,employee_type     
+      ,NULL AS employee_type     
       ,benefits_elig_class
       ,FLSA_status
 FROM KIPP_NJ..PEOPLE$ADP_detail WITH(NOLOCK)

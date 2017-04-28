@@ -89,6 +89,8 @@ WITH hs_grads AS (
         ,s.homephone AS SF_HOME_PHONE
         ,s.otherphone AS SF_OTHER_PHONE
         ,s.email AS SF_EMAIL
+        ,s.KIPP_HS_Class__c
+        ,s.Expected_HS_Graduation__c
         ,u.Id AS contact_owner_id
         ,u.Name AS ktc_counselor
         ,enr.Type__c AS enrollment_type
@@ -121,7 +123,8 @@ SELECT r.student_number
       ,r.schoolid
       ,r.school_name
       ,r.curr_grade_level AS approx_grade_level      
-      ,r.cohort
+      ,enr.KIPP_HS_Class__c AS cohort
+      ,CONVERT(DATE,enr.Expected_HS_Graduation__c) AS Expected_HS_Graduation_Date
       ,CASE WHEN r.highest_achieved = 99 THEN 1 ELSE 0 END AS is_grad
       ,sped.SPEDLEP
       ,sped.SPEDCODE AS SPED_code      
