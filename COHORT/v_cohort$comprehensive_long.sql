@@ -13,7 +13,7 @@ WITH reenrollments AS (
         ,sub.exitdate
         ,sub.yearid
         ,sub.lunchstatus
-        ,sub.rn
+        --,sub.rn
   FROM
       (
        SELECT re.studentid
@@ -25,9 +25,9 @@ WITH reenrollments AS (
              ,re.exitdate 
              ,re.lunchstatus            
              ,terms.yearid
-             ,ROW_NUMBER() OVER(
-                PARTITION BY re.studentid, terms.yearid
-                  ORDER BY re.exitdate DESC) AS rn
+             --,ROW_NUMBER() OVER(
+             --   PARTITION BY re.studentid, terms.yearid
+             --     ORDER BY re.exitdate DESC) AS rn
        FROM KIPP_NJ..PS$REENROLLMENTS#static re WITH(NOLOCK)       
        LEFT OUTER JOIN KIPP_NJ..PS$TERMS#static terms WITH(NOLOCK)
          ON re.schoolid = terms.schoolid       
@@ -48,9 +48,9 @@ WITH reenrollments AS (
         ,s.exitdate
         ,s.LUNCHSTATUS
         ,terms.yearid
-        ,ROW_NUMBER() OVER(
-            PARTITION BY s.id, terms.yearid
-                ORDER BY s.exitdate DESC) AS rn
+        --,ROW_NUMBER() OVER(
+        --    PARTITION BY s.id, terms.yearid
+        --        ORDER BY s.exitdate DESC) AS rn
   FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   LEFT OUTER JOIN KIPP_NJ..PS$TERMS#static terms WITH(NOLOCK)
     ON s.schoolid = terms.schoolid 
@@ -71,9 +71,9 @@ WITH reenrollments AS (
         ,s.exitdate   
         ,s.LUNCHSTATUS     
         ,terms.yearid
-        ,ROW_NUMBER() OVER(
-           PARTITION BY s.id, terms.yearid 
-             ORDER BY s.exitdate DESC) AS rn
+        --,ROW_NUMBER() OVER(
+        --   PARTITION BY s.id, terms.yearid 
+        --     ORDER BY s.exitdate DESC) AS rn
   FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   LEFT OUTER JOIN KIPP_NJ..PS$terms#static terms WITH(NOLOCK)
     ON s.schoolid = terms.schoolid      
@@ -95,9 +95,9 @@ WITH reenrollments AS (
         ,NULL AS exitdate        
         ,NULL AS lunchstatus
         ,terms.yearid
-        ,ROW_NUMBER() OVER(
-            PARTITION BY s.id, terms.yearid 
-                ORDER BY s.exitdate DESC) AS rn
+        --,ROW_NUMBER() OVER(
+        --    PARTITION BY s.id, terms.yearid 
+        --        ORDER BY s.exitdate DESC) AS rn
   FROM KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
   LEFT OUTER JOIN KIPP_NJ..PS$terms#static terms WITH(NOLOCK)
     ON s.schoolid = terms.schoolid
@@ -141,7 +141,7 @@ FROM
            ,exitdate        
            ,yearid
            ,lunchstatus
-           ,rn
+           --,rn
      FROM reenrollments
      UNION ALL
      SELECT studentid
@@ -153,7 +153,7 @@ FROM
            ,exitdate        
            ,yearid
            ,lunchstatus
-           ,rn
+           --,rn
      FROM transfers_out
      UNION ALL
      SELECT studentid
@@ -165,7 +165,7 @@ FROM
            ,exitdate        
            ,yearid
            ,lunchstatus
-           ,rn
+           --,rn
      FROM current_enroll
      UNION ALL
      SELECT studentid
@@ -177,7 +177,7 @@ FROM
            ,exitdate        
            ,yearid
            ,lunchstatus
-           ,rn
+           --,rn
      FROM graduates
     ) sub
 LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)

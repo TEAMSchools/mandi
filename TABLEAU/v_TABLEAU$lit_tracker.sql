@@ -94,7 +94,6 @@ JOIN KIPP_NJ..LIT$achieved_by_round#static achv WITH(NOLOCK)
   ON co.studentid = achv.STUDENTID
  AND co.year = achv.academic_year
  AND term.lit = achv.test_round
- AND achv.start_date <= CONVERT(DATE,GETDATE())
 LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static testid WITH(NOLOCK)
   ON co.studentid = testid.studentid
  AND achv.achv_unique_id = testid.unique_id 

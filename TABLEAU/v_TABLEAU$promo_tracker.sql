@@ -265,11 +265,11 @@ WITH roster AS (
              ,att.ABS_all_counts_term
              ,att.TDY_all_counts_term
 
-             ,ROUND(((att.MEM_counts_term - att.ABS_all_counts_term) / att.MEM_counts_term) * 100,0) AS presentpct_term
-             ,ROUND(((att.MEM_counts_term - att.ABS_all_counts_term - att.TDY_all_counts_term) / (att.MEM_counts_term - att.ABS_all_counts_term)) * 100,0) AS ontimepct_term
+             ,ROUND(((att.MEM_counts_term - att.ABS_all_counts_term) / CASE WHEN att.MEM_counts_term = 0 THEN NULL ELSE att.MEM_counts_term END) * 100,0) AS presentpct_term
+             ,ROUND(((att.MEM_counts_term - att.ABS_all_counts_term - att.TDY_all_counts_term) / CASE WHEN (att.MEM_counts_term - att.ABS_all_counts_term) = 0 THEN NULL ELSE (att.MEM_counts_term - att.ABS_all_counts_term) END) * 100,0) AS ontimepct_term
 
              ,att.ABS_all_counts_term + ROUND((att.TDY_all_counts_term / 3),1,1) AS attpts_term
-             ,ROUND(((att.MEM_counts_term - (att.ABS_all_counts_term + ROUND((att.TDY_all_counts_term / 3),1,1))) / att.MEM_counts_term) * 100,0) AS attptspct_term
+             ,ROUND(((att.MEM_counts_term - (att.ABS_all_counts_term + ROUND((att.TDY_all_counts_term / 3),1,1))) / CASE WHEN att.MEM_counts_term = 0 THEN NULL ELSE att.MEM_counts_term END) * 100,0) AS attptspct_term
        FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
        WHERE att.academic_year >= 2015
          AND att.MEM_counts_term > 0
@@ -291,14 +291,14 @@ WITH roster AS (
              ,att.ABS_all_counts_yr
              ,att.TDY_all_counts_yr
 
-             ,ROUND(((att.MEM_counts_yr - att.ABS_all_counts_yr) / att.MEM_counts_yr) * 100,0) AS presentpct_yr
-             ,ROUND(((att.MEM_counts_yr - att.ABS_all_counts_yr - att.TDY_all_counts_yr) / (att.MEM_counts_yr - att.ABS_all_counts_yr)) * 100,0) AS ontimepct_yr
+             ,ROUND(((att.MEM_counts_yr - att.ABS_all_counts_yr) / CASE WHEN att.MEM_counts_yr = 0 THEN NULL ELSE att.MEM_counts_yr END) * 100,0) AS presentpct_yr
+             ,ROUND(((att.MEM_counts_yr - att.ABS_all_counts_yr - att.TDY_all_counts_yr) / CASE WHEN (att.MEM_counts_yr - att.ABS_all_counts_yr) = 0 THEN NULL ELSE (att.MEM_counts_yr - att.ABS_all_counts_yr) END) * 100,0) AS ontimepct_yr
 
              ,att.ABS_all_counts_yr + ROUND((att.TDY_all_counts_yr / 3),1,1) AS attpts_yr
-             ,ROUND(((att.MEM_counts_yr - (att.ABS_all_counts_yr + ROUND((att.TDY_all_counts_yr / 3),1,1))) / att.MEM_counts_yr) * 100,0) AS attptspct_yr
+             ,ROUND(((att.MEM_counts_yr - (att.ABS_all_counts_yr + ROUND((att.TDY_all_counts_yr / 3),1,1))) / CASE WHEN att.MEM_counts_yr = 0 THEN NULL ELSE att.MEM_counts_yr END) * 100,0) AS attptspct_yr
        FROM KIPP_NJ..ATT_MEM$attendance_counts_long#static att WITH(NOLOCK)
        WHERE att.academic_year >= 2015
-         AND att.MEM_counts_term > 0
+         AND att.MEM_counts_yr > 0
          AND att.MEM_counts_yr != att.ABS_all_counts_yr
          AND att.rn_curterm = 1
       ) sub

@@ -24,7 +24,9 @@ SELECT co.schoolid
       ,co.exitcode
       ,co.entrydate
       ,co.exitdate
-      ,co.rn
+      ,ROW_NUMBER() OVER(
+         PARTITION BY co.studentid, co.year
+           ORDER BY co.entrydate DESC) AS rn
       ,co.year_in_network
       ,ROW_NUMBER() OVER(
          PARTITION BY co.studentid, co.schoolid
