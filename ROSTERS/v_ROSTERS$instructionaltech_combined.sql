@@ -308,7 +308,7 @@ SELECT
 FROM roster
 
 WHERE dupe = 1
-      AND entrydate >= '2016-10-31'
+      AND entrydate >= '2017-03-08'
 	  AND grade_level <= 8
 --	  AND ENTRYDATE >= '2016-10-04'
 	  	 -- AND grade_level <= 8
