@@ -6,31 +6,33 @@ ALTER VIEW deanslist.incidents_penalties AS
 SELECT dli.incident_id
       ,dli.penalties AS penalties_json
       ,dlip.StartDate
-      ,dlip.SchoolID
       ,dlip.EndDate
-      ,dlip.NumPeriods
-      ,dlip.PenaltyID
-      ,dlip.StudentID
-      ,dlip.IncidentID
       ,dlip.SAID
-      ,dlip.PenaltyName
-      ,dlip.[Print]
+      ,dlip.NumPeriods
       ,dlip.IncidentPenaltyID
+      ,dlip.PenaltyID
+      ,dlip.[Print]
+      ,dlip.StudentID
+      ,dlip.PenaltyName
+      ,dlip.SchoolID
+      ,dlip.IsSuspension
+      ,dlip.IncidentID            
       ,dlip.NumDays
 FROM [gabby].[deanslist].[incidents] dli
 CROSS APPLY OPENJSON(dli.penalties, N'$')
   WITH (
     StartDate DATE N'$.StartDate',
-    SchoolID INT N'$.SchoolID',
     EndDate DATE N'$.EndDate',
+    SAID BIGINT N'$.SAID',    
     NumPeriods FLOAT N'$.NumPeriods',
-    PenaltyID BIGINT N'$.PenaltyID',
-    StudentID BIGINT N'$.StudentID',
-    IncidentID BIGINT N'$.IncidentID',
-    SAID BIGINT N'$.SAID',
-    PenaltyName VARCHAR(MAX) N'$.PenaltyName',
-    [Print] VARCHAR(MAX) N'$.Print',
     IncidentPenaltyID BIGINT N'$.IncidentPenaltyID',
+    PenaltyID BIGINT N'$.PenaltyID',
+    [Print] NVARCHAR(MAX) N'$.Print',
+    StudentID BIGINT N'$.StudentID',
+    PenaltyName NVARCHAR(MAX) N'$.PenaltyName',
+    SchoolID INT N'$.SchoolID',    
+    IsSuspension NVARCHAR(MAX) N'$.IsSuspension',
+    IncidentID BIGINT N'$.IncidentID',
     NumDays FLOAT N'$.NumDays'
    ) AS dlip
 WHERE dli.penalties != '[]'

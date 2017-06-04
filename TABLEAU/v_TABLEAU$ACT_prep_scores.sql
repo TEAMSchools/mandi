@@ -5,7 +5,9 @@ ALTER VIEW TABLEAU$ACT_prep_scores AS
 
 WITH real_tests AS (
   SELECT student_number      
-        ,act_subject
+        ,CONCAT(LEFT(DATENAME(MONTH,test_date),3), ' ''', RIGHT(DATEPART(YEAR,test_date),2)) AS administration_round
+        ,test_date
+        ,CASE WHEN act_subject = 'math' THEN 'Mathematics' ELSE act_subject END AS act_subject
         ,scale_score
   FROM KIPP_NJ..ACT$test_scores WITH(NOLOCK)
   UNPIVOT(
@@ -36,8 +38,9 @@ SELECT co.year
 
       ,'PREP' AS ACT_type
       ,act.assessment_id
-      ,act.assessment_title
+      ,act.assessment_title      
       ,act.administration_round
+      ,act.administered_at AS test_date
       ,act.subject_area
       ,act.overall_percent_correct
       ,act.overall_number_correct
@@ -83,7 +86,8 @@ SELECT co.year
       ,'REAL' AS ACT_type
       ,NULL AS assessment_id
       ,NULL AS assessment_title
-      ,NULL administration_round
+      ,CONVERT(NVARCHAR,co.cohort) AS administration_round
+      ,r.test_date
       ,r.act_subject AS subject_area
       ,NULL AS overall_percent_correct
       ,NULL AS overall_number_correct

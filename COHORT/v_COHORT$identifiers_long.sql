@@ -19,7 +19,7 @@ SELECT co.schoolid
       ,co.lastfirst
       ,co.grade_level
       ,co.year            
-      ,MAX(co.cohort) OVER(PARTITION BY co.STUDENT_NUMBER) AS cohort
+      ,co.cohort
       ,co.entrycode
       ,co.exitcode
       ,co.entrydate
@@ -72,7 +72,11 @@ SELECT co.schoolid
       ,logins.STUDENT_WEB_PASSWORD AS FAMILY_WEB_PASSWORD
       ,cs.LUNCH_BALANCE      
       ,cs.STATUS_504
-      ,cs.LEP_STATUS
+      ,CASE 
+        WHEN cs.NJ_LEPBEGINDATE IS NULL THEN NULL
+        WHEN co.entrydate BETWEEN cs.NJ_LEPBEGINDATE AND COALESCE(cs.LEPENDDATE, GETDATE()) THEN 1 
+        WHEN co.exitdate BETWEEN cs.NJ_LEPBEGINDATE AND COALESCE(cs.LEPENDDATE, GETDATE()) THEN 1         
+       END AS LEP_STATUS
       ,cs.NEWARK_ENROLLMENT_NUMBER
       ,CASE 
         WHEN co.year = KIPP_NJ.dbo.fn_Global_Academic_Year() THEN ISNULL(cs.SPEDLEP,'No IEP') 

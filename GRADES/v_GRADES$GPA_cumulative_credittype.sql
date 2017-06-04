@@ -24,7 +24,13 @@ WITH gpa_credittype AS (
 			        (
 			         SELECT sto.studentid
 					             ,sto.course_number
-					             ,cou.credittype
+					             ,CASE
+                    WHEN sto.COURSE_NUMBER IN ('FREN10','FREN1000','FREN11','FREN11','FREN12','FREN20','FREN30','FREN300','FREN40','FREN45','FREN900')
+                           OR sto.course_number = 'TRANSFER' AND cou.COURSE_NAME IN ('French I','French II ','Honors French I') THEN 'FRENCH'
+                    WHEN sto.COURSE_NUMBER IN ('SPAN10','SPAN1000','SPAN11','SPAN11','SPAN12','SPAN20','SPAN30','SPAN305','SPAN40','SPAN45','SPAN901')
+                           OR sto.COURSE_NUMBER = 'TRANSFER' AND cou.COURSE_NAME IN ('Spanish ','Spanish 1','Spanish 2','Spanish I ','Spanish I ADV','Spanish II','Spanish II (H)') THEN 'SPANISH'
+                    ELSE cou.credittype
+                   END AS credittype
 					             ,sto.GPA_POINTS
 					             ,sto.potentialcrhrs                   
 					             ,sto.schoolid                   
@@ -68,5 +74,7 @@ PIVOT (
 						,[RHET]
 						,[SCI]
 						,[SOC]
-						,[WLANG])
+						--,[WLANG]
+      ,[FRENCH]
+      ,[SPANISH])
  ) p

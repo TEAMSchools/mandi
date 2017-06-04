@@ -10,6 +10,7 @@ SELECT co.reporting_schoolid AS schoolid
       ,co.student_number
       ,co.lastfirst
       ,co.spedlep  
+      ,co.LEP_STATUS
       ,co.enroll_status               
 
       ,dt.alt_name AS term
@@ -141,6 +142,7 @@ SELECT co.reporting_schoolid AS schoolid
       ,co.student_number
       ,co.lastfirst
       ,co.spedlep  
+      ,co.LEP_STATUS
       ,co.enroll_status               
 
       ,dt.alt_name AS term
@@ -241,6 +243,7 @@ SELECT co.reporting_schoolid AS schoolid
       ,co.student_number
       ,co.lastfirst
       ,co.spedlep  
+      ,co.LEP_STATUS
       ,co.enroll_status               
 
       ,dt.alt_name AS term

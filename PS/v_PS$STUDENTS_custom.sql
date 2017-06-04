@@ -6,18 +6,20 @@ ALTER VIEW PS$STUDENTS_custom AS
 SELECT *
 FROM OPENQUERY(PS_TEAM,'
   SELECT s.ID AS STUDENTID
-        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''SPECIAL_EDUCATION'') AS SPECIAL_EDUCATION        
-        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''504_STATUS'') AS STATUS_504
-        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''Middle_Name_Custom'') AS MIDDLE_NAME_CUSTOM        
-        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_CityOfBirth'') AS NJ_CityOfBirth
-        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_StateOfBirth'') AS NJ_StateOfBirth
-        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_COUNTRYOFBIRTH'') AS NJ_COUNTRYOFBIRTH
-        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_LEPBeginDate'') AS NJ_LEPBeginDate
-        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_LEPEndDate'') AS NJ_LEPEndDate
-        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''NJ_Migrant'') AS NJ_Migrant
+        ,nj.SpecialEd_Classification AS SPECIAL_EDUCATION        
+        ,nj.PID_504_TF AS STATUS_504
+        ,u.Middle_Name_Custom AS MIDDLE_NAME_CUSTOM        
+        ,nj.CityOfBirth AS NJ_CityOfBirth
+        ,nj.StateOfBirth AS NJ_StateOfBirth
+        ,nj.CountryOfBirth AS NJ_COUNTRYOFBIRTH
+        ,nj.LEPBeginDate AS NJ_LEPBeginDate
+        ,nj.LEPEndDate AS NJ_LEPEndDate
+        ,nj.Migrant_TF AS NJ_Migrant
         
         ,c.SPEDLEP
-        ,PS_CUSTOMFIELDS.GETCF(''STUDENTS'',ID,''LEP'') AS LEP_STATUS        
+        ,nj.LEP_TF AS LEP_STATUS        
+        ,nj.LEPBeginDate
+        ,nj.LEPEndDate
         ,c.HOMELESS_CODE
         
         ,u.NEWARK_ENROLLMENT_NUMBER
@@ -40,4 +42,6 @@ FROM OPENQUERY(PS_TEAM,'
     ON s.DCID = c.STUDENTSDCID
   LEFT OUTER JOIN U_STUDENTSUSERFIELDS u
     ON s.DCID = u.STUDENTSDCID  
+  LEFT OUTER JOIN S_NJ_STU_X nj
+    ON s.DCID = nj.StudentsDCID
 ')

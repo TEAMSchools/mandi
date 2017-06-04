@@ -13,6 +13,7 @@ SELECT co.school_name
       ,co.advisor
       ,co.year AS academic_year            
       ,co.SPEDLEP AS IEP_status      
+      ,co.LEP_STATUS
       ,co.enroll_status      
       ,CASE WHEN sp.programid IS NOT NULL THEN 1 ELSE 0 END AS is_americorps
       ,co.cohort
@@ -117,73 +118,3 @@ LEFT OUTER JOIN KIPP_NJ..PS$SPENROLLMENTS#static sp WITH(NOLOCK)
 WHERE co.rn = 1
   AND co.grade_level != 99
   AND co.reporting_schoolid != 5173
-  --AND co.year >= KIPP_NJ.dbo.fn_Global_Academic_Year()
-  
-
---UNION ALL
-
---SELECT school_name
---      ,school_level
---      ,student_number
---      ,student_name
---      ,grade_level
---      ,team
---      ,advisor
---      ,academic_year
---      ,IEP_status
---      ,enroll_status
---      ,0 AS is_americorps
---      ,AR_term
---      ,lit_term
---      ,read_lvl
---      ,lvl_num
---      ,dna_lvl
---      ,dna_lvl_num
---      ,instruct_lvl
---      ,instruct_lvl_num
---      ,indep_lvl
---      ,indep_lvl_num
---      ,prev_read_lvl
---      ,prev_lvl_num
---      ,GLEQ
---      ,fp_keylever
---      ,is_new_test
---      ,moved_levels
---      ,n_levels_moved_y1
---      ,test_date
---      ,status
---      ,color
---      ,genre
---      ,is_fp
---      ,NULL AS test_administered_by
---      ,is_curterm
---      ,goal_lvl
---      ,goal_num
---      ,natl_goal_lvl
---      ,natl_goal_num
---      ,default_goal_lvl
---      ,default_goal_num
---      ,distance_from_goal
---      ,met_goal
---      ,met_natl_goal
---      ,met_default_goal
---      ,unique_id
---      ,dna_unique_id
---      ,component_domain
---      ,component_strand
---      ,component_strand_specific
---      ,component_score
---      ,component_benchmark
---      ,component_prof
---      ,component_margin
---      ,dna_filter
---      ,words_goal
---      ,words
---      ,mastery
---      ,pct_fiction
---      ,avg_lexile
---      ,N_passed
---      ,N_total
---      ,status_words
---      ,rn_test
---FROM KIPP_NJ..TABLEAU$lit_tracker#archive WITH(NOLOCK)

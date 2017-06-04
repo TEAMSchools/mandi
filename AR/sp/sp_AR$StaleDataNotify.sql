@@ -5,7 +5,7 @@ ALTER PROCEDURE sp_AR$StaleDataNotify AS
 
 /* NOTE: You have to configure/set the following 3 variables */
 DECLARE @MailProfileToSendVia sysname = 'DataRobot';
-DECLARE @OperatorName sysname = 'DataRescueTeam' --;ljoseph@kippnj.org;kdjones@kippnj.org;DGlaubinger@kippnj.org';
+DECLARE @OperatorName sysname = 'DataRescueTeam'
 -------------------------------------------------------------
 SET NOCOUNT ON;
 
@@ -14,9 +14,9 @@ DECLARE @MostRecentQuiz DATETIME;
 SELECT @MostRecentQuiz = MAX(dtTakenOriginal)
 FROM KIPP_NJ..AR$test_event_detail#static;
 
-IF ((DATEPART(DW,GETDATE()) NOT IN (1,2) AND DATEDIFF(HOUR,@MostRecentQuiz,GETDATE()) > 24) 
-     OR (DATEPART(DW,GETDATE()) = 1 AND DATEDIFF(HOUR,@MostRecentQuiz,GETDATE()) > 54)
-     OR (DATEPART(DW,GETDATE()) = 2 AND DATEDIFF(HOUR,@MostRecentQuiz,GETDATE()) > 78))
+IF ((DATEPART(DW,GETDATE()) NOT IN (1,2) AND DATEDIFF(DAY, @MostRecentQuiz, GETDATE()) > 1) 
+     OR (DATEPART(DW,GETDATE()) = 1 AND DATEDIFF(DAY, @MostRecentQuiz, GETDATE()) > 2)
+     OR (DATEPART(DW,GETDATE()) = 2 AND DATEDIFF(DAY, @MostRecentQuiz, GETDATE()) > 3))
   BEGIN 
 
     DECLARE @subject NVARCHAR(100);
