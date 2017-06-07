@@ -13,7 +13,7 @@ SELECT jp.Name AS job_position_name
         END AS salesforce_location               
        
        ,ja.Contact_Name__c AS salesforce_contact_name        
-       ,ja.Selection_Status__c
+       ,CASE WHEN ja.Selection_Status__c = 'Complete' THEN 'Accepted' ELSE ja.Selection_Status__c END AS Selection_Status__c
        --,ja.Stage__c
        ,CONVERT(DATE,ja.Hired_Status_Date__c) AS Hired_Status_Date__c                
 
@@ -30,6 +30,7 @@ SELECT jp.Name AS job_position_name
          ELSE 'N' 
         END AS in_ADP          
        
+       ,CONVERT(DATE,ad.createTimeStamp) AS ad_createdate
        ,ad.mail AS email_address        
        ,ad.sAMAccountName AS username        
        ,CASE

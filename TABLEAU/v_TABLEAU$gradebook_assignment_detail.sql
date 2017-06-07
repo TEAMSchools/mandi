@@ -49,7 +49,6 @@ LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignment_scores#STAGING scores WITH(NOLOCK)
   ON a.ASSIGNMENTID = scores.ASSIGNMENTID
  AND s.STUDENT_NUMBER = scores.STUDENTIDENTIFIER
- --AND sec.DCID = scores.SECTIONSDCID
 WHERE sec.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
 
 UNION ALL
@@ -99,10 +98,4 @@ LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS#static s WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..GRADES$assignment_scores#STAGING scores WITH(NOLOCK)
   ON a.ASSIGNMENTID = scores.ASSIGNMENTID
  AND s.STUDENT_NUMBER = scores.STUDENTIDENTIFIER
- --AND sec.DCID = scores.SECTIONSDCID
 WHERE sec.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-
---UNION ALL
-
---SELECT *
---FROM KIPP_NJ..TABLEAU$gradebook_assignment_detail#archive WITH(NOLOCK)

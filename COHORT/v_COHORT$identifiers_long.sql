@@ -74,8 +74,8 @@ SELECT co.schoolid
       ,cs.STATUS_504
       ,CASE 
         WHEN cs.NJ_LEPBEGINDATE IS NULL THEN NULL
-        WHEN co.entrydate BETWEEN cs.NJ_LEPBEGINDATE AND COALESCE(cs.LEPENDDATE, GETDATE()) THEN 1 
-        WHEN co.exitdate BETWEEN cs.NJ_LEPBEGINDATE AND COALESCE(cs.LEPENDDATE, GETDATE()) THEN 1         
+        WHEN cs.NJ_LEPENDDATE < co.entrydate THEN NULL
+        WHEN cs.NJ_LEPBEGINDATE <= co.exitdate THEN 1       
        END AS LEP_STATUS
       ,cs.NEWARK_ENROLLMENT_NUMBER
       ,CASE 
