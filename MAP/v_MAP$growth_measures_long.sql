@@ -137,11 +137,11 @@ FROM
                 ,map_end.rittoreadingscore AS end_lex
                 ,map_end.testritscore - map_start.testritscore AS rit_change
                 ,CASE 
-                   WHEN map_end.rittoreadingscore = 'BR' THEN 0 
+                   WHEN map_end.rittoreadingscore IN ('BR', '<100') THEN 0 
                    ELSE CONVERT(INT,map_end.rittoreadingscore) 
                  END - 
                  CASE 
-                   WHEN map_start.rittoreadingscore = 'BR' THEN 0 
+                   WHEN map_start.rittoreadingscore IN ('BR','<100') THEN 0 
                    ELSE CONVERT(INT,map_start.rittoreadingscore) 
                  END AS lexile_change
                 ,map_start.grade_level AS start_grade_verif

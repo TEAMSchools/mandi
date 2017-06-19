@@ -22,6 +22,7 @@ SELECT student_number
       ,GPA_points_total_y1
       ,weighted_GPA_points_Y1
       ,GPA_Y1
+      ,GPA_Y1_unweighted
       
       ,n_failing_y1
 
@@ -60,6 +61,7 @@ FROM
            ,SUM((credit_hours * y1_gpa_points)) AS weighted_GPA_points_Y1
            /* when no y1 pct, then exclude credit hours */
            ,CONVERT(FLOAT,ROUND(CONVERT(DECIMAL(4,3),SUM((credit_hours * y1_gpa_points)) / SUM(CASE WHEN y1_grade_percent_adjusted IS NULL THEN NULL ELSE credit_hours END)),2)) AS GPA_Y1
+           ,CONVERT(FLOAT,ROUND(CONVERT(DECIMAL(4,3),SUM((credit_hours * y1_gpa_points_unweighted)) / SUM(CASE WHEN y1_grade_percent_adjusted IS NULL THEN NULL ELSE credit_hours END)),2)) AS GPA_Y1_unweighted
            
            ,SUM(CASE WHEN y1_grade_letter LIKE 'F%' THEN 1 ELSE 0 END) AS n_failing_y1
      FROM KIPP_NJ..GRADES$final_grades_long#static WITH(NOLOCK)

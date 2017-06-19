@@ -267,6 +267,7 @@ SELECT sub.student_number
         WHEN sub.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN NULL
         ELSE scale.grade_points
        END AS y1_gpa_points
+      ,scale_unweighted.grade_points AS y1_gpa_points_unweighted
 
       /* Need To Get calcs */
       ,ROUND((((weighted_points_possible_total * 0.9) /* 90% of total points possible */
@@ -395,3 +396,11 @@ LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static scale WITH(NOLOCK)
   ON sub.gradescaleid = scale.scale_id
  AND sub.y1_grade_percent_adjusted >= scale.low_cut
  AND sub.y1_grade_percent_adjusted < scale.high_cut
+LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static scale_unweighted WITH(NOLOCK)
+  ON sub.y1_grade_percent_adjusted >= scale_unweighted.low_cut
+ AND sub.y1_grade_percent_adjusted < scale_unweighted.high_cut
+ AND CASE
+      WHEN sub.schoolid != 73253 THEN sub.gradescaleid
+      WHEN sub.academic_year <= 2015 THEN 662 /* default pre-2016 */
+      WHEN sub.academic_year >= 2016 THEN 874 /* default 2016+ */
+     END = scale_unweighted.scale_id

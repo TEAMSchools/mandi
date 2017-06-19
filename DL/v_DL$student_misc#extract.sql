@@ -16,14 +16,25 @@ SELECT co.student_number
       ,co.father AS parent2_name
       ,co.father_cell AS parent2_cell
       ,co.guardianemail
-      ,CONCAT(co.STREET, ', '
-             ,co.CITY, ', '
-             ,co.STATE, ' '
-             ,co.ZIP) AS home_address
       ,co.lunch_balance
+      ,co.dob
+      ,CONCAT(co.STREET, ', ', co.CITY, ', ', co.STATE, ' ', co.ZIP) AS home_address
+      
+      ,nav.counselor_name AS ktc_counselor_name
+      ,adp.phone_mobile AS ktc_counselor_phone
+      ,ad.mail AS ktc_counselor_email
+
       ,gpa.GPA_Y1
+
       ,cat.H_Y1 AS HWQ_Y1
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+LEFT OUTER JOIN KIPP_NJ..NAVIANCE$students_clean nav WITH(NOLOCK)
+  ON co.student_number = nav.hs_student_id
+LEFT OUTER JOIN KIPP_NJ..PEOPLE$ADP_detail adp WITH(NOLOCK)
+  ON nav.counselor_name = CONCAT(adp.preferred_first, ' ', adp.preferred_last)
+ AND adp.rn_curr = 1
+LEFT OUTER JOIN KIPP_NJ..PEOPLE$AD_users#static ad WITH(NOLOCK)
+  ON adp.associate_id = ad.associate_id
 LEFT OUTER JOIN KIPP_NJ..GRADES$GPA_detail_long#static gpa WITH(NOLOCK)
   ON co.student_number = gpa.student_number
  AND co.year = gpa.academic_year

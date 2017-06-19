@@ -94,6 +94,11 @@ SELECT cd.unique_id
         WHEN test_round = 'BOY' THEN 1
         WHEN test_round = 'MOY' THEN 2
         WHEN test_round = 'EOY' THEN 3
+        WHEN test_round = 'DR' THEN 1
+        WHEN test_round = 'Q1' THEN 2
+        WHEN test_round = 'Q2' THEN 3
+        WHEN test_round = 'Q3' THEN 4
+        WHEN test_round = 'Q4' THEN 5
        END AS round_num
       
       ,co.studentid

@@ -39,17 +39,31 @@ SELECT co.school_name
             ELSE achv.moved_levels 
            END) OVER(PARTITION BY co.student_number, co.year ORDER BY achv.start_date ASC) AS n_levels_moved_y1
 
+      ,testid.academic_year AS achvtest_academic_year
+      ,testid.test_round AS achvtest_test_round
       ,testid.test_date
       ,testid.status
       ,testid.color
       ,testid.genre
       ,testid.is_fp
+      
+      ,dna.academic_year AS dnatest_academic_year
+      ,dna.test_round AS dnatest_test_round
       ,dna.test_date AS dna_date
       ,CASE                      
-        WHEN achv.test_round IN ('BOY','DR') AND testid.test_round IN ('EOY','Q4','T3') AND achv.academic_year = testid.academic_year + 1 THEN 1
-        WHEN testid.test_date >= achv.start_date THEN 1        
-        WHEN achv.test_round IN ('BOY','DR') AND dna.test_round IN ('EOY','Q4','T3') AND achv.academic_year = dna.academic_year + 1 THEN 2
-        WHEN dna.test_date >= achv.start_date THEN 2        
+        WHEN achv.lvl_num >= 26 THEN 1
+        WHEN achv.test_round IN ('BOY','DR') 
+         AND testid.test_round IN ('EOY','Q4','T3')
+         AND achv.academic_year = testid.academic_year + 1 
+               THEN 1
+        WHEN achv.test_round = testid.test_round 
+         AND achv.academic_year = testid.academic_year 
+               THEN 1
+        WHEN achv.test_round IN ('BOY','DR') 
+         AND dna.test_round IN ('EOY','Q4','T3') 
+         AND achv.academic_year = dna.academic_year + 1 
+               THEN 2
+        WHEN achv.test_round = dna.test_round AND achv.academic_year = dna.academic_year THEN 2        
         ELSE 3
        END AS test_audit
 
@@ -86,3 +100,4 @@ LEFT OUTER JOIN KIPP_NJ..LIT$all_test_events#identifiers#static dna WITH(NOLOCK)
 WHERE co.rn = 1
   AND co.grade_level != 99
   AND co.year >= 2010
+  AND co.enroll_status = 0

@@ -38,7 +38,7 @@ WITH stmath AS (
   FROM KIPP_NJ..REPORTING$dates d WITH(NOLOCK)
   WHERE d.schoolid = 73258  
     AND d.identifier = 'RT'
-    AND d.end_date <= CONVERT(DATE,GETDATE())
+    --AND d.end_date <= CONVERT(DATE,GETDATE())
  )
 
 SELECT co.student_number
@@ -122,7 +122,8 @@ SELECT co.student_number
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
 LEFT OUTER JOIN curterm d
   ON co.year = d.academic_year
- AND d.rn = 1
+ --AND d.rn = 1
+ AND d.alt_name = 'Q4'
 LEFT OUTER JOIN KIPP_NJ..ATT_MEM$attendance_counts_long#static att_counts WITH(NOLOCK)
   ON co.studentid = att_counts.studentid
  AND co.year = att_counts.academic_year

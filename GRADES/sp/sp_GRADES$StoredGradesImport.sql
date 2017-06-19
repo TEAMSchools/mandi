@@ -88,11 +88,7 @@ BEGIN
             ,co.excludefromclassrank
             ,co.excludefromhonorroll
             ,co.CREDIT_HOURS AS potentialcrhrs
-            ,CASE 
-              WHEN gr.schoolid = 73253 AND gr.y1_grade_percent_adjusted >= 70 THEN co.CREDIT_HOURS 
-              WHEN gr.SCHOOLID IN (73252, 133570965) AND gr.y1_grade_percent_adjusted >= 65 THEN co.CREDIT_HOURS
-              ELSE 0
-             END AS earnedcrhrs
+            ,CASE WHEN gr.y1_grade_letter NOT LIKE 'F%' THEN co.CREDIT_HOURS ELSE 0 END AS earnedcrhrs
             ,'Y1' AS storecode
             ,gr.y1_grade_letter AS grade
             ,gr.y1_grade_percent_adjusted AS [percent]
@@ -102,7 +98,7 @@ BEGIN
       JOIN KIPP_NJ..PS$COURSES#static co WITH(NOLOCK)
         ON gr.COURSE_NUMBER = co.COURSE_NUMBER       
       LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static scale WITH(NOLOCK)
-        ON co.gradescaleid = scale.scale_id
+        ON co.gradescaleid = scale.scale_id 
        AND gr.Y1_grade_percent_adjusted >= scale.low_cut
        AND gr.Y1_grade_percent_adjusted < scale.high_cut
       WHERE gr.SCHOOLID = @schoolid

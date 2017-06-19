@@ -68,15 +68,14 @@ SELECT co.student_number
       ,ext.NPS AS pct_prof_NPS
       ,ext.CPS AS pct_prof_CPS
       ,ext.PARCC AS pct_prof_PARCC       
-FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
-JOIN KIPP_NJ..PARCC$district_summative_record_file parcc WITH(NOLOCK)
-  ON co.student_number = parcc.localstudentidentifier
- AND co.year = LEFT(parcc.assessmentYear, 4)
+FROM KIPP_NJ..PARCC$district_summative_record_file parcc WITH(NOLOCK)
+JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
+  ON parcc.statestudentidentifier = co.SID
+ AND LEFT(parcc.assessmentYear, 4) = co.year
+ AND co.rn = 1
 LEFT OUTER JOIN external_prof ext WITH(NOLOCK)
   ON co.year = ext.academic_year
- AND parcc.testcode = ext.testcode 
-WHERE co.year >= 2014  
-  AND co.rn = 1
+ AND parcc.testcode = ext.testcode   
 
 UNION ALL
 

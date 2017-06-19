@@ -16,7 +16,7 @@ WITH unioned_tables AS (
         ,[writing_test]      
         ,[math_test]
         ,NULL AS [essay_subscore]
-        ,NULL AS [mc_subscore]
+        ,CONVERT(FLOAT,[math_test]) + CONVERT(FLOAT,[reading_test]) AS [mc_subscore]
         ,CONVERT(DATE,CONCAT(RIGHT(test_date,4), '-', RIGHT(CONCAT('0', LEFT(test_date, CHARINDEX('/',test_date)-1)),2), '-01')) AS test_date
         ,BINI_ID
   FROM [KIPP_NJ].[dbo].[AUTOLOAD$NAVIANCE_16_sat_scores]
@@ -32,7 +32,7 @@ WITH unioned_tables AS (
         ,[total]
 
         ,NULL AS [reading_test]
-        ,NULL AS [writing_test]      
+        ,[essay_subscore] AS [writing_test]      
         ,NULL AS [math_test]
         ,[essay_subscore]
         ,[mc_subscore]
@@ -58,34 +58,37 @@ FROM
            ,sub1.math_verbal_total
            ,sub1.all_tests_total
            ,sub1.bini_id
-           ,CASE WHEN sub1.test_date <= GETDATE() THEN sub1.test_date ELSE NULL END AS test_date
-           ,co.year AS academic_year
+           ,sub1.test_date
+           ,sub1.test_date_flag
+           ,sub1.total_flag
+           ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
            ,ROW_NUMBER() OVER(
               PARTITION BY sub1.student_number, test_date
                   ORDER BY sub1.test_date) AS dupe_audit
      FROM
          (
           SELECT sat.student_id AS nav_studentid
-                ,hs_student_id AS student_number
+                ,s.student_number
                 ,s.id AS studentid                
+                ,CONVERT(DATE,test_date) AS test_date
                 ,CONVERT(FLOAT,evidence_based_reading_writing) AS verbal
                 ,CONVERT(FLOAT,math) AS math
                 ,CONVERT(FLOAT,writing) AS writing
                 ,essay_subscore
                 ,mc_subscore                
-                ,CONVERT(FLOAT,evidence_based_reading_writing) + CONVERT(FLOAT,math) AS math_verbal_total
-                ,CASE WHEN CONVERT(FLOAT,evidence_based_reading_writing) >= 200 AND CONVERT(FLOAT,evidence_based_reading_writing) <= 800 THEN CONVERT(FLOAT,evidence_based_reading_writing) ELSE NULL END
-                  + CASE WHEN CONVERT(FLOAT,math) >= 200 AND CONVERT(FLOAT,math) <= 800 THEN CONVERT(FLOAT,math) ELSE NULL END
-                  + CASE WHEN CONVERT(FLOAT,writing) >= 200 AND CONVERT(FLOAT,writing) <= 800 THEN CONVERT(FLOAT,writing) ELSE NULL END                        
-                  AS all_tests_total
-                ,test_date              
+                ,CONVERT(FLOAT,evidence_based_reading_writing) + CONVERT(FLOAT,math) AS math_verbal_total                
+                ,CONVERT(FLOAT,total) AS all_tests_total
+                ,CASE
+                  WHEN (CASE WHEN CONVERT(FLOAT,evidence_based_reading_writing) BETWEEN 200 AND 800 THEN CONVERT(FLOAT,evidence_based_reading_writing) END
+                         + CASE WHEN CONVERT(FLOAT,math) BETWEEN 200 AND 800 THEN CONVERT(FLOAT,math) END
+                         + CASE WHEN CONVERT(FLOAT,writing) BETWEEN 200 AND 800 THEN CONVERT(FLOAT,writing) END) != total 
+                       THEN 1 
+                  WHEN total NOT BETWEEN 600 AND 2400 THEN 1
+                 END AS total_flag
+                ,CASE WHEN sat.test_date > CONVERT(DATE,GETDATE()) THEN 1 END AS test_date_flag
                 ,sat.BINI_ID  
           FROM unioned_tables sat WITH(NOLOCK)
           LEFT OUTER JOIN PS$STUDENTS#static s WITH(NOLOCK)
             ON sat.hs_student_id = s.student_number          
-         ) sub1    
-    LEFT OUTER JOIN COHORT$comprehensive_long#static co
-      ON sub1.studentid = co.studentid
-     AND sub1.test_date BETWEEN co.ENTRYDATE AND co.exitdate
+         ) sub1
    ) sub2
---WHERE dupe_audit = 1

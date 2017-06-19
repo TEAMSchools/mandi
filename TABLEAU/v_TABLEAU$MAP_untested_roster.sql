@@ -19,12 +19,9 @@ WITH roster AS (
  )
 
 ,subjects AS (
-  SELECT 'Reading' AS measurementscale
-  UNION
-  SELECT 'Mathematics'
-  UNION
-  SELECT 'Language Usage'
-  UNION
+  SELECT 'Reading' AS measurementscale UNION
+  SELECT 'Mathematics' UNION
+  SELECT 'Language Usage' UNION
   SELECT 'Science - General Science'
  )
 
