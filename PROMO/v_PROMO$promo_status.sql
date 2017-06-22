@@ -190,10 +190,14 @@ FROM
            /* credits */
            ,CASE
              WHEN co.grade_level < 9 THEN NULL
-             WHEN co.grade_level = 12 AND ISNULL(cr.total_projected_credit_hours,0) + ISNULL(earned_credits_cum,0) >= 120 THEN 'On Track'
-             WHEN co.grade_level = 11 AND ISNULL(cr.total_projected_credit_hours,0) + ISNULL(earned_credits_cum,0) >= 85 THEN 'On Track'
-             WHEN co.grade_level = 10 AND ISNULL(cr.total_projected_credit_hours,0) + ISNULL(earned_credits_cum,0) >= 50 THEN 'On Track'
-             WHEN co.grade_level = 9 AND ISNULL(cr.total_projected_credit_hours,0) + ISNULL(earned_credits_cum,0) >= 25 THEN 'On Track'
+             WHEN co.grade_level = 12 AND ISNULL(earned_credits_cum,0) >= 120 THEN 'On Track'
+             WHEN co.grade_level = 11 AND ISNULL(earned_credits_cum,0) >= 85 THEN 'On Track'
+             WHEN co.grade_level = 10 AND ISNULL(earned_credits_cum,0) >= 50 THEN 'On Track'
+             WHEN co.grade_level = 9 AND ISNULL(earned_credits_cum,0) >= 25 THEN 'On Track'
+             --WHEN co.grade_level = 12 AND ISNULL(cr.total_projected_credit_hours,0) + ISNULL(earned_credits_cum,0) >= 120 THEN 'On Track'
+             --WHEN co.grade_level = 11 AND ISNULL(cr.total_projected_credit_hours,0) + ISNULL(earned_credits_cum,0) >= 85 THEN 'On Track'
+             --WHEN co.grade_level = 10 AND ISNULL(cr.total_projected_credit_hours,0) + ISNULL(earned_credits_cum,0) >= 50 THEN 'On Track'
+             --WHEN co.grade_level = 9 AND ISNULL(cr.total_projected_credit_hours,0) + ISNULL(earned_credits_cum,0) >= 25 THEN 'On Track'
              ELSE 'Off Track'
             END AS promo_status_credits
            ,CASE
@@ -206,8 +210,11 @@ FROM
            ,CASE WHEN co.grade_level < 9 THEN NULL ELSE cr.total_credit_hours_enrolled END AS credits_enrolled_y1
            ,CASE WHEN co.grade_level < 9 THEN NULL ELSE cr.total_projected_credit_hours END AS projected_credits_earned_y1
            ,CASE WHEN co.grade_level < 9 THEN NULL ELSE ISNULL(cum.earned_credits_cum,0) END AS earned_credits_cum
-           ,CASE WHEN co.grade_level < 9 THEN NULL ELSE cr.total_credit_hours_enrolled + ISNULL(cum.earned_credits_cum,0) END AS credits_enrolled_cum
-           ,CASE WHEN co.grade_level < 9 THEN NULL ELSE cr.total_projected_credit_hours + ISNULL(cum.earned_credits_cum,0) END AS projected_credits_earned_cum
+           
+           ,cum.potential_credits_cum AS credits_enrolled_cum
+           ,cum.earned_credits_cum AS projected_credits_earned_cum
+           --,CASE WHEN co.grade_level < 9 THEN NULL ELSE cr.total_credit_hours_enrolled + ISNULL(cum.earned_credits_cum,0) END AS credits_enrolled_cum
+           --,CASE WHEN co.grade_level < 9 THEN NULL ELSE cr.total_projected_credit_hours + ISNULL(cum.earned_credits_cum,0) END AS projected_credits_earned_cum
            
            /* HW grades */
            ,cat.H_Y1 AS HWC_Y1

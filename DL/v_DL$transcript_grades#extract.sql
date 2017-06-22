@@ -62,6 +62,7 @@ SELECT student_number
       ,academic_year
       ,term
       ,course_number
+      ,course_name
       ,credit_hours
       ,y1_grade_letter
       ,y1_grade_percent
@@ -72,7 +73,8 @@ FROM
            ,academic_year
            ,term
            ,course_number
-           ,CREDIT_HOURS
+           ,course_name
+           ,credit_hours
            ,y1_grade_letter
            ,y1_grade_percent
            ,schoolname

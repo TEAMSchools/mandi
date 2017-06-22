@@ -50,7 +50,7 @@ WITH roster AS (
         /* if stored grade exists, use that */                
         ,COALESCE(stored_letter, pgf_letter) AS term_grade_letter
         ,COALESCE(stored_pct, pgf_pct) AS term_grade_percent
-        /* F* rule for NCA and TEAM */
+        /* F* rule */
         ,CASE 
           WHEN COALESCE(stored_pct, pgf_pct) < 50 THEN 'F*'           
           ELSE COALESCE(stored_letter, pgf_letter)
@@ -250,12 +250,12 @@ SELECT sub.student_number
       ,sub.weighted_points_total      
       
       ,sub.y1_grade_percent AS y1_grade_percent
+      /* these use the adjusted Y1 */
       ,CASE
         WHEN y1.[percent] IS NOT NULL THEN y1.[percent]
         WHEN sub.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN NULL
         ELSE sub.y1_grade_percent_adjusted
-       END AS y1_grade_percent_adjusted
-      /* these use the adjusted Y1 */
+       END AS y1_grade_percent_adjusted      
       ,CASE
         WHEN y1.GRADE IS NOT NULL THEN y1.GRADE
         WHEN sub.academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN NULL

@@ -9,6 +9,7 @@ SELECT studentid
       ,CONVERT(FLOAT,ROUND(CONVERT(DECIMAL(4,3),(weighted_points / credit_hours)), 2)) AS cumulative_Y1_gpa
       ,CONVERT(FLOAT,ROUND(CONVERT(DECIMAL(4,3),(unweighted_points / credit_hours)), 2)) AS cumulative_Y1_gpa_unweighted
       ,earned_credits_cum      
+      ,potential_credits_cum
 
       ,CONVERT(FLOAT,ROUND(CONVERT(DECIMAL(4,3),(weighted_points_projected / credit_hours_projected)), 2)) AS cumulative_Y1_gpa_projected
       ,earned_credits_cum_projected
@@ -24,6 +25,7 @@ FROM
            ,ROUND(SUM(CONVERT(FLOAT,unweighted_points)),3) AS unweighted_points
            ,CASE WHEN SUM(CONVERT(FLOAT,potentialcrhrs)) = 0 THEN NULL ELSE SUM(CONVERT(FLOAT,potentialcrhrs)) END AS credit_hours
            ,SUM(earnedcrhrs) AS earned_credits_cum            
+           ,SUM(CASE WHEN academic_year < KIPP_NJ.dbo.fn_Global_Academic_Year() THEN earnedcrhrs ELSE potentialcrhrs END) AS potential_credits_cum            
 
            ,ROUND(SUM(CONVERT(FLOAT,weighted_points_projected)),3) AS weighted_points_projected
            ,CASE WHEN SUM(CONVERT(FLOAT,potentialcrhrs_projected)) = 0 THEN NULL ELSE SUM(CONVERT(FLOAT,potentialcrhrs_projected)) END AS credit_hours_projected
@@ -35,6 +37,7 @@ FROM
      FROM 
          (
           SELECT sg.studentid                
+                ,sg.academic_year
                 ,sg.schoolid                   
                 ,sg.COURSE_NUMBER
                 ,sg.potentialcrhrs                   
@@ -64,6 +67,7 @@ FROM
           UNION ALL
 
           SELECT gr.studentid
+                ,gr.academic_year
                 ,gr.schoolid
                 ,gr.course_number
                 ,NULL AS potentialcrhrs
@@ -92,6 +96,7 @@ FROM
           UNION ALL
 
           SELECT gr.studentid
+                ,gr.academic_year
                 ,gr.schoolid
                 ,gr.course_number
                 ,NULL AS potentialcrhrs

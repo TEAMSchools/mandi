@@ -88,7 +88,7 @@ SELECT co.STUDENTID
             ORDER BY cc.termid DESC, cc.course_number DESC, cc.dateenrolled DESC, cc.dateleft DESC) AS rn_subject    
 FROM KIPP_NJ..PS$CC#static cc WITH(NOLOCK)
 JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
-  ON ABS(cc.SECTIONID) = ABS(sec.ID)
+  ON ABS(cc.SECTIONID) = sec.ID
 JOIN KIPP_NJ..PS$COURSES#static cou WITH(NOLOCK)
   ON cc.COURSE_NUMBER = cou.COURSE_NUMBER
 JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)

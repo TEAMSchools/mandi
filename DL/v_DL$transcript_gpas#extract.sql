@@ -22,3 +22,4 @@ JOIN KIPP_NJ..GRADES$GPA_cumulative#static sg WITH(NOLOCK)
   ON co.studentid = sg.studentid
  AND co.schoolid = sg.schoolid
 WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  AND co.rn = 1

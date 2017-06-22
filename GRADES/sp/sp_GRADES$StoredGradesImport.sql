@@ -91,7 +91,7 @@ BEGIN
             ,CASE WHEN gr.y1_grade_letter NOT LIKE 'F%' THEN co.CREDIT_HOURS ELSE 0 END AS earnedcrhrs
             ,'Y1' AS storecode
             ,gr.y1_grade_letter AS grade
-            ,gr.y1_grade_percent_adjusted AS [percent]
+            ,gr.y1_grade_percent AS [percent]
             ,scale.grade_points AS gpa_points
             ,scale.scale_name AS gradescale_name
       FROM KIPP_NJ..GRADES$final_grades_long#static gr WITH(NOLOCK)
@@ -99,8 +99,8 @@ BEGIN
         ON gr.COURSE_NUMBER = co.COURSE_NUMBER       
       LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static scale WITH(NOLOCK)
         ON co.gradescaleid = scale.scale_id 
-       AND gr.Y1_grade_percent_adjusted >= scale.low_cut
-       AND gr.Y1_grade_percent_adjusted < scale.high_cut
+       AND gr.y1_grade_percent >= scale.low_cut
+       AND gr.y1_grade_percent < scale.high_cut
       WHERE gr.SCHOOLID = @schoolid
         AND gr.academic_year = @academic_year
         AND gr.is_curterm = 1
