@@ -98,4 +98,4 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
  AND cc.academic_year = co.year
  AND co.rn = 1
 WHERE cc.DATEENROLLED < cc.DATELEFT
-  AND cc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  --AND cc.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()

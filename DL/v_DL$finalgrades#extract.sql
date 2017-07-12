@@ -37,7 +37,7 @@ SELECT CONVERT(INT,o.student_number) AS student_number
 FROM KIPP_NJ..PS$course_order_scaffold#static o WITH(NOLOCK)
 LEFT OUTER JOIN KIPP_NJ..PS$SECTIONS#static sec WITH(NOLOCK)
   ON o.sectionid = sec.ID
-LEFT OUTER JOIN KIPP_NJ..GRADES$final_grades_wide#static fg WITH(NOLOCK)
+JOIN KIPP_NJ..GRADES$final_grades_wide#static fg WITH(NOLOCK)
   ON o.student_number = fg.student_number
  AND o.academic_year = fg.academic_year
  AND o.course_number = fg.course_number

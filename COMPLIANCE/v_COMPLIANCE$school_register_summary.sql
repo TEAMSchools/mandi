@@ -15,6 +15,7 @@ WITH schooldays AS (
              ,SUM(membershipvalue) AS N_days
        FROM KIPP_NJ..PS$calendar_day WITH(NOLOCK)
        WHERE CONVERT(DATE,date_value) <= CONVERT(DATE,GETDATE())
+         AND schoolid != 12345 /* exclude summer school */
        GROUP BY academic_year
                ,schoolid
       ) sub
@@ -44,13 +45,7 @@ SELECT sub.academic_year
       ,co.exitdate
       ,co.sped_code
       ,CASE
-        WHEN co.year >= 2015 AND  co.SPED_code IN ('CMO','CMI','CSE' /* Cognative */
-                                                   /* LLD - Mild/Moderate, LLD - Severe */
-                                                   /* Behavior */
-                                                  ,'MD' /* Multiple */
-                                                  ,'AI' /* Auditory */
-                                                  ,'VI' /* Visual */
-                                                  ,'AUT' /* Autism */) THEN co.SPED_code                          
+        WHEN cs.programtypecode IS NOT NULL THEN CONVERT(VARCHAR,cs.programtypecode)
         WHEN co.grade_level = 0 THEN 'K'
         ELSE CONVERT(VARCHAR,co.grade_level)
        END AS report_grade_level      
@@ -80,6 +75,8 @@ JOIN KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
   ON sub.studentid = co.studentid
  AND sub.academic_year = co.year
  AND co.rn = 1
+LEFT OUTER JOIN KIPP_NJ..PS$STUDENTS_custom#static cs
+  ON co.studentid = cs.studentid
 JOIN schooldays d
   ON sub.academic_year = d.academic_year
  AND CASE WHEN co.schoolid LIKE '1799%' THEN 'KCNA' ELSE 'TEAM' END = d.region

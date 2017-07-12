@@ -22,14 +22,14 @@ FROM
            ,ROW_NUMBER() OVER(
               PARTITION BY c.StudentNumber
                 ORDER BY c.PermanentStatusDate DESC) AS rn
-     FROM [RM9-RE\RE_ENTERPRISE].[Newton].[dbo].[CUSTOMER] c WITH(NOLOCK)
-     INNER JOIN [RM9-RE\RE_ENTERPRISE].[Newton].[dbo].[STUDENT_GUID_LINK] g WITH(NOLOCK)
+     FROM [WINSQL06\HAN].[Newton].[dbo].[CUSTOMER] c WITH(NOLOCK)
+     INNER JOIN [WINSQL06\HAN].[Newton].[dbo].[STUDENT_GUID_LINK] g WITH(NOLOCK)
        ON c.[CUSTOMER_RECID] = g.[CustomerID]
-     INNER JOIN [RM9-RE\RE_ENTERPRISE].[Newton].[dbo].[CUSTOMER_CATEGORY] cat WITH(NOLOCK)
+     INNER JOIN [WINSQL06\HAN].[Newton].[dbo].[CUSTOMER_CATEGORY] cat WITH(NOLOCK)
        ON c.[Customer_CategoryID] = cat.[CUSTOMER_CATEGORY_RECID]
-     INNER JOIN [RM9-RE\RE_ENTERPRISE].[Franklin].[dbo].STUDENT s WITH(NOLOCK)
+     INNER JOIN [WINSQL06\HAN].[Franklin].[dbo].STUDENT s WITH(NOLOCK)
        ON g.StudentGUID = s.GlobalUID
-     INNER JOIN [RM9-RE\RE_ENTERPRISE].[Franklin].[dbo].[ELIGIBILITY] e WITH(NOLOCK)
+     INNER JOIN [WINSQL06\HAN].[Franklin].[dbo].[ELIGIBILITY] e WITH(NOLOCK)
        ON s.[EligibilityID] = e.[ELIGIBILITY_RECID]
      WHERE cat.[IsStudent] = 1 /*Only Students*/
        AND ISNUMERIC(c.[StudentNumber]) = 1

@@ -95,11 +95,6 @@ WITH roster AS (
          ON enr.studentid = sg.STUDENTID 
         AND enr.SECTIONID = sg.SECTIONID
         AND pgf.FINALGRADENAME = sg.STORECODE 
-       --LEFT OUTER JOIN KIPP_NJ..GRADES$STOREDGRADES#static y1 WITH(NOLOCK)
-       --  ON enr.studentid = y1.STUDENTID 
-       -- AND enr.SECTIONID = y1.SECTIONID
-       -- --AND pgf.FINALGRADENAME = 'Q4'
-       -- AND y1.STORECODE = 'Y1'
        LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static sg_scale WITH(NOLOCK)
          ON enr.GRADESCALEID = sg_scale.scale_id
         AND sg.[percent] >= sg_scale.low_cut
@@ -196,9 +191,7 @@ WITH roster AS (
         ,CASE          
           WHEN r.grade_level <= 8 THEN 1.0 / CONVERT(FLOAT,COUNT(r.student_number) OVER(PARTITION BY r.student_number, r.academic_year, gr.course_number))
           WHEN r.grade_level >= 9 THEN .225
-         END AS term_grade_weight_possible
-        --,CASE WHEN r.grade_level >= 9 AND r.term = 'Q2' THEN 0.05 END AS E1_grade_weight_possible
-        --,CASE WHEN r.grade_level >= 9 AND r.term = 'Q4' THEN 0.05 END AS E2_grade_weight_possible
+         END AS term_grade_weight_possible        
   FROM roster r
   LEFT OUTER JOIN enr_grades gr
     ON r.studentid = gr.studentid
@@ -386,11 +379,10 @@ FROM
           FROM grades_long               
          ) sub
     ) sub
-LEFT OUTER JOIN KIPP_NJ..GRADES$STOREDGRADES#static y1 WITH(NOLOCK)
+JOIN KIPP_NJ..GRADES$STOREDGRADES#static y1 WITH(NOLOCK)  /* temp fix bc not all grades have active enrollments in PS */
   ON sub.studentid = y1.STUDENTID
  AND sub.academic_year = y1.academic_year
  AND sub.course_number = y1.COURSE_NUMBER
- --AND sub.term = 'Q4'
  AND y1.STORECODE = 'Y1'
 LEFT OUTER JOIN KIPP_NJ..GRADES$grade_scales#static scale WITH(NOLOCK)
   ON sub.gradescaleid = scale.scale_id

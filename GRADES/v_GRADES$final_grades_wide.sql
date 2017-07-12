@@ -163,7 +163,7 @@ FROM
            ,gr.pivot_field
            ,gr.value
      FROM KIPP_NJ..PS$course_order_scaffold#static o WITH(NOLOCK)
-     LEFT OUTER JOIN grades_unpivot gr
+     JOIN grades_unpivot gr /* inner join temp fix */
        ON o.student_number = gr.student_number
       AND o.academic_year = gr.academic_year
       AND o.term = gr.term

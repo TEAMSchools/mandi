@@ -1,7 +1,7 @@
 USE KIPP_NJ
 GO
 
-ALTER VIEW TABLEAU$PARCC_dashboard AS
+--ALTER VIEW TABLEAU$PARCC_dashboard AS
 
 WITH external_prof AS (
   SELECT academic_year        
@@ -187,97 +187,3 @@ LEFT OUTER JOIN external_prof ext
  AND co.grade_level = ext.grade_level
  AND ext.testcode = 'SCI'
 WHERE co.rn = 1
-
---UNION ALL
-
---/* TEMP FIX UNTIL OFFICIAL SCORES */
---SELECT co.student_number
---      ,co.lastfirst
---      ,co.year AS academic_year
---      ,co.reporting_schoolid AS schoolid           
---      ,co.grade_level            
---      ,co.school_level     
---      ,CASE WHEN co.schoolid LIKE '1799%' THEN 'Camden' ELSE 'Newark' END AS region      
---      ,co.SPEDLEP
---      ,co.enroll_status
-      
---      ,'PARCC' AS test_type
---      ,CASE
---        WHEN test_name = 'Algebra I' THEN 'ALG01'
---        WHEN test_name = 'Algebra II' THEN 'ALG02'
---        WHEN test_name = 'Geometry' THEN 'GEO01'
---        WHEN test_name = 'Grade 10 ELA/Literacy' THEN 'ELA10'
---        WHEN test_name = 'Grade 11 ELA/Literacy' THEN 'ELA11'
---        WHEN test_name = 'Grade 3 ELA/Literacy' THEN 'ELA03'
---        WHEN test_name = 'Grade 3 Mathematics' THEN 'MAT03'
---        WHEN test_name = 'Grade 4 ELA/Literacy' THEN 'ELA04'
---        WHEN test_name = 'Grade 4 Mathematics' THEN 'MAT04'
---        WHEN test_name = 'Grade 5 ELA/Literacy' THEN 'ELA05'
---        WHEN test_name = 'Grade 5 Mathematics' THEN 'MAT05'
---        WHEN test_name = 'Grade 6 ELA/Literacy' THEN 'ELA06'
---        WHEN test_name = 'Grade 6 Mathematics' THEN 'MAT06'
---        WHEN test_name = 'Grade 7 ELA/Literacy' THEN 'ELA07'
---        WHEN test_name = 'Grade 7 Mathematics' THEN 'MAT07'
---        WHEN test_name = 'Grade 8 ELA/Literacy' THEN 'ELA08'
---        WHEN test_name = 'Grade 8 Mathematics' THEN 'MAT08'
---        WHEN test_name = 'Grade 9 ELA/Literacy' THEN 'ELA09'
---       END AS testcode
---      ,CASE 
---        WHEN parcc.test_name LIKE '%ELA%' THEN 'ELA'
---        ELSE 'Math'
---       END AS subject      
---      ,parcc.scale_score AS summativescalescore      
---      ,CASE
---        WHEN parcc.performance_level = 'Exceeded Expectations' THEN 5
---        WHEN parcc.performance_level = 'Met Expectations' THEN 4
---        WHEN parcc.performance_level = 'Approached Expectations' THEN 3
---        WHEN parcc.performance_level = 'Partially Met Expectations' THEN 2
---        WHEN parcc.performance_level = 'Did Not Yet Meet Expectations' THEN 1
---       END AS summativeperformancelevel
---      ,NULL AS summativereadingscalescore            
---      ,NULL AS summativewritingscalescore                        
-
---      ,NULL AS pbatotaltestitems      
---      ,NULL AS pbatotaltestitemsattempted
---      ,NULL AS eoytotaltestitems                  
---      ,NULL AS eoytotaltestitemsattempted
-
---      ,NULL AS is_optout
---      ,CASE                
---        WHEN parcc.performance_level IN ('Met Expectations','Exceeded Expectations') THEN 1.0 
---        WHEN parcc.performance_level NOT IN ('Met Expectations','Exceeded Expectations') THEN 0.0 
---       END AS is_prof
-
---      ,ext.NJ AS pct_prof_NJ
---      ,ext.NPS AS pct_prof_NPS
---      ,ext.CPS AS pct_prof_CPS
---      ,ext.PARCC AS pct_prof_PARCC
---FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
---JOIN KIPP_NJ..AUTOLOAD$GDOCS_PARCC_preliminary_data parcc WITH(NOLOCK)
---  ON co.student_number = parcc.local_student_identifier
--- AND co.year = parcc.academic_year 
---LEFT OUTER JOIN external_prof ext WITH(NOLOCK)
---  ON co.year = ext.academic_year
--- AND CASE
---      WHEN test_name = 'Algebra I' THEN 'ALG01'
---      WHEN test_name = 'Algebra II' THEN 'ALG02'
---      WHEN test_name = 'Geometry' THEN 'GEO01'
---      WHEN test_name = 'Grade 10 ELA/Literacy' THEN 'ELA10'
---      WHEN test_name = 'Grade 11 ELA/Literacy' THEN 'ELA11'
---      WHEN test_name = 'Grade 3 ELA/Literacy' THEN 'ELA03'
---      WHEN test_name = 'Grade 3 Mathematics' THEN 'MAT03'
---      WHEN test_name = 'Grade 4 ELA/Literacy' THEN 'ELA04'
---      WHEN test_name = 'Grade 4 Mathematics' THEN 'MAT04'
---      WHEN test_name = 'Grade 5 ELA/Literacy' THEN 'ELA05'
---      WHEN test_name = 'Grade 5 Mathematics' THEN 'MAT05'
---      WHEN test_name = 'Grade 6 ELA/Literacy' THEN 'ELA06'
---      WHEN test_name = 'Grade 6 Mathematics' THEN 'MAT06'
---      WHEN test_name = 'Grade 7 ELA/Literacy' THEN 'ELA07'
---      WHEN test_name = 'Grade 7 Mathematics' THEN 'MAT07'
---      WHEN test_name = 'Grade 8 ELA/Literacy' THEN 'ELA08'
---      WHEN test_name = 'Grade 8 Mathematics' THEN 'MAT08'
---      WHEN test_name = 'Grade 9 ELA/Literacy' THEN 'ELA09'
---     END = ext.testcode 
---WHERE co.year = 2015
---  AND co.rn = 1
---/* TEMP FIX UNTIL OFFICIAL SCORES */

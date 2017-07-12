@@ -35,7 +35,8 @@ SELECT jp.Name AS job_position_name
        ,ad.sAMAccountName AS username        
        ,CASE
          WHEN ad.is_active IS NULL THEN 'New Hire'
-         WHEN ad.is_active = 1 THEN 'Returning Staff - Current'
+         WHEN ad.is_active = 1 AND ad.createTimeStamp >= '2017-06-01' THEN 'New Hire'
+         WHEN ad.is_active = 1 AND ad.createTimeStamp < '2017-06-01' THEN 'Returning Staff - Current'
          WHEN ad.is_active = 0 THEN 'Returning Staff - Departed'
         END AS ad_account_status
        ,CASE 

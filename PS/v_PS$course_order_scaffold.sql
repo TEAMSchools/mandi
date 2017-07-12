@@ -75,8 +75,8 @@ FROM
        ON co.student_number = enr.student_number
       AND co.year = enr.academic_year      
       AND enr.COURSE_NUMBER NOT IN ('')
-      AND enr.course_enr_status = 0
-      AND enr.drop_flags = 0
+      --AND enr.course_enr_status = 0
+      --AND enr.drop_flags = 0
       AND enr.dateenrolled <= CONVERT(DATE,GETDATE())
      WHERE co.rn = 1       
     ) sub  

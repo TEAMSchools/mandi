@@ -127,7 +127,7 @@ BEGIN
     ,SOURCE.illuminate_subject
     ,SOURCE.measurementscale
     ,SOURCE.rn_subject)
-  WHEN NOT MATCHED BY SOURCE AND TARGET.academic_year = KIPP_NJ.dbo.fn_Global_Academic_Year()
+  WHEN NOT MATCHED BY SOURCE
     THEN DELETE;
   --OUTPUT $ACTION, DELETED.*;
 

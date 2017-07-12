@@ -15,6 +15,7 @@ FROM OPENQUERY(PS_TEAM,'
         ,nj.LEPBeginDate AS NJ_LEPBeginDate
         ,nj.LEPEndDate AS NJ_LEPEndDate
         ,nj.Migrant_TF AS NJ_Migrant
+        ,nj.programtypecode
         
         ,c.SPEDLEP
         ,nj.LEP_TF AS LEP_STATUS        

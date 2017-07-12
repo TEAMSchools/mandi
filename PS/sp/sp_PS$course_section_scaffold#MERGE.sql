@@ -27,8 +27,7 @@ BEGIN
     ON ABS(cc.SECTIONID) = sec.ID
   JOIN KIPP_NJ..PS$TEACHERS#static t WITH(NOLOCK)
     ON sec.teacher = t.ID
-  WHERE co.year = KIPP_NJ.dbo.fn_Global_Academic_Year()
-    AND co.term != 'Summer School';
+  WHERE co.term != 'Summer School';
 
   /* SELECT most recent enrollments by term and year INTO another temp table */
   IF OBJECT_ID(N'tempdb..#sections_scaffold_rn') IS NOT NULL
@@ -88,7 +87,7 @@ BEGIN
     UPDATE  
       SET TARGET.sectionid = SOURCE.sectionid
          ,TARGET.teacher_name = SOURCE.teacher_name            
-  WHEN NOT MATCHED THEN 
+  WHEN NOT MATCHED BY TARGET THEN 
     INSERT
       (studentid
       ,year
@@ -102,6 +101,8 @@ BEGIN
       ,SOURCE.term
       ,SOURCE.course_number
       ,SOURCE.sectionid
-      ,SOURCE.teacher_name);
+      ,SOURCE.teacher_name)
+   WHEN NOT MATCHED BY SOURCE THEN 
+     DELETE;
 
 END

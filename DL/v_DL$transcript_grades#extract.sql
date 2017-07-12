@@ -4,7 +4,8 @@ GO
 ALTER VIEW DL$transcript_grades#extract AS
 
 WITH all_grades AS (
-  SELECT CONVERT(INT,o.student_number) AS student_number
+  SELECT CONVERT(INT,o.student_number) AS student_number        
+        ,o.schoolid
         ,o.academic_year
         ,'Y1' AS term      
         ,o.course_number
@@ -38,6 +39,7 @@ WITH all_grades AS (
   UNION ALL
 
   SELECT CONVERT(INT,s.student_number) AS student_number
+        ,sg.schoolid
         ,sg.academic_year
         ,'Y1' AS term      
         ,sg.course_number
@@ -60,7 +62,8 @@ WITH all_grades AS (
 
 SELECT student_number
       ,academic_year
-      ,term
+      ,schoolid
+      ,term      
       ,course_number
       ,course_name
       ,credit_hours
@@ -71,6 +74,7 @@ FROM
     (
      SELECT student_number
            ,academic_year
+           ,schoolid
            ,term
            ,course_number
            ,course_name

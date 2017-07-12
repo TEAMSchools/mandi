@@ -35,6 +35,7 @@ WITH reenrollments AS (
         AND re.exitdate <= DATEADD(DAY, 1, terms.lastday)
         AND terms.portion = 1
        WHERE DATEDIFF(DAY,re.ENTRYDATE, re.EXITDATE) > 0
+         AND re.schoolid != 12345 /* filter out summer school */
       ) sub
  )
 
