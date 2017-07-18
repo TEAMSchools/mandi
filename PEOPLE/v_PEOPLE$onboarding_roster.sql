@@ -43,6 +43,14 @@ SELECT jp.Name AS job_position_name
          WHEN ad.associate_id IS NOT NULL THEN 'Y' 
          ELSE 'N' 
         END AS in_ActiveDirectory       
+
+       ,ad.userPrincipalName
+       ,ad.displayName
+       ,ad.givenName
+       ,ad.sn
+       ,ad.physicalDeliveryOfficeName
+       ,ad.title
+       ,ad.idautostatus
 FROM KIPPCareersMirror..Job_Position__c jp WITH(NOLOCK)  
 LEFT OUTER JOIN KIPPCareersMirror..Job_Application__c ja WITH(NOLOCK)    
   ON jp.Id = ja.Job_Position__c               

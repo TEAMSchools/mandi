@@ -14,7 +14,7 @@ WHERE is_curterm = 1
 UNION ALL
 
 SELECT co.student_number
-      ,KIPP_NJ.dbo.fn_Global_Academic_Year() AS academic_year
+      ,co.year AS academic_year
       ,sg.cumulative_y1_gpa AS GPA_Y1_weighted
       ,sg.cumulative_y1_gpa_unweighted AS GPA_Y1_unweighted
 FROM KIPP_NJ..COHORT$identifiers_long#static co WITH(NOLOCK)
