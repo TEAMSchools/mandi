@@ -16,7 +16,7 @@ WITH roster AS (
         ,MAX(co.grade_level) OVER(PARTITION BY co.student_number, co.schoolid) AS end_grade
         ,CASE
           WHEN co.schoolid = 133570965 THEN 'TEAM Academy, a KIPP school'
-          WHEN co.schoolid = 73252 THEN 'Rise Academy, a KIPP school'
+          WHEN co.schoolid = 73252 THEN 'KIPP Rise Academy'
           WHEN co.schoolid = 73253 THEN 'Newark Collegiate Academy, a KIPP school'
           WHEN co.schoolid = 179902 THEN 'KIPP Lanning Square Middle School'
          END AS school_name
