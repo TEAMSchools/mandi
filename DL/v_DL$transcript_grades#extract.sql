@@ -70,6 +70,7 @@ SELECT student_number
       ,y1_grade_letter
       ,y1_grade_percent
       ,schoolname
+      ,is_stored
 FROM
     (
      SELECT student_number
@@ -82,6 +83,7 @@ FROM
            ,y1_grade_letter
            ,y1_grade_percent
            ,schoolname
+           ,is_stored
            ,ROW_NUMBER() OVER(
               PARTITION BY student_number, course_name, academic_year
                 ORDER BY is_stored DESC) AS rn
