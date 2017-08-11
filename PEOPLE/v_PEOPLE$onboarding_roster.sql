@@ -10,12 +10,12 @@ SELECT jp.Name AS job_position_name
         ELSE SUBSTRING(jp.Position_Name__c
                       ,CHARINDEX('_',jp.Position_Name__c) + 1
                       ,CHARINDEX('_',jp.Position_Name__c,CHARINDEX('_',jp.Position_Name__c) + 1) - CHARINDEX('_',jp.Position_Name__c) - 1) 
-        END AS salesforce_location               
+       END AS salesforce_location               
        
        ,ja.Contact_Name__c AS salesforce_contact_name        
-       ,CASE WHEN ja.Selection_Status__c = 'Complete' THEN 'Accepted' ELSE ja.Selection_Status__c END AS Selection_Status__c
-       --,ja.Stage__c
        ,CONVERT(DATE,ja.Hired_Status_Date__c) AS Hired_Status_Date__c                
+       --,ja.Stage__c
+       ,CASE WHEN ja.Selection_Status__c = 'Complete' THEN 'Accepted' ELSE ja.Selection_Status__c END AS Selection_Status__c       
 
        ,adp.first_name AS adp_first_name        
        ,adp.last_name AS adp_last_name    
@@ -51,6 +51,10 @@ SELECT jp.Name AS job_position_name
        ,ad.physicalDeliveryOfficeName
        ,ad.title
        ,ad.idautostatus
+
+       ,jp.Status__c
+       ,CONVERT(DATE,jp.CreatedDate) AS CreatedDate
+       ,CONVERT(DATE,jp.Date_Position_Filled__c) AS Date_Position_Filled__c
 FROM KIPPCareersMirror..Job_Position__c jp WITH(NOLOCK)  
 LEFT OUTER JOIN KIPPCareersMirror..Job_Application__c ja WITH(NOLOCK)    
   ON jp.Id = ja.Job_Position__c               
