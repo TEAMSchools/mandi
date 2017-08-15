@@ -71,19 +71,20 @@ FROM
                 ,s.student_number
                 ,s.id AS studentid                
                 ,CONVERT(DATE,test_date) AS test_date
-                ,CONVERT(FLOAT,evidence_based_reading_writing) AS verbal
-                ,CONVERT(FLOAT,math) AS math
-                ,CONVERT(FLOAT,writing) AS writing
-                ,essay_subscore
-                ,mc_subscore                
+                ,CONVERT(FLOAT,CASE WHEN evidence_based_reading_writing BETWEEN 200 AND 800 THEN evidence_based_reading_writing END) AS verbal
+                ,CONVERT(FLOAT,CASE WHEN math BETWEEN 200 AND 800 THEN math END) AS math
+                ,CONVERT(FLOAT,CASE WHEN writing BETWEEN 200 AND 800 THEN writing END) AS writing
+                ,CASE WHEN essay_subscore = 0 THEN NULL ELSE essay_subscore END AS essay_subscore 
+                ,CASE WHEN mc_subscore = 0 THEN NULL ELSE mc_subscore END AS mc_subscore
                 ,CONVERT(FLOAT,evidence_based_reading_writing) + CONVERT(FLOAT,math) AS math_verbal_total                
-                ,CONVERT(FLOAT,total) AS all_tests_total
+                ,CONVERT(FLOAT,CASE WHEN total < 200 THEN NULL ELSE total END) AS all_tests_total
                 ,CASE
-                  WHEN (CASE WHEN CONVERT(FLOAT,evidence_based_reading_writing) BETWEEN 200 AND 800 THEN CONVERT(FLOAT,evidence_based_reading_writing) END
-                         + CASE WHEN CONVERT(FLOAT,math) BETWEEN 200 AND 800 THEN CONVERT(FLOAT,math) END
-                         + CASE WHEN CONVERT(FLOAT,writing) BETWEEN 200 AND 800 THEN CONVERT(FLOAT,writing) END) != total 
+                  WHEN (ISNULL(CASE WHEN CONVERT(FLOAT,evidence_based_reading_writing) BETWEEN 200 AND 800 THEN CONVERT(FLOAT,evidence_based_reading_writing) END, 0)
+                         + ISNULL(CASE WHEN CONVERT(FLOAT,math) BETWEEN 200 AND 800 THEN CONVERT(FLOAT,math) END, 0)
+                         + ISNULL(CASE WHEN CONVERT(FLOAT,writing) BETWEEN 200 AND 800 THEN CONVERT(FLOAT,writing) END, 0))
+                           != total 
                        THEN 1 
-                  WHEN total NOT BETWEEN 600 AND 2400 THEN 1
+                  WHEN total NOT BETWEEN 400 AND 2400 THEN 1
                  END AS total_flag
                 ,CASE WHEN sat.test_date > CONVERT(DATE,GETDATE()) THEN 1 END AS test_date_flag
                 ,sat.BINI_ID  
